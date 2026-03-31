@@ -12,13 +12,14 @@ export const thirdwebClient = createThirdwebClient({
 
 export const smartWalletChain = bsc;
 
-export const appMetadata = {
-  name: "Pocket Smart Wallet",
-  description:
-    "Mobile-first smart wallet starter built with thirdweb and a v0-compatible Next.js structure.",
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  logoUrl: "/favicon.ico",
-};
+export function getAppMetadata(description: string) {
+  return {
+    name: "Pocket Smart Wallet",
+    description,
+    url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    logoUrl: "/favicon.ico",
+  };
+}
 
 export const smartWalletOptions = {
   chain: smartWalletChain,

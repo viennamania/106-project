@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -25,18 +25,20 @@ import {
   useWalletBalance,
 } from "thirdweb/react";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { cn } from "@/lib/utils";
 import {
-  appMetadata,
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   BSC_USDT_URL,
+  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { cn } from "@/lib/utils";
+import { thirdwebLocales, type Dictionary, type Locale } from "@/lib/i18n";
 
 type NoticeTone = "info" | "success" | "error";
 
@@ -46,9 +48,13 @@ type WalletNotice = {
   href?: string;
 };
 
-const loginMethods = ["Email", "Google", "Apple", "Passkey", "Guest"];
-
-export function SmartWalletApp() {
+export function SmartWalletApp({
+  dictionary,
+  locale,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+}) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
   const chain = useActiveWalletChain() ?? smartWalletChain;
@@ -62,6 +68,7 @@ export function SmartWalletApp() {
   const [notice, setNotice] = useState<WalletNotice | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const appMetadata = getAppMetadata(dictionary.meta.description);
   const signer = wallet?.getAdminAccount?.();
   const accountAddress = account?.address;
   const accountUrl = accountAddress
@@ -78,7 +85,7 @@ export function SmartWalletApp() {
       setCopied(true);
       setNotice({
         tone: "info",
-        text: "스마트 월렛 주소를 클립보드에 복사했습니다.",
+        text: dictionary.notices.copySuccess,
       });
 
       window.setTimeout(() => {
@@ -87,7 +94,7 @@ export function SmartWalletApp() {
     } catch {
       setNotice({
         tone: "error",
-        text: "주소 복사에 실패했습니다. 브라우저 권한을 확인하세요.",
+        text: dictionary.notices.copyError,
       });
     }
   }
@@ -113,20 +120,27 @@ export function SmartWalletApp() {
               <WalletMinimal className="size-5" />
             </div>
             <div className="space-y-1">
-              <p className="eyebrow">V0-compatible x thirdweb</p>
+              <p className="eyebrow">{dictionary.common.headerEyebrow}</p>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                  Pocket Smart Wallet
+                  {dictionary.common.appName}
                 </h1>
                 <p className="text-sm text-slate-600">
-                  모바일 우선 Smart Account 온보딩과 가스 스폰서 데모를 한 화면에 묶었습니다.
+                  {dictionary.common.headerDescription}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <StatusChip status={status} />
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <LanguageSwitcher
+              label={dictionary.common.languageLabel}
+              locale={locale}
+            />
+            <StatusChip
+              labels={dictionary.common.status}
+              status={status}
+            />
             {hasThirdwebClientId ? (
               <ConnectButton
                 accountAbstraction={smartWalletOptions}
@@ -136,10 +150,10 @@ export function SmartWalletApp() {
                 connectButton={{
                   className:
                     "!h-11 !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                  label: "지갑 연결",
+                  label: dictionary.common.connectWallet,
                 }}
                 connectModal={{
-                  title: "Pocket Smart Wallet 시작",
+                  title: dictionary.common.connectModalTitle,
                   titleIcon: "/favicon.ico",
                 }}
                 detailsButton={{
@@ -152,12 +166,13 @@ export function SmartWalletApp() {
                 detailsModal={{
                   showTestnetFaucet: false,
                 }}
+                locale={thirdwebLocales[locale]}
                 theme="dark"
                 wallets={supportedWallets}
               />
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                client id 필요
+                {dictionary.common.clientIdRequired}
               </div>
             )}
           </div>
@@ -169,62 +184,48 @@ export function SmartWalletApp() {
             <div className="relative space-y-6">
               <div className="flex flex-wrap gap-2">
                 <Badge icon={<Smartphone className="size-3.5" />}>
-                  Thumb-first flow
+                  {dictionary.hero.badges[0]}
                 </Badge>
                 <Badge icon={<ShieldCheck className="size-3.5" />}>
-                  ERC-4337 smart account
+                  {dictionary.hero.badges[1]}
                 </Badge>
                 <Badge icon={<Zap className="size-3.5" />}>
-                  Sponsored gas demo
+                  {dictionary.hero.badges[2]}
                 </Badge>
               </div>
 
               <div className="space-y-3">
-                <p className="eyebrow">Mobile Smart Wallet</p>
+                <p className="eyebrow">{dictionary.hero.eyebrow}</p>
                 <h2 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
-                  이메일이나 패스키로 바로 들어오고, Smart Wallet으로 바로 전환되는 온체인 앱.
+                  {dictionary.hero.title}
                 </h2>
                 <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                  `v0`가 다루기 좋은 컴포넌트 구조와 `thirdweb` Smart Wallet
-                  연결 흐름을 결합했습니다. 모바일에서 긴 입력을 줄이고, Base
-                  Smart Wallet 위에서 BSC USDT 잔액만 빠르게 확인할 수 있게
-                  정리했습니다.
+                  {dictionary.hero.description}
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <MetricCard
-                  label="체인"
-                  value="BSC"
-                  hint="BNB Smart Chain"
-                />
-                <MetricCard
-                  label="표시 토큰"
-                  value="USDT"
-                  hint="BSC only"
-                />
-                <MetricCard
-                  label="가스 정책"
-                  value="sponsorGas"
-                  hint="always true"
-                />
+                {dictionary.metrics.map((metric) => (
+                  <MetricCard
+                    hint={metric.hint}
+                    key={metric.label}
+                    label={metric.label}
+                    value={metric.value}
+                  />
+                ))}
               </div>
 
               {!hasThirdwebClientId ? (
                 <div className="rounded-[28px] border border-amber-300 bg-amber-50/90 p-5 text-sm text-amber-950">
-                  <p className="font-semibold">환경변수 설정 필요</p>
-                  <p className="mt-2 leading-6">
-                    `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`가 비어 있어 Connect UI를
-                    숨겼습니다. `.env.example`을 복사한 뒤 client id를 넣으면
-                    바로 연결됩니다.
-                  </p>
+                  <p className="font-semibold">{dictionary.env.title}</p>
+                  <p className="mt-2 leading-6">{dictionary.env.description}</p>
                 </div>
               ) : status === "connected" && accountAddress ? (
                 <div className="grid gap-3 rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:grid-cols-[1.25fr_0.75fr]">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="eyebrow">Active Smart Wallet</p>
+                        <p className="eyebrow">{dictionary.connected.eyebrow}</p>
                         <h3 className="text-xl font-semibold text-slate-950">
                           {shortenAddress(accountAddress)}
                         </h3>
@@ -239,54 +240,72 @@ export function SmartWalletApp() {
                         ) : (
                           <Copy className="size-3.5" />
                         )}
-                        {copied ? "복사됨" : "주소 복사"}
+                        {copied
+                          ? dictionary.common.copied
+                          : dictionary.common.copyAddress}
                       </button>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <InfoRow
-                        label="연결된 체인"
+                        label={dictionary.connected.labels.chain}
                         value={chain.name ?? "BSC"}
                       />
                       <InfoRow
-                        label="USDT 잔액"
+                        label={dictionary.connected.labels.balance}
                         value={formatBalance(
                           balance?.displayValue,
                           balance?.symbol ?? "USDT",
+                          locale,
                         )}
                       />
                       <InfoRow
-                        label="지갑 타입"
-                        value={signer ? "Abstracted smart wallet" : wallet?.id ?? "-"}
+                        label={dictionary.connected.labels.walletType}
+                        value={
+                          signer
+                            ? dictionary.common.walletTypeAbstracted
+                            : wallet?.id ?? dictionary.common.notAvailable
+                        }
                       />
                       <InfoRow
-                        label="관리자 signer"
-                        value={signer ? shortenAddress(signer.address) : "N/A"}
+                        label={dictionary.connected.labels.adminSigner}
+                        value={
+                          signer
+                            ? shortenAddress(signer.address)
+                            : dictionary.common.notAvailable
+                        }
                       />
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-3 rounded-[24px] bg-slate-950 p-4 text-white">
                     <p className="text-xs uppercase tracking-[0.24em] text-white/60">
-                      Quick Actions
+                      {dictionary.connected.quickActionsTitle}
                     </p>
-                    <ActionLink href={accountUrl} label="BscScan에서 보기" />
-                    <ActionLink href={BSC_USDT_URL} label="BSC USDT 컨트랙트" />
+                    <ActionLink
+                      href={accountUrl}
+                      label={dictionary.connected.actions.explorer}
+                    />
+                    <ActionLink
+                      href={BSC_USDT_URL}
+                      label={dictionary.connected.actions.contract}
+                    />
                     <ActionLink
                       href="https://thirdweb.com/dashboard"
-                      label="thirdweb dashboard"
+                      label={dictionary.connected.actions.dashboard}
                     />
                   </div>
                 </div>
               ) : (
                 <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
                   <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-                    <p className="eyebrow mb-3">Wallet Onboarding</p>
+                    <p className="eyebrow mb-3">{dictionary.onboarding.eyebrow}</p>
                     <ConnectEmbed
                       accountAbstraction={smartWalletOptions}
                       appMetadata={appMetadata}
                       chain={smartWalletChain}
                       client={thirdwebClient}
+                      locale={thirdwebLocales[locale]}
                       modalSize="compact"
                       theme="dark"
                       wallets={supportedWallets}
@@ -294,21 +313,22 @@ export function SmartWalletApp() {
                   </div>
 
                   <div className="grid gap-3">
-                    <FlowCard
-                      icon={<Sparkles className="size-4" />}
-                      title="지갑 없는 유저도 바로 진입"
-                      description="Email, Google, Apple, Passkey, Guest를 같은 진입점에서 받아 모바일 입력량을 줄였습니다."
-                    />
-                    <FlowCard
-                      icon={<Layers3 className="size-4" />}
-                      title="연결 즉시 Smart Account 추상화"
-                      description="BSC 기준 Smart Wallet 플로우를 기본값으로 잡고 sponsorGas=true 정책을 고정했습니다."
-                    />
-                    <FlowCard
-                      icon={<Zap className="size-4" />}
-                      title="USDT 중심 지갑 뷰"
-                      description="연결 후 native token 대신 BSC USDT 잔액만 노출해 필요한 정보만 보이도록 줄였습니다."
-                    />
+                    {dictionary.onboarding.cards.map((card, index) => (
+                      <FlowCard
+                        description={card.description}
+                        icon={
+                          index === 0 ? (
+                            <Sparkles className="size-4" />
+                          ) : index === 1 ? (
+                            <Layers3 className="size-4" />
+                          ) : (
+                            <Zap className="size-4" />
+                          )
+                        }
+                        key={card.title}
+                        title={card.title}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
@@ -317,36 +337,28 @@ export function SmartWalletApp() {
 
           <div className="flex flex-col gap-5">
             <Panel
-              title="Session Runway"
-              eyebrow="3-step mobile flow"
               contentClassName="gap-3"
+              eyebrow={dictionary.runway.eyebrow}
+              title={dictionary.runway.title}
             >
-              <RunwayStep
-                index="01"
-                title="로그인 방식 선택"
-                description="이메일, 소셜, 패스키, 게스트 계정을 인라인으로 노출해 첫 진입 마찰을 낮춥니다."
-              />
-              <RunwayStep
-                index="02"
-                title="Smart Wallet 활성화"
-                description="연결된 지갑을 BSC Smart Wallet 흐름으로 전환하고 sponsorGas=true 설정을 유지합니다."
-              />
-              <RunwayStep
-                index="03"
-                title="USDT만 확인"
-                description="잔액, explorer, 토큰 컨트랙트 링크를 USDT 기준으로 제한해 모바일 화면에서 정보 밀도를 낮췄습니다."
-              />
+              {dictionary.runway.steps.map((step, index) => (
+                <RunwayStep
+                  description={step.description}
+                  index={`0${index + 1}`}
+                  key={step.title}
+                  title={step.title}
+                />
+              ))}
             </Panel>
 
             <Panel
-              title="Sponsored Demo"
-              eyebrow="transaction test"
               contentClassName="gap-4"
+              eyebrow={dictionary.sponsored.eyebrow}
+              title={dictionary.sponsored.title}
             >
               <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] p-5 text-white shadow-[0_24px_60px_rgba(29,78,216,0.22)]">
                 <p className="text-sm leading-6 text-white/70">
-                  연결되면 자기 주소로 `0 BNB` self-transaction을 보내 BSC Smart
-                  Wallet과 paymaster 연결을 테스트합니다.
+                  {dictionary.sponsored.description}
                 </p>
                 <TransactionButton
                   className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -360,20 +372,20 @@ export function SmartWalletApp() {
                   onTransactionConfirmed={(receipt) =>
                     setNotice({
                       tone: "success",
-                      text: "트랜잭션이 확인되었습니다.",
+                      text: dictionary.sponsored.txConfirmed,
                       href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
                     })
                   }
                   onTransactionSent={(result) =>
                     setNotice({
                       tone: "info",
-                      text: "트랜잭션이 전송되었습니다. explorer에서 추적할 수 있습니다.",
+                      text: dictionary.sponsored.txSent,
                       href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
                     })
                   }
                   transaction={() => {
                     if (!accountAddress) {
-                      throw new Error("먼저 스마트 월렛을 연결하세요.");
+                      throw new Error(dictionary.sponsored.connectFirst);
                     }
 
                     return prepareTransaction({
@@ -386,38 +398,37 @@ export function SmartWalletApp() {
                   type="button"
                   unstyled
                 >
-                  Sponsored Self Ping 보내기
+                  {dictionary.sponsored.cta}
                 </TransactionButton>
               </div>
 
-              <NoticeCard notice={notice} />
+              <NoticeCard
+                notice={notice}
+                openExplorerLabel={dictionary.sponsored.openExplorer}
+                placeholder={dictionary.sponsored.emptyNotice}
+              />
             </Panel>
 
             <Panel
-              title="Wallet Surface"
-              eyebrow="mobile decisions"
               contentClassName="gap-3"
+              eyebrow={dictionary.surface.eyebrow}
+              title={dictionary.surface.title}
             >
-              <SurfacePoint
-                title="헤더는 한 손 조작 기준"
-                description="상단에 연결 상태와 ConnectButton만 남겨 핵심 동작을 손가락이 닿는 범위에 유지했습니다."
-              />
-              <SurfacePoint
-                title="연결 전과 후를 분리"
-                description="비연결 상태는 온보딩 중심, 연결 후에는 BSC USDT 잔액과 계정 액션 중심으로 화면 목적이 바뀝니다."
-              />
-              <SurfacePoint
-                title="v0 추가 작업 대응"
-                description="`components.json`, alias, Tailwind 구조를 정리해 이후 v0 Add to Codebase 흐름으로 이어가기 쉽게 맞췄습니다."
-              />
+              {dictionary.surface.points.map((point) => (
+                <SurfacePoint
+                  description={point.description}
+                  key={point.title}
+                  title={point.title}
+                />
+              ))}
             </Panel>
 
             <Panel
-              title="Sign-in Mix"
-              eyebrow="auth channels"
               contentClassName="flex-row flex-wrap"
+              eyebrow={dictionary.signInMix.eyebrow}
+              title={dictionary.signInMix.title}
             >
-              {loginMethods.map((method) => (
+              {dictionary.signInMix.methods.map((method) => (
                 <div
                   className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
                   key={method}
@@ -441,7 +452,7 @@ function Panel({
 }: {
   title: string;
   eyebrow: string;
-  children: React.ReactNode;
+  children: ReactNode;
   contentClassName?: string;
 }) {
   return (
@@ -495,7 +506,7 @@ function FlowCard({
   title,
   description,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 }) {
@@ -553,8 +564,8 @@ function Badge({
   children,
   icon,
 }: {
-  children: React.ReactNode;
-  icon: React.ReactNode;
+  children: ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/80 px-3 py-2 text-xs font-medium text-slate-700 backdrop-blur">
@@ -565,18 +576,20 @@ function Badge({
 }
 
 function StatusChip({
+  labels,
   status,
 }: {
+  labels: Dictionary["common"]["status"];
   status: "connected" | "disconnected" | "connecting" | "unknown";
 }) {
   const copy =
     status === "connected"
-      ? "Connected"
+      ? labels.connected
       : status === "connecting"
-        ? "Connecting"
+        ? labels.connecting
         : status === "unknown"
-          ? "Loading"
-          : "Disconnected";
+          ? labels.unknown
+          : labels.disconnected;
 
   return (
     <div
@@ -606,12 +619,19 @@ function StatusChip({
   );
 }
 
-function NoticeCard({ notice }: { notice: WalletNotice | null }) {
+function NoticeCard({
+  notice,
+  placeholder,
+  openExplorerLabel,
+}: {
+  notice: WalletNotice | null;
+  placeholder: string;
+  openExplorerLabel: string;
+}) {
   if (!notice) {
     return (
       <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-500">
-        트랜잭션 결과가 여기에 표시됩니다. paymaster 설정이 없는 경우 오류 메시지가
-        그대로 노출됩니다.
+        {placeholder}
       </div>
     );
   }
@@ -634,7 +654,7 @@ function NoticeCard({ notice }: { notice: WalletNotice | null }) {
           rel="noreferrer"
           target="_blank"
         >
-          Explorer 열기
+          {openExplorerLabel}
           <ArrowUpRight className="size-4" />
         </a>
       ) : null}
@@ -660,7 +680,11 @@ function shortenAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function formatBalance(value: string | undefined, symbol: string) {
+function formatBalance(
+  value: string | undefined,
+  symbol: string,
+  locale: Locale,
+) {
   if (!value) {
     return `0 ${symbol}`;
   }
@@ -671,7 +695,7 @@ function formatBalance(value: string | undefined, symbol: string) {
     return `${value} ${symbol}`;
   }
 
-  return `${new Intl.NumberFormat("ko-KR", {
+  return `${new Intl.NumberFormat(locale, {
     maximumFractionDigits: parsed > 1 ? 4 : 6,
   }).format(parsed)} ${symbol}`;
 }
