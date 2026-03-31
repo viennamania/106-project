@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -24,8 +24,10 @@ import {
   useActiveWalletConnectionStatus,
   useWalletBalance,
 } from "thirdweb/react";
+import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { cn } from "@/lib/utils";
 import {
   BSC_EXPLORER,
@@ -48,6 +50,14 @@ type WalletNotice = {
   href?: string;
 };
 
+type MemberSyncState = {
+  email: string | null;
+  error: string | null;
+  isNewMember: boolean;
+  member: MemberRecord | null;
+  status: "idle" | "syncing" | "ready" | "error";
+};
+
 export function SmartWalletApp({
   dictionary,
   locale,
@@ -67,6 +77,13 @@ export function SmartWalletApp({
   });
   const [notice, setNotice] = useState<WalletNotice | null>(null);
   const [copied, setCopied] = useState(false);
+  const [memberSync, setMemberSync] = useState<MemberSyncState>({
+    email: null,
+    error: null,
+    isNewMember: false,
+    member: null,
+    status: "idle",
+  });
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const signer = wallet?.getAdminAccount?.();
@@ -74,6 +91,96 @@ export function SmartWalletApp({
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+
+  async function runMemberSync() {
+    if (!accountAddress) {
+      return;
+    }
+
+    setMemberSync((current) => ({
+      ...current,
+      error: null,
+      status: "syncing",
+    }));
+
+    try {
+      const email = await getUserEmail({ client: thirdwebClient });
+
+      if (!email) {
+        setMemberSync({
+          email: null,
+          error: dictionary.member.errors.missingEmail,
+          isNewMember: false,
+          member: null,
+          status: "error",
+        });
+        return;
+      }
+
+      const response = await fetch("/api/members", {
+        body: JSON.stringify({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+
+      const data = (await response.json()) as
+        | SyncMemberResponse
+        | { error?: string };
+
+      if (!response.ok || !("member" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : dictionary.member.errors.syncFailed,
+        );
+      }
+
+      setMemberSync({
+        email: data.member.email,
+        error: null,
+        isNewMember: data.isNewMember,
+        member: data.member,
+        status: "ready",
+      });
+    } catch (error) {
+      setMemberSync((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : dictionary.member.errors.syncFailed,
+        isNewMember: false,
+        status: "error",
+      }));
+    }
+  }
+
+  const syncMemberRegistration = useEffectEvent(async () => {
+    await runMemberSync();
+  });
+
+  useEffect(() => {
+    if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
+      setMemberSync({
+        email: null,
+        error: null,
+        isNewMember: false,
+        member: null,
+        status: "idle",
+      });
+      return;
+    }
+
+    void syncMemberRegistration();
+  }, [accountAddress, status, locale, chain.id, chain.name]);
 
   async function handleCopyAddress() {
     if (!accountAddress) {
@@ -353,6 +460,82 @@ export function SmartWalletApp({
 
             <Panel
               contentClassName="gap-4"
+              eyebrow={dictionary.member.eyebrow}
+              title={dictionary.member.title}
+            >
+              {memberSync.status === "idle" ? (
+                <MessageCard>{dictionary.member.disconnected}</MessageCard>
+              ) : null}
+
+              {memberSync.status === "syncing" ? (
+                <MessageCard>{dictionary.member.syncing}</MessageCard>
+              ) : null}
+
+              {memberSync.status === "error" ? (
+                <MessageCard tone="error">
+                  {memberSync.error ?? dictionary.member.errors.syncFailed}
+                </MessageCard>
+              ) : null}
+
+              {memberSync.member ? (
+                <>
+                  <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                    <p className="text-sm leading-6 text-slate-600">
+                      {dictionary.member.synced}
+                    </p>
+                    {memberSync.isNewMember ? (
+                      <p className="mt-2 text-sm font-semibold text-emerald-700">
+                        {dictionary.member.newMember}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <InfoRow
+                      label={dictionary.member.labels.emailKey}
+                      value={memberSync.member.email}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.lastWallet}
+                      value={shortenAddress(memberSync.member.lastWalletAddress)}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.walletCount}
+                      value={String(memberSync.member.walletAddresses.length)}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.registeredAt}
+                      value={formatDateTime(memberSync.member.createdAt, locale)}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.updatedAt}
+                      value={formatDateTime(memberSync.member.updatedAt, locale)}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.lastConnectedAt}
+                      value={formatDateTime(
+                        memberSync.member.lastConnectedAt,
+                        locale,
+                      )}
+                    />
+                  </div>
+
+                  <button
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={memberSync.status === "syncing"}
+                    onClick={() => {
+                      void runMemberSync();
+                    }}
+                    type="button"
+                  >
+                    {dictionary.member.actions.syncNow}
+                  </button>
+                </>
+              ) : null}
+            </Panel>
+
+            <Panel
+              contentClassName="gap-4"
               eyebrow={dictionary.sponsored.eyebrow}
               title={dictionary.sponsored.title}
             >
@@ -575,6 +758,27 @@ function Badge({
   );
 }
 
+function MessageCard({
+  children,
+  tone = "neutral",
+}: {
+  children: ReactNode;
+  tone?: "error" | "neutral";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[22px] border px-4 py-4 text-sm leading-6",
+        tone === "error"
+          ? "border-rose-200 bg-rose-50 text-rose-950"
+          : "border-slate-200 bg-white/90 text-slate-600",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 function StatusChip({
   labels,
   status,
@@ -698,4 +902,17 @@ function formatBalance(
   return `${new Intl.NumberFormat(locale, {
     maximumFractionDigits: parsed > 1 ? 4 : 6,
   }).format(parsed)} ${symbol}`;
+}
+
+function formatDateTime(value: string, locale: Locale) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }

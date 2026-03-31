@@ -110,6 +110,29 @@ export type Dictionary = {
       { title: string; description: string },
     ];
   };
+  member: {
+    title: string;
+    eyebrow: string;
+    disconnected: string;
+    syncing: string;
+    synced: string;
+    newMember: string;
+    labels: {
+      emailKey: string;
+      lastWallet: string;
+      walletCount: string;
+      registeredAt: string;
+      updatedAt: string;
+      lastConnectedAt: string;
+    };
+    actions: {
+      syncNow: string;
+    };
+    errors: {
+      missingEmail: string;
+      syncFailed: string;
+    };
+  };
   signInMix: {
     title: string;
     eyebrow: string;
@@ -255,6 +278,30 @@ const dictionaries: Record<Locale, Dictionary> = {
         },
       ],
     },
+    member: {
+      title: "회원 레지스트리",
+      eyebrow: "atlas mongodb",
+      disconnected:
+        "이메일 지갑을 연결하면 이메일 주소를 키로 회원 정보를 MongoDB Atlas에 자동 등록합니다.",
+      syncing: "회원 정보를 Atlas에 동기화하는 중입니다.",
+      synced: "회원 정보가 MongoDB Atlas에 등록되어 관리 중입니다.",
+      newMember: "새 회원으로 등록되었습니다.",
+      labels: {
+        emailKey: "이메일 키",
+        lastWallet: "마지막 지갑",
+        walletCount: "등록 지갑 수",
+        registeredAt: "최초 등록",
+        updatedAt: "최근 갱신",
+        lastConnectedAt: "최근 연결",
+      },
+      actions: {
+        syncNow: "지금 다시 동기화",
+      },
+      errors: {
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        syncFailed: "회원 동기화에 실패했습니다.",
+      },
+    },
     signInMix: {
       title: "이메일 전용 접근",
       eyebrow: "single auth channel",
@@ -398,6 +445,30 @@ const dictionaries: Record<Locale, Dictionary> = {
             "`components.json`, aliasing, and Tailwind structure are aligned so future v0 Add to Codebase work can continue cleanly.",
         },
       ],
+    },
+    member: {
+      title: "Member Registry",
+      eyebrow: "atlas mongodb",
+      disconnected:
+        "Connect the email wallet to automatically register the member in MongoDB Atlas using the email address as the key.",
+      syncing: "Syncing the member record to Atlas.",
+      synced: "The member record is registered and managed in MongoDB Atlas.",
+      newMember: "This account was registered as a new member.",
+      labels: {
+        emailKey: "Email key",
+        lastWallet: "Last wallet",
+        walletCount: "Registered wallets",
+        registeredAt: "Created at",
+        updatedAt: "Updated at",
+        lastConnectedAt: "Last connected",
+      },
+      actions: {
+        syncNow: "Sync again now",
+      },
+      errors: {
+        missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
+        syncFailed: "Member sync failed.",
+      },
     },
     signInMix: {
       title: "Email-only Access",
@@ -543,6 +614,30 @@ const dictionaries: Record<Locale, Dictionary> = {
         },
       ],
     },
+    member: {
+      title: "メンバーレジストリ",
+      eyebrow: "atlas mongodb",
+      disconnected:
+        "メールウォレットを接続すると、メールアドレスをキーとして MongoDB Atlas に会員情報を自動登録します。",
+      syncing: "会員情報を Atlas に同期しています。",
+      synced: "会員情報は MongoDB Atlas に登録され、管理されています。",
+      newMember: "このアカウントは新規会員として登録されました。",
+      labels: {
+        emailKey: "メールキー",
+        lastWallet: "最新ウォレット",
+        walletCount: "登録ウォレット数",
+        registeredAt: "初回登録",
+        updatedAt: "最終更新",
+        lastConnectedAt: "最終接続",
+      },
+      actions: {
+        syncNow: "今すぐ再同期",
+      },
+      errors: {
+        missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        syncFailed: "会員同期に失敗しました。",
+      },
+    },
     signInMix: {
       title: "メール専用アクセス",
       eyebrow: "single auth channel",
@@ -686,6 +781,30 @@ const dictionaries: Record<Locale, Dictionary> = {
             "已经整理好 `components.json`、alias 和 Tailwind 结构，后续可以继续走 v0 Add to Codebase 流程。",
         },
       ],
+    },
+    member: {
+      title: "会员注册表",
+      eyebrow: "atlas mongodb",
+      disconnected:
+        "连接邮箱钱包后，会自动把邮箱地址作为键写入 MongoDB Atlas 会员记录。",
+      syncing: "正在把会员记录同步到 Atlas。",
+      synced: "会员记录已经写入 MongoDB Atlas 并可持续管理。",
+      newMember: "该账户已作为新会员注册。",
+      labels: {
+        emailKey: "邮箱键",
+        lastWallet: "最近钱包",
+        walletCount: "已登记钱包数",
+        registeredAt: "首次登记",
+        updatedAt: "最近更新",
+        lastConnectedAt: "最近连接",
+      },
+      actions: {
+        syncNow: "立即重新同步",
+      },
+      errors: {
+        missingEmail: "当前钱包会话中未能解析出邮箱地址。",
+        syncFailed: "会员同步失败。",
+      },
     },
     signInMix: {
       title: "邮箱专用入口",

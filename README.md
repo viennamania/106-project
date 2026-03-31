@@ -12,10 +12,11 @@
 ## What is included
 
 - 인라인 `ConnectEmbed` 기반 모바일 온보딩
-- Email / Google / Apple / Passkey / Guest 로그인 진입점
+- Email 전용 로그인 진입점
 - BSC Smart Wallet 연결 기본값
 - `sponsorGas=true` 고정
 - BSC USDT 잔액 전용 표시
+- MongoDB Atlas 회원 등록 및 관리
 - explorer / USDT contract / dashboard 빠른 링크
 
 ## Run locally
@@ -26,11 +27,14 @@
 cp .env.example .env.local
 ```
 
-2. `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 설정
+2. `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`와 MongoDB Atlas 환경변수 설정
 
 ```bash
 NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+MONGODB_URI=your_mongodb_atlas_connection_string
+MONGODB_DB_NAME=your_database_name
+MONGODB_MEMBERS_COLLECTION=members
 ```
 
 3. 개발 서버 실행
@@ -45,8 +49,10 @@ pnpm dev
 
 - 기본 체인은 `BSC`입니다.
 - Connect UI는 `accountAbstraction` 옵션으로 Smart Wallet 흐름을 사용합니다.
+- 로그인 방식은 이메일 OTP만 허용합니다.
 - `sponsorGas=true`로 고정되어 있습니다.
 - 잔액 조회는 BSC의 USDT 컨트랙트만 대상으로 합니다.
+- 지갑 연결 후 현재 이메일 주소를 키로 회원 정보가 MongoDB Atlas에 upsert됩니다.
 - sponsored transaction 데모가 동작하려면 thirdweb 대시보드에서 BSC용 gas sponsorship 설정이 필요합니다.
 
 ## v0 workflow
