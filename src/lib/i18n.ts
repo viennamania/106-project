@@ -30,6 +30,7 @@ export type Dictionary = {
     headerDescription: string;
     languageLabel: string;
     connectWallet: string;
+    disconnectWallet: string;
     connectModalTitle: string;
     clientIdRequired: string;
     copyAddress: string;
@@ -212,6 +213,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "이메일 지갑 연결 뒤 PROJECT_WALLET로 10 USDT를 전송하면 webhook가 회원가입을 완료합니다.",
       languageLabel: "언어",
       connectWallet: "이메일 지갑 연결",
+      disconnectWallet: "연결 해제",
       connectModalTitle: "이메일로 Pocket Smart Wallet 연결",
       clientIdRequired: "client id 필요",
       copyAddress: "주소 복사",
@@ -442,6 +444,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "Connect an email wallet, send 10 USDT to PROJECT_WALLET, and let the webhook finish signup.",
       languageLabel: "Language",
       connectWallet: "Connect email wallet",
+      disconnectWallet: "Disconnect",
       connectModalTitle: "Connect Pocket Smart Wallet with email",
       clientIdRequired: "client id required",
       copyAddress: "Copy address",
@@ -672,6 +675,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "メールウォレットを接続し、PROJECT_WALLET に 10 USDT を送ると webhook が登録完了を処理します。",
       languageLabel: "言語",
       connectWallet: "メールウォレット接続",
+      disconnectWallet: "切断",
       connectModalTitle: "メールで Pocket Smart Wallet を接続",
       clientIdRequired: "client id が必要です",
       copyAddress: "アドレスをコピー",
@@ -902,6 +906,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "连接邮箱钱包后，向 PROJECT_WALLET 转入 10 USDT，webhook 会完成注册。",
       languageLabel: "语言",
       connectWallet: "连接邮箱钱包",
+      disconnectWallet: "断开连接",
       connectModalTitle: "通过邮箱连接 Pocket Smart Wallet",
       clientIdRequired: "需要 client id",
       copyAddress: "复制地址",

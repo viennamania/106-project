@@ -28,6 +28,7 @@ import {
   ConnectEmbed,
   TransactionButton,
   useActiveAccount,
+  useDisconnect,
   useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -91,6 +92,7 @@ export function SmartWalletApp({
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
+  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const { data: balance } = useWalletBalance({
@@ -374,34 +376,59 @@ export function SmartWalletApp({
               status={status}
             />
             {hasThirdwebClientId ? (
-              <ConnectButton
-                accountAbstraction={smartWalletOptions}
-                appMetadata={appMetadata}
-                chain={smartWalletChain}
-                client={thirdwebClient}
-                connectButton={{
-                  className:
-                    "!h-11 !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                  label: dictionary.common.connectWallet,
-                }}
-                connectModal={{
-                  title: dictionary.common.connectModalTitle,
-                  titleIcon: "/favicon.ico",
-                }}
-                detailsButton={{
-                  className:
-                    "!h-11 !rounded-full !border !border-slate-200 !bg-white !px-4 !text-sm !font-medium !text-slate-950",
-                  displayBalanceToken: {
-                    [smartWalletChain.id]: BSC_USDT_ADDRESS,
-                  },
-                }}
-                detailsModal={{
-                  showTestnetFaucet: false,
-                }}
-                locale={thirdwebLocales[locale]}
-                theme="dark"
-                wallets={supportedWallets}
-              />
+              status === "connected" ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  {accountAddress ? (
+                    <a
+                      className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+                      href={accountUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {accountLabel ?? accountAddress}
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                  ) : (
+                    <div className="inline-flex h-11 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+                      {dictionary.common.status.connected}
+                    </div>
+                  )}
+
+                  <button
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!wallet}
+                    onClick={() => {
+                      if (!wallet) {
+                        return;
+                      }
+
+                      disconnect(wallet);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.disconnectWallet}
+                  </button>
+                </div>
+              ) : (
+                <ConnectButton
+                  accountAbstraction={smartWalletOptions}
+                  appMetadata={appMetadata}
+                  chain={smartWalletChain}
+                  client={thirdwebClient}
+                  connectButton={{
+                    className:
+                      "!h-11 !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
+                    label: dictionary.common.connectWallet,
+                  }}
+                  connectModal={{
+                    title: dictionary.common.connectModalTitle,
+                    titleIcon: "/favicon.ico",
+                  }}
+                  locale={thirdwebLocales[locale]}
+                  theme="dark"
+                  wallets={supportedWallets}
+                />
+              )
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
