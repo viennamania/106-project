@@ -1,39 +1,56 @@
+export const MEMBER_SIGNUP_USDT_AMOUNT = "10";
+export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
+export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
+
+export const memberStatuses = ["pending_payment", "completed"] as const;
+
+export type MemberStatus = (typeof memberStatuses)[number];
+
 export type MemberRecord = {
-  email: string;
-  walletAddresses: string[];
-  lastWalletAddress: string;
+  awaitingPaymentSince: string;
   chainId: number;
   chainName: string;
+  createdAt: string;
+  email: string;
+  lastConnectedAt: string;
+  lastWalletAddress: string;
   locale: string;
-  referralCode: string;
+  paymentAmount: string | null;
+  paymentReceivedAt: string | null;
+  paymentTransactionHash: string | null;
+  paymentWebhookEventId: string | null;
+  referralCode: string | null;
   referredByCode: string | null;
   referredByEmail: string | null;
-  createdAt: string;
+  registrationCompletedAt: string | null;
+  requiredDepositAmount: string;
+  requiredDepositAmountWei: string;
+  status: MemberStatus;
   updatedAt: string;
-  lastConnectedAt: string;
+  walletAddresses: string[];
 };
 
 export type SyncMemberRequest = {
-  email: string;
-  walletAddress: string;
   chainId: number;
   chainName: string;
+  email: string;
   locale: string;
   referredByCode?: string | null;
+  walletAddress: string;
 };
 
 export type SyncMemberResponse = {
-  isNewMember: boolean;
+  justCompleted: boolean;
   member: MemberRecord;
 };
 
 export type ReferralMemberRecord = {
   email: string;
+  lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
-  createdAt: string;
-  lastConnectedAt: string;
   referredByCode: string | null;
+  registrationCompletedAt: string;
 };
 
 export type MemberReferralsResponse = {
@@ -42,18 +59,27 @@ export type MemberReferralsResponse = {
 };
 
 export type MemberDocument = {
-  email: string;
-  walletAddresses: string[];
-  lastWalletAddress: string;
+  awaitingPaymentSince: Date;
   chainId: number;
   chainName: string;
+  createdAt: Date;
+  email: string;
+  lastConnectedAt: Date;
+  lastWalletAddress: string;
   locale: string;
-  referralCode?: string;
+  paymentAmount?: string | null;
+  paymentReceivedAt?: Date | null;
+  paymentTransactionHash?: string | null;
+  paymentWebhookEventId?: string | null;
+  referralCode?: string | null;
   referredByCode?: string | null;
   referredByEmail?: string | null;
-  createdAt: Date;
+  registrationCompletedAt?: Date | null;
+  requiredDepositAmount: string;
+  requiredDepositAmountWei: string;
+  status: MemberStatus;
   updatedAt: Date;
-  lastConnectedAt: Date;
+  walletAddresses: string[];
 };
 
 export function normalizeEmail(email: string) {
@@ -67,6 +93,7 @@ export function normalizeReferralCode(referralCode?: string | null) {
 
 export function serializeMember(member: MemberDocument): MemberRecord {
   return {
+    awaitingPaymentSince: member.awaitingPaymentSince.toISOString(),
     chainId: member.chainId,
     chainName: member.chainName,
     createdAt: member.createdAt.toISOString(),
@@ -74,9 +101,18 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,
-    referralCode: member.referralCode ?? "",
+    paymentAmount: member.paymentAmount ?? null,
+    paymentReceivedAt: member.paymentReceivedAt?.toISOString() ?? null,
+    paymentTransactionHash: member.paymentTransactionHash ?? null,
+    paymentWebhookEventId: member.paymentWebhookEventId ?? null,
+    referralCode: member.referralCode ?? null,
     referredByCode: member.referredByCode ?? null,
     referredByEmail: member.referredByEmail ?? null,
+    registrationCompletedAt:
+      member.registrationCompletedAt?.toISOString() ?? null,
+    requiredDepositAmount: member.requiredDepositAmount,
+    requiredDepositAmountWei: member.requiredDepositAmountWei,
+    status: member.status,
     updatedAt: member.updatedAt.toISOString(),
     walletAddresses: member.walletAddresses,
   };
@@ -86,11 +122,13 @@ export function serializeReferralMember(
   member: MemberDocument,
 ): ReferralMemberRecord {
   return {
-    createdAt: member.createdAt.toISOString(),
     email: member.email,
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,
     referredByCode: member.referredByCode ?? null,
+    registrationCompletedAt:
+      member.registrationCompletedAt?.toISOString() ??
+      member.createdAt.toISOString(),
   };
 }

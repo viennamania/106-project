@@ -60,6 +60,15 @@ export async function getMembersCollection() {
       await Promise.all([
         collection.createIndex({ email: 1 }, { unique: true }),
         collection.createIndex(
+          { lastWalletAddress: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              lastWalletAddress: { $type: "string" },
+            },
+          },
+        ),
+        collection.createIndex(
           { referralCode: 1 },
           {
             unique: true,
@@ -76,6 +85,16 @@ export async function getMembersCollection() {
             },
           },
         ),
+        collection.createIndex({
+          status: 1,
+          lastWalletAddress: 1,
+          awaitingPaymentSince: -1,
+        }),
+        collection.createIndex({
+          status: 1,
+          referredByCode: 1,
+          registrationCompletedAt: -1,
+        }),
       ]);
 
       return collection;

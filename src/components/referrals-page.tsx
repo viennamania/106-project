@@ -110,6 +110,16 @@ export function ReferralsPage({
         );
       }
 
+      if (syncData.member.status !== "completed") {
+        setState({
+          error: null,
+          member: syncData.member,
+          referrals: [],
+          status: "ready",
+        });
+        return;
+      }
+
       const response = await fetch(
         `/api/members/referrals?email=${encodeURIComponent(email)}`,
       );
@@ -119,7 +129,9 @@ export function ReferralsPage({
 
       if (!response.ok || !("member" in data) || !("referrals" in data)) {
         throw new Error(
-          response.status === 404
+          response.status === 403
+            ? dictionary.referralsPage.paymentRequired
+            : response.status === 404
             ? dictionary.referralsPage.memberMissing
             : "error" in data && data.error
               ? data.error
@@ -276,6 +288,27 @@ export function ReferralsPage({
               <MessageCard tone="error">
                 {state.error ?? dictionary.referralsPage.errors.loadFailed}
               </MessageCard>
+            ) : state.member?.status !== "completed" ? (
+              <div className="space-y-4">
+                <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                    href={`/${locale}`}
+                  >
+                    {dictionary.referralsPage.actions.completeSignup}
+                  </Link>
+                  <button
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                    onClick={() => {
+                      void loadReferrals();
+                    }}
+                    type="button"
+                  >
+                    {dictionary.referralsPage.actions.refresh}
+                  </button>
+                </div>
+              </div>
             ) : state.member ? (
               <div className="space-y-4">
                 <div className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
@@ -297,7 +330,7 @@ export function ReferralsPage({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <InfoRow
                     label={dictionary.referralsPage.labels.referralCode}
-                    value={state.member.referralCode}
+                    value={state.member.referralCode ?? dictionary.common.notAvailable}
                   />
                   <InfoRow
                     label={dictionary.referralsPage.labels.totalReferrals}
@@ -358,6 +391,8 @@ export function ReferralsPage({
               <MessageCard tone="error">
                 {state.error ?? dictionary.referralsPage.errors.loadFailed}
               </MessageCard>
+            ) : state.member?.status !== "completed" ? (
+              <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
             ) : state.referrals.length === 0 ? (
               <MessageCard>{dictionary.referralsPage.empty}</MessageCard>
             ) : (
@@ -392,7 +427,10 @@ export function ReferralsPage({
                       />
                       <InfoRow
                         label={dictionary.referralsPage.labels.joinedAt}
-                        value={formatDateTime(referral.createdAt, locale)}
+                        value={formatDateTime(
+                          referral.registrationCompletedAt,
+                          locale,
+                        )}
                       />
                       <InfoRow
                         label={dictionary.referralsPage.labels.lastConnectedAt}

@@ -14,9 +14,10 @@
 - 인라인 `ConnectEmbed` 기반 모바일 온보딩
 - Email 전용 로그인 진입점
 - BSC Smart Wallet 연결 기본값
-- `sponsorGas=true` 고정
 - BSC USDT 잔액 전용 표시
-- MongoDB Atlas 회원 등록 및 관리
+- `PROJECT_WALLET` 로의 정확한 `10 USDT` 전송 기반 회원가입
+- MongoDB Atlas 회원 상태 관리 (`pending_payment` -> `completed`)
+- 가입 완료 시점 레퍼럴 코드 생성 및 추천인 코드 저장
 - thirdweb Insight BSC USDT webhook 수신
 - explorer / USDT contract / dashboard 빠른 링크
 
@@ -57,11 +58,11 @@ pnpm dev
 - 기본 체인은 `BSC`입니다.
 - Connect UI는 `accountAbstraction` 옵션으로 Smart Wallet 흐름을 사용합니다.
 - 로그인 방식은 이메일 OTP만 허용합니다.
-- `sponsorGas=true`로 고정되어 있습니다.
 - 잔액 조회는 BSC의 USDT 컨트랙트만 대상으로 합니다.
-- 지갑 연결 후 현재 이메일 주소를 키로 회원 정보가 MongoDB Atlas에 upsert됩니다.
-- `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 MongoDB Atlas에 upsert합니다.
-- sponsored transaction 데모가 동작하려면 thirdweb 대시보드에서 BSC용 gas sponsorship 설정이 필요합니다.
+- 지갑 연결 후 현재 이메일 주소를 키로 `pending_payment` 회원 상태를 MongoDB Atlas에 upsert합니다.
+- 연결된 지갑에서 `PROJECT_WALLET` 로 정확히 `10 USDT` 를 보내야 회원가입이 완료됩니다.
+- `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 저장하고, 정확히 `10 USDT` 입금이 확인되면 회원 상태를 `completed` 로 승격합니다.
+- 레퍼럴 코드는 회원가입 완료 시점에만 생성됩니다.
 
 ## thirdweb webhook setup
 
@@ -81,6 +82,13 @@ pnpm thirdweb:webhooks:register
 
 - BSC USDT `Transfer` 이벤트 중 `to=PROJECT_WALLET`
 - BSC USDT `Transfer` 이벤트 중 `from=PROJECT_WALLET`
+
+## Signup flow
+
+1. 이메일 지갑을 연결합니다.
+2. 연결된 지갑에서 `PROJECT_WALLET` 로 정확히 `10 USDT` 를 전송합니다.
+3. thirdweb webhook가 입금을 확인하면 회원 상태가 `completed` 로 바뀌고, 레퍼럴 코드가 발급됩니다.
+4. `?ref=CODE` 파라미터로 들어온 추천인 코드는 회원가입 완료 시 회원 정보에 저장됩니다.
 
 ## v0 workflow
 

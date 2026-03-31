@@ -26,12 +26,17 @@ export async function GET(request: Request) {
       return jsonError("Member not found.", 404);
     }
 
-    const referrals = member.referralCode
-      ? await collection
-          .find({ referredByCode: member.referralCode })
-          .sort({ createdAt: -1 })
-          .toArray()
-      : [];
+    if (member.status !== "completed" || !member.referralCode) {
+      return jsonError("Member signup is not complete.", 403);
+    }
+
+    const referrals = await collection
+      .find({
+        referredByCode: member.referralCode,
+        status: "completed",
+      })
+      .sort({ registrationCompletedAt: -1, createdAt: -1 })
+      .toArray();
 
     const response: MemberReferralsResponse = {
       member: serializeMember(member),

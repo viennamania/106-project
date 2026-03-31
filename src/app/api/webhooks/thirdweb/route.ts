@@ -1,3 +1,4 @@
+import { completePendingMembersForWebhookEvent } from "@/lib/member-service";
 import { getThirdwebWebhookEventsCollection } from "@/lib/mongodb";
 import {
   extractTrackedTransferEvent,
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
 
   try {
     const collection = await getThirdwebWebhookEventsCollection();
+    let completed = 0;
     let ignored = 0;
     let stored = 0;
 
@@ -90,9 +92,11 @@ export async function POST(request: Request) {
       );
 
       stored += 1;
+      completed += await completePendingMembersForWebhookEvent(trackedEvent);
     }
 
     return Response.json({
+      completed,
       ignored,
       received: payload.data.length,
       stored,

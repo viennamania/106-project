@@ -27,6 +27,7 @@ export default async function LocalizedHome({
       dictionary={dictionary}
       incomingReferralCode={incomingReferralCode}
       locale={lang}
+      projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
     />
   );
 }

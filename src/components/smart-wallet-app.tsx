@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   ArrowUpRight,
   Check,
@@ -13,7 +20,8 @@ import {
   WalletMinimal,
   Zap,
 } from "lucide-react";
-import { prepareTransaction } from "thirdweb";
+import { getContract } from "thirdweb";
+import { transfer } from "thirdweb/extensions/erc20";
 import {
   AutoConnect,
   ConnectButton,
@@ -28,7 +36,11 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import {
+  MEMBER_SIGNUP_USDT_AMOUNT,
+  type MemberRecord,
+  type SyncMemberResponse,
+} from "@/lib/member";
 import { cn } from "@/lib/utils";
 import {
   BSC_EXPLORER,
@@ -54,19 +66,28 @@ type WalletNotice = {
 type MemberSyncState = {
   email: string | null;
   error: string | null;
-  isNewMember: boolean;
+  justCompleted: boolean;
   member: MemberRecord | null;
   status: "idle" | "syncing" | "ready" | "error";
 };
+
+const CELEBRATION_DURATION_MS = 4200;
+const usdtContract = getContract({
+  address: BSC_USDT_ADDRESS,
+  chain: smartWalletChain,
+  client: thirdwebClient,
+});
 
 export function SmartWalletApp({
   dictionary,
   incomingReferralCode,
   locale,
+  projectWallet,
 }: {
   dictionary: Dictionary;
   incomingReferralCode: string | null;
   locale: Locale;
+  projectWallet: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -83,10 +104,14 @@ export function SmartWalletApp({
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
     error: null,
-    isNewMember: false,
+    justCompleted: false,
     member: null,
     status: "idle",
   });
+  const [showCelebration, setShowCelebration] = useState(false);
+  const copiedTimeoutRef = useRef<number | null>(null);
+  const celebrationTimeoutRef = useRef<number | null>(null);
+  const syncInFlightRef = useRef(false);
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const signer = wallet?.getAdminAccount?.();
@@ -94,20 +119,43 @@ export function SmartWalletApp({
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const projectWalletUrl = projectWallet
+    ? `${BSC_EXPLORER}/address/${projectWallet}`
+    : BSC_EXPLORER;
+  const isSignupCompleted = memberSync.member?.status === "completed";
   const referralLink = memberSync.member?.referralCode
     ? getReferralLink(memberSync.member.referralCode, locale)
     : null;
+  const paymentTransactionUrl = memberSync.member?.paymentTransactionHash
+    ? `${BSC_EXPLORER}/tx/${memberSync.member.paymentTransactionHash}`
+    : null;
 
-  async function runMemberSync() {
-    if (!accountAddress) {
+  function triggerCelebration() {
+    if (celebrationTimeoutRef.current) {
+      window.clearTimeout(celebrationTimeoutRef.current);
+    }
+
+    setShowCelebration(true);
+    celebrationTimeoutRef.current = window.setTimeout(() => {
+      setShowCelebration(false);
+      celebrationTimeoutRef.current = null;
+    }, CELEBRATION_DURATION_MS);
+  }
+
+  async function runMemberSync(options?: { background?: boolean }) {
+    if (!accountAddress || syncInFlightRef.current) {
       return;
     }
 
-    setMemberSync((current) => ({
-      ...current,
-      error: null,
-      status: "syncing",
-    }));
+    syncInFlightRef.current = true;
+
+    if (!options?.background) {
+      setMemberSync((current) => ({
+        ...current,
+        error: null,
+        status: "syncing",
+      }));
+    }
 
     try {
       const email = await getUserEmail({ client: thirdwebClient });
@@ -116,7 +164,7 @@ export function SmartWalletApp({
         setMemberSync({
           email: null,
           error: dictionary.member.errors.missingEmail,
-          isNewMember: false,
+          justCompleted: false,
           member: null,
           status: "error",
         });
@@ -150,13 +198,29 @@ export function SmartWalletApp({
         );
       }
 
-      setMemberSync({
-        email: data.member.email,
-        error: null,
-        isNewMember: data.isNewMember,
-        member: data.member,
-        status: "ready",
+      let shouldCelebrate = data.justCompleted;
+
+      setMemberSync((current) => {
+        if (
+          !shouldCelebrate &&
+          current.member?.status === "pending_payment" &&
+          data.member.status === "completed"
+        ) {
+          shouldCelebrate = true;
+        }
+
+        return {
+          email: data.member.email,
+          error: null,
+          justCompleted: shouldCelebrate,
+          member: data.member,
+          status: "ready",
+        };
       });
+
+      if (shouldCelebrate) {
+        triggerCelebration();
+      }
     } catch (error) {
       setMemberSync((current) => ({
         ...current,
@@ -164,9 +228,11 @@ export function SmartWalletApp({
           error instanceof Error
             ? error.message
             : dictionary.member.errors.syncFailed,
-        isNewMember: false,
+        justCompleted: false,
         status: "error",
       }));
+    } finally {
+      syncInFlightRef.current = false;
     }
   }
 
@@ -179,7 +245,7 @@ export function SmartWalletApp({
       setMemberSync({
         email: null,
         error: null,
-        isNewMember: false,
+        justCompleted: false,
         member: null,
         status: "idle",
       });
@@ -188,6 +254,45 @@ export function SmartWalletApp({
 
     void syncMemberRegistration();
   }, [accountAddress, status, locale, chain.id, chain.name, incomingReferralCode]);
+
+  const pollForCompletedSignup = useEffectEvent(async () => {
+    await runMemberSync({ background: true });
+  });
+
+  useEffect(() => {
+    if (
+      status !== "connected" ||
+      !accountAddress ||
+      !hasThirdwebClientId ||
+      memberSync.member?.status === "completed"
+    ) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void pollForCompletedSignup();
+    }, 7000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [
+    accountAddress,
+    memberSync.member?.status,
+    status,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) {
+        window.clearTimeout(copiedTimeoutRef.current);
+      }
+
+      if (celebrationTimeoutRef.current) {
+        window.clearTimeout(celebrationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleCopyAddress() {
     if (!accountAddress) {
@@ -202,8 +307,13 @@ export function SmartWalletApp({
         text: dictionary.notices.copySuccess,
       });
 
-      window.setTimeout(() => {
+      if (copiedTimeoutRef.current) {
+        window.clearTimeout(copiedTimeoutRef.current);
+      }
+
+      copiedTimeoutRef.current = window.setTimeout(() => {
         setCopied(false);
+        copiedTimeoutRef.current = null;
       }, 1800);
     } catch {
       setNotice({
@@ -216,6 +326,11 @@ export function SmartWalletApp({
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_28%),radial-gradient(circle_at_85%_10%,rgba(15,118,110,0.2),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.14),transparent_26%)]" />
+      <CelebrationOverlay
+        description={dictionary.member.celebrationDescription}
+        open={showCelebration}
+        title={dictionary.member.celebrationTitle}
+      />
 
       {hasThirdwebClientId ? (
         <AutoConnect
@@ -502,9 +617,11 @@ export function SmartWalletApp({
                 <>
                   <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                     <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.member.synced}
+                      {memberSync.member.status === "completed"
+                        ? dictionary.member.synced
+                        : dictionary.member.pending}
                     </p>
-                    {memberSync.isNewMember ? (
+                    {memberSync.justCompleted ? (
                       <p className="mt-2 text-sm font-semibold text-emerald-700">
                         {dictionary.member.newMember}
                       </p>
@@ -525,6 +642,14 @@ export function SmartWalletApp({
                       value={memberSync.member.email}
                     />
                     <InfoRow
+                      label={dictionary.member.labels.signupStatus}
+                      value={
+                        memberSync.member.status === "completed"
+                          ? dictionary.member.completedValue
+                          : dictionary.member.pendingValue
+                      }
+                    />
+                    <InfoRow
                       label={dictionary.member.labels.lastWallet}
                       value={shortenAddress(memberSync.member.lastWalletAddress)}
                     />
@@ -533,12 +658,23 @@ export function SmartWalletApp({
                       value={String(memberSync.member.walletAddresses.length)}
                     />
                     <InfoRow
-                      label={dictionary.member.labels.registeredAt}
-                      value={formatDateTime(memberSync.member.createdAt, locale)}
+                      label={dictionary.member.labels.requiredDeposit}
+                      value={`${memberSync.member.requiredDepositAmount} USDT`}
                     />
                     <InfoRow
-                      label={dictionary.member.labels.updatedAt}
-                      value={formatDateTime(memberSync.member.updatedAt, locale)}
+                      label={dictionary.member.labels.destinationWallet}
+                      value={
+                        projectWallet
+                          ? shortenAddress(projectWallet)
+                          : dictionary.common.notAvailable
+                      }
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.awaitingPaymentSince}
+                      value={formatDateTime(
+                        memberSync.member.awaitingPaymentSince,
+                        locale,
+                      )}
                     />
                     <InfoRow
                       label={dictionary.member.labels.lastConnectedAt}
@@ -548,19 +684,65 @@ export function SmartWalletApp({
                       )}
                     />
                     <InfoRow
-                      label={dictionary.member.labels.referralCode}
-                      value={memberSync.member.referralCode}
-                    />
-                    <InfoRow
                       label={dictionary.member.labels.referredByCode}
                       value={
                         memberSync.member.referredByCode ??
                         dictionary.member.noReferralApplied
                       }
                     />
+                    <InfoRow
+                      label={dictionary.member.labels.updatedAt}
+                      value={formatDateTime(memberSync.member.updatedAt, locale)}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.completionAt}
+                      value={
+                        memberSync.member.registrationCompletedAt
+                          ? formatDateTime(
+                              memberSync.member.registrationCompletedAt,
+                              locale,
+                            )
+                          : dictionary.common.notAvailable
+                      }
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.paymentReceivedAt}
+                      value={
+                        memberSync.member.paymentReceivedAt
+                          ? formatDateTime(
+                              memberSync.member.paymentReceivedAt,
+                              locale,
+                            )
+                          : dictionary.common.notAvailable
+                      }
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.referralCode}
+                      value={
+                        memberSync.member.referralCode ??
+                        dictionary.common.notAvailable
+                      }
+                    />
                   </div>
 
-                  {referralLink ? (
+                  {paymentTransactionUrl ? (
+                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                        {dictionary.member.labels.paymentTransaction}
+                      </p>
+                      <a
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+                        href={paymentTransactionUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {memberSync.member.paymentTransactionHash}
+                        <ArrowUpRight className="size-4" />
+                      </a>
+                    </div>
+                  ) : null}
+
+                  {referralLink && isSignupCompleted ? (
                     <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
                         {dictionary.member.labels.referralLink}
@@ -588,15 +770,26 @@ export function SmartWalletApp({
                       }}
                       type="button"
                     >
-                      {dictionary.member.actions.syncNow}
+                      {dictionary.member.actions.refreshStatus}
                     </button>
 
-                    <Link
-                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                      href={`/${locale}/referrals`}
-                    >
-                      {dictionary.member.actions.viewReferrals}
-                    </Link>
+                    {isSignupCompleted ? (
+                      <Link
+                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                        href={`/${locale}/referrals`}
+                      >
+                        {dictionary.member.actions.viewReferrals}
+                      </Link>
+                    ) : (
+                      <a
+                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                        href={projectWalletUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {dictionary.member.actions.openProjectWallet}
+                      </a>
+                    )}
                   </div>
                 </>
               ) : null}
@@ -609,11 +802,30 @@ export function SmartWalletApp({
             >
               <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] p-5 text-white shadow-[0_24px_60px_rgba(29,78,216,0.22)]">
                 <p className="text-sm leading-6 text-white/70">
-                  {dictionary.sponsored.description}
+                  {dictionary.sponsored.description
+                    .replace("{amount}", MEMBER_SIGNUP_USDT_AMOUNT)
+                    .replace(
+                      "{wallet}",
+                      projectWallet ? shortenAddress(projectWallet) : "PROJECT_WALLET",
+                    )}
                 </p>
+                <a
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
+                  href={projectWalletUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {projectWallet ?? dictionary.common.notAvailable}
+                  <ArrowUpRight className="size-4" />
+                </a>
                 <TransactionButton
                   className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!accountAddress || !hasThirdwebClientId}
+                  disabled={
+                    !accountAddress ||
+                    !hasThirdwebClientId ||
+                    !projectWallet ||
+                    isSignupCompleted
+                  }
                   onError={(error) =>
                     setNotice({
                       tone: "error",
@@ -621,35 +833,55 @@ export function SmartWalletApp({
                     })
                   }
                   onTransactionConfirmed={(receipt) =>
-                    setNotice({
-                      tone: "success",
-                      text: dictionary.sponsored.txConfirmed,
-                      href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                    })
+                    {
+                      setNotice({
+                        tone: "success",
+                        text: dictionary.sponsored.txConfirmed,
+                        href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                      });
+
+                      window.setTimeout(() => {
+                        void runMemberSync({ background: true });
+                      }, 2500);
+                    }
                   }
                   onTransactionSent={(result) =>
-                    setNotice({
-                      tone: "info",
-                      text: dictionary.sponsored.txSent,
-                      href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                    })
+                    {
+                      setNotice({
+                        tone: "info",
+                        text: dictionary.sponsored.txSent,
+                        href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                      });
+
+                      window.setTimeout(() => {
+                        void runMemberSync({ background: true });
+                      }, 4000);
+                    }
                   }
                   transaction={() => {
                     if (!accountAddress) {
                       throw new Error(dictionary.sponsored.connectFirst);
                     }
 
-                    return prepareTransaction({
-                      chain: smartWalletChain,
-                      client: thirdwebClient,
-                      to: accountAddress,
-                      value: BigInt(0),
+                    if (!projectWallet) {
+                      throw new Error(dictionary.member.errors.projectWalletMissing);
+                    }
+
+                    return transfer({
+                      amount: MEMBER_SIGNUP_USDT_AMOUNT,
+                      contract: usdtContract,
+                      to: projectWallet,
                     });
                   }}
                   type="button"
                   unstyled
                 >
-                  {dictionary.sponsored.cta}
+                  {isSignupCompleted
+                    ? dictionary.sponsored.completedCta
+                    : dictionary.sponsored.cta.replace(
+                        "{amount}",
+                        MEMBER_SIGNUP_USDT_AMOUNT,
+                      )}
                 </TransactionButton>
               </div>
 
@@ -945,6 +1177,101 @@ function ActionLink({ href, label }: { href: string; label: string }) {
       {label}
       <ArrowUpRight className="size-4" />
     </a>
+  );
+}
+
+const celebrationBursts = [
+  {
+    colors: ["#2563eb", "#38bdf8", "#f97316", "#facc15"],
+    x: "18%",
+    y: "22%",
+  },
+  {
+    colors: ["#0f766e", "#2dd4bf", "#f59e0b", "#fb7185"],
+    x: "74%",
+    y: "18%",
+  },
+  {
+    colors: ["#f97316", "#fb7185", "#facc15", "#38bdf8"],
+    x: "26%",
+    y: "74%",
+  },
+  {
+    colors: ["#2563eb", "#22c55e", "#f97316", "#e879f9"],
+    x: "82%",
+    y: "68%",
+  },
+];
+
+const celebrationVectors = [
+  { x: "0px", y: "-84px" },
+  { x: "62px", y: "-52px" },
+  { x: "84px", y: "0px" },
+  { x: "60px", y: "54px" },
+  { x: "0px", y: "86px" },
+  { x: "-62px", y: "54px" },
+  { x: "-84px", y: "0px" },
+  { x: "-62px", y: "-52px" },
+  { x: "38px", y: "-88px" },
+  { x: "-40px", y: "-88px" },
+  { x: "92px", y: "26px" },
+  { x: "-94px", y: "28px" },
+];
+
+function CelebrationOverlay({
+  description,
+  open,
+  title,
+}: {
+  description: string;
+  open: boolean;
+  title: string;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.14),rgba(15,23,42,0.72))]" />
+      {celebrationBursts.map((burst, burstIndex) => (
+        <div
+          className="celebration-burst"
+          key={`${burst.x}-${burst.y}`}
+          style={{
+            animationDelay: `${burstIndex * 180}ms`,
+            left: burst.x,
+            top: burst.y,
+          }}
+        >
+          {celebrationVectors.map((vector, particleIndex) => (
+            <span
+              className="celebration-spark"
+              key={`${vector.x}-${vector.y}`}
+              style={{
+                "--celebration-color":
+                  burst.colors[particleIndex % burst.colors.length],
+                "--spark-x": vector.x,
+                "--spark-y": vector.y,
+                animationDelay: `${burstIndex * 180 + particleIndex * 28}ms`,
+              } as CSSProperties}
+            />
+          ))}
+        </div>
+      ))}
+
+      <div className="absolute inset-0 flex items-center justify-center px-6">
+        <div className="glass-card max-w-md rounded-[30px] border border-white/70 bg-white/82 px-6 py-7 text-center shadow-[0_30px_90px_rgba(15,23,42,0.22)]">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-white shadow-[0_18px_40px_rgba(37,99,235,0.22)]">
+            <Sparkles className="size-6" />
+          </div>
+          <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
+            {title}
+          </h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 

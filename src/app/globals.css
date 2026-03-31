@@ -77,3 +77,59 @@ a {
 .tw-connected-wallet {
   border-radius: 9999px;
 }
+
+.celebration-burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+  animation: celebration-bloom 1.1s ease-out forwards;
+}
+
+.celebration-spark {
+  position: absolute;
+  inset: 0;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-left: -0.4rem;
+  margin-top: -0.4rem;
+  border-radius: 9999px;
+  background: var(--celebration-color);
+  box-shadow:
+    0 0 16px color-mix(in srgb, var(--celebration-color) 75%, white),
+    0 0 36px color-mix(in srgb, var(--celebration-color) 40%, transparent);
+  animation: celebration-spark 1.15s cubic-bezier(0.12, 0.72, 0.22, 1) forwards;
+}
+
+@keyframes celebration-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes celebration-spark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--spark-x), var(--spark-y)) scale(0.25);
+  }
+}
