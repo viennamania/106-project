@@ -117,6 +117,11 @@ export type Dictionary = {
     syncing: string;
     synced: string;
     newMember: string;
+    incomingReferralTitle: string;
+    incomingReferralDescription: string;
+    appliedReferralDescription: string;
+    shareHint: string;
+    noReferralApplied: string;
     labels: {
       emailKey: string;
       lastWallet: string;
@@ -124,13 +129,46 @@ export type Dictionary = {
       registeredAt: string;
       updatedAt: string;
       lastConnectedAt: string;
+      referralCode: string;
+      referredByCode: string;
+      referralLink: string;
     };
     actions: {
       syncNow: string;
+      viewReferrals: string;
     };
     errors: {
       missingEmail: string;
       syncFailed: string;
+    };
+  };
+  referralsPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    shareTitle: string;
+    listTitle: string;
+    disconnected: string;
+    loading: string;
+    empty: string;
+    memberReady: string;
+    memberMissing: string;
+    labels: {
+      referralCode: string;
+      referralLink: string;
+      totalReferrals: string;
+      lastWallet: string;
+      locale: string;
+      joinedAt: string;
+      lastConnectedAt: string;
+    };
+    actions: {
+      backHome: string;
+      refresh: string;
+    };
+    errors: {
+      missingEmail: string;
+      loadFailed: string;
     };
   };
   signInMix: {
@@ -282,10 +320,18 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "회원 레지스트리",
       eyebrow: "atlas mongodb",
       disconnected:
-        "이메일 지갑을 연결하면 이메일 주소를 키로 회원 정보를 MongoDB Atlas에 자동 등록합니다.",
+        "이메일 지갑을 연결하면 이메일 주소를 키로 회원 정보를 MongoDB Atlas에 자동 등록하고 레퍼럴 코드도 함께 발급합니다.",
       syncing: "회원 정보를 Atlas에 동기화하는 중입니다.",
-      synced: "회원 정보가 MongoDB Atlas에 등록되어 관리 중입니다.",
+      synced: "회원 정보와 레퍼럴 코드가 MongoDB Atlas에 등록되어 관리 중입니다.",
       newMember: "새 회원으로 등록되었습니다.",
+      incomingReferralTitle: "추천인 코드가 감지되었습니다.",
+      incomingReferralDescription:
+        "이 페이지에서 이메일 회원가입을 완료하면 추천인 코드 {code} 가 회원 정보에 함께 저장됩니다.",
+      appliedReferralDescription:
+        "가입 시 추천인 코드 {code} 가 함께 저장되었습니다.",
+      shareHint:
+        "이 링크를 공유하면 홈페이지에서 `?ref=` 파라미터가 자동으로 적용됩니다.",
+      noReferralApplied: "적용 안 됨",
       labels: {
         emailKey: "이메일 키",
         lastWallet: "마지막 지갑",
@@ -293,13 +339,48 @@ const dictionaries: Record<Locale, Dictionary> = {
         registeredAt: "최초 등록",
         updatedAt: "최근 갱신",
         lastConnectedAt: "최근 연결",
+        referralCode: "내 레퍼럴 코드",
+        referredByCode: "적용된 추천인 코드",
+        referralLink: "레퍼럴 가입 링크",
       },
       actions: {
         syncNow: "지금 다시 동기화",
+        viewReferrals: "추천 가입자 보기",
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
         syncFailed: "회원 동기화에 실패했습니다.",
+      },
+    },
+    referralsPage: {
+      title: "레퍼럴 대시보드",
+      eyebrow: "referral tracking",
+      description:
+        "내 레퍼럴 코드와 해당 코드로 가입한 회원 목록을 확인합니다.",
+      shareTitle: "내 레퍼럴 코드",
+      listTitle: "내 코드로 가입한 회원",
+      disconnected:
+        "이메일 지갑을 연결하면 내 레퍼럴 코드와 추천 가입 회원을 확인할 수 있습니다.",
+      loading: "레퍼럴 데이터를 불러오는 중입니다.",
+      empty: "아직 내 레퍼럴 코드로 가입한 회원이 없습니다.",
+      memberReady: "이 이메일 회원의 레퍼럴 코드가 활성화되어 있습니다.",
+      memberMissing: "회원 정보를 먼저 동기화한 뒤 다시 시도하세요.",
+      labels: {
+        referralCode: "레퍼럴 코드",
+        referralLink: "공유 링크",
+        totalReferrals: "추천 가입 수",
+        lastWallet: "최근 지갑",
+        locale: "회원 언어",
+        joinedAt: "가입 시각",
+        lastConnectedAt: "최근 연결",
+      },
+      actions: {
+        backHome: "홈으로 돌아가기",
+        refresh: "새로고침",
+      },
+      errors: {
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        loadFailed: "레퍼럴 데이터를 불러오지 못했습니다.",
       },
     },
     signInMix: {
@@ -450,10 +531,18 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "Member Registry",
       eyebrow: "atlas mongodb",
       disconnected:
-        "Connect the email wallet to automatically register the member in MongoDB Atlas using the email address as the key.",
+        "Connect the email wallet to automatically register the member in MongoDB Atlas using the email address as the key and issue a referral code.",
       syncing: "Syncing the member record to Atlas.",
-      synced: "The member record is registered and managed in MongoDB Atlas.",
+      synced: "The member record and referral code are registered and managed in MongoDB Atlas.",
       newMember: "This account was registered as a new member.",
+      incomingReferralTitle: "A referral code was detected.",
+      incomingReferralDescription:
+        "If the user completes email signup on this page, referral code {code} will be stored on the member record.",
+      appliedReferralDescription:
+        "Referral code {code} was stored on this signup.",
+      shareHint:
+        "Share this link to open the homepage with the `?ref=` parameter already applied.",
+      noReferralApplied: "Not applied",
       labels: {
         emailKey: "Email key",
         lastWallet: "Last wallet",
@@ -461,13 +550,48 @@ const dictionaries: Record<Locale, Dictionary> = {
         registeredAt: "Created at",
         updatedAt: "Updated at",
         lastConnectedAt: "Last connected",
+        referralCode: "My referral code",
+        referredByCode: "Applied referral code",
+        referralLink: "Referral signup link",
       },
       actions: {
         syncNow: "Sync again now",
+        viewReferrals: "View referred members",
       },
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
         syncFailed: "Member sync failed.",
+      },
+    },
+    referralsPage: {
+      title: "Referral Dashboard",
+      eyebrow: "referral tracking",
+      description:
+        "Review your referral code and the members who signed up with it.",
+      shareTitle: "My referral code",
+      listTitle: "Members signed up with my code",
+      disconnected:
+        "Connect the email wallet to review your referral code and referred members.",
+      loading: "Loading referral data.",
+      empty: "No members have signed up with your referral code yet.",
+      memberReady: "Your referral code is active for this email member.",
+      memberMissing: "Sync the member record first, then try again.",
+      labels: {
+        referralCode: "Referral code",
+        referralLink: "Share link",
+        totalReferrals: "Referred signups",
+        lastWallet: "Last wallet",
+        locale: "Member locale",
+        joinedAt: "Joined at",
+        lastConnectedAt: "Last connected",
+      },
+      actions: {
+        backHome: "Back home",
+        refresh: "Refresh",
+      },
+      errors: {
+        missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
+        loadFailed: "Failed to load referral data.",
       },
     },
     signInMix: {
@@ -618,10 +742,18 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "メンバーレジストリ",
       eyebrow: "atlas mongodb",
       disconnected:
-        "メールウォレットを接続すると、メールアドレスをキーとして MongoDB Atlas に会員情報を自動登録します。",
+        "メールウォレットを接続すると、メールアドレスをキーとして MongoDB Atlas に会員情報を自動登録し、レファラルコードも発行します。",
       syncing: "会員情報を Atlas に同期しています。",
-      synced: "会員情報は MongoDB Atlas に登録され、管理されています。",
+      synced: "会員情報とレファラルコードは MongoDB Atlas に登録され、管理されています。",
       newMember: "このアカウントは新規会員として登録されました。",
+      incomingReferralTitle: "紹介コードを検出しました。",
+      incomingReferralDescription:
+        "このページでメール登録を完了すると、紹介コード {code} が会員情報に保存されます。",
+      appliedReferralDescription:
+        "登録時に紹介コード {code} が保存されました。",
+      shareHint:
+        "このリンクを共有すると、ホームページで `?ref=` パラメータ付きの状態で開けます。",
+      noReferralApplied: "未適用",
       labels: {
         emailKey: "メールキー",
         lastWallet: "最新ウォレット",
@@ -629,13 +761,48 @@ const dictionaries: Record<Locale, Dictionary> = {
         registeredAt: "初回登録",
         updatedAt: "最終更新",
         lastConnectedAt: "最終接続",
+        referralCode: "自分のレファラルコード",
+        referredByCode: "適用された紹介コード",
+        referralLink: "レファラル登録リンク",
       },
       actions: {
         syncNow: "今すぐ再同期",
+        viewReferrals: "紹介登録メンバーを見る",
       },
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
         syncFailed: "会員同期に失敗しました。",
+      },
+    },
+    referralsPage: {
+      title: "レファラルダッシュボード",
+      eyebrow: "referral tracking",
+      description:
+        "自分のレファラルコードと、そのコードで登録した会員一覧を確認します。",
+      shareTitle: "自分のレファラルコード",
+      listTitle: "自分のコードで登録した会員",
+      disconnected:
+        "メールウォレットを接続すると、自分のレファラルコードと紹介登録メンバーを確認できます。",
+      loading: "レファラルデータを読み込んでいます。",
+      empty: "まだ自分のレファラルコードで登録した会員はいません。",
+      memberReady: "このメール会員のレファラルコードは有効です。",
+      memberMissing: "先に会員情報を同期してから再試行してください。",
+      labels: {
+        referralCode: "レファラルコード",
+        referralLink: "共有リンク",
+        totalReferrals: "紹介登録数",
+        lastWallet: "最新ウォレット",
+        locale: "会員言語",
+        joinedAt: "登録日時",
+        lastConnectedAt: "最終接続",
+      },
+      actions: {
+        backHome: "ホームへ戻る",
+        refresh: "再読み込み",
+      },
+      errors: {
+        missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        loadFailed: "レファラルデータの読み込みに失敗しました。",
       },
     },
     signInMix: {
@@ -786,10 +953,18 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "会员注册表",
       eyebrow: "atlas mongodb",
       disconnected:
-        "连接邮箱钱包后，会自动把邮箱地址作为键写入 MongoDB Atlas 会员记录。",
+        "连接邮箱钱包后，会自动把邮箱地址作为键写入 MongoDB Atlas 会员记录，并生成专属推荐码。",
       syncing: "正在把会员记录同步到 Atlas。",
-      synced: "会员记录已经写入 MongoDB Atlas 并可持续管理。",
+      synced: "会员记录和推荐码已经写入 MongoDB Atlas 并可持续管理。",
       newMember: "该账户已作为新会员注册。",
+      incomingReferralTitle: "检测到推荐码。",
+      incomingReferralDescription:
+        "如果用户在此页面完成邮箱注册，推荐码 {code} 会一起写入会员信息。",
+      appliedReferralDescription:
+        "本次注册已记录推荐码 {code}。",
+      shareHint:
+        "分享此链接后，首页会自动带上 `?ref=` 参数。",
+      noReferralApplied: "未应用",
       labels: {
         emailKey: "邮箱键",
         lastWallet: "最近钱包",
@@ -797,13 +972,48 @@ const dictionaries: Record<Locale, Dictionary> = {
         registeredAt: "首次登记",
         updatedAt: "最近更新",
         lastConnectedAt: "最近连接",
+        referralCode: "我的推荐码",
+        referredByCode: "已应用推荐码",
+        referralLink: "推荐注册链接",
       },
       actions: {
         syncNow: "立即重新同步",
+        viewReferrals: "查看推荐注册会员",
       },
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
         syncFailed: "会员同步失败。",
+      },
+    },
+    referralsPage: {
+      title: "推荐仪表板",
+      eyebrow: "referral tracking",
+      description:
+        "查看我的推荐码，以及使用该推荐码注册的会员列表。",
+      shareTitle: "我的推荐码",
+      listTitle: "使用我的码注册的会员",
+      disconnected:
+        "连接邮箱钱包后，即可查看我的推荐码和推荐注册会员。",
+      loading: "正在加载推荐数据。",
+      empty: "目前还没有会员通过你的推荐码注册。",
+      memberReady: "该邮箱会员的推荐码已激活。",
+      memberMissing: "请先同步会员信息后再试。",
+      labels: {
+        referralCode: "推荐码",
+        referralLink: "分享链接",
+        totalReferrals: "推荐注册数",
+        lastWallet: "最近钱包",
+        locale: "会员语言",
+        joinedAt: "注册时间",
+        lastConnectedAt: "最近连接",
+      },
+      actions: {
+        backHome: "返回首页",
+        refresh: "刷新",
+      },
+      errors: {
+        missingEmail: "当前钱包会话中未能解析出邮箱地址。",
+        loadFailed: "加载推荐数据失败。",
       },
     },
     signInMix: {

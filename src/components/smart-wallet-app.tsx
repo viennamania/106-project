@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
@@ -60,9 +61,11 @@ type MemberSyncState = {
 
 export function SmartWalletApp({
   dictionary,
+  incomingReferralCode,
   locale,
 }: {
   dictionary: Dictionary;
+  incomingReferralCode: string | null;
   locale: Locale;
 }) {
   const account = useActiveAccount();
@@ -91,6 +94,9 @@ export function SmartWalletApp({
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const referralLink = memberSync.member?.referralCode
+    ? getReferralLink(memberSync.member.referralCode, locale)
+    : null;
 
   async function runMemberSync() {
     if (!accountAddress) {
@@ -123,6 +129,7 @@ export function SmartWalletApp({
           chainName: chain.name ?? "BSC",
           email,
           locale,
+          referredByCode: incomingReferralCode,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -180,7 +187,7 @@ export function SmartWalletApp({
     }
 
     void syncMemberRegistration();
-  }, [accountAddress, status, locale, chain.id, chain.name]);
+  }, [accountAddress, status, locale, chain.id, chain.name, incomingReferralCode]);
 
   async function handleCopyAddress() {
     if (!accountAddress) {
@@ -321,6 +328,20 @@ export function SmartWalletApp({
                   />
                 ))}
               </div>
+
+              {incomingReferralCode ? (
+                <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-950">
+                  <p className="font-semibold">
+                    {dictionary.member.incomingReferralTitle}
+                  </p>
+                  <p className="mt-2 leading-6">
+                    {dictionary.member.incomingReferralDescription.replace(
+                      "{code}",
+                      incomingReferralCode,
+                    )}
+                  </p>
+                </div>
+              ) : null}
 
               {!hasThirdwebClientId ? (
                 <div className="rounded-[28px] border border-amber-300 bg-amber-50/90 p-5 text-sm text-amber-950">
@@ -488,6 +509,14 @@ export function SmartWalletApp({
                         {dictionary.member.newMember}
                       </p>
                     ) : null}
+                    {memberSync.member.referredByCode ? (
+                      <p className="mt-2 text-sm font-medium text-slate-700">
+                        {dictionary.member.appliedReferralDescription.replace(
+                          "{code}",
+                          memberSync.member.referredByCode,
+                        )}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -518,18 +547,57 @@ export function SmartWalletApp({
                         locale,
                       )}
                     />
+                    <InfoRow
+                      label={dictionary.member.labels.referralCode}
+                      value={memberSync.member.referralCode}
+                    />
+                    <InfoRow
+                      label={dictionary.member.labels.referredByCode}
+                      value={
+                        memberSync.member.referredByCode ??
+                        dictionary.member.noReferralApplied
+                      }
+                    />
                   </div>
 
-                  <button
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={memberSync.status === "syncing"}
-                    onClick={() => {
-                      void runMemberSync();
-                    }}
-                    type="button"
-                  >
-                    {dictionary.member.actions.syncNow}
-                  </button>
+                  {referralLink ? (
+                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                        {dictionary.member.labels.referralLink}
+                      </p>
+                      <a
+                        className="mt-3 block break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+                        href={referralLink}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {referralLink}
+                      </a>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        {dictionary.member.shareHint}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={memberSync.status === "syncing"}
+                      onClick={() => {
+                        void runMemberSync();
+                      }}
+                      type="button"
+                    >
+                      {dictionary.member.actions.syncNow}
+                    </button>
+
+                    <Link
+                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                      href={`/${locale}/referrals`}
+                    >
+                      {dictionary.member.actions.viewReferrals}
+                    </Link>
+                  </div>
                 </>
               ) : null}
             </Panel>
@@ -882,6 +950,21 @@ function ActionLink({ href, label }: { href: string; label: string }) {
 
 function shortenAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function getReferralLink(referralCode: string, locale: Locale) {
+  const path = `/${locale}?ref=${encodeURIComponent(referralCode)}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (!appUrl) {
+    return path;
+  }
+
+  try {
+    return new URL(path, appUrl).toString();
+  } catch {
+    return path;
+  }
 }
 
 function formatBalance(

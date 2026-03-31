@@ -1,18 +1,7 @@
 import "server-only";
 
 import { MongoClient, ServerApiVersion, type Collection } from "mongodb";
-
-type MemberDocument = {
-  email: string;
-  walletAddresses: string[];
-  lastWalletAddress: string;
-  chainId: number;
-  chainName: string;
-  locale: string;
-  createdAt: Date;
-  updatedAt: Date;
-  lastConnectedAt: Date;
-};
+import type { MemberDocument } from "@/lib/member";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -64,7 +53,26 @@ export async function getMembersCollection() {
         .db(dbName)
         .collection<MemberDocument>(collectionName);
 
-      await collection.createIndex({ email: 1 }, { unique: true });
+      await Promise.all([
+        collection.createIndex({ email: 1 }, { unique: true }),
+        collection.createIndex(
+          { referralCode: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              referralCode: { $type: "string" },
+            },
+          },
+        ),
+        collection.createIndex(
+          { referredByCode: 1 },
+          {
+            partialFilterExpression: {
+              referredByCode: { $type: "string" },
+            },
+          },
+        ),
+      ]);
 
       return collection;
     })();
