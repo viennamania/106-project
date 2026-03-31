@@ -126,16 +126,16 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "thirdweb와 v0 호환 구조로 만든 모바일 우선 스마트 월렛 스타터.",
+        "이메일 기반 온보딩에 맞춘 모바일 우선 스마트 월렛 스타터.",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "모바일 우선 Smart Account 온보딩과 가스 스폰서 데모를 한 화면에 묶었습니다.",
+        "이메일 전용 Smart Account 온보딩과 가스 스폰서 데모를 한 화면에 묶었습니다.",
       languageLabel: "언어",
       connectWallet: "지갑 연결",
-      connectModalTitle: "Pocket Smart Wallet 시작",
+      connectModalTitle: "이메일로 Pocket Smart Wallet 시작",
       clientIdRequired: "client id 필요",
       copyAddress: "주소 복사",
       copied: "복사됨",
@@ -150,10 +150,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     },
     hero: {
       eyebrow: "Mobile Smart Wallet",
-      title: "이메일이나 패스키로 바로 들어오고, Smart Wallet으로 바로 전환되는 온체인 앱.",
+      title: "이메일만으로 바로 들어오고, Smart Wallet으로 바로 전환되는 온체인 앱.",
       description:
-        "`v0`가 다루기 좋은 컴포넌트 구조와 `thirdweb` Smart Wallet 연결 흐름을 결합했습니다. 모바일에서 긴 입력을 줄이고, BSC Smart Wallet 위에서 USDT 잔액만 빠르게 확인할 수 있게 정리했습니다.",
-      badges: ["엄지손가락 중심 UX", "ERC-4337 스마트 월렛", "가스 스폰서 데모"],
+        "`v0`가 다루기 좋은 컴포넌트 구조와 `thirdweb` 이메일 기반 Smart Wallet 연결 흐름을 결합했습니다. 이메일 인증만으로 바로 진입한 뒤, BSC Smart Wallet 위에서 USDT 잔액만 빠르게 확인할 수 있게 정리했습니다.",
+      badges: ["이메일 전용 진입", "ERC-4337 스마트 월렛", "가스 스폰서 데모"],
     },
     metrics: [
       { label: "체인", value: "BSC", hint: "BNB Smart Chain" },
@@ -163,7 +163,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "환경변수 설정 필요",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID`가 비어 있어 Connect UI를 숨겼습니다. `.env.example`을 복사한 뒤 client id를 넣으면 바로 연결됩니다.",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID`가 비어 있어 이메일 연결 UI를 숨겼습니다. `.env.example`을 복사한 뒤 client id를 넣으면 바로 연결됩니다.",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -184,9 +184,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "지갑 없는 유저도 바로 진입",
+          title: "이메일만으로 바로 시작",
           description:
-            "Email, Google, Apple, Passkey, Guest를 같은 진입점에서 받아 모바일 입력량을 줄였습니다.",
+            "이메일 OTP 진입점만 남겨 첫 진입 흐름을 가장 짧고 명확하게 만들었습니다.",
         },
         {
           title: "연결 즉시 Smart Account 추상화",
@@ -205,9 +205,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "로그인 방식 선택",
+          title: "이메일 인증",
           description:
-            "이메일, 소셜, 패스키, 게스트 계정을 인라인으로 노출해 첫 진입 마찰을 낮춥니다.",
+            "이메일 입력과 인증 코드 확인만으로 첫 단계를 끝내도록 만들어 진입 판단 비용을 줄였습니다.",
         },
         {
           title: "Smart Wallet 활성화",
@@ -256,9 +256,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       ],
     },
     signInMix: {
-      title: "Sign-in Mix",
-      eyebrow: "auth channels",
-      methods: ["이메일", "Google", "Apple", "패스키", "게스트"],
+      title: "이메일 전용 접근",
+      eyebrow: "single auth channel",
+      methods: ["이메일"],
     },
     notices: {
       copySuccess: "스마트 월렛 주소를 클립보드에 복사했습니다.",
@@ -269,16 +269,16 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "A mobile-first smart wallet starter built with thirdweb and a v0-compatible structure.",
+        "A mobile-first smart wallet starter built for email-only onboarding.",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "Mobile-first smart account onboarding and a gas sponsorship demo in one surface.",
+        "Email-only smart account onboarding and a gas sponsorship demo in one surface.",
       languageLabel: "Language",
       connectWallet: "Connect wallet",
-      connectModalTitle: "Start Pocket Smart Wallet",
+      connectModalTitle: "Start Pocket Smart Wallet with email",
       clientIdRequired: "client id required",
       copyAddress: "Copy address",
       copied: "Copied",
@@ -294,10 +294,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "An onchain app that lets users enter with email or passkeys and land directly in a smart wallet flow.",
+        "An onchain app that lets users enter with email only and land directly in a smart wallet flow.",
       description:
-        "This combines a `v0`-friendly component structure with the `thirdweb` smart wallet connection flow. It trims mobile input friction and keeps the wallet view focused on BSC USDT balances only.",
-      badges: ["Thumb-first flow", "ERC-4337 smart account", "Sponsored gas demo"],
+        "This combines a `v0`-friendly component structure with the `thirdweb` email-first smart wallet connection flow. It removes auth choice overload and keeps the wallet view focused on BSC USDT balances only.",
+      badges: ["Email-only sign-in", "ERC-4337 smart account", "Sponsored gas demo"],
     },
     metrics: [
       { label: "Chain", value: "BSC", hint: "BNB Smart Chain" },
@@ -307,7 +307,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "Environment setup required",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` is empty, so the connect UI is hidden. Copy `.env.example`, add your client id, and reload the app.",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` is empty, so the email connect UI is hidden. Copy `.env.example`, add your client id, and reload the app.",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -328,9 +328,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "Enter even without a wallet",
+          title: "Start with email only",
           description:
-            "Email, Google, Apple, Passkey, and Guest are presented in one entry point to reduce mobile typing.",
+            "Keep one email OTP entry point so the first interaction stays simple and focused.",
         },
         {
           title: "Abstract the account right after connect",
@@ -349,9 +349,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "Pick a sign-in method",
+          title: "Verify email",
           description:
-            "Expose email, social, passkey, and guest access inline to lower first-entry friction.",
+            "Keep the first step focused on entering an email and confirming the one-time code.",
         },
         {
           title: "Activate the smart wallet",
@@ -400,9 +400,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       ],
     },
     signInMix: {
-      title: "Sign-in Mix",
-      eyebrow: "auth channels",
-      methods: ["Email", "Google", "Apple", "Passkey", "Guest"],
+      title: "Email-only Access",
+      eyebrow: "single auth channel",
+      methods: ["Email"],
     },
     notices: {
       copySuccess: "The smart wallet address was copied to your clipboard.",
@@ -413,16 +413,16 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "thirdweb と v0 互換構成で作ったモバイルファーストのスマートウォレットスターター。",
+        "メール限定オンボーディング向けに整えたモバイルファーストのスマートウォレットスターター。",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "モバイル優先の Smart Account オンボーディングとガススポンサーのデモを 1 画面にまとめています。",
+        "メール限定の Smart Account オンボーディングとガススポンサーのデモを 1 画面にまとめています。",
       languageLabel: "言語",
       connectWallet: "ウォレット接続",
-      connectModalTitle: "Pocket Smart Wallet を始める",
+      connectModalTitle: "メールで Pocket Smart Wallet を始める",
       clientIdRequired: "client id が必要です",
       copyAddress: "アドレスをコピー",
       copied: "コピー済み",
@@ -438,10 +438,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "メールやパスキーですぐ入り、そのまま Smart Wallet フローに移れるオンチェーンアプリ。",
+        "メールだけですぐ入り、そのまま Smart Wallet フローに移れるオンチェーンアプリ。",
       description:
-        "`v0` が扱いやすいコンポーネント構成と `thirdweb` Smart Wallet 接続フローを組み合わせました。モバイル入力の負担を減らし、BSC USDT 残高だけを素早く確認できるように絞っています。",
-      badges: ["親指中心フロー", "ERC-4337 スマートアカウント", "ガススポンサー実演"],
+        "`v0` が扱いやすいコンポーネント構成と `thirdweb` のメール中心 Smart Wallet 接続フローを組み合わせました。認証方法の迷いをなくし、BSC USDT 残高だけを素早く確認できるように絞っています。",
+      badges: ["メール限定サインイン", "ERC-4337 スマートアカウント", "ガススポンサー実演"],
     },
     metrics: [
       { label: "チェーン", value: "BSC", hint: "BNB Smart Chain" },
@@ -451,7 +451,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "環境変数の設定が必要です",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` が空のため Connect UI を隠しています。`.env.example` をコピーして client id を入れるとすぐ接続できます。",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` が空のためメール接続 UI を隠しています。`.env.example` をコピーして client id を入れるとすぐ接続できます。",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -472,9 +472,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "ウォレットなしでもすぐ開始",
+          title: "メールだけですぐ開始",
           description:
-            "Email, Google, Apple, Passkey, Guest を同じ入口にまとめ、モバイルでの入力量を減らしました。",
+            "メール OTP 専用の導線に絞り、最初の操作をできるだけ短く明快にしました。",
         },
         {
           title: "接続直後に Smart Account 化",
@@ -493,9 +493,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "サインイン方法を選ぶ",
+          title: "メール認証",
           description:
-            "メール、ソーシャル、パスキー、ゲストをインラインで見せて初回導線の摩擦を下げます。",
+            "メール入力と認証コード確認だけで最初のステップを完了できるようにしています。",
         },
         {
           title: "Smart Wallet を有効化",
@@ -544,9 +544,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       ],
     },
     signInMix: {
-      title: "Sign-in Mix",
-      eyebrow: "auth channels",
-      methods: ["メール", "Google", "Apple", "パスキー", "ゲスト"],
+      title: "メール専用アクセス",
+      eyebrow: "single auth channel",
+      methods: ["メール"],
     },
     notices: {
       copySuccess: "スマートウォレットのアドレスをクリップボードにコピーしました。",
@@ -557,16 +557,16 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "基于 thirdweb 和 v0 兼容结构构建的移动优先智能钱包启动项目。",
+        "围绕邮箱专用引导整理的移动优先智能钱包启动项目。",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "把移动优先的 Smart Account 引导和 gas sponsorship 演示放进同一个界面。",
+        "把邮箱专用 Smart Account 引导和 gas sponsorship 演示放进同一个界面。",
       languageLabel: "语言",
       connectWallet: "连接钱包",
-      connectModalTitle: "开始使用 Pocket Smart Wallet",
+      connectModalTitle: "通过邮箱开始使用 Pocket Smart Wallet",
       clientIdRequired: "需要 client id",
       copyAddress: "复制地址",
       copied: "已复制",
@@ -582,10 +582,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "用户可以用邮箱或通行密钥直接进入，并立即切换到 Smart Wallet 流程的链上应用。",
+        "用户只用邮箱就能直接进入，并立即切换到 Smart Wallet 流程的链上应用。",
       description:
-        "这个版本把 `v0` 友好的组件结构和 `thirdweb` Smart Wallet 连接流程结合在一起。它减少移动端输入负担，并让钱包界面只聚焦 BSC USDT 余额。",
-      badges: ["拇指优先流程", "ERC-4337 智能账户", "Gas 赞助演示"],
+        "这个版本把 `v0` 友好的组件结构和 `thirdweb` 邮箱优先 Smart Wallet 连接流程结合在一起。它去掉了多种认证方式的选择负担，并让钱包界面只聚焦 BSC USDT 余额。",
+      badges: ["邮箱专用登录", "ERC-4337 智能账户", "Gas 赞助演示"],
     },
     metrics: [
       { label: "链", value: "BSC", hint: "BNB Smart Chain" },
@@ -595,7 +595,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "需要环境变量配置",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 为空，所以当前隐藏了 Connect UI。复制 `.env.example` 后填入 client id 即可连接。",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 为空，所以当前隐藏了邮箱连接 UI。复制 `.env.example` 后填入 client id 即可连接。",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -616,9 +616,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "没有钱包也能立即进入",
+          title: "只用邮箱立即开始",
           description:
-            "把 Email、Google、Apple、Passkey、Guest 放在同一个入口，减少移动端输入步骤。",
+            "只保留邮箱 OTP 入口，让第一次进入的流程尽量短而清晰。",
         },
         {
           title: "连接后立即抽象成 Smart Account",
@@ -637,9 +637,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "选择登录方式",
+          title: "邮箱验证",
           description:
-            "把邮箱、社交账号、通行密钥和访客入口直接放在页面上，降低首次进入的摩擦。",
+            "让第一步只围绕邮箱输入和验证码确认展开，减少进入前的判断成本。",
         },
         {
           title: "启用 Smart Wallet",
@@ -688,9 +688,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       ],
     },
     signInMix: {
-      title: "Sign-in Mix",
-      eyebrow: "auth channels",
-      methods: ["邮箱", "Google", "Apple", "通行密钥", "访客"],
+      title: "邮箱专用入口",
+      eyebrow: "single auth channel",
+      methods: ["邮箱"],
     },
     notices: {
       copySuccess: "智能钱包地址已复制到剪贴板。",

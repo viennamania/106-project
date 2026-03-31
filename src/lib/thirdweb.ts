@@ -1,6 +1,6 @@
 import { createThirdwebClient } from "thirdweb";
 import { bsc } from "thirdweb/chains";
-import { createWallet, inAppWallet } from "thirdweb/wallets";
+import { inAppWallet } from "thirdweb/wallets";
 
 export const thirdwebClientId =
   process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID ?? "";
@@ -29,7 +29,7 @@ export const smartWalletOptions = {
 export const supportedWallets = [
   inAppWallet({
     auth: {
-      options: ["email", "google", "apple", "passkey", "guest"],
+      options: ["email"],
       mode: "popup",
     },
     metadata: {
@@ -43,9 +43,6 @@ export const supportedWallets = [
     },
     hidePrivateKeyExport: true,
   }),
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("me.rainbow"),
 ];
 
 export const BSC_EXPLORER = "https://bscscan.com";
