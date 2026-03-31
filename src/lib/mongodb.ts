@@ -2,10 +2,14 @@ import "server-only";
 
 import { MongoClient, ServerApiVersion, type Collection } from "mongodb";
 import type { MemberDocument } from "@/lib/member";
+import type { ThirdwebWebhookEventDocument } from "@/lib/thirdweb-webhooks";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
   mongoMembersCollectionPromise?: Promise<Collection<MemberDocument>>;
+  mongoThirdwebWebhookEventsCollectionPromise?: Promise<
+    Collection<ThirdwebWebhookEventDocument>
+  >;
 };
 
 function getMongoConfig() {
@@ -79,4 +83,29 @@ export async function getMembersCollection() {
   }
 
   return globalForMongo.mongoMembersCollectionPromise;
+}
+
+export async function getThirdwebWebhookEventsCollection() {
+  if (!globalForMongo.mongoThirdwebWebhookEventsCollectionPromise) {
+    globalForMongo.mongoThirdwebWebhookEventsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_THIRDWEB_WEBHOOK_EVENTS_COLLECTION ??
+        "thirdwebWebhookEvents";
+      const collection = client
+        .db(dbName)
+        .collection<ThirdwebWebhookEventDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ webhookEventId: 1 }, { unique: true }),
+        collection.createIndex({ projectWallet: 1, receivedAt: -1 }),
+        collection.createIndex({ transactionHash: 1, logIndex: 1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoThirdwebWebhookEventsCollectionPromise;
 }

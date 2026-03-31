@@ -17,6 +17,7 @@
 - `sponsorGas=true` 고정
 - BSC USDT 잔액 전용 표시
 - MongoDB Atlas 회원 등록 및 관리
+- thirdweb Insight BSC USDT webhook 수신
 - explorer / USDT contract / dashboard 빠른 링크
 
 ## Run locally
@@ -27,14 +28,20 @@
 cp .env.example .env.local
 ```
 
-2. `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`와 MongoDB Atlas 환경변수 설정
+2. `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`, thirdweb webhook, MongoDB Atlas 환경변수 설정
 
 ```bash
+THIRDWEB_SECRET_KEY=your_server_secret_key
 NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+PROJECT_WALLET=0x...
+THIRDWEB_WEBHOOK_BASE_URL=https://your-public-app-url
+THIRDWEB_WEBHOOK_URL=
+THIRDWEB_WEBHOOK_SECRETS=
 MONGODB_URI=your_mongodb_atlas_connection_string
 MONGODB_DB_NAME=your_database_name
 MONGODB_MEMBERS_COLLECTION=members
+MONGODB_THIRDWEB_WEBHOOK_EVENTS_COLLECTION=thirdwebWebhookEvents
 ```
 
 3. 개발 서버 실행
@@ -53,7 +60,27 @@ pnpm dev
 - `sponsorGas=true`로 고정되어 있습니다.
 - 잔액 조회는 BSC의 USDT 컨트랙트만 대상으로 합니다.
 - 지갑 연결 후 현재 이메일 주소를 키로 회원 정보가 MongoDB Atlas에 upsert됩니다.
+- `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 MongoDB Atlas에 upsert합니다.
 - sponsored transaction 데모가 동작하려면 thirdweb 대시보드에서 BSC용 gas sponsorship 설정이 필요합니다.
+
+## thirdweb webhook setup
+
+1. 수신 엔드포인트가 공개 HTTPS 주소로 열려 있어야 합니다.
+
+2. `PROJECT_WALLET`와 `THIRDWEB_SECRET_KEY`를 설정한 뒤 webhook를 등록합니다.
+
+```bash
+pnpm thirdweb:webhooks:register
+```
+
+3. 스크립트 출력의 `THIRDWEB_WEBHOOK_SECRETS=...` 값을 `.env.local`에 추가합니다.
+
+`http://localhost:3000` 같은 로컬 주소는 thirdweb이 호출할 수 없으므로 등록 스크립트가 거부합니다. 배포된 HTTPS 주소를 `THIRDWEB_WEBHOOK_BASE_URL` 또는 `THIRDWEB_WEBHOOK_URL`에 넣어야 합니다.
+
+등록 스크립트는 다음 webhook 2개를 thirdweb Insight에 맞춰 생성하거나 재사용합니다.
+
+- BSC USDT `Transfer` 이벤트 중 `to=PROJECT_WALLET`
+- BSC USDT `Transfer` 이벤트 중 `from=PROJECT_WALLET`
 
 ## v0 workflow
 
