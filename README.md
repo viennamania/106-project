@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pocket Smart Wallet
 
-## Getting Started
+`Vercel v0` 확장에 맞는 구조와 `thirdweb SDK` Smart Wallet 플로우를 합친 모바일 우선 웹앱입니다.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 App Router
+- Tailwind CSS v4
+- thirdweb React SDK v5
+- v0-compatible `components.json` + alias structure
+
+## What is included
+
+- 인라인 `ConnectEmbed` 기반 모바일 온보딩
+- Email / Google / Apple / Passkey / Guest 로그인 진입점
+- BSC Smart Wallet 연결 기본값
+- `sponsorGas=true` 고정
+- BSC USDT 잔액 전용 표시
+- explorer / USDT contract / dashboard 빠른 링크
+
+## Run locally
+
+1. 환경변수 파일 생성
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 설정
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. 개발 서버 실행
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. 브라우저에서 `http://localhost:3000` 열기
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Smart Wallet notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 기본 체인은 `BSC`입니다.
+- Connect UI는 `accountAbstraction` 옵션으로 Smart Wallet 흐름을 사용합니다.
+- `sponsorGas=true`로 고정되어 있습니다.
+- 잔액 조회는 BSC의 USDT 컨트랙트만 대상으로 합니다.
+- sponsored transaction 데모가 동작하려면 thirdweb 대시보드에서 BSC용 gas sponsorship 설정이 필요합니다.
 
-## Deploy on Vercel
+## v0 workflow
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+이 프로젝트는 `v0 init`이 Tailwind v4 감지 문제로 실패할 수 있는 환경을 고려해 수동으로 `components.json`과 alias를 맞춰 둔 상태입니다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+이후 v0에서 이어서 작업하려면:
+
+- v0 웹 UI에서 화면을 수정하고 `Add to Codebase`를 사용하거나
+- 새로운 컴포넌트를 생성한 뒤 현재 alias 구조(`@/components`, `@/lib`)에 맞춰 추가하면 됩니다.
+
+## Verification
+
+다음 명령으로 검증했습니다.
+
+```bash
+pnpm lint
+pnpm build
+```
