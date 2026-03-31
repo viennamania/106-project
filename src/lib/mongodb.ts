@@ -48,6 +48,59 @@ async function getMongoClient() {
   return globalForMongo.mongoClientPromise;
 }
 
+async function ensureMembersIndexes(
+  collection: Collection<MemberDocument>,
+) {
+  const indexes = await collection.indexes();
+  const walletIndex = indexes.find((index) => index.name === "lastWalletAddress_1");
+  const walletIndexName = walletIndex?.name;
+
+  // Older builds created a unique wallet index, which breaks reconnect flows
+  // when the same wallet address is reused during testing or recovery.
+  if (walletIndex?.unique && walletIndexName) {
+    await collection.dropIndex(walletIndexName);
+  }
+
+  await Promise.all([
+    collection.createIndex({ email: 1 }, { unique: true }),
+    collection.createIndex(
+      { lastWalletAddress: 1 },
+      {
+        partialFilterExpression: {
+          lastWalletAddress: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex(
+      { referralCode: 1 },
+      {
+        unique: true,
+        partialFilterExpression: {
+          referralCode: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex(
+      { referredByCode: 1 },
+      {
+        partialFilterExpression: {
+          referredByCode: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex({
+      status: 1,
+      lastWalletAddress: 1,
+      awaitingPaymentSince: -1,
+    }),
+    collection.createIndex({
+      status: 1,
+      referredByCode: 1,
+      registrationCompletedAt: -1,
+    }),
+  ]);
+}
+
 export async function getMembersCollection() {
   if (!globalForMongo.mongoMembersCollectionPromise) {
     globalForMongo.mongoMembersCollectionPromise = (async () => {
@@ -57,45 +110,7 @@ export async function getMembersCollection() {
         .db(dbName)
         .collection<MemberDocument>(collectionName);
 
-      await Promise.all([
-        collection.createIndex({ email: 1 }, { unique: true }),
-        collection.createIndex(
-          { lastWalletAddress: 1 },
-          {
-            unique: true,
-            partialFilterExpression: {
-              lastWalletAddress: { $type: "string" },
-            },
-          },
-        ),
-        collection.createIndex(
-          { referralCode: 1 },
-          {
-            unique: true,
-            partialFilterExpression: {
-              referralCode: { $type: "string" },
-            },
-          },
-        ),
-        collection.createIndex(
-          { referredByCode: 1 },
-          {
-            partialFilterExpression: {
-              referredByCode: { $type: "string" },
-            },
-          },
-        ),
-        collection.createIndex({
-          status: 1,
-          lastWalletAddress: 1,
-          awaitingPaymentSince: -1,
-        }),
-        collection.createIndex({
-          status: 1,
-          referredByCode: 1,
-          registrationCompletedAt: -1,
-        }),
-      ]);
+      await ensureMembersIndexes(collection);
 
       return collection;
     })();

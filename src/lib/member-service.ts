@@ -382,30 +382,30 @@ export async function completePendingMembersForWebhookEvent(
   }
 
   const collection = await getMembersCollection();
-  const pendingMembers = await collection
-    .find({
+  const pendingMember = await collection.findOne(
+    {
       awaitingPaymentSince: {
         $lte: new Date(event.blockTimestamp * 1000),
       },
       lastWalletAddress: event.fromAddress,
       status: "pending_payment",
-    })
-    .sort({ awaitingPaymentSince: -1 })
-    .toArray();
+    },
+    {
+      sort: {
+        awaitingPaymentSince: -1,
+      },
+    },
+  );
 
-  let completedCount = 0;
-
-  for (const member of pendingMembers) {
-    const result = await maybeCompleteMemberWithStoredPayment({
-      collection,
-      member,
-      matchedEvent: event,
-    });
-
-    if (result.justCompleted) {
-      completedCount += 1;
-    }
+  if (!pendingMember) {
+    return 0;
   }
 
-  return completedCount;
+  const result = await maybeCompleteMemberWithStoredPayment({
+    collection,
+    member: pendingMember,
+    matchedEvent: event,
+  });
+
+  return result.justCompleted ? 1 : 0;
 }
