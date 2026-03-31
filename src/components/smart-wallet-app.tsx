@@ -114,8 +114,11 @@ export function SmartWalletApp({
   const syncInFlightRef = useRef(false);
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const signer = wallet?.getAdminAccount?.();
+  const adminSignerAddress = getAdminAccountAddress(wallet);
   const accountAddress = account?.address;
+  const accountLabel = formatAddressLabel(accountAddress);
+  const projectWalletLabel = formatAddressLabel(projectWallet);
+  const adminSignerLabel = formatAddressLabel(adminSignerAddress);
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -470,7 +473,7 @@ export function SmartWalletApp({
                       <div>
                         <p className="eyebrow">{dictionary.connected.eyebrow}</p>
                         <h3 className="text-xl font-semibold text-slate-950">
-                          {shortenAddress(accountAddress)}
+                          {accountLabel ?? accountAddress}
                         </h3>
                       </div>
                       <button
@@ -505,7 +508,7 @@ export function SmartWalletApp({
                       <InfoRow
                         label={dictionary.connected.labels.walletType}
                         value={
-                          signer
+                          adminSignerAddress
                             ? dictionary.common.walletTypeAbstracted
                             : wallet?.id ?? dictionary.common.notAvailable
                         }
@@ -513,9 +516,7 @@ export function SmartWalletApp({
                       <InfoRow
                         label={dictionary.connected.labels.adminSigner}
                         value={
-                          signer
-                            ? shortenAddress(signer.address)
-                            : dictionary.common.notAvailable
+                          adminSignerLabel ?? dictionary.common.notAvailable
                         }
                       />
                     </div>
@@ -651,7 +652,10 @@ export function SmartWalletApp({
                     />
                     <InfoRow
                       label={dictionary.member.labels.lastWallet}
-                      value={shortenAddress(memberSync.member.lastWalletAddress)}
+                      value={
+                        formatAddressLabel(memberSync.member.lastWalletAddress) ??
+                        dictionary.common.notAvailable
+                      }
                     />
                     <InfoRow
                       label={dictionary.member.labels.walletCount}
@@ -664,9 +668,7 @@ export function SmartWalletApp({
                     <InfoRow
                       label={dictionary.member.labels.destinationWallet}
                       value={
-                        projectWallet
-                          ? shortenAddress(projectWallet)
-                          : dictionary.common.notAvailable
+                        projectWalletLabel ?? dictionary.common.notAvailable
                       }
                     />
                     <InfoRow
@@ -806,7 +808,7 @@ export function SmartWalletApp({
                     .replace("{amount}", MEMBER_SIGNUP_USDT_AMOUNT)
                     .replace(
                       "{wallet}",
-                      projectWallet ? shortenAddress(projectWallet) : "PROJECT_WALLET",
+                      projectWalletLabel ?? "PROJECT_WALLET",
                     )}
                 </p>
                 <a
@@ -1275,8 +1277,36 @@ function CelebrationOverlay({
   );
 }
 
-function shortenAddress(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+function getAdminAccountAddress(
+  wallet:
+    | {
+        getAdminAccount?: () =>
+          | {
+              address?: string | null;
+            }
+          | undefined;
+      }
+    | undefined,
+) {
+  try {
+    return wallet?.getAdminAccount?.()?.address?.trim() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function formatAddressLabel(address?: string | null) {
+  const trimmed = address?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.length <= 12) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
 }
 
 function getReferralLink(referralCode: string, locale: Locale) {
