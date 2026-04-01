@@ -32,6 +32,10 @@ export const supportedWallets = [
       options: ["email"],
       mode: "popup",
     },
+    executionMode: {
+      mode: "EIP4337",
+      smartAccount: smartWalletOptions,
+    },
     metadata: {
       name: "Pocket Smart Wallet",
       image: {

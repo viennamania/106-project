@@ -134,6 +134,33 @@ export function SmartWalletApp({
   const paymentTransactionUrl = memberSync.member?.paymentTransactionHash
     ? `${BSC_EXPLORER}/tx/${memberSync.member.paymentTransactionHash}`
     : null;
+  const paymentCtaLabel = isSignupCompleted
+    ? dictionary.sponsored.completedCta
+    : dictionary.sponsored.cta.replace(
+        "{amount}",
+        MEMBER_SIGNUP_USDT_AMOUNT,
+      );
+  const mobilePrimaryHref = isSignupCompleted
+    ? `/${locale}/referrals`
+    : status === "connected" && hasThirdwebClientId
+      ? "#signup-payment"
+      : "#wallet-onboarding";
+  const mobilePrimaryLabel = isSignupCompleted
+    ? dictionary.member.actions.viewReferrals
+    : status === "connected" && hasThirdwebClientId
+      ? paymentCtaLabel
+      : dictionary.common.connectWallet;
+  const mobileDockEyebrow = isSignupCompleted
+    ? dictionary.member.eyebrow
+    : status === "connected" && hasThirdwebClientId
+      ? dictionary.sponsored.eyebrow
+      : dictionary.onboarding.eyebrow;
+  const mobileDockTitle = isSignupCompleted
+    ? dictionary.member.newMember
+    : status === "connected" && hasThirdwebClientId
+      ? projectWalletLabel ?? "PROJECT_WALLET"
+      : dictionary.runway.steps[0].title;
+  const showMobileActionDock = hasThirdwebClientId && status === "connected";
 
   function triggerCelebration() {
     if (celebrationTimeoutRef.current) {
@@ -347,8 +374,8 @@ export function SmartWalletApp({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-4 py-4 pb-28 sm:gap-5 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
+        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-4 py-4 sm:px-5 sm:py-4">
           <div className="flex items-start gap-3">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-white shadow-[0_16px_40px_rgba(37,99,235,0.28)]">
               <WalletMinimal className="size-5" />
@@ -366,21 +393,23 @@ export function SmartWalletApp({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
-            <StatusChip
-              labels={dictionary.common.status}
-              status={status}
-            />
+          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
+              <LanguageSwitcher
+                label={dictionary.common.languageLabel}
+                locale={locale}
+              />
+              <StatusChip
+                labels={dictionary.common.status}
+                status={status}
+              />
+            </div>
             {hasThirdwebClientId ? (
               status === "connected" ? (
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                   {accountAddress ? (
                     <a
-                      className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
                       href={accountUrl}
                       rel="noreferrer"
                       target="_blank"
@@ -395,7 +424,7 @@ export function SmartWalletApp({
                   )}
 
                   <button
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                     disabled={!wallet}
                     onClick={() => {
                       if (!wallet) {
@@ -410,27 +439,29 @@ export function SmartWalletApp({
                   </button>
                 </div>
               ) : (
-                <ConnectButton
-                  accountAbstraction={smartWalletOptions}
-                  appMetadata={appMetadata}
-                  chain={smartWalletChain}
-                  client={thirdwebClient}
-                  connectButton={{
-                    className:
-                      "!h-11 !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                    label: dictionary.common.connectWallet,
-                  }}
-                  connectModal={{
-                    title: dictionary.common.connectModalTitle,
-                    titleIcon: "/favicon.ico",
-                  }}
-                  locale={thirdwebLocales[locale]}
-                  theme="dark"
-                  wallets={supportedWallets}
-                />
+                <div className="hidden w-full sm:block sm:w-auto">
+                  <ConnectButton
+                    accountAbstraction={smartWalletOptions}
+                    appMetadata={appMetadata}
+                    chain={smartWalletChain}
+                    client={thirdwebClient}
+                    connectButton={{
+                      className:
+                        "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] sm:!w-auto",
+                      label: dictionary.common.connectWallet,
+                    }}
+                    connectModal={{
+                      title: dictionary.common.connectModalTitle,
+                      titleIcon: "/favicon.ico",
+                    }}
+                    locale={thirdwebLocales[locale]}
+                    theme="dark"
+                    wallets={supportedWallets}
+                  />
+                </div>
               )
             ) : (
-              <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+              <div className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900 sm:w-auto">
                 {dictionary.common.clientIdRequired}
               </div>
             )}
@@ -455,15 +486,58 @@ export function SmartWalletApp({
 
               <div className="space-y-3">
                 <p className="eyebrow">{dictionary.hero.eyebrow}</p>
-                <h2 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
+                <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
                   {dictionary.hero.title}
                 </h2>
-                <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
                   {dictionary.hero.description}
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="lg:hidden">
+                <div className="rounded-[28px] border border-slate-200/80 bg-slate-950 px-4 py-4 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-white/55">
+                        {mobileDockEyebrow}
+                      </p>
+                      <h3 className="mt-2 text-lg font-semibold tracking-tight">
+                        {isSignupCompleted
+                          ? dictionary.member.completedValue
+                          : status === "connected" && hasThirdwebClientId
+                            ? dictionary.sponsored.title
+                            : dictionary.common.connectWallet}
+                      </h3>
+                    </div>
+                    <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/72">
+                      {status === "connected"
+                        ? isSignupCompleted
+                          ? dictionary.member.completedValue
+                          : dictionary.member.pendingValue
+                        : dictionary.common.status.disconnected}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <CompactMetaCard
+                      label={dictionary.member.labels.requiredDeposit}
+                      value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                    />
+                    <CompactMetaCard
+                      label={dictionary.member.labels.destinationWallet}
+                      value={projectWalletLabel ?? "PROJECT_WALLET"}
+                    />
+                  </div>
+
+                  <PrimaryActionLink
+                    className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                    href={mobilePrimaryHref}
+                    label={mobilePrimaryLabel}
+                  />
+                </div>
+              </div>
+
+              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
                 {dictionary.metrics.map((metric) => (
                   <MetricCard
                     hint={metric.hint}
@@ -569,21 +643,64 @@ export function SmartWalletApp({
                 </div>
               ) : (
                 <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
-                  <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+                  <div
+                    className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
+                    id="wallet-onboarding"
+                  >
                     <p className="eyebrow mb-3">{dictionary.onboarding.eyebrow}</p>
-                    <ConnectEmbed
-                      accountAbstraction={smartWalletOptions}
-                      appMetadata={appMetadata}
-                      chain={smartWalletChain}
-                      client={thirdwebClient}
-                      locale={thirdwebLocales[locale]}
-                      modalSize="compact"
-                      theme="dark"
-                      wallets={supportedWallets}
-                    />
+                    <div className="space-y-3 sm:hidden">
+                      {dictionary.onboarding.cards.map((card, index) => (
+                        <CompactFlowCard
+                          description={card.description}
+                          icon={
+                            index === 0 ? (
+                              <Sparkles className="size-4" />
+                            ) : index === 1 ? (
+                              <Layers3 className="size-4" />
+                            ) : (
+                              <Zap className="size-4" />
+                            )
+                          }
+                          key={card.title}
+                          title={card.title}
+                        />
+                      ))}
+
+                      <ConnectButton
+                        accountAbstraction={smartWalletOptions}
+                        appMetadata={appMetadata}
+                        chain={smartWalletChain}
+                        client={thirdwebClient}
+                        connectButton={{
+                          className:
+                            "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
+                          label: dictionary.common.connectWallet,
+                        }}
+                        connectModal={{
+                          title: dictionary.common.connectModalTitle,
+                          titleIcon: "/favicon.ico",
+                        }}
+                        locale={thirdwebLocales[locale]}
+                        theme="dark"
+                        wallets={supportedWallets}
+                      />
+                    </div>
+
+                    <div className="hidden sm:block">
+                      <ConnectEmbed
+                        accountAbstraction={smartWalletOptions}
+                        appMetadata={appMetadata}
+                        chain={smartWalletChain}
+                        client={thirdwebClient}
+                        locale={thirdwebLocales[locale]}
+                        modalSize="compact"
+                        theme="dark"
+                        wallets={supportedWallets}
+                      />
+                    </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  <div className="hidden gap-3 lg:grid">
                     {dictionary.onboarding.cards.map((card, index) => (
                       <FlowCard
                         description={card.description}
@@ -608,6 +725,7 @@ export function SmartWalletApp({
 
           <div className="flex flex-col gap-5">
             <Panel
+              className="order-3 lg:order-1"
               contentClassName="gap-3"
               eyebrow={dictionary.runway.eyebrow}
               title={dictionary.runway.title}
@@ -623,6 +741,7 @@ export function SmartWalletApp({
             </Panel>
 
             <Panel
+              className="order-2 lg:order-2"
               contentClassName="gap-4"
               eyebrow={dictionary.member.eyebrow}
               title={dictionary.member.title}
@@ -760,7 +879,7 @@ export function SmartWalletApp({
                         {dictionary.member.labels.paymentTransaction}
                       </p>
                       <a
-                        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+                        className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
                         href={paymentTransactionUrl}
                         rel="noreferrer"
                         target="_blank"
@@ -825,6 +944,8 @@ export function SmartWalletApp({
             </Panel>
 
             <Panel
+              className="order-1 lg:order-3"
+              id="signup-payment"
               contentClassName="gap-4"
               eyebrow={dictionary.sponsored.eyebrow}
               title={dictionary.sponsored.title}
@@ -839,13 +960,12 @@ export function SmartWalletApp({
                     )}
                 </p>
                 <a
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
+                  className="mt-4 block break-all text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
                   href={projectWalletUrl}
                   rel="noreferrer"
                   target="_blank"
                 >
                   {projectWallet ?? dictionary.common.notAvailable}
-                  <ArrowUpRight className="size-4" />
                 </a>
                 <TransactionButton
                   className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -905,12 +1025,7 @@ export function SmartWalletApp({
                   type="button"
                   unstyled
                 >
-                  {isSignupCompleted
-                    ? dictionary.sponsored.completedCta
-                    : dictionary.sponsored.cta.replace(
-                        "{amount}",
-                        MEMBER_SIGNUP_USDT_AMOUNT,
-                      )}
+                  {paymentCtaLabel}
                 </TransactionButton>
               </div>
 
@@ -922,6 +1037,7 @@ export function SmartWalletApp({
             </Panel>
 
             <Panel
+              className="order-4"
               contentClassName="gap-3"
               eyebrow={dictionary.surface.eyebrow}
               title={dictionary.surface.title}
@@ -936,6 +1052,7 @@ export function SmartWalletApp({
             </Panel>
 
             <Panel
+              className="order-5 hidden lg:block"
               contentClassName="flex-row flex-wrap"
               eyebrow={dictionary.signInMix.eyebrow}
               title={dictionary.signInMix.title}
@@ -952,23 +1069,55 @@ export function SmartWalletApp({
           </div>
         </section>
       </main>
+
+      {showMobileActionDock ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] lg:hidden">
+          <div className="pointer-events-auto glass-card flex items-center gap-3 rounded-[26px] border border-white/75 px-3 py-3 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-slate-500">
+                {mobileDockEyebrow}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                {mobileDockTitle}
+              </p>
+            </div>
+
+            <PrimaryActionLink
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+              href={mobilePrimaryHref}
+              label={mobilePrimaryLabel}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function Panel({
+  className,
   title,
   eyebrow,
   children,
   contentClassName,
+  id,
 }: {
+  className?: string;
   title: string;
   eyebrow: string;
   children: ReactNode;
   contentClassName?: string;
+  id?: string;
 }) {
   return (
-    <section className="glass-card rounded-[30px] p-5 sm:p-6">
+    <section
+      className={cn(
+        "glass-card rounded-[30px] p-5 sm:p-6",
+        id && "scroll-mt-24 sm:scroll-mt-28",
+        className,
+      )}
+      id={id}
+    >
       <div className="mb-4 space-y-1">
         <p className="eyebrow">{eyebrow}</p>
         <h3 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -990,7 +1139,7 @@ function MetricCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+    <div className="min-w-[156px] snap-start rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-w-0">
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
@@ -1008,7 +1157,28 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 font-medium text-slate-900">{value}</p>
+      <p className="mt-2 break-words text-sm font-medium text-slate-900 sm:text-base">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function CompactMetaCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-white/10 px-3 py-3">
+      <p className="text-[0.64rem] uppercase tracking-[0.2em] text-white/52">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-sm font-semibold text-white">
+        {value}
+      </p>
     </div>
   );
 }
@@ -1029,6 +1199,32 @@ function FlowCard({
       </div>
       <h3 className="text-base font-semibold text-slate-950">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+    </div>
+  );
+}
+
+function CompactFlowCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="flex items-start gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+          <p className="mt-1 text-sm leading-5 text-slate-600">
+            {description}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1097,7 +1293,7 @@ function MessageCard({
   return (
     <div
       className={cn(
-        "rounded-[22px] border px-4 py-4 text-sm leading-6",
+        "rounded-[22px] border px-4 py-4 text-sm leading-6 break-words",
         tone === "error"
           ? "border-rose-200 bg-rose-50 text-rose-950"
           : "border-slate-200 bg-white/90 text-slate-600",
@@ -1127,7 +1323,7 @@ function StatusChip({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
+        "inline-flex h-11 items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
         status === "connected" &&
           "border-emerald-200 bg-emerald-50 text-emerald-900",
         status === "connecting" &&
@@ -1152,6 +1348,30 @@ function StatusChip({
   );
 }
 
+function PrimaryActionLink({
+  className,
+  href,
+  label,
+}: {
+  className?: string;
+  href: string;
+  label: string;
+}) {
+  if (href.startsWith("/")) {
+    return (
+      <Link className={className} href={href}>
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <a className={className} href={href}>
+      {label}
+    </a>
+  );
+}
+
 function NoticeCard({
   notice,
   placeholder,
@@ -1172,7 +1392,7 @@ function NoticeCard({
   return (
     <div
       className={cn(
-        "rounded-[22px] border px-4 py-4 text-sm leading-6",
+        "rounded-[22px] border px-4 py-4 text-sm leading-6 break-words",
         notice.tone === "success" &&
           "border-emerald-200 bg-emerald-50 text-emerald-950",
         notice.tone === "info" && "border-blue-200 bg-blue-50 text-blue-950",

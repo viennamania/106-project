@@ -222,31 +222,39 @@ export function ReferralsPage({
               status={status}
             />
             {hasThirdwebClientId ? (
-              <ConnectButton
-                accountAbstraction={smartWalletOptions}
-                appMetadata={appMetadata}
-                chain={smartWalletChain}
-                client={thirdwebClient}
-                connectButton={{
-                  className:
-                    "!h-11 !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                  label: dictionary.common.connectWallet,
-                }}
-                connectModal={{
-                  title: dictionary.common.connectModalTitle,
-                  titleIcon: "/favicon.ico",
-                }}
-                detailsButton={{
-                  className:
-                    "!h-11 !rounded-full !border !border-slate-200 !bg-white !px-4 !text-sm !font-medium !text-slate-950",
-                }}
-                detailsModal={{
-                  showTestnetFaucet: false,
-                }}
-                locale={thirdwebLocales[locale]}
-                theme="dark"
-                wallets={supportedWallets}
-              />
+              <div
+                className={cn(
+                  status === "connected"
+                    ? "w-full sm:w-auto"
+                    : "hidden w-full sm:block sm:w-auto",
+                )}
+              >
+                <ConnectButton
+                  accountAbstraction={smartWalletOptions}
+                  appMetadata={appMetadata}
+                  chain={smartWalletChain}
+                  client={thirdwebClient}
+                  connectButton={{
+                    className:
+                      "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] sm:!w-auto",
+                    label: dictionary.common.connectWallet,
+                  }}
+                  connectModal={{
+                    title: dictionary.common.connectModalTitle,
+                    titleIcon: "/favicon.ico",
+                  }}
+                  detailsButton={{
+                    className:
+                      "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-white !px-4 !text-sm !font-medium !text-slate-950 sm:!w-auto",
+                  }}
+                  detailsModal={{
+                    showTestnetFaucet: false,
+                  }}
+                  locale={thirdwebLocales[locale]}
+                  theme="dark"
+                  wallets={supportedWallets}
+                />
+              </div>
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
@@ -270,16 +278,42 @@ export function ReferralsPage({
               <div className="space-y-4">
                 <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
                 <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-                  <ConnectEmbed
-                    accountAbstraction={smartWalletOptions}
-                    appMetadata={appMetadata}
-                    chain={smartWalletChain}
-                    client={thirdwebClient}
-                    locale={thirdwebLocales[locale]}
-                    modalSize="compact"
-                    theme="dark"
-                    wallets={supportedWallets}
-                  />
+                  <div className="space-y-3 sm:hidden">
+                    <p className="text-sm leading-6 text-slate-600">
+                      {dictionary.referralsPage.description}
+                    </p>
+                    <ConnectButton
+                      accountAbstraction={smartWalletOptions}
+                      appMetadata={appMetadata}
+                      chain={smartWalletChain}
+                      client={thirdwebClient}
+                      connectButton={{
+                        className:
+                          "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
+                        label: dictionary.common.connectWallet,
+                      }}
+                      connectModal={{
+                        title: dictionary.common.connectModalTitle,
+                        titleIcon: "/favicon.ico",
+                      }}
+                      locale={thirdwebLocales[locale]}
+                      theme="dark"
+                      wallets={supportedWallets}
+                    />
+                  </div>
+
+                  <div className="hidden sm:block">
+                    <ConnectEmbed
+                      accountAbstraction={smartWalletOptions}
+                      appMetadata={appMetadata}
+                      chain={smartWalletChain}
+                      client={thirdwebClient}
+                      locale={thirdwebLocales[locale]}
+                      modalSize="compact"
+                      theme="dark"
+                      wallets={supportedWallets}
+                    />
+                  </div>
                 </div>
               </div>
             ) : state.status === "loading" ? (
@@ -320,7 +354,7 @@ export function ReferralsPage({
                       <p className="text-sm leading-6 text-slate-600">
                         {dictionary.referralsPage.memberReady}
                       </p>
-                      <p className="mt-1 text-base font-semibold text-slate-950">
+                      <p className="mt-1 break-all text-base font-semibold text-slate-950">
                         {state.member.email}
                       </p>
                     </div>
@@ -404,7 +438,7 @@ export function ReferralsPage({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-slate-950">
+                        <p className="break-all text-sm font-semibold text-slate-950">
                           {referral.email}
                         </p>
                         <p className="mt-1 text-sm text-slate-600">
@@ -454,7 +488,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 font-medium text-slate-900">{value}</p>
+      <p className="mt-2 break-words text-sm font-medium text-slate-900 sm:text-base">
+        {value}
+      </p>
     </div>
   );
 }
@@ -469,7 +505,7 @@ function MessageCard({
   return (
     <div
       className={cn(
-        "rounded-[22px] border px-4 py-4 text-sm leading-6",
+        "rounded-[22px] border px-4 py-4 text-sm leading-6 break-words",
         tone === "error"
           ? "border-rose-200 bg-rose-50 text-rose-950"
           : "border-slate-200 bg-white/90 text-slate-600",

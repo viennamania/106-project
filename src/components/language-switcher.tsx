@@ -23,7 +23,7 @@ export function LanguageSwitcher({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <label className="relative flex h-11 min-w-[152px] items-center rounded-full border border-slate-200 bg-white pl-4 pr-10 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+    <label className="relative flex h-11 w-full min-w-0 items-center rounded-full border border-slate-200 bg-white pl-4 pr-10 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] sm:min-w-[152px] sm:w-auto">
       <span className="sr-only">{label}</span>
       <Globe className="mr-2 size-4 text-slate-500" />
       <select
