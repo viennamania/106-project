@@ -405,7 +405,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     },
     member: {
       title: "회원 레지스트리",
-      eyebrow: "atlas mongodb",
+      eyebrow: "가입 상태",
       disconnected:
         "이메일 로그인 후 회원 상태가 여기에 표시됩니다.",
       syncing: "회원가입 상태를 Atlas와 webhook 기준으로 확인하는 중입니다.",
@@ -693,7 +693,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     },
     member: {
       title: "Member Registry",
-      eyebrow: "atlas mongodb",
+      eyebrow: "signup status",
       disconnected:
         "After email login, your member status appears here.",
       syncing: "Checking signup status against Atlas and the webhook records.",
@@ -982,7 +982,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     },
     member: {
       title: "メンバーレジストリ",
-      eyebrow: "atlas mongodb",
+      eyebrow: "登録状態",
       disconnected:
         "メールログイン後、会員ステータスがここに表示されます。",
       syncing: "Atlas と webhook 記録を基準に登録状態を確認しています。",
@@ -1270,7 +1270,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     },
     member: {
       title: "会员注册表",
-      eyebrow: "atlas mongodb",
+      eyebrow: "注册状态",
       disconnected:
         "邮箱登录后，会员状态会显示在这里。",
       syncing: "正在根据 Atlas 和 webhook 记录检查注册状态。",
