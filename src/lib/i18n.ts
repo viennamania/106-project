@@ -34,6 +34,7 @@ export type Dictionary = {
     connectModalTitle: string;
     clientIdRequired: string;
     copyAddress: string;
+    copyLink: string;
     copied: string;
     notAvailable: string;
     walletTypeAbstracted: string;
@@ -220,6 +221,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectModalTitle: "이메일로 Pocket Smart Wallet 연결",
       clientIdRequired: "client id 필요",
       copyAddress: "주소 복사",
+      copyLink: "링크 복사",
       copied: "복사됨",
       notAvailable: "없음",
       walletTypeAbstracted: "추상화된 스마트 월렛",
@@ -456,6 +458,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectModalTitle: "Connect Pocket Smart Wallet with email",
       clientIdRequired: "client id required",
       copyAddress: "Copy address",
+      copyLink: "Copy link",
       copied: "Copied",
       notAvailable: "N/A",
       walletTypeAbstracted: "Abstracted smart wallet",
@@ -692,6 +695,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectModalTitle: "メールで Pocket Smart Wallet を接続",
       clientIdRequired: "client id が必要です",
       copyAddress: "アドレスをコピー",
+      copyLink: "リンクをコピー",
       copied: "コピー済み",
       notAvailable: "なし",
       walletTypeAbstracted: "抽象化済みスマートウォレット",
@@ -928,6 +932,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectModalTitle: "通过邮箱连接 Pocket Smart Wallet",
       clientIdRequired: "需要 client id",
       copyAddress: "复制地址",
+      copyLink: "复制链接",
       copied: "已复制",
       notAvailable: "无",
       walletTypeAbstracted: "抽象化智能钱包",

@@ -16,6 +16,7 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { CopyTextButton } from "@/components/copy-text-button";
 import type {
   MemberReferralsResponse,
   MemberRecord,
@@ -414,6 +415,14 @@ export function ReferralsPage({
                     >
                       {referralLink}
                     </a>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <CopyTextButton
+                        className="w-full sm:w-auto"
+                        copiedLabel={dictionary.common.copied}
+                        copyLabel={dictionary.common.copyLink}
+                        text={referralLink}
+                      />
+                    </div>
                   </div>
                 ) : null}
 
