@@ -172,9 +172,6 @@ export function SmartWalletApp({
   const referralLink = memberSync.member?.referralCode
     ? getReferralLink(memberSync.member.referralCode, locale)
     : null;
-  const paymentTransactionUrl = memberSync.member?.paymentTransactionHash
-    ? `${BSC_EXPLORER}/tx/${memberSync.member.paymentTransactionHash}`
-    : null;
   const showMemberRegistryPanel =
     status === "connected" ||
     memberSync.status === "syncing" ||
@@ -660,7 +657,6 @@ export function SmartWalletApp({
             onRefresh={() => {
               void runMemberSync();
             }}
-            paymentTransactionUrl={paymentTransactionUrl}
             referralDashboard={referralDashboard}
             referralLink={referralLink}
           />
@@ -775,14 +771,10 @@ export function SmartWalletApp({
                       </MessageCard>
                     ) : null}
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-3">
                       <InfoRow
                         label={dictionary.member.labels.signupStatus}
                         value={dictionary.member.pendingValue}
-                      />
-                      <InfoRow
-                        label={dictionary.member.labels.lastWallet}
-                        value={accountLabel ?? accountAddress}
                       />
                     </div>
 
@@ -803,10 +795,7 @@ export function SmartWalletApp({
                       <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
-                            <p className="text-xs uppercase tracking-[0.24em] text-white/55">
-                              {dictionary.member.labels.lastWallet}
-                            </p>
-                            <p className="mt-2 break-words text-xl font-semibold tracking-tight text-white">
+                            <p className="break-words text-xl font-semibold tracking-tight text-white">
                               {accountLabel ?? accountAddress}
                             </p>
                           </div>
@@ -918,7 +907,6 @@ export function SmartWalletApp({
 
                     <NoticeCard
                       notice={notice}
-                      openExplorerLabel={dictionary.sponsored.openExplorer}
                       placeholder={dictionary.sponsored.emptyNotice}
                     />
                   </div>
@@ -1020,13 +1008,6 @@ export function SmartWalletApp({
                         }
                       />
                       <InfoRow
-                        label={dictionary.member.labels.lastWallet}
-                        value={
-                          formatAddressLabel(memberSync.member.lastWalletAddress) ??
-                          dictionary.common.notAvailable
-                        }
-                      />
-                      <InfoRow
                         label={dictionary.member.labels.referredByCode}
                         value={
                           memberSync.member.referredByCode ??
@@ -1034,23 +1015,6 @@ export function SmartWalletApp({
                         }
                       />
                     </div>
-
-                    {paymentTransactionUrl ? (
-                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                          {dictionary.member.labels.paymentTransaction}
-                        </p>
-                        <a
-                          className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-                          href={paymentTransactionUrl}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {memberSync.member.paymentTransactionHash}
-                          <ArrowUpRight className="size-4" />
-                        </a>
-                      </div>
-                    ) : null}
 
                     <div className="flex flex-wrap gap-3">
                       <button
@@ -1201,7 +1165,6 @@ function CompletedHomeDashboard({
   locale,
   member,
   onRefresh,
-  paymentTransactionUrl,
   referralDashboard,
   referralLink,
 }: {
@@ -1210,7 +1173,6 @@ function CompletedHomeDashboard({
   locale: Locale;
   member: MemberRecord;
   onRefresh: () => void;
-  paymentTransactionUrl: string | null;
   referralDashboard: ReferralDashboardState;
   referralLink: string | null;
 }) {
@@ -1326,17 +1288,6 @@ function CompletedHomeDashboard({
                 >
                   {dictionary.member.actions.refreshStatus}
                 </button>
-
-                {paymentTransactionUrl ? (
-                  <a
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
-                    href={paymentTransactionUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {dictionary.sponsored.openExplorer}
-                  </a>
-                ) : null}
               </div>
             </div>
           </div>
@@ -1380,13 +1331,6 @@ function CompletedHomeDashboard({
             }
           />
           <InfoRow
-            label={dictionary.member.labels.lastWallet}
-            value={
-              formatAddressLabel(member.lastWalletAddress) ??
-              dictionary.common.notAvailable
-            }
-          />
-          <InfoRow
             label={dictionary.member.labels.lastConnectedAt}
             value={formatDateTime(member.lastConnectedAt, locale)}
           />
@@ -1400,22 +1344,6 @@ function CompletedHomeDashboard({
           />
         </div>
 
-        {paymentTransactionUrl ? (
-          <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-              {dictionary.member.labels.paymentTransaction}
-            </p>
-            <a
-              className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-              href={paymentTransactionUrl}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {member.paymentTransactionHash}
-              <ArrowUpRight className="size-4" />
-            </a>
-          </div>
-        ) : null}
       </Panel>
 
       <Panel
@@ -1619,11 +1547,9 @@ function PrimaryActionLink({
 function NoticeCard({
   notice,
   placeholder,
-  openExplorerLabel,
 }: {
   notice: WalletNotice | null;
   placeholder: string;
-  openExplorerLabel: string;
 }) {
   if (!notice) {
     return (
@@ -1644,17 +1570,6 @@ function NoticeCard({
       )}
     >
       <p>{notice.text}</p>
-      {notice.href ? (
-        <a
-          className="mt-2 inline-flex items-center gap-2 font-semibold underline decoration-current underline-offset-4"
-          href={notice.href}
-          rel="noreferrer"
-          target="_blank"
-        >
-          {openExplorerLabel}
-          <ArrowUpRight className="size-4" />
-        </a>
-      ) : null}
     </div>
   );
 }

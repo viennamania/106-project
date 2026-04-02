@@ -1,13 +1,10 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
-
 import type {
   ReferralRewardRecord,
   ReferralRewardsSummaryRecord,
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
-import { BSC_EXPLORER } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
 
 export function ReferralRewardsPanel({
@@ -74,11 +71,8 @@ export function ReferralRewardsPanel({
                 awardedAtLabel={dictionary.referralsPage.rewards.awardedAt}
                 joinedAtLabel={dictionary.referralsPage.labels.joinedAt}
                 key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}
-                lastWalletLabel={dictionary.member.labels.lastWallet}
                 levelLabel={dictionary.referralsPage.labels.level}
                 locale={locale}
-                notAvailableLabel={dictionary.common.notAvailable}
-                paymentTransactionLabel={dictionary.member.labels.paymentTransaction}
                 reward={reward}
                 sourceMemberLabel={dictionary.referralsPage.rewards.sourceMember}
               />
@@ -138,28 +132,18 @@ function RewardLevelCard({
 function RewardHistoryCard({
   awardedAtLabel,
   joinedAtLabel,
-  lastWalletLabel,
   levelLabel,
   locale,
-  notAvailableLabel,
-  paymentTransactionLabel,
   reward,
   sourceMemberLabel,
 }: {
   awardedAtLabel: string;
   joinedAtLabel: string;
-  lastWalletLabel: string;
   levelLabel: string;
   locale: Locale;
-  notAvailableLabel: string;
-  paymentTransactionLabel: string;
   reward: ReferralRewardRecord;
   sourceMemberLabel: string;
 }) {
-  const paymentTransactionUrl = reward.sourcePaymentTransactionHash
-    ? `${BSC_EXPLORER}/tx/${reward.sourcePaymentTransactionHash}`
-    : null;
-
   return (
     <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
       <div className="flex flex-wrap items-center gap-2">
@@ -181,34 +165,10 @@ function RewardHistoryCard({
           value={formatDateTime(reward.awardedAt, locale)}
         />
         <RewardMeta
-          label={paymentTransactionLabel}
-          value={
-            reward.sourcePaymentTransactionHash
-              ? `${reward.sourcePaymentTransactionHash.slice(0, 10)}...${reward.sourcePaymentTransactionHash.slice(-8)}`
-              : notAvailableLabel
-          }
-        />
-        <RewardMeta
           label={joinedAtLabel}
           value={formatDateTime(reward.sourceRegistrationCompletedAt, locale)}
         />
-        <RewardMeta
-          label={lastWalletLabel}
-          value={formatAddressLabel(reward.sourceWalletAddress)}
-        />
       </div>
-
-      {paymentTransactionUrl ? (
-        <a
-          className="mt-4 inline-flex max-w-full items-center gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-          href={paymentTransactionUrl}
-          rel="noreferrer"
-          target="_blank"
-        >
-          {paymentTransactionLabel}
-          <ArrowUpRight className="size-4" />
-        </a>
-      ) : null}
     </div>
   );
 }
@@ -230,10 +190,6 @@ function RewardMeta({
       </p>
     </div>
   );
-}
-
-function formatAddressLabel(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatDateTime(value: string, locale: Locale) {

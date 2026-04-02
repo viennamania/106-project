@@ -429,7 +429,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "가입 완료 시 추천인 코드 {code} 가 회원 정보에 저장되었습니다.",
       shareHint:
-        "이 링크를 공유하면 홈페이지에서 `?ref=` 파라미터가 자동으로 적용됩니다.",
+        "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
       labels: {
         awaitingPaymentSince: "결제 대기 시작",
@@ -717,7 +717,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "Referral code {code} was stored when signup completed.",
       shareHint:
-        "Share this link to open the homepage with the `?ref=` parameter already applied.",
+        "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
       labels: {
         awaitingPaymentSince: "Awaiting payment since",
@@ -1006,7 +1006,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "登録完了時に紹介コード {code} が保存されました。",
       shareHint:
-        "このリンクを共有すると、ホームページで `?ref=` パラメータ付きの状態で開けます。",
+        "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
       labels: {
         awaitingPaymentSince: "支払い待ち開始",
@@ -1294,7 +1294,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "注册完成时已记录推荐码 {code}。",
       shareHint:
-        "分享此链接后，首页会自动带上 `?ref=` 参数。",
+        "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
       labels: {
         awaitingPaymentSince: "开始等待支付时间",
