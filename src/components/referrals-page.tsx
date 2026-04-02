@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
-import { ArrowLeft, ArrowUpRight, Users, WalletMinimal } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, WalletMinimal } from "lucide-react";
 import {
   AutoConnect,
   ConnectButton,
@@ -18,10 +18,11 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import type {
   MemberReferralsResponse,
   MemberRecord,
-  ReferralMemberRecord,
+  ReferralTreeNodeRecord,
   SyncMemberResponse,
 } from "@/lib/member";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,11 @@ import { BSC_EXPLORER } from "@/lib/thirdweb";
 
 type ReferralsState = {
   error: string | null;
+  levelCounts: number[];
   member: MemberRecord | null;
-  referrals: ReferralMemberRecord[];
+  referrals: ReferralTreeNodeRecord[];
   status: "idle" | "loading" | "ready" | "error";
+  totalReferrals: number;
 };
 
 export function ReferralsPage({
@@ -59,9 +62,11 @@ export function ReferralsPage({
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const [state, setState] = useState<ReferralsState>({
     error: null,
+    levelCounts: [],
     member: null,
     referrals: [],
     status: "idle",
+    totalReferrals: 0,
   });
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const referralLink = state.member?.referralCode
@@ -91,9 +96,11 @@ export function ReferralsPage({
       if (!email) {
         setState({
           error: dictionary.referralsPage.errors.missingEmail,
+          levelCounts: [],
           member: null,
           referrals: [],
           status: "error",
+          totalReferrals: 0,
         });
         return;
       }
@@ -127,9 +134,11 @@ export function ReferralsPage({
       if (syncData.member.status !== "completed") {
         setState({
           error: null,
+          levelCounts: [],
           member: syncData.member,
           referrals: [],
           status: "ready",
+          totalReferrals: 0,
         });
         return;
       }
@@ -155,9 +164,11 @@ export function ReferralsPage({
 
       setState({
         error: null,
+        levelCounts: data.levelCounts,
         member: data.member,
         referrals: data.referrals,
         status: "ready",
+        totalReferrals: data.totalReferrals,
       });
     } catch (error) {
       setState({
@@ -165,9 +176,11 @@ export function ReferralsPage({
           error instanceof Error
             ? error.message
             : dictionary.referralsPage.errors.loadFailed,
+        levelCounts: [],
         member: null,
         referrals: [],
         status: "error",
+        totalReferrals: 0,
       });
     }
   }
@@ -186,9 +199,11 @@ export function ReferralsPage({
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
+        levelCounts: [],
         member: null,
         referrals: [],
         status: "idle",
+        totalReferrals: 0,
       });
       return;
     }
@@ -426,8 +441,12 @@ export function ReferralsPage({
                     value={state.member.referralCode ?? dictionary.common.notAvailable}
                   />
                   <InfoRow
-                    label={dictionary.referralsPage.labels.totalReferrals}
+                    label={dictionary.referralsPage.labels.directReferrals}
                     value={String(state.referrals.length)}
+                  />
+                  <InfoRow
+                    label={dictionary.referralsPage.labels.totalNetwork}
+                    value={String(state.totalReferrals)}
                   />
                 </div>
 
@@ -494,53 +513,15 @@ export function ReferralsPage({
               </MessageCard>
             ) : state.member?.status !== "completed" ? (
               <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
-            ) : state.referrals.length === 0 ? (
-              <MessageCard>{dictionary.referralsPage.empty}</MessageCard>
             ) : (
-              <div className="space-y-3">
-                {state.referrals.map((referral) => (
-                  <article
-                    className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
-                    key={referral.email}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="break-all text-sm font-semibold text-slate-950">
-                          {referral.email}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {shortenAddress(referral.lastWalletAddress)}
-                        </p>
-                      </div>
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                        <Users className="size-4" />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <InfoRow
-                        label={dictionary.referralsPage.labels.locale}
-                        value={referral.locale}
-                      />
-                      <InfoRow
-                        label={dictionary.referralsPage.labels.lastWallet}
-                        value={shortenAddress(referral.lastWalletAddress)}
-                      />
-                      <InfoRow
-                        label={dictionary.referralsPage.labels.joinedAt}
-                        value={formatDateTime(
-                          referral.registrationCompletedAt,
-                          locale,
-                        )}
-                      />
-                      <InfoRow
-                        label={dictionary.referralsPage.labels.lastConnectedAt}
-                        value={formatDateTime(referral.lastConnectedAt, locale)}
-                      />
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <ReferralNetworkExplorer
+                dictionary={dictionary}
+                key={`${state.member.email}:${state.totalReferrals}:${state.levelCounts.join("-")}`}
+                levelCounts={state.levelCounts}
+                locale={locale}
+                referrals={state.referrals}
+                totalReferrals={state.totalReferrals}
+              />
             )}
           </section>
         </section>
@@ -625,23 +606,6 @@ function StatusChip({
       {copy}
     </div>
   );
-}
-
-function shortenAddress(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-function formatDateTime(value: string, locale: Locale) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function getReferralLink(referralCode: string, locale: Locale) {

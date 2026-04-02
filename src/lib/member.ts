@@ -2,6 +2,7 @@ export const MEMBER_SIGNUP_USDT_AMOUNT = "10";
 export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
 export const REFERRAL_SIGNUP_LIMIT = 6;
+export const REFERRAL_TREE_DEPTH_LIMIT = 6;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
 
@@ -59,13 +60,23 @@ export type ReferralMemberRecord = {
   lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
+  referralCode: string | null;
   referredByCode: string | null;
   registrationCompletedAt: string;
 };
 
+export type ReferralTreeNodeRecord = ReferralMemberRecord & {
+  children: ReferralTreeNodeRecord[];
+  depth: number;
+  directReferralCount: number;
+  totalReferralCount: number;
+};
+
 export type MemberReferralsResponse = {
+  levelCounts: number[];
   member: MemberRecord;
-  referrals: ReferralMemberRecord[];
+  referrals: ReferralTreeNodeRecord[];
+  totalReferrals: number;
 };
 
 export type MemberDocument = {
@@ -137,9 +148,23 @@ export function serializeReferralMember(
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,
+    referralCode: member.referralCode ?? null,
     referredByCode: member.referredByCode ?? null,
     registrationCompletedAt:
       member.registrationCompletedAt?.toISOString() ??
       member.createdAt.toISOString(),
+  };
+}
+
+export function serializeReferralTreeNode(
+  member: MemberDocument,
+  depth: number,
+): ReferralTreeNodeRecord {
+  return {
+    ...serializeReferralMember(member),
+    children: [],
+    depth,
+    directReferralCount: 0,
+    totalReferralCount: 0,
   };
 }

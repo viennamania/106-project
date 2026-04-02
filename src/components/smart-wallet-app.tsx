@@ -36,13 +36,14 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
+import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import {
   type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
   type MemberReferralsResponse,
   type MemberRecord,
-  type ReferralMemberRecord,
+  type ReferralTreeNodeRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
 import { cn } from "@/lib/utils";
@@ -76,8 +77,10 @@ type MemberSyncState = {
 
 type ReferralDashboardState = {
   error: string | null;
-  referrals: ReferralMemberRecord[];
+  levelCounts: number[];
+  referrals: ReferralTreeNodeRecord[];
   status: "idle" | "loading" | "ready" | "error";
+  totalReferrals: number;
 };
 
 const CELEBRATION_DURATION_MS = 4200;
@@ -121,8 +124,10 @@ export function SmartWalletApp({
   const [referralDashboard, setReferralDashboard] =
     useState<ReferralDashboardState>({
       error: null,
+      levelCounts: [],
       referrals: [],
       status: "idle",
+      totalReferrals: 0,
     });
   const [showCelebration, setShowCelebration] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
@@ -252,8 +257,10 @@ export function SmartWalletApp({
 
       setReferralDashboard({
         error: null,
+        levelCounts: data.levelCounts,
         referrals: data.referrals,
         status: "ready",
+        totalReferrals: data.totalReferrals,
       });
     } catch (error) {
       setReferralDashboard((current) => ({
@@ -295,8 +302,10 @@ export function SmartWalletApp({
         });
         setReferralDashboard({
           error: null,
+          levelCounts: [],
           referrals: [],
           status: "idle",
+          totalReferrals: 0,
         });
         return;
       }
@@ -359,8 +368,10 @@ export function SmartWalletApp({
       } else {
         setReferralDashboard({
           error: null,
+          levelCounts: [],
           referrals: [],
           status: "idle",
+          totalReferrals: 0,
         });
       }
     } catch (error) {
@@ -393,8 +404,10 @@ export function SmartWalletApp({
       });
       setReferralDashboard({
         error: null,
+        levelCounts: [],
         referrals: [],
         status: "idle",
+        totalReferrals: 0,
       });
       return;
     }
@@ -1202,7 +1215,8 @@ function CompletedHomeDashboard({
   referralDashboard: ReferralDashboardState;
   referralLink: string | null;
 }) {
-  const referralCount = referralDashboard.referrals.length;
+  const directReferralCount = referralDashboard.referrals.length;
+  const totalReferralCount = referralDashboard.totalReferrals;
 
   return (
     <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
@@ -1245,16 +1259,16 @@ function CompletedHomeDashboard({
             />
             <MetricCard
               hint={dictionary.referralsPage.listTitle}
-              label={dictionary.referralsPage.labels.totalReferrals}
-              value={String(referralCount)}
+              label={dictionary.referralsPage.labels.directReferrals}
+              value={String(directReferralCount)}
             />
             <MetricCard
-              hint={dictionary.referralsPage.labels.lastWallet}
-              label={dictionary.member.labels.lastWallet}
-              value={
-                formatAddressLabel(member.lastWalletAddress) ??
-                dictionary.common.notAvailable
-              }
+              hint={dictionary.referralsPage.depthHint.replace(
+                "{depth}",
+                "6",
+              )}
+              label={dictionary.referralsPage.labels.totalNetwork}
+              value={String(totalReferralCount)}
             />
           </div>
 
@@ -1413,56 +1427,15 @@ function CompletedHomeDashboard({
 
         {referralDashboard.status === "loading" ? (
           <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
-        ) : referralDashboard.referrals.length === 0 ? (
-          <MessageCard>{dictionary.referralsPage.empty}</MessageCard>
         ) : (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {referralDashboard.referrals.map((referral) => (
-              <article
-                className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
-                key={referral.email}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="break-all text-sm font-semibold text-slate-950">
-                      {referral.email}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {formatAddressLabel(referral.lastWalletAddress)}
-                    </p>
-                  </div>
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <Users className="size-4" />
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <InfoRow
-                    label={dictionary.referralsPage.labels.locale}
-                    value={referral.locale}
-                  />
-                  <InfoRow
-                    label={dictionary.referralsPage.labels.lastWallet}
-                    value={
-                      formatAddressLabel(referral.lastWalletAddress) ??
-                      dictionary.common.notAvailable
-                    }
-                  />
-                  <InfoRow
-                    label={dictionary.referralsPage.labels.joinedAt}
-                    value={formatDateTime(
-                      referral.registrationCompletedAt,
-                      locale,
-                    )}
-                  />
-                  <InfoRow
-                    label={dictionary.referralsPage.labels.lastConnectedAt}
-                    value={formatDateTime(referral.lastConnectedAt, locale)}
-                  />
-                </div>
-              </article>
-            ))}
-          </div>
+          <ReferralNetworkExplorer
+            dictionary={dictionary}
+            key={`${member.email}:${referralDashboard.totalReferrals}:${referralDashboard.levelCounts.join("-")}`}
+            levelCounts={referralDashboard.levelCounts}
+            locale={locale}
+            referrals={referralDashboard.referrals}
+            totalReferrals={referralDashboard.totalReferrals}
+          />
         )}
       </Panel>
     </section>

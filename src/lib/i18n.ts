@@ -174,6 +174,9 @@ export type Dictionary = {
     description: string;
     shareTitle: string;
     listTitle: string;
+    rootLabel: string;
+    branchEmpty: string;
+    depthHint: string;
     disconnected: string;
     loading: string;
     empty: string;
@@ -181,18 +184,27 @@ export type Dictionary = {
     memberMissing: string;
     paymentRequired: string;
     labels: {
+      currentLevel: string;
+      descendants: string;
+      directChildren: string;
+      directReferrals: string;
+      level: string;
+      members: string;
       referralCode: string;
       referralLink: string;
       totalReferrals: string;
+      totalNetwork: string;
       lastWallet: string;
       locale: string;
       joinedAt: string;
       lastConnectedAt: string;
     };
     actions: {
+      backToRoot: string;
       backHome: string;
       completeSignup: string;
       refresh: string;
+      viewChildren: string;
     };
     errors: {
       missingEmail: string;
@@ -420,6 +432,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         "회원가입이 완료된 뒤 내 레퍼럴 코드와 해당 코드로 가입한 회원을 확인합니다.",
       shareTitle: "내 레퍼럴 코드",
       listTitle: "내 코드로 가입한 회원",
+      rootLabel: "내 코드",
+      branchEmpty: "이 회원 아래에는 아직 더 가입한 회원이 없습니다.",
+      depthHint: "한 화면에서 최대 {depth}단계까지 탐색할 수 있습니다.",
       disconnected:
         "이메일 로그인하고 회원가입을 완료하면 레퍼럴 대시보드를 볼 수 있습니다.",
       loading: "레퍼럴 데이터를 확인하는 중입니다.",
@@ -429,18 +444,27 @@ const dictionaries: Record<Locale, Dictionary> = {
       paymentRequired:
         "아직 회원가입이 완료되지 않았습니다. 홈으로 돌아가 10 USDT 결제를 완료하세요.",
       labels: {
+        currentLevel: "현재 단계",
+        descendants: "전체 하위 추천 수",
+        directChildren: "직접 하위 추천 수",
+        directReferrals: "직접 추천 가입 수",
+        level: "단계",
+        members: "명",
         referralCode: "레퍼럴 코드",
         referralLink: "공유 링크",
         totalReferrals: "추천 가입 수",
+        totalNetwork: "전체 네트워크 가입 수",
         lastWallet: "최근 지갑",
         locale: "회원 언어",
         joinedAt: "가입 시각",
         lastConnectedAt: "최근 연결",
       },
       actions: {
+        backToRoot: "처음으로",
         backHome: "홈으로 돌아가기",
         completeSignup: "홈에서 가입 완료하기",
         refresh: "새로고침",
+        viewChildren: "하위 보기",
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
@@ -666,6 +690,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         "Review your referral code and the members who signed up with it after signup is complete.",
       shareTitle: "My referral code",
       listTitle: "Members signed up with my code",
+      rootLabel: "My code",
+      branchEmpty: "This member does not have deeper referrals yet.",
+      depthHint: "Explore up to {depth} levels from a single screen.",
       disconnected:
         "Use email login and complete signup to review your referral dashboard.",
       loading: "Loading referral data.",
@@ -675,18 +702,27 @@ const dictionaries: Record<Locale, Dictionary> = {
       paymentRequired:
         "Signup is not complete yet. Go back home and finish the 10 USDT payment first.",
       labels: {
+        currentLevel: "Current level",
+        descendants: "Total descendants",
+        directChildren: "Direct children",
+        directReferrals: "Direct referrals",
+        level: "Level",
+        members: "members",
         referralCode: "Referral code",
         referralLink: "Share link",
         totalReferrals: "Referred signups",
+        totalNetwork: "Total network",
         lastWallet: "Last wallet",
         locale: "Member locale",
         joinedAt: "Joined at",
         lastConnectedAt: "Last connected",
       },
       actions: {
+        backToRoot: "Back to root",
         backHome: "Back home",
         completeSignup: "Complete signup on home",
         refresh: "Refresh",
+        viewChildren: "View children",
       },
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
@@ -912,6 +948,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         "登録完了後に、自分のレファラルコードとそのコードで登録した会員一覧を確認します。",
       shareTitle: "自分のレファラルコード",
       listTitle: "自分のコードで登録した会員",
+      rootLabel: "自分のコード",
+      branchEmpty: "この会員の下位には、まだ追加の登録メンバーがいません。",
+      depthHint: "1つの画面で最大 {depth} 段階までたどれます。",
       disconnected:
         "メールログインし、登録を完了するとレファラルダッシュボードを確認できます。",
       loading: "レファラルデータを読み込んでいます。",
@@ -921,18 +960,27 @@ const dictionaries: Record<Locale, Dictionary> = {
       paymentRequired:
         "まだ登録が完了していません。ホームに戻って 10 USDT の支払いを完了してください。",
       labels: {
+        currentLevel: "現在の段階",
+        descendants: "下位ネットワーク総数",
+        directChildren: "直接の下位メンバー数",
+        directReferrals: "直接紹介登録数",
+        level: "段階",
+        members: "人",
         referralCode: "レファラルコード",
         referralLink: "共有リンク",
         totalReferrals: "紹介登録数",
+        totalNetwork: "ネットワーク全体",
         lastWallet: "最新ウォレット",
         locale: "会員言語",
         joinedAt: "登録日時",
         lastConnectedAt: "最終接続",
       },
       actions: {
+        backToRoot: "最初に戻る",
         backHome: "ホームへ戻る",
         completeSignup: "ホームで登録を完了する",
         refresh: "再読み込み",
+        viewChildren: "下位を見る",
       },
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
@@ -1158,6 +1206,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         "在注册完成后，查看我的推荐码以及使用该推荐码完成注册的会员列表。",
       shareTitle: "我的推荐码",
       listTitle: "使用我的码注册的会员",
+      rootLabel: "我的推荐码",
+      branchEmpty: "这位会员下面还没有更深层的推荐注册。",
+      depthHint: "可在单个界面中最多查看 {depth} 层。",
       disconnected:
         "邮箱登录并完成注册后，即可查看推荐仪表板。",
       loading: "正在加载推荐数据。",
@@ -1167,18 +1218,27 @@ const dictionaries: Record<Locale, Dictionary> = {
       paymentRequired:
         "注册尚未完成。请先回到首页完成 10 USDT 支付。",
       labels: {
+        currentLevel: "当前层级",
+        descendants: "全部下级人数",
+        directChildren: "直属下级人数",
+        directReferrals: "直属推荐注册数",
+        level: "层级",
+        members: "人",
         referralCode: "推荐码",
         referralLink: "分享链接",
         totalReferrals: "推荐注册数",
+        totalNetwork: "整个网络人数",
         lastWallet: "最近钱包",
         locale: "会员语言",
         joinedAt: "注册时间",
         lastConnectedAt: "最近连接",
       },
       actions: {
+        backToRoot: "返回根节点",
         backHome: "返回首页",
         completeSignup: "回首页完成注册",
         refresh: "刷新",
+        viewChildren: "查看下级",
       },
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
