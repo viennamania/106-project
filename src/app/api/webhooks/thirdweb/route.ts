@@ -21,8 +21,8 @@ export async function POST(request: Request) {
   const signature = request.headers.get("x-webhook-signature");
   const timestamp = request.headers.get("x-webhook-timestamp");
 
-  if (!signature || !timestamp) {
-    return jsonError("Missing x-webhook-signature or x-webhook-timestamp.", 400);
+  if (!signature) {
+    return jsonError("Missing x-webhook-signature.", 400);
   }
 
   const secrets = getThirdwebWebhookSecrets();

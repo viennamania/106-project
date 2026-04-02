@@ -94,7 +94,7 @@ type VerifyThirdwebWebhookSignatureOptions = {
   payload: string;
   secrets: string[];
   signature: string;
-  timestamp: string;
+  timestamp?: string | null;
 };
 
 export function normalizeAddress(address: string) {
@@ -150,19 +150,26 @@ export function verifyThirdwebWebhookSignature({
   signature,
   timestamp,
 }: VerifyThirdwebWebhookSignatureOptions) {
+  const signatureBuffer = Buffer.from(signature, "hex");
+
   for (const secret of secrets) {
-    const computed = createHmac("sha256", secret)
-      .update(`${timestamp}.${payload}`)
-      .digest("hex");
+    const candidatePayloads = [
+      payload,
+      timestamp ? `${timestamp}.${payload}` : null,
+    ].filter((value): value is string => Boolean(value));
 
-    const computedBuffer = Buffer.from(computed, "hex");
-    const signatureBuffer = Buffer.from(signature, "hex");
+    for (const candidatePayload of candidatePayloads) {
+      const computed = createHmac("sha256", secret)
+        .update(candidatePayload)
+        .digest("hex");
+      const computedBuffer = Buffer.from(computed, "hex");
 
-    if (
-      computedBuffer.length === signatureBuffer.length &&
-      timingSafeEqual(computedBuffer, signatureBuffer)
-    ) {
-      return secret;
+      if (
+        computedBuffer.length === signatureBuffer.length &&
+        timingSafeEqual(computedBuffer, signatureBuffer)
+      ) {
+        return secret;
+      }
     }
   }
 
