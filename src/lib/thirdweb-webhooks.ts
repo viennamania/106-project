@@ -90,6 +90,44 @@ export type ThirdwebWebhookEventDocument = {
   webhookEventStatus: string;
 };
 
+export type ThirdwebWebhookIngressVerificationStatus =
+  | "pending"
+  | "verified"
+  | "missing_signature"
+  | "config_error"
+  | "invalid_signature"
+  | "invalid_json";
+
+export type ThirdwebWebhookIngressProcessingStatus =
+  | "pending"
+  | "ignored"
+  | "processed"
+  | "processing_error";
+
+export type ThirdwebWebhookIngressLogDocument = {
+  requestId: string;
+  method: string;
+  path: string;
+  projectWallet: string | null;
+  signaturePresent: boolean;
+  signaturePrefix: string | null;
+  timestampHeader: string | null;
+  userAgent: string | null;
+  payloadBytes: number;
+  payloadSha256: string;
+  payloadTopic: string | null;
+  payloadEventCount: number | null;
+  verificationStatus: ThirdwebWebhookIngressVerificationStatus;
+  processingStatus: ThirdwebWebhookIngressProcessingStatus;
+  responseStatus: number | null;
+  errorMessage: string | null;
+  ignoredCount: number | null;
+  storedCount: number | null;
+  completedCount: number | null;
+  receivedAt: Date;
+  updatedAt: Date;
+};
+
 type VerifyThirdwebWebhookSignatureOptions = {
   payload: string;
   secrets: string[];

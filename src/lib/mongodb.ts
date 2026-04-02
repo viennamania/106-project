@@ -2,13 +2,19 @@ import "server-only";
 
 import { MongoClient, ServerApiVersion, type Collection } from "mongodb";
 import type { MemberDocument } from "@/lib/member";
-import type { ThirdwebWebhookEventDocument } from "@/lib/thirdweb-webhooks";
+import type {
+  ThirdwebWebhookEventDocument,
+  ThirdwebWebhookIngressLogDocument,
+} from "@/lib/thirdweb-webhooks";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
   mongoMembersCollectionPromise?: Promise<Collection<MemberDocument>>;
   mongoThirdwebWebhookEventsCollectionPromise?: Promise<
     Collection<ThirdwebWebhookEventDocument>
+  >;
+  mongoThirdwebWebhookIngressLogsCollectionPromise?: Promise<
+    Collection<ThirdwebWebhookIngressLogDocument>
   >;
 };
 
@@ -142,4 +148,34 @@ export async function getThirdwebWebhookEventsCollection() {
   }
 
   return globalForMongo.mongoThirdwebWebhookEventsCollectionPromise;
+}
+
+export async function getThirdwebWebhookIngressLogsCollection() {
+  if (!globalForMongo.mongoThirdwebWebhookIngressLogsCollectionPromise) {
+    globalForMongo.mongoThirdwebWebhookIngressLogsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_THIRDWEB_WEBHOOK_INGRESS_COLLECTION ??
+        "thirdwebWebhookIngressLogs";
+      const collection = client
+        .db(dbName)
+        .collection<ThirdwebWebhookIngressLogDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ requestId: 1 }, { unique: true }),
+        collection.createIndex({ receivedAt: -1 }),
+        collection.createIndex({
+          verificationStatus: 1,
+          processingStatus: 1,
+          receivedAt: -1,
+        }),
+        collection.createIndex({ payloadSha256: 1, receivedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoThirdwebWebhookIngressLogsCollectionPromise;
 }
