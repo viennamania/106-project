@@ -1,6 +1,7 @@
 export const MEMBER_SIGNUP_USDT_AMOUNT = "10";
 export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
+export const REFERRAL_SIGNUP_LIMIT = 6;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
 
@@ -42,6 +43,15 @@ export type SyncMemberRequest = {
 export type SyncMemberResponse = {
   justCompleted: boolean;
   member: MemberRecord;
+};
+
+export type IncomingReferralStatus = "available" | "full" | "invalid";
+
+export type IncomingReferralState = {
+  code: string;
+  completedReferrals: number;
+  limit: number;
+  status: IncomingReferralStatus;
 };
 
 export type ReferralMemberRecord = {

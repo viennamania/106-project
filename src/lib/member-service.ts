@@ -7,6 +7,7 @@ import {
   getThirdwebWebhookEventsCollection,
 } from "@/lib/mongodb";
 import type {
+  IncomingReferralState,
   MemberDocument,
   SyncMemberRequest,
   SyncMemberResponse,
@@ -14,10 +15,17 @@ import type {
 import {
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+  REFERRAL_SIGNUP_LIMIT,
   normalizeEmail,
   normalizeReferralCode,
   serializeMember,
 } from "@/lib/member";
+import {
+  defaultLocale,
+  getDictionary,
+  hasLocale,
+  type Locale,
+} from "@/lib/i18n";
 import {
   normalizeAddress,
   type ThirdwebWebhookEventDocument,
@@ -25,6 +33,16 @@ import {
 
 const REFERRAL_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const REFERRAL_CODE_LENGTH = 8;
+
+export class MemberSyncError extends Error {
+  status: number;
+
+  constructor(message: string, status = 400) {
+    super(message);
+    this.name = "MemberSyncError";
+    this.status = status;
+  }
+}
 
 function generateReferralCode() {
   return Array.from({ length: REFERRAL_CODE_LENGTH }, () => {
@@ -77,6 +95,38 @@ async function getFreshMemberOrThrow(
   }
 
   return member;
+}
+
+function resolveLocale(input?: string | null): Locale {
+  return input && hasLocale(input) ? input : defaultLocale;
+}
+
+function formatTemplate(
+  template: string,
+  replacements: Record<string, string | number>,
+) {
+  return Object.entries(replacements).reduce((message, [key, value]) => {
+    return message.replaceAll(`{${key}}`, String(value));
+  }, template);
+}
+
+function getReferralLimitReachedMessage({
+  code,
+  count,
+  locale,
+}: {
+  code: string;
+  count: number;
+  locale: Locale;
+}) {
+  return formatTemplate(
+    getDictionary(locale).member.errors.referralLimitReached,
+    {
+      code,
+      count,
+      limit: REFERRAL_SIGNUP_LIMIT,
+    },
+  );
 }
 
 async function findMatchingSignupPaymentEvent(
@@ -261,6 +311,42 @@ async function resolveReferrer({
   };
 }
 
+export async function getIncomingReferralState(
+  referredByCode: string | null,
+): Promise<IncomingReferralState | null> {
+  if (!referredByCode) {
+    return null;
+  }
+
+  const collection = await getMembersCollection();
+  const referrer = await collection.findOne({
+    referralCode: referredByCode,
+    status: "completed",
+  });
+
+  if (!referrer) {
+    return {
+      code: referredByCode,
+      completedReferrals: 0,
+      limit: REFERRAL_SIGNUP_LIMIT,
+      status: "invalid",
+    };
+  }
+
+  const completedReferrals = await collection.countDocuments({
+    referredByCode,
+    status: "completed",
+  });
+
+  return {
+    code: referredByCode,
+    completedReferrals,
+    limit: REFERRAL_SIGNUP_LIMIT,
+    status:
+      completedReferrals >= REFERRAL_SIGNUP_LIMIT ? "full" : "available",
+  };
+}
+
 export async function syncMemberRegistration(
   input: SyncMemberRequest,
 ): Promise<SyncMemberResponse> {
@@ -271,6 +357,7 @@ export async function syncMemberRegistration(
     : "";
   const chainName = input.chainName?.trim();
   const locale = input.locale?.trim();
+  const resolvedLocale = resolveLocale(locale);
   const referredByCode = normalizeReferralCode(input.referredByCode);
 
   if (!email) {
@@ -294,10 +381,6 @@ export async function syncMemberRegistration(
   const collection = await getMembersCollection();
   const now = new Date();
   const existingMember = await collection.findOne({ email });
-  const referrer = await resolveReferrer({
-    email,
-    referredByCode,
-  });
 
   if (existingMember?.status === "completed") {
     await collection.updateOne(
@@ -322,6 +405,30 @@ export async function syncMemberRegistration(
       member: serializeMember(await getFreshMemberOrThrow(collection, email)),
     };
   }
+
+  const incomingReferralState = await getIncomingReferralState(referredByCode);
+
+  if (
+    !existingMember?.referredByCode &&
+    incomingReferralState?.status === "full"
+  ) {
+    throw new MemberSyncError(
+      getReferralLimitReachedMessage({
+        code: incomingReferralState.code,
+        count: incomingReferralState.completedReferrals,
+        locale: resolvedLocale,
+      }),
+      409,
+    );
+  }
+
+  const referrer = await resolveReferrer({
+    email,
+    referredByCode:
+      incomingReferralState?.status === "available"
+        ? incomingReferralState.code
+        : null,
+  });
 
   const shouldResetPaymentWindow =
     !existingMember ||

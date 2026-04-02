@@ -126,6 +126,8 @@ export type Dictionary = {
     celebrationDescription: string;
     incomingReferralTitle: string;
     incomingReferralDescription: string;
+    incomingReferralLimitTitle: string;
+    incomingReferralLimitDescription: string;
     appliedReferralDescription: string;
     shareHint: string;
     noReferralApplied: string;
@@ -154,6 +156,7 @@ export type Dictionary = {
     errors: {
       missingEmail: string;
       projectWalletMissing: string;
+      referralLimitReached: string;
       syncFailed: string;
     };
   };
@@ -354,6 +357,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralTitle: "추천인 코드가 감지되었습니다.",
       incomingReferralDescription:
         "이메일 지갑을 연결한 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",
+      incomingReferralLimitTitle: "이 추천인 코드는 마감되었습니다.",
+      incomingReferralLimitDescription:
+        "추천인 코드 {code} 는 이미 {count}명의 가입이 완료되어 더 이상 사용할 수 없습니다. 다른 레퍼럴 코드로 다시 접속한 뒤 회원가입을 진행하세요.",
       appliedReferralDescription:
         "가입 완료 시 추천인 코드 {code} 가 회원 정보에 저장되었습니다.",
       shareHint:
@@ -384,6 +390,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
         projectWalletMissing: "PROJECT_WALLET 이 설정되지 않았습니다.",
+        referralLimitReached:
+          "추천인 코드 {code} 는 이미 {count}명의 가입이 완료되어 마감되었습니다. 다른 레퍼럴 코드로 다시 가입하세요.",
         syncFailed: "회원 동기화에 실패했습니다.",
       },
     },
@@ -585,6 +593,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralTitle: "A referral code was detected.",
       incomingReferralDescription:
         "If signup completes on this page, referral code {code} will be stored on the member record.",
+      incomingReferralLimitTitle: "This referral code has reached its limit.",
+      incomingReferralLimitDescription:
+        "Referral code {code} already has {count} completed signups and can no longer be used. Open the homepage with a different referral code before signing up.",
       appliedReferralDescription:
         "Referral code {code} was stored when signup completed.",
       shareHint:
@@ -615,6 +626,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
         projectWalletMissing: "PROJECT_WALLET is not configured.",
+        referralLimitReached:
+          "Referral code {code} already has {count} completed signups and is no longer available. Sign up again with a different referral code.",
         syncFailed: "Member sync failed.",
       },
     },
@@ -816,6 +829,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralTitle: "紹介コードを検出しました。",
       incomingReferralDescription:
         "メールウォレット接続後に登録が完了すると、紹介コード {code} が会員情報に保存されます。",
+      incomingReferralLimitTitle: "この紹介コードは受付終了です。",
+      incomingReferralLimitDescription:
+        "紹介コード {code} はすでに {count} 人の登録完了に使われており、これ以上は利用できません。別のレファラルコードでホームを開き直してから登録してください。",
       appliedReferralDescription:
         "登録完了時に紹介コード {code} が保存されました。",
       shareHint:
@@ -846,6 +862,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
         projectWalletMissing: "PROJECT_WALLET が設定されていません。",
+        referralLimitReached:
+          "紹介コード {code} はすでに {count} 人の登録完了に使われており受付終了です。別のレファラルコードで登録してください。",
         syncFailed: "会員同期に失敗しました。",
       },
     },
@@ -1047,6 +1065,9 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralTitle: "检测到推荐码。",
       incomingReferralDescription:
         "连接邮箱钱包后，如果在此页面完成注册，推荐码 {code} 会写入会员信息。",
+      incomingReferralLimitTitle: "这个推荐码已满额。",
+      incomingReferralLimitDescription:
+        "推荐码 {code} 已经有 {count} 位会员完成注册，不能再继续使用。请换一个推荐码重新打开首页后再注册。",
       appliedReferralDescription:
         "注册完成时已记录推荐码 {code}。",
       shareHint:
@@ -1077,6 +1098,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
         projectWalletMissing: "PROJECT_WALLET 未配置。",
+        referralLimitReached:
+          "推荐码 {code} 已经有 {count} 位会员完成注册，现已满额。请改用其他推荐码重新注册。",
         syncFailed: "会员同步失败。",
       },
     },

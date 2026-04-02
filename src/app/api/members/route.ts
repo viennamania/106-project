@@ -1,4 +1,4 @@
-import { syncMemberRegistration } from "@/lib/member-service";
+import { MemberSyncError, syncMemberRegistration } from "@/lib/member-service";
 import { getMembersCollection } from "@/lib/mongodb";
 import type { SyncMemberRequest } from "@/lib/member";
 import { normalizeEmail, serializeMember } from "@/lib/member";
@@ -46,7 +46,8 @@ export async function POST(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to sync member.";
+    const status = error instanceof MemberSyncError ? error.status : 500;
 
-    return jsonError(message, 500);
+    return jsonError(message, status);
   }
 }

@@ -39,6 +39,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import {
+  type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
   type MemberReferralsResponse,
   type MemberRecord,
@@ -90,12 +91,12 @@ const usdtContract = getContract({
 
 export function SmartWalletApp({
   dictionary,
-  incomingReferralCode,
+  incomingReferralState,
   locale,
   projectWallet,
 }: {
   dictionary: Dictionary;
-  incomingReferralCode: string | null;
+  incomingReferralState: IncomingReferralState | null;
   locale: Locale;
   projectWallet: string | null;
 }) {
@@ -142,7 +143,15 @@ export function SmartWalletApp({
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
+  const activeIncomingReferralCode =
+    incomingReferralState?.status === "available"
+      ? incomingReferralState.code
+      : null;
   const isSignupCompleted = memberSync.member?.status === "completed";
+  const isIncomingReferralBlocked =
+    incomingReferralState?.status === "full" &&
+    memberSync.member?.referredByCode !== incomingReferralState.code &&
+    !isSignupCompleted;
   const isMembershipLoading =
     status === "connected" &&
     hasThirdwebClientId &&
@@ -284,7 +293,7 @@ export function SmartWalletApp({
           chainName: chain.name ?? "BSC",
           email,
           locale,
-          referredByCode: incomingReferralCode,
+          referredByCode: activeIncomingReferralCode,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -377,7 +386,14 @@ export function SmartWalletApp({
     }
 
     void syncMemberRegistration();
-  }, [accountAddress, status, locale, chain.id, chain.name, incomingReferralCode]);
+  }, [
+    accountAddress,
+    status,
+    locale,
+    chain.id,
+    chain.name,
+    activeIncomingReferralCode,
+  ]);
 
   const pollForCompletedSignup = useEffectEvent(async () => {
     await runMemberSync({ background: true });
@@ -655,7 +671,20 @@ export function SmartWalletApp({
                 ))}
               </div>
 
-              {incomingReferralCode ? (
+              {isIncomingReferralBlocked && incomingReferralState ? (
+                <div className="rounded-[28px] border border-rose-200 bg-rose-50/95 p-5 text-sm text-rose-950">
+                  <p className="font-semibold">
+                    {dictionary.member.incomingReferralLimitTitle}
+                  </p>
+                  <p className="mt-2 leading-6">
+                    {formatTemplate(dictionary.member.incomingReferralLimitDescription, {
+                      code: incomingReferralState.code,
+                      count: incomingReferralState.completedReferrals,
+                      limit: incomingReferralState.limit,
+                    })}
+                  </p>
+                </div>
+              ) : activeIncomingReferralCode ? (
                 <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-950">
                   <p className="font-semibold">
                     {dictionary.member.incomingReferralTitle}
@@ -663,7 +692,7 @@ export function SmartWalletApp({
                   <p className="mt-2 leading-6">
                     {dictionary.member.incomingReferralDescription.replace(
                       "{code}",
-                      incomingReferralCode,
+                      activeIncomingReferralCode,
                     )}
                   </p>
                 </div>
@@ -1057,6 +1086,21 @@ export function SmartWalletApp({
               eyebrow={dictionary.sponsored.eyebrow}
               title={dictionary.sponsored.title}
             >
+              {isIncomingReferralBlocked && incomingReferralState ? (
+                <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-950">
+                  <p className="font-semibold">
+                    {dictionary.member.incomingReferralLimitTitle}
+                  </p>
+                  <p className="mt-2">
+                    {formatTemplate(dictionary.member.incomingReferralLimitDescription, {
+                      code: incomingReferralState.code,
+                      count: incomingReferralState.completedReferrals,
+                      limit: incomingReferralState.limit,
+                    })}
+                  </p>
+                </div>
+              ) : null}
+
               <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] p-5 text-white shadow-[0_24px_60px_rgba(29,78,216,0.22)]">
                 <p className="text-sm leading-6 text-white/70">
                   {dictionary.sponsored.description
@@ -1080,6 +1124,7 @@ export function SmartWalletApp({
                     !accountAddress ||
                     !hasThirdwebClientId ||
                     !projectWallet ||
+                    isIncomingReferralBlocked ||
                     isSignupCompleted
                   }
                   onError={(error) =>
@@ -1121,6 +1166,16 @@ export function SmartWalletApp({
 
                     if (!projectWallet) {
                       throw new Error(dictionary.member.errors.projectWalletMissing);
+                    }
+
+                    if (isIncomingReferralBlocked && incomingReferralState) {
+                      throw new Error(
+                        formatTemplate(dictionary.member.errors.referralLimitReached, {
+                          code: incomingReferralState.code,
+                          count: incomingReferralState.completedReferrals,
+                          limit: incomingReferralState.limit,
+                        }),
+                      );
                     }
 
                     return transfer({
@@ -1993,6 +2048,15 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+function formatTemplate(
+  template: string,
+  replacements: Record<string, string | number>,
+) {
+  return Object.entries(replacements).reduce((message, [key, value]) => {
+    return message.replaceAll(`{${key}}`, String(value));
+  }, template);
 }
 
 function getReferralLink(referralCode: string, locale: Locale) {
