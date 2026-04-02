@@ -166,12 +166,6 @@ export function ReferralNetworkExplorer({
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <ExplorerInfoRow
-                  label={dictionary.referralsPage.labels.referralCode}
-                  value={
-                    referral.referralCode ?? dictionary.common.notAvailable
-                  }
-                />
-                <ExplorerInfoRow
                   label={dictionary.referralsPage.labels.joinedAt}
                   value={formatDateTime(referral.registrationCompletedAt, locale)}
                 />

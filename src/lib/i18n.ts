@@ -411,7 +411,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "이메일 로그인 후 회원 상태가 여기에 표시됩니다.",
       syncing: "회원가입 상태를 Atlas와 webhook 기준으로 확인하는 중입니다.",
       pending:
-        "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송해야 합니다.",
+        "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 정확히 10 USDT를 보내면 회원가입이 완료됩니다.",
       synced: "10 USDT 입금이 확인되어 회원가입이 완료되었고 레퍼럴 코드가 발급되었습니다.",
       newMember: "회원가입이 완료되었습니다.",
       pendingValue: "결제 대기",
@@ -700,7 +700,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "After email login, your member status appears here.",
       syncing: "Checking signup status against Atlas and the webhook records.",
       pending:
-        "Signup is still pending. The connected wallet must send exactly 10 USDT to PROJECT_WALLET.",
+        "Signup is still pending. Send exactly 10 USDT from the connected wallet to complete signup.",
       synced: "The 10 USDT payment was confirmed, signup is complete, and the referral code is now active.",
       newMember: "Signup completed successfully.",
       pendingValue: "Payment pending",
@@ -990,7 +990,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "メールログイン後、会員ステータスがここに表示されます。",
       syncing: "Atlas と webhook 記録を基準に登録状態を確認しています。",
       pending:
-        "まだ登録は完了していません。接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送る必要があります。",
+        "まだ登録は完了していません。接続済みウォレットから正確に 10 USDT を送ると登録が完了します。",
       synced: "10 USDT の入金が確認され、登録完了とレファラルコード発行が完了しました。",
       newMember: "会員登録が完了しました。",
       pendingValue: "支払い待ち",
@@ -1279,7 +1279,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "邮箱登录后，会员状态会显示在这里。",
       syncing: "正在根据 Atlas 和 webhook 记录检查注册状态。",
       pending:
-        "注册尚未完成。必须从当前连接的钱包向 PROJECT_WALLET 精确转入 10 USDT。",
+        "注册尚未完成。从当前连接的钱包精确转入 10 USDT 后，即可完成注册。",
       synced: "10 USDT 入账已确认，会员注册已完成，推荐码也已激活。",
       newMember: "会员注册已完成。",
       pendingValue: "待支付",
