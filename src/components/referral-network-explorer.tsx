@@ -73,16 +73,11 @@ export function ReferralNetworkExplorer({
         </div>
       ) : null}
 
-      {referrals.length > 0 ? (
+      {referrals.length > 0 && path.length > 0 ? (
         <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <button
-              className={cn(
-                "inline-flex items-center rounded-full px-3 py-2 text-sm font-medium transition",
-                path.length === 0
-                  ? "bg-slate-950 text-white"
-                  : "border border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-100",
-              )}
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-100"
               onClick={() => {
                 setPath([]);
               }}
@@ -112,22 +107,20 @@ export function ReferralNetworkExplorer({
             ))}
           </div>
 
-          {path.length > 0 ? (
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm leading-6 text-slate-600">
-                {dictionary.referralsPage.labels.currentLevel} {currentLevel}
-              </p>
-              <button
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-100"
-                onClick={() => {
-                  setPath([]);
-                }}
-                type="button"
-              >
-                {dictionary.referralsPage.actions.backToRoot}
-              </button>
-            </div>
-          ) : null}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm leading-6 text-slate-600">
+              {dictionary.referralsPage.labels.currentLevel} {currentLevel}
+            </p>
+            <button
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-100"
+              onClick={() => {
+                setPath([]);
+              }}
+              type="button"
+            >
+              {dictionary.referralsPage.actions.backToRoot}
+            </button>
+          </div>
         </div>
       ) : null}
 

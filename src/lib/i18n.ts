@@ -446,7 +446,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "회원가입이 완료된 뒤 내 레퍼럴 코드와 해당 코드로 가입한 회원을 확인합니다.",
       shareTitle: "내 레퍼럴 코드",
       listTitle: "내 코드로 가입한 회원",
-      rootLabel: "내 코드",
+      rootLabel: "전체 추천 트리",
       branchEmpty: "이 회원 아래에는 아직 더 가입한 회원이 없습니다.",
       depthHint: "한 화면에서 최대 {depth}단계까지 탐색할 수 있습니다.",
       disconnected:
@@ -718,7 +718,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "Review your referral code and the members who signed up with it after signup is complete.",
       shareTitle: "My referral code",
       listTitle: "Members signed up with my code",
-      rootLabel: "My code",
+      rootLabel: "Full referral tree",
       branchEmpty: "This member does not have deeper referrals yet.",
       depthHint: "Explore up to {depth} levels from a single screen.",
       disconnected:
@@ -990,7 +990,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "登録完了後に、自分のレファラルコードとそのコードで登録した会員一覧を確認します。",
       shareTitle: "自分のレファラルコード",
       listTitle: "自分のコードで登録した会員",
-      rootLabel: "自分のコード",
+      rootLabel: "紹介ツリー全体",
       branchEmpty: "この会員の下位には、まだ追加の登録メンバーがいません。",
       depthHint: "1つの画面で最大 {depth} 段階までたどれます。",
       disconnected:
@@ -1262,7 +1262,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "在注册完成后，查看我的推荐码以及使用该推荐码完成注册的会员列表。",
       shareTitle: "我的推荐码",
       listTitle: "使用我的码注册的会员",
-      rootLabel: "我的推荐码",
+      rootLabel: "完整推荐树",
       branchEmpty: "这位会员下面还没有更深层的推荐注册。",
       depthHint: "可在单个界面中最多查看 {depth} 层。",
       disconnected:
