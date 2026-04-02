@@ -60,6 +60,7 @@ import {
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { walletConnectTheme } from "@/lib/thirdweb-connect-ui";
 import { thirdwebLocales, type Dictionary, type Locale } from "@/lib/i18n";
 
 type NoticeTone = "info" | "success" | "error";
@@ -628,7 +629,7 @@ export function SmartWalletApp({
                       titleIcon: "/favicon.ico",
                     }}
                     locale={thirdwebLocales[locale]}
-                    theme="dark"
+                    theme={walletConnectTheme}
                     wallets={supportedWallets}
                   />
                 </div>
@@ -752,7 +753,7 @@ export function SmartWalletApp({
                             titleIcon: "/favicon.ico",
                           }}
                           locale={thirdwebLocales[locale]}
-                          theme="dark"
+                          theme={walletConnectTheme}
                           wallets={supportedWallets}
                         />
                       </div>
@@ -765,7 +766,7 @@ export function SmartWalletApp({
                           client={thirdwebClient}
                           locale={thirdwebLocales[locale]}
                           modalSize="compact"
-                          theme="dark"
+                          theme={walletConnectTheme}
                           wallets={supportedWallets}
                         />
                       </div>

@@ -37,6 +37,7 @@ import {
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { walletConnectTheme } from "@/lib/thirdweb-connect-ui";
 import { thirdwebLocales, type Dictionary, type Locale } from "@/lib/i18n";
 import { BSC_EXPLORER } from "@/lib/thirdweb";
 
@@ -334,7 +335,7 @@ export function ReferralsPage({
                       titleIcon: "/favicon.ico",
                     }}
                     locale={thirdwebLocales[locale]}
-                    theme="dark"
+                    theme={walletConnectTheme}
                     wallets={supportedWallets}
                   />
                 </div>
@@ -381,7 +382,7 @@ export function ReferralsPage({
                         titleIcon: "/favicon.ico",
                       }}
                       locale={thirdwebLocales[locale]}
-                      theme="dark"
+                      theme={walletConnectTheme}
                       wallets={supportedWallets}
                     />
                   </div>
@@ -394,7 +395,7 @@ export function ReferralsPage({
                       client={thirdwebClient}
                       locale={thirdwebLocales[locale]}
                       modalSize="compact"
-                      theme="dark"
+                      theme={walletConnectTheme}
                       wallets={supportedWallets}
                     />
                   </div>
