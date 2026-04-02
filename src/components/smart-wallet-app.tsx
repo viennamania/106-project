@@ -42,6 +42,7 @@ import {
   type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+  REFERRAL_SIGNUP_LIMIT,
   type MemberReferralsResponse,
   type MemberRecord,
   type ReferralRewardsSummaryRecord,
@@ -1178,6 +1179,12 @@ function CompletedHomeDashboard({
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
+  const firstLevelLimitHint = formatTemplate(
+    dictionary.referralsPage.firstLevelLimitHint,
+    {
+      limit: REFERRAL_SIGNUP_LIMIT,
+    },
+  );
 
   return (
     <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
@@ -1223,9 +1230,9 @@ function CompletedHomeDashboard({
               value={member.referralCode ?? dictionary.common.notAvailable}
             />
             <MetricCard
-              hint={dictionary.referralsPage.listTitle}
+              hint={firstLevelLimitHint}
               label={dictionary.referralsPage.labels.directReferrals}
-              value={String(directReferralCount)}
+              value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
             />
             <MetricCard
               hint={dictionary.referralsPage.depthHint.replace(

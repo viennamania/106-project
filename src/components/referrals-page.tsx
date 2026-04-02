@@ -19,7 +19,10 @@ import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
-import { createEmptyReferralRewardsSummary } from "@/lib/member";
+import {
+  createEmptyReferralRewardsSummary,
+  REFERRAL_SIGNUP_LIMIT,
+} from "@/lib/member";
 import type {
   MemberReferralsResponse,
   MemberRecord,
@@ -77,6 +80,12 @@ export function ReferralsPage({
   const referralLink = state.member?.referralCode
     ? getReferralLink(state.member.referralCode, locale)
     : null;
+  const firstLevelLimitHint = formatTemplate(
+    dictionary.referralsPage.firstLevelLimitHint,
+    {
+      limit: REFERRAL_SIGNUP_LIMIT,
+    },
+  );
   const accountLabel = accountAddress
     ? `${accountAddress.slice(0, 6)}...${accountAddress.slice(-4)}`
     : null;
@@ -438,13 +447,16 @@ export function ReferralsPage({
                   />
                   <InfoRow
                     label={dictionary.referralsPage.labels.directReferrals}
-                    value={String(state.referrals.length)}
+                    value={`${state.referrals.length} / ${REFERRAL_SIGNUP_LIMIT}`}
                   />
                   <InfoRow
                     label={dictionary.referralsPage.labels.totalNetwork}
                     value={String(state.totalReferrals)}
                   />
                 </div>
+                <p className="text-sm leading-6 text-slate-600">
+                  {firstLevelLimitHint}
+                </p>
 
                 {referralLink ? (
                   <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
@@ -640,4 +652,13 @@ function getReferralLink(referralCode: string, locale: Locale) {
   } catch {
     return path;
   }
+}
+
+function formatTemplate(
+  template: string,
+  replacements: Record<string, string | number>,
+) {
+  return Object.entries(replacements).reduce((message, [key, value]) => {
+    return message.replaceAll(`{${key}}`, String(value));
+  }, template);
 }

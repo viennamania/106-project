@@ -4,6 +4,7 @@ import { ChevronRight, GitBranch, Layers3, Users } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import {
+  REFERRAL_SIGNUP_LIMIT,
   REFERRAL_TREE_DEPTH_LIMIT,
   type ReferralTreeNodeRecord,
 } from "@/lib/member";
@@ -28,6 +29,12 @@ export function ReferralNetworkExplorer({
   const currentNodes = focusedNode ? focusedNode.children : referrals;
   const currentLevel = focusedNode ? focusedNode.depth + 1 : 1;
   const directReferrals = referrals.length;
+  const firstLevelLimitHint = formatTemplate(
+    dictionary.referralsPage.firstLevelLimitHint,
+    {
+      limit: REFERRAL_SIGNUP_LIMIT,
+    },
+  );
 
   return (
     <div className="space-y-4">
@@ -35,7 +42,7 @@ export function ReferralNetworkExplorer({
         <ExplorerMetricCard
           icon={<Users className="size-4" />}
           label={dictionary.referralsPage.labels.directReferrals}
-          value={String(directReferrals)}
+          value={`${directReferrals} / ${REFERRAL_SIGNUP_LIMIT}`}
         />
         <ExplorerMetricCard
           icon={<Layers3 className="size-4" />}
@@ -59,11 +66,16 @@ export function ReferralNetworkExplorer({
               >
                 {dictionary.referralsPage.labels.level} {index + 1}
                 <span className="ml-2 text-slate-500">
-                  {count} {dictionary.referralsPage.labels.members}
+                  {index === 0
+                    ? `${count} / ${REFERRAL_SIGNUP_LIMIT} ${dictionary.referralsPage.labels.members}`
+                    : `${count} ${dictionary.referralsPage.labels.members}`}
                 </span>
               </div>
             ))}
           </div>
+          <p className="text-sm leading-6 text-slate-600">
+            {firstLevelLimitHint}
+          </p>
           <p className="text-sm leading-6 text-slate-600">
             {dictionary.referralsPage.depthHint.replace(
               "{depth}",
@@ -256,6 +268,15 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function formatTemplate(
+  template: string,
+  replacements: Record<string, string | number>,
+) {
+  return Object.entries(replacements).reduce((message, [key, value]) => {
+    return message.replaceAll(`{${key}}`, String(value));
+  }, template);
 }
 
 function formatDateTime(value: string, locale: Locale) {

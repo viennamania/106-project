@@ -186,6 +186,7 @@ export type Dictionary = {
     rootLabel: string;
     branchEmpty: string;
     depthHint: string;
+    firstLevelLimitHint: string;
     disconnected: string;
     loading: string;
     empty: string;
@@ -473,6 +474,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       rootLabel: "전체 추천 트리",
       branchEmpty: "이 회원 아래에는 아직 더 가입한 회원이 없습니다.",
       depthHint: "한 화면에서 최대 {depth}단계까지 탐색할 수 있습니다.",
+      firstLevelLimitHint: "1단계는 최대 {limit}명까지 등록할 수 있습니다.",
       disconnected:
         "이메일 로그인하고 회원가입을 완료하면 레퍼럴 대시보드를 볼 수 있습니다.",
       loading: "레퍼럴 데이터를 확인하는 중입니다.",
@@ -761,6 +763,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       rootLabel: "Full referral tree",
       branchEmpty: "This member does not have deeper referrals yet.",
       depthHint: "Explore up to {depth} levels from a single screen.",
+      firstLevelLimitHint: "Level 1 can have up to {limit} members.",
       disconnected:
         "Use email login and complete signup to review your referral dashboard.",
       loading: "Loading referral data.",
@@ -1050,6 +1053,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       rootLabel: "紹介ツリー全体",
       branchEmpty: "この会員の下位には、まだ追加の登録メンバーがいません。",
       depthHint: "1つの画面で最大 {depth} 段階までたどれます。",
+      firstLevelLimitHint: "1段階目は最大 {limit} 人まで登録できます。",
       disconnected:
         "メールログインし、登録を完了するとレファラルダッシュボードを確認できます。",
       loading: "レファラルデータを読み込んでいます。",
@@ -1338,6 +1342,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       rootLabel: "完整推荐树",
       branchEmpty: "这位会员下面还没有更深层的推荐注册。",
       depthHint: "可在单个界面中最多查看 {depth} 层。",
+      firstLevelLimitHint: "第 1 层最多可注册 {limit} 人。",
       disconnected:
         "邮箱登录并完成注册后，即可查看推荐仪表板。",
       loading: "正在加载推荐数据。",
