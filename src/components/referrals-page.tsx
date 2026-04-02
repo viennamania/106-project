@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
-import { ArrowLeft, Users, WalletMinimal } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Users, WalletMinimal } from "lucide-react";
 import {
   AutoConnect,
   ConnectButton,
   ConnectEmbed,
   useActiveAccount,
+  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
+  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
@@ -30,6 +32,7 @@ import {
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { thirdwebLocales, type Dictionary, type Locale } from "@/lib/i18n";
+import { BSC_EXPLORER } from "@/lib/thirdweb";
 
 type ReferralsState = {
   error: string | null;
@@ -46,6 +49,8 @@ export function ReferralsPage({
   locale: Locale;
 }) {
   const account = useActiveAccount();
+  const wallet = useActiveWallet();
+  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -59,6 +64,12 @@ export function ReferralsPage({
   const referralLink = state.member?.referralCode
     ? getReferralLink(state.member.referralCode, locale)
     : null;
+  const accountLabel = accountAddress
+    ? `${accountAddress.slice(0, 6)}...${accountAddress.slice(-4)}`
+    : null;
+  const accountUrl = accountAddress
+    ? `${BSC_EXPLORER}/address/${accountAddress}`
+    : BSC_EXPLORER;
 
   async function loadReferrals() {
     if (!accountAddress) {
@@ -222,39 +233,57 @@ export function ReferralsPage({
               status={status}
             />
             {hasThirdwebClientId ? (
-              <div
-                className={cn(
-                  status === "connected"
-                    ? "w-full sm:w-auto"
-                    : "hidden w-full sm:block sm:w-auto",
-                )}
-              >
-                <ConnectButton
-                  accountAbstraction={smartWalletOptions}
-                  appMetadata={appMetadata}
-                  chain={smartWalletChain}
-                  client={thirdwebClient}
-                  connectButton={{
-                    className:
-                      "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] sm:!w-auto",
-                    label: dictionary.common.connectWallet,
-                  }}
-                  connectModal={{
-                    title: dictionary.common.connectModalTitle,
-                    titleIcon: "/favicon.ico",
-                  }}
-                  detailsButton={{
-                    className:
-                      "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-white !px-4 !text-sm !font-medium !text-slate-950 sm:!w-auto",
-                  }}
-                  detailsModal={{
-                    showTestnetFaucet: false,
-                  }}
-                  locale={thirdwebLocales[locale]}
-                  theme="dark"
-                  wallets={supportedWallets}
-                />
-              </div>
+              status === "connected" ? (
+                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+                  {accountAddress ? (
+                    <a
+                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                      href={accountUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {accountLabel ?? accountAddress}
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                  ) : null}
+
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={!wallet}
+                    onClick={() => {
+                      if (!wallet) {
+                        return;
+                      }
+
+                      disconnect(wallet);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.disconnectWallet}
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden w-full sm:block sm:w-auto">
+                  <ConnectButton
+                    accountAbstraction={smartWalletOptions}
+                    appMetadata={appMetadata}
+                    chain={smartWalletChain}
+                    client={thirdwebClient}
+                    connectButton={{
+                      className:
+                        "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] sm:!w-auto",
+                      label: dictionary.common.connectWallet,
+                    }}
+                    connectModal={{
+                      title: dictionary.common.connectModalTitle,
+                      titleIcon: "/favicon.ico",
+                    }}
+                    locale={thirdwebLocales[locale]}
+                    theme="dark"
+                    wallets={supportedWallets}
+                  />
+                </div>
+              )
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
@@ -579,7 +608,10 @@ function formatDateTime(value: string, locale: Locale) {
 
 function getReferralLink(referralCode: string, locale: Locale) {
   const path = `/${locale}?ref=${encodeURIComponent(referralCode)}`;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const appUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (!appUrl) {
     return path;
