@@ -712,14 +712,10 @@ export function SmartWalletApp({
                   <MessageCard>{dictionary.env.description}</MessageCard>
                 ) : status !== "connected" || !accountAddress ? (
                   <div className="space-y-4">
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-3">
                       <InfoRow
                         label={dictionary.member.labels.requiredDeposit}
                         value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                      />
-                      <InfoRow
-                        label={dictionary.member.labels.destinationWallet}
-                        value={projectWalletLabel ?? dictionary.common.notAvailable}
                       />
                     </div>
 
@@ -785,28 +781,27 @@ export function SmartWalletApp({
                       className="rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] scroll-mt-24 sm:scroll-mt-28"
                       id="signup-payment"
                     >
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <CompactMetaCard
                           label={dictionary.member.labels.requiredDeposit}
                           value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
                         />
-                        <CompactMetaCard
-                          label={dictionary.member.labels.destinationWallet}
-                          value={projectWalletLabel ?? "PROJECT_WALLET"}
-                        />
+                        <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/75">
+                          {dictionary.member.pendingValue}
+                        </div>
                       </div>
 
-                      <div className="mt-4 flex items-start justify-between gap-3">
-                        <div>
+                      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
                           <p className="text-xs uppercase tracking-[0.24em] text-white/55">
                             {dictionary.connected.eyebrow}
                           </p>
-                          <p className="mt-2 text-lg font-semibold tracking-tight">
+                          <p className="mt-2 break-words text-lg font-semibold tracking-tight">
                             {accountLabel ?? accountAddress}
                           </p>
                         </div>
                         <button
-                          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/15"
+                          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
                           onClick={handleCopyAddress}
                           type="button"
                         >
@@ -821,17 +816,8 @@ export function SmartWalletApp({
                         </button>
                       </div>
 
-                      <a
-                        className="mt-4 block break-all text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
-                        href={projectWalletUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {projectWallet ?? dictionary.common.notAvailable}
-                      </a>
-
                       <TransactionButton
-                        className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={
                           !accountAddress ||
                           !hasThirdwebClientId ||
