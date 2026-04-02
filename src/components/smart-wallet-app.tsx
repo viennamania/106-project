@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Users,
   WalletMinimal,
   Zap,
 } from "lucide-react";
@@ -39,7 +40,9 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   MEMBER_SIGNUP_USDT_AMOUNT,
+  type MemberReferralsResponse,
   type MemberRecord,
+  type ReferralMemberRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
 import { cn } from "@/lib/utils";
@@ -70,6 +73,12 @@ type MemberSyncState = {
   justCompleted: boolean;
   member: MemberRecord | null;
   status: "idle" | "syncing" | "ready" | "error";
+};
+
+type ReferralDashboardState = {
+  error: string | null;
+  referrals: ReferralMemberRecord[];
+  status: "idle" | "loading" | "ready" | "error";
 };
 
 const CELEBRATION_DURATION_MS = 4200;
@@ -110,6 +119,12 @@ export function SmartWalletApp({
     member: null,
     status: "idle",
   });
+  const [referralDashboard, setReferralDashboard] =
+    useState<ReferralDashboardState>({
+      error: null,
+      referrals: [],
+      status: "idle",
+    });
   const [showCelebration, setShowCelebration] = useState(false);
   const copiedTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -128,6 +143,11 @@ export function SmartWalletApp({
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
   const isSignupCompleted = memberSync.member?.status === "completed";
+  const isMembershipLoading =
+    status === "connected" &&
+    hasThirdwebClientId &&
+    memberSync.status !== "ready" &&
+    memberSync.status !== "error";
   const referralLink = memberSync.member?.referralCode
     ? getReferralLink(memberSync.member.referralCode, locale)
     : null;
@@ -160,7 +180,8 @@ export function SmartWalletApp({
     : status === "connected" && hasThirdwebClientId
       ? projectWalletLabel ?? "PROJECT_WALLET"
       : dictionary.runway.steps[0].title;
-  const showMobileActionDock = hasThirdwebClientId && status === "connected";
+  const showMobileActionDock =
+    hasThirdwebClientId && status === "connected" && !isSignupCompleted;
 
   function triggerCelebration() {
     if (celebrationTimeoutRef.current) {
@@ -172,6 +193,55 @@ export function SmartWalletApp({
       setShowCelebration(false);
       celebrationTimeoutRef.current = null;
     }, CELEBRATION_DURATION_MS);
+  }
+
+  async function loadReferralDashboard(
+    email: string,
+    options?: { background?: boolean },
+  ) {
+    if (!options?.background) {
+      setReferralDashboard((current) => ({
+        ...current,
+        error: null,
+        status: "loading",
+      }));
+    }
+
+    try {
+      const response = await fetch(
+        `/api/members/referrals?email=${encodeURIComponent(email)}`,
+      );
+      const data = (await response.json()) as
+        | MemberReferralsResponse
+        | { error?: string };
+
+      if (!response.ok || !("member" in data) || !("referrals" in data)) {
+        throw new Error(
+          response.status === 403
+            ? dictionary.referralsPage.paymentRequired
+            : response.status === 404
+              ? dictionary.referralsPage.memberMissing
+              : "error" in data && data.error
+                ? data.error
+                : dictionary.referralsPage.errors.loadFailed,
+        );
+      }
+
+      setReferralDashboard({
+        error: null,
+        referrals: data.referrals,
+        status: "ready",
+      });
+    } catch (error) {
+      setReferralDashboard((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : dictionary.referralsPage.errors.loadFailed,
+        status: current.referrals.length > 0 ? "ready" : "error",
+      }));
+    }
   }
 
   async function runMemberSync(options?: { background?: boolean }) {
@@ -199,6 +269,11 @@ export function SmartWalletApp({
           justCompleted: false,
           member: null,
           status: "error",
+        });
+        setReferralDashboard({
+          error: null,
+          referrals: [],
+          status: "idle",
         });
         return;
       }
@@ -253,6 +328,18 @@ export function SmartWalletApp({
       if (shouldCelebrate) {
         triggerCelebration();
       }
+
+      if (data.member.status === "completed") {
+        void loadReferralDashboard(data.member.email, {
+          background: options?.background,
+        });
+      } else {
+        setReferralDashboard({
+          error: null,
+          referrals: [],
+          status: "idle",
+        });
+      }
     } catch (error) {
       setMemberSync((current) => ({
         ...current,
@@ -279,6 +366,11 @@ export function SmartWalletApp({
         error: null,
         justCompleted: false,
         member: null,
+        status: "idle",
+      });
+      setReferralDashboard({
+        error: null,
+        referrals: [],
         status: "idle",
       });
       return;
@@ -468,7 +560,22 @@ export function SmartWalletApp({
           </div>
         </header>
 
-        <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        {isSignupCompleted && memberSync.member ? (
+          <CompletedHomeDashboard
+            dictionary={dictionary}
+            locale={locale}
+            member={memberSync.member}
+            onRefresh={() => {
+              void runMemberSync();
+            }}
+            paymentTransactionUrl={paymentTransactionUrl}
+            referralDashboard={referralDashboard}
+            referralLink={referralLink}
+          />
+        ) : isMembershipLoading ? (
+          <MembershipLoadingSection dictionary={dictionary} />
+        ) : (
+          <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
             <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
             <div className="relative space-y-6">
@@ -1067,7 +1174,8 @@ export function SmartWalletApp({
               ))}
             </Panel>
           </div>
-        </section>
+          </section>
+        )}
       </main>
 
       {showMobileActionDock ? (
@@ -1125,6 +1233,337 @@ function Panel({
         </h3>
       </div>
       <div className={cn("flex flex-col", contentClassName)}>{children}</div>
+    </section>
+  );
+}
+
+function MembershipLoadingSection({
+  dictionary,
+}: {
+  dictionary: Dictionary;
+}) {
+  return (
+    <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
+        <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
+        <div className="relative space-y-6">
+          <div className="flex flex-wrap gap-2">
+            <Badge icon={<WalletMinimal className="size-3.5" />}>
+              {dictionary.member.title}
+            </Badge>
+            <Badge icon={<Sparkles className="size-3.5" />}>
+              {dictionary.referralsPage.title}
+            </Badge>
+          </div>
+
+          <div className="space-y-3">
+            <p className="eyebrow">{dictionary.member.eyebrow}</p>
+            <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
+              {dictionary.common.appName}
+            </h2>
+            <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
+              {dictionary.member.syncing}
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
+                key={index}
+              >
+                <div className="h-3 w-20 animate-pulse rounded-full bg-slate-200" />
+                <div className="mt-4 h-8 w-28 animate-pulse rounded-full bg-slate-200" />
+                <div className="mt-3 h-3 w-24 animate-pulse rounded-full bg-slate-100" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Panel
+        contentClassName="gap-4"
+        eyebrow={dictionary.referralsPage.eyebrow}
+        title={dictionary.referralsPage.title}
+      >
+        <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
+      </Panel>
+    </section>
+  );
+}
+
+function CompletedHomeDashboard({
+  dictionary,
+  locale,
+  member,
+  onRefresh,
+  paymentTransactionUrl,
+  referralDashboard,
+  referralLink,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  member: MemberRecord;
+  onRefresh: () => void;
+  paymentTransactionUrl: string | null;
+  referralDashboard: ReferralDashboardState;
+  referralLink: string | null;
+}) {
+  const referralCount = referralDashboard.referrals.length;
+
+  return (
+    <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
+        <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_68%)] blur-3xl" />
+        <div className="relative space-y-6">
+          <div className="flex flex-wrap gap-2">
+            <Badge icon={<Check className="size-3.5" />}>
+              {dictionary.member.completedValue}
+            </Badge>
+            <Badge icon={<Users className="size-3.5" />}>
+              {dictionary.referralsPage.title}
+            </Badge>
+          </div>
+
+          <div className="space-y-3">
+            <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
+            <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
+              {dictionary.referralsPage.title}
+            </h2>
+            <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
+              {dictionary.member.synced}
+            </p>
+          </div>
+
+          {member.referredByCode ? (
+            <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
+              {dictionary.member.appliedReferralDescription.replace(
+                "{code}",
+                member.referredByCode,
+              )}
+            </div>
+          ) : null}
+
+          <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+            <MetricCard
+              hint={dictionary.referralsPage.labels.referralCode}
+              label={dictionary.member.completedValue}
+              value={member.referralCode ?? dictionary.common.notAvailable}
+            />
+            <MetricCard
+              hint={dictionary.referralsPage.listTitle}
+              label={dictionary.referralsPage.labels.totalReferrals}
+              value={String(referralCount)}
+            />
+            <MetricCard
+              hint={dictionary.referralsPage.labels.lastWallet}
+              label={dictionary.member.labels.lastWallet}
+              value={
+                formatAddressLabel(member.lastWalletAddress) ??
+                dictionary.common.notAvailable
+              }
+            />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+              <p className="eyebrow">{dictionary.referralsPage.shareTitle}</p>
+              <p className="mt-3 text-3xl font-semibold tracking-[0.08em] text-slate-950">
+                {member.referralCode ?? dictionary.common.notAvailable}
+              </p>
+
+              {referralLink ? (
+                <>
+                  <a
+                    className="mt-4 block break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+                    href={referralLink}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {referralLink}
+                  </a>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    {dictionary.member.shareHint}
+                  </p>
+                </>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+                {dictionary.member.eyebrow}
+              </p>
+              <p className="text-xl font-semibold tracking-tight">
+                {dictionary.member.newMember}
+              </p>
+              <p className="text-sm leading-6 text-white/70">
+                {dictionary.referralsPage.description}
+              </p>
+
+              <div className="mt-auto flex flex-wrap gap-3">
+                <button
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                  onClick={onRefresh}
+                  type="button"
+                >
+                  {dictionary.member.actions.refreshStatus}
+                </button>
+
+                {paymentTransactionUrl ? (
+                  <a
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
+                    href={paymentTransactionUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {dictionary.sponsored.openExplorer}
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Panel
+        contentClassName="gap-4"
+        eyebrow={dictionary.member.eyebrow}
+        title={dictionary.member.title}
+      >
+        <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+          <p className="text-sm leading-6 text-slate-600">
+            {dictionary.referralsPage.memberReady}
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <InfoRow
+            label={dictionary.member.labels.emailKey}
+            value={member.email}
+          />
+          <InfoRow
+            label={dictionary.member.labels.signupStatus}
+            value={dictionary.member.completedValue}
+          />
+          <InfoRow
+            label={dictionary.member.labels.completionAt}
+            value={
+              member.registrationCompletedAt
+                ? formatDateTime(member.registrationCompletedAt, locale)
+                : dictionary.common.notAvailable
+            }
+          />
+          <InfoRow
+            label={dictionary.member.labels.paymentReceivedAt}
+            value={
+              member.paymentReceivedAt
+                ? formatDateTime(member.paymentReceivedAt, locale)
+                : dictionary.common.notAvailable
+            }
+          />
+          <InfoRow
+            label={dictionary.member.labels.lastWallet}
+            value={
+              formatAddressLabel(member.lastWalletAddress) ??
+              dictionary.common.notAvailable
+            }
+          />
+          <InfoRow
+            label={dictionary.member.labels.lastConnectedAt}
+            value={formatDateTime(member.lastConnectedAt, locale)}
+          />
+          <InfoRow
+            label={dictionary.member.labels.referredByCode}
+            value={member.referredByCode ?? dictionary.member.noReferralApplied}
+          />
+          <InfoRow
+            label={dictionary.member.labels.requiredDeposit}
+            value={`${member.requiredDepositAmount} USDT`}
+          />
+        </div>
+
+        {paymentTransactionUrl ? (
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+              {dictionary.member.labels.paymentTransaction}
+            </p>
+            <a
+              className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+              href={paymentTransactionUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {member.paymentTransactionHash}
+              <ArrowUpRight className="size-4" />
+            </a>
+          </div>
+        ) : null}
+      </Panel>
+
+      <Panel
+        className="lg:col-span-2"
+        contentClassName="gap-4"
+        eyebrow={dictionary.referralsPage.eyebrow}
+        title={dictionary.referralsPage.listTitle}
+      >
+        {referralDashboard.error ? (
+          <MessageCard tone="error">{referralDashboard.error}</MessageCard>
+        ) : null}
+
+        {referralDashboard.status === "loading" ? (
+          <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
+        ) : referralDashboard.referrals.length === 0 ? (
+          <MessageCard>{dictionary.referralsPage.empty}</MessageCard>
+        ) : (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {referralDashboard.referrals.map((referral) => (
+              <article
+                className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+                key={referral.email}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="break-all text-sm font-semibold text-slate-950">
+                      {referral.email}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {formatAddressLabel(referral.lastWalletAddress)}
+                    </p>
+                  </div>
+                  <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <Users className="size-4" />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <InfoRow
+                    label={dictionary.referralsPage.labels.locale}
+                    value={referral.locale}
+                  />
+                  <InfoRow
+                    label={dictionary.referralsPage.labels.lastWallet}
+                    value={
+                      formatAddressLabel(referral.lastWalletAddress) ??
+                      dictionary.common.notAvailable
+                    }
+                  />
+                  <InfoRow
+                    label={dictionary.referralsPage.labels.joinedAt}
+                    value={formatDateTime(
+                      referral.registrationCompletedAt,
+                      locale,
+                    )}
+                  />
+                  <InfoRow
+                    label={dictionary.referralsPage.labels.lastConnectedAt}
+                    value={formatDateTime(referral.lastConnectedAt, locale)}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </Panel>
     </section>
   );
 }
@@ -1558,7 +1997,10 @@ function formatAddressLabel(address?: string | null) {
 
 function getReferralLink(referralCode: string, locale: Locale) {
   const path = `/${locale}?ref=${encodeURIComponent(referralCode)}`;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const appUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (!appUrl) {
     return path;
