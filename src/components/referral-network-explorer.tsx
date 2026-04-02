@@ -146,29 +146,25 @@ export function ReferralNetworkExplorer({
         <div className="grid gap-3 lg:grid-cols-2">
           {currentNodes.map((referral) => (
             <article
-              className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+              className="rounded-[22px] border border-white/80 bg-white/90 p-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
               key={`${referral.email}-${referral.referralCode ?? referral.lastWalletAddress}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-600">
+                  <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-600">
                     {dictionary.referralsPage.labels.level} {referral.depth}
                   </div>
-                  <p className="mt-3 break-all text-sm font-semibold text-slate-950">
+                  <p className="mt-2.5 break-all text-base font-semibold tracking-tight text-slate-950">
                     {referral.email}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {formatAddressLabel(referral.lastWalletAddress) ??
-                      dictionary.common.notAvailable}
                   </p>
                 </div>
 
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
                   <Users className="size-4" />
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <ExplorerInfoRow
                   label={dictionary.referralsPage.labels.referralCode}
                   value={
@@ -176,16 +172,8 @@ export function ReferralNetworkExplorer({
                   }
                 />
                 <ExplorerInfoRow
-                  label={dictionary.referralsPage.labels.locale}
-                  value={referral.locale}
-                />
-                <ExplorerInfoRow
                   label={dictionary.referralsPage.labels.joinedAt}
                   value={formatDateTime(referral.registrationCompletedAt, locale)}
-                />
-                <ExplorerInfoRow
-                  label={dictionary.referralsPage.labels.lastConnectedAt}
-                  value={formatDateTime(referral.lastConnectedAt, locale)}
                 />
                 <ExplorerInfoRow
                   label={dictionary.referralsPage.labels.directChildren}
@@ -198,9 +186,9 @@ export function ReferralNetworkExplorer({
               </div>
 
               {referral.children.length > 0 ? (
-                <div className="mt-4 flex justify-end">
+                <div className="mt-3 flex justify-end">
                   <button
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
                     onClick={() => {
                       setPath([...path, referral]);
                     }}
@@ -251,23 +239,15 @@ function ExplorerInfoRow({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3">
+      <p className="text-[0.64rem] uppercase tracking-[0.18em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 break-words text-sm font-medium text-slate-900">
+      <p className="mt-1.5 break-words text-sm font-medium text-slate-900">
         {value}
       </p>
     </div>
   );
-}
-
-function formatAddressLabel(address?: string | null) {
-  if (!address) {
-    return null;
-  }
-
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatTemplate(
