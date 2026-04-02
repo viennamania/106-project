@@ -139,7 +139,6 @@ export function SmartWalletApp({
   const adminSignerAddress = getAdminAccountAddress(wallet);
   const accountAddress = account?.address;
   const accountLabel = formatAddressLabel(accountAddress);
-  const projectWalletLabel = formatAddressLabel(projectWallet);
   const adminSignerLabel = formatAddressLabel(adminSignerAddress);
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
@@ -206,7 +205,7 @@ export function SmartWalletApp({
   const mobileDockTitle = isSignupCompleted
     ? dictionary.member.newMember
     : status === "connected" && hasThirdwebClientId
-      ? projectWalletLabel ?? "PROJECT_WALLET"
+      ? paymentCtaLabel
       : dictionary.runway.steps[0].title;
   const showMobileActionDock =
     hasThirdwebClientId && status === "connected" && !isSignupCompleted;
@@ -791,109 +790,120 @@ export function SmartWalletApp({
                         </div>
                       </div>
 
-                      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs uppercase tracking-[0.24em] text-white/55">
-                            {dictionary.connected.eyebrow}
-                          </p>
-                          <p className="mt-2 break-words text-lg font-semibold tracking-tight">
-                            {accountLabel ?? accountAddress}
-                          </p>
+                      <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+                              {dictionary.member.labels.lastWallet}
+                            </p>
+                            <p className="mt-2 break-words text-xl font-semibold tracking-tight text-white">
+                              {accountLabel ?? accountAddress}
+                            </p>
+                          </div>
+                          <button
+                            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
+                            onClick={handleCopyAddress}
+                            type="button"
+                          >
+                            {copied ? (
+                              <Check className="size-3.5" />
+                            ) : (
+                              <Copy className="size-3.5" />
+                            )}
+                            {copied
+                              ? dictionary.common.copied
+                              : dictionary.common.copyAddress}
+                          </button>
                         </div>
-                        <button
-                          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
-                          onClick={handleCopyAddress}
-                          type="button"
-                        >
-                          {copied ? (
-                            <Check className="size-3.5" />
-                          ) : (
-                            <Copy className="size-3.5" />
-                          )}
-                          {copied
-                            ? dictionary.common.copied
-                            : dictionary.common.copyAddress}
-                        </button>
+
+                        <p className="mt-4 text-sm leading-6 text-white/60">
+                          {dictionary.member.pending}
+                        </p>
                       </div>
 
-                      <TransactionButton
-                        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={
-                          !accountAddress ||
-                          !hasThirdwebClientId ||
-                          isSignupBalanceLoading ||
-                          isInsufficientUsdtBalance ||
-                          !projectWallet ||
-                          isIncomingReferralBlocked ||
-                          isSignupCompleted
-                        }
-                        onError={(error) =>
-                          setNotice({
-                            tone: "error",
-                            text: error.message,
-                          })
-                        }
-                        onTransactionConfirmed={(receipt) => {
-                          setNotice({
-                            tone: "success",
-                            text: dictionary.sponsored.txConfirmed,
-                            href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                          });
-
-                          window.setTimeout(() => {
-                            void runMemberSync({ background: true });
-                          }, 2500);
-                        }}
-                        onTransactionSent={(result) => {
-                          setNotice({
-                            tone: "info",
-                            text: dictionary.sponsored.txSent,
-                            href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                          });
-
-                          window.setTimeout(() => {
-                            void runMemberSync({ background: true });
-                          }, 4000);
-                        }}
-                        transaction={() => {
-                          if (!accountAddress) {
-                            throw new Error(dictionary.sponsored.connectFirst);
+                      <div className="mt-5">
+                        <p className="mb-3 text-xs uppercase tracking-[0.24em] text-white/45">
+                          {dictionary.sponsored.eyebrow}
+                        </p>
+                        <TransactionButton
+                          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={
+                            !accountAddress ||
+                            !hasThirdwebClientId ||
+                            isSignupBalanceLoading ||
+                            isInsufficientUsdtBalance ||
+                            !projectWallet ||
+                            isIncomingReferralBlocked ||
+                            isSignupCompleted
                           }
-
-                          if (!projectWallet) {
-                            throw new Error(
-                              dictionary.member.errors.projectWalletMissing,
-                            );
+                          onError={(error) =>
+                            setNotice({
+                              tone: "error",
+                              text: error.message,
+                            })
                           }
+                          onTransactionConfirmed={(receipt) => {
+                            setNotice({
+                              tone: "success",
+                              text: dictionary.sponsored.txConfirmed,
+                              href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                            });
 
-                          if (isInsufficientUsdtBalance) {
-                            throw new Error(insufficientBalanceMessage);
-                          }
+                            window.setTimeout(() => {
+                              void runMemberSync({ background: true });
+                            }, 2500);
+                          }}
+                          onTransactionSent={(result) => {
+                            setNotice({
+                              tone: "info",
+                              text: dictionary.sponsored.txSent,
+                              href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                            });
 
-                          if (isIncomingReferralBlocked && incomingReferralState) {
-                            throw new Error(
-                              formatTemplate(
-                                dictionary.member.errors.referralLimitReached,
-                                {
-                                  code: incomingReferralState.code,
-                                  count: incomingReferralState.completedReferrals,
-                                  limit: incomingReferralState.limit,
-                                },
-                              ),
-                            );
-                          }
+                            window.setTimeout(() => {
+                              void runMemberSync({ background: true });
+                            }, 4000);
+                          }}
+                          transaction={() => {
+                            if (!accountAddress) {
+                              throw new Error(dictionary.sponsored.connectFirst);
+                            }
 
-                          return transfer({
-                            amount: MEMBER_SIGNUP_USDT_AMOUNT,
-                            contract: usdtContract,
-                            to: projectWallet,
-                          });
-                        }}
-                        type="button"
-                        unstyled
-                      >
-                        {paymentCtaLabel}
-                      </TransactionButton>
+                            if (!projectWallet) {
+                              throw new Error(
+                                dictionary.member.errors.projectWalletMissing,
+                              );
+                            }
+
+                            if (isInsufficientUsdtBalance) {
+                              throw new Error(insufficientBalanceMessage);
+                            }
+
+                            if (isIncomingReferralBlocked && incomingReferralState) {
+                              throw new Error(
+                                formatTemplate(
+                                  dictionary.member.errors.referralLimitReached,
+                                  {
+                                    code: incomingReferralState.code,
+                                    count: incomingReferralState.completedReferrals,
+                                    limit: incomingReferralState.limit,
+                                  },
+                                ),
+                              );
+                            }
+
+                            return transfer({
+                              amount: MEMBER_SIGNUP_USDT_AMOUNT,
+                              contract: usdtContract,
+                              to: projectWallet,
+                            });
+                          }}
+                          type="button"
+                          unstyled
+                        >
+                          {paymentCtaLabel}
+                        </TransactionButton>
+                      </div>
                     </div>
 
                     <NoticeCard
