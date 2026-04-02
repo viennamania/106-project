@@ -27,9 +27,15 @@ import {
   type Locale,
 } from "@/lib/i18n";
 import {
+  BSC_USDT_ADDRESS,
+  smartWalletChain,
+  thirdwebClient,
+} from "@/lib/thirdweb";
+import {
   normalizeAddress,
   type ThirdwebWebhookEventDocument,
 } from "@/lib/thirdweb-webhooks";
+import { getWalletBalance } from "thirdweb/wallets";
 
 const REFERRAL_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const REFERRAL_CODE_LENGTH = 8;
@@ -127,6 +133,34 @@ function getReferralLimitReachedMessage({
       limit: REFERRAL_SIGNUP_LIMIT,
     },
   );
+}
+
+function getInsufficientBalanceMessage(locale: Locale) {
+  return formatTemplate(
+    getDictionary(locale).member.errors.insufficientBalance,
+    {
+      amount: MEMBER_SIGNUP_USDT_AMOUNT,
+    },
+  );
+}
+
+async function assertSignupWalletHasRequiredBalance({
+  locale,
+  walletAddress,
+}: {
+  locale: Locale;
+  walletAddress: string;
+}) {
+  const balance = await getWalletBalance({
+    address: walletAddress,
+    chain: smartWalletChain,
+    client: thirdwebClient,
+    tokenAddress: BSC_USDT_ADDRESS,
+  });
+
+  if (balance.value < BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI)) {
+    throw new MemberSyncError(getInsufficientBalanceMessage(locale), 409);
+  }
 }
 
 async function findMatchingSignupPaymentEvent(
@@ -406,6 +440,17 @@ export async function syncMemberRegistration(
     };
   }
 
+  const shouldResetPaymentWindow =
+    !existingMember ||
+    existingMember.lastWalletAddress !== normalizedWalletAddress;
+
+  if (shouldResetPaymentWindow) {
+    await assertSignupWalletHasRequiredBalance({
+      locale: resolvedLocale,
+      walletAddress: normalizedWalletAddress,
+    });
+  }
+
   const incomingReferralState = await getIncomingReferralState(referredByCode);
 
   if (
@@ -429,10 +474,6 @@ export async function syncMemberRegistration(
         ? incomingReferralState.code
         : null,
   });
-
-  const shouldResetPaymentWindow =
-    !existingMember ||
-    existingMember.lastWalletAddress !== normalizedWalletAddress;
 
   await collection.updateOne(
     { email },

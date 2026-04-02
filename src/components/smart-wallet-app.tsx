@@ -34,10 +34,12 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import {
   type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
+  MEMBER_SIGNUP_USDT_AMOUNT_WEI,
   type MemberReferralsResponse,
   type MemberRecord,
   type ReferralMemberRecord,
@@ -123,6 +125,7 @@ export function SmartWalletApp({
       status: "idle",
     });
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const copiedTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
@@ -165,6 +168,21 @@ export function SmartWalletApp({
         "{amount}",
         MEMBER_SIGNUP_USDT_AMOUNT,
       );
+  const insufficientBalanceMessage = formatTemplate(
+    dictionary.member.errors.insufficientBalance,
+    {
+      amount: MEMBER_SIGNUP_USDT_AMOUNT,
+    },
+  );
+  const isInsufficientUsdtBalance =
+    !isSignupCompleted &&
+    typeof balance?.value === "bigint" &&
+    balance.value < BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI);
+  const isSignupBalanceLoading =
+    status === "connected" &&
+    !isSignupCompleted &&
+    accountAddress !== undefined &&
+    !balance;
   const mobilePrimaryHref = isSignupCompleted
     ? `/${locale}/referrals`
     : status === "connected" && hasThirdwebClientId
@@ -400,7 +418,8 @@ export function SmartWalletApp({
       status !== "connected" ||
       !accountAddress ||
       !hasThirdwebClientId ||
-      memberSync.member?.status === "completed"
+      memberSync.member?.status === "completed" ||
+      isInsufficientUsdtBalance
     ) {
       return;
     }
@@ -414,9 +433,16 @@ export function SmartWalletApp({
     };
   }, [
     accountAddress,
+    isInsufficientUsdtBalance,
     memberSync.member?.status,
     status,
   ]);
+
+  useEffect(() => {
+    if (status !== "connected") {
+      setIsLogoutDialogOpen(false);
+    }
+  }, [status]);
 
   useEffect(() => {
     return () => {
@@ -459,9 +485,30 @@ export function SmartWalletApp({
     }
   }
 
+  function confirmLogout() {
+    if (!wallet) {
+      setIsLogoutDialogOpen(false);
+      return;
+    }
+
+    setIsLogoutDialogOpen(false);
+    disconnect(wallet);
+  }
+
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_28%),radial-gradient(circle_at_85%_10%,rgba(15,118,110,0.2),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.14),transparent_26%)]" />
+      <LogoutConfirmDialog
+        cancelLabel={dictionary.common.logoutDialog.cancel}
+        confirmLabel={dictionary.common.logoutDialog.confirm}
+        description={dictionary.common.logoutDialog.description}
+        onCancel={() => {
+          setIsLogoutDialogOpen(false);
+        }}
+        onConfirm={confirmLogout}
+        open={isLogoutDialogOpen}
+        title={dictionary.common.logoutDialog.title}
+      />
       <CelebrationOverlay
         description={dictionary.member.celebrationDescription}
         open={showCelebration}
@@ -532,7 +579,7 @@ export function SmartWalletApp({
                         return;
                       }
 
-                      disconnect(wallet);
+                      setIsLogoutDialogOpen(true);
                     }}
                     type="button"
                   >
@@ -704,6 +751,12 @@ export function SmartWalletApp({
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {isInsufficientUsdtBalance ? (
+                      <MessageCard tone="error">
+                        {insufficientBalanceMessage}
+                      </MessageCard>
+                    ) : null}
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <InfoRow
                         label={dictionary.member.labels.signupStatus}
@@ -769,6 +822,8 @@ export function SmartWalletApp({
                         disabled={
                           !accountAddress ||
                           !hasThirdwebClientId ||
+                          isSignupBalanceLoading ||
+                          isInsufficientUsdtBalance ||
                           !projectWallet ||
                           isIncomingReferralBlocked ||
                           isSignupCompleted
@@ -810,6 +865,10 @@ export function SmartWalletApp({
                             throw new Error(
                               dictionary.member.errors.projectWalletMissing,
                             );
+                          }
+
+                          if (isInsufficientUsdtBalance) {
+                            throw new Error(insufficientBalanceMessage);
                           }
 
                           if (isIncomingReferralBlocked && incomingReferralState) {

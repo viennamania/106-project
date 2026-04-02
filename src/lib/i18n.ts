@@ -32,6 +32,12 @@ export type Dictionary = {
     connectWallet: string;
     disconnectWallet: string;
     connectModalTitle: string;
+    logoutDialog: {
+      title: string;
+      description: string;
+      cancel: string;
+      confirm: string;
+    };
     clientIdRequired: string;
     copyAddress: string;
     copyLink: string;
@@ -154,12 +160,13 @@ export type Dictionary = {
       refreshStatus: string;
       viewReferrals: string;
     };
-    errors: {
-      missingEmail: string;
-      projectWalletMissing: string;
-      referralLimitReached: string;
-      syncFailed: string;
-    };
+      errors: {
+        missingEmail: string;
+        insufficientBalance: string;
+        projectWalletMissing: string;
+        referralLimitReached: string;
+        syncFailed: string;
+      };
   };
   referralsPage: {
     title: string;
@@ -219,6 +226,13 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "이메일 로그인",
       disconnectWallet: "로그아웃",
       connectModalTitle: "이메일로 Pocket Smart Wallet 로그인",
+      logoutDialog: {
+        title: "로그아웃할까요?",
+        description:
+          "현재 이메일 로그인 세션이 종료됩니다. 필요하면 다시 이메일로 로그인할 수 있습니다.",
+        cancel: "취소",
+        confirm: "로그아웃",
+      },
       clientIdRequired: "client id 필요",
       copyAddress: "주소 복사",
       copyLink: "링크 복사",
@@ -391,6 +405,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        insufficientBalance:
+          "연결된 지갑에 {amount} USDT 이상이 있어야 회원가입을 진행할 수 있습니다.",
         projectWalletMissing: "PROJECT_WALLET 이 설정되지 않았습니다.",
         referralLimitReached:
           "추천인 코드 {code} 는 이미 {count}명의 가입이 완료되어 마감되었습니다. 다른 레퍼럴 코드로 다시 가입하세요.",
@@ -456,6 +472,13 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "Email login",
       disconnectWallet: "Log out",
       connectModalTitle: "Sign in to Pocket Smart Wallet with email",
+      logoutDialog: {
+        title: "Log out?",
+        description:
+          "This will end the current email login session. You can sign in again with email anytime.",
+        cancel: "Cancel",
+        confirm: "Log out",
+      },
       clientIdRequired: "client id required",
       copyAddress: "Copy address",
       copyLink: "Copy link",
@@ -628,6 +651,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       },
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
+        insufficientBalance:
+          "The connected wallet must hold at least {amount} USDT to continue signup.",
         projectWalletMissing: "PROJECT_WALLET is not configured.",
         referralLimitReached:
           "Referral code {code} already has {count} completed signups and is no longer available. Sign up again with a different referral code.",
@@ -693,6 +718,13 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "メールログイン",
       disconnectWallet: "ログアウト",
       connectModalTitle: "メールで Pocket Smart Wallet にログイン",
+      logoutDialog: {
+        title: "ログアウトしますか？",
+        description:
+          "現在のメールログインセッションを終了します。必要ならいつでもメールで再ログインできます。",
+        cancel: "キャンセル",
+        confirm: "ログアウト",
+      },
       clientIdRequired: "client id が必要です",
       copyAddress: "アドレスをコピー",
       copyLink: "リンクをコピー",
@@ -865,6 +897,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       },
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        insufficientBalance:
+          "登録を進めるには、接続中のウォレットに {amount} USDT 以上が必要です。",
         projectWalletMissing: "PROJECT_WALLET が設定されていません。",
         referralLimitReached:
           "紹介コード {code} はすでに {count} 人の登録完了に使われており受付終了です。別のレファラルコードで登録してください。",
@@ -930,6 +964,13 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "邮箱登录",
       disconnectWallet: "退出登录",
       connectModalTitle: "通过邮箱登录 Pocket Smart Wallet",
+      logoutDialog: {
+        title: "要退出登录吗？",
+        description:
+          "这会结束当前的邮箱登录会话。之后仍可随时通过邮箱重新登录。",
+        cancel: "取消",
+        confirm: "退出登录",
+      },
       clientIdRequired: "需要 client id",
       copyAddress: "复制地址",
       copyLink: "复制链接",
@@ -1102,6 +1143,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       },
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
+        insufficientBalance:
+          "要继续注册，当前连接的钱包中至少需要有 {amount} USDT。",
         projectWalletMissing: "PROJECT_WALLET 未配置。",
         referralLimitReached:
           "推荐码 {code} 已经有 {count} 位会员完成注册，现已满额。请改用其他推荐码重新注册。",

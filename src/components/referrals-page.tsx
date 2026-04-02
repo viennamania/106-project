@@ -17,6 +17,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
+import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import type {
   MemberReferralsResponse,
   MemberRecord,
@@ -62,6 +63,7 @@ export function ReferralsPage({
     referrals: [],
     status: "idle",
   });
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const referralLink = state.member?.referralCode
     ? getReferralLink(state.member.referralCode, locale)
     : null;
@@ -175,6 +177,12 @@ export function ReferralsPage({
   });
 
   useEffect(() => {
+    if (status !== "connected") {
+      setIsLogoutDialogOpen(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -188,9 +196,30 @@ export function ReferralsPage({
     void syncAndLoadReferrals();
   }, [accountAddress, status, locale, chain.id, chain.name]);
 
+  function confirmLogout() {
+    if (!wallet) {
+      setIsLogoutDialogOpen(false);
+      return;
+    }
+
+    setIsLogoutDialogOpen(false);
+    disconnect(wallet);
+  }
+
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_28%),radial-gradient(circle_at_85%_10%,rgba(15,118,110,0.2),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.14),transparent_26%)]" />
+      <LogoutConfirmDialog
+        cancelLabel={dictionary.common.logoutDialog.cancel}
+        confirmLabel={dictionary.common.logoutDialog.confirm}
+        description={dictionary.common.logoutDialog.description}
+        onCancel={() => {
+          setIsLogoutDialogOpen(false);
+        }}
+        onConfirm={confirmLogout}
+        open={isLogoutDialogOpen}
+        title={dictionary.common.logoutDialog.title}
+      />
 
       {hasThirdwebClientId ? (
         <AutoConnect
@@ -256,7 +285,7 @@ export function ReferralsPage({
                         return;
                       }
 
-                      disconnect(wallet);
+                      setIsLogoutDialogOpen(true);
                     }}
                     type="button"
                   >
