@@ -142,13 +142,11 @@ export function SmartWalletApp({
   const syncInFlightRef = useRef(false);
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const adminSignerAddress = getAdminAccountAddress(wallet);
   const accountAddress = account?.address;
   const accountLabel = formatAddressLabel(accountAddress);
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
-  const adminSignerLabel = formatAddressLabel(adminSignerAddress);
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
@@ -174,7 +172,6 @@ export function SmartWalletApp({
     ? getReferralLink(memberSync.member.referralCode, locale)
     : null;
   const showMemberRegistryPanel =
-    status === "connected" ||
     memberSync.status === "syncing" ||
     memberSync.status === "error" ||
     Boolean(memberSync.member);
@@ -719,18 +716,6 @@ export function SmartWalletApp({
                       },
                     )}
                   </MessageCard>
-                ) : activeIncomingReferralCode ? (
-                  <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-950">
-                    <p className="font-semibold">
-                      {dictionary.member.incomingReferralTitle}
-                    </p>
-                    <p className="mt-2 leading-6">
-                      {dictionary.member.incomingReferralDescription.replace(
-                        "{code}",
-                        activeIncomingReferralCode,
-                      )}
-                    </p>
-                  </div>
                 ) : null}
 
                 {!hasThirdwebClientId ? (
@@ -930,46 +915,6 @@ export function SmartWalletApp({
                   <MessageCard tone="error">
                     {memberSync.error ?? dictionary.member.errors.syncFailed}
                   </MessageCard>
-                ) : null}
-
-                {status === "connected" && accountAddress ? (
-                  <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                    <div>
-                      <div>
-                        <p className="eyebrow">{dictionary.connected.eyebrow}</p>
-                        <h3 className="text-xl font-semibold text-slate-950">
-                          {accountLabel ?? accountAddress}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <InfoRow
-                        label={dictionary.connected.labels.chain}
-                        value={chain.name ?? "BSC"}
-                      />
-                      <InfoRow
-                        label={dictionary.connected.labels.balance}
-                        value={formatBalance(
-                          balance?.displayValue,
-                          balance?.symbol ?? "USDT",
-                          locale,
-                        )}
-                      />
-                      <InfoRow
-                        label={dictionary.connected.labels.walletType}
-                        value={
-                          adminSignerAddress
-                            ? dictionary.common.walletTypeAbstracted
-                            : wallet?.id ?? dictionary.common.notAvailable
-                        }
-                      />
-                      <InfoRow
-                        label={dictionary.connected.labels.adminSigner}
-                        value={adminSignerLabel ?? dictionary.common.notAvailable}
-                      />
-                    </div>
-                  </div>
                 ) : null}
 
                 {memberSync.member ? (
@@ -1676,24 +1621,6 @@ function CelebrationOverlay({
   );
 }
 
-function getAdminAccountAddress(
-  wallet:
-    | {
-        getAdminAccount?: () =>
-          | {
-              address?: string | null;
-            }
-          | undefined;
-      }
-    | undefined,
-) {
-  try {
-    return wallet?.getAdminAccount?.()?.address?.trim() ?? null;
-  } catch {
-    return null;
-  }
-}
-
 function formatAddressLabel(address?: string | null) {
   const trimmed = address?.trim();
 
@@ -1733,26 +1660,6 @@ function getReferralLink(referralCode: string, locale: Locale) {
   } catch {
     return path;
   }
-}
-
-function formatBalance(
-  value: string | undefined,
-  symbol: string,
-  locale: Locale,
-) {
-  if (!value) {
-    return `0 ${symbol}`;
-  }
-
-  const parsed = Number(value);
-
-  if (Number.isNaN(parsed)) {
-    return `${value} ${symbol}`;
-  }
-
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: parsed > 1 ? 4 : 6,
-  }).format(parsed)} ${symbol}`;
 }
 
 function formatDateTime(value: string, locale: Locale) {
