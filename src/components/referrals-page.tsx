@@ -83,6 +83,7 @@ export function ReferralsPage({
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const isDisconnected = status !== "connected" || !accountAddress;
 
   async function loadReferrals() {
     if (!accountAddress) {
@@ -352,7 +353,12 @@ export function ReferralsPage({
           </div>
         </header>
 
-        <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <section
+          className={cn(
+            "grid gap-5",
+            !isDisconnected && "lg:grid-cols-[0.95fr_1.05fr]",
+          )}
+        >
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="mb-4 space-y-1">
               <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
@@ -363,24 +369,21 @@ export function ReferralsPage({
 
             {!hasThirdwebClientId ? (
               <MessageCard>{dictionary.env.description}</MessageCard>
-            ) : status !== "connected" || !accountAddress ? (
-              <div className="space-y-4">
-                <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
-                <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-                  <div className="space-y-3">
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.common.loginDialog.emailDescription}
-                    </p>
-                    <button
-                      className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                      onClick={() => {
-                        setIsLoginDialogOpen(true);
-                      }}
-                      type="button"
-                    >
-                      {dictionary.common.connectWallet}
-                    </button>
-                  </div>
+            ) : isDisconnected ? (
+              <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+                <div className="space-y-3">
+                  <p className="text-sm leading-6 text-slate-600">
+                    {dictionary.referralsPage.disconnected}
+                  </p>
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
                 </div>
               </div>
             ) : state.status === "loading" ? (
@@ -488,17 +491,40 @@ export function ReferralsPage({
             ) : null}
           </section>
 
-          <section className="glass-card rounded-[30px] p-5 sm:p-6">
-            <div className="mb-4 space-y-1">
-              <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                {dictionary.referralsPage.listTitle}
-              </h2>
-            </div>
+          {!isDisconnected ? (
+            <section className="glass-card rounded-[30px] p-5 sm:p-6">
+              <div className="mb-4 space-y-1">
+                <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                  {dictionary.referralsPage.listTitle}
+                </h2>
+              </div>
 
-            {status !== "connected" || !accountAddress ? (
-              <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
-            ) : state.status === "loading" ? (
+              {state.status === "loading" ? (
+                <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
+              ) : state.status === "error" ? (
+                <MessageCard tone="error">
+                  {state.error ?? dictionary.referralsPage.errors.loadFailed}
+                </MessageCard>
+              ) : state.member?.status !== "completed" ? (
+                <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
+              ) : (
+                <ReferralNetworkExplorer
+                  dictionary={dictionary}
+                  key={`${state.member.email}:${state.totalReferrals}:${state.levelCounts.join("-")}`}
+                  levelCounts={state.levelCounts}
+                  locale={locale}
+                  referrals={state.referrals}
+                  totalReferrals={state.totalReferrals}
+                />
+              )}
+            </section>
+          ) : null}
+        </section>
+
+        {!isDisconnected ? (
+          <section className="glass-card rounded-[30px] p-5 sm:p-6">
+            {state.status === "loading" ? (
               <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
             ) : state.status === "error" ? (
               <MessageCard tone="error">
@@ -507,37 +533,14 @@ export function ReferralsPage({
             ) : state.member?.status !== "completed" ? (
               <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
             ) : (
-              <ReferralNetworkExplorer
+              <ReferralRewardsPanel
                 dictionary={dictionary}
-                key={`${state.member.email}:${state.totalReferrals}:${state.levelCounts.join("-")}`}
-                levelCounts={state.levelCounts}
                 locale={locale}
-                referrals={state.referrals}
-                totalReferrals={state.totalReferrals}
+                rewards={state.rewards}
               />
             )}
           </section>
-        </section>
-
-        <section className="glass-card rounded-[30px] p-5 sm:p-6">
-          {status !== "connected" || !accountAddress ? (
-            <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
-          ) : state.status === "loading" ? (
-            <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
-          ) : state.status === "error" ? (
-            <MessageCard tone="error">
-              {state.error ?? dictionary.referralsPage.errors.loadFailed}
-            </MessageCard>
-          ) : state.member?.status !== "completed" ? (
-            <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
-          ) : (
-            <ReferralRewardsPanel
-              dictionary={dictionary}
-              locale={locale}
-              rewards={state.rewards}
-            />
-          )}
-        </section>
+        ) : null}
       </main>
     </div>
   );

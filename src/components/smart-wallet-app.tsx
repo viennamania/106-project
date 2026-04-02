@@ -175,6 +175,11 @@ export function SmartWalletApp({
   const paymentTransactionUrl = memberSync.member?.paymentTransactionHash
     ? `${BSC_EXPLORER}/tx/${memberSync.member.paymentTransactionHash}`
     : null;
+  const showMemberRegistryPanel =
+    status === "connected" ||
+    memberSync.status === "syncing" ||
+    memberSync.status === "error" ||
+    Boolean(memberSync.member);
   const paymentCtaLabel = isSignupCompleted
     ? dictionary.sponsored.completedCta
     : dictionary.sponsored.cta.replace(
@@ -662,7 +667,12 @@ export function SmartWalletApp({
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
         ) : (
-          <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+          <section
+            className={cn(
+              "grid gap-5",
+              showMemberRegistryPanel && "lg:grid-cols-[1.08fr_0.92fr]",
+            )}
+          >
             <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
               <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
               <div className="relative space-y-6">
@@ -916,158 +926,157 @@ export function SmartWalletApp({
               </div>
             </div>
 
-            <Panel
-              contentClassName="gap-4"
-              eyebrow={dictionary.member.eyebrow}
-              title={dictionary.member.title}
-            >
-              {memberSync.status === "idle" ? (
-                <MessageCard>{dictionary.member.disconnected}</MessageCard>
-              ) : null}
+            {showMemberRegistryPanel ? (
+              <Panel
+                contentClassName="gap-4"
+                eyebrow={dictionary.member.eyebrow}
+                title={dictionary.member.title}
+              >
 
-              {memberSync.status === "syncing" ? (
-                <MessageCard>{dictionary.member.syncing}</MessageCard>
-              ) : null}
+                {memberSync.status === "syncing" ? (
+                  <MessageCard>{dictionary.member.syncing}</MessageCard>
+                ) : null}
 
-              {memberSync.status === "error" ? (
-                <MessageCard tone="error">
-                  {memberSync.error ?? dictionary.member.errors.syncFailed}
-                </MessageCard>
-              ) : null}
+                {memberSync.status === "error" ? (
+                  <MessageCard tone="error">
+                    {memberSync.error ?? dictionary.member.errors.syncFailed}
+                  </MessageCard>
+                ) : null}
 
-              {status === "connected" && accountAddress ? (
-                <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                  <div>
+                {status === "connected" && accountAddress ? (
+                  <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                     <div>
-                      <p className="eyebrow">{dictionary.connected.eyebrow}</p>
-                      <h3 className="text-xl font-semibold text-slate-950">
-                        {accountLabel ?? accountAddress}
-                      </h3>
+                      <div>
+                        <p className="eyebrow">{dictionary.connected.eyebrow}</p>
+                        <h3 className="text-xl font-semibold text-slate-950">
+                          {accountLabel ?? accountAddress}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <InfoRow
+                        label={dictionary.connected.labels.chain}
+                        value={chain.name ?? "BSC"}
+                      />
+                      <InfoRow
+                        label={dictionary.connected.labels.balance}
+                        value={formatBalance(
+                          balance?.displayValue,
+                          balance?.symbol ?? "USDT",
+                          locale,
+                        )}
+                      />
+                      <InfoRow
+                        label={dictionary.connected.labels.walletType}
+                        value={
+                          adminSignerAddress
+                            ? dictionary.common.walletTypeAbstracted
+                            : wallet?.id ?? dictionary.common.notAvailable
+                        }
+                      />
+                      <InfoRow
+                        label={dictionary.connected.labels.adminSigner}
+                        value={adminSignerLabel ?? dictionary.common.notAvailable}
+                      />
                     </div>
                   </div>
+                ) : null}
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <InfoRow
-                      label={dictionary.connected.labels.chain}
-                      value={chain.name ?? "BSC"}
-                    />
-                    <InfoRow
-                      label={dictionary.connected.labels.balance}
-                      value={formatBalance(
-                        balance?.displayValue,
-                        balance?.symbol ?? "USDT",
-                        locale,
-                      )}
-                    />
-                    <InfoRow
-                      label={dictionary.connected.labels.walletType}
-                      value={
-                        adminSignerAddress
-                          ? dictionary.common.walletTypeAbstracted
-                          : wallet?.id ?? dictionary.common.notAvailable
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.connected.labels.adminSigner}
-                      value={adminSignerLabel ?? dictionary.common.notAvailable}
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {memberSync.member ? (
-                <>
-                  <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                    <p className="text-sm leading-6 text-slate-600">
-                      {memberSync.member.status === "completed"
-                        ? dictionary.member.synced
-                        : dictionary.member.pending}
-                    </p>
-                    {memberSync.justCompleted ? (
-                      <p className="mt-2 text-sm font-semibold text-emerald-700">
-                        {dictionary.member.newMember}
+                {memberSync.member ? (
+                  <>
+                    <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                      <p className="text-sm leading-6 text-slate-600">
+                        {memberSync.member.status === "completed"
+                          ? dictionary.member.synced
+                          : dictionary.member.pending}
                       </p>
+                      {memberSync.justCompleted ? (
+                        <p className="mt-2 text-sm font-semibold text-emerald-700">
+                          {dictionary.member.newMember}
+                        </p>
+                      ) : null}
+                      {memberSync.member.referredByCode ? (
+                        <p className="mt-2 text-sm font-medium text-slate-700">
+                          {dictionary.member.appliedReferralDescription.replace(
+                            "{code}",
+                            memberSync.member.referredByCode,
+                          )}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <InfoRow
+                        label={dictionary.member.labels.emailKey}
+                        value={memberSync.member.email}
+                      />
+                      <InfoRow
+                        label={dictionary.member.labels.signupStatus}
+                        value={
+                          memberSync.member.status === "completed"
+                            ? dictionary.member.completedValue
+                            : dictionary.member.pendingValue
+                        }
+                      />
+                      <InfoRow
+                        label={dictionary.member.labels.lastWallet}
+                        value={
+                          formatAddressLabel(memberSync.member.lastWalletAddress) ??
+                          dictionary.common.notAvailable
+                        }
+                      />
+                      <InfoRow
+                        label={dictionary.member.labels.referredByCode}
+                        value={
+                          memberSync.member.referredByCode ??
+                          dictionary.member.noReferralApplied
+                        }
+                      />
+                    </div>
+
+                    {paymentTransactionUrl ? (
+                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                          {dictionary.member.labels.paymentTransaction}
+                        </p>
+                        <a
+                          className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+                          href={paymentTransactionUrl}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          {memberSync.member.paymentTransactionHash}
+                          <ArrowUpRight className="size-4" />
+                        </a>
+                      </div>
                     ) : null}
-                    {memberSync.member.referredByCode ? (
-                      <p className="mt-2 text-sm font-medium text-slate-700">
-                        {dictionary.member.appliedReferralDescription.replace(
-                          "{code}",
-                          memberSync.member.referredByCode,
-                        )}
-                      </p>
-                    ) : null}
-                  </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <InfoRow
-                      label={dictionary.member.labels.emailKey}
-                      value={memberSync.member.email}
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.signupStatus}
-                      value={
-                        memberSync.member.status === "completed"
-                          ? dictionary.member.completedValue
-                          : dictionary.member.pendingValue
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.lastWallet}
-                      value={
-                        formatAddressLabel(memberSync.member.lastWalletAddress) ??
-                        dictionary.common.notAvailable
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.referredByCode}
-                      value={
-                        memberSync.member.referredByCode ??
-                        dictionary.member.noReferralApplied
-                      }
-                    />
-                  </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={memberSync.status === "syncing"}
+                        onClick={() => {
+                          void runMemberSync();
+                        }}
+                        type="button"
+                      >
+                        {dictionary.member.actions.refreshStatus}
+                      </button>
 
-                  {paymentTransactionUrl ? (
-                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                        {dictionary.member.labels.paymentTransaction}
-                      </p>
                       <a
-                        className="mt-3 flex max-w-full items-start gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-                        href={paymentTransactionUrl}
+                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                        href={projectWalletUrl}
                         rel="noreferrer"
                         target="_blank"
                       >
-                        {memberSync.member.paymentTransactionHash}
-                        <ArrowUpRight className="size-4" />
+                        {dictionary.member.actions.openProjectWallet}
                       </a>
                     </div>
-                  ) : null}
-
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={memberSync.status === "syncing"}
-                      onClick={() => {
-                        void runMemberSync();
-                      }}
-                      type="button"
-                    >
-                      {dictionary.member.actions.refreshStatus}
-                    </button>
-
-                    <a
-                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                      href={projectWalletUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {dictionary.member.actions.openProjectWallet}
-                    </a>
-                  </div>
-                </>
-              ) : null}
-            </Panel>
+                  </>
+                ) : null}
+              </Panel>
+            ) : null}
           </section>
         )}
       </main>
