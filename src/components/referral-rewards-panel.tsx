@@ -69,7 +69,6 @@ export function ReferralRewardsPanel({
             {rewards.history.map((reward) => (
               <RewardHistoryCard
                 awardedAtLabel={dictionary.referralsPage.rewards.awardedAt}
-                joinedAtLabel={dictionary.referralsPage.labels.joinedAt}
                 key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}
                 levelLabel={dictionary.referralsPage.labels.level}
                 locale={locale}
@@ -131,14 +130,12 @@ function RewardLevelCard({
 
 function RewardHistoryCard({
   awardedAtLabel,
-  joinedAtLabel,
   levelLabel,
   locale,
   reward,
   sourceMemberLabel,
 }: {
   awardedAtLabel: string;
-  joinedAtLabel: string;
   levelLabel: string;
   locale: Locale;
   reward: ReferralRewardRecord;
@@ -163,10 +160,6 @@ function RewardHistoryCard({
         <RewardMeta
           label={awardedAtLabel}
           value={formatDateTime(reward.awardedAt, locale)}
-        />
-        <RewardMeta
-          label={joinedAtLabel}
-          value={formatDateTime(reward.sourceRegistrationCompletedAt, locale)}
         />
       </div>
     </div>
