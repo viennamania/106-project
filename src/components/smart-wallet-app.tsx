@@ -196,6 +196,9 @@ export function SmartWalletApp({
     !isSignupCompleted &&
     accountAddress !== undefined &&
     !balance;
+  const signupBalanceValue = balance?.displayValue
+    ? formatBalance(balance.displayValue, balance.symbol ?? "USDT", locale)
+    : dictionary.common.notAvailable;
   const mobilePrimaryHref = isSignupCompleted
     ? `/${locale}/referrals`
     : status === "connected" && hasThirdwebClientId
@@ -768,11 +771,17 @@ export function SmartWalletApp({
                       className="rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] scroll-mt-24 sm:scroll-mt-28"
                       id="signup-payment"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <CompactMetaCard
-                          label={dictionary.member.labels.requiredDeposit}
-                          value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                        />
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex flex-wrap gap-3">
+                          <CompactMetaCard
+                            label={dictionary.member.labels.requiredDeposit}
+                            value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                          />
+                          <CompactMetaCard
+                            label={dictionary.connected.labels.balance}
+                            value={signupBalanceValue}
+                          />
+                        </div>
                         <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/75">
                           {dictionary.member.pendingValue}
                         </div>
@@ -1633,6 +1642,22 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+function formatBalance(value: string | undefined, symbol: string, locale: Locale) {
+  if (!value) {
+    return `0 ${symbol}`;
+  }
+
+  const parsed = Number(value);
+
+  if (Number.isNaN(parsed)) {
+    return `${value} ${symbol}`;
+  }
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: parsed > 1 ? 4 : 6,
+  }).format(parsed)} ${symbol}`;
 }
 
 function formatTemplate(
