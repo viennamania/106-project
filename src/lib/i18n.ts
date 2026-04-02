@@ -12,13 +12,6 @@ export const localeLabels: Record<Locale, string> = {
   zh: "简体中文",
 };
 
-export const thirdwebLocales = {
-  ko: "ko_KR",
-  en: "en_US",
-  ja: "ja_JP",
-  zh: "zh_CN",
-} as const;
-
 export type Dictionary = {
   meta: {
     title: string;
@@ -32,6 +25,21 @@ export type Dictionary = {
     connectWallet: string;
     disconnectWallet: string;
     connectModalTitle: string;
+    loginDialog: {
+      close: string;
+      codeDescription: string;
+      codePlaceholder: string;
+      emailDescription: string;
+      emailPlaceholder: string;
+      invalidCode: string;
+      invalidEmail: string;
+      resendCode: string;
+      sendCode: string;
+      sendingCode: string;
+      changeEmail: string;
+      verifyCode: string;
+      verifying: string;
+    };
     logoutDialog: {
       title: string;
       description: string;
@@ -250,6 +258,22 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "이메일 로그인",
       disconnectWallet: "로그아웃",
       connectModalTitle: "이메일로 Pocket Smart Wallet 로그인",
+      loginDialog: {
+        close: "닫기",
+        codeDescription: "{email} 로 받은 6자리 인증 코드를 입력하세요.",
+        codePlaceholder: "6자리 코드",
+        emailDescription:
+          "이메일 주소를 입력하면 6자리 인증 코드를 보내드립니다.",
+        emailPlaceholder: "이메일 주소",
+        invalidCode: "6자리 인증 코드를 입력하세요.",
+        invalidEmail: "올바른 이메일 주소를 입력하세요.",
+        resendCode: "코드 다시 보내기",
+        sendCode: "인증 코드 보내기",
+        sendingCode: "코드 보내는 중...",
+        changeEmail: "이메일 변경",
+        verifyCode: "이메일 로그인",
+        verifying: "로그인 중...",
+      },
       logoutDialog: {
         title: "로그아웃할까요?",
         description:
@@ -522,6 +546,22 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "Email login",
       disconnectWallet: "Log out",
       connectModalTitle: "Sign in to Pocket Smart Wallet with email",
+      loginDialog: {
+        close: "Close",
+        codeDescription: "Enter the 6-digit verification code sent to {email}.",
+        codePlaceholder: "6-digit code",
+        emailDescription:
+          "Enter your email address and we will send you a 6-digit verification code.",
+        emailPlaceholder: "Email address",
+        invalidCode: "Enter the 6-digit verification code.",
+        invalidEmail: "Enter a valid email address.",
+        resendCode: "Resend code",
+        sendCode: "Send verification code",
+        sendingCode: "Sending code...",
+        changeEmail: "Change email",
+        verifyCode: "Email login",
+        verifying: "Signing in...",
+      },
       logoutDialog: {
         title: "Log out?",
         description:
@@ -794,6 +834,23 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "メールログイン",
       disconnectWallet: "ログアウト",
       connectModalTitle: "メールで Pocket Smart Wallet にログイン",
+      loginDialog: {
+        close: "閉じる",
+        codeDescription:
+          "{email} に届いた 6 桁の認証コードを入力してください。",
+        codePlaceholder: "6桁のコード",
+        emailDescription:
+          "メールアドレスを入力すると、6 桁の認証コードを送信します。",
+        emailPlaceholder: "メールアドレス",
+        invalidCode: "6 桁の認証コードを入力してください。",
+        invalidEmail: "有効なメールアドレスを入力してください。",
+        resendCode: "コードを再送",
+        sendCode: "認証コードを送る",
+        sendingCode: "コード送信中...",
+        changeEmail: "メールを変更",
+        verifyCode: "メールログイン",
+        verifying: "ログイン中...",
+      },
       logoutDialog: {
         title: "ログアウトしますか？",
         description:
@@ -1066,6 +1123,22 @@ const dictionaries: Record<Locale, Dictionary> = {
       connectWallet: "邮箱登录",
       disconnectWallet: "退出登录",
       connectModalTitle: "通过邮箱登录 Pocket Smart Wallet",
+      loginDialog: {
+        close: "关闭",
+        codeDescription: "请输入发送到 {email} 的 6 位验证码。",
+        codePlaceholder: "6位验证码",
+        emailDescription:
+          "输入你的邮箱地址后，我们会发送一组 6 位验证码。",
+        emailPlaceholder: "邮箱地址",
+        invalidCode: "请输入 6 位验证码。",
+        invalidEmail: "请输入有效的邮箱地址。",
+        resendCode: "重新发送验证码",
+        sendCode: "发送验证码",
+        sendingCode: "正在发送验证码...",
+        changeEmail: "更换邮箱",
+        verifyCode: "邮箱登录",
+        verifying: "登录中...",
+      },
       logoutDialog: {
         title: "要退出登录吗？",
         description:

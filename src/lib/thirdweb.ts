@@ -26,28 +26,28 @@ export const smartWalletOptions = {
   sponsorGas: true,
 };
 
-export const supportedWallets = [
-  inAppWallet({
-    auth: {
-      options: ["email"],
-      mode: "popup",
+export const emailWallet = inAppWallet({
+  auth: {
+    options: ["email"],
+    mode: "popup",
+  },
+  executionMode: {
+    mode: "EIP4337",
+    smartAccount: smartWalletOptions,
+  },
+  metadata: {
+    name: "Pocket Smart Wallet",
+    image: {
+      src: "/favicon.ico",
+      alt: "Pocket Smart Wallet",
+      width: 96,
+      height: 96,
     },
-    executionMode: {
-      mode: "EIP4337",
-      smartAccount: smartWalletOptions,
-    },
-    metadata: {
-      name: "Pocket Smart Wallet",
-      image: {
-        src: "/favicon.ico",
-        alt: "Pocket Smart Wallet",
-        width: 96,
-        height: 96,
-      },
-    },
-    hidePrivateKeyExport: true,
-  }),
-];
+  },
+  hidePrivateKeyExport: true,
+});
+
+export const supportedWallets = [emailWallet];
 
 export const BSC_EXPLORER = "https://bscscan.com";
 export const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";

@@ -5,8 +5,6 @@ import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowUpRight, WalletMinimal } from "lucide-react";
 import {
   AutoConnect,
-  ConnectButton,
-  ConnectEmbed,
   useActiveAccount,
   useActiveWallet,
   useActiveWalletChain,
@@ -15,6 +13,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
@@ -37,8 +36,7 @@ import {
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { walletConnectTheme } from "@/lib/thirdweb-connect-ui";
-import { thirdwebLocales, type Dictionary, type Locale } from "@/lib/i18n";
+import { type Dictionary, type Locale } from "@/lib/i18n";
 import { BSC_EXPLORER } from "@/lib/thirdweb";
 
 type ReferralsState = {
@@ -74,6 +72,7 @@ export function ReferralsPage({
     status: "idle",
     totalReferrals: 0,
   });
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const referralLink = state.member?.referralCode
     ? getReferralLink(state.member.referralCode, locale)
@@ -206,6 +205,12 @@ export function ReferralsPage({
   }, [status]);
 
   useEffect(() => {
+    if (status === "connected") {
+      setIsLoginDialogOpen(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -245,6 +250,14 @@ export function ReferralsPage({
         onConfirm={confirmLogout}
         open={isLogoutDialogOpen}
         title={dictionary.common.logoutDialog.title}
+      />
+      <EmailLoginDialog
+        dictionary={dictionary}
+        onClose={() => {
+          setIsLoginDialogOpen(false);
+        }}
+        open={isLoginDialogOpen}
+        title={dictionary.common.connectModalTitle}
       />
 
       {hasThirdwebClientId ? (
@@ -320,24 +333,15 @@ export function ReferralsPage({
                 </div>
               ) : (
                 <div className="hidden w-full sm:block sm:w-auto">
-                  <ConnectButton
-                    accountAbstraction={smartWalletOptions}
-                    appMetadata={appMetadata}
-                    chain={smartWalletChain}
-                    client={thirdwebClient}
-                    connectButton={{
-                      className:
-                        "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] sm:!w-auto",
-                      label: dictionary.common.connectWallet,
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
                     }}
-                    connectModal={{
-                      showThirdwebBranding: false,
-                      title: dictionary.common.connectModalTitle,
-                    }}
-                    locale={thirdwebLocales[locale]}
-                    theme={walletConnectTheme}
-                    wallets={supportedWallets}
-                  />
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
                 </div>
               )
             ) : (
@@ -363,42 +367,19 @@ export function ReferralsPage({
               <div className="space-y-4">
                 <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
                 <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-                  <div className="space-y-3 sm:hidden">
+                  <div className="space-y-3">
                     <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.referralsPage.description}
+                      {dictionary.common.loginDialog.emailDescription}
                     </p>
-                    <ConnectButton
-                      accountAbstraction={smartWalletOptions}
-                      appMetadata={appMetadata}
-                      chain={smartWalletChain}
-                      client={thirdwebClient}
-                      connectButton={{
-                        className:
-                          "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                        label: dictionary.common.connectWallet,
+                    <button
+                      className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                      onClick={() => {
+                        setIsLoginDialogOpen(true);
                       }}
-                      connectModal={{
-                        showThirdwebBranding: false,
-                        title: dictionary.common.connectModalTitle,
-                      }}
-                      locale={thirdwebLocales[locale]}
-                      theme={walletConnectTheme}
-                      wallets={supportedWallets}
-                    />
-                  </div>
-
-                  <div className="hidden sm:block">
-                    <ConnectEmbed
-                      accountAbstraction={smartWalletOptions}
-                      appMetadata={appMetadata}
-                      chain={smartWalletChain}
-                      client={thirdwebClient}
-                      locale={thirdwebLocales[locale]}
-                      modalSize="compact"
-                      showThirdwebBranding={false}
-                      theme={walletConnectTheme}
-                      wallets={supportedWallets}
-                    />
+                      type="button"
+                    >
+                      {dictionary.common.connectWallet}
+                    </button>
                   </div>
                 </div>
               </div>
