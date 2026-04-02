@@ -77,6 +77,7 @@ export type MemberDocument = {
   lastConnectedAt: Date;
   lastWalletAddress: string;
   locale: string;
+  paymentBackfillCheckedAt?: Date | null;
   paymentAmount?: string | null;
   paymentReceivedAt?: Date | null;
   paymentTransactionHash?: string | null;

@@ -32,13 +32,23 @@ import {
   thirdwebClient,
 } from "@/lib/thirdweb";
 import {
+  BSC_CHAIN_ID,
+  ERC20_TRANSFER_SIG_HASH,
+  extractTrackedTransferEvent,
   normalizeAddress,
+  type ThirdwebInsightEventRecord,
   type ThirdwebWebhookEventDocument,
 } from "@/lib/thirdweb-webhooks";
+import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
 import { getWalletBalance } from "thirdweb/wallets";
 
 const REFERRAL_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const REFERRAL_CODE_LENGTH = 8;
+const BACKFILL_MIN_BLOCK_RANGE = BigInt(50_000);
+const BACKFILL_MAX_BLOCK_RANGE = BigInt(500_000);
+const BACKFILL_BLOCK_BUFFER = BigInt(10_000);
+const BACKFILL_COOLDOWN_MS = 30_000;
+const ESTIMATED_BSC_BLOCK_TIME_SECONDS = 3;
 
 export class MemberSyncError extends Error {
   status: number;
@@ -195,6 +205,170 @@ async function findMatchingSignupPaymentEvent(
   );
 }
 
+function encodeTopicAddress(address: string): `0x${string}` {
+  return `0x000000000000000000000000${normalizeAddress(address).slice(2)}`;
+}
+
+function buildBackfilledInsightEventRecord({
+  amount,
+  blockHash,
+  blockNumber,
+  blockTimestamp,
+  fromAddress,
+  logData,
+  logIndex,
+  toAddress,
+  topics,
+  transactionHash,
+  transactionIndex,
+}: {
+  amount: string;
+  blockHash: string;
+  blockNumber: number;
+  blockTimestamp: number;
+  fromAddress: string;
+  logData: string;
+  logIndex: number;
+  toAddress: string;
+  topics: string[];
+  transactionHash: string;
+  transactionIndex: number;
+}): ThirdwebInsightEventRecord {
+  return {
+    data: {
+      address: BSC_USDT_ADDRESS,
+      block_hash: blockHash,
+      block_number: blockNumber,
+      block_timestamp: blockTimestamp,
+      chain_id: BSC_CHAIN_ID,
+      data: logData,
+      decoded: {
+        indexed_params: {
+          from: fromAddress,
+          to: toAddress,
+        },
+        name: "Transfer",
+        non_indexed_params: {
+          value: amount,
+        },
+      },
+      log_index: logIndex,
+      topics,
+      transaction_hash: transactionHash,
+      transaction_index: transactionIndex,
+    },
+    id: `backfill:${transactionHash}:${logIndex}`,
+    status: "MINED",
+    type: "EVENT_LOG",
+  };
+}
+
+async function backfillSignupPaymentEvent(
+  member: MemberDocument,
+): Promise<ThirdwebWebhookEventDocument | null> {
+  const projectWallet = getProjectWallet();
+  const collection = await getThirdwebWebhookEventsCollection();
+  const rpcClient = getRpcClient({
+    chain: smartWalletChain,
+    client: thirdwebClient,
+  });
+  const awaitingPaymentSinceSeconds = Math.floor(
+    member.awaitingPaymentSince.getTime() / 1000,
+  );
+  const ageSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - member.awaitingPaymentSince.getTime()) / 1000),
+  );
+  const estimatedAgeBlocks = BigInt(
+    Math.ceil(ageSeconds / ESTIMATED_BSC_BLOCK_TIME_SECONDS),
+  );
+  const estimatedRange = estimatedAgeBlocks + BACKFILL_BLOCK_BUFFER;
+  const blockRange =
+    estimatedRange < BACKFILL_MIN_BLOCK_RANGE
+      ? BACKFILL_MIN_BLOCK_RANGE
+      : estimatedRange > BACKFILL_MAX_BLOCK_RANGE
+        ? BACKFILL_MAX_BLOCK_RANGE
+        : estimatedRange;
+  const latestBlock = await eth_blockNumber(rpcClient);
+  const fromBlock =
+    latestBlock > blockRange ? latestBlock - blockRange : BigInt(0);
+  const logs = await eth_getLogs(rpcClient, {
+    address: BSC_USDT_ADDRESS,
+    fromBlock,
+    toBlock: latestBlock,
+    topics: [
+      ERC20_TRANSFER_SIG_HASH as `0x${string}`,
+      encodeTopicAddress(member.lastWalletAddress),
+      encodeTopicAddress(projectWallet),
+    ],
+  });
+  const blockTimestampCache = new Map<bigint, number>();
+
+  for (const log of logs) {
+    if (
+      log.blockHash === null ||
+      log.blockNumber === null ||
+      log.logIndex === null ||
+      log.transactionHash === null ||
+      log.transactionIndex === null
+    ) {
+      continue;
+    }
+
+    const blockNumber = log.blockNumber;
+    const amount = BigInt(log.data);
+
+    if (amount !== BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI)) {
+      continue;
+    }
+
+    let blockTimestamp = blockTimestampCache.get(blockNumber);
+
+    if (blockTimestamp === undefined) {
+      const block = await eth_getBlockByNumber(rpcClient, {
+        blockNumber,
+      });
+      blockTimestamp = Number(block.timestamp);
+      blockTimestampCache.set(blockNumber, blockTimestamp);
+    }
+
+    if (blockTimestamp < awaitingPaymentSinceSeconds) {
+      continue;
+    }
+
+    const payload = buildBackfilledInsightEventRecord({
+      amount: MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+      blockHash: log.blockHash,
+      blockNumber: Number(blockNumber),
+      blockTimestamp,
+      fromAddress: member.lastWalletAddress,
+      logData: log.data,
+      logIndex: Number(log.logIndex),
+      toAddress: projectWallet,
+      topics: log.topics.filter(Boolean) as string[],
+      transactionHash: log.transactionHash,
+      transactionIndex: Number(log.transactionIndex),
+    });
+    const trackedEvent = extractTrackedTransferEvent(payload, projectWallet);
+
+    if (!trackedEvent) {
+      continue;
+    }
+
+    await collection.updateOne(
+      { webhookEventId: trackedEvent.webhookEventId },
+      {
+        $set: trackedEvent,
+      },
+      { upsert: true },
+    );
+
+    return trackedEvent;
+  }
+
+  return null;
+}
+
 function isQualifiedSignupPaymentEvent(
   member: MemberDocument,
   event: ThirdwebWebhookEventDocument,
@@ -219,6 +393,7 @@ async function markMemberAsCompleted({
 }) {
   const completedAt = new Date(event.blockTimestamp * 1000);
   const baseUpdate = {
+    paymentBackfillCheckedAt: null,
     paymentAmount: event.amount,
     paymentReceivedAt: completedAt,
     paymentTransactionHash: event.transactionHash,
@@ -290,8 +465,28 @@ async function maybeCompleteMemberWithStoredPayment({
   }
 
   const paymentEvent = await findMatchingSignupPaymentEvent(member, matchedEvent);
+  const shouldRunBackfill =
+    !paymentEvent &&
+    (!member.paymentBackfillCheckedAt ||
+      Date.now() - member.paymentBackfillCheckedAt.getTime() >=
+        BACKFILL_COOLDOWN_MS);
 
-  if (!paymentEvent) {
+  const resolvedPaymentEvent =
+    paymentEvent ??
+    (shouldRunBackfill ? await backfillSignupPaymentEvent(member) : null);
+
+  if (!resolvedPaymentEvent) {
+    if (shouldRunBackfill) {
+      await collection.updateOne(
+        { email: member.email, status: "pending_payment" },
+        {
+          $set: {
+            paymentBackfillCheckedAt: new Date(),
+          },
+        },
+      );
+    }
+
     return {
       justCompleted: false,
       member: await getFreshMemberOrThrow(collection, member.email),
@@ -300,7 +495,7 @@ async function maybeCompleteMemberWithStoredPayment({
 
   await markMemberAsCompleted({
     collection,
-    event: paymentEvent,
+    event: resolvedPaymentEvent,
     member,
   });
 
@@ -491,6 +686,9 @@ export async function syncMemberRegistration(
         lastWalletAddress: normalizedWalletAddress,
         locale,
         paymentAmount: null,
+        paymentBackfillCheckedAt: shouldResetPaymentWindow
+          ? null
+          : existingMember?.paymentBackfillCheckedAt ?? null,
         paymentReceivedAt: null,
         paymentTransactionHash: null,
         paymentWebhookEventId: null,
