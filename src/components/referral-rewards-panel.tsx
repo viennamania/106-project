@@ -8,6 +8,7 @@ import type {
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { BSC_EXPLORER } from "@/lib/thirdweb";
+import { cn } from "@/lib/utils";
 
 export function ReferralRewardsPanel({
   dictionary,
@@ -27,12 +28,12 @@ export function ReferralRewardsPanel({
         <h3 className="text-xl font-semibold tracking-tight text-slate-950">
           {dictionary.referralsPage.rewards.title}
         </h3>
-        <p className="text-sm leading-6 text-slate-600">
+        <p className="max-w-2xl text-sm leading-6 text-slate-600">
           {dictionary.referralsPage.rewards.description}
         </p>
       </div>
 
-      <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalPoints}
           value={`${rewards.totalPoints} P`}
@@ -47,7 +48,7 @@ export function ReferralRewardsPanel({
         />
       </div>
 
-      <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {rewards.pointsByLevel.map((points, index) => (
           <RewardLevelCard
             key={`level-${index + 1}`}
@@ -90,14 +91,19 @@ export function ReferralRewardsPanel({
 }
 
 function RewardMetricCard({
+  className,
   label,
   value,
 }: {
+  className?: string;
   label: string;
   value: string;
 }) {
   return (
-    <div className="min-w-[156px] snap-start rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-w-0">
+    <div className={cn(
+      "rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+      className,
+    )}>
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
@@ -118,11 +124,11 @@ function RewardLevelCard({
   points: number;
 }) {
   return (
-    <div className="min-w-[120px] snap-start rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 sm:min-w-0">
+    <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-4 sm:px-4">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {levelLabel} {level}
       </p>
-      <p className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
+      <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
         {points} P
       </p>
     </div>
@@ -165,7 +171,7 @@ function RewardHistoryCard({
         </span>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-3 grid gap-3 min-[360px]:grid-cols-2">
         <RewardMeta
           label={sourceMemberLabel}
           value={reward.sourceMemberEmail}
@@ -194,7 +200,7 @@ function RewardHistoryCard({
 
       {paymentTransactionUrl ? (
         <a
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
+          className="mt-4 inline-flex max-w-full items-center gap-2 break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
           href={paymentTransactionUrl}
           rel="noreferrer"
           target="_blank"
@@ -215,7 +221,7 @@ function RewardMeta({
   value: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3">
+    <div className="min-w-0 rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3">
       <p className="text-[0.64rem] uppercase tracking-[0.2em] text-slate-500">
         {label}
       </p>
