@@ -331,8 +331,8 @@ export function ReferralsPage({
                       label: dictionary.common.connectWallet,
                     }}
                     connectModal={{
+                      showThirdwebBranding: false,
                       title: dictionary.common.connectModalTitle,
-                      titleIcon: "/favicon.ico",
                     }}
                     locale={thirdwebLocales[locale]}
                     theme={walletConnectTheme}
@@ -378,8 +378,8 @@ export function ReferralsPage({
                         label: dictionary.common.connectWallet,
                       }}
                       connectModal={{
+                        showThirdwebBranding: false,
                         title: dictionary.common.connectModalTitle,
-                        titleIcon: "/favicon.ico",
                       }}
                       locale={thirdwebLocales[locale]}
                       theme={walletConnectTheme}
@@ -395,6 +395,7 @@ export function ReferralsPage({
                       client={thirdwebClient}
                       locale={thirdwebLocales[locale]}
                       modalSize="compact"
+                      showThirdwebBranding={false}
                       theme={walletConnectTheme}
                       wallets={supportedWallets}
                     />
