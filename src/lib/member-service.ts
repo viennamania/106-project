@@ -650,6 +650,28 @@ async function maybeCompleteMemberWithStoredPayment({
   };
 }
 
+export async function getMemberRegistrationStatus(emailInput: string) {
+  const email = normalizeEmail(emailInput);
+
+  if (!email) {
+    throw new Error("email is required.");
+  }
+
+  const collection = await getMembersCollection();
+  const member = await collection.findOne({ email });
+
+  if (!member) {
+    return null;
+  }
+
+  const finalized = await maybeCompleteMemberWithStoredPayment({
+    collection,
+    member,
+  });
+
+  return finalized.member;
+}
+
 async function resolveReferrer({
   email,
   referredByCode,

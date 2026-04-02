@@ -1,7 +1,10 @@
-import { MemberSyncError, syncMemberRegistration } from "@/lib/member-service";
-import { getMembersCollection } from "@/lib/mongodb";
+import {
+  getMemberRegistrationStatus,
+  MemberSyncError,
+  syncMemberRegistration,
+} from "@/lib/member-service";
 import type { SyncMemberRequest } from "@/lib/member";
-import { normalizeEmail, serializeMember } from "@/lib/member";
+import { serializeMember } from "@/lib/member";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -16,8 +19,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const collection = await getMembersCollection();
-    const member = await collection.findOne({ email: normalizeEmail(rawEmail) });
+    const member = await getMemberRegistrationStatus(rawEmail);
 
     if (!member) {
       return jsonError("Member not found.", 404);
