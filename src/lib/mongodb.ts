@@ -1,7 +1,7 @@
 import "server-only";
 
 import { MongoClient, ServerApiVersion, type Collection } from "mongodb";
-import type { MemberDocument } from "@/lib/member";
+import type { MemberDocument, ReferralRewardDocument } from "@/lib/member";
 import type {
   ThirdwebWebhookEventDocument,
   ThirdwebWebhookIngressLogDocument,
@@ -12,6 +12,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   mongoMembersCollectionPromise?: Promise<Collection<MemberDocument>>;
   mongoThirdwebWebhookEventsCollectionPromise?: Promise<
     Collection<ThirdwebWebhookEventDocument>
+  >;
+  mongoReferralRewardsCollectionPromise?: Promise<
+    Collection<ReferralRewardDocument>
   >;
   mongoThirdwebWebhookIngressLogsCollectionPromise?: Promise<
     Collection<ThirdwebWebhookIngressLogDocument>
@@ -148,6 +151,33 @@ export async function getThirdwebWebhookEventsCollection() {
   }
 
   return globalForMongo.mongoThirdwebWebhookEventsCollectionPromise;
+}
+
+export async function getReferralRewardsCollection() {
+  if (!globalForMongo.mongoReferralRewardsCollectionPromise) {
+    globalForMongo.mongoReferralRewardsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_REFERRAL_REWARDS_COLLECTION ?? "referralRewards";
+      const collection = client
+        .db(dbName)
+        .collection<ReferralRewardDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex(
+          { recipientEmail: 1, sourceMemberEmail: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({ recipientEmail: 1, awardedAt: -1 }),
+        collection.createIndex({ sourceMemberEmail: 1, awardedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoReferralRewardsCollectionPromise;
 }
 
 export async function getThirdwebWebhookIngressLogsCollection() {

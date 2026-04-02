@@ -135,6 +135,7 @@ export type Dictionary = {
     incomingReferralDescription: string;
     incomingReferralLimitTitle: string;
     incomingReferralLimitDescription: string;
+    selfReferralNotice: string;
     appliedReferralDescription: string;
     shareHint: string;
     noReferralApplied: string;
@@ -205,6 +206,17 @@ export type Dictionary = {
       completeSignup: string;
       refresh: string;
       viewChildren: string;
+    };
+    rewards: {
+      title: string;
+      description: string;
+      empty: string;
+      recentTitle: string;
+      totalPoints: string;
+      totalRewards: string;
+      activeLevels: string;
+      sourceMember: string;
+      awardedAt: string;
     };
     errors: {
       missingEmail: string;
@@ -371,7 +383,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "회원 레지스트리",
       eyebrow: "atlas mongodb",
       disconnected:
-        "이메일 로그인하면 결제 대기 회원 상태를 만들고, 10 USDT 입금 확인 뒤 회원가입을 완료합니다.",
+        "이메일 로그인 후 회원 상태가 여기에 표시됩니다.",
       syncing: "회원가입 상태를 Atlas와 webhook 기준으로 확인하는 중입니다.",
       pending:
         "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송해야 합니다.",
@@ -388,6 +400,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralLimitTitle: "이 추천인 코드는 마감되었습니다.",
       incomingReferralLimitDescription:
         "추천인 코드 {code} 는 이미 {count}명의 가입이 완료되어 더 이상 사용할 수 없습니다. 다른 레퍼럴 코드로 다시 접속한 뒤 회원가입을 진행하세요.",
+      selfReferralNotice:
+        "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
         "가입 완료 시 추천인 코드 {code} 가 회원 정보에 저장되었습니다.",
       shareHint:
@@ -465,6 +479,18 @@ const dictionaries: Record<Locale, Dictionary> = {
         completeSignup: "홈에서 가입 완료하기",
         refresh: "새로고침",
         viewChildren: "하위 보기",
+      },
+      rewards: {
+        title: "보상 포인트",
+        description:
+          "하위 회원이 가입을 완료하면 상위 6단계까지 각 1포인트씩 적립됩니다.",
+        empty: "아직 적립된 보상 내역이 없습니다.",
+        recentTitle: "최근 지급 내역",
+        totalPoints: "누적 포인트",
+        totalRewards: "지급 건수",
+        activeLevels: "적립 단계",
+        sourceMember: "가입 회원",
+        awardedAt: "지급 시각",
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
@@ -629,7 +655,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "Member Registry",
       eyebrow: "atlas mongodb",
       disconnected:
-        "Use email login to create a pending signup record. Membership completes only after a confirmed 10 USDT payment.",
+        "After email login, your member status appears here.",
       syncing: "Checking signup status against Atlas and the webhook records.",
       pending:
         "Signup is still pending. The connected wallet must send exactly 10 USDT to PROJECT_WALLET.",
@@ -646,6 +672,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralLimitTitle: "This referral code has reached its limit.",
       incomingReferralLimitDescription:
         "Referral code {code} already has {count} completed signups and can no longer be used. Open the homepage with a different referral code before signing up.",
+      selfReferralNotice:
+        "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
         "Referral code {code} was stored when signup completed.",
       shareHint:
@@ -723,6 +751,18 @@ const dictionaries: Record<Locale, Dictionary> = {
         completeSignup: "Complete signup on home",
         refresh: "Refresh",
         viewChildren: "View children",
+      },
+      rewards: {
+        title: "Reward points",
+        description:
+          "Each completed downline signup awards 1 point to every eligible upline member across 6 levels.",
+        empty: "No reward entries have been issued yet.",
+        recentTitle: "Recent rewards",
+        totalPoints: "Total points",
+        totalRewards: "Reward entries",
+        activeLevels: "Active levels",
+        sourceMember: "Signup member",
+        awardedAt: "Awarded at",
       },
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
@@ -887,7 +927,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "メンバーレジストリ",
       eyebrow: "atlas mongodb",
       disconnected:
-        "メールログインすると支払い待ち会員状態を作成し、10 USDT の入金確認後に登録を完了します。",
+        "メールログイン後、会員ステータスがここに表示されます。",
       syncing: "Atlas と webhook 記録を基準に登録状態を確認しています。",
       pending:
         "まだ登録は完了していません。接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送る必要があります。",
@@ -904,6 +944,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralLimitTitle: "この紹介コードは受付終了です。",
       incomingReferralLimitDescription:
         "紹介コード {code} はすでに {count} 人の登録完了に使われており、これ以上は利用できません。別のレファラルコードでホームを開き直してから登録してください。",
+      selfReferralNotice:
+        "自分のレファラルリンクを開いています。自分自身には紹介特典は適用されません。",
       appliedReferralDescription:
         "登録完了時に紹介コード {code} が保存されました。",
       shareHint:
@@ -981,6 +1023,18 @@ const dictionaries: Record<Locale, Dictionary> = {
         completeSignup: "ホームで登録を完了する",
         refresh: "再読み込み",
         viewChildren: "下位を見る",
+      },
+      rewards: {
+        title: "報酬ポイント",
+        description:
+          "下位メンバーの登録完了ごとに、上位 6 段階まで各 1 ポイントずつ積み上がります。",
+        empty: "まだ付与された報酬履歴はありません。",
+        recentTitle: "最近の付与履歴",
+        totalPoints: "累計ポイント",
+        totalRewards: "付与件数",
+        activeLevels: "付与段階",
+        sourceMember: "登録メンバー",
+        awardedAt: "付与時刻",
       },
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
@@ -1145,7 +1199,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "会员注册表",
       eyebrow: "atlas mongodb",
       disconnected:
-        "邮箱登录后会先创建待支付会员状态，只有确认 10 USDT 入账后才完成注册。",
+        "邮箱登录后，会员状态会显示在这里。",
       syncing: "正在根据 Atlas 和 webhook 记录检查注册状态。",
       pending:
         "注册尚未完成。必须从当前连接的钱包向 PROJECT_WALLET 精确转入 10 USDT。",
@@ -1162,6 +1216,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       incomingReferralLimitTitle: "这个推荐码已满额。",
       incomingReferralLimitDescription:
         "推荐码 {code} 已经有 {count} 位会员完成注册，不能再继续使用。请换一个推荐码重新打开首页后再注册。",
+      selfReferralNotice:
+        "你打开的是自己的推荐链接。自己的注册不会获得推荐奖励。",
       appliedReferralDescription:
         "注册完成时已记录推荐码 {code}。",
       shareHint:
@@ -1239,6 +1295,18 @@ const dictionaries: Record<Locale, Dictionary> = {
         completeSignup: "回首页完成注册",
         refresh: "刷新",
         viewChildren: "查看下级",
+      },
+      rewards: {
+        title: "奖励积分",
+        description:
+          "下级会员完成注册后，上方 6 个层级内的每位有效推荐人都会各获得 1 积分。",
+        empty: "目前还没有已发放的奖励记录。",
+        recentTitle: "最近发放记录",
+        totalPoints: "累计积分",
+        totalRewards: "发放次数",
+        activeLevels: "发放层级",
+        sourceMember: "注册会员",
+        awardedAt: "发放时间",
       },
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",

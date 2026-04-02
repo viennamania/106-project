@@ -4,6 +4,7 @@ import { randomInt } from "node:crypto";
 
 import {
   getMembersCollection,
+  getReferralRewardsCollection,
   getThirdwebWebhookEventsCollection,
 } from "@/lib/mongodb";
 import type {
@@ -15,7 +16,9 @@ import type {
 import {
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+  REFERRAL_REWARD_POINTS,
   REFERRAL_SIGNUP_LIMIT,
+  REFERRAL_TREE_DEPTH_LIMIT,
   normalizeEmail,
   normalizeReferralCode,
   serializeMember,
@@ -111,6 +114,105 @@ async function getFreshMemberOrThrow(
   }
 
   return member;
+}
+
+async function awardReferralRewardsForCompletedMember({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  const rewardsCollection = await getReferralRewardsCollection();
+  const awardedAt = member.registrationCompletedAt ?? new Date();
+  const seenReferralCodes = new Set<string>();
+  const seenRecipientEmails = new Set<string>([member.email]);
+  let currentReferralCode = member.referredByCode ?? null;
+
+  for (
+    let level = 1;
+    level <= REFERRAL_TREE_DEPTH_LIMIT && currentReferralCode;
+    level += 1
+  ) {
+    if (seenReferralCodes.has(currentReferralCode)) {
+      break;
+    }
+
+    seenReferralCodes.add(currentReferralCode);
+
+    const recipient = await collection.findOne({
+      referralCode: currentReferralCode,
+      status: "completed",
+    });
+
+    if (!recipient) {
+      break;
+    }
+
+    if (!seenRecipientEmails.has(recipient.email)) {
+      try {
+        await rewardsCollection.updateOne(
+          {
+            recipientEmail: recipient.email,
+            sourceMemberEmail: member.email,
+          },
+          {
+            $setOnInsert: {
+              awardedAt,
+              createdAt: new Date(),
+              level,
+              points: REFERRAL_REWARD_POINTS,
+              recipientEmail: recipient.email,
+              recipientReferralCode: recipient.referralCode ?? null,
+              sourceMemberEmail: member.email,
+              sourceMemberReferralCode: member.referralCode ?? null,
+              sourcePaymentTransactionHash: member.paymentTransactionHash ?? null,
+              sourceRegistrationCompletedAt: awardedAt,
+              sourceWalletAddress: member.lastWalletAddress,
+            },
+          },
+          { upsert: true },
+        );
+      } catch (error) {
+        if (!isDuplicateKeyError(error)) {
+          throw error;
+        }
+      }
+
+      seenRecipientEmails.add(recipient.email);
+    }
+
+    currentReferralCode = recipient.referredByCode ?? null;
+  }
+}
+
+async function ensureReferralRewardsIssued({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  if (member.status !== "completed" || member.referralRewardsIssuedAt) {
+    return member;
+  }
+
+  await awardReferralRewardsForCompletedMember({
+    collection,
+    member,
+  });
+
+  await collection.updateOne(
+    { email: member.email, status: "completed" },
+    {
+      $set: {
+        referralRewardsIssuedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    },
+  );
+
+  return getFreshMemberOrThrow(collection, member.email);
 }
 
 function resolveLocale(input?: string | null): Locale {
@@ -398,19 +500,30 @@ async function markMemberAsCompleted({
     paymentReceivedAt: completedAt,
     paymentTransactionHash: event.transactionHash,
     paymentWebhookEventId: event.webhookEventId,
+    referralRewardsIssuedAt: null,
     registrationCompletedAt: completedAt,
     status: "completed" as const,
     updatedAt: completedAt,
   };
 
   if (member.referralCode) {
-    await collection.updateOne(
+    const result = await collection.updateOne(
       { email: member.email, status: "pending_payment" },
       {
         $set: baseUpdate,
       },
     );
-    return;
+
+    const nextMember = await getFreshMemberOrThrow(collection, member.email);
+
+    if (result.matchedCount > 0) {
+      return ensureReferralRewardsIssued({
+        collection,
+        member: nextMember,
+      });
+    }
+
+    return nextMember;
   }
 
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -427,7 +540,11 @@ async function markMemberAsCompleted({
       );
 
       if (result.matchedCount > 0) {
-        return;
+        const nextMember = await getFreshMemberOrThrow(collection, member.email);
+        return ensureReferralRewardsIssued({
+          collection,
+          member: nextMember,
+        });
       }
 
       break;
@@ -440,12 +557,23 @@ async function markMemberAsCompleted({
     }
   }
 
-  await collection.updateOne(
+  const result = await collection.updateOne(
     { email: member.email, status: "pending_payment" },
     {
       $set: baseUpdate,
     },
   );
+
+  const nextMember = await getFreshMemberOrThrow(collection, member.email);
+
+  if (result.matchedCount > 0) {
+    return ensureReferralRewardsIssued({
+      collection,
+      member: nextMember,
+    });
+  }
+
+  return nextMember;
 }
 
 async function maybeCompleteMemberWithStoredPayment({
@@ -458,9 +586,14 @@ async function maybeCompleteMemberWithStoredPayment({
   matchedEvent?: ThirdwebWebhookEventDocument | null;
 }) {
   if (member.status === "completed") {
+    const nextMember = await ensureReferralRewardsIssued({
+      collection,
+      member,
+    });
+
     return {
       justCompleted: false,
-      member,
+      member: nextMember,
     };
   }
 
@@ -493,13 +626,11 @@ async function maybeCompleteMemberWithStoredPayment({
     };
   }
 
-  await markMemberAsCompleted({
+  const nextMember = await markMemberAsCompleted({
     collection,
     event: resolvedPaymentEvent,
     member,
   });
-
-  const nextMember = await getFreshMemberOrThrow(collection, member.email);
 
   return {
     justCompleted: nextMember.status === "completed",
@@ -576,6 +707,65 @@ export async function getIncomingReferralState(
   };
 }
 
+export async function syncReferralRewardsForCompletedNetwork(
+  rootMember: MemberDocument,
+) {
+  if (rootMember.status !== "completed" || !rootMember.referralCode) {
+    return;
+  }
+
+  const collection = await getMembersCollection();
+  const rootWithRewards = await ensureReferralRewardsIssued({
+    collection,
+    member: rootMember,
+  });
+  const visitedReferralCodes = new Set<string>([
+    rootWithRewards.referralCode ?? rootMember.referralCode,
+  ]);
+  let currentParentCodes = [rootWithRewards.referralCode ?? rootMember.referralCode];
+
+  for (
+    let depth = 1;
+    depth <= REFERRAL_TREE_DEPTH_LIMIT && currentParentCodes.length > 0;
+    depth += 1
+  ) {
+    const levelMembers = await collection
+      .find({
+        referredByCode: { $in: currentParentCodes },
+        status: "completed",
+      })
+      .sort({ registrationCompletedAt: -1, createdAt: -1 })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    for (const levelMember of levelMembers) {
+      if (!levelMember.referralRewardsIssuedAt) {
+        await ensureReferralRewardsIssued({
+          collection,
+          member: levelMember,
+        });
+      }
+    }
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      if (
+        levelMember.referralCode &&
+        !visitedReferralCodes.has(levelMember.referralCode)
+      ) {
+        visitedReferralCodes.add(levelMember.referralCode);
+        nextParentCodes.push(levelMember.referralCode);
+      }
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+}
+
 export async function syncMemberRegistration(
   input: SyncMemberRequest,
 ): Promise<SyncMemberResponse> {
@@ -610,6 +800,8 @@ export async function syncMemberRegistration(
   const collection = await getMembersCollection();
   const now = new Date();
   const existingMember = await collection.findOne({ email });
+  const effectiveReferredByCode =
+    existingMember?.referralCode === referredByCode ? null : referredByCode;
 
   if (existingMember?.status === "completed") {
     await collection.updateOne(
@@ -629,9 +821,14 @@ export async function syncMemberRegistration(
       },
     );
 
+    const nextMember = await ensureReferralRewardsIssued({
+      collection,
+      member: await getFreshMemberOrThrow(collection, email),
+    });
+
     return {
       justCompleted: false,
-      member: serializeMember(await getFreshMemberOrThrow(collection, email)),
+      member: serializeMember(nextMember),
     };
   }
 
@@ -646,7 +843,9 @@ export async function syncMemberRegistration(
     });
   }
 
-  const incomingReferralState = await getIncomingReferralState(referredByCode);
+  const incomingReferralState = await getIncomingReferralState(
+    effectiveReferredByCode,
+  );
 
   if (
     !existingMember?.referredByCode &&
@@ -692,6 +891,7 @@ export async function syncMemberRegistration(
         paymentReceivedAt: null,
         paymentTransactionHash: null,
         paymentWebhookEventId: null,
+        referralRewardsIssuedAt: existingMember?.referralRewardsIssuedAt ?? null,
         referredByCode:
           existingMember?.referredByCode ?? referrer.referredByCode ?? null,
         referredByEmail:

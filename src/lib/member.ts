@@ -3,6 +3,8 @@ export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
 export const REFERRAL_SIGNUP_LIMIT = 6;
 export const REFERRAL_TREE_DEPTH_LIMIT = 6;
+export const REFERRAL_REWARD_POINTS = 1;
+export const REFERRAL_REWARD_HISTORY_LIMIT = 24;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
 
@@ -21,6 +23,7 @@ export type MemberRecord = {
   paymentReceivedAt: string | null;
   paymentTransactionHash: string | null;
   paymentWebhookEventId: string | null;
+  referralRewardsIssuedAt: string | null;
   referralCode: string | null;
   referredByCode: string | null;
   referredByEmail: string | null;
@@ -76,7 +79,40 @@ export type MemberReferralsResponse = {
   levelCounts: number[];
   member: MemberRecord;
   referrals: ReferralTreeNodeRecord[];
+  rewards: ReferralRewardsSummaryRecord;
   totalReferrals: number;
+};
+
+export type ReferralRewardRecord = {
+  awardedAt: string;
+  level: number;
+  points: number;
+  sourceMemberEmail: string;
+  sourceMemberReferralCode: string | null;
+  sourcePaymentTransactionHash: string | null;
+  sourceRegistrationCompletedAt: string;
+  sourceWalletAddress: string;
+};
+
+export type ReferralRewardsSummaryRecord = {
+  history: ReferralRewardRecord[];
+  pointsByLevel: number[];
+  totalPoints: number;
+  totalRewards: number;
+};
+
+export type ReferralRewardDocument = {
+  awardedAt: Date;
+  createdAt: Date;
+  level: number;
+  points: number;
+  recipientEmail: string;
+  recipientReferralCode: string | null;
+  sourceMemberEmail: string;
+  sourceMemberReferralCode: string | null;
+  sourcePaymentTransactionHash?: string | null;
+  sourceRegistrationCompletedAt: Date;
+  sourceWalletAddress: string;
 };
 
 export type MemberDocument = {
@@ -93,6 +129,7 @@ export type MemberDocument = {
   paymentReceivedAt?: Date | null;
   paymentTransactionHash?: string | null;
   paymentWebhookEventId?: string | null;
+  referralRewardsIssuedAt?: Date | null;
   referralCode?: string | null;
   referredByCode?: string | null;
   referredByEmail?: string | null;
@@ -127,6 +164,7 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     paymentReceivedAt: member.paymentReceivedAt?.toISOString() ?? null,
     paymentTransactionHash: member.paymentTransactionHash ?? null,
     paymentWebhookEventId: member.paymentWebhookEventId ?? null,
+    referralRewardsIssuedAt: member.referralRewardsIssuedAt?.toISOString() ?? null,
     referralCode: member.referralCode ?? null,
     referredByCode: member.referredByCode ?? null,
     referredByEmail: member.referredByEmail ?? null,
@@ -166,5 +204,33 @@ export function serializeReferralTreeNode(
     depth,
     directReferralCount: 0,
     totalReferralCount: 0,
+  };
+}
+
+export function serializeReferralReward(
+  reward: ReferralRewardDocument,
+): ReferralRewardRecord {
+  return {
+    awardedAt: reward.awardedAt.toISOString(),
+    level: reward.level,
+    points: reward.points,
+    sourceMemberEmail: reward.sourceMemberEmail,
+    sourceMemberReferralCode: reward.sourceMemberReferralCode ?? null,
+    sourcePaymentTransactionHash: reward.sourcePaymentTransactionHash ?? null,
+    sourceRegistrationCompletedAt:
+      reward.sourceRegistrationCompletedAt.toISOString(),
+    sourceWalletAddress: reward.sourceWalletAddress,
+  };
+}
+
+export function createEmptyReferralRewardsSummary(): ReferralRewardsSummaryRecord {
+  return {
+    history: [],
+    pointsByLevel: Array.from(
+      { length: REFERRAL_TREE_DEPTH_LIMIT },
+      () => 0,
+    ),
+    totalPoints: 0,
+    totalRewards: 0,
   };
 }

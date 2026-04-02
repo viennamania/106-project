@@ -37,12 +37,15 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
+import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
+  createEmptyReferralRewardsSummary,
   type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
   type MemberReferralsResponse,
   type MemberRecord,
+  type ReferralRewardsSummaryRecord,
   type ReferralTreeNodeRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
@@ -79,6 +82,7 @@ type ReferralDashboardState = {
   error: string | null;
   levelCounts: number[];
   referrals: ReferralTreeNodeRecord[];
+  rewards: ReferralRewardsSummaryRecord;
   status: "idle" | "loading" | "ready" | "error";
   totalReferrals: number;
 };
@@ -126,6 +130,7 @@ export function SmartWalletApp({
       error: null,
       levelCounts: [],
       referrals: [],
+      rewards: createEmptyReferralRewardsSummary(),
       status: "idle",
       totalReferrals: 0,
     });
@@ -146,10 +151,14 @@ export function SmartWalletApp({
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
+  const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
     incomingReferralState?.status === "available"
-      ? incomingReferralState.code
+      ? incomingReferralCode
       : null;
+  const isSelfIncomingReferral =
+    incomingReferralCode !== null &&
+    memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
   const isIncomingReferralBlocked =
     incomingReferralState?.status === "full" &&
@@ -258,6 +267,7 @@ export function SmartWalletApp({
         error: null,
         levelCounts: data.levelCounts,
         referrals: data.referrals,
+        rewards: data.rewards,
         status: "ready",
         totalReferrals: data.totalReferrals,
       });
@@ -303,6 +313,7 @@ export function SmartWalletApp({
           error: null,
           levelCounts: [],
           referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
           status: "idle",
           totalReferrals: 0,
         });
@@ -369,6 +380,7 @@ export function SmartWalletApp({
           error: null,
           levelCounts: [],
           referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
           status: "idle",
           totalReferrals: 0,
         });
@@ -405,6 +417,7 @@ export function SmartWalletApp({
         error: null,
         levelCounts: [],
         referrals: [],
+        rewards: createEmptyReferralRewardsSummary(),
         status: "idle",
         totalReferrals: 0,
       });
@@ -631,6 +644,7 @@ export function SmartWalletApp({
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
             dictionary={dictionary}
+            isSelfIncomingReferral={isSelfIncomingReferral}
             locale={locale}
             member={memberSync.member}
             onRefresh={() => {
@@ -1188,6 +1202,7 @@ function MembershipLoadingSection({
 
 function CompletedHomeDashboard({
   dictionary,
+  isSelfIncomingReferral,
   locale,
   member,
   onRefresh,
@@ -1196,6 +1211,7 @@ function CompletedHomeDashboard({
   referralLink,
 }: {
   dictionary: Dictionary;
+  isSelfIncomingReferral: boolean;
   locale: Locale;
   member: MemberRecord;
   onRefresh: () => void;
@@ -1229,6 +1245,10 @@ function CompletedHomeDashboard({
               {dictionary.member.synced}
             </p>
           </div>
+
+          {isSelfIncomingReferral ? (
+            <MessageCard>{dictionary.member.selfReferralNotice}</MessageCard>
+          ) : null}
 
           {member.referredByCode ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
@@ -1401,6 +1421,19 @@ function CompletedHomeDashboard({
             </a>
           </div>
         ) : null}
+      </Panel>
+
+      <Panel
+        className="lg:col-span-2"
+        contentClassName="gap-4"
+        eyebrow={dictionary.referralsPage.eyebrow}
+        title={dictionary.referralsPage.rewards.title}
+      >
+        <ReferralRewardsPanel
+          dictionary={dictionary}
+          locale={locale}
+          rewards={referralDashboard.rewards}
+        />
       </Panel>
 
       <Panel

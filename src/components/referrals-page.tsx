@@ -19,9 +19,12 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
+import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
+import { createEmptyReferralRewardsSummary } from "@/lib/member";
 import type {
   MemberReferralsResponse,
   MemberRecord,
+  ReferralRewardsSummaryRecord,
   ReferralTreeNodeRecord,
   SyncMemberResponse,
 } from "@/lib/member";
@@ -42,6 +45,7 @@ type ReferralsState = {
   levelCounts: number[];
   member: MemberRecord | null;
   referrals: ReferralTreeNodeRecord[];
+  rewards: ReferralRewardsSummaryRecord;
   status: "idle" | "loading" | "ready" | "error";
   totalReferrals: number;
 };
@@ -65,6 +69,7 @@ export function ReferralsPage({
     levelCounts: [],
     member: null,
     referrals: [],
+    rewards: createEmptyReferralRewardsSummary(),
     status: "idle",
     totalReferrals: 0,
   });
@@ -99,6 +104,7 @@ export function ReferralsPage({
           levelCounts: [],
           member: null,
           referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
           status: "error",
           totalReferrals: 0,
         });
@@ -137,6 +143,7 @@ export function ReferralsPage({
           levelCounts: [],
           member: syncData.member,
           referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
           status: "ready",
           totalReferrals: 0,
         });
@@ -167,6 +174,7 @@ export function ReferralsPage({
         levelCounts: data.levelCounts,
         member: data.member,
         referrals: data.referrals,
+        rewards: data.rewards,
         status: "ready",
         totalReferrals: data.totalReferrals,
       });
@@ -179,6 +187,7 @@ export function ReferralsPage({
         levelCounts: [],
         member: null,
         referrals: [],
+        rewards: createEmptyReferralRewardsSummary(),
         status: "error",
         totalReferrals: 0,
       });
@@ -202,6 +211,7 @@ export function ReferralsPage({
         levelCounts: [],
         member: null,
         referrals: [],
+        rewards: createEmptyReferralRewardsSummary(),
         status: "idle",
         totalReferrals: 0,
       });
@@ -524,6 +534,26 @@ export function ReferralsPage({
               />
             )}
           </section>
+        </section>
+
+        <section className="glass-card rounded-[30px] p-5 sm:p-6">
+          {status !== "connected" || !accountAddress ? (
+            <MessageCard>{dictionary.referralsPage.disconnected}</MessageCard>
+          ) : state.status === "loading" ? (
+            <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
+          ) : state.status === "error" ? (
+            <MessageCard tone="error">
+              {state.error ?? dictionary.referralsPage.errors.loadFailed}
+            </MessageCard>
+          ) : state.member?.status !== "completed" ? (
+            <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
+          ) : (
+            <ReferralRewardsPanel
+              dictionary={dictionary}
+              locale={locale}
+              rewards={state.rewards}
+            />
+          )}
         </section>
       </main>
     </div>
