@@ -53,7 +53,7 @@ export type IncomingReferralStatus = "available" | "full" | "invalid";
 
 export type IncomingReferralState = {
   code: string;
-  completedReferrals: number;
+  signupCount: number;
   limit: number;
   status: IncomingReferralStatus;
 };

@@ -683,13 +683,13 @@ export function SmartWalletApp({
                       ? dictionary.env.description
                       : isIncomingReferralBlocked && incomingReferralState
                         ? formatTemplate(
-                            dictionary.member.incomingReferralLimitDescription,
-                            {
-                              code: incomingReferralState.code,
-                              count: incomingReferralState.completedReferrals,
-                              limit: incomingReferralState.limit,
-                            },
-                          )
+                              dictionary.member.incomingReferralLimitDescription,
+                              {
+                                code: incomingReferralState.code,
+                                count: incomingReferralState.signupCount,
+                                limit: incomingReferralState.limit,
+                              },
+                            )
                         : status === "connected" && accountAddress
                           ? dictionary.member.pending
                           : dictionary.member.disconnected}
@@ -702,7 +702,7 @@ export function SmartWalletApp({
                       dictionary.member.incomingReferralLimitDescription,
                       {
                         code: incomingReferralState.code,
-                        count: incomingReferralState.completedReferrals,
+                        count: incomingReferralState.signupCount,
                         limit: incomingReferralState.limit,
                       },
                     )}
@@ -899,7 +899,7 @@ export function SmartWalletApp({
                                   dictionary.member.errors.referralLimitReached,
                                   {
                                     code: incomingReferralState.code,
-                                    count: incomingReferralState.completedReferrals,
+                                    count: incomingReferralState.signupCount,
                                     limit: incomingReferralState.limit,
                                   },
                                 ),

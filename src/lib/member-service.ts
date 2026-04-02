@@ -256,6 +256,18 @@ function getInsufficientBalanceMessage(locale: Locale) {
   );
 }
 
+async function countReservedReferralSignups(
+  collection: Awaited<ReturnType<typeof getMembersCollection>>,
+  referredByCode: string,
+) {
+  return collection.countDocuments({
+    referredByCode,
+    status: {
+      $in: ["pending_payment", "completed"],
+    },
+  });
+}
+
 async function assertSignupWalletHasRequiredBalance({
   locale,
   walletAddress,
@@ -687,23 +699,22 @@ export async function getIncomingReferralState(
   if (!referrer) {
     return {
       code: referredByCode,
-      completedReferrals: 0,
+      signupCount: 0,
       limit: REFERRAL_SIGNUP_LIMIT,
       status: "invalid",
     };
   }
 
-  const completedReferrals = await collection.countDocuments({
+  const signupCount = await countReservedReferralSignups(
+    collection,
     referredByCode,
-    status: "completed",
-  });
+  );
 
   return {
     code: referredByCode,
-    completedReferrals,
+    signupCount,
     limit: REFERRAL_SIGNUP_LIMIT,
-    status:
-      completedReferrals >= REFERRAL_SIGNUP_LIMIT ? "full" : "available",
+    status: signupCount >= REFERRAL_SIGNUP_LIMIT ? "full" : "available",
   };
 }
 
@@ -854,7 +865,7 @@ export async function syncMemberRegistration(
     throw new MemberSyncError(
       getReferralLimitReachedMessage({
         code: incomingReferralState.code,
-        count: incomingReferralState.completedReferrals,
+        count: incomingReferralState.signupCount,
         locale: resolvedLocale,
       }),
       409,
