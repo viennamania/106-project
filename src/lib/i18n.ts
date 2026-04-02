@@ -208,17 +208,17 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "이메일 지갑 연결 후 10 USDT 입금 확인으로 가입을 완료하는 모바일 우선 스마트 월렛 앱.",
+        "이메일 로그인 후 10 USDT 입금 확인으로 가입을 완료하는 모바일 우선 스마트 월렛 앱.",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "이메일 지갑 연결 뒤 PROJECT_WALLET로 10 USDT를 전송하면 webhook가 회원가입을 완료합니다.",
+        "이메일 로그인 뒤 PROJECT_WALLET로 10 USDT를 전송하면 webhook가 회원가입을 완료합니다.",
       languageLabel: "언어",
-      connectWallet: "이메일 지갑 연결",
-      disconnectWallet: "연결 해제",
-      connectModalTitle: "이메일로 Pocket Smart Wallet 연결",
+      connectWallet: "이메일 로그인",
+      disconnectWallet: "로그아웃",
+      connectModalTitle: "이메일로 Pocket Smart Wallet 로그인",
       clientIdRequired: "client id 필요",
       copyAddress: "주소 복사",
       copyLink: "링크 복사",
@@ -235,10 +235,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "이메일 지갑을 연결하고, 10 USDT 입금이 확인되면 회원가입이 완료되는 온체인 앱.",
+        "이메일로 로그인하고, 10 USDT 입금이 확인되면 회원가입이 완료되는 온체인 앱.",
       description:
-        "`thirdweb` 이메일 지갑 연결과 BSC Smart Wallet 흐름 위에 가입 조건을 올렸습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송하면 webhook가 결제를 확인하고, 그때 회원가입과 레퍼럴 코드 발급을 완료합니다.",
-      badges: ["이메일 지갑 연결", "10 USDT 가입 조건", "웹훅 완료 처리"],
+        "`thirdweb` 이메일 로그인 기반 BSC Smart Wallet 흐름 위에 가입 조건을 올렸습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송하면 webhook가 결제를 확인하고, 그때 회원가입과 레퍼럴 코드 발급을 완료합니다.",
+      badges: ["이메일 로그인", "10 USDT 가입 조건", "웹훅 완료 처리"],
     },
     metrics: [
       { label: "체인", value: "BSC", hint: "BNB Smart Chain" },
@@ -248,7 +248,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "환경변수 설정 필요",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID`가 비어 있어 이메일 연결 UI를 숨겼습니다. `.env.example`을 복사한 뒤 client id를 넣으면 바로 연결됩니다.",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID`가 비어 있어 이메일 로그인 UI를 숨겼습니다. `.env.example`을 복사한 뒤 client id를 넣으면 바로 연결됩니다.",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -269,7 +269,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "이메일 지갑 먼저 연결",
+          title: "이메일 로그인 먼저",
           description:
             "이메일 OTP만 허용해 가입 시작점을 한 가지로 고정했습니다.",
         },
@@ -290,7 +290,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "이메일 지갑 연결",
+          title: "이메일 로그인",
           description:
             "이메일 입력과 인증 코드 확인으로 스마트 월렛 세션을 시작합니다.",
         },
@@ -315,7 +315,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       completedCta: "회원가입 완료",
       emptyNotice:
         "전송 결과와 webhook 확인 상태가 여기에 표시됩니다.",
-      connectFirst: "먼저 이메일 스마트 월렛을 연결하세요.",
+      connectFirst: "먼저 이메일 로그인 하세요.",
       txConfirmed: "전송 트랜잭션이 확인되었습니다. webhook 확인을 기다리는 중입니다.",
       txSent: "전송을 보냈습니다. webhook가 도착하면 회원가입이 완료됩니다.",
       openExplorer: "Explorer 열기",
@@ -327,7 +327,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         {
           title: "가입 조건을 화면 중심에 배치",
           description:
-            "이메일 연결, 결제 금액, 대상 지갑, 완료 상태를 한 화면에서 바로 확인할 수 있게 배치했습니다.",
+            "이메일 로그인, 결제 금액, 대상 지갑, 완료 상태를 한 화면에서 바로 확인할 수 있게 배치했습니다.",
         },
         {
           title: "결제 대기와 가입 완료를 분리",
@@ -345,7 +345,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "회원 레지스트리",
       eyebrow: "atlas mongodb",
       disconnected:
-        "이메일 지갑을 연결하면 결제 대기 회원 상태를 만들고, 10 USDT 입금 확인 뒤 회원가입을 완료합니다.",
+        "이메일 로그인하면 결제 대기 회원 상태를 만들고, 10 USDT 입금 확인 뒤 회원가입을 완료합니다.",
       syncing: "회원가입 상태를 Atlas와 webhook 기준으로 확인하는 중입니다.",
       pending:
         "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송해야 합니다.",
@@ -358,7 +358,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "10 USDT 입금이 확인되어 레퍼럴 코드가 활성화되었습니다.",
       incomingReferralTitle: "추천인 코드가 감지되었습니다.",
       incomingReferralDescription:
-        "이메일 지갑을 연결한 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",
+        "이메일 로그인 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",
       incomingReferralLimitTitle: "이 추천인 코드는 마감되었습니다.",
       incomingReferralLimitDescription:
         "추천인 코드 {code} 는 이미 {count}명의 가입이 완료되어 더 이상 사용할 수 없습니다. 다른 레퍼럴 코드로 다시 접속한 뒤 회원가입을 진행하세요.",
@@ -405,7 +405,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       shareTitle: "내 레퍼럴 코드",
       listTitle: "내 코드로 가입한 회원",
       disconnected:
-        "이메일 지갑을 연결하고 회원가입을 완료하면 레퍼럴 대시보드를 볼 수 있습니다.",
+        "이메일 로그인하고 회원가입을 완료하면 레퍼럴 대시보드를 볼 수 있습니다.",
       loading: "레퍼럴 데이터를 확인하는 중입니다.",
       empty: "아직 내 레퍼럴 코드로 가입한 회원이 없습니다.",
       memberReady: "이 이메일 회원의 레퍼럴 코드가 활성화되어 있습니다.",
@@ -434,7 +434,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     signInMix: {
       title: "가입 경로",
       eyebrow: "signup checklist",
-      methods: ["이메일 지갑 연결", "10 USDT 전송", "웹훅 확인 후 완료"],
+      methods: ["이메일 로그인", "10 USDT 전송", "웹훅 확인 후 완료"],
     },
     notices: {
       copySuccess: "스마트 월렛 주소를 클립보드에 복사했습니다.",
@@ -451,11 +451,11 @@ const dictionaries: Record<Locale, Dictionary> = {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "Connect an email wallet, send 10 USDT to PROJECT_WALLET, and let the webhook finish signup.",
+        "Sign in with email, send 10 USDT to PROJECT_WALLET, and let the webhook finish signup.",
       languageLabel: "Language",
-      connectWallet: "Connect email wallet",
-      disconnectWallet: "Disconnect",
-      connectModalTitle: "Connect Pocket Smart Wallet with email",
+      connectWallet: "Email login",
+      disconnectWallet: "Log out",
+      connectModalTitle: "Sign in to Pocket Smart Wallet with email",
       clientIdRequired: "client id required",
       copyAddress: "Copy address",
       copyLink: "Copy link",
@@ -474,8 +474,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       title:
         "An onchain app where signup completes only after the connected wallet sends and confirms 10 USDT.",
       description:
-        "This combines the `thirdweb` email-first wallet connection flow with a payment-gated signup path. Once the connected wallet sends exactly 10 USDT to PROJECT_WALLET, the webhook confirms the transfer, completes signup, and unlocks the referral code.",
-      badges: ["Email wallet connect", "Exact 10 USDT signup", "Webhook completion"],
+        "This combines an email login flow with a payment-gated BSC Smart Wallet signup path. Once the connected wallet sends exactly 10 USDT to PROJECT_WALLET, the webhook confirms the transfer, completes signup, and unlocks the referral code.",
+      badges: ["Email login", "Exact 10 USDT signup", "Webhook completion"],
     },
     metrics: [
       { label: "Chain", value: "BSC", hint: "BNB Smart Chain" },
@@ -485,7 +485,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "Environment setup required",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` is empty, so the email connect UI is hidden. Copy `.env.example`, add your client id, and reload the app.",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` is empty, so the email login UI is hidden. Copy `.env.example`, add your client id, and reload the app.",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -506,7 +506,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "Connect the email wallet first",
+          title: "Start with email login",
           description:
             "Keep one email OTP entry point so the signup path starts with a single wallet connection flow.",
         },
@@ -527,7 +527,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "Connect email wallet",
+          title: "Email login",
           description:
             "Start the smart wallet session with email entry and a one-time verification code.",
         },
@@ -552,7 +552,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       completedCta: "Signup complete",
       emptyNotice:
         "Transfer results and webhook confirmation status will appear here.",
-      connectFirst: "Connect your email smart wallet first.",
+      connectFirst: "Complete email login first.",
       txConfirmed: "The transfer was confirmed. Waiting for the webhook to complete signup.",
       txSent: "The transfer was sent. Signup will finish after the webhook arrives.",
       openExplorer: "Open explorer",
@@ -582,7 +582,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "Member Registry",
       eyebrow: "atlas mongodb",
       disconnected:
-        "Connect the email wallet to create a pending signup record. Membership completes only after a confirmed 10 USDT payment.",
+        "Use email login to create a pending signup record. Membership completes only after a confirmed 10 USDT payment.",
       syncing: "Checking signup status against Atlas and the webhook records.",
       pending:
         "Signup is still pending. The connected wallet must send exactly 10 USDT to PROJECT_WALLET.",
@@ -642,7 +642,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       shareTitle: "My referral code",
       listTitle: "Members signed up with my code",
       disconnected:
-        "Connect the email wallet and complete signup to review your referral dashboard.",
+        "Use email login and complete signup to review your referral dashboard.",
       loading: "Loading referral data.",
       empty: "No members have signed up with your referral code yet.",
       memberReady: "Your referral code is active for this email member.",
@@ -671,7 +671,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     signInMix: {
       title: "Signup Path",
       eyebrow: "signup checklist",
-      methods: ["Connect email wallet", "Send 10 USDT", "Wait for webhook confirmation"],
+      methods: ["Email login", "Send 10 USDT", "Wait for webhook confirmation"],
     },
     notices: {
       copySuccess: "The smart wallet address was copied to your clipboard.",
@@ -682,17 +682,17 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "メールウォレット接続後、10 USDT の入金確認で登録完了するモバイルファーストのスマートウォレットアプリ。",
+        "メールログイン後、10 USDT の入金確認で登録完了するモバイルファーストのスマートウォレットアプリ。",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "メールウォレットを接続し、PROJECT_WALLET に 10 USDT を送ると webhook が登録完了を処理します。",
+        "メールログイン後、PROJECT_WALLET に 10 USDT を送ると webhook が登録完了を処理します。",
       languageLabel: "言語",
-      connectWallet: "メールウォレット接続",
-      disconnectWallet: "切断",
-      connectModalTitle: "メールで Pocket Smart Wallet を接続",
+      connectWallet: "メールログイン",
+      disconnectWallet: "ログアウト",
+      connectModalTitle: "メールで Pocket Smart Wallet にログイン",
       clientIdRequired: "client id が必要です",
       copyAddress: "アドレスをコピー",
       copyLink: "リンクをコピー",
@@ -709,10 +709,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "メールウォレットを接続し、10 USDT 入金が確認された時点で登録が完了するオンチェーンアプリ。",
+        "メールでログインし、10 USDT 入金が確認された時点で登録が完了するオンチェーンアプリ。",
       description:
-        "`thirdweb` のメール中心ウォレット接続と BSC Smart Wallet フローに、決済確認型の登録導線を組み合わせました。接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送ると、webhook が入金を確認して会員登録とレファラルコード発行を完了します。",
-      badges: ["メールウォレット接続", "正確に 10 USDT", "webhook で登録完了"],
+        "`thirdweb` のメールログインと BSC Smart Wallet フローに、決済確認型の登録導線を組み合わせました。接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送ると、webhook が入金を確認して会員登録とレファラルコード発行を完了します。",
+      badges: ["メールログイン", "正確に 10 USDT", "webhook で登録完了"],
     },
     metrics: [
       { label: "チェーン", value: "BSC", hint: "BNB Smart Chain" },
@@ -722,7 +722,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "環境変数の設定が必要です",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` が空のためメール接続 UI を隠しています。`.env.example` をコピーして client id を入れるとすぐ接続できます。",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` が空のためメールログイン UI を隠しています。`.env.example` をコピーして client id を入れるとすぐ使えます。",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -743,7 +743,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "まずメールウォレットを接続",
+          title: "まずメールログイン",
           description:
             "開始フローをメール OTP のみに絞り、登録の入口を一つに固定しました。",
         },
@@ -764,7 +764,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "メールウォレット接続",
+          title: "メールログイン",
           description:
             "メール入力と認証コード確認でスマートウォレットのセッションを開始します。",
         },
@@ -789,7 +789,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       completedCta: "登録完了",
       emptyNotice:
         "送金結果と webhook 確認状態がここに表示されます。",
-      connectFirst: "先にメールスマートウォレットを接続してください。",
+      connectFirst: "先にメールログインしてください。",
       txConfirmed: "送金トランザクションが確認されました。webhook 確認を待っています。",
       txSent: "送金を送信しました。webhook が到着すると登録が完了します。",
       openExplorer: "Explorer を開く",
@@ -819,7 +819,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "メンバーレジストリ",
       eyebrow: "atlas mongodb",
       disconnected:
-        "メールウォレットを接続すると支払い待ち会員状態を作成し、10 USDT の入金確認後に登録を完了します。",
+        "メールログインすると支払い待ち会員状態を作成し、10 USDT の入金確認後に登録を完了します。",
       syncing: "Atlas と webhook 記録を基準に登録状態を確認しています。",
       pending:
         "まだ登録は完了していません。接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送る必要があります。",
@@ -832,7 +832,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "10 USDT の入金が確認され、レファラルコードが有効になりました。",
       incomingReferralTitle: "紹介コードを検出しました。",
       incomingReferralDescription:
-        "メールウォレット接続後に登録が完了すると、紹介コード {code} が会員情報に保存されます。",
+        "メールログイン後に登録が完了すると、紹介コード {code} が会員情報に保存されます。",
       incomingReferralLimitTitle: "この紹介コードは受付終了です。",
       incomingReferralLimitDescription:
         "紹介コード {code} はすでに {count} 人の登録完了に使われており、これ以上は利用できません。別のレファラルコードでホームを開き直してから登録してください。",
@@ -879,7 +879,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       shareTitle: "自分のレファラルコード",
       listTitle: "自分のコードで登録した会員",
       disconnected:
-        "メールウォレットを接続し、登録を完了するとレファラルダッシュボードを確認できます。",
+        "メールログインし、登録を完了するとレファラルダッシュボードを確認できます。",
       loading: "レファラルデータを読み込んでいます。",
       empty: "まだ自分のレファラルコードで登録した会員はいません。",
       memberReady: "このメール会員のレファラルコードは有効です。",
@@ -908,7 +908,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     signInMix: {
       title: "登録フロー",
       eyebrow: "signup checklist",
-      methods: ["メールウォレット接続", "10 USDT を送る", "webhook 確認で完了"],
+      methods: ["メールログイン", "10 USDT を送る", "webhook 確認で完了"],
     },
     notices: {
       copySuccess: "スマートウォレットのアドレスをクリップボードにコピーしました。",
@@ -919,17 +919,17 @@ const dictionaries: Record<Locale, Dictionary> = {
     meta: {
       title: "Pocket Smart Wallet",
       description:
-        "一个在邮箱钱包连接后，通过确认 10 USDT 入账来完成注册的移动优先智能钱包应用。",
+        "一个在邮箱登录后，通过确认 10 USDT 入账来完成注册的移动优先智能钱包应用。",
     },
     common: {
       appName: "Pocket Smart Wallet",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
-        "连接邮箱钱包后，向 PROJECT_WALLET 转入 10 USDT，webhook 会完成注册。",
+        "邮箱登录后，向 PROJECT_WALLET 转入 10 USDT，webhook 会完成注册。",
       languageLabel: "语言",
-      connectWallet: "连接邮箱钱包",
-      disconnectWallet: "断开连接",
-      connectModalTitle: "通过邮箱连接 Pocket Smart Wallet",
+      connectWallet: "邮箱登录",
+      disconnectWallet: "退出登录",
+      connectModalTitle: "通过邮箱登录 Pocket Smart Wallet",
       clientIdRequired: "需要 client id",
       copyAddress: "复制地址",
       copyLink: "复制链接",
@@ -946,10 +946,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     hero: {
       eyebrow: "Mobile Smart Wallet",
       title:
-        "连接邮箱钱包后，只有在 10 USDT 入账被确认时才完成注册的链上应用。",
+        "邮箱登录后，只有在 10 USDT 入账被确认时才完成注册的链上应用。",
       description:
-        "这个版本把 `thirdweb` 邮箱优先钱包连接流程和基于支付确认的注册路径结合在一起。已连接的钱包必须向 PROJECT_WALLET 精确转入 10 USDT，webhook 确认到账后才会完成会员注册并生成推荐码。",
-      badges: ["连接邮箱钱包", "精确 10 USDT 注册", "Webhook 完成注册"],
+        "这个版本把邮箱登录流程和基于支付确认的 BSC Smart Wallet 注册路径结合在一起。已连接的钱包必须向 PROJECT_WALLET 精确转入 10 USDT，webhook 确认到账后才会完成会员注册并生成推荐码。",
+      badges: ["邮箱登录", "精确 10 USDT 注册", "Webhook 完成注册"],
     },
     metrics: [
       { label: "链", value: "BSC", hint: "BNB Smart Chain" },
@@ -959,7 +959,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     env: {
       title: "需要环境变量配置",
       description:
-        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 为空，所以当前隐藏了邮箱连接 UI。复制 `.env.example` 后填入 client id 即可连接。",
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` 为空，所以当前隐藏了邮箱登录 UI。复制 `.env.example` 后填入 client id 即可使用。",
     },
     connected: {
       eyebrow: "Active Smart Wallet",
@@ -980,7 +980,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "Wallet Onboarding",
       cards: [
         {
-          title: "先连接邮箱钱包",
+          title: "先完成邮箱登录",
           description:
             "只保留邮箱 OTP 入口，让注册开始路径固定为一种连接方式。",
         },
@@ -1001,7 +1001,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "3-step mobile flow",
       steps: [
         {
-          title: "连接邮箱钱包",
+          title: "邮箱登录",
           description:
             "通过邮箱输入和一次性验证码开始智能钱包会话。",
         },
@@ -1026,7 +1026,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       completedCta: "注册已完成",
       emptyNotice:
         "转账结果和 webhook 确认状态会显示在这里。",
-      connectFirst: "请先连接邮箱智能钱包。",
+      connectFirst: "请先完成邮箱登录。",
       txConfirmed: "转账交易已确认，正在等待 webhook 完成注册。",
       txSent: "转账已发送，webhook 到达后会完成注册。",
       openExplorer: "打开 Explorer",
@@ -1056,7 +1056,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "会员注册表",
       eyebrow: "atlas mongodb",
       disconnected:
-        "连接邮箱钱包后会先创建待支付会员状态，只有确认 10 USDT 入账后才完成注册。",
+        "邮箱登录后会先创建待支付会员状态，只有确认 10 USDT 入账后才完成注册。",
       syncing: "正在根据 Atlas 和 webhook 记录检查注册状态。",
       pending:
         "注册尚未完成。必须从当前连接的钱包向 PROJECT_WALLET 精确转入 10 USDT。",
@@ -1069,7 +1069,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         "10 USDT 入账已确认，你的推荐码现在已经激活。",
       incomingReferralTitle: "检测到推荐码。",
       incomingReferralDescription:
-        "连接邮箱钱包后，如果在此页面完成注册，推荐码 {code} 会写入会员信息。",
+        "邮箱登录后，如果在此页面完成注册，推荐码 {code} 会写入会员信息。",
       incomingReferralLimitTitle: "这个推荐码已满额。",
       incomingReferralLimitDescription:
         "推荐码 {code} 已经有 {count} 位会员完成注册，不能再继续使用。请换一个推荐码重新打开首页后再注册。",
@@ -1116,7 +1116,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       shareTitle: "我的推荐码",
       listTitle: "使用我的码注册的会员",
       disconnected:
-        "连接邮箱钱包并完成注册后，即可查看推荐仪表板。",
+        "邮箱登录并完成注册后，即可查看推荐仪表板。",
       loading: "正在加载推荐数据。",
       empty: "目前还没有会员通过你的推荐码注册。",
       memberReady: "该邮箱会员的推荐码已激活。",
@@ -1145,7 +1145,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     signInMix: {
       title: "注册路径",
       eyebrow: "signup checklist",
-      methods: ["连接邮箱钱包", "转入 10 USDT", "等待 webhook 确认"],
+      methods: ["邮箱登录", "转入 10 USDT", "等待 webhook 确认"],
     },
     notices: {
       copySuccess: "智能钱包地址已复制到剪贴板。",
