@@ -139,10 +139,10 @@ export function SmartWalletApp({
   const adminSignerAddress = getAdminAccountAddress(wallet);
   const accountAddress = account?.address;
   const accountLabel = formatAddressLabel(accountAddress);
-  const adminSignerLabel = formatAddressLabel(adminSignerAddress);
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const adminSignerLabel = formatAddressLabel(adminSignerAddress);
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
@@ -205,7 +205,7 @@ export function SmartWalletApp({
   const mobileDockTitle = isSignupCompleted
     ? dictionary.member.newMember
     : status === "connected" && hasThirdwebClientId
-      ? paymentCtaLabel
+      ? `${MEMBER_SIGNUP_USDT_AMOUNT} USDT`
       : dictionary.runway.steps[0].title;
   const showMobileActionDock =
     hasThirdwebClientId && status === "connected" && !isSignupCompleted;
@@ -937,21 +937,13 @@ export function SmartWalletApp({
 
               {status === "connected" && accountAddress ? (
                 <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                  <div className="flex items-start justify-between gap-3">
+                  <div>
                     <div>
                       <p className="eyebrow">{dictionary.connected.eyebrow}</p>
                       <h3 className="text-xl font-semibold text-slate-950">
                         {accountLabel ?? accountAddress}
                       </h3>
                     </div>
-                    <a
-                      className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                      href={accountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {dictionary.connected.actions.explorer}
-                    </a>
                   </div>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -1093,7 +1085,7 @@ export function SmartWalletApp({
             </div>
 
             <PrimaryActionLink
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800"
               href={mobilePrimaryHref}
               label={mobilePrimaryLabel}
             />
