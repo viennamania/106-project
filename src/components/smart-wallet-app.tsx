@@ -13,13 +13,9 @@ import {
   ArrowUpRight,
   Check,
   Copy,
-  Layers3,
-  ShieldCheck,
-  Smartphone,
   Sparkles,
   Users,
   WalletMinimal,
-  Zap,
 } from "lucide-react";
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
@@ -51,7 +47,6 @@ import { cn } from "@/lib/utils";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
-  BSC_USDT_URL,
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -495,9 +490,6 @@ export function SmartWalletApp({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.common.appName}
                 </h1>
-                <p className="text-sm text-slate-600">
-                  {dictionary.common.headerDescription}
-                </p>
               </div>
             </div>
           </div>
@@ -592,293 +584,271 @@ export function SmartWalletApp({
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
         ) : (
-          <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
-            <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
-            <div className="relative space-y-6">
-              <div className="flex flex-wrap gap-2">
-                <Badge icon={<Smartphone className="size-3.5" />}>
-                  {dictionary.hero.badges[0]}
-                </Badge>
-                <Badge icon={<ShieldCheck className="size-3.5" />}>
-                  {dictionary.hero.badges[1]}
-                </Badge>
-                <Badge icon={<Zap className="size-3.5" />}>
-                  {dictionary.hero.badges[2]}
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                <p className="eyebrow">{dictionary.hero.eyebrow}</p>
-                <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
-                  {dictionary.hero.title}
-                </h2>
-                <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
-                  {dictionary.hero.description}
-                </p>
-              </div>
-
-              <div className="lg:hidden">
-                <div className="rounded-[28px] border border-slate-200/80 bg-slate-950 px-4 py-4 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-white/55">
-                        {mobileDockEyebrow}
-                      </p>
-                      <h3 className="mt-2 text-lg font-semibold tracking-tight">
-                        {isSignupCompleted
-                          ? dictionary.member.completedValue
-                          : status === "connected" && hasThirdwebClientId
-                            ? dictionary.sponsored.title
-                            : dictionary.common.connectWallet}
-                      </h3>
-                    </div>
-                    <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/72">
-                      {status === "connected"
-                        ? isSignupCompleted
-                          ? dictionary.member.completedValue
-                          : dictionary.member.pendingValue
-                        : dictionary.common.status.disconnected}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <CompactMetaCard
-                      label={dictionary.member.labels.requiredDeposit}
-                      value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                    />
-                    <CompactMetaCard
-                      label={dictionary.member.labels.destinationWallet}
-                      value={projectWalletLabel ?? "PROJECT_WALLET"}
-                    />
-                  </div>
-
-                  <PrimaryActionLink
-                    className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-                    href={mobilePrimaryHref}
-                    label={mobilePrimaryLabel}
-                  />
-                </div>
-              </div>
-
-              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
-                {dictionary.metrics.map((metric) => (
-                  <MetricCard
-                    hint={metric.hint}
-                    key={metric.label}
-                    label={metric.label}
-                    value={metric.value}
-                  />
-                ))}
-              </div>
-
-              {isIncomingReferralBlocked && incomingReferralState ? (
-                <div className="rounded-[28px] border border-rose-200 bg-rose-50/95 p-5 text-sm text-rose-950">
-                  <p className="font-semibold">
-                    {dictionary.member.incomingReferralLimitTitle}
+          <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
+              <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
+              <div className="relative space-y-6">
+                <div className="space-y-3">
+                  <p className="eyebrow">
+                    {!hasThirdwebClientId
+                      ? dictionary.member.eyebrow
+                      : status === "connected" && accountAddress
+                        ? dictionary.sponsored.eyebrow
+                        : dictionary.onboarding.eyebrow}
                   </p>
-                  <p className="mt-2 leading-6">
-                    {formatTemplate(dictionary.member.incomingReferralLimitDescription, {
-                      code: incomingReferralState.code,
-                      count: incomingReferralState.completedReferrals,
-                      limit: incomingReferralState.limit,
-                    })}
+                  <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
+                    {!hasThirdwebClientId
+                      ? dictionary.env.title
+                      : isIncomingReferralBlocked
+                        ? dictionary.member.incomingReferralLimitTitle
+                        : status === "connected" && accountAddress
+                          ? dictionary.sponsored.title
+                          : dictionary.common.connectWallet}
+                  </h2>
+                  <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
+                    {!hasThirdwebClientId
+                      ? dictionary.env.description
+                      : isIncomingReferralBlocked && incomingReferralState
+                        ? formatTemplate(
+                            dictionary.member.incomingReferralLimitDescription,
+                            {
+                              code: incomingReferralState.code,
+                              count: incomingReferralState.completedReferrals,
+                              limit: incomingReferralState.limit,
+                            },
+                          )
+                        : status === "connected" && accountAddress
+                          ? dictionary.member.pending
+                          : dictionary.member.disconnected}
                   </p>
                 </div>
-              ) : activeIncomingReferralCode ? (
-                <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-950">
-                  <p className="font-semibold">
-                    {dictionary.member.incomingReferralTitle}
-                  </p>
-                  <p className="mt-2 leading-6">
-                    {dictionary.member.incomingReferralDescription.replace(
-                      "{code}",
-                      activeIncomingReferralCode,
+
+                {isIncomingReferralBlocked && incomingReferralState ? (
+                  <MessageCard tone="error">
+                    {formatTemplate(
+                      dictionary.member.incomingReferralLimitDescription,
+                      {
+                        code: incomingReferralState.code,
+                        count: incomingReferralState.completedReferrals,
+                        limit: incomingReferralState.limit,
+                      },
                     )}
-                  </p>
-                </div>
-              ) : null}
+                  </MessageCard>
+                ) : activeIncomingReferralCode ? (
+                  <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-950">
+                    <p className="font-semibold">
+                      {dictionary.member.incomingReferralTitle}
+                    </p>
+                    <p className="mt-2 leading-6">
+                      {dictionary.member.incomingReferralDescription.replace(
+                        "{code}",
+                        activeIncomingReferralCode,
+                      )}
+                    </p>
+                  </div>
+                ) : null}
 
-              {!hasThirdwebClientId ? (
-                <div className="rounded-[28px] border border-amber-300 bg-amber-50/90 p-5 text-sm text-amber-950">
-                  <p className="font-semibold">{dictionary.env.title}</p>
-                  <p className="mt-2 leading-6">{dictionary.env.description}</p>
-                </div>
-              ) : status === "connected" && accountAddress ? (
-                <div className="grid gap-3 rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:grid-cols-[1.25fr_0.75fr]">
+                {!hasThirdwebClientId ? (
+                  <MessageCard>{dictionary.env.description}</MessageCard>
+                ) : status !== "connected" || !accountAddress ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="eyebrow">{dictionary.connected.eyebrow}</p>
-                        <h3 className="text-xl font-semibold text-slate-950">
-                          {accountLabel ?? accountAddress}
-                        </h3>
-                      </div>
-                      <button
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white"
-                        onClick={handleCopyAddress}
-                        type="button"
-                      >
-                        {copied ? (
-                          <Check className="size-3.5" />
-                        ) : (
-                          <Copy className="size-3.5" />
-                        )}
-                        {copied
-                          ? dictionary.common.copied
-                          : dictionary.common.copyAddress}
-                      </button>
-                    </div>
-
                     <div className="grid gap-3 sm:grid-cols-2">
                       <InfoRow
-                        label={dictionary.connected.labels.chain}
-                        value={chain.name ?? "BSC"}
+                        label={dictionary.member.labels.requiredDeposit}
+                        value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
                       />
                       <InfoRow
-                        label={dictionary.connected.labels.balance}
-                        value={formatBalance(
-                          balance?.displayValue,
-                          balance?.symbol ?? "USDT",
-                          locale,
-                        )}
-                      />
-                      <InfoRow
-                        label={dictionary.connected.labels.walletType}
-                        value={
-                          adminSignerAddress
-                            ? dictionary.common.walletTypeAbstracted
-                            : wallet?.id ?? dictionary.common.notAvailable
-                        }
-                      />
-                      <InfoRow
-                        label={dictionary.connected.labels.adminSigner}
-                        value={
-                          adminSignerLabel ?? dictionary.common.notAvailable
-                        }
+                        label={dictionary.member.labels.destinationWallet}
+                        value={projectWalletLabel ?? dictionary.common.notAvailable}
                       />
                     </div>
-                  </div>
 
-                  <div className="flex flex-col gap-3 rounded-[24px] bg-slate-950 p-4 text-white">
-                    <p className="text-xs uppercase tracking-[0.24em] text-white/60">
-                      {dictionary.connected.quickActionsTitle}
-                    </p>
-                    <ActionLink
-                      href={accountUrl}
-                      label={dictionary.connected.actions.explorer}
-                    />
-                    <ActionLink
-                      href={BSC_USDT_URL}
-                      label={dictionary.connected.actions.contract}
-                    />
-                    <ActionLink
-                      href="https://thirdweb.com/dashboard"
-                      label={dictionary.connected.actions.dashboard}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
-                  <div
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
-                    id="wallet-onboarding"
-                  >
-                    <p className="eyebrow mb-3">{dictionary.onboarding.eyebrow}</p>
-                    <div className="space-y-3 sm:hidden">
-                      {dictionary.onboarding.cards.map((card, index) => (
-                        <CompactFlowCard
-                          description={card.description}
-                          icon={
-                            index === 0 ? (
-                              <Sparkles className="size-4" />
-                            ) : index === 1 ? (
-                              <Layers3 className="size-4" />
-                            ) : (
-                              <Zap className="size-4" />
-                            )
-                          }
-                          key={card.title}
-                          title={card.title}
+                    <div
+                      className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
+                      id="wallet-onboarding"
+                    >
+                      <div className="sm:hidden">
+                        <ConnectButton
+                          accountAbstraction={smartWalletOptions}
+                          appMetadata={appMetadata}
+                          chain={smartWalletChain}
+                          client={thirdwebClient}
+                          connectButton={{
+                            className:
+                              "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
+                            label: dictionary.common.connectWallet,
+                          }}
+                          connectModal={{
+                            title: dictionary.common.connectModalTitle,
+                            titleIcon: "/favicon.ico",
+                          }}
+                          locale={thirdwebLocales[locale]}
+                          theme="dark"
+                          wallets={supportedWallets}
                         />
-                      ))}
+                      </div>
 
-                      <ConnectButton
-                        accountAbstraction={smartWalletOptions}
-                        appMetadata={appMetadata}
-                        chain={smartWalletChain}
-                        client={thirdwebClient}
-                        connectButton={{
-                          className:
-                            "!h-11 !w-full !rounded-full !border !border-slate-200 !bg-slate-950 !px-4 !text-sm !font-medium !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]",
-                          label: dictionary.common.connectWallet,
-                        }}
-                        connectModal={{
-                          title: dictionary.common.connectModalTitle,
-                          titleIcon: "/favicon.ico",
-                        }}
-                        locale={thirdwebLocales[locale]}
-                        theme="dark"
-                        wallets={supportedWallets}
-                      />
-                    </div>
-
-                    <div className="hidden sm:block">
-                      <ConnectEmbed
-                        accountAbstraction={smartWalletOptions}
-                        appMetadata={appMetadata}
-                        chain={smartWalletChain}
-                        client={thirdwebClient}
-                        locale={thirdwebLocales[locale]}
-                        modalSize="compact"
-                        theme="dark"
-                        wallets={supportedWallets}
-                      />
+                      <div className="hidden sm:block">
+                        <ConnectEmbed
+                          accountAbstraction={smartWalletOptions}
+                          appMetadata={appMetadata}
+                          chain={smartWalletChain}
+                          client={thirdwebClient}
+                          locale={thirdwebLocales[locale]}
+                          modalSize="compact"
+                          theme="dark"
+                          wallets={supportedWallets}
+                        />
+                      </div>
                     </div>
                   </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <InfoRow
+                        label={dictionary.member.labels.signupStatus}
+                        value={dictionary.member.pendingValue}
+                      />
+                      <InfoRow
+                        label={dictionary.member.labels.lastWallet}
+                        value={accountLabel ?? accountAddress}
+                      />
+                    </div>
 
-                  <div className="hidden gap-3 lg:grid">
-                    {dictionary.onboarding.cards.map((card, index) => (
-                      <FlowCard
-                        description={card.description}
-                        icon={
-                          index === 0 ? (
-                            <Sparkles className="size-4" />
-                          ) : index === 1 ? (
-                            <Layers3 className="size-4" />
+                    <div
+                      className="rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] scroll-mt-24 sm:scroll-mt-28"
+                      id="signup-payment"
+                    >
+                      <div className="grid grid-cols-2 gap-2">
+                        <CompactMetaCard
+                          label={dictionary.member.labels.requiredDeposit}
+                          value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                        />
+                        <CompactMetaCard
+                          label={dictionary.member.labels.destinationWallet}
+                          value={projectWalletLabel ?? "PROJECT_WALLET"}
+                        />
+                      </div>
+
+                      <div className="mt-4 flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+                            {dictionary.connected.eyebrow}
+                          </p>
+                          <p className="mt-2 text-lg font-semibold tracking-tight">
+                            {accountLabel ?? accountAddress}
+                          </p>
+                        </div>
+                        <button
+                          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/15"
+                          onClick={handleCopyAddress}
+                          type="button"
+                        >
+                          {copied ? (
+                            <Check className="size-3.5" />
                           ) : (
-                            <Zap className="size-4" />
-                          )
+                            <Copy className="size-3.5" />
+                          )}
+                          {copied
+                            ? dictionary.common.copied
+                            : dictionary.common.copyAddress}
+                        </button>
+                      </div>
+
+                      <a
+                        className="mt-4 block break-all text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
+                        href={projectWalletUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {projectWallet ?? dictionary.common.notAvailable}
+                      </a>
+
+                      <TransactionButton
+                        className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={
+                          !accountAddress ||
+                          !hasThirdwebClientId ||
+                          !projectWallet ||
+                          isIncomingReferralBlocked ||
+                          isSignupCompleted
                         }
-                        key={card.title}
-                        title={card.title}
-                      />
-                    ))}
+                        onError={(error) =>
+                          setNotice({
+                            tone: "error",
+                            text: error.message,
+                          })
+                        }
+                        onTransactionConfirmed={(receipt) => {
+                          setNotice({
+                            tone: "success",
+                            text: dictionary.sponsored.txConfirmed,
+                            href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                          });
+
+                          window.setTimeout(() => {
+                            void runMemberSync({ background: true });
+                          }, 2500);
+                        }}
+                        onTransactionSent={(result) => {
+                          setNotice({
+                            tone: "info",
+                            text: dictionary.sponsored.txSent,
+                            href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                          });
+
+                          window.setTimeout(() => {
+                            void runMemberSync({ background: true });
+                          }, 4000);
+                        }}
+                        transaction={() => {
+                          if (!accountAddress) {
+                            throw new Error(dictionary.sponsored.connectFirst);
+                          }
+
+                          if (!projectWallet) {
+                            throw new Error(
+                              dictionary.member.errors.projectWalletMissing,
+                            );
+                          }
+
+                          if (isIncomingReferralBlocked && incomingReferralState) {
+                            throw new Error(
+                              formatTemplate(
+                                dictionary.member.errors.referralLimitReached,
+                                {
+                                  code: incomingReferralState.code,
+                                  count: incomingReferralState.completedReferrals,
+                                  limit: incomingReferralState.limit,
+                                },
+                              ),
+                            );
+                          }
+
+                          return transfer({
+                            amount: MEMBER_SIGNUP_USDT_AMOUNT,
+                            contract: usdtContract,
+                            to: projectWallet,
+                          });
+                        }}
+                        type="button"
+                        unstyled
+                      >
+                        {paymentCtaLabel}
+                      </TransactionButton>
+                    </div>
+
+                    <NoticeCard
+                      notice={notice}
+                      openExplorerLabel={dictionary.sponsored.openExplorer}
+                      placeholder={dictionary.sponsored.emptyNotice}
+                    />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <Panel
-              className="order-3 lg:order-1"
-              contentClassName="gap-3"
-              eyebrow={dictionary.runway.eyebrow}
-              title={dictionary.runway.title}
-            >
-              {dictionary.runway.steps.map((step, index) => (
-                <RunwayStep
-                  description={step.description}
-                  index={`0${index + 1}`}
-                  key={step.title}
-                  title={step.title}
-                />
-              ))}
-            </Panel>
 
             <Panel
-              className="order-2 lg:order-2"
               contentClassName="gap-4"
               eyebrow={dictionary.member.eyebrow}
               title={dictionary.member.title}
@@ -895,6 +865,54 @@ export function SmartWalletApp({
                 <MessageCard tone="error">
                   {memberSync.error ?? dictionary.member.errors.syncFailed}
                 </MessageCard>
+              ) : null}
+
+              {status === "connected" && accountAddress ? (
+                <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="eyebrow">{dictionary.connected.eyebrow}</p>
+                      <h3 className="text-xl font-semibold text-slate-950">
+                        {accountLabel ?? accountAddress}
+                      </h3>
+                    </div>
+                    <a
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                      href={accountUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {dictionary.connected.actions.explorer}
+                    </a>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <InfoRow
+                      label={dictionary.connected.labels.chain}
+                      value={chain.name ?? "BSC"}
+                    />
+                    <InfoRow
+                      label={dictionary.connected.labels.balance}
+                      value={formatBalance(
+                        balance?.displayValue,
+                        balance?.symbol ?? "USDT",
+                        locale,
+                      )}
+                    />
+                    <InfoRow
+                      label={dictionary.connected.labels.walletType}
+                      value={
+                        adminSignerAddress
+                          ? dictionary.common.walletTypeAbstracted
+                          : wallet?.id ?? dictionary.common.notAvailable
+                      }
+                    />
+                    <InfoRow
+                      label={dictionary.connected.labels.adminSigner}
+                      value={adminSignerLabel ?? dictionary.common.notAvailable}
+                    />
+                  </div>
+                </div>
               ) : null}
 
               {memberSync.member ? (
@@ -941,71 +959,10 @@ export function SmartWalletApp({
                       }
                     />
                     <InfoRow
-                      label={dictionary.member.labels.walletCount}
-                      value={String(memberSync.member.walletAddresses.length)}
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.requiredDeposit}
-                      value={`${memberSync.member.requiredDepositAmount} USDT`}
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.destinationWallet}
-                      value={
-                        projectWalletLabel ?? dictionary.common.notAvailable
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.awaitingPaymentSince}
-                      value={formatDateTime(
-                        memberSync.member.awaitingPaymentSince,
-                        locale,
-                      )}
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.lastConnectedAt}
-                      value={formatDateTime(
-                        memberSync.member.lastConnectedAt,
-                        locale,
-                      )}
-                    />
-                    <InfoRow
                       label={dictionary.member.labels.referredByCode}
                       value={
                         memberSync.member.referredByCode ??
                         dictionary.member.noReferralApplied
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.updatedAt}
-                      value={formatDateTime(memberSync.member.updatedAt, locale)}
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.completionAt}
-                      value={
-                        memberSync.member.registrationCompletedAt
-                          ? formatDateTime(
-                              memberSync.member.registrationCompletedAt,
-                              locale,
-                            )
-                          : dictionary.common.notAvailable
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.paymentReceivedAt}
-                      value={
-                        memberSync.member.paymentReceivedAt
-                          ? formatDateTime(
-                              memberSync.member.paymentReceivedAt,
-                              locale,
-                            )
-                          : dictionary.common.notAvailable
-                      }
-                    />
-                    <InfoRow
-                      label={dictionary.member.labels.referralCode}
-                      value={
-                        memberSync.member.referralCode ??
-                        dictionary.common.notAvailable
                       }
                     />
                   </div>
@@ -1027,25 +984,6 @@ export function SmartWalletApp({
                     </div>
                   ) : null}
 
-                  {referralLink && isSignupCompleted ? (
-                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                        {dictionary.member.labels.referralLink}
-                      </p>
-                      <a
-                        className="mt-3 block break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-                        href={referralLink}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {referralLink}
-                      </a>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        {dictionary.member.shareHint}
-                      </p>
-                    </div>
-                  ) : null}
-
                   <div className="flex flex-wrap gap-3">
                     <button
                       className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1058,178 +996,18 @@ export function SmartWalletApp({
                       {dictionary.member.actions.refreshStatus}
                     </button>
 
-                    {isSignupCompleted ? (
-                      <Link
-                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                        href={`/${locale}/referrals`}
-                      >
-                        {dictionary.member.actions.viewReferrals}
-                      </Link>
-                    ) : (
-                      <a
-                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                        href={projectWalletUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {dictionary.member.actions.openProjectWallet}
-                      </a>
-                    )}
+                    <a
+                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                      href={projectWalletUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {dictionary.member.actions.openProjectWallet}
+                    </a>
                   </div>
                 </>
               ) : null}
             </Panel>
-
-            <Panel
-              className="order-1 lg:order-3"
-              id="signup-payment"
-              contentClassName="gap-4"
-              eyebrow={dictionary.sponsored.eyebrow}
-              title={dictionary.sponsored.title}
-            >
-              {isIncomingReferralBlocked && incomingReferralState ? (
-                <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-950">
-                  <p className="font-semibold">
-                    {dictionary.member.incomingReferralLimitTitle}
-                  </p>
-                  <p className="mt-2">
-                    {formatTemplate(dictionary.member.incomingReferralLimitDescription, {
-                      code: incomingReferralState.code,
-                      count: incomingReferralState.completedReferrals,
-                      limit: incomingReferralState.limit,
-                    })}
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] p-5 text-white shadow-[0_24px_60px_rgba(29,78,216,0.22)]">
-                <p className="text-sm leading-6 text-white/70">
-                  {dictionary.sponsored.description
-                    .replace("{amount}", MEMBER_SIGNUP_USDT_AMOUNT)
-                    .replace(
-                      "{wallet}",
-                      projectWalletLabel ?? "PROJECT_WALLET",
-                    )}
-                </p>
-                <a
-                  className="mt-4 block break-all text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
-                  href={projectWalletUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {projectWallet ?? dictionary.common.notAvailable}
-                </a>
-                <TransactionButton
-                  className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={
-                    !accountAddress ||
-                    !hasThirdwebClientId ||
-                    !projectWallet ||
-                    isIncomingReferralBlocked ||
-                    isSignupCompleted
-                  }
-                  onError={(error) =>
-                    setNotice({
-                      tone: "error",
-                      text: error.message,
-                    })
-                  }
-                  onTransactionConfirmed={(receipt) =>
-                    {
-                      setNotice({
-                        tone: "success",
-                        text: dictionary.sponsored.txConfirmed,
-                        href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                      });
-
-                      window.setTimeout(() => {
-                        void runMemberSync({ background: true });
-                      }, 2500);
-                    }
-                  }
-                  onTransactionSent={(result) =>
-                    {
-                      setNotice({
-                        tone: "info",
-                        text: dictionary.sponsored.txSent,
-                        href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                      });
-
-                      window.setTimeout(() => {
-                        void runMemberSync({ background: true });
-                      }, 4000);
-                    }
-                  }
-                  transaction={() => {
-                    if (!accountAddress) {
-                      throw new Error(dictionary.sponsored.connectFirst);
-                    }
-
-                    if (!projectWallet) {
-                      throw new Error(dictionary.member.errors.projectWalletMissing);
-                    }
-
-                    if (isIncomingReferralBlocked && incomingReferralState) {
-                      throw new Error(
-                        formatTemplate(dictionary.member.errors.referralLimitReached, {
-                          code: incomingReferralState.code,
-                          count: incomingReferralState.completedReferrals,
-                          limit: incomingReferralState.limit,
-                        }),
-                      );
-                    }
-
-                    return transfer({
-                      amount: MEMBER_SIGNUP_USDT_AMOUNT,
-                      contract: usdtContract,
-                      to: projectWallet,
-                    });
-                  }}
-                  type="button"
-                  unstyled
-                >
-                  {paymentCtaLabel}
-                </TransactionButton>
-              </div>
-
-              <NoticeCard
-                notice={notice}
-                openExplorerLabel={dictionary.sponsored.openExplorer}
-                placeholder={dictionary.sponsored.emptyNotice}
-              />
-            </Panel>
-
-            <Panel
-              className="order-4"
-              contentClassName="gap-3"
-              eyebrow={dictionary.surface.eyebrow}
-              title={dictionary.surface.title}
-            >
-              {dictionary.surface.points.map((point) => (
-                <SurfacePoint
-                  description={point.description}
-                  key={point.title}
-                  title={point.title}
-                />
-              ))}
-            </Panel>
-
-            <Panel
-              className="order-5 hidden lg:block"
-              contentClassName="flex-row flex-wrap"
-              eyebrow={dictionary.signInMix.eyebrow}
-              title={dictionary.signInMix.title}
-            >
-              {dictionary.signInMix.methods.map((method) => (
-                <div
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
-                  key={method}
-                >
-                  {method}
-                </div>
-              ))}
-            </Panel>
-          </div>
           </section>
         )}
       </main>
@@ -1686,91 +1464,6 @@ function CompactMetaCard({
   );
 }
 
-function FlowCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <div className="mb-3 flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
-        {icon}
-      </div>
-      <h3 className="text-base font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
-function CompactFlowCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
-      <div className="flex items-start gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
-          <p className="mt-1 text-sm leading-5 text-slate-600">
-            {description}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RunwayStep({
-  index,
-  title,
-  description,
-}: {
-  index: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white">
-          {index}
-        </div>
-        <div>
-          <h4 className="font-semibold text-slate-950">{title}</h4>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SurfacePoint({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4">
-      <h4 className="font-semibold text-slate-950">{title}</h4>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
 function Badge({
   children,
   icon,
@@ -1915,20 +1608,6 @@ function NoticeCard({
         </a>
       ) : null}
     </div>
-  );
-}
-
-function ActionLink({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-      href={href}
-      rel="noreferrer"
-      target="_blank"
-    >
-      {label}
-      <ArrowUpRight className="size-4" />
-    </a>
   );
 }
 
