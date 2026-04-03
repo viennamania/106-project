@@ -33,9 +33,16 @@ export function LanguageSwitcher({
         onChange={(event) => {
           const nextLocale = event.target.value as Locale;
           const nextPathname = replaceLocaleInPathname(pathname, nextLocale);
+          const queryString =
+            typeof window === "undefined"
+              ? ""
+              : window.location.search.slice(1);
+          const nextHref = queryString
+            ? `${nextPathname}?${queryString}`
+            : nextPathname;
 
           startTransition(() => {
-            router.replace(nextPathname, { scroll: false });
+            router.replace(nextHref, { scroll: false });
           });
         }}
         value={locale}

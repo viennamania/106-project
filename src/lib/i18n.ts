@@ -482,7 +482,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       memberReady: "이 이메일 회원의 레퍼럴 코드가 활성화되어 있습니다.",
       memberMissing: "회원 상태를 다시 동기화한 뒤 시도하세요.",
       paymentRequired:
-        "아직 회원가입이 완료되지 않았습니다. 홈으로 돌아가 10 USDT 결제를 완료하세요.",
+        "아직 회원가입이 완료되지 않았습니다. 활성화 화면으로 이동해 10 USDT 결제를 완료하세요.",
       labels: {
         currentLevel: "현재 단계",
         descendants: "전체 하위 추천 수",
@@ -502,7 +502,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       actions: {
         backToRoot: "처음으로",
         backHome: "홈으로 돌아가기",
-        completeSignup: "홈에서 가입 완료하기",
+        completeSignup: "활성화 화면에서 가입 완료하기",
         refresh: "새로고침",
         viewChildren: "하위 보기",
       },
@@ -771,7 +771,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       memberReady: "Your referral code is active for this email member.",
       memberMissing: "Sync the member record first, then try again.",
       paymentRequired:
-        "Signup is not complete yet. Go back home and finish the 10 USDT payment first.",
+        "Signup is not complete yet. Open the activation flow and finish the 10 USDT payment first.",
       labels: {
         currentLevel: "Current level",
         descendants: "Total descendants",
@@ -791,7 +791,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       actions: {
         backToRoot: "Back to root",
         backHome: "Back home",
-        completeSignup: "Complete signup on home",
+        completeSignup: "Complete signup on activation",
         refresh: "Refresh",
         viewChildren: "View children",
       },
@@ -1061,7 +1061,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       memberReady: "このメール会員のレファラルコードは有効です。",
       memberMissing: "先に会員情報を同期してから再試行してください。",
       paymentRequired:
-        "まだ登録が完了していません。ホームに戻って 10 USDT の支払いを完了してください。",
+        "まだ登録が完了していません。アクティベーション画面へ移動して 10 USDT の支払いを完了してください。",
       labels: {
         currentLevel: "現在の段階",
         descendants: "下位ネットワーク総数",
@@ -1081,7 +1081,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       actions: {
         backToRoot: "最初に戻る",
         backHome: "ホームへ戻る",
-        completeSignup: "ホームで登録を完了する",
+        completeSignup: "アクティベーション画面で登録を完了する",
         refresh: "再読み込み",
         viewChildren: "下位を見る",
       },
@@ -1350,7 +1350,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       memberReady: "该邮箱会员的推荐码已激活。",
       memberMissing: "请先同步会员信息后再试。",
       paymentRequired:
-        "注册尚未完成。请先回到首页完成 10 USDT 支付。",
+        "注册尚未完成。请先进入激活流程完成 10 USDT 支付。",
       labels: {
         currentLevel: "当前层级",
         descendants: "全部下级人数",
@@ -1370,7 +1370,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       actions: {
         backToRoot: "返回根节点",
         backHome: "返回首页",
-        completeSignup: "回首页完成注册",
+        completeSignup: "前往激活流程完成注册",
         refresh: "刷新",
         viewChildren: "查看下级",
       },

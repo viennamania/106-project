@@ -407,7 +407,7 @@ export function ReferralsPage({
                 <div className="flex flex-wrap gap-3">
                   <Link
                     className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                    href={`/${locale}`}
+                    href={`/${locale}/activate`}
                   >
                     {dictionary.referralsPage.actions.completeSignup}
                   </Link>
