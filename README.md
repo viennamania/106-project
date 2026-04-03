@@ -42,7 +42,14 @@ THIRDWEB_WEBHOOK_SECRETS=
 MONGODB_URI=your_mongodb_atlas_connection_string
 MONGODB_DB_NAME=your_database_name
 MONGODB_MEMBERS_COLLECTION=members
+MONGODB_REFERRAL_REWARDS_COLLECTION=referralRewards
 MONGODB_THIRDWEB_WEBHOOK_EVENTS_COLLECTION=thirdwebWebhookEvents
+MONGODB_THIRDWEB_WEBHOOK_INGRESS_COLLECTION=thirdwebWebhookIngressLogs
+RECONCILE_API_TOKEN=optional_shared_secret
+RECONCILE_BASE_URL=https://your-api-base-url
+RECONCILE_LIMIT=25
+RECONCILE_INTERVAL_MS=30000
+RECONCILE_EMAIL=
 ```
 
 3. 개발 서버 실행
@@ -82,6 +89,15 @@ pnpm thirdweb:webhooks:register
 
 - BSC USDT `Transfer` 이벤트 중 `to=PROJECT_WALLET`
 - BSC USDT `Transfer` 이벤트 중 `from=PROJECT_WALLET`
+
+## Railway backend
+
+- 운영 백엔드를 분리할 때는 [docs/railway-backend.md](/Users/nevertry/parksang/106-project/docs/railway-backend.md)를 기준으로 설정하면 됩니다.
+- `GET /api/health` 는 필수 환경변수와 MongoDB 연결 상태를 확인합니다.
+- `POST /api/internal/reconcile-signups` 는 Bearer 토큰으로 보호된 재조정 엔드포인트입니다.
+- `pnpm reconcile:pending` 는 1회 재조정을 실행합니다.
+- `pnpm reconcile:worker` 는 일정 간격으로 재조정을 반복합니다.
+- `RECONCILE_EMAIL` 을 주면 특정 이메일만 재조정할 수 있습니다.
 
 ## Signup flow
 

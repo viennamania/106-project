@@ -743,6 +743,80 @@ export async function getMemberRegistrationStatus(emailInput: string) {
   return finalized.member;
 }
 
+function normalizeReconcileEmail(email?: string | null) {
+  if (typeof email !== "string") {
+    return null;
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  return normalizedEmail || null;
+}
+
+function resolveReconcileLimit(limit?: number | null) {
+  const parsedLimit =
+    typeof limit === "number" && Number.isFinite(limit)
+      ? Math.trunc(limit)
+      : 25;
+
+  return Math.min(Math.max(parsedLimit, 1), 100);
+}
+
+export async function reconcilePendingMemberRegistrations(options?: {
+  email?: string | null;
+  limit?: number | null;
+}) {
+  const normalizedEmail = normalizeReconcileEmail(options?.email);
+  const limit = resolveReconcileLimit(options?.limit);
+  const collection = await getMembersCollection();
+  const pendingMembers = await collection
+    .find({
+      ...(normalizedEmail ? { email: normalizedEmail } : {}),
+      status: "pending_payment",
+    })
+    .sort({
+      awaitingPaymentSince: 1,
+    })
+    .limit(limit)
+    .toArray();
+
+  let completed = 0;
+  let stillPending = 0;
+  const members = [];
+
+  for (const member of pendingMembers) {
+    const finalized = await maybeCompleteMemberWithStoredPayment({
+      collection,
+      member,
+    });
+
+    if (finalized.justCompleted) {
+      completed += 1;
+    }
+
+    if (finalized.member.status === "pending_payment") {
+      stillPending += 1;
+    }
+
+    members.push({
+      awaitingPaymentSince: finalized.member.awaitingPaymentSince,
+      email: finalized.member.email,
+      justCompleted: finalized.justCompleted,
+      paymentReceivedAt: finalized.member.paymentReceivedAt ?? null,
+      paymentTransactionHash: finalized.member.paymentTransactionHash ?? null,
+      status: finalized.member.status,
+      walletAddress: finalized.member.lastWalletAddress,
+    });
+  }
+
+  return {
+    checked: pendingMembers.length,
+    completed,
+    limit,
+    members,
+    stillPending,
+  };
+}
+
 async function resolveReferrer({
   email,
   referredByCode,
