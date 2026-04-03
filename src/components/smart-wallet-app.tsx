@@ -115,6 +115,9 @@ export function SmartWalletApp({
     chain: smartWalletChain,
     address: account?.address,
     tokenAddress: BSC_USDT_ADDRESS,
+  }, {
+    refetchInterval: status === "connected" ? 5000 : false,
+    refetchIntervalInBackground: true,
   });
   const [notice, setNotice] = useState<WalletNotice | null>(null);
   const [copied, setCopied] = useState(false);
@@ -754,12 +757,6 @@ export function SmartWalletApp({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {isInsufficientUsdtBalance ? (
-                      <MessageCard tone="error">
-                        {insufficientBalanceMessage}
-                      </MessageCard>
-                    ) : null}
-
                     <div className="grid gap-3">
                       <InfoRow
                         label={dictionary.member.labels.signupStatus}
@@ -786,6 +783,12 @@ export function SmartWalletApp({
                           {dictionary.member.pendingValue}
                         </div>
                       </div>
+
+                      {isInsufficientUsdtBalance ? (
+                        <p className="mt-4 rounded-[18px] border border-rose-200/20 bg-rose-400/10 px-4 py-3 text-sm leading-6 text-rose-100">
+                          {insufficientBalanceMessage}
+                        </p>
+                      ) : null}
 
                       <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
