@@ -50,6 +50,8 @@ const REFERRAL_CODE_LENGTH = 8;
 const BACKFILL_MIN_BLOCK_RANGE = BigInt(50_000);
 const BACKFILL_MAX_BLOCK_RANGE = BigInt(500_000);
 const BACKFILL_BLOCK_BUFFER = BigInt(10_000);
+const BACKFILL_INITIAL_LOG_CHUNK = BigInt(5_000);
+const BACKFILL_MIN_LOG_CHUNK = BigInt(250);
 const BACKFILL_COOLDOWN_MS = 30_000;
 const ESTIMATED_BSC_BLOCK_TIME_SECONDS = 3;
 
@@ -323,6 +325,30 @@ function encodeTopicAddress(address: string): `0x${string}` {
   return `0x000000000000000000000000${normalizeAddress(address).slice(2)}`;
 }
 
+function getSmallerBlockChunk(blockChunk: bigint) {
+  const nextChunk = blockChunk / BigInt(2);
+
+  return nextChunk >= BACKFILL_MIN_LOG_CHUNK
+    ? nextChunk
+    : BACKFILL_MIN_LOG_CHUNK;
+}
+
+function isRpcLimitExceededError(error: unknown) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === -32005
+  ) {
+    return true;
+  }
+
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes("limit exceeded")
+  );
+}
+
 function buildBackfilledInsightEventRecord({
   amount,
   blockHash,
@@ -380,104 +406,149 @@ function buildBackfilledInsightEventRecord({
 async function backfillSignupPaymentEvent(
   member: MemberDocument,
 ): Promise<ThirdwebWebhookEventDocument | null> {
-  const projectWallet = getProjectWallet();
-  const collection = await getThirdwebWebhookEventsCollection();
-  const rpcClient = getRpcClient({
-    chain: smartWalletChain,
-    client: thirdwebClient,
-  });
-  const awaitingPaymentSinceSeconds = Math.floor(
-    member.awaitingPaymentSince.getTime() / 1000,
-  );
-  const ageSeconds = Math.max(
-    0,
-    Math.floor((Date.now() - member.awaitingPaymentSince.getTime()) / 1000),
-  );
-  const estimatedAgeBlocks = BigInt(
-    Math.ceil(ageSeconds / ESTIMATED_BSC_BLOCK_TIME_SECONDS),
-  );
-  const estimatedRange = estimatedAgeBlocks + BACKFILL_BLOCK_BUFFER;
-  const blockRange =
-    estimatedRange < BACKFILL_MIN_BLOCK_RANGE
-      ? BACKFILL_MIN_BLOCK_RANGE
-      : estimatedRange > BACKFILL_MAX_BLOCK_RANGE
-        ? BACKFILL_MAX_BLOCK_RANGE
-        : estimatedRange;
-  const latestBlock = await eth_blockNumber(rpcClient);
-  const fromBlock =
-    latestBlock > blockRange ? latestBlock - blockRange : BigInt(0);
-  const logs = await eth_getLogs(rpcClient, {
-    address: BSC_USDT_ADDRESS,
-    fromBlock,
-    toBlock: latestBlock,
-    topics: [
+  try {
+    const projectWallet = getProjectWallet();
+    const collection = await getThirdwebWebhookEventsCollection();
+    const rpcClient = getRpcClient({
+      chain: smartWalletChain,
+      client: thirdwebClient,
+    });
+    const awaitingPaymentSinceSeconds = Math.floor(
+      member.awaitingPaymentSince.getTime() / 1000,
+    );
+    const ageSeconds = Math.max(
+      0,
+      Math.floor((Date.now() - member.awaitingPaymentSince.getTime()) / 1000),
+    );
+    const estimatedAgeBlocks = BigInt(
+      Math.ceil(ageSeconds / ESTIMATED_BSC_BLOCK_TIME_SECONDS),
+    );
+    const estimatedRange = estimatedAgeBlocks + BACKFILL_BLOCK_BUFFER;
+    const blockRange =
+      estimatedRange < BACKFILL_MIN_BLOCK_RANGE
+        ? BACKFILL_MIN_BLOCK_RANGE
+        : estimatedRange > BACKFILL_MAX_BLOCK_RANGE
+          ? BACKFILL_MAX_BLOCK_RANGE
+          : estimatedRange;
+    const latestBlock = await eth_blockNumber(rpcClient);
+    const fromBlock =
+      latestBlock > blockRange ? latestBlock - blockRange : BigInt(0);
+    const topics: `0x${string}`[] = [
       ERC20_TRANSFER_SIG_HASH as `0x${string}`,
       encodeTopicAddress(member.lastWalletAddress),
       encodeTopicAddress(projectWallet),
-    ],
-  });
-  const blockTimestampCache = new Map<bigint, number>();
+    ];
+    const blockTimestampCache = new Map<bigint, number>();
+    let chunkFrom = fromBlock;
 
-  for (const log of logs) {
-    if (
-      log.blockHash === null ||
-      log.blockNumber === null ||
-      log.logIndex === null ||
-      log.transactionHash === null ||
-      log.transactionIndex === null
-    ) {
-      continue;
+    while (chunkFrom <= latestBlock) {
+      let chunkSize =
+        latestBlock - chunkFrom + BigInt(1) < BACKFILL_INITIAL_LOG_CHUNK
+          ? latestBlock - chunkFrom + BigInt(1)
+          : BACKFILL_INITIAL_LOG_CHUNK;
+
+      let logs;
+      let chunkTo;
+
+      while (true) {
+        chunkTo =
+          chunkFrom + chunkSize - BigInt(1) > latestBlock
+            ? latestBlock
+            : chunkFrom + chunkSize - BigInt(1);
+
+        try {
+          logs = await eth_getLogs(rpcClient, {
+            address: BSC_USDT_ADDRESS,
+            fromBlock: chunkFrom,
+            toBlock: chunkTo,
+            topics,
+          });
+          break;
+        } catch (error) {
+          if (
+            !isRpcLimitExceededError(error) ||
+            chunkSize <= BACKFILL_MIN_LOG_CHUNK
+          ) {
+            throw error;
+          }
+
+          chunkSize = getSmallerBlockChunk(chunkSize);
+        }
+      }
+
+      for (const log of logs) {
+        if (
+          log.blockHash === null ||
+          log.blockNumber === null ||
+          log.logIndex === null ||
+          log.transactionHash === null ||
+          log.transactionIndex === null
+        ) {
+          continue;
+        }
+
+        const blockNumber = log.blockNumber;
+        const amount = BigInt(log.data);
+
+        if (amount !== BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI)) {
+          continue;
+        }
+
+        let blockTimestamp = blockTimestampCache.get(blockNumber);
+
+        if (blockTimestamp === undefined) {
+          const block = await eth_getBlockByNumber(rpcClient, {
+            blockNumber,
+          });
+          blockTimestamp = Number(block.timestamp);
+          blockTimestampCache.set(blockNumber, blockTimestamp);
+        }
+
+        if (blockTimestamp < awaitingPaymentSinceSeconds) {
+          continue;
+        }
+
+        const payload = buildBackfilledInsightEventRecord({
+          amount: MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+          blockHash: log.blockHash,
+          blockNumber: Number(blockNumber),
+          blockTimestamp,
+          fromAddress: member.lastWalletAddress,
+          logData: log.data,
+          logIndex: Number(log.logIndex),
+          toAddress: projectWallet,
+          topics: log.topics.filter(Boolean) as string[],
+          transactionHash: log.transactionHash,
+          transactionIndex: Number(log.transactionIndex),
+        });
+        const trackedEvent = extractTrackedTransferEvent(payload, projectWallet);
+
+        if (!trackedEvent) {
+          continue;
+        }
+
+        await collection.updateOne(
+          { webhookEventId: trackedEvent.webhookEventId },
+          {
+            $set: trackedEvent,
+          },
+          { upsert: true },
+        );
+
+        return trackedEvent;
+      }
+
+      if (chunkTo === latestBlock) {
+        break;
+      }
+
+      chunkFrom = chunkTo + BigInt(1);
     }
-
-    const blockNumber = log.blockNumber;
-    const amount = BigInt(log.data);
-
-    if (amount !== BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI)) {
-      continue;
-    }
-
-    let blockTimestamp = blockTimestampCache.get(blockNumber);
-
-    if (blockTimestamp === undefined) {
-      const block = await eth_getBlockByNumber(rpcClient, {
-        blockNumber,
-      });
-      blockTimestamp = Number(block.timestamp);
-      blockTimestampCache.set(blockNumber, blockTimestamp);
-    }
-
-    if (blockTimestamp < awaitingPaymentSinceSeconds) {
-      continue;
-    }
-
-    const payload = buildBackfilledInsightEventRecord({
-      amount: MEMBER_SIGNUP_USDT_AMOUNT_WEI,
-      blockHash: log.blockHash,
-      blockNumber: Number(blockNumber),
-      blockTimestamp,
-      fromAddress: member.lastWalletAddress,
-      logData: log.data,
-      logIndex: Number(log.logIndex),
-      toAddress: projectWallet,
-      topics: log.topics.filter(Boolean) as string[],
-      transactionHash: log.transactionHash,
-      transactionIndex: Number(log.transactionIndex),
+  } catch (error) {
+    console.error("[member-service] signup payment backfill failed", {
+      error,
+      walletAddress: member.lastWalletAddress,
     });
-    const trackedEvent = extractTrackedTransferEvent(payload, projectWallet);
-
-    if (!trackedEvent) {
-      continue;
-    }
-
-    await collection.updateOne(
-      { webhookEventId: trackedEvent.webhookEventId },
-      {
-        $set: trackedEvent,
-      },
-      { upsert: true },
-    );
-
-    return trackedEvent;
   }
 
   return null;

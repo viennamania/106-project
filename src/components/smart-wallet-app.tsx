@@ -87,6 +87,13 @@ type ReferralDashboardState = {
   totalReferrals: number;
 };
 
+const GENERIC_MEMBER_SYNC_ERRORS = new Set([
+  "error",
+  "Failed to read member.",
+  "Failed to sync member.",
+  "Member sync failed.",
+]);
+
 const CELEBRATION_DURATION_MS = 4200;
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
@@ -224,6 +231,24 @@ export function SmartWalletApp({
       : dictionary.runway.steps[0].title;
   const showMobileActionDock =
     hasThirdwebClientId && status === "connected" && !isSignupCompleted;
+
+  function resolveMemberSyncErrorMessage(error: unknown) {
+    if (!(error instanceof Error)) {
+      return dictionary.member.errors.syncFailed;
+    }
+
+    const rawMessage = error.message.trim();
+
+    if (!rawMessage || GENERIC_MEMBER_SYNC_ERRORS.has(rawMessage)) {
+      return dictionary.member.errors.syncFailed;
+    }
+
+    if (rawMessage === "PROJECT_WALLET is not configured.") {
+      return dictionary.member.errors.projectWalletMissing;
+    }
+
+    return rawMessage;
+  }
 
   function triggerCelebration() {
     if (celebrationTimeoutRef.current) {
@@ -394,10 +419,7 @@ export function SmartWalletApp({
     } catch (error) {
       setMemberSync((current) => ({
         ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : dictionary.member.errors.syncFailed,
+        error: resolveMemberSyncErrorMessage(error),
         justCompleted: false,
         status: "error",
       }));

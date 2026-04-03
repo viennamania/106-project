@@ -461,7 +461,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         projectWalletMissing: "PROJECT_WALLET 이 설정되지 않았습니다.",
         referralLimitReached:
           "추천인 코드 {code} 는 이미 {count}명의 가입이 진행 중이거나 완료되어 마감되었습니다. 다른 레퍼럴 코드로 다시 가입하세요.",
-        syncFailed: "회원 동기화에 실패했습니다.",
+        syncFailed: "회원 상태를 확인하지 못했습니다. 잠시 후 다시 시도하세요.",
       },
     },
     referralsPage: {
@@ -750,7 +750,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         projectWalletMissing: "PROJECT_WALLET is not configured.",
         referralLimitReached:
           "Referral code {code} already has {count} signups in progress or completed and is no longer available. Sign up again with a different referral code.",
-        syncFailed: "Member sync failed.",
+        syncFailed: "We couldn't check your signup status. Try again in a moment.",
       },
     },
     referralsPage: {
@@ -1040,7 +1040,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         projectWalletMissing: "PROJECT_WALLET が設定されていません。",
         referralLimitReached:
           "紹介コード {code} はすでに {count} 人が登録中または登録完了の状態で受付終了です。別のレファラルコードで登録してください。",
-        syncFailed: "会員同期に失敗しました。",
+        syncFailed: "会員状態を確認できませんでした。少し待ってからもう一度お試しください。",
       },
     },
     referralsPage: {
@@ -1329,7 +1329,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         projectWalletMissing: "PROJECT_WALLET 未配置。",
         referralLimitReached:
           "推荐码 {code} 已经有 {count} 位会员正在注册或已完成注册，现已满额。请改用其他推荐码重新注册。",
-        syncFailed: "会员同步失败。",
+        syncFailed: "暂时无法确认会员状态，请稍后再试。",
       },
     },
     referralsPage: {
