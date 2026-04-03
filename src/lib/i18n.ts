@@ -428,7 +428,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       selfReferralNotice:
         "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
-        "가입 완료 시 추천인 코드 {code} 가 회원 정보에 저장되었습니다.",
+        "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -717,7 +717,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       selfReferralNotice:
         "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
-        "Referral code {code} was stored when signup completed.",
+        "Referral code {code} is applied to this signup.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -1007,7 +1007,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       selfReferralNotice:
         "自分のレファラルリンクを開いています。自分自身には紹介特典は適用されません。",
       appliedReferralDescription:
-        "登録完了時に紹介コード {code} が保存されました。",
+        "この登録には紹介コード {code} が適用されています。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
@@ -1296,7 +1296,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       selfReferralNotice:
         "你打开的是自己的推荐链接。自己的注册不会获得推荐奖励。",
       appliedReferralDescription:
-        "注册完成时已记录推荐码 {code}。",
+        "此注册已应用推荐码 {code}。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
