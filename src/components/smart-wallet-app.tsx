@@ -471,8 +471,7 @@ export function SmartWalletApp({
       status !== "connected" ||
       !accountAddress ||
       !hasThirdwebClientId ||
-      memberSync.member?.status === "completed" ||
-      isInsufficientUsdtBalance
+      memberSync.member?.status === "completed"
     ) {
       return;
     }
@@ -486,7 +485,6 @@ export function SmartWalletApp({
     };
   }, [
     accountAddress,
-    isInsufficientUsdtBalance,
     memberSync.member?.status,
     status,
   ]);
