@@ -85,6 +85,8 @@ pnpm thirdweb:webhooks:register
 
 `http://localhost:3000` 같은 로컬 주소는 thirdweb이 호출할 수 없으므로 등록 스크립트가 거부합니다. 배포된 HTTPS 주소를 `THIRDWEB_WEBHOOK_BASE_URL` 또는 `THIRDWEB_WEBHOOK_URL`에 넣어야 합니다.
 
+현재 운영 기준으로는 public 웹 도메인과 별개로 Railway API 서비스가 webhook ingress를 받습니다. 따라서 `THIRDWEB_WEBHOOK_BASE_URL`은 사용자 웹앱 주소가 아니라 webhook를 수신할 Railway API 주소를 가리키는 쪽이 맞습니다.
+
 등록 스크립트는 다음 webhook 2개를 thirdweb Insight에 맞춰 생성하거나 재사용합니다.
 
 - BSC USDT `Transfer` 이벤트 중 `to=PROJECT_WALLET`
@@ -93,6 +95,7 @@ pnpm thirdweb:webhooks:register
 ## Railway backend
 
 - 운영 백엔드를 분리할 때는 [docs/railway-backend.md](/Users/nevertry/parksang/106-project/docs/railway-backend.md)를 기준으로 설정하면 됩니다.
+- 현재 운영 기준 webhook ingress 대상은 Railway API 서비스 `https://api-production-d58a.up.railway.app` 입니다.
 - `GET /api/health` 는 필수 환경변수와 MongoDB 연결 상태를 확인합니다.
 - `POST /api/internal/reconcile-signups` 는 Bearer 토큰으로 보호된 재조정 엔드포인트입니다.
 - `pnpm reconcile:pending` 는 1회 재조정을 실행합니다.

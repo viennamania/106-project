@@ -1,6 +1,6 @@
 # Railway Backend Notes
 
-This project can keep the frontend on Vercel and use Railway for operational backend work.
+This project keeps the public web app separate from the operational backend and uses Railway for webhook ingress plus reconciliation work.
 
 ## Why Railway helps here
 
@@ -8,11 +8,11 @@ This project can keep the frontend on Vercel and use Railway for operational bac
 - Signup recovery currently depends on request-time reconciliation.
 - Railway is a better place to run long-lived workers and cron-driven reconciliation.
 
-## Recommended split
+## Current split
 
-1. Keep the public web app on Vercel.
-2. Run a Railway API service from the same repo for backend-only routes.
-3. Run a Railway cron or worker service from the same repo to reconcile pending signups.
+1. Keep the public web app on the public site domain.
+2. Run a Railway API service from the same repo for backend routes and thirdweb webhook ingress.
+3. Run a Railway worker service from the same repo to reconcile pending signups.
 
 ## Endpoints added for Railway
 
@@ -38,7 +38,9 @@ Railway-only additions:
 - `RECONCILE_API_TOKEN`
   - Secret used by Railway cron and worker calls.
 - `RECONCILE_BASE_URL`
-  - Public base URL of the backend service, for example `https://api.example.com`.
+  - Base URL used by reconciliation callers.
+  - Public callers can use the Railway domain, for example `https://api-production-d58a.up.railway.app`.
+  - Railway worker-to-API traffic should prefer the internal URL `http://api.railway.internal:8080`.
 - `RECONCILE_LIMIT`
   - Optional batch size for each reconciliation run. Default is `25`.
 - `RECONCILE_INTERVAL_MS`
@@ -54,8 +56,9 @@ Railway-only additions:
 - Root directory: `/`
 - Start command: `pnpm start`
 - Healthcheck path: `/api/health`
+- Current public domain: `https://api-production-d58a.up.railway.app`
 
-Point `THIRDWEB_WEBHOOK_BASE_URL` to this Railway API service if you want webhook ingress handled there.
+`THIRDWEB_WEBHOOK_BASE_URL` should point to this Railway API service. This is the current production webhook target.
 
 ### Cron service
 
@@ -75,6 +78,8 @@ Point `THIRDWEB_WEBHOOK_BASE_URL` to this Railway API service if you want webhoo
 - Required env vars:
   - `RECONCILE_API_TOKEN`
   - `RECONCILE_BASE_URL`
+- Recommended `RECONCILE_BASE_URL`: `http://api.railway.internal:8080`
+- Recommended `RECONCILE_LIMIT`: `1` while backfill requests are expensive
 
 Use the worker when you want tighter recovery than cron alone.
 
@@ -82,9 +87,9 @@ Use the worker when you want tighter recovery than cron alone.
 
 1. Deploy the API service to Railway and verify `/api/health`.
 2. Add `RECONCILE_API_TOKEN`.
-3. Deploy a cron service that runs every 2 minutes.
-4. Confirm `POST /api/internal/reconcile-signups` completes old `pending_payment` rows.
-5. Optionally move the `thirdweb` webhook target from Vercel to Railway after the API service is stable.
+3. Point `THIRDWEB_WEBHOOK_BASE_URL` at the Railway API domain and re-register thirdweb webhooks.
+4. Deploy the worker with an internal `RECONCILE_BASE_URL`.
+5. Confirm `POST /api/internal/reconcile-signups` responds quickly when `pending_payment` is empty or bounded.
 
 ## Scripts
 
