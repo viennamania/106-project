@@ -1275,6 +1275,7 @@ export async function syncMemberRegistration(
     return {
       justCompleted: false,
       member: serializeMember(nextMember),
+      validationError: null,
     };
   }
 
@@ -1384,6 +1385,7 @@ export async function syncMemberRegistration(
   return {
     justCompleted: finalized.justCompleted,
     member: serializeMember(finalized.member),
+    validationError: null,
   };
 }
 

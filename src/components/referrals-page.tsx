@@ -139,12 +139,29 @@ export function ReferralsPage({
         | SyncMemberResponse
         | { error?: string };
 
-      if (!syncResponse.ok || !("member" in syncData)) {
+      if (!syncResponse.ok) {
         throw new Error(
           "error" in syncData && syncData.error
             ? syncData.error
             : dictionary.referralsPage.errors.loadFailed,
         );
+      }
+
+      if ("validationError" in syncData && syncData.validationError) {
+        setState({
+          error: syncData.validationError,
+          levelCounts: [],
+          member: syncData.member,
+          referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
+          status: "error",
+          totalReferrals: 0,
+        });
+        return;
+      }
+
+      if (!("member" in syncData) || !syncData.member) {
+        throw new Error(dictionary.referralsPage.errors.loadFailed);
       }
 
       if (syncData.member.status !== "completed") {

@@ -50,6 +50,14 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "Failed to sync member.";
     const status = error instanceof MemberSyncError ? error.status : 500;
 
+    if (error instanceof MemberSyncError && status === 409) {
+      return Response.json({
+        justCompleted: false,
+        member: null,
+        validationError: message,
+      });
+    }
+
     return jsonError(message, status);
   }
 }

@@ -75,7 +75,7 @@ type MemberSyncState = {
   error: string | null;
   justCompleted: boolean;
   member: MemberRecord | null;
-  status: "idle" | "syncing" | "ready" | "error";
+  status: "idle" | "syncing" | "ready" | "blocked" | "error";
 };
 
 type ReferralDashboardState = {
@@ -177,12 +177,14 @@ export function SmartWalletApp({
     status === "connected" &&
     hasThirdwebClientId &&
     memberSync.status !== "ready" &&
+    memberSync.status !== "blocked" &&
     memberSync.status !== "error";
   const referralLink = memberSync.member?.referralCode
     ? getReferralLink(memberSync.member.referralCode, locale)
     : null;
   const showMemberRegistryPanel =
     memberSync.status === "syncing" ||
+    memberSync.status === "blocked" ||
     memberSync.status === "error" ||
     Boolean(memberSync.member);
   const paymentCtaLabel = isSignupCompleted
@@ -370,12 +372,35 @@ export function SmartWalletApp({
         | SyncMemberResponse
         | { error?: string };
 
-      if (!response.ok || !("member" in data)) {
+      if (!response.ok) {
         throw new Error(
           "error" in data && data.error
             ? data.error
             : dictionary.member.errors.syncFailed,
         );
+      }
+
+      if ("validationError" in data && data.validationError) {
+        setMemberSync({
+          email,
+          error: data.validationError,
+          justCompleted: false,
+          member: data.member,
+          status: "blocked",
+        });
+        setReferralDashboard({
+          error: null,
+          levelCounts: [],
+          referrals: [],
+          rewards: createEmptyReferralRewardsSummary(),
+          status: "idle",
+          totalReferrals: 0,
+        });
+        return;
+      }
+
+      if (!("member" in data) || !data.member) {
+        throw new Error(dictionary.member.errors.syncFailed);
       }
 
       let shouldCelebrate = data.justCompleted;
@@ -471,6 +496,7 @@ export function SmartWalletApp({
       status !== "connected" ||
       !accountAddress ||
       !hasThirdwebClientId ||
+      memberSync.status === "blocked" ||
       memberSync.member?.status === "completed"
     ) {
       return;
@@ -485,6 +511,7 @@ export function SmartWalletApp({
     };
   }, [
     accountAddress,
+    memberSync.status,
     memberSync.member?.status,
     status,
   ]);
@@ -945,6 +972,12 @@ export function SmartWalletApp({
 
                 {memberSync.status === "error" ? (
                   <MessageCard tone="error">
+                    {memberSync.error ?? dictionary.member.errors.syncFailed}
+                  </MessageCard>
+                ) : null}
+
+                {memberSync.status === "blocked" ? (
+                  <MessageCard>
                     {memberSync.error ?? dictionary.member.errors.syncFailed}
                   </MessageCard>
                 ) : null}

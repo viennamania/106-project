@@ -433,7 +433,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
-        "추천 코드 없이 가입되어 네트워크 코드 {code} 아래로 자동 배정되었습니다.",
+        "추천 코드 없이 가입이 완료되어, 현재 자동 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -726,7 +726,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "Referral code {code} is applied to this signup.",
       autoPlacementDescription:
-        "This signup had no referral code, so it was auto-assigned under network code {code}.",
+        "This signup completed without a referral code, so it was assigned to an open slot under network code {code} by the current auto-placement rules.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -1020,7 +1020,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "この登録には紹介コード {code} が適用されています。",
       autoPlacementDescription:
-        "紹介コードなしで登録されたため、ネットワークコード {code} の下へ自動配置されました。",
+        "紹介コードなしで登録が完了したため、現在の自動配置ルールに従ってネットワークコード {code} の空きスロットへ配置されました。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
@@ -1313,7 +1313,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       appliedReferralDescription:
         "此注册已应用推荐码 {code}。",
       autoPlacementDescription:
-        "由于没有推荐码，此注册已被自动分配到网络代码 {code} 之下。",
+        "由于此注册在没有推荐码的情况下完成，系统已按当前自动分配规则将其放入网络代码 {code} 下的空槽位。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",

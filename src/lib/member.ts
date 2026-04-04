@@ -54,7 +54,8 @@ export type SyncMemberRequest = {
 
 export type SyncMemberResponse = {
   justCompleted: boolean;
-  member: MemberRecord;
+  member: MemberRecord | null;
+  validationError: string | null;
 };
 
 export type IncomingReferralStatus = "available" | "full" | "invalid";
