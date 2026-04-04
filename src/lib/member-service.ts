@@ -4,12 +4,15 @@ import { randomInt } from "node:crypto";
 
 import {
   getMembersCollection,
+  getReferralPlacementSlotsCollection,
   getReferralRewardsCollection,
   getThirdwebWebhookEventsCollection,
 } from "@/lib/mongodb";
 import type {
   IncomingReferralState,
   MemberDocument,
+  PlacementSource,
+  ReferralPlacementSlotDocument,
   SyncMemberRequest,
   SyncMemberResponse,
 } from "@/lib/member";
@@ -118,6 +121,271 @@ async function getFreshMemberOrThrow(
   return member;
 }
 
+function getSponsorReferralCode(member: MemberDocument) {
+  return member.sponsorReferralCode ?? member.referredByCode ?? null;
+}
+
+function getSponsorEmail(member: MemberDocument) {
+  return member.sponsorEmail ?? member.referredByEmail ?? null;
+}
+
+function getPlacementReferralCode(member: MemberDocument) {
+  return member.placementReferralCode ?? member.referredByCode ?? null;
+}
+
+async function ensurePlacementSlotsForCompletedMember(
+  member: MemberDocument,
+) {
+  if (member.status !== "completed" || !member.referralCode) {
+    return;
+  }
+
+  const collection = await getReferralPlacementSlotsCollection();
+  const ownerRegistrationCompletedAt =
+    member.registrationCompletedAt ?? member.createdAt;
+  const baseTimestamp = ownerRegistrationCompletedAt;
+
+  await collection.bulkWrite(
+    Array.from({ length: REFERRAL_SIGNUP_LIMIT }, (_, index) => ({
+      updateOne: {
+        filter: {
+          ownerReferralCode: member.referralCode,
+          slotIndex: index + 1,
+        },
+        update: {
+          $setOnInsert: {
+            claimSource: null,
+            claimedAt: null,
+            claimedByEmail: null,
+            createdAt: baseTimestamp,
+            ownerEmail: member.email,
+            ownerReferralCode: member.referralCode,
+            ownerRegistrationCompletedAt,
+            slotIndex: index + 1,
+            updatedAt: baseTimestamp,
+          },
+        },
+        upsert: true,
+      },
+    })),
+    { ordered: false },
+  );
+}
+
+async function findClaimedPlacementSlotByEmail(email: string) {
+  const collection = await getReferralPlacementSlotsCollection();
+  return collection.findOne({ claimedByEmail: email });
+}
+
+async function claimPlacementSlot({
+  email,
+  filter,
+  source,
+  sort,
+}: {
+  email: string;
+  filter: Record<string, unknown>;
+  source: PlacementSource;
+  sort: Record<string, 1 | -1>;
+}) {
+  const collection = await getReferralPlacementSlotsCollection();
+  const existingClaim = await collection.findOne({ claimedByEmail: email });
+
+  if (existingClaim) {
+    return existingClaim;
+  }
+
+  const now = new Date();
+
+  try {
+    const result = await collection.findOneAndUpdate(
+      {
+        ...filter,
+        claimedByEmail: null,
+      },
+      {
+        $set: {
+          claimSource: source,
+          claimedAt: now,
+          claimedByEmail: email,
+          updatedAt: now,
+        },
+      },
+      {
+        returnDocument: "after",
+        sort,
+      },
+    );
+
+    if (result) {
+      return result;
+    }
+  } catch (error) {
+    if (!isDuplicateKeyError(error)) {
+      throw error;
+    }
+  }
+
+  return collection.findOne({ claimedByEmail: email });
+}
+
+async function claimManualPlacementSlot({
+  email,
+  sponsor,
+}: {
+  email: string;
+  sponsor: MemberDocument;
+}) {
+  if (!sponsor.referralCode) {
+    return null;
+  }
+
+  await ensurePlacementSlotsForCompletedMember(sponsor);
+
+  return claimPlacementSlot({
+    email,
+    filter: {
+      ownerReferralCode: sponsor.referralCode,
+    },
+    sort: {
+      slotIndex: 1,
+    },
+    source: "manual",
+  });
+}
+
+async function claimAutoPlacementSlot(email: string) {
+  return claimPlacementSlot({
+    email,
+    filter: {
+      ownerEmail: {
+        $ne: email,
+      },
+    },
+    sort: {
+      ownerRegistrationCompletedAt: 1,
+      ownerReferralCode: 1,
+      slotIndex: 1,
+    },
+    source: "auto",
+  });
+}
+
+async function applyPlacementFromSlot({
+  collection,
+  member,
+  slot,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+  slot: ReferralPlacementSlotDocument;
+}) {
+  const placementAssignedAt = slot.claimedAt ?? new Date();
+
+  await collection.updateOne(
+    { email: member.email },
+    {
+      $set: {
+        placementAssignedAt,
+        placementEmail: slot.ownerEmail,
+        placementReferralCode: slot.ownerReferralCode,
+        placementSource: slot.claimSource,
+        updatedAt: placementAssignedAt,
+      },
+    },
+  );
+
+  return getFreshMemberOrThrow(collection, member.email);
+}
+
+async function ensurePlacementAssigned({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  if (member.status !== "completed") {
+    return member;
+  }
+
+  if (member.placementReferralCode) {
+    return member;
+  }
+
+  const existingSlot = await findClaimedPlacementSlotByEmail(member.email);
+
+  if (existingSlot) {
+    return applyPlacementFromSlot({
+      collection,
+      member,
+      slot: existingSlot,
+    });
+  }
+
+  const sponsorReferralCode = getSponsorReferralCode(member);
+
+  if (sponsorReferralCode) {
+    const sponsor = await collection.findOne({
+      referralCode: sponsorReferralCode,
+      status: "completed",
+    });
+
+    if (sponsor) {
+      const manualSlot = await claimManualPlacementSlot({
+        email: member.email,
+        sponsor,
+      });
+
+      if (manualSlot) {
+        return applyPlacementFromSlot({
+          collection,
+          member,
+          slot: manualSlot,
+        });
+      }
+    }
+  }
+
+  const autoSlot = await claimAutoPlacementSlot(member.email);
+
+  if (!autoSlot) {
+    return member;
+  }
+
+  return applyPlacementFromSlot({
+    collection,
+    member,
+    slot: autoSlot,
+  });
+}
+
+async function finalizeCompletedMember({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  if (member.status !== "completed") {
+    return member;
+  }
+
+  let nextMember = await ensurePlacementAssigned({
+    collection,
+    member,
+  });
+
+  await ensurePlacementSlotsForCompletedMember(nextMember);
+
+  nextMember = await ensureReferralRewardsIssued({
+    collection,
+    member: nextMember,
+  });
+
+  return nextMember;
+}
+
 async function awardReferralRewardsForCompletedMember({
   collection,
   member,
@@ -129,7 +397,7 @@ async function awardReferralRewardsForCompletedMember({
   const awardedAt = member.registrationCompletedAt ?? new Date();
   const seenReferralCodes = new Set<string>();
   const seenRecipientEmails = new Set<string>([member.email]);
-  let currentReferralCode = member.referredByCode ?? null;
+  let currentReferralCode = getPlacementReferralCode(member);
 
   for (
     let level = 1;
@@ -184,7 +452,7 @@ async function awardReferralRewardsForCompletedMember({
       seenRecipientEmails.add(recipient.email);
     }
 
-    currentReferralCode = recipient.referredByCode ?? null;
+    currentReferralCode = getPlacementReferralCode(recipient);
   }
 }
 
@@ -256,18 +524,6 @@ function getInsufficientBalanceMessage(locale: Locale) {
       amount: MEMBER_SIGNUP_USDT_AMOUNT,
     },
   );
-}
-
-async function countReservedReferralSignups(
-  collection: Awaited<ReturnType<typeof getMembersCollection>>,
-  referredByCode: string,
-) {
-  return collection.countDocuments({
-    referredByCode,
-    status: {
-      $in: ["pending_payment", "completed"],
-    },
-  });
 }
 
 async function assertSignupWalletHasRequiredBalance({
@@ -600,7 +856,7 @@ async function markMemberAsCompleted({
     const nextMember = await getFreshMemberOrThrow(collection, member.email);
 
     if (result.matchedCount > 0) {
-      return ensureReferralRewardsIssued({
+      return finalizeCompletedMember({
         collection,
         member: nextMember,
       });
@@ -624,7 +880,7 @@ async function markMemberAsCompleted({
 
       if (result.matchedCount > 0) {
         const nextMember = await getFreshMemberOrThrow(collection, member.email);
-        return ensureReferralRewardsIssued({
+        return finalizeCompletedMember({
           collection,
           member: nextMember,
         });
@@ -650,7 +906,7 @@ async function markMemberAsCompleted({
   const nextMember = await getFreshMemberOrThrow(collection, member.email);
 
   if (result.matchedCount > 0) {
-    return ensureReferralRewardsIssued({
+    return finalizeCompletedMember({
       collection,
       member: nextMember,
     });
@@ -669,7 +925,7 @@ async function maybeCompleteMemberWithStoredPayment({
   matchedEvent?: ThirdwebWebhookEventDocument | null;
 }) {
   if (member.status === "completed") {
-    const nextMember = await ensureReferralRewardsIssued({
+    const nextMember = await finalizeCompletedMember({
       collection,
       member,
     });
@@ -817,36 +1073,39 @@ export async function reconcilePendingMemberRegistrations(options?: {
   };
 }
 
-async function resolveReferrer({
+async function resolveSponsor({
   email,
-  referredByCode,
+  sponsorReferralCode,
 }: {
   email: string;
-  referredByCode: string | null;
+  sponsorReferralCode: string | null;
 }) {
-  if (!referredByCode) {
+  if (!sponsorReferralCode) {
     return {
-      referredByCode: null,
-      referredByEmail: null,
+      sponsorEmail: null,
+      sponsorMember: null,
+      sponsorReferralCode: null,
     };
   }
 
   const collection = await getMembersCollection();
-  const referrer = await collection.findOne({
-    referralCode: referredByCode,
+  const sponsorMember = await collection.findOne({
+    referralCode: sponsorReferralCode,
     status: "completed",
   });
 
-  if (!referrer || referrer.email === email) {
+  if (!sponsorMember || sponsorMember.email === email) {
     return {
-      referredByCode: null,
-      referredByEmail: null,
+      sponsorEmail: null,
+      sponsorMember: null,
+      sponsorReferralCode: null,
     };
   }
 
   return {
-    referredByCode,
-    referredByEmail: referrer.email,
+    sponsorEmail: sponsorMember.email,
+    sponsorMember,
+    sponsorReferralCode,
   };
 }
 
@@ -872,10 +1131,15 @@ export async function getIncomingReferralState(
     };
   }
 
-  const signupCount = await countReservedReferralSignups(
-    collection,
-    referredByCode,
-  );
+  await ensurePlacementSlotsForCompletedMember(referrer);
+
+  const slotsCollection = await getReferralPlacementSlotsCollection();
+  const signupCount = await slotsCollection.countDocuments({
+    ownerReferralCode: referredByCode,
+    claimedByEmail: {
+      $type: "string",
+    },
+  });
 
   return {
     code: referredByCode,
@@ -893,7 +1157,7 @@ export async function syncReferralRewardsForCompletedNetwork(
   }
 
   const collection = await getMembersCollection();
-  const rootWithRewards = await ensureReferralRewardsIssued({
+  const rootWithRewards = await finalizeCompletedMember({
     collection,
     member: rootMember,
   });
@@ -909,7 +1173,7 @@ export async function syncReferralRewardsForCompletedNetwork(
   ) {
     const levelMembers = await collection
       .find({
-        referredByCode: { $in: currentParentCodes },
+        placementReferralCode: { $in: currentParentCodes },
         status: "completed",
       })
       .sort({ registrationCompletedAt: -1, createdAt: -1 })
@@ -920,12 +1184,10 @@ export async function syncReferralRewardsForCompletedNetwork(
     }
 
     for (const levelMember of levelMembers) {
-      if (!levelMember.referralRewardsIssuedAt) {
-        await ensureReferralRewardsIssued({
-          collection,
-          member: levelMember,
-        });
-      }
+      await finalizeCompletedMember({
+        collection,
+        member: levelMember,
+      });
     }
 
     const nextParentCodes: string[] = [];
@@ -978,7 +1240,13 @@ export async function syncMemberRegistration(
   const collection = await getMembersCollection();
   const now = new Date();
   const existingMember = await collection.findOne({ email });
-  const effectiveReferredByCode =
+  const existingSponsorReferralCode = existingMember
+    ? getSponsorReferralCode(existingMember)
+    : null;
+  const existingSponsorEmail = existingMember
+    ? getSponsorEmail(existingMember)
+    : null;
+  const effectiveSponsorReferralCode =
     existingMember?.referralCode === referredByCode ? null : referredByCode;
 
   if (existingMember?.status === "completed") {
@@ -999,7 +1267,7 @@ export async function syncMemberRegistration(
       },
     );
 
-    const nextMember = await ensureReferralRewardsIssued({
+    const nextMember = await finalizeCompletedMember({
       collection,
       member: await getFreshMemberOrThrow(collection, email),
     });
@@ -1022,11 +1290,11 @@ export async function syncMemberRegistration(
   }
 
   const incomingReferralState = await getIncomingReferralState(
-    effectiveReferredByCode,
+    effectiveSponsorReferralCode,
   );
 
   if (
-    !existingMember?.referredByCode &&
+    !existingSponsorReferralCode &&
     incomingReferralState?.status === "full"
   ) {
     throw new MemberSyncError(
@@ -1039,12 +1307,13 @@ export async function syncMemberRegistration(
     );
   }
 
-  const referrer = await resolveReferrer({
+  const sponsor = await resolveSponsor({
     email,
-    referredByCode:
-      incomingReferralState?.status === "available"
+    sponsorReferralCode:
+      existingSponsorReferralCode ??
+      (incomingReferralState?.status === "available"
         ? incomingReferralState.code
-        : null,
+        : null),
   });
 
   await collection.updateOne(
@@ -1069,13 +1338,33 @@ export async function syncMemberRegistration(
         paymentReceivedAt: null,
         paymentTransactionHash: null,
         paymentWebhookEventId: null,
+        placementAssignedAt: existingMember?.placementAssignedAt ?? null,
+        placementEmail: existingMember?.placementEmail ?? null,
+        placementReferralCode: existingMember?.placementReferralCode ?? null,
+        placementSource: existingMember?.placementSource ?? null,
         referralRewardsIssuedAt: existingMember?.referralRewardsIssuedAt ?? null,
         referredByCode:
-          existingMember?.referredByCode ?? referrer.referredByCode ?? null,
+          existingMember?.referredByCode ??
+          existingSponsorReferralCode ??
+          sponsor.sponsorReferralCode ??
+          null,
         referredByEmail:
-          existingMember?.referredByEmail ?? referrer.referredByEmail ?? null,
+          existingMember?.referredByEmail ??
+          existingSponsorEmail ??
+          sponsor.sponsorEmail ??
+          null,
         requiredDepositAmount: MEMBER_SIGNUP_USDT_AMOUNT,
         requiredDepositAmountWei: MEMBER_SIGNUP_USDT_AMOUNT_WEI,
+        sponsorEmail:
+          existingMember?.sponsorEmail ??
+          existingSponsorEmail ??
+          sponsor.sponsorEmail ??
+          null,
+        sponsorReferralCode:
+          existingMember?.sponsorReferralCode ??
+          existingSponsorReferralCode ??
+          sponsor.sponsorReferralCode ??
+          null,
         status: "pending_payment",
         updatedAt: now,
       },

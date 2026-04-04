@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "referral-placement:migrate": "node scripts/migrate-referral-placement-model.mjs",
+    "referral-rewards:update-points": "node scripts/update-referral-reward-points.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
     "reconcile:worker": "node scripts/run-reconcile-worker.mjs",
     "thirdweb:webhooks:register": "node scripts/register-thirdweb-usdt-webhooks.mjs"

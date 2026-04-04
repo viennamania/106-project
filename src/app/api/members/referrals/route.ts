@@ -60,7 +60,7 @@ async function buildReferralTree(
   ) {
     const levelMembers = await collection
       .find({
-        referredByCode: { $in: currentParentCodes },
+        placementReferralCode: { $in: currentParentCodes },
         status: "completed",
       })
       .sort({ registrationCompletedAt: -1, createdAt: -1 })
@@ -77,7 +77,7 @@ async function buildReferralTree(
 
     for (const levelMember of levelMembers) {
       const node = serializeReferralTreeNode(levelMember, depth);
-      const parentCode = levelMember.referredByCode ?? "";
+      const parentCode = levelMember.placementReferralCode ?? "";
       const siblings = nodesByParentCode.get(parentCode) ?? [];
 
       siblings.push(node);

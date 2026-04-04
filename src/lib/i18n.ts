@@ -145,6 +145,7 @@ export type Dictionary = {
     incomingReferralLimitDescription: string;
     selfReferralNotice: string;
     appliedReferralDescription: string;
+    autoPlacementDescription: string;
     shareHint: string;
     noReferralApplied: string;
     labels: {
@@ -157,6 +158,7 @@ export type Dictionary = {
       lastConnectedAt: string;
       paymentReceivedAt: string;
       paymentTransaction: string;
+      placementReferralCode: string;
       referralCode: string;
       referredByCode: string;
       referralLink: string;
@@ -221,6 +223,7 @@ export type Dictionary = {
       description: string;
       empty: string;
       recentTitle: string;
+      perSignup: string;
       totalPoints: string;
       totalRewards: string;
       activeLevels: string;
@@ -429,6 +432,8 @@ const dictionaries: Record<Locale, Dictionary> = {
         "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
         "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
+      autoPlacementDescription:
+        "추천 코드 없이 가입되어 네트워크 코드 {code} 아래로 자동 배정되었습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -442,6 +447,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         lastConnectedAt: "최근 연결",
         paymentReceivedAt: "입금 확인 시각",
         paymentTransaction: "거래 기록",
+        placementReferralCode: "배치된 네트워크 코드",
         referralCode: "내 레퍼럴 코드",
         referredByCode: "적용된 추천인 코드",
         referralLink: "레퍼럴 가입 링크",
@@ -509,9 +515,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       rewards: {
         title: "보상 포인트",
         description:
-          "하위 회원이 가입을 완료하면 상위 6단계까지 각 1포인트씩 적립됩니다.",
+          "하위 회원 1명 가입 완료당 상위 6단계까지 각 200포인트씩 적립됩니다.",
         empty: "아직 적립된 보상 내역이 없습니다.",
         recentTitle: "최근 지급 내역",
+        perSignup: "가입당 보상",
         totalPoints: "누적 포인트",
         totalRewards: "지급 건수",
         activeLevels: "적립 단계",
@@ -718,6 +725,8 @@ const dictionaries: Record<Locale, Dictionary> = {
         "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
         "Referral code {code} is applied to this signup.",
+      autoPlacementDescription:
+        "This signup had no referral code, so it was auto-assigned under network code {code}.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -731,6 +740,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         lastConnectedAt: "Last connected",
         paymentReceivedAt: "Payment confirmed at",
         paymentTransaction: "Transaction record",
+        placementReferralCode: "Assigned network code",
         referralCode: "My referral code",
         referredByCode: "Applied referral code",
         referralLink: "Referral signup link",
@@ -798,9 +808,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       rewards: {
         title: "Reward points",
         description:
-          "Each completed downline signup awards 1 point to every eligible upline member across 6 levels.",
+          "Each completed downline signup awards 200 points to every eligible upline member across 6 levels.",
         empty: "No reward entries have been issued yet.",
         recentTitle: "Recent rewards",
+        perSignup: "Reward per signup",
         totalPoints: "Total points",
         totalRewards: "Reward entries",
         activeLevels: "Active levels",
@@ -1008,6 +1019,8 @@ const dictionaries: Record<Locale, Dictionary> = {
         "自分のレファラルリンクを開いています。自分自身には紹介特典は適用されません。",
       appliedReferralDescription:
         "この登録には紹介コード {code} が適用されています。",
+      autoPlacementDescription:
+        "紹介コードなしで登録されたため、ネットワークコード {code} の下へ自動配置されました。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
@@ -1021,6 +1034,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         lastConnectedAt: "最終接続",
         paymentReceivedAt: "入金確認時刻",
         paymentTransaction: "取引記録",
+        placementReferralCode: "配置先ネットワークコード",
         referralCode: "自分のレファラルコード",
         referredByCode: "適用された紹介コード",
         referralLink: "レファラル登録リンク",
@@ -1088,9 +1102,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       rewards: {
         title: "報酬ポイント",
         description:
-          "下位メンバーの登録完了ごとに、上位 6 段階まで各 1 ポイントずつ積み上がります。",
+          "下位メンバー 1 人の登録完了ごとに、上位 6 段階まで各 200 ポイントずつ積み上がります。",
         empty: "まだ付与された報酬履歴はありません。",
         recentTitle: "最近の付与履歴",
+        perSignup: "1件あたり報酬",
         totalPoints: "累計ポイント",
         totalRewards: "付与件数",
         activeLevels: "付与段階",
@@ -1297,6 +1312,8 @@ const dictionaries: Record<Locale, Dictionary> = {
         "你打开的是自己的推荐链接。自己的注册不会获得推荐奖励。",
       appliedReferralDescription:
         "此注册已应用推荐码 {code}。",
+      autoPlacementDescription:
+        "由于没有推荐码，此注册已被自动分配到网络代码 {code} 之下。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
@@ -1310,6 +1327,7 @@ const dictionaries: Record<Locale, Dictionary> = {
         lastConnectedAt: "最近连接",
         paymentReceivedAt: "到账确认时间",
         paymentTransaction: "交易记录",
+        placementReferralCode: "分配到的网络代码",
         referralCode: "我的推荐码",
         referredByCode: "已应用推荐码",
         referralLink: "推荐注册链接",
@@ -1377,9 +1395,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       rewards: {
         title: "奖励积分",
         description:
-          "下级会员完成注册后，上方 6 个层级内的每位有效推荐人都会各获得 1 积分。",
+          "每完成 1 名下级会员注册，上方 6 个层级内的每位有效推荐人都会各获得 200 积分。",
         empty: "目前还没有已发放的奖励记录。",
         recentTitle: "最近发放记录",
+        perSignup: "每次注册奖励",
         totalPoints: "累计积分",
         totalRewards: "发放次数",
         activeLevels: "发放层级",

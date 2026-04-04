@@ -964,9 +964,22 @@ export function SmartWalletApp({
                       ) : null}
                       {memberSync.member.referredByCode ? (
                         <p className="mt-2 text-sm font-medium text-slate-700">
-                          {dictionary.member.appliedReferralDescription.replace(
-                            "{code}",
-                            memberSync.member.referredByCode,
+                          {formatTemplate(
+                            dictionary.member.appliedReferralDescription,
+                            {
+                              code: memberSync.member.referredByCode,
+                            },
+                          )}
+                        </p>
+                      ) : null}
+                      {memberSync.member.placementSource === "auto" &&
+                      memberSync.member.placementReferralCode ? (
+                        <p className="mt-2 text-sm font-medium text-sky-700">
+                          {formatTemplate(
+                            dictionary.member.autoPlacementDescription,
+                            {
+                              code: memberSync.member.placementReferralCode,
+                            },
                           )}
                         </p>
                       ) : null}
@@ -990,6 +1003,13 @@ export function SmartWalletApp({
                         value={
                           memberSync.member.referredByCode ??
                           dictionary.member.noReferralApplied
+                        }
+                      />
+                      <InfoRow
+                        label={dictionary.member.labels.placementReferralCode}
+                        value={
+                          memberSync.member.placementReferralCode ??
+                          dictionary.common.notAvailable
                         }
                       />
                     </div>
@@ -1193,10 +1213,17 @@ function CompletedHomeDashboard({
 
           {member.referredByCode ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
-              {dictionary.member.appliedReferralDescription.replace(
-                "{code}",
-                member.referredByCode,
-              )}
+              {formatTemplate(dictionary.member.appliedReferralDescription, {
+                code: member.referredByCode,
+              })}
+            </div>
+          ) : null}
+
+          {member.placementSource === "auto" && member.placementReferralCode ? (
+            <div className="rounded-[24px] border border-sky-200 bg-sky-50/90 p-4 text-sm leading-6 text-sky-950">
+              {formatTemplate(dictionary.member.autoPlacementDescription, {
+                code: member.placementReferralCode,
+              })}
             </div>
           ) : null}
 
@@ -1321,6 +1348,12 @@ function CompletedHomeDashboard({
           <InfoRow
             label={dictionary.member.labels.referredByCode}
             value={member.referredByCode ?? dictionary.member.noReferralApplied}
+          />
+          <InfoRow
+            label={dictionary.member.labels.placementReferralCode}
+            value={
+              member.placementReferralCode ?? dictionary.common.notAvailable
+            }
           />
           <InfoRow
             label={dictionary.member.labels.requiredDeposit}

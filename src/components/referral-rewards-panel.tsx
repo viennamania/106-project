@@ -1,6 +1,7 @@
 "use client";
 
-import type {
+import {
+  REFERRAL_REWARD_POINTS,
   ReferralRewardRecord,
   ReferralRewardsSummaryRecord,
 } from "@/lib/member";
@@ -30,7 +31,11 @@ export function ReferralRewardsPanel({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <RewardMetricCard
+          label={dictionary.referralsPage.rewards.perSignup}
+          value={`${REFERRAL_REWARD_POINTS} P`}
+        />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalPoints}
           value={`${rewards.totalPoints} P`}

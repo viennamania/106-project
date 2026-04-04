@@ -3,12 +3,14 @@ export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
 export const REFERRAL_SIGNUP_LIMIT = 6;
 export const REFERRAL_TREE_DEPTH_LIMIT = 6;
-export const REFERRAL_REWARD_POINTS = 1;
+export const REFERRAL_REWARD_POINTS = 200;
 export const REFERRAL_REWARD_HISTORY_LIMIT = 24;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
+export const placementSources = ["manual", "auto"] as const;
 
 export type MemberStatus = (typeof memberStatuses)[number];
+export type PlacementSource = (typeof placementSources)[number];
 
 export type MemberRecord = {
   awaitingPaymentSince: string;
@@ -23,6 +25,10 @@ export type MemberRecord = {
   paymentReceivedAt: string | null;
   paymentTransactionHash: string | null;
   paymentWebhookEventId: string | null;
+  placementAssignedAt: string | null;
+  placementEmail: string | null;
+  placementReferralCode: string | null;
+  placementSource: PlacementSource | null;
   referralRewardsIssuedAt: string | null;
   referralCode: string | null;
   referredByCode: string | null;
@@ -30,6 +36,8 @@ export type MemberRecord = {
   registrationCompletedAt: string | null;
   requiredDepositAmount: string;
   requiredDepositAmountWei: string;
+  sponsorEmail: string | null;
+  sponsorReferralCode: string | null;
   status: MemberStatus;
   updatedAt: string;
   walletAddresses: string[];
@@ -115,6 +123,18 @@ export type ReferralRewardDocument = {
   sourceWalletAddress: string;
 };
 
+export type ReferralPlacementSlotDocument = {
+  claimSource: PlacementSource | null;
+  claimedAt: Date | null;
+  claimedByEmail: string | null;
+  createdAt: Date;
+  ownerEmail: string;
+  ownerReferralCode: string;
+  ownerRegistrationCompletedAt: Date;
+  slotIndex: number;
+  updatedAt: Date;
+};
+
 export type MemberDocument = {
   awaitingPaymentSince: Date;
   chainId: number;
@@ -129,6 +149,10 @@ export type MemberDocument = {
   paymentReceivedAt?: Date | null;
   paymentTransactionHash?: string | null;
   paymentWebhookEventId?: string | null;
+  placementAssignedAt?: Date | null;
+  placementEmail?: string | null;
+  placementReferralCode?: string | null;
+  placementSource?: PlacementSource | null;
   referralRewardsIssuedAt?: Date | null;
   referralCode?: string | null;
   referredByCode?: string | null;
@@ -136,6 +160,8 @@ export type MemberDocument = {
   registrationCompletedAt?: Date | null;
   requiredDepositAmount: string;
   requiredDepositAmountWei: string;
+  sponsorEmail?: string | null;
+  sponsorReferralCode?: string | null;
   status: MemberStatus;
   updatedAt: Date;
   walletAddresses: string[];
@@ -164,14 +190,20 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     paymentReceivedAt: member.paymentReceivedAt?.toISOString() ?? null,
     paymentTransactionHash: member.paymentTransactionHash ?? null,
     paymentWebhookEventId: member.paymentWebhookEventId ?? null,
+    placementAssignedAt: member.placementAssignedAt?.toISOString() ?? null,
+    placementEmail: member.placementEmail ?? null,
+    placementReferralCode: member.placementReferralCode ?? null,
+    placementSource: member.placementSource ?? null,
     referralRewardsIssuedAt: member.referralRewardsIssuedAt?.toISOString() ?? null,
     referralCode: member.referralCode ?? null,
-    referredByCode: member.referredByCode ?? null,
-    referredByEmail: member.referredByEmail ?? null,
+    referredByCode: member.sponsorReferralCode ?? member.referredByCode ?? null,
+    referredByEmail: member.sponsorEmail ?? member.referredByEmail ?? null,
     registrationCompletedAt:
       member.registrationCompletedAt?.toISOString() ?? null,
     requiredDepositAmount: member.requiredDepositAmount,
     requiredDepositAmountWei: member.requiredDepositAmountWei,
+    sponsorEmail: member.sponsorEmail ?? member.referredByEmail ?? null,
+    sponsorReferralCode: member.sponsorReferralCode ?? member.referredByCode ?? null,
     status: member.status,
     updatedAt: member.updatedAt.toISOString(),
     walletAddresses: member.walletAddresses,
@@ -187,7 +219,7 @@ export function serializeReferralMember(
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,
     referralCode: member.referralCode ?? null,
-    referredByCode: member.referredByCode ?? null,
+    referredByCode: member.placementReferralCode ?? member.referredByCode ?? null,
     registrationCompletedAt:
       member.registrationCompletedAt?.toISOString() ??
       member.createdAt.toISOString(),

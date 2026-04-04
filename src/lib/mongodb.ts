@@ -1,7 +1,11 @@
 import "server-only";
 
 import { MongoClient, ServerApiVersion, type Collection } from "mongodb";
-import type { MemberDocument, ReferralRewardDocument } from "@/lib/member";
+import type {
+  MemberDocument,
+  ReferralPlacementSlotDocument,
+  ReferralRewardDocument,
+} from "@/lib/member";
 import type {
   ThirdwebWebhookEventDocument,
   ThirdwebWebhookIngressLogDocument,
@@ -15,6 +19,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoReferralRewardsCollectionPromise?: Promise<
     Collection<ReferralRewardDocument>
+  >;
+  mongoReferralPlacementSlotsCollectionPromise?: Promise<
+    Collection<ReferralPlacementSlotDocument>
   >;
   mongoThirdwebWebhookIngressLogsCollectionPromise?: Promise<
     Collection<ThirdwebWebhookIngressLogDocument>
@@ -107,6 +114,27 @@ async function ensureMembersIndexes(
       referredByCode: 1,
       registrationCompletedAt: -1,
     }),
+    collection.createIndex(
+      { sponsorReferralCode: 1 },
+      {
+        partialFilterExpression: {
+          sponsorReferralCode: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex(
+      { placementReferralCode: 1 },
+      {
+        partialFilterExpression: {
+          placementReferralCode: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex({
+      status: 1,
+      placementReferralCode: 1,
+      registrationCompletedAt: -1,
+    }),
   ]);
 }
 
@@ -178,6 +206,48 @@ export async function getReferralRewardsCollection() {
   }
 
   return globalForMongo.mongoReferralRewardsCollectionPromise;
+}
+
+export async function getReferralPlacementSlotsCollection() {
+  if (!globalForMongo.mongoReferralPlacementSlotsCollectionPromise) {
+    globalForMongo.mongoReferralPlacementSlotsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_REFERRAL_PLACEMENT_SLOTS_COLLECTION ??
+        "referralPlacementSlots";
+      const collection = client
+        .db(dbName)
+        .collection<ReferralPlacementSlotDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex(
+          { ownerReferralCode: 1, slotIndex: 1 },
+          { unique: true },
+        ),
+        collection.createIndex(
+          { claimedByEmail: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              claimedByEmail: { $type: "string" },
+            },
+          },
+        ),
+        collection.createIndex({ ownerEmail: 1, slotIndex: 1 }),
+        collection.createIndex({
+          claimedByEmail: 1,
+          ownerRegistrationCompletedAt: 1,
+          ownerReferralCode: 1,
+          slotIndex: 1,
+        }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoReferralPlacementSlotsCollectionPromise;
 }
 
 export async function getThirdwebWebhookIngressLogsCollection() {
