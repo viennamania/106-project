@@ -302,7 +302,7 @@ export function ReferralsPage({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <LanguageSwitcher
               label={dictionary.common.languageLabel}
               locale={locale}
@@ -404,15 +404,15 @@ export function ReferralsPage({
             ) : state.member?.status !== "completed" ? (
               <div className="space-y-4">
                 <MessageCard>{dictionary.referralsPage.paymentRequired}</MessageCard>
-                <div className="flex flex-wrap gap-3">
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <Link
-                    className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
                     href={`/${locale}/activate`}
                   >
                     {dictionary.referralsPage.actions.completeSignup}
                   </Link>
                   <button
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                     onClick={() => {
                       void loadReferrals();
                     }}
@@ -482,15 +482,15 @@ export function ReferralsPage({
                   </div>
                 ) : null}
 
-                <div className="flex flex-wrap gap-3">
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <Link
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                     href={`/${locale}`}
                   >
                     {dictionary.referralsPage.actions.backHome}
                   </Link>
                   <button
-                    className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                     onClick={() => {
                       void loadReferrals();
                     }}

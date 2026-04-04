@@ -46,16 +46,16 @@ export function LandingPage({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <LanguageSwitcher label={languageLabel} locale={locale} />
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
               href={`/${locale}/referrals`}
             >
               {copy.cta.referrals}
             </Link>
             <ReferralAwareCta
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
               locale={locale}
             >
               {copy.cta.primary}
@@ -88,16 +88,16 @@ export function LandingPage({
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="grid gap-3 sm:flex sm:flex-wrap">
                 <ReferralAwareCta
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_22px_40px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold !text-white shadow-[0_22px_40px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                   locale={locale}
                 >
                   {copy.cta.primary}
                   <ArrowRight className="size-4" />
                 </ReferralAwareCta>
                 <a
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                  className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                   href="#how-it-works"
                 >
                   {copy.cta.secondary}
@@ -261,16 +261,16 @@ export function LandingPage({
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
               {copy.legal.note}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
               <ReferralAwareCta
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_20px_38px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold !text-white shadow-[0_20px_38px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                 locale={locale}
               >
                 {copy.cta.primary}
                 <ArrowRight className="size-4" />
               </ReferralAwareCta>
               <Link
-                className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                 href={`/${locale}/referrals`}
               >
                 {copy.cta.referrals}

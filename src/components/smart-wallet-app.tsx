@@ -994,9 +994,9 @@ export function SmartWalletApp({
                       />
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button
-                        className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                         disabled={memberSync.status === "syncing"}
                         onClick={() => {
                           void runMemberSync();
@@ -1007,7 +1007,7 @@ export function SmartWalletApp({
                       </button>
 
                       <a
-                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                        className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
                         href={projectWalletUrl}
                         rel="noreferrer"
                         target="_blank"
