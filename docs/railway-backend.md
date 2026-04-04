@@ -1,6 +1,6 @@
 # Railway Backend Notes
 
-This project keeps the public web app separate from the operational backend and uses Railway for webhook ingress plus reconciliation work.
+This project keeps the public web app on `https://1066.loot.menu` and uses Railway for webhook ingress plus reconciliation work.
 
 ## Why Railway helps here
 
@@ -56,7 +56,7 @@ Railway-only additions:
 - Root directory: `/`
 - Start command: `pnpm start`
 - Healthcheck path: `/api/health`
-- Current public domain: `https://api-production-d58a.up.railway.app`
+- Current API public domain: `https://api-production-d58a.up.railway.app`
 
 `THIRDWEB_WEBHOOK_BASE_URL` should point to this Railway API service. This is the current production webhook target.
 
