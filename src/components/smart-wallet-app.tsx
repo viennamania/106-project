@@ -403,22 +403,23 @@ export function SmartWalletApp({
         throw new Error(dictionary.member.errors.syncFailed);
       }
 
+      const syncedMember = data.member;
       let shouldCelebrate = data.justCompleted;
 
       setMemberSync((current) => {
         if (
           !shouldCelebrate &&
           current.member?.status === "pending_payment" &&
-          data.member.status === "completed"
+          syncedMember.status === "completed"
         ) {
           shouldCelebrate = true;
         }
 
         return {
-          email: data.member.email,
+          email: syncedMember.email,
           error: null,
           justCompleted: shouldCelebrate,
-          member: data.member,
+          member: syncedMember,
           status: "ready",
         };
       });
@@ -427,8 +428,8 @@ export function SmartWalletApp({
         triggerCelebration();
       }
 
-      if (data.member.status === "completed") {
-        void loadReferralDashboard(data.member.email, {
+      if (syncedMember.status === "completed") {
+        void loadReferralDashboard(syncedMember.email, {
           background: options?.background,
         });
       } else {

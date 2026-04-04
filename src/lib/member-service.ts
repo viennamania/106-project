@@ -141,6 +141,7 @@ async function ensurePlacementSlotsForCompletedMember(
   }
 
   const collection = await getReferralPlacementSlotsCollection();
+  const ownerReferralCode = member.referralCode;
   const ownerRegistrationCompletedAt =
     member.registrationCompletedAt ?? member.createdAt;
   const baseTimestamp = ownerRegistrationCompletedAt;
@@ -149,7 +150,7 @@ async function ensurePlacementSlotsForCompletedMember(
     Array.from({ length: REFERRAL_SIGNUP_LIMIT }, (_, index) => ({
       updateOne: {
         filter: {
-          ownerReferralCode: member.referralCode,
+          ownerReferralCode,
           slotIndex: index + 1,
         },
         update: {
@@ -159,7 +160,7 @@ async function ensurePlacementSlotsForCompletedMember(
             claimedByEmail: null,
             createdAt: baseTimestamp,
             ownerEmail: member.email,
-            ownerReferralCode: member.referralCode,
+            ownerReferralCode,
             ownerRegistrationCompletedAt,
             slotIndex: index + 1,
             updatedAt: baseTimestamp,
