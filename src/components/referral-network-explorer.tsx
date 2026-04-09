@@ -261,7 +261,7 @@ function ExplorerInfoRow({
       <p className="text-[0.64rem] uppercase tracking-[0.18em] text-slate-500">
         {label}
       </p>
-      <p className="mt-1.5 break-words text-sm font-medium text-slate-900">
+      <p className="mt-1.5 break-words text-right text-sm font-medium text-slate-900 tabular-nums">
         {animateValue ? (
           <AnimatedNumberText locale={locale} value={value} />
         ) : (
