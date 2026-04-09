@@ -13,24 +13,28 @@ export function ReferralRewardsPanel({
   dictionary,
   locale,
   rewards,
+  showHeader = true,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   rewards: ReferralRewardsSummaryRecord;
+  showHeader?: boolean;
 }) {
   const activeLevels = rewards.pointsByLevel.filter((points) => points > 0).length;
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
-        <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-          {dictionary.referralsPage.rewards.title}
-        </h3>
-        <p className="max-w-2xl text-sm leading-6 text-slate-600">
-          {dictionary.referralsPage.rewards.description}
-        </p>
-      </div>
+      {showHeader ? (
+        <div className="space-y-1">
+          <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
+          <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+            {dictionary.referralsPage.rewards.title}
+          </h3>
+          <p className="max-w-2xl text-sm leading-6 text-slate-600">
+            {dictionary.referralsPage.rewards.description}
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <RewardMetricCard
@@ -76,18 +80,14 @@ export function ReferralRewardsPanel({
           <p className="text-sm font-semibold text-slate-950">
             {dictionary.referralsPage.rewards.recentTitle}
           </p>
-          <div className="grid gap-3">
-            {rewards.history.map((reward) => (
-              <RewardHistoryCard
-                awardedAtLabel={dictionary.referralsPage.rewards.awardedAt}
-                key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}
-                levelLabel={dictionary.referralsPage.labels.level}
-                locale={locale}
-                reward={reward}
-                sourceMemberLabel={dictionary.referralsPage.rewards.sourceMember}
-              />
-            ))}
-          </div>
+          <RewardHistoryTable
+            awardedAtLabel={dictionary.referralsPage.rewards.awardedAt}
+            levelLabel={dictionary.referralsPage.labels.level}
+            locale={locale}
+            pointsLabel={dictionary.referralsPage.rewards.points}
+            rewards={rewards.history}
+            sourceMemberLabel={dictionary.referralsPage.rewards.sourceMember}
+          />
         </div>
       )}
     </div>
@@ -106,14 +106,16 @@ function RewardMetricCard({
   value: string;
 }) {
   return (
-    <div className={cn(
-      "rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
-      className,
-    )}>
+    <div
+      className={cn(
+        "flex min-h-[116px] flex-col rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+        className,
+      )}
+    >
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
-      <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+      <p className="mt-6 text-right text-2xl font-semibold tracking-tight text-slate-950 tabular-nums">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
@@ -132,70 +134,97 @@ function RewardLevelCard({
   points: number;
 }) {
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-4 sm:px-4">
+    <div className="flex min-h-[104px] flex-col rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-4 sm:px-4">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {levelLabel} {level}
       </p>
-      <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+      <p className="mt-4 text-right text-lg font-semibold tracking-tight text-slate-950 tabular-nums sm:text-xl">
         <AnimatedNumberText locale={locale} value={`${points} P`} />
       </p>
     </div>
   );
 }
 
-function RewardHistoryCard({
+function RewardHistoryTable({
   awardedAtLabel,
   levelLabel,
   locale,
-  reward,
+  pointsLabel,
+  rewards,
   sourceMemberLabel,
 }: {
   awardedAtLabel: string;
   levelLabel: string;
   locale: Locale;
-  reward: ReferralRewardRecord;
+  pointsLabel: string;
+  rewards: ReferralRewardRecord[];
   sourceMemberLabel: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
-          {levelLabel} {reward.level}
-        </span>
-        <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
-          <AnimatedNumberText locale={locale} value={`+${reward.points} P`} />
-        </span>
-      </div>
+    <div className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+      <div className="overflow-x-auto">
+        <table className="min-w-[42rem] w-full border-separate border-spacing-0">
+          <thead>
+            <tr className="bg-slate-50/90">
+              <th
+                className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                scope="col"
+              >
+                {levelLabel}
+              </th>
+              <th
+                className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                scope="col"
+              >
+                {sourceMemberLabel}
+              </th>
+              <th
+                className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                scope="col"
+              >
+                {awardedAtLabel}
+              </th>
+              <th
+                className="border-b border-slate-200 px-4 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                scope="col"
+              >
+                {pointsLabel}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rewards.map((reward, index) => {
+              const rowBorderClass =
+                index < rewards.length - 1 ? "border-b border-slate-100" : "";
 
-      <div className="mt-3 grid gap-3 min-[360px]:grid-cols-2">
-        <RewardMeta
-          label={sourceMemberLabel}
-          value={reward.sourceMemberEmail}
-        />
-        <RewardMeta
-          label={awardedAtLabel}
-          value={formatDateTime(reward.awardedAt, locale)}
-        />
+              return (
+                <tr className="align-top" key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}>
+                  <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                    <span className="inline-flex whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                      {levelLabel} {reward.level}
+                    </span>
+                  </td>
+                  <td className={cn("min-w-[15rem] px-4 py-3.5", rowBorderClass)}>
+                    <p className="break-all text-sm font-medium text-slate-900">
+                      {reward.sourceMemberEmail}
+                    </p>
+                  </td>
+                  <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                    <p className="whitespace-nowrap text-sm text-slate-600">
+                      {formatDateTime(reward.awardedAt, locale)}
+                    </p>
+                  </td>
+                  <td className={cn("px-4 py-3.5 text-right", rowBorderClass)}>
+                    <span className="ml-auto inline-flex whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-900 tabular-nums">
+                      <AnimatedNumberText locale={locale} value={`+${reward.points} P`} />
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </div>
-  );
-}
-
-function RewardMeta({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="min-w-0 rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3">
-      <p className="text-[0.64rem] uppercase tracking-[0.2em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 break-words text-sm font-medium text-slate-900">
-        {value}
-      </p>
     </div>
   );
 }

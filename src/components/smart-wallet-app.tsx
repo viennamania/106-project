@@ -1139,6 +1139,7 @@ function Panel({
   className,
   title,
   eyebrow,
+  description,
   children,
   contentClassName,
   id,
@@ -1147,6 +1148,7 @@ function Panel({
   className?: string;
   title: string;
   eyebrow: string;
+  description?: string;
   children: ReactNode;
   contentClassName?: string;
   id?: string;
@@ -1167,6 +1169,11 @@ function Panel({
           <h3 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
             {title}
           </h3>
+          {description ? (
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+              {description}
+            </p>
+          ) : null}
         </div>
         <div className={cn("flex flex-col", contentClassName)}>{children}</div>
       </section>
@@ -1463,6 +1470,7 @@ function CompletedHomeDashboard({
       <Panel
         className="lg:col-span-2"
         contentClassName="gap-4"
+        description={dictionary.referralsPage.rewards.description}
         eyebrow={dictionary.referralsPage.eyebrow}
         revealDelay={180}
         title={dictionary.referralsPage.rewards.title}
@@ -1471,6 +1479,7 @@ function CompletedHomeDashboard({
           dictionary={dictionary}
           locale={locale}
           rewards={referralDashboard.rewards}
+          showHeader={false}
         />
       </Panel>
 

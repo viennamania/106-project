@@ -229,6 +229,7 @@ export type Dictionary = {
       empty: string;
       recentTitle: string;
       perSignup: string;
+      points: string;
       totalPoints: string;
       totalRewards: string;
       activeLevels: string;
@@ -530,6 +531,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         empty: "아직 적립된 보상 내역이 없습니다.",
         recentTitle: "최근 지급 내역",
         perSignup: "가입당 보상",
+        points: "포인트",
         totalPoints: "누적 포인트",
         totalRewards: "지급 건수",
         activeLevels: "적립 단계",
@@ -829,6 +831,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         empty: "No reward entries have been issued yet.",
         recentTitle: "Recent rewards",
         perSignup: "Reward per signup",
+        points: "Points",
         totalPoints: "Total points",
         totalRewards: "Reward entries",
         activeLevels: "Active levels",
@@ -1129,6 +1132,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         empty: "まだ付与された報酬履歴はありません。",
         recentTitle: "最近の付与履歴",
         perSignup: "1件あたり報酬",
+        points: "ポイント",
         totalPoints: "累計ポイント",
         totalRewards: "付与件数",
         activeLevels: "付与段階",
@@ -1428,6 +1432,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         empty: "目前还没有已发放的奖励记录。",
         recentTitle: "最近发放记录",
         perSignup: "每次注册奖励",
+        points: "积分",
         totalPoints: "累计积分",
         totalRewards: "发放次数",
         activeLevels: "发放层级",
