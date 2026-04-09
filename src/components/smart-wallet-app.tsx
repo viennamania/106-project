@@ -622,7 +622,7 @@ export function SmartWalletApp({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-28 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-32 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
         <LandingReveal delay={10} variant="soft">
           <header className="glass-card flex flex-col gap-3 rounded-[26px] px-4 py-3.5 sm:px-5 sm:py-4">
             <div className="flex items-start gap-3">
@@ -748,7 +748,7 @@ export function SmartWalletApp({
                           ? dictionary.sponsored.eyebrow
                           : dictionary.onboarding.eyebrow}
                     </p>
-                    <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
+                    <h2 className="max-w-2xl text-[1.72rem] font-semibold leading-[1.03] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
                       {!hasThirdwebClientId
                         ? dictionary.env.title
                         : isIncomingReferralBlocked
@@ -839,7 +839,7 @@ export function SmartWalletApp({
                         id="signup-payment"
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="flex flex-wrap gap-3">
+                          <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap">
                             <CompactMetaCard
                               label={dictionary.member.labels.requiredDeposit}
                               locale={locale}
@@ -870,7 +870,7 @@ export function SmartWalletApp({
                               </p>
                             </div>
                             <button
-                              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
+                              className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15 sm:w-auto sm:self-start"
                               onClick={handleCopyAddress}
                               type="button"
                             >
@@ -1110,21 +1110,23 @@ export function SmartWalletApp({
 
       {showMobileActionDock ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] lg:hidden">
-          <div className="pointer-events-auto glass-card flex items-center gap-3 rounded-[26px] border border-white/75 px-3 py-3 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
-            <div className="min-w-0 flex-1">
-              <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-slate-500">
-                {mobileDockEyebrow}
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
-                {mobileDockTitle}
-              </p>
-            </div>
+          <div className="pointer-events-auto glass-card rounded-[26px] border border-white/75 px-3 py-3 shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+            <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center">
+              <div className="min-w-0 flex-1">
+                <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-slate-500">
+                  {mobileDockEyebrow}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                  {mobileDockTitle}
+                </p>
+              </div>
 
-            <PrimaryActionLink
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800"
-              href={mobilePrimaryHref}
-              label={mobilePrimaryLabel}
-            />
+              <PrimaryActionLink
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
+                href={mobilePrimaryHref}
+                label={mobilePrimaryLabel}
+              />
+            </div>
           </div>
         </div>
       ) : null}
@@ -1300,10 +1302,11 @@ function CompletedHomeDashboard({
             </div>
           ) : null}
 
-          <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="grid gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
             <LandingReveal delay={50}>
               <MetricCard
                 animateValue={false}
+                className="min-[420px]:col-span-2 sm:col-span-1"
                 hint={dictionary.referralsPage.labels.referralCode}
                 label={dictionary.member.completedValue}
                 locale={locale}
@@ -1334,9 +1337,9 @@ function CompletedHomeDashboard({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-            <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+            <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:rounded-[28px] sm:p-5">
               <p className="eyebrow">{dictionary.referralsPage.shareTitle}</p>
-              <p className="mt-3 text-3xl font-semibold tracking-[0.08em] text-slate-950">
+              <p className="mt-3 text-[1.7rem] font-semibold tracking-[0.06em] text-slate-950 sm:text-3xl sm:tracking-[0.08em]">
                 {member.referralCode ?? dictionary.common.notAvailable}
               </p>
 
@@ -1365,7 +1368,7 @@ function CompletedHomeDashboard({
               ) : null}
             </div>
 
-            <div className="flex flex-col gap-3 rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+            <div className="flex flex-col gap-3 rounded-[24px] bg-slate-950 p-4 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)] sm:rounded-[28px] sm:p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-white/55">
                 {dictionary.member.eyebrow}
               </p>
@@ -1378,7 +1381,7 @@ function CompletedHomeDashboard({
 
               <div className="mt-auto flex flex-wrap gap-3">
                 <button
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 sm:w-auto"
                   onClick={onRefresh}
                   type="button"
                 >
@@ -1500,19 +1503,26 @@ function CompletedHomeDashboard({
 
 function MetricCard({
   animateValue = false,
+  className,
   label,
   locale,
   value,
   hint,
 }: {
   animateValue?: boolean;
+  className?: string;
   label: string;
   locale: Locale;
   value: string;
   hint: string;
 }) {
   return (
-    <div className="min-w-[156px] snap-start rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-w-0">
+    <div
+      className={cn(
+        "rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+        className,
+      )}
+    >
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
