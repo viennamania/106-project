@@ -35,8 +35,8 @@ import {
 import {
   BSC_USDT_ADDRESS,
   smartWalletChain,
-  thirdwebClient,
 } from "@/lib/thirdweb";
+import { serverThirdwebClient } from "@/lib/thirdweb-server";
 import {
   BSC_CHAIN_ID,
   ERC20_TRANSFER_SIG_HASH,
@@ -538,7 +538,7 @@ async function getSignupWalletBalanceValidationError({
   const balance = await getWalletBalance({
     address: walletAddress,
     chain: smartWalletChain,
-    client: thirdwebClient,
+    client: serverThirdwebClient,
     tokenAddress: BSC_USDT_ADDRESS,
   });
 
@@ -677,7 +677,7 @@ async function backfillSignupPaymentEvent(
     const collection = await getThirdwebWebhookEventsCollection();
     const rpcClient = getRpcClient({
       chain: smartWalletChain,
-      client: thirdwebClient,
+      client: serverThirdwebClient,
     });
     const awaitingPaymentSinceSeconds = Math.floor(
       member.awaitingPaymentSince.getTime() / 1000,

@@ -191,6 +191,15 @@ export function EmailLoginDialog({
           {title}
         </h2>
 
+        <div className="mt-4 rounded-[24px] border border-amber-200 bg-[linear-gradient(180deg,#fff9ec,#fff4d8)] px-4 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)]">
+          <p className="text-sm font-semibold tracking-tight text-slate-950">
+            {dictionary.common.loginDialog.signupGuideTitle}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-700">
+            {dictionary.common.loginDialog.signupGuideDescription}
+          </p>
+        </div>
+
         <div className="mt-6 rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-3">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">

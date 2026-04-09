@@ -31,6 +31,8 @@ export type Dictionary = {
       codePlaceholder: string;
       emailDescription: string;
       emailPlaceholder: string;
+      signupGuideDescription: string;
+      signupGuideTitle: string;
       invalidCode: string;
       invalidEmail: string;
       resendCode: string;
@@ -269,6 +271,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         emailDescription:
           "이메일 주소를 입력하면 6자리 인증 코드를 보내드립니다.",
         emailPlaceholder: "이메일 주소",
+        signupGuideDescription:
+          "메일로 전송되는 인증코드 확인 후 10USDT가 전송되어야 완료됩니다.",
+        signupGuideTitle: "회원 가입 방법",
         invalidCode: "6자리 인증 코드를 입력하세요.",
         invalidEmail: "올바른 이메일 주소를 입력하세요.",
         resendCode: "코드 다시 보내기",
@@ -345,9 +350,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "연결된 스마트 월렛에서 PROJECT_WALLET로 정확히 10 USDT를 보내야 가입 조건이 충족됩니다.",
         },
         {
-          title: "웹훅이 가입 완료 처리",
+          title: "입금 확인 후 자동 완료",
           description:
-            "thirdweb webhook가 입금을 감지하면 회원가입 완료, 레퍼럴 코드 발급, 추천인 저장이 한 번에 처리됩니다.",
+            "입금이 확인되면 회원가입 완료, 추천인 저장, 레퍼럴 코드 발급이 한 번에 반영되며 지연 시 자동으로 재확인합니다.",
         },
       ],
     },
@@ -366,9 +371,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 보냅니다.",
         },
         {
-          title: "웹훅 확인 후 가입 완료",
+          title: "입금 확인 후 자동 완료",
           description:
-            "웹훅이 입금을 확인하면 회원가입 완료와 레퍼럴 코드 발급이 즉시 반영됩니다.",
+            "결제 기록이 확인되면 회원가입과 레퍼럴 코드 활성화가 자동 반영되며, 지연 시 시스템이 다시 확인합니다.",
         },
       ],
     },
@@ -376,14 +381,16 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "회원가입 결제",
       eyebrow: "10 usdt transfer",
       description:
-        "연결된 스마트 월렛에서 {wallet} 로 정확히 {amount} USDT를 보내면 webhook가 회원가입을 완료합니다.",
+        "연결된 스마트 월렛에서 {wallet} 로 정확히 {amount} USDT를 보내면 시스템이 입금 기록을 확인해 회원가입을 완료합니다. 반영이 지연되면 자동으로 다시 확인합니다.",
       cta: "정확히 {amount} USDT 보내기",
       completedCta: "회원가입 완료",
       emptyNotice:
-        "전송 결과와 webhook 확인 상태가 여기에 표시됩니다.",
+        "전송 결과와 회원 상태 자동 반영 진행 상황이 여기에 표시됩니다.",
       connectFirst: "먼저 이메일 로그인 하세요.",
-      txConfirmed: "전송 트랜잭션이 확인되었습니다. webhook 확인을 기다리는 중입니다.",
-      txSent: "전송을 보냈습니다. webhook가 도착하면 회원가입이 완료됩니다.",
+      txConfirmed:
+        "전송 트랜잭션이 확인되었습니다. 회원 상태를 자동 반영하는 중이며, 지연되면 시스템이 다시 확인합니다.",
+      txSent:
+        "전송을 보냈습니다. 입금이 확인되면 회원가입이 자동으로 완료됩니다.",
       openExplorer: "거래 보기",
     },
     surface: {
@@ -401,9 +408,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "결제 전에는 가입 조건을 강조하고, 완료 후에는 레퍼럴과 완료 정보를 중심으로 보여줍니다.",
         },
         {
-          title: "웹훅 기반 자동 완료",
+          title: "검증 기반 자동 완료",
           description:
-            "클라이언트 액션만 믿지 않고 webhook 확인을 완료 기준으로 삼아 가입 상태를 안정적으로 맞춥니다.",
+            "클라이언트의 전송 성공만 믿지 않고, 검증된 입금 기록과 재확인 흐름으로 가입 상태를 안정적으로 맞춥니다.",
         },
       ],
     },
@@ -412,9 +419,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "가입 상태",
       disconnected:
         "이메일 로그인 후 회원 상태가 여기에 표시됩니다.",
-      syncing: "회원가입 상태를 Atlas와 webhook 기준으로 확인하는 중입니다.",
+      syncing:
+        "회원가입 상태를 확인하는 중입니다. 결제 기록이 반영되면 자동으로 완료 처리됩니다.",
       pending:
-        "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 정확히 10 USDT를 보내면 회원가입이 완료됩니다.",
+        "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 정확히 10 USDT를 보내면 입금 확인 후 자동으로 완료되며, 반영이 지연되면 시스템이 다시 확인합니다.",
       synced: "10 USDT 입금이 확인되어 회원가입이 완료되었고 레퍼럴 코드가 발급되었습니다.",
       newMember: "회원가입이 완료되었습니다.",
       pendingValue: "결제 대기",
@@ -562,6 +570,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         emailDescription:
           "Enter your email address and we will send you a 6-digit verification code.",
         emailPlaceholder: "Email address",
+        signupGuideDescription:
+          "Your registration will be complete once you verify the authentication code sent via email and transfer 10 USDT.",
+        signupGuideTitle: "How to Sign Up",
         invalidCode: "Enter the 6-digit verification code.",
         invalidEmail: "Enter a valid email address.",
         resendCode: "Resend code",
@@ -638,9 +649,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "The connected smart wallet must send exactly 10 USDT to PROJECT_WALLET to qualify for signup.",
         },
         {
-          title: "Let the webhook complete signup",
+          title: "Auto-complete after payment verification",
           description:
-            "The webhook validates the transfer, completes signup, stores the inviter code, and creates the referral code only at completion time.",
+            "Once the payment is verified, signup completion, inviter storage, and referral code issuance are applied together, and delayed updates are rechecked automatically.",
         },
       ],
     },
@@ -659,9 +670,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "Transfer exactly 10 USDT from the connected wallet to PROJECT_WALLET.",
         },
         {
-          title: "Wait for webhook confirmation",
+          title: "Auto-complete after payment verification",
           description:
-            "Once the webhook confirms the payment, signup completes and the referral code becomes active.",
+            "Once the payment record is verified, signup and referral code activation are applied automatically, and delayed updates are checked again in the background.",
         },
       ],
     },
@@ -669,14 +680,16 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "Signup Payment",
       eyebrow: "10 usdt transfer",
       description:
-        "Send exactly {amount} USDT from the connected smart wallet to {wallet}. The webhook will complete signup after the transfer is confirmed.",
+        "Send exactly {amount} USDT from the connected smart wallet to {wallet}. The system verifies the payment record and completes signup automatically. If processing is delayed, it will retry in the background.",
       cta: "Send exactly {amount} USDT",
       completedCta: "Signup complete",
       emptyNotice:
-        "Transfer results and webhook confirmation status will appear here.",
+        "Transfer results and automatic signup verification status will appear here.",
       connectFirst: "Complete email login first.",
-      txConfirmed: "The transfer was confirmed. Waiting for the webhook to complete signup.",
-      txSent: "The transfer was sent. Signup will finish after the webhook arrives.",
+      txConfirmed:
+        "The transfer was confirmed. Signup status is being updated automatically, and the system will retry if it is delayed.",
+      txSent:
+        "The transfer was sent. Signup will complete automatically after the payment is verified.",
       openExplorer: "View transaction",
     },
     surface: {
@@ -694,9 +707,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "Before payment, the UI stresses the 10 USDT requirement. After payment confirmation, it shifts to referral and completion details.",
         },
         {
-          title: "Use webhook confirmation as the source of truth",
+          title: "Use verified payment completion",
           description:
-            "Signup completion depends on a verified transfer event instead of only client-side transaction success.",
+            "Signup completion depends on verified payment records and retry checks instead of only client-side transaction success.",
         },
       ],
     },
@@ -705,9 +718,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "signup status",
       disconnected:
         "After email login, your member status appears here.",
-      syncing: "Checking signup status against Atlas and the webhook records.",
+      syncing:
+        "Checking signup status. Once the payment record is verified, signup will complete automatically.",
       pending:
-        "Signup is still pending. Send exactly 10 USDT from the connected wallet to complete signup.",
+        "Signup is still pending. Send exactly 10 USDT from the connected wallet. After the payment is verified, signup will complete automatically, and delayed updates will be rechecked.",
       synced: "The 10 USDT payment was confirmed, signup is complete, and the referral code is now active.",
       newMember: "Signup completed successfully.",
       pendingValue: "Payment pending",
@@ -856,6 +870,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         emailDescription:
           "メールアドレスを入力すると、6 桁の認証コードを送信します。",
         emailPlaceholder: "メールアドレス",
+        signupGuideDescription:
+          "メールで届く認証コードを確認し、10 USDT を送金すると登録が完了します。",
+        signupGuideTitle: "登録方法",
         invalidCode: "6 桁の認証コードを入力してください。",
         invalidEmail: "有効なメールアドレスを入力してください。",
         resendCode: "コードを再送",
@@ -932,9 +949,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "接続済みスマートウォレットから PROJECT_WALLET へ正確に 10 USDT を送る必要があります。",
         },
         {
-          title: "webhook が登録完了を処理",
+          title: "入金確認後に自動完了",
           description:
-            "入金確認後に会員登録、紹介コード保存、レファラルコード発行をまとめて反映します。",
+            "入金が確認されると、会員登録、紹介コード保存、レファラルコード発行がまとめて反映され、遅延時は自動で再確認します。",
         },
       ],
     },
@@ -953,9 +970,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "接続済みウォレットから PROJECT_WALLET へ正確に 10 USDT を送ります。",
         },
         {
-          title: "webhook 確認後に登録完了",
+          title: "入金確認後に自動完了",
           description:
-            "webhook が入金を確認すると、登録完了とレファラルコード有効化がすぐに反映されます。",
+            "決済記録が確認されると、登録完了とレファラルコード有効化が自動反映され、遅延時はシステムが再確認します。",
         },
       ],
     },
@@ -963,14 +980,16 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "登録用決済",
       eyebrow: "10 usdt transfer",
       description:
-        "接続済みスマートウォレットから {wallet} へ正確に {amount} USDT を送ると、webhook が登録完了を処理します。",
+        "接続済みスマートウォレットから {wallet} へ正確に {amount} USDT を送ると、システムが入金記録を確認して登録を自動完了します。遅延時は再確認されます。",
       cta: "正確に {amount} USDT を送る",
       completedCta: "登録完了",
       emptyNotice:
-        "送金結果と webhook 確認状態がここに表示されます。",
+        "送金結果と登録反映状況がここに表示されます。",
       connectFirst: "先にメールログインしてください。",
-      txConfirmed: "送金トランザクションが確認されました。webhook 確認を待っています。",
-      txSent: "送金を送信しました。webhook が到着すると登録が完了します。",
+      txConfirmed:
+        "送金トランザクションが確認されました。登録状態を自動反映しており、遅延時はシステムが再確認します。",
+      txSent:
+        "送金を送信しました。入金確認後、登録は自動で完了します。",
       openExplorer: "取引を見る",
     },
     surface: {
@@ -999,9 +1018,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "登録状態",
       disconnected:
         "メールログイン後、会員ステータスがここに表示されます。",
-      syncing: "Atlas と webhook 記録を基準に登録状態を確認しています。",
+      syncing:
+        "登録状態を確認しています。決済記録が確認されると自動で登録完了に反映されます。",
       pending:
-        "まだ登録は完了していません。接続済みウォレットから正確に 10 USDT を送ると登録が完了します。",
+        "まだ登録は完了していません。接続済みウォレットから正確に 10 USDT を送ると、入金確認後に自動で登録完了となり、遅延時はシステムが再確認します。",
       synced: "10 USDT の入金が確認され、登録完了とレファラルコード発行が完了しました。",
       newMember: "会員登録が完了しました。",
       pendingValue: "支払い待ち",
@@ -1149,6 +1169,9 @@ const dictionaries: Record<Locale, Dictionary> = {
         emailDescription:
           "输入你的邮箱地址后，我们会发送一组 6 位验证码。",
         emailPlaceholder: "邮箱地址",
+        signupGuideDescription:
+          "确认邮箱收到的验证码后，再转入 10 USDT，即可完成注册。",
+        signupGuideTitle: "注册方式",
         invalidCode: "请输入 6 位验证码。",
         invalidEmail: "请输入有效的邮箱地址。",
         resendCode: "重新发送验证码",
@@ -1225,9 +1248,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "已连接的钱包必须向 PROJECT_WALLET 精确转入 10 USDT，才满足注册条件。",
         },
         {
-          title: "等待 webhook 完成注册",
+          title: "入账确认后自动完成",
           description:
-            "到账被确认后，会一次性完成会员注册、推荐人记录和推荐码生成。",
+            "确认到账后，会一次性完成会员注册、推荐人记录和推荐码生成；如果同步延迟，系统会自动复查。",
         },
       ],
     },
@@ -1246,9 +1269,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "从已连接钱包向 PROJECT_WALLET 精确转入 10 USDT。",
         },
         {
-          title: "等待 webhook 确认",
+          title: "入账确认后自动完成",
           description:
-            "webhook 确认到账后，立即完成注册并激活推荐码。",
+            "支付记录确认后，会自动完成注册并激活推荐码；如果延迟，系统会自动再次检查。",
         },
       ],
     },
@@ -1256,14 +1279,16 @@ const dictionaries: Record<Locale, Dictionary> = {
       title: "注册支付",
       eyebrow: "10 usdt transfer",
       description:
-        "从已连接智能钱包向 {wallet} 精确转入 {amount} USDT，webhook 会在交易确认后完成注册。",
+        "从已连接智能钱包向 {wallet} 精确转入 {amount} USDT 后，系统会校验入账记录并自动完成注册。如处理延迟，后台也会继续复查。",
       cta: "精确转入 {amount} USDT",
       completedCta: "注册已完成",
       emptyNotice:
-        "转账结果和 webhook 确认状态会显示在这里。",
+        "转账结果和注册自动处理状态会显示在这里。",
       connectFirst: "请先完成邮箱登录。",
-      txConfirmed: "转账交易已确认，正在等待 webhook 完成注册。",
-      txSent: "转账已发送，webhook 到达后会完成注册。",
+      txConfirmed:
+        "转账交易已确认，系统正在自动更新注册状态；若延迟，会继续重新检查。",
+      txSent:
+        "转账已发送。入账确认后，注册会自动完成。",
       openExplorer: "查看交易",
     },
     surface: {
@@ -1281,9 +1306,9 @@ const dictionaries: Record<Locale, Dictionary> = {
             "支付前突出 10 USDT 条件，支付确认后转为展示推荐信息和完成记录。",
         },
         {
-          title: "以 webhook 确认为准",
+          title: "以验证结果自动完成",
           description:
-            "不会只依赖前端交易成功，而是以已验证的 transfer 事件作为注册完成依据。",
+            "不会只依赖前端交易成功，而是结合已验证的 transfer 事件与复查流程来稳定完成注册。",
         },
       ],
     },
@@ -1292,9 +1317,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       eyebrow: "注册状态",
       disconnected:
         "邮箱登录后，会员状态会显示在这里。",
-      syncing: "正在根据 Atlas 和 webhook 记录检查注册状态。",
+      syncing:
+        "正在检查注册状态。支付记录确认后会自动完成注册。",
       pending:
-        "注册尚未完成。从当前连接的钱包精确转入 10 USDT 后，即可完成注册。",
+        "注册尚未完成。从当前连接的钱包精确转入 10 USDT 后，确认到账即可自动完成注册；如反映延迟，系统会继续复查。",
       synced: "10 USDT 入账已确认，会员注册已完成，推荐码也已激活。",
       newMember: "会员注册已完成。",
       pendingValue: "待支付",

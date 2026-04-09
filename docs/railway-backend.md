@@ -33,6 +33,8 @@ Shared between Vercel and Railway:
 - `THIRDWEB_WEBHOOK_SECRETS`
 - `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`
 
+Server-side thirdweb calls should prefer `THIRDWEB_SECRET_KEY`. The public site still needs `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` for wallet UI, but Railway API and worker reconciliation should run against thirdweb infrastructure with the server secret when it is configured.
+
 Railway-only additions:
 
 - `RECONCILE_API_TOKEN`

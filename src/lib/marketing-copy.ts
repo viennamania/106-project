@@ -86,12 +86,12 @@ export type LandingCopy = {
 };
 
 const baseGenerationRows = [
-  { generation: "Gen 1", people: "6", points: "200P" },
-  { generation: "Gen 2", people: "36", points: "80P" },
-  { generation: "Gen 3", people: "216", points: "80P" },
-  { generation: "Gen 4", people: "1,296", points: "80P" },
-  { generation: "Gen 5", people: "7,776", points: "80P" },
-  { generation: "Gen 6", people: "46,656", points: "80P" },
+  { generation: "G1", people: "6", points: "1,200P" },
+  { generation: "G2", people: "36", points: "2,880P" },
+  { generation: "G3", people: "216", points: "17,280P" },
+  { generation: "G4", people: "1,296", points: "103,680P" },
+  { generation: "G5", people: "7,776", points: "622,080P" },
+  { generation: "G6", people: "46,656", points: "3,732,480P" },
 ] as const;
 
 function withGenerationRemarks(remarks: string[]): LandingGenerationRow[] {
@@ -148,14 +148,14 @@ const landingCopy: Record<Locale, LandingCopy> = {
       columns: {
         generation: "세대",
         people: "인원 수",
-        points: "1인당 포인트",
+        points: "합산 포인트",
         remark: "비고",
       },
       description:
         "1066의 핵심은 자동 매칭 관계가 6세대까지 누적되는 지수형 포인트 엔진입니다. 구조가 깊어질수록 패시브 흐름이 더 큰 규모로 쌓입니다.",
       eyebrow: "6-Generation Accumulation",
       insight:
-        "6세대 구조가 완성되면 총 56,186명의 글로벌 파트너가 당신의 수익 엔진을 움직입니다. 누적 포인트는 4,479,680P, 현금 환산 가치는 약 $44,796.8입니다.",
+        "6세대 구조가 완성되면 총 56,186명의 글로벌 파트너가 당신의 수익 엔진을 움직입니다. 누계 포인트는 약 4,479,600P이며, 구조는 더 큰 규모의 흐름으로 축적됩니다.",
       insightLabel: "Insight",
       rows: withGenerationRemarks([
         "직접 네트워크의 시작점",
@@ -169,13 +169,13 @@ const landingCopy: Record<Locale, LandingCopy> = {
       totals: [
         {
           label: "누적 포인트",
-          value: "4,479,680P",
+          value: "약 4,479,600P",
           hint: "6세대 완성 시점 기준",
         },
         {
           label: "현금 환산",
-          value: "$44,796.8",
-          hint: "$1 = 100P 기준",
+          value: "$44,796",
+          hint: "",
         },
         {
           label: "글로벌 파트너",
@@ -217,7 +217,7 @@ const landingCopy: Record<Locale, LandingCopy> = {
       },
       {
         label: "최대 환산",
-        value: "$44,796.8",
+        value: "$44,796",
         hint: "6세대 완성 시 예시 가치",
       },
     ],
@@ -332,14 +332,14 @@ const landingCopy: Record<Locale, LandingCopy> = {
       columns: {
         generation: "Generation",
         people: "Number of people",
-        points: "Points per person",
+        points: "Total points",
         remark: "Remarks",
       },
       description:
         "The core model is a 6-generation exponential point engine. As auto-matched relationships stack across each generation, the flow scales into a much larger passive income structure.",
       eyebrow: "6-Generation Accumulation",
       insight:
-        "Once all 6 generations are complete, a network of 56,186 global partners powers your profit engine. Total accumulated points reach 4,479,680P, or approximately $44,796.8 at $1 = 100P.",
+        "Once all 6 generations are complete, a network of 56,186 global partners powers your profit engine. Total accumulated points reach approximately 4,479,600P as the structure compounds.",
       insightLabel: "Insight",
       rows: withGenerationRemarks([
         "Foundation of the direct network",
@@ -353,13 +353,13 @@ const landingCopy: Record<Locale, LandingCopy> = {
       totals: [
         {
           label: "Total accumulated points",
-          value: "4,479,680P",
+          value: "Approx. 4,479,600P",
           hint: "At full 6-generation completion",
         },
         {
           label: "Cash equivalent",
-          value: "$44,796.8",
-          hint: "Based on $1 = 100P",
+          value: "$44,796",
+          hint: "",
         },
         {
           label: "Global network size",
@@ -372,11 +372,11 @@ const landingCopy: Record<Locale, LandingCopy> = {
       badges: ["1,000P Entry", "6x Auto-Matching", "Instant Cash Flow"],
       description:
         "More than networking, this is framed as a digital profit engine that turns social influence into liquid, global network value. 1066friend+ is built around auto-matching, exponential structure growth, and real-time point monetization.",
-      eyebrow: "Monetize Your Global Network",
+      eyebrow: "Monetize your global connections",
       note:
         "The entire flow is summarized in one landing: 1,000P entry, six-generation scaling, premium rewards, and an instant cash-out pathway.",
       title:
-        "1066friend+ turns your global network into instant cash flow",
+        "Monetize your global connections with 1066friend+.",
     },
     meta: {
       title: "1066friend+ | Global Profit Engine",
@@ -401,7 +401,7 @@ const landingCopy: Record<Locale, LandingCopy> = {
       },
       {
         label: "Cash value",
-        value: "$44,796.8",
+        value: "$44,796",
         hint: "Illustrated final equivalent",
       },
     ],
@@ -516,14 +516,14 @@ const landingCopy: Record<Locale, LandingCopy> = {
       columns: {
         generation: "世代",
         people: "人数",
-        points: "1 人あたりポイント",
+        points: "合算ポイント",
         remark: "備考",
       },
       description:
         "中核となるのは 6 世代にわたる指数型ポイントエンジンです。自動マッチングされた関係が積み上がるほど、より大きなパッシブフローへ拡張されます。",
       eyebrow: "6-Generation Accumulation",
       insight:
-        "6 世代構造が完成すると、56,186 人のグローバルパートナーがあなたの収益エンジンを動かします。累積ポイントは 4,479,680P、$1 = 100P 基準で約 $44,796.8 に相当します。",
+        "6 世代構造が完成すると、56,186 人のグローバルパートナーがあなたの収益エンジンを動かします。累積ポイントは約 4,479,600P に達します。",
       insightLabel: "Insight",
       rows: withGenerationRemarks([
         "直接ネットワークの基盤",
@@ -537,13 +537,13 @@ const landingCopy: Record<Locale, LandingCopy> = {
       totals: [
         {
           label: "累積ポイント",
-          value: "4,479,680P",
+          value: "約 4,479,600P",
           hint: "6 世代完成時点",
         },
         {
           label: "現金換算",
-          value: "$44,796.8",
-          hint: "$1 = 100P 基準",
+          value: "$44,796",
+          hint: "",
         },
         {
           label: "グローバル規模",
@@ -585,7 +585,7 @@ const landingCopy: Record<Locale, LandingCopy> = {
       },
       {
         label: "最大換算",
-        value: "$44,796.8",
+        value: "$44,796",
         hint: "最終イメージ価値",
       },
     ],
@@ -700,14 +700,14 @@ const landingCopy: Record<Locale, LandingCopy> = {
       columns: {
         generation: "代数",
         people: "人数",
-        points: "每人积分",
+        points: "合计积分",
         remark: "备注",
       },
       description:
         "核心模型是一个覆盖 6 代的指数型积分引擎。随着自动匹配关系跨代累积，整体流量会扩展成更大的被动收益结构。",
       eyebrow: "6-Generation Accumulation",
       insight:
-        "当 6 代结构全部完成时，共有 56,186 位全球伙伴共同驱动你的收益引擎。总积分达到 4,479,680P，按 $1 = 100P 计算约为 $44,796.8。",
+        "当 6 代结构全部完成时，共有 56,186 位全球伙伴共同驱动你的收益引擎。总积分约为 4,479,600P，网络流量会继续累积。",
       insightLabel: "Insight",
       rows: withGenerationRemarks([
         "直接网络的起始基础",
@@ -721,13 +721,13 @@ const landingCopy: Record<Locale, LandingCopy> = {
       totals: [
         {
           label: "累计积分",
-          value: "4,479,680P",
+          value: "约 4,479,600P",
           hint: "以 6 代完成为基准",
         },
         {
           label: "现金等值",
-          value: "$44,796.8",
-          hint: "按照 $1 = 100P",
+          value: "$44,796",
+          hint: "",
         },
         {
           label: "全球网络规模",
@@ -769,7 +769,7 @@ const landingCopy: Record<Locale, LandingCopy> = {
       },
       {
         label: "现金价值",
-        value: "$44,796.8",
+        value: "$44,796",
         hint: "示意性的最终等值",
       },
     ],

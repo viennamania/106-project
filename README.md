@@ -70,6 +70,7 @@ pnpm dev
 - 연결된 지갑에서 `PROJECT_WALLET` 로 정확히 `10 USDT` 를 보내야 회원가입이 완료됩니다.
 - `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 저장하고, 정확히 `10 USDT` 입금이 확인되면 회원 상태를 `completed` 로 승격합니다.
 - 레퍼럴 코드는 회원가입 완료 시점에만 생성됩니다.
+- 브라우저는 `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`를 사용하고, 서버 API 및 Railway worker는 `THIRDWEB_SECRET_KEY`가 있으면 이를 우선 사용합니다.
 
 ## thirdweb webhook setup
 

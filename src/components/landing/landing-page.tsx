@@ -582,7 +582,9 @@ function HeroMetricCard({
       <p className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
-      <p className="mt-2 text-xs text-white/64 sm:text-sm">{hint}</p>
+      {hint ? (
+        <p className="mt-2 text-xs text-white/64 sm:text-sm">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -691,7 +693,9 @@ function FinalMetricCard({
       <p className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{hint}</p>
+      {hint ? (
+        <p className="mt-3 text-sm leading-6 text-slate-600">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -713,7 +717,9 @@ function DarkSummaryCard({
       <p className="mt-3 text-[1.8rem] font-semibold tracking-tight text-white sm:text-3xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
-      <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
+      {hint ? (
+        <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
+      ) : null}
     </div>
   );
 }
