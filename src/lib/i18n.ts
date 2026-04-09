@@ -1,6 +1,7 @@
-export const supportedLocales = ["ko", "en", "ja", "zh"] as const;
+export const supportedLocales = ["ko", "en", "ja", "zh", "vi", "id"] as const;
 
 export type Locale = (typeof supportedLocales)[number];
+type BuiltInLocale = "ko" | "en" | "ja" | "zh";
 
 export const defaultLocale: Locale = "ko";
 export const localeCookieName = "preferred-locale";
@@ -10,6 +11,8 @@ export const localeLabels: Record<Locale, string> = {
   en: "English",
   ja: "日本語",
   zh: "简体中文",
+  vi: "Tiếng Việt",
+  id: "Bahasa Indonesia",
 };
 
 export type Dictionary = {
@@ -248,7 +251,7 @@ export type Dictionary = {
   };
 };
 
-const dictionaries: Record<Locale, Dictionary> = {
+const dictionaries: Record<BuiltInLocale, Dictionary> = {
   ko: {
     meta: {
       title: "Pocket Smart Wallet",
@@ -1448,12 +1451,21 @@ const dictionaries: Record<Locale, Dictionary> = {
   },
 };
 
+const localeDictionaryFallbacks: Record<Locale, BuiltInLocale> = {
+  ko: "ko",
+  en: "en",
+  ja: "ja",
+  zh: "zh",
+  vi: "en",
+  id: "en",
+};
+
 export function hasLocale(locale: string): locale is Locale {
   return supportedLocales.includes(locale as Locale);
 }
 
 export function getDictionary(locale: Locale) {
-  return dictionaries[locale];
+  return dictionaries[localeDictionaryFallbacks[locale]];
 }
 
 export function matchPreferredLocale(input?: string | null): Locale {

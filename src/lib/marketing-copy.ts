@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+type BuiltInLandingLocale = "ko" | "en" | "ja" | "zh";
 
 type LandingMetric = {
   hint: string;
@@ -101,7 +102,7 @@ function withGenerationRemarks(remarks: string[]): LandingGenerationRow[] {
   }));
 }
 
-const landingCopy: Record<Locale, LandingCopy> = {
+const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
   ko: {
     cta: {
       primary: "1066friend+ 시작하기",
@@ -840,6 +841,15 @@ const landingCopy: Record<Locale, LandingCopy> = {
   },
 };
 
+const localeLandingCopyFallbacks: Record<Locale, BuiltInLandingLocale> = {
+  ko: "ko",
+  en: "en",
+  ja: "ja",
+  zh: "zh",
+  vi: "en",
+  id: "en",
+};
+
 export function getLandingCopy(locale: Locale) {
-  return landingCopy[locale];
+  return landingCopy[localeLandingCopyFallbacks[locale]];
 }
