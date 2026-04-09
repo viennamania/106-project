@@ -46,12 +46,12 @@ export function LandingPage({
 
   return (
     <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(234,179,8,0.18),transparent_22%),radial-gradient(circle_at_0%_10%,rgba(255,255,255,0.66),transparent_22%),radial-gradient(circle_at_100%_22%,rgba(30,41,59,0.14),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#fbf7ef_42%,#f6f2eb_100%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[34rem] bg-[linear-gradient(180deg,rgba(15,23,42,0.08),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(217,161,58,0.22),transparent_22%),radial-gradient(circle_at_0%_10%,rgba(255,255,255,0.72),transparent_22%),radial-gradient(circle_at_100%_18%,rgba(15,23,42,0.16),transparent_24%),linear-gradient(180deg,#f6efe3_0%,#fbf7ef_40%,#f7f1e8_100%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] bg-[linear-gradient(180deg,rgba(15,23,42,0.09),transparent)]" />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:px-8">
         <LandingReveal delay={10} variant="soft">
-          <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <header className="glass-card flex flex-col gap-4 rounded-[28px] border border-white/70 bg-white/82 px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <div className="flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-950">
                 <WalletMinimal className="size-5" />
@@ -70,7 +70,7 @@ export function LandingPage({
             <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
               <LanguageSwitcher label={languageLabel} locale={locale} />
               <ReferralAwareCta
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                 locale={locale}
               >
                 {copy.cta.primary}
@@ -80,10 +80,10 @@ export function LandingPage({
           </header>
         </LandingReveal>
 
-        <section className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,#111827_0%,#0f172a_45%,#1e293b_100%)] px-5 py-6 text-white shadow-[0_32px_120px_rgba(15,23,42,0.28)] sm:rounded-[40px] sm:px-8 sm:py-10">
-          <div className="absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.18),transparent_68%)]" />
-          <div className="absolute -left-16 top-12 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.18),transparent_70%)] blur-2xl" />
-          <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.14),transparent_72%)] blur-2xl" />
+        <section className="relative overflow-hidden rounded-[34px] border border-[#d5b782]/12 bg-[linear-gradient(180deg,#09111f_0%,#0f172a_38%,#1d2f4b_100%)] px-5 py-6 text-white shadow-[0_38px_120px_rgba(15,23,42,0.3)] sm:rounded-[40px] sm:px-8 sm:py-10">
+          <div className="absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_top,rgba(245,204,96,0.2),transparent_68%)]" />
+          <div className="absolute -left-16 top-12 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(131,169,238,0.18),transparent_70%)] blur-2xl" />
+          <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(228,181,80,0.18),transparent_72%)] blur-2xl" />
 
           <LandingReveal delay={40} variant="hero">
             <div className="relative mx-auto max-w-4xl text-center">
@@ -140,7 +140,7 @@ export function LandingPage({
           </LandingReveal>
 
           <LandingReveal delay={120} variant="soft">
-            <div className="relative mt-7 overflow-hidden rounded-[24px] border border-white/10 bg-white/6 p-2 backdrop-blur sm:mt-8 sm:rounded-[28px]">
+            <div className="relative mt-7 overflow-hidden rounded-[24px] border border-[#d6bb8a]/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:mt-8 sm:rounded-[28px]">
               <Image
                 alt="Global network visualization inspired by the Gamma reference"
                 className="h-56 w-full rounded-[20px] object-cover object-center sm:h-72 sm:rounded-[24px]"
@@ -161,18 +161,18 @@ export function LandingPage({
           </div>
 
           <LandingReveal delay={240} variant="soft">
-            <div className="relative mt-4 rounded-[24px] border border-white/10 bg-white/7 p-4 backdrop-blur sm:mt-5 sm:rounded-[26px] sm:p-5">
+            <div className="relative mt-4 rounded-[24px] border border-[#d5b782]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-4 backdrop-blur sm:mt-5 sm:rounded-[26px] sm:p-5">
               <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/50">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[#cbb07d]">
                     PROJECT_WALLET
                   </p>
                   <p className="mt-3 break-all text-sm font-semibold text-white">
                     {projectWallet ?? "Not configured yet"}
                   </p>
                 </div>
-                <div className="rounded-[20px] border border-white/10 bg-black/12 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/48">
+                <div className="rounded-[20px] border border-[#d5b782]/14 bg-black/18 px-4 py-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-[#d8bd89]">
                     Activation Flow
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/70">
@@ -211,7 +211,7 @@ export function LandingPage({
           </div>
         </SalesSection>
 
-        <SalesSection className="bg-[linear-gradient(180deg,rgba(255,249,230,0.96),rgba(255,255,255,0.94))]">
+        <SalesSection className="bg-[linear-gradient(180deg,rgba(255,248,232,0.98),rgba(255,255,255,0.96))]">
           <SectionIntro
             description={copy.engine.description}
             eyebrow={copy.engine.eyebrow}
@@ -248,10 +248,25 @@ export function LandingPage({
           />
 
           <LandingReveal variant="soft">
-            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[30px]">
+            <div className="overflow-hidden rounded-[24px] border border-[#dcc6a0] bg-[linear-gradient(180deg,#fffaf0,#fffefb)] shadow-[0_22px_60px_rgba(15,23,42,0.08)] sm:rounded-[30px]">
+              <div className="border-b border-[#eadcc3] bg-[linear-gradient(90deg,#fff7e7,#fffefb)] px-5 py-4 sm:px-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#8f7342]">
+                      Generation Matrix
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {copy.generations.description}
+                    </p>
+                  </div>
+                  <div className="rounded-full border border-[#e7d6b7] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-800">
+                    6 x 6 Engine
+                  </div>
+                </div>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left">
-                  <thead className="bg-slate-950 text-white">
+                  <thead className="bg-[linear-gradient(90deg,#0f172a,#1e293b)] text-[#f7e8c8]">
                     <tr>
                       <th className="px-5 py-4 text-xs font-semibold uppercase tracking-[0.22em]">
                         {copy.generations.columns.generation}
@@ -268,19 +283,28 @@ export function LandingPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {copy.generations.rows.map((row) => (
+                    {copy.generations.rows.map((row, index) => (
                       <tr
-                        className="border-b border-slate-200 last:border-b-0"
+                        className="border-b border-[#efe2cc] bg-white/92 last:border-b-0 odd:bg-[#fff9ef]"
                         key={row.generation}
                       >
                         <td className="px-5 py-4 text-sm font-semibold text-slate-950">
-                          {row.generation}
+                          <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7b5] bg-white px-3 py-2 shadow-[0_10px_25px_rgba(15,23,42,0.04)]">
+                            <span className="flex size-7 items-center justify-center rounded-full bg-slate-950 text-[0.65rem] font-semibold text-[#f5deb0]">
+                              {index + 1}
+                            </span>
+                            <span>{row.generation}</span>
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-right text-sm text-slate-700">
-                          <AnimatedNumberText locale={locale} value={row.people} />
+                          <div className="inline-flex min-w-[7rem] items-center justify-end rounded-full border border-[#ead7b5] bg-white px-3 py-2 font-semibold text-slate-950 shadow-[0_10px_25px_rgba(15,23,42,0.04)]">
+                            <AnimatedNumberText locale={locale} value={row.people} />
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-right text-sm text-slate-700">
-                          <AnimatedNumberText locale={locale} value={row.points} />
+                          <div className="inline-flex min-w-[7rem] items-center justify-end rounded-full border border-[#d6bb8a] bg-[linear-gradient(180deg,#fff8e8,#fff1cf)] px-3 py-2 font-semibold text-slate-950 shadow-[0_10px_25px_rgba(15,23,42,0.04)]">
+                            <AnimatedNumberText locale={locale} value={row.points} />
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-sm leading-6 text-slate-600">
                           {row.remark}
@@ -294,9 +318,9 @@ export function LandingPage({
           </LandingReveal>
 
           <LandingReveal delay={80} variant="soft">
-            <div className="rounded-[30px] bg-[linear-gradient(180deg,#111827,#0f172a)] px-6 py-7 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
+            <div className="rounded-[30px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#111827,#0f172a)] px-6 py-7 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
               <div className="mx-auto max-w-4xl text-center">
-                <p className="text-xs uppercase tracking-[0.24em] text-white/50">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd89]">
                   {copy.generations.insightLabel}
                 </p>
                 <p className="mt-4 text-base leading-8 text-white/74 sm:text-lg">
@@ -344,20 +368,25 @@ export function LandingPage({
             </div>
 
             <LandingReveal delay={120} variant="soft">
-              <div className="rounded-[30px] bg-[linear-gradient(180deg,#0f172a,#172554)] p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
-                <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+              <div className="rounded-[30px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#0f172a,#172554)] p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd89]">
                   {copy.rewards.liquidityTitle}
                 </p>
                 <div className="mt-5 space-y-3">
                   {copy.rewards.liquiditySteps.map((step, index) => (
                     <LandingReveal delay={180 + index * 60} key={step.title} variant="soft">
-                      <div className="rounded-[22px] border border-white/10 bg-white/7 p-4">
-                        <p className="text-sm font-semibold tracking-tight text-white">
-                          {step.title}
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-white/68">
-                          {step.description}
-                        </p>
+                      <div className="grid grid-cols-[auto_1fr] gap-3 rounded-[22px] border border-white/10 bg-white/7 p-4">
+                        <div className="flex size-9 items-center justify-center rounded-full border border-[#d4b680]/30 bg-white/10 text-sm font-semibold text-[#f7dfb1]">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold tracking-tight text-white">
+                            {step.title}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-white/68">
+                            {step.description}
+                          </p>
+                        </div>
                       </div>
                     </LandingReveal>
                   ))}
@@ -373,8 +402,8 @@ export function LandingPage({
           </div>
         </SalesSection>
 
-        <section className="relative overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,#111827_0%,#1f2937_100%)] px-5 py-7 text-white shadow-[0_28px_100px_rgba(15,23,42,0.26)] sm:rounded-[38px] sm:px-8 sm:py-10">
-          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.18),transparent_70%)]" />
+        <section className="relative overflow-hidden rounded-[34px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#111827_0%,#172334_55%,#1f2937_100%)] px-5 py-7 text-white shadow-[0_28px_100px_rgba(15,23,42,0.26)] sm:rounded-[38px] sm:px-8 sm:py-10">
+          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.22),transparent_70%)]" />
           <LandingReveal variant="hero">
             <div className="relative mx-auto max-w-4xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.26em] text-white/50">
@@ -425,7 +454,7 @@ function SalesSection({
 }) {
   return (
     <section
-      className={`glass-card rounded-[28px] p-5 sm:rounded-[34px] sm:p-7 ${className ?? ""}`}
+      className={`glass-card rounded-[28px] border border-[#eadcc3]/80 bg-[linear-gradient(180deg,rgba(255,251,242,0.98),rgba(255,255,255,0.96))] p-5 shadow-[0_20px_55px_rgba(15,23,42,0.05)] sm:rounded-[34px] sm:p-7 ${className ?? ""}`}
       id={id}
     >
       <div className="space-y-6">{children}</div>
@@ -445,7 +474,7 @@ function SectionIntro({
   return (
     <LandingReveal variant="soft">
       <div className="mx-auto max-w-3xl text-left sm:text-center">
-        <p className="eyebrow">{eyebrow}</p>
+        <p className="eyebrow text-[#8d7142]">{eyebrow}</p>
         <h2 className="mt-3 text-[1.9rem] font-semibold tracking-tight text-slate-950 sm:text-4xl">
           {title}
         </h2>
@@ -457,7 +486,7 @@ function SectionIntro({
 
 function HeroPill({ children }: { children: ReactNode }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-medium text-white/74 backdrop-blur">
+    <div className="inline-flex items-center gap-2 rounded-full border border-[#d8bc87]/18 bg-white/8 px-3 py-2 text-xs font-medium text-white/78 backdrop-blur">
       {children}
     </div>
   );
@@ -475,14 +504,14 @@ function HeroMetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-white/10 bg-white/8 p-4 text-right backdrop-blur sm:rounded-[24px]">
-      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-white/48 sm:text-xs sm:tracking-[0.22em]">
+    <div className="rounded-[20px] border border-[#d6bb8a]/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] p-4 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:rounded-[24px]">
+      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-[#d7be8d] sm:text-xs sm:tracking-[0.22em]">
         {label}
       </p>
       <p className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
-      <p className="mt-2 text-xs text-white/58 sm:text-sm">{hint}</p>
+      <p className="mt-2 text-xs text-white/64 sm:text-sm">{hint}</p>
     </div>
   );
 }
@@ -497,8 +526,8 @@ function NarrativeCard({
   title: string;
 }) {
   return (
-    <div className="rounded-[28px] border border-white/80 bg-white/94 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6">
-      <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+    <div className="rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf7,#fff7ea)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6">
+      <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#2b3548)] text-[#f5ddb0]">
         {icon}
       </div>
       <h3 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
@@ -521,12 +550,12 @@ function NumberedCard({
   title: string;
 }) {
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white/94 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6">
+    <div className="rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf8,#fff8ed)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex size-11 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
+        <div className="flex size-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#111827,#2b3548)] text-sm font-semibold text-[#f5ddb0]">
           {number}
         </div>
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-amber-50 text-slate-950">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#fff6e0,#ffe9b6)] text-slate-950">
           {icon}
         </div>
       </div>
@@ -552,7 +581,7 @@ function RewardVisualCard({
   title: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/80 bg-white/94 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+    <div className="overflow-hidden rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdfa,#fff7ea)] shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
       <Image
         alt={imageAlt}
         className="h-52 w-full object-cover object-center"
@@ -562,7 +591,7 @@ function RewardVisualCard({
         width={imageSrc === REWARD_PHONE_IMAGE ? 1920 : 1920}
       />
       <div className="p-5 sm:p-6">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#2b3548)] text-[#f5ddb0]">
           {icon}
         </div>
         <h3 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
@@ -586,8 +615,8 @@ function FinalMetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,#fffaf0,#ffffff)] p-5 text-right shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-6">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
+    <div className="rounded-[24px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fff8ea,#fffefc)] p-5 text-right shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-6">
+      <p className="text-xs uppercase tracking-[0.22em] text-[#8d7142]">{label}</p>
       <p className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
@@ -608,8 +637,8 @@ function DarkSummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/7 p-5 text-right sm:rounded-[24px]">
-      <p className="text-xs uppercase tracking-[0.2em] text-white/48">{label}</p>
+    <div className="rounded-[22px] border border-[#d6bb8a]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-5 text-right sm:rounded-[24px]">
+      <p className="text-xs uppercase tracking-[0.2em] text-[#d8bd89]">{label}</p>
       <p className="mt-3 text-[1.8rem] font-semibold tracking-tight text-white sm:text-3xl">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
