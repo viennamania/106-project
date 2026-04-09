@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { LandingPage } from "@/components/landing/landing-page";
+import { DisclaimerPage } from "@/components/disclaimer-page";
 import { getDisclaimerCopy } from "@/lib/disclaimer-copy";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
-import { getLandingCopy } from "@/lib/marketing-copy";
 
 export async function generateMetadata({
   params,
@@ -13,7 +12,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale = hasLocale(lang) ? lang : "ko";
-  const copy = getLandingCopy(locale);
+  const copy = getDisclaimerCopy(locale);
 
   return {
     title: copy.meta.title,
@@ -21,7 +20,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function LocalizedHome({
+export default async function LocalizedDisclaimerPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
@@ -33,18 +32,14 @@ export default async function LocalizedHome({
   }
 
   const locale = lang as Locale;
-  const copy = getLandingCopy(locale);
-  const disclaimerCopy = getDisclaimerCopy(locale);
+  const copy = getDisclaimerCopy(locale);
   const dictionary = getDictionary(locale);
 
   return (
-    <LandingPage
+    <DisclaimerPage
       copy={copy}
-      disclaimerHref={`/${locale}/disclaimer`}
-      disclaimerLabel={disclaimerCopy.navLabel}
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
-      projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
     />
   );
 }

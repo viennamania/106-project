@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowRight,
   Bike,
@@ -29,11 +30,15 @@ const REWARD_BIKE_IMAGE =
 
 export function LandingPage({
   copy,
+  disclaimerHref,
+  disclaimerLabel,
   languageLabel,
   locale,
   projectWallet,
 }: {
   copy: LandingCopy;
+  disclaimerHref: string;
+  disclaimerLabel: string;
   languageLabel: string;
   locale: Locale;
   projectWallet: string | null;
@@ -69,6 +74,12 @@ export function LandingPage({
 
             <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
               <LanguageSwitcher label={languageLabel} locale={locale} />
+              <Link
+                className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                href={disclaimerHref}
+              >
+                {disclaimerLabel}
+              </Link>
               <ReferralAwareCta
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                 locale={locale}
