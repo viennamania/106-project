@@ -161,8 +161,8 @@ function RewardHistoryTable({
   sourceMemberLabel: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <div className="overflow-x-auto">
+    <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+      <div className="w-full overflow-x-auto overscroll-x-contain">
         <table className="min-w-[42rem] w-full border-separate border-spacing-0">
           <thead>
             <tr className="bg-slate-50/90">

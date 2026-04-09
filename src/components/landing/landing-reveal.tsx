@@ -55,7 +55,7 @@ export function LandingReveal({
   return (
     <div
       className={[
-        "landing-reveal",
+        "landing-reveal min-w-0",
         variant !== "default" ? `landing-reveal--${variant}` : "",
         className ?? "",
       ]
