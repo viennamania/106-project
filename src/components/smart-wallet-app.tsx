@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Check,
   Copy,
@@ -33,6 +34,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
@@ -160,6 +162,7 @@ export function SmartWalletApp({
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
+  const homeHref = `/${locale}`;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
     incomingReferralState?.status === "available"
@@ -582,7 +585,7 @@ export function SmartWalletApp({
 
   return (
     <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_28%),radial-gradient(circle_at_85%_10%,rgba(15,118,110,0.2),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.14),transparent_26%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(234,179,8,0.14),transparent_22%),radial-gradient(circle_at_0%_10%,rgba(255,255,255,0.62),transparent_20%),radial-gradient(circle_at_100%_20%,rgba(30,41,59,0.12),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#fbf7ef_44%,#f6f2eb_100%)]" />
       <LogoutConfirmDialog
         cancelLabel={dictionary.common.logoutDialog.cancel}
         confirmLabel={dictionary.common.logoutDialog.confirm}
@@ -618,87 +621,98 @@ export function SmartWalletApp({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-4 py-4 pb-28 sm:gap-5 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-4 py-4 sm:px-5 sm:py-4">
-          <div className="flex items-start gap-3">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-white shadow-[0_16px_40px_rgba(37,99,235,0.28)]">
-              <WalletMinimal className="size-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="eyebrow">{dictionary.common.headerEyebrow}</p>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                  {dictionary.common.appName}
-                </h1>
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-28 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
+        <LandingReveal delay={10} variant="soft">
+          <header className="glass-card flex flex-col gap-3 rounded-[26px] px-4 py-3.5 sm:px-5 sm:py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
+                <WalletMinimal className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="eyebrow">{dictionary.common.headerEyebrow}</p>
+                <div>
+                  <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+                    {dictionary.common.appName}
+                  </h1>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-              <LanguageSwitcher
-                label={dictionary.common.languageLabel}
-                locale={locale}
-              />
-              <StatusChip
-                labels={dictionary.common.status}
-                status={status}
-              />
-            </div>
-            {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-                  {accountAddress ? (
-                    <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
-                      href={accountUrl}
-                      rel="noreferrer"
-                      target="_blank"
+            <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <Link
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                  href={homeHref}
+                >
+                  <ArrowLeft className="size-4" />
+                  {dictionary.referralsPage.actions.backHome}
+                </Link>
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
+                  <LanguageSwitcher
+                    label={dictionary.common.languageLabel}
+                    locale={locale}
+                  />
+                  <StatusChip
+                    labels={dictionary.common.status}
+                    status={status}
+                  />
+                </div>
+              </div>
+              {hasThirdwebClientId ? (
+                status === "connected" ? (
+                  <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                    {accountAddress ? (
+                      <a
+                        className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                        href={accountUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {accountLabel ?? accountAddress}
+                        <ArrowUpRight className="size-4" />
+                      </a>
+                    ) : (
+                      <div className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+                        {dictionary.common.status.connected}
+                      </div>
+                    )}
+
+                    <button
+                      className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                      disabled={!wallet}
+                      onClick={() => {
+                        if (!wallet) {
+                          return;
+                        }
+
+                        setIsLogoutDialogOpen(true);
+                      }}
+                      type="button"
                     >
-                      {accountLabel ?? accountAddress}
-                      <ArrowUpRight className="size-4" />
-                    </a>
-                  ) : (
-                    <div className="inline-flex h-11 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
-                      {dictionary.common.status.connected}
-                    </div>
-                  )}
-
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.disconnectWallet}
-                  </button>
-                </div>
+                      {dictionary.common.disconnectWallet}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="hidden w-full sm:block sm:w-auto">
+                    <button
+                      className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                      onClick={() => {
+                        setIsLoginDialogOpen(true);
+                      }}
+                      type="button"
+                    >
+                      {dictionary.common.connectWallet}
+                    </button>
+                  </div>
+                )
               ) : (
-                <div className="hidden w-full sm:block sm:w-auto">
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
-                    onClick={() => {
-                      setIsLoginDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.connectWallet}
-                  </button>
+                <div className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900 sm:w-auto">
+                  {dictionary.common.clientIdRequired}
                 </div>
-              )
-            ) : (
-              <div className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900 sm:w-auto">
-                {dictionary.common.clientIdRequired}
-              </div>
-            )}
-          </div>
-        </header>
+              )}
+            </div>
+          </header>
+        </LandingReveal>
 
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
@@ -717,35 +731,36 @@ export function SmartWalletApp({
         ) : (
           <section
             className={cn(
-              "grid gap-5",
+              "grid gap-4",
               showMemberRegistryPanel && "lg:grid-cols-[1.08fr_0.92fr]",
             )}
           >
-            <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
-              <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
-              <div className="relative space-y-6">
-                <div className="space-y-3">
-                  <p className="eyebrow">
-                    {!hasThirdwebClientId
-                      ? dictionary.member.eyebrow
-                      : status === "connected" && accountAddress
-                        ? dictionary.sponsored.eyebrow
-                        : dictionary.onboarding.eyebrow}
-                  </p>
-                  <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
-                    {!hasThirdwebClientId
-                      ? dictionary.env.title
-                      : isIncomingReferralBlocked
-                        ? dictionary.member.incomingReferralLimitTitle
+            <LandingReveal variant="hero">
+              <div className="glass-card relative overflow-hidden rounded-[30px] p-4 sm:p-6">
+                <div className="absolute inset-x-6 top-0 h-28 rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.14),transparent_68%)] blur-3xl" />
+                <div className="relative space-y-5">
+                  <div className="space-y-3">
+                    <p className="eyebrow">
+                      {!hasThirdwebClientId
+                        ? dictionary.member.eyebrow
                         : status === "connected" && accountAddress
-                          ? dictionary.sponsored.title
-                          : dictionary.common.connectWallet}
-                  </h2>
-                  <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
-                    {!hasThirdwebClientId
-                      ? dictionary.env.description
-                      : isIncomingReferralBlocked && incomingReferralState
-                        ? formatTemplate(
+                          ? dictionary.sponsored.eyebrow
+                          : dictionary.onboarding.eyebrow}
+                    </p>
+                    <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
+                      {!hasThirdwebClientId
+                        ? dictionary.env.title
+                        : isIncomingReferralBlocked
+                          ? dictionary.member.incomingReferralLimitTitle
+                          : status === "connected" && accountAddress
+                            ? dictionary.sponsored.title
+                            : dictionary.common.connectWallet}
+                    </h2>
+                    <p className="max-w-2xl text-[0.96rem] leading-7 text-slate-600 sm:text-lg">
+                      {!hasThirdwebClientId
+                        ? dictionary.env.description
+                        : isIncomingReferralBlocked && incomingReferralState
+                          ? formatTemplate(
                               dictionary.member.incomingReferralLimitDescription,
                               {
                                 code: incomingReferralState.code,
@@ -753,217 +768,224 @@ export function SmartWalletApp({
                                 limit: incomingReferralState.limit,
                               },
                             )
-                        : status === "connected" && accountAddress
-                          ? dictionary.member.pending
-                          : dictionary.member.disconnected}
-                  </p>
-                </div>
-
-                {isIncomingReferralBlocked && incomingReferralState ? (
-                  <MessageCard tone="error">
-                    {formatTemplate(
-                      dictionary.member.incomingReferralLimitDescription,
-                      {
-                        code: incomingReferralState.code,
-                        count: incomingReferralState.signupCount,
-                        limit: incomingReferralState.limit,
-                      },
-                    )}
-                  </MessageCard>
-                ) : null}
-
-                {!hasThirdwebClientId ? (
-                  <MessageCard>{dictionary.env.description}</MessageCard>
-                ) : status !== "connected" || !accountAddress ? (
-                  <div className="space-y-4">
-                    <div className="grid gap-3">
-                      <InfoRow
-                        label={dictionary.member.labels.requiredDeposit}
-                        value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                      />
-                    </div>
-
-                    <div
-                      className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
-                      id="wallet-onboarding"
-                    >
-                      <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
-                        <p className="text-sm leading-6 text-slate-600">
-                          {dictionary.common.loginDialog.emailDescription}
-                        </p>
-                        <button
-                          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-                          onClick={() => {
-                            setIsLoginDialogOpen(true);
-                          }}
-                          type="button"
-                        >
-                          {dictionary.common.connectWallet}
-                        </button>
-                      </div>
-                    </div>
+                          : status === "connected" && accountAddress
+                            ? dictionary.member.pending
+                            : dictionary.member.disconnected}
+                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid gap-3">
-                      <InfoRow
-                        label={dictionary.member.labels.signupStatus}
-                        value={dictionary.member.pendingValue}
-                      />
-                    </div>
 
-                    <div
-                      className="rounded-[28px] bg-slate-950 p-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] scroll-mt-24 sm:scroll-mt-28"
-                      id="signup-payment"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="flex flex-wrap gap-3">
-                          <CompactMetaCard
-                            label={dictionary.member.labels.requiredDeposit}
-                            value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                          />
-                          <CompactMetaCard
-                            label={dictionary.connected.labels.balance}
-                            value={signupBalanceValue}
-                          />
-                        </div>
-                        <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/75">
-                          {dictionary.member.pendingValue}
-                        </div>
+                  {isIncomingReferralBlocked && incomingReferralState ? (
+                    <MessageCard tone="error">
+                      {formatTemplate(
+                        dictionary.member.incomingReferralLimitDescription,
+                        {
+                          code: incomingReferralState.code,
+                          count: incomingReferralState.signupCount,
+                          limit: incomingReferralState.limit,
+                        },
+                      )}
+                    </MessageCard>
+                  ) : null}
+
+                  {!hasThirdwebClientId ? (
+                    <MessageCard>{dictionary.env.description}</MessageCard>
+                  ) : status !== "connected" || !accountAddress ? (
+                    <div className="space-y-4">
+                      <div className="grid gap-3">
+                        <InfoRow
+                          label={dictionary.member.labels.requiredDeposit}
+                          value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                        />
                       </div>
 
-                      {isInsufficientUsdtBalance ? (
-                        <p className="mt-4 rounded-[18px] border border-rose-200/20 bg-rose-400/10 px-4 py-3 text-sm leading-6 text-rose-100">
-                          {insufficientBalanceMessage}
-                        </p>
-                      ) : null}
-
-                      <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <p className="break-words text-xl font-semibold tracking-tight text-white">
-                              {accountLabel ?? accountAddress}
-                            </p>
-                          </div>
+                      <div
+                        className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
+                        id="wallet-onboarding"
+                      >
+                        <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+                          <p className="text-sm leading-6 text-slate-600">
+                            {dictionary.common.loginDialog.emailDescription}
+                          </p>
                           <button
-                            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
-                            onClick={handleCopyAddress}
+                            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                            onClick={() => {
+                              setIsLoginDialogOpen(true);
+                            }}
                             type="button"
                           >
-                            {copied ? (
-                              <Check className="size-3.5" />
-                            ) : (
-                              <Copy className="size-3.5" />
-                            )}
-                            {copied
-                              ? dictionary.common.copied
-                              : dictionary.common.copyAddress}
+                            {dictionary.common.connectWallet}
                           </button>
                         </div>
-
-                        <p className="mt-4 text-sm leading-6 text-white/60">
-                          {dictionary.member.pending}
-                        </p>
-                      </div>
-
-                      <div className="mt-5">
-                        <p className="mb-3 text-xs uppercase tracking-[0.24em] text-white/45">
-                          {dictionary.sponsored.eyebrow}
-                        </p>
-                        <TransactionButton
-                          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          disabled={
-                            !accountAddress ||
-                            !hasThirdwebClientId ||
-                            isSignupBalanceLoading ||
-                            isInsufficientUsdtBalance ||
-                            !projectWallet ||
-                            isIncomingReferralBlocked ||
-                            isSignupCompleted
-                          }
-                          onError={(error) =>
-                            setNotice({
-                              tone: "error",
-                              text: error.message,
-                            })
-                          }
-                          onTransactionConfirmed={(receipt) => {
-                            setNotice({
-                              tone: "success",
-                              text: dictionary.sponsored.txConfirmed,
-                              href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                            });
-
-                            window.setTimeout(() => {
-                              void runMemberSync({ background: true });
-                            }, 2500);
-                          }}
-                          onTransactionSent={(result) => {
-                            setNotice({
-                              tone: "info",
-                              text: dictionary.sponsored.txSent,
-                              href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                            });
-
-                            window.setTimeout(() => {
-                              void runMemberSync({ background: true });
-                            }, 4000);
-                          }}
-                          transaction={() => {
-                            if (!accountAddress) {
-                              throw new Error(dictionary.sponsored.connectFirst);
-                            }
-
-                            if (!projectWallet) {
-                              throw new Error(
-                                dictionary.member.errors.projectWalletMissing,
-                              );
-                            }
-
-                            if (isInsufficientUsdtBalance) {
-                              throw new Error(insufficientBalanceMessage);
-                            }
-
-                            if (isIncomingReferralBlocked && incomingReferralState) {
-                              throw new Error(
-                                formatTemplate(
-                                  dictionary.member.errors.referralLimitReached,
-                                  {
-                                    code: incomingReferralState.code,
-                                    count: incomingReferralState.signupCount,
-                                    limit: incomingReferralState.limit,
-                                  },
-                                ),
-                              );
-                            }
-
-                            return transfer({
-                              amount: MEMBER_SIGNUP_USDT_AMOUNT,
-                              contract: usdtContract,
-                              to: projectWallet,
-                            });
-                          }}
-                          type="button"
-                          unstyled
-                        >
-                          {paymentCtaLabel}
-                        </TransactionButton>
                       </div>
                     </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid gap-3">
+                        <InfoRow
+                          label={dictionary.member.labels.signupStatus}
+                          value={dictionary.member.pendingValue}
+                        />
+                      </div>
 
-                    <NoticeCard
-                      notice={notice}
-                      placeholder={dictionary.sponsored.emptyNotice}
-                    />
-                  </div>
-                )}
+                      <div
+                        className="rounded-[24px] bg-[linear-gradient(180deg,#111827,#0f172a)] p-4 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)] scroll-mt-24 sm:p-5 sm:scroll-mt-28"
+                        id="signup-payment"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="flex flex-wrap gap-3">
+                            <CompactMetaCard
+                              label={dictionary.member.labels.requiredDeposit}
+                              value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                            />
+                            <CompactMetaCard
+                              label={dictionary.connected.labels.balance}
+                              value={signupBalanceValue}
+                            />
+                          </div>
+                          <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/75">
+                            {dictionary.member.pendingValue}
+                          </div>
+                        </div>
+
+                        {isInsufficientUsdtBalance ? (
+                          <p className="mt-4 rounded-[18px] border border-rose-200/20 bg-rose-400/10 px-4 py-3 text-sm leading-6 text-rose-100">
+                            {insufficientBalanceMessage}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-5 rounded-[22px] border border-white/10 bg-white/5 p-4">
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="break-words text-xl font-semibold tracking-tight text-white">
+                                {accountLabel ?? accountAddress}
+                              </p>
+                            </div>
+                            <button
+                              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border border-white/10 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
+                              onClick={handleCopyAddress}
+                              type="button"
+                            >
+                              {copied ? (
+                                <Check className="size-3.5" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                              {copied
+                                ? dictionary.common.copied
+                                : dictionary.common.copyAddress}
+                            </button>
+                          </div>
+
+                          <p className="mt-4 text-sm leading-6 text-white/60">
+                            {dictionary.member.pending}
+                          </p>
+                        </div>
+
+                        <div className="mt-5">
+                          <p className="mb-3 text-xs uppercase tracking-[0.24em] text-white/45">
+                            {dictionary.sponsored.eyebrow}
+                          </p>
+                          <TransactionButton
+                            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={
+                              !accountAddress ||
+                              !hasThirdwebClientId ||
+                              isSignupBalanceLoading ||
+                              isInsufficientUsdtBalance ||
+                              !projectWallet ||
+                              isIncomingReferralBlocked ||
+                              isSignupCompleted
+                            }
+                            onError={(error) =>
+                              setNotice({
+                                tone: "error",
+                                text: error.message,
+                              })
+                            }
+                            onTransactionConfirmed={(receipt) => {
+                              setNotice({
+                                tone: "success",
+                                text: dictionary.sponsored.txConfirmed,
+                                href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                              });
+
+                              window.setTimeout(() => {
+                                void runMemberSync({ background: true });
+                              }, 2500);
+                            }}
+                            onTransactionSent={(result) => {
+                              setNotice({
+                                tone: "info",
+                                text: dictionary.sponsored.txSent,
+                                href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                              });
+
+                              window.setTimeout(() => {
+                                void runMemberSync({ background: true });
+                              }, 4000);
+                            }}
+                            transaction={() => {
+                              if (!accountAddress) {
+                                throw new Error(dictionary.sponsored.connectFirst);
+                              }
+
+                              if (!projectWallet) {
+                                throw new Error(
+                                  dictionary.member.errors.projectWalletMissing,
+                                );
+                              }
+
+                              if (isInsufficientUsdtBalance) {
+                                throw new Error(insufficientBalanceMessage);
+                              }
+
+                              if (
+                                isIncomingReferralBlocked &&
+                                incomingReferralState
+                              ) {
+                                throw new Error(
+                                  formatTemplate(
+                                    dictionary.member.errors.referralLimitReached,
+                                    {
+                                      code: incomingReferralState.code,
+                                      count: incomingReferralState.signupCount,
+                                      limit: incomingReferralState.limit,
+                                    },
+                                  ),
+                                );
+                              }
+
+                              return transfer({
+                                amount: MEMBER_SIGNUP_USDT_AMOUNT,
+                                contract: usdtContract,
+                                to: projectWallet,
+                              });
+                            }}
+                            type="button"
+                            unstyled
+                          >
+                            {paymentCtaLabel}
+                          </TransactionButton>
+                        </div>
+                      </div>
+
+                      <LandingReveal delay={120} variant="soft">
+                        <NoticeCard
+                          notice={notice}
+                          placeholder={dictionary.sponsored.emptyNotice}
+                        />
+                      </LandingReveal>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </LandingReveal>
 
             {showMemberRegistryPanel ? (
               <Panel
                 contentClassName="gap-4"
                 eyebrow={dictionary.member.eyebrow}
+                revealDelay={120}
                 title={dictionary.member.title}
               >
 
@@ -1108,6 +1130,7 @@ function Panel({
   children,
   contentClassName,
   id,
+  revealDelay = 0,
 }: {
   className?: string;
   title: string;
@@ -1115,24 +1138,27 @@ function Panel({
   children: ReactNode;
   contentClassName?: string;
   id?: string;
+  revealDelay?: number;
 }) {
   return (
-    <section
-      className={cn(
-        "glass-card rounded-[30px] p-5 sm:p-6",
-        id && "scroll-mt-24 sm:scroll-mt-28",
-        className,
-      )}
-      id={id}
-    >
-      <div className="mb-4 space-y-1">
-        <p className="eyebrow">{eyebrow}</p>
-        <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-          {title}
-        </h3>
-      </div>
-      <div className={cn("flex flex-col", contentClassName)}>{children}</div>
-    </section>
+    <LandingReveal delay={revealDelay} variant="soft">
+      <section
+        className={cn(
+          "glass-card rounded-[26px] p-4 sm:rounded-[30px] sm:p-5",
+          id && "scroll-mt-24 sm:scroll-mt-28",
+          className,
+        )}
+        id={id}
+      >
+        <div className="mb-4 space-y-1">
+          <p className="eyebrow">{eyebrow}</p>
+          <h3 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+            {title}
+          </h3>
+        </div>
+        <div className={cn("flex flex-col", contentClassName)}>{children}</div>
+      </section>
+    </LandingReveal>
   );
 }
 
@@ -1142,9 +1168,10 @@ function MembershipLoadingSection({
   dictionary: Dictionary;
 }) {
   return (
-    <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
-        <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.18),transparent_68%)] blur-3xl" />
+    <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+      <LandingReveal variant="hero">
+        <div className="glass-card relative overflow-hidden rounded-[30px] p-4 sm:p-6">
+        <div className="absolute inset-x-6 top-0 h-28 rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.14),transparent_68%)] blur-3xl" />
         <div className="relative space-y-6">
           <div className="flex flex-wrap gap-2">
             <Badge icon={<WalletMinimal className="size-3.5" />}>
@@ -1157,7 +1184,7 @@ function MembershipLoadingSection({
 
           <div className="space-y-3">
             <p className="eyebrow">{dictionary.member.eyebrow}</p>
-            <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
+            <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
               {dictionary.common.appName}
             </h2>
             <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
@@ -1179,10 +1206,12 @@ function MembershipLoadingSection({
           </div>
         </div>
       </div>
+      </LandingReveal>
 
       <Panel
         contentClassName="gap-4"
         eyebrow={dictionary.referralsPage.eyebrow}
+        revealDelay={120}
         title={dictionary.referralsPage.title}
       >
         <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
@@ -1218,9 +1247,10 @@ function CompletedHomeDashboard({
   );
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-7">
-        <div className="absolute inset-x-6 top-0 h-32 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_68%)] blur-3xl" />
+    <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+      <LandingReveal variant="hero">
+        <div className="glass-card relative overflow-hidden rounded-[30px] p-4 sm:p-6">
+        <div className="absolute inset-x-6 top-0 h-28 rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.12),transparent_68%)] blur-3xl" />
         <div className="relative space-y-6">
           <div className="flex flex-wrap gap-2">
             <Badge icon={<Check className="size-3.5" />}>
@@ -1233,7 +1263,7 @@ function CompletedHomeDashboard({
 
           <div className="space-y-3">
             <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
-            <h2 className="max-w-2xl text-[2.15rem] font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.05]">
+            <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
               {dictionary.referralsPage.title}
             </h2>
             <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
@@ -1262,24 +1292,30 @@ function CompletedHomeDashboard({
           ) : null}
 
           <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
-            <MetricCard
-              hint={dictionary.referralsPage.labels.referralCode}
-              label={dictionary.member.completedValue}
-              value={member.referralCode ?? dictionary.common.notAvailable}
-            />
-            <MetricCard
-              hint={firstLevelLimitHint}
-              label={dictionary.referralsPage.labels.directReferrals}
-              value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
-            />
-            <MetricCard
-              hint={dictionary.referralsPage.depthHint.replace(
-                "{depth}",
-                "6",
-              )}
-              label={dictionary.referralsPage.labels.totalNetwork}
-              value={String(totalReferralCount)}
-            />
+            <LandingReveal delay={50}>
+              <MetricCard
+                hint={dictionary.referralsPage.labels.referralCode}
+                label={dictionary.member.completedValue}
+                value={member.referralCode ?? dictionary.common.notAvailable}
+              />
+            </LandingReveal>
+            <LandingReveal delay={110}>
+              <MetricCard
+                hint={firstLevelLimitHint}
+                label={dictionary.referralsPage.labels.directReferrals}
+                value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
+              />
+            </LandingReveal>
+            <LandingReveal delay={170}>
+              <MetricCard
+                hint={dictionary.referralsPage.depthHint.replace(
+                  "{depth}",
+                  "6",
+                )}
+                label={dictionary.referralsPage.labels.totalNetwork}
+                value={String(totalReferralCount)}
+              />
+            </LandingReveal>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
@@ -1338,10 +1374,12 @@ function CompletedHomeDashboard({
           </div>
         </div>
       </div>
+      </LandingReveal>
 
       <Panel
         contentClassName="gap-4"
         eyebrow={dictionary.member.eyebrow}
+        revealDelay={120}
         title={dictionary.member.title}
       >
         <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
@@ -1401,6 +1439,7 @@ function CompletedHomeDashboard({
         className="lg:col-span-2"
         contentClassName="gap-4"
         eyebrow={dictionary.referralsPage.eyebrow}
+        revealDelay={180}
         title={dictionary.referralsPage.rewards.title}
       >
         <ReferralRewardsPanel
@@ -1414,6 +1453,7 @@ function CompletedHomeDashboard({
         className="lg:col-span-2"
         contentClassName="gap-4"
         eyebrow={dictionary.referralsPage.eyebrow}
+        revealDelay={220}
         title={dictionary.referralsPage.listTitle}
       >
         {referralDashboard.error ? (
@@ -1461,7 +1501,7 @@ function MetricCard({
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3.5 py-3">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
