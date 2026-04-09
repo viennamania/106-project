@@ -168,8 +168,9 @@ export function ReferralNetworkExplorer({
                 </div>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <ExplorerInfoRow
+                  className="col-span-2"
                   label={dictionary.referralsPage.labels.joinedAt}
                   locale={locale}
                   value={formatDateTime(referral.registrationCompletedAt, locale)}
@@ -241,17 +242,22 @@ function ExplorerMetricCard({
 
 function ExplorerInfoRow({
   animateValue = false,
+  className,
   label,
   locale,
   value,
 }: {
   animateValue?: boolean;
+  className?: string;
   label: string;
   locale: Locale;
   value: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3">
+    <div className={cn(
+      "min-w-0 rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3",
+      className,
+    )}>
       <p className="text-[0.64rem] uppercase tracking-[0.18em] text-slate-500">
         {label}
       </p>
