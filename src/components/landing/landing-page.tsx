@@ -186,6 +186,69 @@ export function LandingPage({
 
         <SalesSection>
           <SectionIntro
+            description={copy.rewards.description}
+            eyebrow={copy.rewards.eyebrow}
+            title={copy.rewards.title}
+          />
+
+          <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
+            <div className="grid gap-4 md:grid-cols-2">
+              {copy.rewards.cards.map((card, index) => (
+                <LandingReveal delay={index * 90} key={card.title}>
+                  <RewardVisualCard
+                    description={card.description}
+                    icon={
+                      index === 0 ? (
+                        <Smartphone className="size-5" />
+                      ) : (
+                        <Bike className="size-5" />
+                      )
+                    }
+                    imageAlt={card.title}
+                    imageSrc={index === 0 ? REWARD_PHONE_IMAGE : REWARD_BIKE_IMAGE}
+                    title={card.title}
+                  />
+                </LandingReveal>
+              ))}
+            </div>
+
+            <LandingReveal delay={120} variant="soft">
+              <div className="rounded-[30px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#0f172a,#172554)] p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd89]">
+                  {copy.rewards.liquidityTitle}
+                </p>
+                <div className="mt-5 space-y-3">
+                  {copy.rewards.liquiditySteps.map((step, index) => (
+                    <LandingReveal delay={180 + index * 60} key={step.title} variant="soft">
+                      <div className="grid grid-cols-[auto_1fr] gap-3 rounded-[22px] border border-white/10 bg-white/7 p-4">
+                        <div className="flex size-9 items-center justify-center rounded-full border border-[#d4b680]/30 bg-white/10 text-sm font-semibold text-[#f7dfb1]">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold tracking-tight text-white">
+                            {step.title}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-white/68">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    </LandingReveal>
+                  ))}
+                </div>
+
+                <div className="mt-5 rounded-[22px] border border-white/10 bg-black/12 px-4 py-5">
+                  <p className="text-sm leading-7 text-white/72">
+                    {copy.finalCta.note}
+                  </p>
+                </div>
+              </div>
+            </LandingReveal>
+          </div>
+        </SalesSection>
+
+        <SalesSection>
+          <SectionIntro
             description={copy.overview.description}
             eyebrow={copy.overview.eyebrow}
             title={copy.overview.title}
@@ -378,69 +441,6 @@ export function LandingPage({
                 <FinalMetricCard {...total} locale={locale} />
               </LandingReveal>
             ))}
-          </div>
-        </SalesSection>
-
-        <SalesSection>
-          <SectionIntro
-            description={copy.rewards.description}
-            eyebrow={copy.rewards.eyebrow}
-            title={copy.rewards.title}
-          />
-
-          <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
-            <div className="grid gap-4 md:grid-cols-2">
-              {copy.rewards.cards.map((card, index) => (
-                <LandingReveal delay={index * 90} key={card.title}>
-                  <RewardVisualCard
-                    description={card.description}
-                    icon={
-                      index === 0 ? (
-                        <Smartphone className="size-5" />
-                      ) : (
-                        <Bike className="size-5" />
-                      )
-                    }
-                    imageAlt={card.title}
-                    imageSrc={index === 0 ? REWARD_PHONE_IMAGE : REWARD_BIKE_IMAGE}
-                    title={card.title}
-                  />
-                </LandingReveal>
-              ))}
-            </div>
-
-            <LandingReveal delay={120} variant="soft">
-              <div className="rounded-[30px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#0f172a,#172554)] p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
-                <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd89]">
-                  {copy.rewards.liquidityTitle}
-                </p>
-                <div className="mt-5 space-y-3">
-                  {copy.rewards.liquiditySteps.map((step, index) => (
-                    <LandingReveal delay={180 + index * 60} key={step.title} variant="soft">
-                      <div className="grid grid-cols-[auto_1fr] gap-3 rounded-[22px] border border-white/10 bg-white/7 p-4">
-                        <div className="flex size-9 items-center justify-center rounded-full border border-[#d4b680]/30 bg-white/10 text-sm font-semibold text-[#f7dfb1]">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold tracking-tight text-white">
-                            {step.title}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-white/68">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    </LandingReveal>
-                  ))}
-                </div>
-
-                <div className="mt-5 rounded-[22px] border border-white/10 bg-black/12 px-4 py-5">
-                  <p className="text-sm leading-7 text-white/72">
-                    {copy.finalCta.note}
-                  </p>
-                </div>
-              </div>
-            </LandingReveal>
           </div>
         </SalesSection>
 
