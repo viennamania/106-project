@@ -3,6 +3,7 @@
 import { ChevronRight, GitBranch, Layers3, Users } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { AnimatedNumberText } from "@/components/animated-number-text";
 import {
   REFERRAL_SIGNUP_LIMIT,
   REFERRAL_TREE_DEPTH_LIMIT,
@@ -42,16 +43,19 @@ export function ReferralNetworkExplorer({
         <ExplorerMetricCard
           icon={<Users className="size-4" />}
           label={dictionary.referralsPage.labels.directReferrals}
+          locale={locale}
           value={`${directReferrals} / ${REFERRAL_SIGNUP_LIMIT}`}
         />
         <ExplorerMetricCard
           icon={<Layers3 className="size-4" />}
           label={dictionary.referralsPage.labels.totalNetwork}
+          locale={locale}
           value={String(totalReferrals)}
         />
         <ExplorerMetricCard
           icon={<GitBranch className="size-4" />}
           label={`${dictionary.referralsPage.labels.level} ${currentLevel}`}
+          locale={locale}
           value={String(currentNodes.length)}
         />
       </div>
@@ -167,14 +171,19 @@ export function ReferralNetworkExplorer({
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <ExplorerInfoRow
                   label={dictionary.referralsPage.labels.joinedAt}
+                  locale={locale}
                   value={formatDateTime(referral.registrationCompletedAt, locale)}
                 />
                 <ExplorerInfoRow
+                  animateValue
                   label={dictionary.referralsPage.labels.directChildren}
+                  locale={locale}
                   value={String(referral.directReferralCount)}
                 />
                 <ExplorerInfoRow
+                  animateValue
                   label={dictionary.referralsPage.labels.descendants}
+                  locale={locale}
                   value={String(referral.totalReferralCount)}
                 />
               </div>
@@ -190,7 +199,10 @@ export function ReferralNetworkExplorer({
                   >
                     {dictionary.referralsPage.actions.viewChildren}
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                      {referral.directReferralCount}
+                      <AnimatedNumberText
+                        locale={locale}
+                        value={String(referral.directReferralCount)}
+                      />
                     </span>
                   </button>
                 </div>
@@ -206,10 +218,12 @@ export function ReferralNetworkExplorer({
 function ExplorerMetricCard({
   icon,
   label,
+  locale,
   value,
 }: {
   icon: ReactNode;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
@@ -219,17 +233,21 @@ function ExplorerMetricCard({
         <p className="text-xs uppercase tracking-[0.22em]">{label}</p>
       </div>
       <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
   );
 }
 
 function ExplorerInfoRow({
+  animateValue = false,
   label,
+  locale,
   value,
 }: {
+  animateValue?: boolean;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
@@ -238,7 +256,11 @@ function ExplorerInfoRow({
         {label}
       </p>
       <p className="mt-1.5 break-words text-sm font-medium text-slate-900">
-        {value}
+        {animateValue ? (
+          <AnimatedNumberText locale={locale} value={value} />
+        ) : (
+          value
+        )}
       </p>
     </div>
   );

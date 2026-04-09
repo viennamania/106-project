@@ -13,6 +13,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
@@ -464,10 +465,22 @@ export function ReferralsPage({
                   />
                   <InfoRow
                     label={dictionary.referralsPage.labels.directReferrals}
+                    valueContent={
+                      <AnimatedNumberText
+                        locale={locale}
+                        value={`${state.referrals.length} / ${REFERRAL_SIGNUP_LIMIT}`}
+                      />
+                    }
                     value={`${state.referrals.length} / ${REFERRAL_SIGNUP_LIMIT}`}
                   />
                   <InfoRow
                     label={dictionary.referralsPage.labels.totalNetwork}
+                    valueContent={
+                      <AnimatedNumberText
+                        locale={locale}
+                        value={String(state.totalReferrals)}
+                      />
+                    }
                     value={String(state.totalReferrals)}
                   />
                 </div>
@@ -575,14 +588,22 @@ export function ReferralsPage({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  valueContent,
+}: {
+  label: string;
+  value: string;
+  valueContent?: ReactNode;
+}) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
       <p className="mt-2 break-words text-sm font-medium text-slate-900 sm:text-base">
-        {value}
+        {valueContent ?? value}
       </p>
     </div>
   );

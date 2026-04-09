@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { AnimatedNumberText } from "@/components/animated-number-text";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ReferralAwareCta } from "@/components/landing/referral-aware-cta";
@@ -153,8 +154,8 @@ export function LandingPage({
 
           <div className="relative mt-4 grid grid-cols-2 gap-3 sm:mt-6 md:grid-cols-2 xl:grid-cols-4">
             {copy.metrics.map((metric, index) => (
-              <LandingReveal delay={150 + index * 70} key={metric.label} variant="soft">
-                <HeroMetricCard {...metric} />
+                <LandingReveal delay={150 + index * 70} key={metric.label} variant="soft">
+                <HeroMetricCard {...metric} locale={locale} />
               </LandingReveal>
             ))}
           </div>
@@ -276,10 +277,10 @@ export function LandingPage({
                           {row.generation}
                         </td>
                         <td className="px-5 py-4 text-right text-sm text-slate-700">
-                          {row.people}
+                          <AnimatedNumberText locale={locale} value={row.people} />
                         </td>
                         <td className="px-5 py-4 text-right text-sm text-slate-700">
-                          {row.points}
+                          <AnimatedNumberText locale={locale} value={row.points} />
                         </td>
                         <td className="px-5 py-4 text-sm leading-6 text-slate-600">
                           {row.remark}
@@ -308,7 +309,7 @@ export function LandingPage({
           <div className="grid gap-4 md:grid-cols-3">
             {copy.generations.totals.map((total, index) => (
               <LandingReveal delay={120 + index * 80} key={total.label}>
-                <FinalMetricCard {...total} />
+                <FinalMetricCard {...total} locale={locale} />
               </LandingReveal>
             ))}
           </div>
@@ -391,7 +392,7 @@ export function LandingPage({
           <div className="relative mt-7 grid gap-4 md:grid-cols-3">
             {copy.generations.totals.map((total, index) => (
               <LandingReveal delay={80 + index * 80} key={total.label}>
-                <DarkSummaryCard {...total} />
+                <DarkSummaryCard {...total} locale={locale} />
               </LandingReveal>
             ))}
           </div>
@@ -465,10 +466,12 @@ function HeroPill({ children }: { children: ReactNode }) {
 function HeroMetricCard({
   hint,
   label,
+  locale,
   value,
 }: {
   hint: string;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
@@ -477,7 +480,7 @@ function HeroMetricCard({
         {label}
       </p>
       <p className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
       <p className="mt-2 text-xs text-white/58 sm:text-sm">{hint}</p>
     </div>
@@ -574,17 +577,19 @@ function RewardVisualCard({
 function FinalMetricCard({
   hint,
   label,
+  locale,
   value,
 }: {
   hint: string;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
     <div className="rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,#fffaf0,#ffffff)] p-5 text-right shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-6">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
       <p className="mt-3 text-sm leading-6 text-slate-600">{hint}</p>
     </div>
@@ -594,17 +599,19 @@ function FinalMetricCard({
 function DarkSummaryCard({
   hint,
   label,
+  locale,
   value,
 }: {
   hint: string;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/7 p-5 text-right sm:rounded-[24px]">
       <p className="text-xs uppercase tracking-[0.2em] text-white/48">{label}</p>
       <p className="mt-3 text-[1.8rem] font-semibold tracking-tight text-white sm:text-3xl">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
       <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
     </div>

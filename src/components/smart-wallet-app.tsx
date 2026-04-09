@@ -32,6 +32,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
@@ -794,6 +795,12 @@ export function SmartWalletApp({
                       <div className="grid gap-3">
                         <InfoRow
                           label={dictionary.member.labels.requiredDeposit}
+                          valueContent={
+                            <AnimatedNumberText
+                              locale={locale}
+                              value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
+                            />
+                          }
                           value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
                         />
                       </div>
@@ -835,10 +842,12 @@ export function SmartWalletApp({
                           <div className="flex flex-wrap gap-3">
                             <CompactMetaCard
                               label={dictionary.member.labels.requiredDeposit}
+                              locale={locale}
                               value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
                             />
                             <CompactMetaCard
                               label={dictionary.connected.labels.balance}
+                              locale={locale}
                               value={signupBalanceValue}
                             />
                           </div>
@@ -1294,25 +1303,31 @@ function CompletedHomeDashboard({
           <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
             <LandingReveal delay={50}>
               <MetricCard
+                animateValue={false}
                 hint={dictionary.referralsPage.labels.referralCode}
                 label={dictionary.member.completedValue}
+                locale={locale}
                 value={member.referralCode ?? dictionary.common.notAvailable}
               />
             </LandingReveal>
             <LandingReveal delay={110}>
               <MetricCard
+                animateValue
                 hint={firstLevelLimitHint}
                 label={dictionary.referralsPage.labels.directReferrals}
+                locale={locale}
                 value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
               />
             </LandingReveal>
             <LandingReveal delay={170}>
               <MetricCard
+                animateValue
                 hint={dictionary.referralsPage.depthHint.replace(
                   "{depth}",
                   "6",
                 )}
                 label={dictionary.referralsPage.labels.totalNetwork}
+                locale={locale}
                 value={String(totalReferralCount)}
               />
             </LandingReveal>
@@ -1429,6 +1444,12 @@ function CompletedHomeDashboard({
           />
           <InfoRow
             label={dictionary.member.labels.requiredDeposit}
+            valueContent={
+              <AnimatedNumberText
+                locale={locale}
+                value={`${member.requiredDepositAmount} USDT`}
+              />
+            }
             value={`${member.requiredDepositAmount} USDT`}
           />
         </div>
@@ -1478,11 +1499,15 @@ function CompletedHomeDashboard({
 }
 
 function MetricCard({
+  animateValue = false,
   label,
+  locale,
   value,
   hint,
 }: {
+  animateValue?: boolean;
   label: string;
+  locale: Locale;
   value: string;
   hint: string;
 }) {
@@ -1492,21 +1517,33 @@ function MetricCard({
         {label}
       </p>
       <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        {value}
+        {animateValue ? (
+          <AnimatedNumberText locale={locale} value={value} />
+        ) : (
+          value
+        )}
       </p>
       <p className="mt-1 text-sm text-slate-500">{hint}</p>
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  valueContent,
+}: {
+  label: string;
+  value: string;
+  valueContent?: ReactNode;
+}) {
   return (
     <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3.5 py-3">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
       <p className="mt-2 break-words text-sm font-medium text-slate-900 sm:text-base">
-        {value}
+        {valueContent ?? value}
       </p>
     </div>
   );
@@ -1514,9 +1551,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function CompactMetaCard({
   label,
+  locale,
   value,
 }: {
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
@@ -1525,7 +1564,7 @@ function CompactMetaCard({
         {label}
       </p>
       <p className="mt-2 break-words text-sm font-semibold text-white">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
   );

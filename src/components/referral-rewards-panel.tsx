@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedNumberText } from "@/components/animated-number-text";
 import {
   REFERRAL_REWARD_POINTS,
   ReferralRewardRecord,
@@ -34,18 +35,22 @@ export function ReferralRewardsPanel({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.perSignup}
+          locale={locale}
           value={`${REFERRAL_REWARD_POINTS} P`}
         />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalPoints}
+          locale={locale}
           value={`${rewards.totalPoints} P`}
         />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalRewards}
+          locale={locale}
           value={String(rewards.totalRewards)}
         />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.activeLevels}
+          locale={locale}
           value={String(activeLevels)}
         />
       </div>
@@ -57,6 +62,7 @@ export function ReferralRewardsPanel({
             level={index + 1}
             points={points}
             levelLabel={dictionary.referralsPage.labels.level}
+            locale={locale}
           />
         ))}
       </div>
@@ -91,10 +97,12 @@ export function ReferralRewardsPanel({
 function RewardMetricCard({
   className,
   label,
+  locale,
   value,
 }: {
   className?: string;
   label: string;
+  locale: Locale;
   value: string;
 }) {
   return (
@@ -106,7 +114,7 @@ function RewardMetricCard({
         {label}
       </p>
       <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        {value}
+        <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
   );
@@ -115,10 +123,12 @@ function RewardMetricCard({
 function RewardLevelCard({
   level,
   levelLabel,
+  locale,
   points,
 }: {
   level: number;
   levelLabel: string;
+  locale: Locale;
   points: number;
 }) {
   return (
@@ -127,7 +137,7 @@ function RewardLevelCard({
         {levelLabel} {level}
       </p>
       <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-        {points} P
+        <AnimatedNumberText locale={locale} value={`${points} P`} />
       </p>
     </div>
   );
@@ -153,7 +163,7 @@ function RewardHistoryCard({
           {levelLabel} {reward.level}
         </span>
         <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
-          +{reward.points} P
+          <AnimatedNumberText locale={locale} value={`+${reward.points} P`} />
         </span>
       </div>
 
