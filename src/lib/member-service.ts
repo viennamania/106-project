@@ -57,6 +57,7 @@ const BACKFILL_INITIAL_LOG_CHUNK = BigInt(5_000);
 const BACKFILL_MIN_LOG_CHUNK = BigInt(250);
 const BACKFILL_COOLDOWN_MS = 30_000;
 const ESTIMATED_BSC_BLOCK_TIME_SECONDS = 3;
+const SIGNUP_PAYMENT_LOOKBACK_MS = 60 * 60 * 1000;
 
 export class MemberSyncError extends Error {
   status: number;
@@ -527,7 +528,7 @@ function getInsufficientBalanceMessage(locale: Locale) {
   );
 }
 
-async function assertSignupWalletHasRequiredBalance({
+async function getSignupWalletBalanceValidationError({
   locale,
   walletAddress,
 }: {
@@ -542,8 +543,16 @@ async function assertSignupWalletHasRequiredBalance({
   });
 
   if (balance.value < BigInt(MEMBER_SIGNUP_USDT_AMOUNT_WEI)) {
-    throw new MemberSyncError(getInsufficientBalanceMessage(locale), 409);
+    return getInsufficientBalanceMessage(locale);
   }
+
+  return null;
+}
+
+function getSignupPaymentWindowStart(now: Date) {
+  // Allow short delays where the transfer is sent moments before the pending
+  // member record is first created or the wallet session is re-synced.
+  return new Date(now.getTime() - SIGNUP_PAYMENT_LOOKBACK_MS);
 }
 
 async function findMatchingSignupPaymentEvent(
@@ -1283,13 +1292,12 @@ export async function syncMemberRegistration(
   const shouldResetPaymentWindow =
     !existingMember ||
     existingMember.lastWalletAddress !== normalizedWalletAddress;
-
-  if (shouldResetPaymentWindow) {
-    await assertSignupWalletHasRequiredBalance({
-      locale: resolvedLocale,
-      walletAddress: normalizedWalletAddress,
-    });
-  }
+  const balanceValidationError = shouldResetPaymentWindow
+    ? await getSignupWalletBalanceValidationError({
+        locale: resolvedLocale,
+        walletAddress: normalizedWalletAddress,
+      })
+    : null;
 
   const incomingReferralState = await getIncomingReferralState(
     effectiveSponsorReferralCode,
@@ -1326,7 +1334,7 @@ export async function syncMemberRegistration(
       },
       $set: {
         awaitingPaymentSince: shouldResetPaymentWindow
-          ? now
+          ? getSignupPaymentWindowStart(now)
           : existingMember?.awaitingPaymentSince ?? now,
         chainId: input.chainId,
         chainName,
@@ -1386,7 +1394,10 @@ export async function syncMemberRegistration(
   return {
     justCompleted: finalized.justCompleted,
     member: serializeMember(finalized.member),
-    validationError: null,
+    validationError:
+      finalized.member.status === "pending_payment"
+        ? balanceValidationError
+        : null,
   };
 }
 

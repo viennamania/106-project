@@ -385,12 +385,13 @@ export function SmartWalletApp({
       }
 
       if ("validationError" in data && data.validationError) {
+        const hasPendingMember = data.member?.status === "pending_payment";
         setMemberSync({
           email,
           error: data.validationError,
           justCompleted: false,
           member: data.member,
-          status: "blocked",
+          status: hasPendingMember ? "ready" : "blocked",
         });
         setReferralDashboard({
           error: null,
