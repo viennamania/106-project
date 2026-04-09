@@ -264,7 +264,49 @@ export function LandingPage({
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+              <div className="grid gap-3 p-4 sm:hidden">
+                {copy.generations.rows.map((row, index) => (
+                  <div
+                    className="rounded-[22px] border border-[#ead7b5] bg-white/95 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+                    key={`${row.generation}-mobile`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[#ead7b5] bg-[#fffaf0] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-800">
+                          <span className="flex size-6 items-center justify-center rounded-full bg-slate-950 text-[0.62rem] font-semibold text-[#f5deb0]">
+                            {index + 1}
+                          </span>
+                          {row.generation}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid gap-2">
+                      <MobileGenerationMetric
+                        label={copy.generations.columns.people}
+                        locale={locale}
+                        value={row.people}
+                      />
+                      <MobileGenerationMetric
+                        accent
+                        label={copy.generations.columns.points}
+                        locale={locale}
+                        value={row.points}
+                      />
+                    </div>
+
+                    <div className="mt-3 rounded-[18px] border border-[#efe2cc] bg-[#fff9ef] px-3 py-3">
+                      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#8d7142]">
+                        {copy.generations.columns.remark}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        {row.remark}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto sm:block">
                 <table className="min-w-full text-left">
                   <thead className="bg-[linear-gradient(90deg,#0f172a,#1e293b)] text-[#f7e8c8]">
                     <tr>
@@ -439,6 +481,35 @@ export function LandingPage({
           </LandingReveal>
         </section>
       </main>
+    </div>
+  );
+}
+
+function MobileGenerationMetric({
+  accent = false,
+  label,
+  locale,
+  value,
+}: {
+  accent?: boolean;
+  label: string;
+  locale: Locale;
+  value: string;
+}) {
+  return (
+    <div
+      className={
+        accent
+          ? "flex items-center justify-between gap-3 rounded-[18px] border border-[#d6bb8a] bg-[linear-gradient(180deg,#fff8e8,#fff1cf)] px-3 py-3"
+          : "flex items-center justify-between gap-3 rounded-[18px] border border-[#ead7b5] bg-white px-3 py-3"
+      }
+    >
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
+        {label}
+      </p>
+      <p className="text-right text-base font-semibold tracking-tight text-slate-950">
+        <AnimatedNumberText locale={locale} value={value} />
+      </p>
     </div>
   );
 }
