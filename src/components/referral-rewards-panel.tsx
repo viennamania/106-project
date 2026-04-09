@@ -162,8 +162,8 @@ function RewardHistoryTable({
 }) {
   return (
     <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <div className="w-full overflow-x-auto overscroll-x-contain">
-        <table className="min-w-[42rem] w-full border-separate border-spacing-0">
+      <div className="w-full overflow-x-auto overscroll-x-contain md:overflow-x-visible">
+        <table className="min-w-[42rem] w-full border-separate border-spacing-0 md:min-w-0 md:table-fixed">
           <thead>
             <tr className="bg-slate-50/90">
               <th
@@ -204,7 +204,7 @@ function RewardHistoryTable({
                       {levelLabel} {reward.level}
                     </span>
                   </td>
-                  <td className={cn("min-w-[15rem] px-4 py-3.5", rowBorderClass)}>
+                  <td className={cn("min-w-[15rem] px-4 py-3.5 md:min-w-0", rowBorderClass)}>
                     <p className="break-all text-sm font-medium text-slate-900">
                       {reward.sourceMemberEmail}
                     </p>
