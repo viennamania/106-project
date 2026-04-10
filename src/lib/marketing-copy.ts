@@ -841,15 +841,388 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
   },
 };
 
-const localeLandingCopyFallbacks: Record<Locale, BuiltInLandingLocale> = {
-  ko: "ko",
-  en: "en",
-  ja: "ja",
-  zh: "zh",
-  vi: "en",
-  id: "en",
+function createVietnameseLandingCopy(base: LandingCopy): LandingCopy {
+  return {
+    ...base,
+    cta: {
+      primary: "Bắt đầu 1066friend+",
+      referrals: "Bảng referral",
+      secondary: "Xem cấu trúc lợi nhuận",
+    },
+    engine: {
+      eyebrow: "6x Auto-Matching & Spillover",
+      title: "Cấu trúc auto-matching 6 nhánh tiếp tục mở rộng ngay cả khi bạn nghỉ ngơi",
+      description:
+        "1066friend+ không chỉ phụ thuộc vào khả năng giới thiệu trực tiếp. Hệ thống kết hợp tăng trưởng mạng lưới cá nhân với engine tự động lấp chỗ trống để duy trì nhịp mở rộng của toàn bộ cấu trúc.",
+      cards: [
+        {
+          title: "Thuật toán mở rộng 6 nhánh",
+          description:
+            "Bắt đầu từ 6 đối tác bạn giới thiệu trực tiếp, sau đó mỗi tầng tiếp tục nhân lên theo 6 để tạo ra quy mô mạng lưới theo cấp số nhân.",
+        },
+        {
+          title: "Hệ thống auto-matching ngẫu nhiên",
+          description:
+            "Ngay cả khi referral trực tiếp tạm chậm lại, spillover từ tầng trên vẫn có thể tự động lấp chỗ trống trong mạng lưới.",
+        },
+        {
+          title: "Lớp đệm tâm lý",
+          description:
+            "Logic được xây dựng để hình thành các thế hệ thu nhập ngay cả khi không duy trì referral trực tiếp liên tục, giúp người tham gia có lộ trình bền hơn.",
+        },
+      ],
+    },
+    finalCta: {
+      eyebrow: "Final Vision",
+      title: "Khởi động 1066friend+ và biến mình thành trung tâm của profit hub toàn cầu",
+      description:
+        "Dự án được định vị để mỗi người tham gia trở thành chủ thể của một mạng lưới độc lập. Mở luồng kích hoạt ngay bây giờ và biến ảnh hưởng xã hội thành cấu trúc tài sản số có thể mở rộng.",
+      bullets: [
+        "Tham gia hệ sinh thái với 1,000P, tương đương khoảng 10 USD, trong một cấu trúc mở dễ tiếp cận.",
+        "Sử dụng mã referral riêng để xác lập danh tính mạng lưới của bạn ngay từ thời điểm tham gia.",
+        "Theo dõi điểm theo thời gian thực và bắt đầu hành động thanh khoản từ mốc 1,000P trên dashboard cá nhân.",
+      ],
+      note:
+        "Quy trình đăng ký tiếp tục thông qua luồng kích hoạt chuyển chính xác 10 USDT của sản phẩm.",
+    },
+    generations: {
+      columns: {
+        generation: "Thế hệ",
+        people: "Số người",
+        points: "Tổng điểm",
+        remark: "Ghi chú",
+      },
+      description:
+        "Mô hình cốt lõi là engine điểm theo cấp số nhân qua 6 thế hệ. Khi quan hệ auto-matching tích lũy qua từng tầng, dòng thu nhập thụ động sẽ mở rộng mạnh hơn.",
+      eyebrow: "6-Generation Accumulation",
+      insight:
+        "Khi đủ 6 thế hệ, 56,186 đối tác toàn cầu sẽ cùng vận hành profit engine của bạn. Tổng điểm tích lũy đạt khoảng 4,479,600P khi cấu trúc hoàn thiện.",
+      insightLabel: "Insight",
+      rows: withGenerationRemarks([
+        "Nền tảng của mạng lưới trực tiếp",
+        "Khu vực auto-matching bắt đầu hoạt động",
+        "Tăng tốc mở rộng mạng lưới",
+        "Bước vào vùng lợi nhuận ổn định quy mô lớn",
+        "Mạng lưới toàn cầu được đào sâu hơn",
+        "Hoàn thiện cấu trúc cuối cùng",
+      ]),
+      title: "Cấu trúc tích lũy lợi nhuận theo cấp số nhân qua 6 thế hệ",
+      totals: [
+        {
+          label: "Tổng điểm tích lũy",
+          value: "Khoảng 4,479,600P",
+          hint: "Tại thời điểm hoàn tất đủ 6 thế hệ",
+        },
+        {
+          label: "Quy đổi tiền mặt",
+          value: "$44,796",
+          hint: "",
+        },
+        {
+          label: "Quy mô mạng toàn cầu",
+          value: "56,186",
+          hint: "Số đối tác khi cấu trúc hoàn chỉnh",
+        },
+      ],
+    },
+    hero: {
+      badges: ["1,000P Entry", "6x Auto-Matching", "Instant Cash Flow"],
+      description:
+        "Đây không chỉ là networking, mà là một profit engine số hóa biến ảnh hưởng xã hội thành giá trị mạng lưới toàn cầu có thể thanh khoản. 1066friend+ nhấn mạnh auto-matching, tăng trưởng theo cấp số nhân và khả năng quy đổi điểm theo thời gian thực.",
+      eyebrow: "Monetize your global connections",
+      note:
+        "Toàn bộ hành trình được tóm gọn trong một landing page: vào hệ với 1,000P, mở rộng 6 thế hệ, nhận thưởng cao cấp và có lối ra thanh khoản gần như tức thì.",
+      title:
+        "Kiếm tiền từ các kết nối toàn cầu của bạn cùng 1066friend+.",
+    },
+    meta: {
+      title: "1066friend+ | Global Profit Engine",
+      description:
+        "Trang giới thiệu 1066friend+ với mức vào 1,000P, auto-matching 6 nhánh và mô hình tích lũy qua 6 thế hệ.",
+    },
+    metrics: [
+      {
+        label: "Điểm vào",
+        value: "1,000P",
+        hint: "Bắt đầu từ khoảng $10",
+      },
+      {
+        label: "Cấu trúc mở rộng",
+        value: "6 x 6",
+        hint: "Engine tăng trưởng theo 6 thế hệ",
+      },
+      {
+        label: "Quy mô mạng",
+        value: "56,186",
+        hint: "Số đối tác khi hoàn tất cấu trúc",
+      },
+      {
+        label: "Giá trị tiền mặt",
+        value: "$44,796",
+        hint: "Giá trị minh họa ở trạng thái hoàn chỉnh",
+      },
+    ],
+    overview: {
+      eyebrow: "Project Overview",
+      title: "1066 Relationship Point Digital Profit Engine là gì?",
+      description:
+        "1066 được giới thiệu như một profit engine số mang đến lối vào chi phí thấp để tham gia mạng lưới kinh doanh toàn cầu. Trọng tâm là trở thành một profit hub, không chỉ là người dùng trong hệ thống.",
+      cards: [
+        {
+          title: "Đổi mới về rào cản gia nhập",
+          description:
+            "Tham gia hệ sinh thái với chi phí nhỏ 1,000P, khoảng 10 USD, trong một cấu trúc được định vị là mở cho mọi người.",
+        },
+        {
+          title: "Giành quyền chủ động kinh doanh",
+          description:
+            "Ngay khi tham gia bằng mã referral riêng, mạng lưới được định nghĩa xoay quanh bạn như chủ thể đầu tiên của một cấu trúc lợi nhuận độc lập.",
+        },
+        {
+          title: "Tài sản hóa mạng lưới toàn cầu",
+          description:
+            "Vốn xã hội vốn vô hình được tái định vị thành tài sản số có thể kết nối mạng lưới cá nhân của bạn với thị trường toàn cầu rộng lớn hơn.",
+        },
+      ],
+    },
+    rewards: {
+      cards: [
+        {
+          title: "Đổi iPhone đời mới",
+          description:
+            "Ở mốc 150,000P, điểm tích lũy có thể đổi sang iPhone đời mới như một công cụ kinh doanh quan trọng.",
+        },
+        {
+          title: "Đổi xe máy điện thân thiện môi trường",
+          description:
+            "Ở mốc 300,000P, tuyến thưởng mở rộng sang tài sản vật lý giá trị cao hơn thông qua xe máy điện.",
+        },
+      ],
+      description:
+        "Hệ thống này đồng thời nhấn mạnh cả khát vọng lẫn thanh khoản. Điểm không chỉ là số dư nội bộ, mà còn là con đường dẫn tới tài sản cao cấp và lối ra nhanh chóng.",
+      eyebrow: "Premium Rewards & Liquidity",
+      liquiditySteps: [
+        {
+          title: "1. Kiểm tra điểm",
+          description:
+            "Theo dõi điểm tích lũy theo thời gian thực trên dashboard cá nhân.",
+        },
+        {
+          title: "2. Phát hành voucher",
+          description:
+            "Chuyển điểm thành voucher ngay từ mốc 1,000P.",
+        },
+        {
+          title: "3. Hoán đổi sang coin",
+          description:
+            "Đổi voucher đó sang coin kỹ thuật số theo thời gian thực.",
+        },
+        {
+          title: "4. Rút tiền 24/7",
+          description:
+            "Rút ra nội tệ qua sàn giao dịch bất cứ lúc nào.",
+        },
+      ],
+      liquidityTitle: "Quy trình thanh khoản theo thời gian thực",
+      title: "Phần thưởng cao cấp và đường ra tài sản vật lý tức thì",
+    },
+  };
+}
+
+function createIndonesianLandingCopy(base: LandingCopy): LandingCopy {
+  return {
+    ...base,
+    cta: {
+      primary: "Mulai 1066friend+",
+      referrals: "Dashboard referral",
+      secondary: "Lihat struktur profit",
+    },
+    engine: {
+      eyebrow: "6x Auto-Matching & Spillover",
+      title: "Struktur auto-matching 6x yang terus berkembang bahkan saat Anda beristirahat",
+      description:
+        "1066friend+ tidak hanya bergantung pada kemampuan referral pribadi. Sistem ini menggabungkan pertumbuhan jaringan langsung dengan engine otomatis yang mengisi slot kosong agar momentum struktur tetap berjalan.",
+      cards: [
+        {
+          title: "Algoritma ekspansi 6x",
+          description:
+            "Mulai dari 6 partner yang Anda undang langsung, lalu setiap layer berkembang lagi dengan kelipatan 6 untuk membentuk skala jaringan eksponensial.",
+        },
+        {
+          title: "Sistem auto-matching acak",
+          description:
+            "Bahkan saat referral langsung melambat, spillover dari struktur atas masih dapat mengisi posisi kosong secara otomatis.",
+        },
+        {
+          title: "Safety net psikologis",
+          description:
+            "Logika sistem dirancang agar generasi penghasilan tetap bisa terbentuk walau referral langsung tidak selalu aktif, sehingga jalur peserta menjadi lebih stabil.",
+        },
+      ],
+    },
+    finalCta: {
+      eyebrow: "Final Vision",
+      title: "Mulai 1066friend+ dan posisikan diri Anda di pusat profit hub global",
+      description:
+        "Narasi proyek ini menempatkan setiap peserta sebagai subjek utama dari jaringan mandiri. Buka activation flow sekarang dan ubah pengaruh sosial Anda menjadi struktur aset digital yang bisa diskalakan.",
+      bullets: [
+        "Masuk ke ekosistem dengan 1,000P, sekitar $10, dalam struktur terbuka yang mudah diakses.",
+        "Gunakan kode referral eksklusif Anda untuk membangun identitas jaringan sejak pertama bergabung.",
+        "Pantau poin real-time dan mulai aksi likuiditas dari 1,000P di dashboard pribadi Anda.",
+      ],
+      note:
+        "Pendaftaran dilanjutkan melalui activation flow transfer tepat 10 USDT yang digunakan produk.",
+    },
+    generations: {
+      columns: {
+        generation: "Generasi",
+        people: "Jumlah orang",
+        points: "Total poin",
+        remark: "Catatan",
+      },
+      description:
+        "Model intinya adalah engine poin eksponensial hingga 6 generasi. Ketika hubungan auto-matching menumpuk di setiap generasi, arus profit pasif berkembang menjadi lebih besar.",
+      eyebrow: "6-Generation Accumulation",
+      insight:
+        "Saat seluruh 6 generasi lengkap, 56,186 partner global akan menggerakkan profit engine Anda. Total poin terakumulasi mencapai sekitar 4,479,600P ketika struktur selesai.",
+      insightLabel: "Insight",
+      rows: withGenerationRemarks([
+        "Fondasi jaringan langsung",
+        "Zona aktivasi auto-matching",
+        "Akselerasi pertumbuhan jaringan",
+        "Masuk ke profit stabil skala besar",
+        "Pendalaman jangkauan jaringan global",
+        "Penyelesaian struktur akhir",
+      ]),
+      title: "Struktur akumulasi eksponensial 6 generasi",
+      totals: [
+        {
+          label: "Total poin terakumulasi",
+          value: "Sekitar 4,479,600P",
+          hint: "Saat 6 generasi penuh selesai",
+        },
+        {
+          label: "Setara tunai",
+          value: "$44,796",
+          hint: "",
+        },
+        {
+          label: "Skala jaringan global",
+          value: "56,186",
+          hint: "Jumlah partner pada struktur penuh",
+        },
+      ],
+    },
+    hero: {
+      badges: ["1,000P Entry", "6x Auto-Matching", "Instant Cash Flow"],
+      description:
+        "Ini bukan sekadar networking, tetapi profit engine digital yang mengubah pengaruh sosial menjadi nilai jaringan global yang likuid. 1066friend+ menonjolkan auto-matching, pertumbuhan eksponensial, dan monetisasi poin secara real-time.",
+      eyebrow: "Monetize your global connections",
+      note:
+        "Seluruh alur dirangkum dalam satu landing page: masuk dengan 1,000P, scale up 6 generasi, reward premium, dan jalur cash-out yang cepat.",
+      title:
+        "Monetisasi koneksi global Anda bersama 1066friend+.",
+    },
+    meta: {
+      title: "1066friend+ | Global Profit Engine",
+      description:
+        "Landing page 1066friend+ dengan entry 1,000P, auto-matching 6x, dan model akumulasi 6 generasi.",
+    },
+    metrics: [
+      {
+        label: "Entry",
+        value: "1,000P",
+        hint: "Mulai dari sekitar $10",
+      },
+      {
+        label: "Ekspansi",
+        value: "6 x 6",
+        hint: "Engine eksponensial 6 generasi",
+      },
+      {
+        label: "Jaringan",
+        value: "56,186",
+        hint: "Jumlah partner saat struktur penuh",
+      },
+      {
+        label: "Nilai tunai",
+        value: "$44,796",
+        hint: "Ilustrasi nilai akhir",
+      },
+    ],
+    overview: {
+      eyebrow: "Project Overview",
+      title: "Apa itu 1066 Relationship Point Digital Profit Engine?",
+      description:
+        "1066 diposisikan sebagai profit engine digital yang memberi peserta jalur masuk berbiaya rendah ke jaringan bisnis global yang mandiri. Fokusnya adalah menjadi pusat profit, bukan sekadar pengguna di dalam sistem.",
+      cards: [
+        {
+          title: "Inovasi pada hambatan masuk",
+          description:
+            "Masuk ke ekosistem dengan biaya kecil 1,000P, sekitar $10, dalam struktur yang diposisikan terbuka untuk siapa saja.",
+        },
+        {
+          title: "Mengamankan kedaulatan bisnis",
+          description:
+            "Begitu Anda bergabung lewat kode referral eksklusif, jaringan dibingkai di sekitar Anda sebagai subjek utama dari struktur profit yang mandiri.",
+        },
+        {
+          title: "Asetisasi jaringan global",
+          description:
+            "Modal sosial yang tak terlihat diposisikan ulang sebagai aset digital yang dapat menghubungkan jaringan pribadi Anda ke pasar global yang lebih luas.",
+        },
+      ],
+    },
+    rewards: {
+      cards: [
+        {
+          title: "Tukar iPhone terbaru",
+          description:
+            "Di 150,000P, poin yang terkumpul bisa ditukar dengan iPhone generasi terbaru sebagai alat bisnis penting.",
+        },
+        {
+          title: "Motor listrik ramah lingkungan",
+          description:
+            "Di 300,000P, jalur reward berkembang menjadi aset fisik bernilai lebih tinggi melalui penukaran motor listrik.",
+        },
+      ],
+      description:
+        "Sistem ini dibingkai dengan kombinasi aspirasi dan likuiditas. Poin tidak hanya diposisikan sebagai saldo internal, tetapi juga sebagai jalur menuju aset premium dan exit yang cepat.",
+      eyebrow: "Premium Rewards & Liquidity",
+      liquiditySteps: [
+        {
+          title: "1. Cek poin",
+          description:
+            "Pantau akumulasi poin secara real-time melalui dashboard My Page Anda.",
+        },
+        {
+          title: "2. Terbitkan voucher",
+          description:
+            "Ubah poin menjadi voucher secara instan mulai dari 1,000P.",
+        },
+        {
+          title: "3. Swap ke coin",
+          description:
+            "Tukar voucher tersebut ke coin digital secara real-time.",
+        },
+        {
+          title: "4. Cash out 24/7",
+          description:
+            "Tarik ke mata uang lokal melalui bursa kapan saja.",
+        },
+      ],
+      liquidityTitle: "Proses likuiditas real-time",
+      title: "Reward premium dan jalur aset fisik instan",
+    },
+  };
+}
+
+const localeLandingCopy: Record<Locale, LandingCopy> = {
+  ...landingCopy,
+  vi: createVietnameseLandingCopy(landingCopy.en),
+  id: createIndonesianLandingCopy(landingCopy.en),
 };
 
 export function getLandingCopy(locale: Locale) {
-  return landingCopy[localeLandingCopyFallbacks[locale]];
+  return localeLandingCopy[locale];
 }

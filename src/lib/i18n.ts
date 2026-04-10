@@ -1456,13 +1456,650 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
   },
 };
 
-const localeDictionaryFallbacks: Record<Locale, BuiltInLocale> = {
-  ko: "ko",
-  en: "en",
-  ja: "ja",
-  zh: "zh",
-  vi: "en",
-  id: "en",
+function createVietnameseDictionary(base: Dictionary): Dictionary {
+  return {
+    ...base,
+    meta: {
+      title: "Pocket Smart Wallet",
+      description:
+        "Ứng dụng smart wallet ưu tiên di động, hoàn tất đăng ký sau khi xác nhận nạp 10 USDT bằng đăng nhập email.",
+    },
+    common: {
+      ...base.common,
+      headerDescription:
+        "Đăng nhập bằng email, gửi 10 USDT đến PROJECT_WALLET, webhook sẽ hoàn tất đăng ký.",
+      languageLabel: "Ngôn ngữ",
+      connectWallet: "Đăng nhập email",
+      disconnectWallet: "Đăng xuất",
+      connectModalTitle: "Đăng nhập Pocket Smart Wallet bằng email",
+      loginDialog: {
+        ...base.common.loginDialog,
+        close: "Đóng",
+        codeDescription:
+          "Nhập mã xác minh 6 chữ số được gửi đến {email}.",
+        codePlaceholder: "Mã 6 chữ số",
+        emailDescription:
+          "Nhập địa chỉ email, chúng tôi sẽ gửi mã xác minh 6 chữ số.",
+        emailPlaceholder: "Địa chỉ email",
+        signupGuideDescription:
+          "Đăng ký sẽ hoàn tất sau khi bạn xác minh mã gửi qua email và chuyển 10 USDT.",
+        signupGuideTitle: "Cách đăng ký",
+        invalidCode: "Nhập mã xác minh 6 chữ số.",
+        invalidEmail: "Nhập địa chỉ email hợp lệ.",
+        resendCode: "Gửi lại mã",
+        sendCode: "Gửi mã xác minh",
+        sendingCode: "Đang gửi mã...",
+        changeEmail: "Đổi email",
+        verifyCode: "Đăng nhập email",
+        verifying: "Đang đăng nhập...",
+      },
+      logoutDialog: {
+        ...base.common.logoutDialog,
+        title: "Đăng xuất?",
+        description:
+          "Phiên đăng nhập email hiện tại sẽ kết thúc. Bạn có thể đăng nhập lại bằng email bất cứ lúc nào.",
+        cancel: "Hủy",
+        confirm: "Đăng xuất",
+      },
+      clientIdRequired: "cần client id",
+      copyAddress: "Sao chép địa chỉ",
+      copyLink: "Sao chép liên kết",
+      copied: "Đã sao chép",
+      notAvailable: "Không có",
+      walletTypeAbstracted: "Smart wallet trừu tượng",
+      status: {
+        connected: "Đã kết nối",
+        connecting: "Đang kết nối",
+        disconnected: "Chưa kết nối",
+        unknown: "Đang tải",
+      },
+    },
+    hero: {
+      eyebrow: "Mobile Smart Wallet",
+      title:
+        "Ứng dụng onchain hoàn tất đăng ký sau khi đăng nhập email và xác nhận chuyển đủ 10 USDT.",
+      description:
+        "Phiên bản này kết hợp luồng đăng nhập email với quy trình đăng ký BSC Smart Wallet dựa trên xác nhận thanh toán. Ví đã kết nối phải gửi chính xác 10 USDT đến PROJECT_WALLET, sau đó webhook xác nhận giao dịch và kích hoạt mã giới thiệu.",
+      badges: [
+        "Đăng nhập email",
+        "Đăng ký chính xác 10 USDT",
+        "Webhook hoàn tất",
+      ],
+    },
+    metrics: [
+      { label: "Chuỗi", value: "BSC", hint: "BNB Smart Chain" },
+      { label: "Số tiền đăng ký", value: "10 USDT", hint: "exact amount" },
+      { label: "Cách hoàn tất", value: "Webhook", hint: "payment confirmed" },
+    ],
+    env: {
+      title: "Cần cấu hình biến môi trường",
+      description:
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` đang trống nên giao diện đăng nhập email bị ẩn. Hãy sao chép `.env.example`, thêm client id rồi tải lại.",
+    },
+    connected: {
+      eyebrow: "Active Smart Wallet",
+      labels: {
+        chain: "Chuỗi đã kết nối",
+        balance: "Số dư USDT",
+        walletType: "Loại ví",
+        adminSigner: "Admin signer",
+      },
+      quickActionsTitle: "Thao tác nhanh",
+      actions: {
+        explorer: "Mở trên BscScan",
+        contract: "Hợp đồng BSC USDT",
+        dashboard: "Bảng điều khiển thirdweb",
+      },
+    },
+    onboarding: {
+      eyebrow: "Wallet Onboarding",
+      cards: [
+        {
+          title: "Bắt đầu bằng đăng nhập email",
+          description:
+            "Giữ một điểm vào OTP email duy nhất để quy trình đăng ký bắt đầu từ cùng một luồng kết nối ví.",
+        },
+        {
+          title: "Gửi chính xác 10 USDT",
+          description:
+            "Smart wallet đã kết nối phải gửi đúng 10 USDT đến PROJECT_WALLET thì mới đủ điều kiện đăng ký.",
+        },
+        {
+          title: "Tự động hoàn tất sau khi xác minh thanh toán",
+          description:
+            "Khi thanh toán được xác minh, trạng thái đăng ký, lưu người giới thiệu và cấp mã referral sẽ được áp dụng cùng lúc; nếu chậm, hệ thống sẽ tự kiểm tra lại.",
+        },
+      ],
+    },
+    runway: {
+      title: "Session Runway",
+      eyebrow: "3-step mobile flow",
+      steps: [
+        {
+          title: "Đăng nhập email",
+          description:
+            "Bắt đầu phiên smart wallet bằng email và mã xác minh dùng một lần.",
+        },
+        {
+          title: "Gửi 10 USDT",
+          description:
+            "Chuyển đúng 10 USDT từ ví đã kết nối đến PROJECT_WALLET.",
+        },
+        {
+          title: "Tự động hoàn tất sau khi xác minh thanh toán",
+          description:
+            "Khi bản ghi thanh toán được xác minh, đăng ký và mã referral sẽ được kích hoạt tự động; nếu chậm, hệ thống sẽ kiểm tra lại trong nền.",
+        },
+      ],
+    },
+    sponsored: {
+      title: "Thanh toán đăng ký",
+      eyebrow: "10 usdt transfer",
+      description:
+        "Gửi chính xác {amount} USDT từ smart wallet đã kết nối đến {wallet}. Hệ thống sẽ xác minh giao dịch và hoàn tất đăng ký tự động. Nếu xử lý chậm, hệ thống sẽ tiếp tục thử lại.",
+      cta: "Gửi chính xác {amount} USDT",
+      completedCta: "Đăng ký hoàn tất",
+      emptyNotice:
+        "Kết quả giao dịch và trạng thái xác minh đăng ký tự động sẽ hiển thị ở đây.",
+      connectFirst: "Hãy đăng nhập email trước.",
+      txConfirmed:
+        "Giao dịch đã được xác nhận. Trạng thái đăng ký đang được cập nhật tự động; nếu chậm, hệ thống sẽ thử lại.",
+      txSent:
+        "Giao dịch đã được gửi. Đăng ký sẽ hoàn tất tự động sau khi thanh toán được xác minh.",
+      openExplorer: "Xem giao dịch",
+    },
+    surface: {
+      title: "Wallet Surface",
+      eyebrow: "mobile decisions",
+      points: [
+        {
+          title: "Đưa điều kiện đăng ký vào trung tâm màn hình",
+          description:
+            "Ví đã kết nối, số tiền chuyển, địa chỉ nhận và trạng thái đăng ký luôn hiển thị cùng một màn hình.",
+        },
+        {
+          title: "Tách trạng thái chờ và đã hoàn tất",
+          description:
+            "Trước khi thanh toán, giao diện nhấn mạnh yêu cầu 10 USDT. Sau khi xác nhận thanh toán, trọng tâm chuyển sang thông tin referral và hoàn tất.",
+        },
+        {
+          title: "Hoàn tất bằng thanh toán đã xác minh",
+          description:
+            "Đăng ký chỉ hoàn tất khi có bản ghi thanh toán đã được xác minh và các lần kiểm tra lại, thay vì chỉ dựa vào trạng thái gửi giao dịch từ client.",
+        },
+      ],
+    },
+    member: {
+      title: "Sổ đăng ký thành viên",
+      eyebrow: "trạng thái đăng ký",
+      disconnected: "Sau khi đăng nhập email, trạng thái thành viên sẽ xuất hiện ở đây.",
+      syncing:
+        "Đang kiểm tra trạng thái đăng ký. Khi bản ghi thanh toán được xác minh, đăng ký sẽ hoàn tất tự động.",
+      pending:
+        "Đăng ký vẫn đang chờ xử lý. Hãy gửi chính xác 10 USDT từ ví đã kết nối. Sau khi thanh toán được xác minh, đăng ký sẽ hoàn tất tự động và hệ thống sẽ kiểm tra lại nếu bị chậm.",
+      synced:
+        "Thanh toán 10 USDT đã được xác nhận, đăng ký đã hoàn tất và mã referral hiện đã hoạt động.",
+      newMember: "Đăng ký thành công.",
+      pendingValue: "Đang chờ thanh toán",
+      completedValue: "Đăng ký hoàn tất",
+      celebrationTitle: "Đăng ký hoàn tất",
+      celebrationDescription:
+        "Chuyển khoản 10 USDT đã được xác nhận và mã referral của bạn đã hoạt động.",
+      incomingReferralTitle: "Đã phát hiện mã giới thiệu.",
+      incomingReferralDescription:
+        "Nếu đăng ký hoàn tất trên trang này, mã giới thiệu {code} sẽ được lưu vào hồ sơ thành viên.",
+      incomingReferralLimitTitle: "Mã giới thiệu này đã đạt giới hạn.",
+      incomingReferralLimitDescription:
+        "Mã giới thiệu {code} đã có {count} lượt đăng ký đang xử lý hoặc đã hoàn tất nên không thể dùng thêm. Hãy mở lại trang chủ với mã khác trước khi đăng ký.",
+      selfReferralNotice:
+        "Bạn đang mở liên kết referral của chính mình. Tài khoản của bạn sẽ không nhận credit giới thiệu cho đăng ký này.",
+      appliedReferralDescription:
+        "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
+      autoPlacementDescription:
+        "Lần đăng ký này hoàn tất mà không có mã giới thiệu, vì vậy hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc auto-placement hiện tại.",
+      shareHint:
+        "Chia sẻ liên kết này để mở trang đăng ký với mã referral của bạn đã được gắn sẵn.",
+      noReferralApplied: "Chưa áp dụng",
+      labels: {
+        awaitingPaymentSince: "Chờ thanh toán từ",
+        completionAt: "Hoàn tất đăng ký lúc",
+        destinationWallet: "Ví nhận",
+        emailKey: "Khóa email",
+        lastWallet: "Ví đã dùng",
+        walletCount: "Số ví đã kết nối",
+        lastConnectedAt: "Kết nối gần nhất",
+        paymentReceivedAt: "Xác nhận thanh toán lúc",
+        paymentTransaction: "Giao dịch",
+        placementReferralCode: "Mã mạng được gán",
+        referralCode: "Mã referral của tôi",
+        referredByCode: "Mã giới thiệu đã áp dụng",
+        referralLink: "Liên kết referral",
+        requiredDeposit: "Số tiền đăng ký",
+        signupStatus: "Trạng thái đăng ký",
+        updatedAt: "Cập nhật gần nhất",
+      },
+      actions: {
+        openProjectWallet: "Xem ví dự án",
+        refreshStatus: "Làm mới trạng thái",
+        viewReferrals: "Xem thành viên giới thiệu",
+      },
+      errors: {
+        missingEmail:
+          "Không thể đọc địa chỉ email từ phiên kết nối hiện tại.",
+        insufficientBalance:
+          "Để tiếp tục đăng ký, ví đã kết nối phải có ít nhất {amount} USDT.",
+        projectWalletMissing: "PROJECT_WALLET chưa được cấu hình.",
+        referralLimitReached:
+          "Mã giới thiệu {code} đã có {count} lượt đăng ký đang xử lý hoặc đã hoàn tất và hiện đã đầy. Hãy dùng mã referral khác để đăng ký.",
+        syncFailed:
+          "Không thể xác nhận trạng thái thành viên lúc này. Vui lòng thử lại sau.",
+      },
+    },
+    referralsPage: {
+      title: "Bảng điều khiển referral",
+      eyebrow: "referral tracking",
+      description:
+        "Sau khi đăng ký hoàn tất, bạn có thể xem mã referral của mình và danh sách thành viên đã đăng ký bằng mã đó.",
+      shareTitle: "Mã referral của tôi",
+      listTitle: "Thành viên đăng ký bằng mã của tôi",
+      rootLabel: "Toàn bộ cây giới thiệu",
+      branchEmpty:
+        "Dưới thành viên này hiện chưa có thêm lượt đăng ký giới thiệu nào.",
+      depthHint: "Bạn có thể xem tối đa {depth} tầng trên một màn hình.",
+      firstLevelLimitHint: "Tầng 1 có thể đăng ký tối đa {limit} người.",
+      disconnected:
+        "Hãy đăng nhập email và hoàn tất đăng ký để xem bảng referral.",
+      loading: "Đang tải dữ liệu referral.",
+      empty: "Hiện chưa có thành viên nào đăng ký bằng mã referral của bạn.",
+      memberReady: "Mã referral của thành viên email này đã hoạt động.",
+      memberMissing: "Hãy đồng bộ lại trạng thái thành viên rồi thử lại.",
+      paymentRequired:
+        "Đăng ký vẫn chưa hoàn tất. Hãy vào màn hình kích hoạt để hoàn tất thanh toán 10 USDT.",
+      labels: {
+        currentLevel: "Tầng hiện tại",
+        descendants: "Tổng tuyến dưới",
+        directChildren: "Tuyến dưới trực tiếp",
+        directReferrals: "Đăng ký giới thiệu trực tiếp",
+        level: "Tầng",
+        members: "người",
+        referralCode: "Mã referral",
+        referralLink: "Liên kết chia sẻ",
+        totalReferrals: "Số đăng ký giới thiệu",
+        totalNetwork: "Toàn mạng lưới",
+        lastWallet: "Ví gần nhất",
+        locale: "Ngôn ngữ thành viên",
+        joinedAt: "Thời điểm tham gia",
+        lastConnectedAt: "Kết nối gần nhất",
+      },
+      actions: {
+        backToRoot: "Về gốc",
+        backHome: "Về trang chủ",
+        completeSignup: "Hoàn tất đăng ký ở màn hình kích hoạt",
+        refresh: "Làm mới",
+        viewChildren: "Xem tuyến dưới",
+      },
+      rewards: {
+        title: "Điểm thưởng",
+        description:
+          "Mỗi khi 1 thành viên tuyến dưới hoàn tất đăng ký, tối đa 6 tầng phía trên sẽ nhận 200 điểm cho mỗi tầng hợp lệ.",
+        empty: "Hiện chưa có lịch sử thưởng nào được ghi nhận.",
+        recentTitle: "Lịch sử chi trả gần đây",
+        perSignup: "Thưởng mỗi lượt đăng ký",
+        points: "Điểm",
+        totalPoints: "Tổng điểm tích lũy",
+        totalRewards: "Số lần chi trả",
+        activeLevels: "Số tầng có thưởng",
+        sourceMember: "Thành viên đăng ký",
+        awardedAt: "Thời điểm chi trả",
+      },
+      errors: {
+        missingEmail:
+          "Không thể đọc địa chỉ email từ phiên kết nối hiện tại.",
+        loadFailed: "Không thể tải dữ liệu referral.",
+      },
+    },
+    signInMix: {
+      title: "Luồng đăng ký",
+      eyebrow: "signup checklist",
+      methods: [
+        "Đăng nhập email",
+        "Chuyển 10 USDT",
+        "Hoàn tất sau khi webhook xác nhận",
+      ],
+    },
+    notices: {
+      copySuccess: "Đã sao chép địa chỉ smart wallet vào clipboard.",
+      copyError:
+        "Không thể sao chép địa chỉ. Hãy kiểm tra quyền của trình duyệt.",
+    },
+  };
+}
+
+function createIndonesianDictionary(base: Dictionary): Dictionary {
+  return {
+    ...base,
+    meta: {
+      title: "Pocket Smart Wallet",
+      description:
+        "Aplikasi smart wallet mobile-first yang menyelesaikan pendaftaran setelah deposit 10 USDT terverifikasi melalui login email.",
+    },
+    common: {
+      ...base.common,
+      headerDescription:
+        "Masuk dengan email, kirim 10 USDT ke PROJECT_WALLET, lalu webhook akan menyelesaikan pendaftaran.",
+      languageLabel: "Bahasa",
+      connectWallet: "Login email",
+      disconnectWallet: "Keluar",
+      connectModalTitle: "Masuk ke Pocket Smart Wallet dengan email",
+      loginDialog: {
+        ...base.common.loginDialog,
+        close: "Tutup",
+        codeDescription:
+          "Masukkan kode verifikasi 6 digit yang dikirim ke {email}.",
+        codePlaceholder: "Kode 6 digit",
+        emailDescription:
+          "Masukkan alamat email Anda dan kami akan mengirimkan kode verifikasi 6 digit.",
+        emailPlaceholder: "Alamat email",
+        signupGuideDescription:
+          "Pendaftaran Anda selesai setelah memverifikasi kode email dan mentransfer 10 USDT.",
+        signupGuideTitle: "Cara mendaftar",
+        invalidCode: "Masukkan kode verifikasi 6 digit.",
+        invalidEmail: "Masukkan alamat email yang valid.",
+        resendCode: "Kirim ulang kode",
+        sendCode: "Kirim kode verifikasi",
+        sendingCode: "Mengirim kode...",
+        changeEmail: "Ganti email",
+        verifyCode: "Login email",
+        verifying: "Sedang masuk...",
+      },
+      logoutDialog: {
+        ...base.common.logoutDialog,
+        title: "Keluar?",
+        description:
+          "Sesi login email saat ini akan berakhir. Anda bisa login kembali kapan saja dengan email.",
+        cancel: "Batal",
+        confirm: "Keluar",
+      },
+      clientIdRequired: "perlu client id",
+      copyAddress: "Salin alamat",
+      copyLink: "Salin tautan",
+      copied: "Tersalin",
+      notAvailable: "Tidak ada",
+      walletTypeAbstracted: "Smart wallet abstrak",
+      status: {
+        connected: "Terhubung",
+        connecting: "Sedang terhubung",
+        disconnected: "Belum terhubung",
+        unknown: "Memuat",
+      },
+    },
+    hero: {
+      eyebrow: "Mobile Smart Wallet",
+      title:
+        "Aplikasi onchain yang menyelesaikan pendaftaran setelah login email dan transfer 10 USDT terkonfirmasi.",
+      description:
+        "Versi ini menggabungkan alur login email dengan proses pendaftaran BSC Smart Wallet berbasis verifikasi pembayaran. Wallet yang terhubung harus mengirim tepat 10 USDT ke PROJECT_WALLET, lalu webhook mengonfirmasi transfer dan mengaktifkan kode referral.",
+      badges: [
+        "Login email",
+        "Pendaftaran tepat 10 USDT",
+        "Selesai lewat webhook",
+      ],
+    },
+    metrics: [
+      { label: "Chain", value: "BSC", hint: "BNB Smart Chain" },
+      { label: "Biaya pendaftaran", value: "10 USDT", hint: "exact amount" },
+      { label: "Metode selesai", value: "Webhook", hint: "payment confirmed" },
+    ],
+    env: {
+      title: "Perlu pengaturan environment",
+      description:
+        "`NEXT_PUBLIC_THIRDWEB_CLIENT_ID` kosong sehingga UI login email disembunyikan. Salin `.env.example`, isi client id, lalu muat ulang.",
+    },
+    connected: {
+      eyebrow: "Active Smart Wallet",
+      labels: {
+        chain: "Chain terhubung",
+        balance: "Saldo USDT",
+        walletType: "Tipe wallet",
+        adminSigner: "Admin signer",
+      },
+      quickActionsTitle: "Aksi cepat",
+      actions: {
+        explorer: "Buka di BscScan",
+        contract: "Kontrak BSC USDT",
+        dashboard: "Dashboard thirdweb",
+      },
+    },
+    onboarding: {
+      eyebrow: "Wallet Onboarding",
+      cards: [
+        {
+          title: "Mulai dari login email",
+          description:
+            "Gunakan satu pintu masuk OTP email agar alur pendaftaran selalu dimulai dari koneksi wallet yang sama.",
+        },
+        {
+          title: "Kirim tepat 10 USDT",
+          description:
+            "Smart wallet yang terhubung harus mengirim tepat 10 USDT ke PROJECT_WALLET agar memenuhi syarat pendaftaran.",
+        },
+        {
+          title: "Selesai otomatis setelah pembayaran terverifikasi",
+          description:
+            "Setelah pembayaran terverifikasi, status pendaftaran, penyimpanan inviter, dan penerbitan kode referral diterapkan sekaligus; jika terlambat, sistem akan memeriksa ulang otomatis.",
+        },
+      ],
+    },
+    runway: {
+      title: "Session Runway",
+      eyebrow: "3-step mobile flow",
+      steps: [
+        {
+          title: "Login email",
+          description:
+            "Mulai sesi smart wallet dengan email dan kode verifikasi satu kali.",
+        },
+        {
+          title: "Kirim 10 USDT",
+          description:
+            "Transfer tepat 10 USDT dari wallet yang terhubung ke PROJECT_WALLET.",
+        },
+        {
+          title: "Selesai otomatis setelah pembayaran terverifikasi",
+          description:
+            "Saat catatan pembayaran terverifikasi, pendaftaran dan aktivasi kode referral diproses otomatis; jika terlambat, sistem akan memeriksa lagi di background.",
+        },
+      ],
+    },
+    sponsored: {
+      title: "Pembayaran pendaftaran",
+      eyebrow: "10 usdt transfer",
+      description:
+        "Kirim tepat {amount} USDT dari smart wallet yang terhubung ke {wallet}. Sistem akan memverifikasi transaksi dan menyelesaikan pendaftaran otomatis. Jika proses terlambat, sistem akan mencoba lagi di background.",
+      cta: "Kirim tepat {amount} USDT",
+      completedCta: "Pendaftaran selesai",
+      emptyNotice:
+        "Hasil transfer dan status verifikasi pendaftaran otomatis akan tampil di sini.",
+      connectFirst: "Selesaikan login email terlebih dahulu.",
+      txConfirmed:
+        "Transfer sudah terkonfirmasi. Status pendaftaran sedang diperbarui otomatis; jika terlambat, sistem akan mencoba lagi.",
+      txSent:
+        "Transfer sudah dikirim. Pendaftaran akan selesai otomatis setelah pembayaran terverifikasi.",
+      openExplorer: "Lihat transaksi",
+    },
+    surface: {
+      title: "Wallet Surface",
+      eyebrow: "mobile decisions",
+      points: [
+        {
+          title: "Letakkan syarat pendaftaran di pusat layar",
+          description:
+            "Wallet terhubung, jumlah transfer, wallet tujuan, dan status pendaftaran tetap terlihat di layar yang sama.",
+        },
+        {
+          title: "Pisahkan status pending dan selesai",
+          description:
+            "Sebelum pembayaran, UI menekankan syarat 10 USDT. Setelah pembayaran dikonfirmasi, fokus berpindah ke detail referral dan status selesai.",
+        },
+        {
+          title: "Selesaikan dengan pembayaran terverifikasi",
+          description:
+            "Pendaftaran tidak hanya bergantung pada sukses transaksi di client, tetapi juga pada catatan pembayaran yang terverifikasi dan proses retry.",
+        },
+      ],
+    },
+    member: {
+      title: "Registri anggota",
+      eyebrow: "status pendaftaran",
+      disconnected:
+        "Setelah login email, status anggota Anda akan muncul di sini.",
+      syncing:
+        "Sedang memeriksa status pendaftaran. Setelah catatan pembayaran terverifikasi, pendaftaran akan selesai otomatis.",
+      pending:
+        "Pendaftaran masih pending. Kirim tepat 10 USDT dari wallet yang terhubung. Setelah pembayaran diverifikasi, pendaftaran akan selesai otomatis dan sistem akan memeriksa ulang jika terlambat.",
+      synced:
+        "Pembayaran 10 USDT telah dikonfirmasi, pendaftaran selesai, dan kode referral Anda sekarang aktif.",
+      newMember: "Pendaftaran berhasil diselesaikan.",
+      pendingValue: "Menunggu pembayaran",
+      completedValue: "Pendaftaran selesai",
+      celebrationTitle: "Pendaftaran selesai",
+      celebrationDescription:
+        "Transfer 10 USDT telah dikonfirmasi dan kode referral Anda sekarang aktif.",
+      incomingReferralTitle: "Kode referral terdeteksi.",
+      incomingReferralDescription:
+        "Jika pendaftaran selesai di halaman ini, kode referral {code} akan disimpan pada data anggota.",
+      incomingReferralLimitTitle: "Kode referral ini sudah penuh.",
+      incomingReferralLimitDescription:
+        "Kode referral {code} sudah memiliki {count} pendaftaran yang sedang berjalan atau sudah selesai dan tidak bisa digunakan lagi. Buka kembali beranda dengan kode referral lain sebelum mendaftar.",
+      selfReferralNotice:
+        "Anda membuka tautan referral sendiri. Kredit referral tidak berlaku untuk pendaftaran Anda sendiri.",
+      appliedReferralDescription:
+        "Kode referral {code} diterapkan pada pendaftaran ini.",
+      autoPlacementDescription:
+        "Pendaftaran ini selesai tanpa kode referral, jadi sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan auto-placement saat ini.",
+      shareHint:
+        "Bagikan tautan ini untuk membuka halaman pendaftaran dengan kode referral Anda yang sudah terpasang.",
+      noReferralApplied: "Belum diterapkan",
+      labels: {
+        awaitingPaymentSince: "Menunggu pembayaran sejak",
+        completionAt: "Pendaftaran selesai pada",
+        destinationWallet: "Wallet tujuan",
+        emailKey: "Kunci email",
+        lastWallet: "Wallet yang digunakan",
+        walletCount: "Jumlah wallet terhubung",
+        lastConnectedAt: "Terakhir terhubung",
+        paymentReceivedAt: "Pembayaran dikonfirmasi pada",
+        paymentTransaction: "Transaksi",
+        placementReferralCode: "Kode jaringan penempatan",
+        referralCode: "Kode referral saya",
+        referredByCode: "Kode referral yang diterapkan",
+        referralLink: "Tautan referral",
+        requiredDeposit: "Biaya pendaftaran",
+        signupStatus: "Status pendaftaran",
+        updatedAt: "Pembaruan terakhir",
+      },
+      actions: {
+        openProjectWallet: "Lihat wallet proyek",
+        refreshStatus: "Muat ulang status",
+        viewReferrals: "Lihat anggota referral",
+      },
+      errors: {
+        missingEmail:
+          "Alamat email tidak dapat dibaca dari sesi wallet saat ini.",
+        insufficientBalance:
+          "Untuk melanjutkan pendaftaran, wallet yang terhubung harus memiliki setidaknya {amount} USDT.",
+        projectWalletMissing: "PROJECT_WALLET belum dikonfigurasi.",
+        referralLimitReached:
+          "Kode referral {code} sudah memiliki {count} pendaftaran yang sedang berjalan atau sudah selesai dan sekarang penuh. Gunakan kode referral lain untuk mendaftar.",
+        syncFailed:
+          "Status anggota tidak dapat dikonfirmasi saat ini. Silakan coba lagi nanti.",
+      },
+    },
+    referralsPage: {
+      title: "Dashboard referral",
+      eyebrow: "referral tracking",
+      description:
+        "Setelah pendaftaran selesai, lihat kode referral Anda dan daftar anggota yang mendaftar dengan kode tersebut.",
+      shareTitle: "Kode referral saya",
+      listTitle: "Anggota yang mendaftar dengan kode saya",
+      rootLabel: "Pohon referral lengkap",
+      branchEmpty:
+        "Belum ada pendaftaran referral yang lebih dalam di bawah anggota ini.",
+      depthHint: "Anda dapat menelusuri hingga {depth} level dalam satu layar.",
+      firstLevelLimitHint:
+        "Level 1 dapat menampung hingga {limit} anggota.",
+      disconnected:
+        "Login email dan selesaikan pendaftaran untuk melihat dashboard referral.",
+      loading: "Memuat data referral.",
+      empty: "Belum ada anggota yang mendaftar dengan kode referral Anda.",
+      memberReady: "Kode referral anggota email ini sudah aktif.",
+      memberMissing: "Sinkronkan ulang status anggota lalu coba lagi.",
+      paymentRequired:
+        "Pendaftaran belum selesai. Buka layar aktivasi untuk menyelesaikan pembayaran 10 USDT.",
+      labels: {
+        currentLevel: "Level saat ini",
+        descendants: "Total jaringan bawah",
+        directChildren: "Bawahan langsung",
+        directReferrals: "Referral langsung",
+        level: "Level",
+        members: "anggota",
+        referralCode: "Kode referral",
+        referralLink: "Tautan bagikan",
+        totalReferrals: "Jumlah referral",
+        totalNetwork: "Total jaringan",
+        lastWallet: "Wallet terbaru",
+        locale: "Bahasa anggota",
+        joinedAt: "Waktu bergabung",
+        lastConnectedAt: "Terakhir terhubung",
+      },
+      actions: {
+        backToRoot: "Kembali ke root",
+        backHome: "Kembali ke beranda",
+        completeSignup: "Selesaikan pendaftaran di layar aktivasi",
+        refresh: "Segarkan",
+        viewChildren: "Lihat bawahan",
+      },
+      rewards: {
+        title: "Poin hadiah",
+        description:
+          "Setiap kali 1 anggota bawah menyelesaikan pendaftaran, hingga 6 level di atas akan menerima 200 poin untuk tiap level yang valid.",
+        empty: "Belum ada riwayat hadiah yang tercatat.",
+        recentTitle: "Riwayat pembayaran terbaru",
+        perSignup: "Hadiah per pendaftaran",
+        points: "Poin",
+        totalPoints: "Total poin",
+        totalRewards: "Jumlah pembayaran",
+        activeLevels: "Level aktif",
+        sourceMember: "Anggota yang mendaftar",
+        awardedAt: "Waktu pembayaran",
+      },
+      errors: {
+        missingEmail:
+          "Alamat email tidak dapat dibaca dari sesi wallet saat ini.",
+        loadFailed: "Gagal memuat data referral.",
+      },
+    },
+    signInMix: {
+      title: "Alur pendaftaran",
+      eyebrow: "signup checklist",
+      methods: [
+        "Login email",
+        "Transfer 10 USDT",
+        "Selesai setelah webhook terkonfirmasi",
+      ],
+    },
+    notices: {
+      copySuccess: "Alamat smart wallet telah disalin ke clipboard.",
+      copyError:
+        "Gagal menyalin alamat. Periksa izin browser Anda.",
+    },
+  };
+}
+
+const localeDictionaries: Record<Locale, Dictionary> = {
+  ...dictionaries,
+  vi: createVietnameseDictionary(dictionaries.en),
+  id: createIndonesianDictionary(dictionaries.en),
 };
 
 export function hasLocale(locale: string): locale is Locale {
@@ -1470,7 +2107,7 @@ export function hasLocale(locale: string): locale is Locale {
 }
 
 export function getDictionary(locale: Locale) {
-  return dictionaries[localeDictionaryFallbacks[locale]];
+  return localeDictionaries[locale];
 }
 
 export function matchPreferredLocale(input?: string | null): Locale {
