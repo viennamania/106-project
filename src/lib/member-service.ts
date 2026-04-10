@@ -179,6 +179,108 @@ async function findClaimedPlacementSlotByEmail(email: string) {
   return collection.findOne({ claimedByEmail: email });
 }
 
+async function getPlacementDescendantReferralCodes({
+  collection,
+  rootReferralCode,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  rootReferralCode: string;
+}) {
+  const visitedReferralCodes = new Set<string>([rootReferralCode]);
+  const descendantReferralCodes = new Set<string>();
+  let currentParentCodes = [rootReferralCode];
+
+  while (currentParentCodes.length > 0) {
+    const levelMembers = await collection
+      .find({
+        placementReferralCode: { $in: currentParentCodes },
+        status: "completed",
+      })
+      .project<{ referralCode?: string | null }>({
+        referralCode: 1,
+      })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      const referralCode = normalizeReferralCode(levelMember.referralCode);
+
+      if (!referralCode || visitedReferralCodes.has(referralCode)) {
+        continue;
+      }
+
+      visitedReferralCodes.add(referralCode);
+      descendantReferralCodes.add(referralCode);
+      nextParentCodes.push(referralCode);
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+
+  return descendantReferralCodes;
+}
+
+async function placementWouldCreateCycle({
+  collection,
+  member,
+  slot,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+  slot: Pick<ReferralPlacementSlotDocument, "ownerEmail" | "ownerReferralCode">;
+}) {
+  if (slot.ownerEmail === member.email) {
+    return true;
+  }
+
+  if (!member.referralCode) {
+    return false;
+  }
+
+  const ownerReferralCode = normalizeReferralCode(slot.ownerReferralCode);
+
+  if (!ownerReferralCode) {
+    return false;
+  }
+
+  if (ownerReferralCode === member.referralCode) {
+    return true;
+  }
+
+  const descendantReferralCodes = await getPlacementDescendantReferralCodes({
+    collection,
+    rootReferralCode: member.referralCode,
+  });
+
+  return descendantReferralCodes.has(ownerReferralCode);
+}
+
+async function releaseClaimedPlacementSlot(
+  slot: ReferralPlacementSlotDocument,
+) {
+  const collection = await getReferralPlacementSlotsCollection();
+
+  await collection.updateOne(
+    {
+      ownerReferralCode: slot.ownerReferralCode,
+      slotIndex: slot.slotIndex,
+    },
+    {
+      $set: {
+        claimSource: null,
+        claimedAt: null,
+        claimedByEmail: null,
+        updatedAt: new Date(),
+      },
+    },
+  );
+}
+
 async function claimPlacementSlot({
   email,
   filter,
@@ -256,13 +358,36 @@ async function claimManualPlacementSlot({
   });
 }
 
-async function claimAutoPlacementSlot(email: string) {
+async function claimAutoPlacementSlot({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  const blockedOwnerReferralCodes = member.referralCode
+    ? [
+        member.referralCode,
+        ...(await getPlacementDescendantReferralCodes({
+          collection,
+          rootReferralCode: member.referralCode,
+        })),
+      ]
+    : [];
+
   return claimPlacementSlot({
-    email,
+    email: member.email,
     filter: {
       ownerEmail: {
-        $ne: email,
+        $ne: member.email,
       },
+      ...(blockedOwnerReferralCodes.length > 0
+        ? {
+            ownerReferralCode: {
+              $nin: blockedOwnerReferralCodes,
+            },
+          }
+        : {}),
     },
     sort: {
       ownerRegistrationCompletedAt: 1,
@@ -318,11 +443,25 @@ async function ensurePlacementAssigned({
   const existingSlot = await findClaimedPlacementSlotByEmail(member.email);
 
   if (existingSlot) {
-    return applyPlacementFromSlot({
-      collection,
-      member,
-      slot: existingSlot,
-    });
+    if (
+      !(await placementWouldCreateCycle({
+        collection,
+        member,
+        slot: existingSlot,
+      }))
+    ) {
+      return applyPlacementFromSlot({
+        collection,
+        member,
+        slot: existingSlot,
+      });
+    }
+
+    if (existingSlot.claimSource === "auto") {
+      await releaseClaimedPlacementSlot(existingSlot);
+    } else {
+      return member;
+    }
   }
 
   const sponsorReferralCode = getSponsorReferralCode(member);
@@ -349,9 +488,26 @@ async function ensurePlacementAssigned({
     }
   }
 
-  const autoSlot = await claimAutoPlacementSlot(member.email);
+  const autoSlot = await claimAutoPlacementSlot({
+    collection,
+    member,
+  });
 
   if (!autoSlot) {
+    return member;
+  }
+
+  if (
+    await placementWouldCreateCycle({
+      collection,
+      member,
+      slot: autoSlot,
+    })
+  ) {
+    if (autoSlot.claimSource === "auto") {
+      await releaseClaimedPlacementSlot(autoSlot);
+    }
+
     return member;
   }
 
