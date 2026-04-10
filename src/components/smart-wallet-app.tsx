@@ -1310,91 +1310,107 @@ function CompletedHomeDashboard({
             </div>
           ) : null}
 
-          <div className="grid gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
-            <LandingReveal delay={50}>
-              <MetricCard
-                animateValue={false}
-                className="min-[420px]:col-span-2 sm:col-span-1"
-                hint={dictionary.referralsPage.labels.referralCode}
-                label={dictionary.member.completedValue}
-                locale={locale}
-                value={member.referralCode ?? dictionary.common.notAvailable}
-              />
-            </LandingReveal>
-            <LandingReveal delay={110}>
-              <MetricCard
-                animateValue
-                hint={firstLevelLimitHint}
-                label={dictionary.referralsPage.labels.directReferrals}
-                locale={locale}
-                value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
-              />
-            </LandingReveal>
-            <LandingReveal delay={170}>
-              <MetricCard
-                animateValue
-                hint={dictionary.referralsPage.depthHint.replace(
-                  "{depth}",
-                  "6",
-                )}
-                label={dictionary.referralsPage.labels.totalNetwork}
-                locale={locale}
-                value={String(totalReferralCount)}
-              />
-            </LandingReveal>
-          </div>
+          <div className="grid gap-4 lg:grid-cols-[1.16fr_0.84fr]">
+            <div className="relative min-w-0 overflow-hidden rounded-[26px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_48%,#10213f_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] sm:rounded-[30px] sm:p-5">
+              <div className="pointer-events-none absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.32),transparent_68%)] blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-14 left-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_72%)] blur-3xl" />
 
-          <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-            <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:rounded-[28px] sm:p-5">
-              <p className="eyebrow">{dictionary.referralsPage.shareTitle}</p>
-              <p className="mt-3 text-[1.7rem] font-semibold tracking-[0.06em] text-slate-950 sm:text-3xl sm:tracking-[0.08em]">
-                {member.referralCode ?? dictionary.common.notAvailable}
-              </p>
+              <div className="relative space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/55">
+                      {dictionary.referralsPage.shareTitle}
+                    </p>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-white/72">
+                      {dictionary.member.shareHint}
+                    </p>
+                  </div>
+                  <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/82 backdrop-blur">
+                    <Check className="size-3.5" />
+                    {dictionary.member.completedValue}
+                  </div>
+                </div>
 
-              {referralLink ? (
-                <>
-                  <a
-                    className="mt-4 block break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-                    href={referralLink}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {referralLink}
-                  </a>
-                  <div className="mt-4 flex flex-wrap gap-3">
+                <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:p-5">
+                  <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-white/45">
+                    {dictionary.referralsPage.labels.referralCode}
+                  </p>
+                  <p className="mt-3 break-all font-mono text-[2rem] font-semibold leading-[0.92] tracking-[-0.05em] text-white sm:text-[2.45rem]">
+                    {member.referralCode ?? dictionary.common.notAvailable}
+                  </p>
+                </div>
+
+                {referralLink ? (
+                  <>
+                    <a
+                      className="group block rounded-[22px] border border-white/10 bg-black/10 p-3.5 transition hover:border-white/16 hover:bg-black/14"
+                      href={referralLink}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          {dictionary.referralsPage.labels.referralLink}
+                        </p>
+                        <ArrowUpRight className="size-4 shrink-0 text-white/45 transition group-hover:text-white/72" />
+                      </div>
+                      <p className="mt-2 break-all text-sm font-medium leading-6 text-white/92">
+                        {referralLink}
+                      </p>
+                    </a>
+
                     <CopyTextButton
-                      className="w-full sm:w-auto"
+                      className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
                       copiedLabel={dictionary.common.copied}
                       copyLabel={dictionary.common.copyLink}
                       text={referralLink}
                     />
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {dictionary.member.shareHint}
-                  </p>
-                </>
-              ) : null}
+                  </>
+                ) : null}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-[24px] bg-slate-950 p-4 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)] sm:rounded-[28px] sm:p-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-white/55">
-                {dictionary.member.eyebrow}
-              </p>
-              <p className="text-xl font-semibold tracking-tight">
-                {dictionary.member.newMember}
-              </p>
-              <p className="text-sm leading-6 text-white/70">
-                {dictionary.referralsPage.description}
-              </p>
+            <div className="grid gap-3">
+              <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                  {dictionary.member.eyebrow}
+                </p>
+                <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                  {dictionary.member.newMember}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {dictionary.member.synced}
+                </p>
 
-              <div className="mt-auto flex flex-wrap gap-3">
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 sm:w-auto"
-                  onClick={onRefresh}
-                  type="button"
-                >
-                  {dictionary.member.actions.refreshStatus}
-                </button>
+                <div className="mt-4">
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    onClick={onRefresh}
+                    type="button"
+                  >
+                    {dictionary.member.actions.refreshStatus}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <MetricCard
+                  animateValue
+                  hint={firstLevelLimitHint}
+                  label={dictionary.referralsPage.labels.directReferrals}
+                  locale={locale}
+                  value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
+                />
+                <MetricCard
+                  animateValue
+                  hint={dictionary.referralsPage.depthHint.replace(
+                    "{depth}",
+                    "6",
+                  )}
+                  label={dictionary.referralsPage.labels.totalNetwork}
+                  locale={locale}
+                  value={String(totalReferralCount)}
+                />
               </div>
             </div>
           </div>
