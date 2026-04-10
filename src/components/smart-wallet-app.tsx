@@ -792,37 +792,73 @@ export function SmartWalletApp({
                   {!hasThirdwebClientId ? (
                     <MessageCard>{dictionary.env.description}</MessageCard>
                   ) : status !== "connected" || !accountAddress ? (
-                    <div className="space-y-4">
-                      <div className="grid gap-3">
-                        <InfoRow
-                          label={dictionary.member.labels.requiredDeposit}
-                          valueContent={
-                            <AnimatedNumberText
-                              locale={locale}
-                              value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                            />
-                          }
-                          value={`${MEMBER_SIGNUP_USDT_AMOUNT} USDT`}
-                        />
+                    <div className="grid gap-3 sm:grid-cols-[0.92fr_1.08fr]">
+                      <div className="relative overflow-hidden rounded-[26px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:p-5">
+                        <div className="pointer-events-none absolute -right-8 top-0 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),transparent_68%)] blur-3xl" />
+                        <div className="pointer-events-none absolute -bottom-12 left-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_72%)] blur-3xl" />
+
+                        <div className="relative flex h-full flex-col">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/52">
+                                {dictionary.member.labels.requiredDeposit}
+                              </p>
+                              <p className="mt-2 text-sm leading-6 text-white/62">
+                                {dictionary.hero.badges[1]}
+                              </p>
+                            </div>
+                            <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/76">
+                              BSC
+                            </div>
+                          </div>
+
+                          <div className="mt-7 rounded-[22px] border border-white/10 bg-white/7 px-4 py-4">
+                            <div className="flex items-end justify-end gap-2 text-right">
+                              <span className="text-[3rem] leading-none font-black tracking-[-0.06em] text-white tabular-nums sm:text-[3.3rem]">
+                                {MEMBER_SIGNUP_USDT_AMOUNT}
+                              </span>
+                              <span className="pb-1 text-lg font-semibold tracking-[0.06em] text-white/72 sm:text-xl">
+                                USDT
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <div
-                        className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:scroll-mt-28"
+                        className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:p-5 sm:scroll-mt-28"
                         id="wallet-onboarding"
                       >
-                        <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-                          <p className="text-sm leading-6 text-slate-600">
-                            {dictionary.common.loginDialog.emailDescription}
-                          </p>
+                        <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-emerald-900">
+                                <WalletMinimal className="size-3.5" />
+                                {dictionary.hero.badges[0]}
+                              </div>
+                              <p className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
+                                {dictionary.onboarding.cards[0].title}
+                              </p>
+                            </div>
+                            <div className="rounded-full border border-slate-200 bg-white px-3 py-3 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+                              <ArrowUpRight className="size-4" />
+                            </div>
+                          </div>
+
                           <button
-                            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_22px_45px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
                             onClick={() => {
                               setIsLoginDialogOpen(true);
                             }}
                             type="button"
                           >
+                            <WalletMinimal className="size-4" />
                             {dictionary.common.connectWallet}
                           </button>
+
+                          <p className="mt-4 text-sm leading-6 text-slate-600">
+                            {dictionary.common.loginDialog.emailDescription}
+                          </p>
                         </div>
                       </div>
                     </div>
