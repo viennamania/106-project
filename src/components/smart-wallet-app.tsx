@@ -1416,14 +1416,17 @@ function CompletedHomeDashboard({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.emailKey}
             value={member.email}
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.signupStatus}
             value={dictionary.member.completedValue}
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.completionAt}
             value={
               member.registrationCompletedAt
@@ -1432,6 +1435,7 @@ function CompletedHomeDashboard({
             }
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.paymentReceivedAt}
             value={
               member.paymentReceivedAt
@@ -1440,20 +1444,24 @@ function CompletedHomeDashboard({
             }
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.lastConnectedAt}
             value={formatDateTime(member.lastConnectedAt, locale)}
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.referredByCode}
             value={member.referredByCode ?? dictionary.member.noReferralApplied}
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.placementReferralCode}
             value={
               member.placementReferralCode ?? dictionary.common.notAvailable
             }
           />
           <InfoRow
+            alignValueRight
             label={dictionary.member.labels.requiredDeposit}
             valueContent={
               <AnimatedNumberText
@@ -1549,10 +1557,12 @@ function MetricCard({
 }
 
 function InfoRow({
+  alignValueRight = false,
   label,
   value,
   valueContent,
 }: {
+  alignValueRight?: boolean;
   label: string;
   value: string;
   valueContent?: ReactNode;
@@ -1562,7 +1572,10 @@ function InfoRow({
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 break-words text-sm font-medium text-slate-900 sm:text-base">
+      <p className={cn(
+        "mt-2 break-words text-sm font-medium text-slate-900 sm:text-base",
+        alignValueRight && "text-right tabular-nums",
+      )}>
         {valueContent ?? value}
       </p>
     </div>
