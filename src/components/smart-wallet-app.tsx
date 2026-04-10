@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Check,
   Copy,
+  Mail,
   Sparkles,
   Users,
   WalletMinimal,
@@ -792,8 +793,8 @@ export function SmartWalletApp({
                   {!hasThirdwebClientId ? (
                     <MessageCard>{dictionary.env.description}</MessageCard>
                   ) : status !== "connected" || !accountAddress ? (
-                    <div className="grid gap-3 sm:grid-cols-[0.92fr_1.08fr]">
-                      <div className="relative overflow-hidden rounded-[26px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:p-5">
+                    <div className="grid gap-2.5 sm:grid-cols-[0.92fr_1.08fr] sm:gap-3">
+                      <div className="order-2 relative overflow-hidden rounded-[24px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-3.5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:order-1 sm:rounded-[26px] sm:p-5">
                         <div className="pointer-events-none absolute -right-8 top-0 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),transparent_68%)] blur-3xl" />
                         <div className="pointer-events-none absolute -bottom-12 left-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_72%)] blur-3xl" />
 
@@ -812,12 +813,12 @@ export function SmartWalletApp({
                             </div>
                           </div>
 
-                          <div className="mt-7 rounded-[22px] border border-white/10 bg-white/7 px-4 py-4">
+                          <div className="mt-5 rounded-[20px] border border-white/10 bg-white/7 px-3.5 py-3.5 sm:mt-7 sm:rounded-[22px] sm:px-4 sm:py-4">
                             <div className="flex items-end justify-end gap-2 text-right">
-                              <span className="text-[3rem] leading-none font-black tracking-[-0.06em] text-white tabular-nums sm:text-[3.3rem]">
+                              <span className="text-[2.7rem] leading-none font-black tracking-[-0.06em] text-white tabular-nums sm:text-[3.3rem]">
                                 {MEMBER_SIGNUP_USDT_AMOUNT}
                               </span>
-                              <span className="pb-1 text-lg font-semibold tracking-[0.06em] text-white/72 sm:text-xl">
+                              <span className="pb-1 text-base font-semibold tracking-[0.06em] text-white/72 sm:text-xl">
                                 USDT
                               </span>
                             </div>
@@ -825,41 +826,45 @@ export function SmartWalletApp({
                         </div>
                       </div>
 
-                      <div
-                        className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:p-5 sm:scroll-mt-28"
-                        id="wallet-onboarding"
-                      >
-                        <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:p-5">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-emerald-900">
-                                <WalletMinimal className="size-3.5" />
-                                {dictionary.hero.badges[0]}
+                      <div className="order-1 grid gap-2.5 sm:order-2 sm:gap-3">
+                        <div
+                          className="rounded-[22px] border border-white/70 bg-white/92 p-3.5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:rounded-[24px] sm:p-5 sm:scroll-mt-28"
+                          id="wallet-onboarding"
+                        >
+                          <div className="rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:rounded-[24px] sm:p-5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-emerald-900">
+                                  <WalletMinimal className="size-3.5" />
+                                  {dictionary.hero.badges[0]}
+                                </div>
+                                <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+                                  {dictionary.onboarding.cards[0].title}
+                                </p>
                               </div>
-                              <p className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
-                                {dictionary.onboarding.cards[0].title}
-                              </p>
+                              <div className="rounded-full border border-slate-200 bg-white px-3 py-3 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+                                <ArrowUpRight className="size-4" />
+                              </div>
                             </div>
-                            <div className="rounded-full border border-slate-200 bg-white px-3 py-3 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
-                              <ArrowUpRight className="size-4" />
-                            </div>
+
+                            <button
+                              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_22px_45px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:mt-5 sm:h-12"
+                              onClick={() => {
+                                setIsLoginDialogOpen(true);
+                              }}
+                              type="button"
+                            >
+                              <WalletMinimal className="size-4" />
+                              {dictionary.common.connectWallet}
+                            </button>
+
+                            <p className="mt-3 text-sm leading-6 text-slate-600 sm:mt-4">
+                              {dictionary.common.loginDialog.emailDescription}
+                            </p>
                           </div>
-
-                          <button
-                            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_22px_45px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                            onClick={() => {
-                              setIsLoginDialogOpen(true);
-                            }}
-                            type="button"
-                          >
-                            <WalletMinimal className="size-4" />
-                            {dictionary.common.connectWallet}
-                          </button>
-
-                          <p className="mt-4 text-sm leading-6 text-slate-600">
-                            {dictionary.common.loginDialog.emailDescription}
-                          </p>
                         </div>
+
+                        <OnboardingGuideCard dictionary={dictionary} />
                       </div>
                     </div>
                   ) : (
@@ -1701,6 +1706,89 @@ function MessageCard({
       )}
     >
       {children}
+    </div>
+  );
+}
+
+function OnboardingGuideCard({
+  dictionary,
+}: {
+  dictionary: Dictionary;
+}) {
+  const steps = [
+    {
+      description: dictionary.runway.steps[0].description,
+      icon: Mail,
+      title: dictionary.runway.steps[0].title,
+    },
+    {
+      description: dictionary.runway.steps[1].description,
+      icon: WalletMinimal,
+      title: dictionary.runway.steps[1].title,
+    },
+    {
+      description: dictionary.runway.steps[2].description,
+      icon: Sparkles,
+      title: dictionary.runway.steps[2].title,
+    },
+  ] as const;
+
+  return (
+    <div className="rounded-[22px] border border-slate-200/80 bg-[linear-gradient(180deg,#edf5ff_0%,#ffffff_100%)] p-3.5 shadow-[0_20px_54px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-sky-900/56">
+            {dictionary.signInMix.eyebrow}
+          </p>
+          <p className="mt-1.5 text-base font-semibold tracking-tight text-slate-950 sm:mt-2 sm:text-lg">
+            {dictionary.signInMix.title}
+          </p>
+        </div>
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-sky-700 shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:size-11">
+          <Sparkles className="size-4" />
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
+        {dictionary.signInMix.methods.map((method) => (
+          <div
+            className="rounded-full border border-sky-100 bg-white/85 px-2.5 py-1.5 text-[0.68rem] font-semibold tracking-[0.12em] text-sky-900/72"
+            key={method}
+          >
+            {method}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-2.5">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+
+          return (
+            <div
+              className="rounded-[18px] border border-white/85 bg-white/92 px-3 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)] sm:rounded-[20px]"
+              key={step.title}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-[0.7rem] font-bold text-white shadow-[0_10px_22px_rgba(15,23,42,0.16)] sm:size-8 sm:text-xs">
+                  {index + 1}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-slate-950">
+                    <Icon className="size-4 text-sky-700" />
+                    <p className="text-[0.84rem] font-semibold tracking-tight sm:text-sm">
+                      {step.title}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-[0.8rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
