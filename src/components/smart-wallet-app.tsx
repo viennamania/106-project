@@ -321,7 +321,10 @@ export function SmartWalletApp({
     }
   }
 
-  async function runMemberSync(options?: { background?: boolean }) {
+  async function runMemberSync(options?: {
+    background?: boolean;
+    mode?: "full" | "light";
+  }) {
     if (!accountAddress || syncInFlightRef.current) {
       return;
     }
@@ -365,6 +368,7 @@ export function SmartWalletApp({
           email,
           locale,
           referredByCode: activeIncomingReferralCode,
+          syncMode: options?.mode ?? "full",
           walletAddress: accountAddress,
         }),
         headers: {
@@ -461,7 +465,7 @@ export function SmartWalletApp({
   }
 
   const syncMemberRegistration = useEffectEvent(async () => {
-    await runMemberSync();
+    await runMemberSync({ mode: "light" });
   });
 
   useEffect(() => {

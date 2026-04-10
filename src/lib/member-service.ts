@@ -1384,6 +1384,7 @@ export async function syncMemberRegistration(
   const locale = input.locale?.trim();
   const resolvedLocale = resolveLocale(locale);
   const referredByCode = normalizeReferralCode(input.referredByCode);
+  const syncMode = input.syncMode === "light" ? "light" : "full";
 
   if (!email) {
     throw new Error("email is required.");
@@ -1448,7 +1449,9 @@ export async function syncMemberRegistration(
   const shouldResetPaymentWindow =
     !existingMember ||
     existingMember.lastWalletAddress !== normalizedWalletAddress;
-  const balanceValidationError = shouldResetPaymentWindow
+  const shouldRunInitialBalanceValidation =
+    syncMode === "full" && shouldResetPaymentWindow;
+  const balanceValidationError = shouldRunInitialBalanceValidation
     ? await getSignupWalletBalanceValidationError({
         locale: resolvedLocale,
         walletAddress: normalizedWalletAddress,
@@ -1542,6 +1545,15 @@ export async function syncMemberRegistration(
   );
 
   const member = await getFreshMemberOrThrow(collection, email);
+
+  if (syncMode === "light") {
+    return {
+      justCompleted: false,
+      member: serializeMember(member),
+      validationError: null,
+    };
+  }
+
   const finalized = await maybeCompleteMemberWithStoredPayment({
     collection,
     member,

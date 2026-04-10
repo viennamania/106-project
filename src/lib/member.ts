@@ -48,6 +48,7 @@ export type SyncMemberRequest = {
   chainName: string;
   email: string;
   locale: string;
+  syncMode?: "full" | "light";
   referredByCode?: string | null;
   walletAddress: string;
 };
