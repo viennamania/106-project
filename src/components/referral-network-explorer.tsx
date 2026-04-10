@@ -228,14 +228,16 @@ function ExplorerMetricCard({
   value: string;
 }) {
   return (
-    <div className="flex min-h-[116px] flex-col rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-      <div className="flex items-center gap-2 text-slate-500">
-        {icon}
-        <p className="text-xs uppercase tracking-[0.22em]">{label}</p>
+    <div className="flex min-h-[124px] h-full flex-col rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+      <div className="flex min-h-[2.75rem] items-start gap-2 text-slate-500">
+        <div className="pt-0.5 text-slate-500">{icon}</div>
+        <p className="text-xs leading-5 uppercase tracking-[0.18em]">{label}</p>
       </div>
-      <p className="mt-6 text-right text-2xl font-semibold tracking-tight text-slate-950 tabular-nums">
-        <AnimatedNumberText locale={locale} value={value} />
-      </p>
+      <div className="mt-auto flex items-end justify-end pt-4">
+        <p className="text-right text-2xl font-semibold tracking-tight text-slate-950 tabular-nums">
+          <AnimatedNumberText locale={locale} value={value} />
+        </p>
+      </div>
     </div>
   );
 }
