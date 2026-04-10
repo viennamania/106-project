@@ -23,7 +23,7 @@ export function ReferralRewardsPanel({
   const activeLevels = rewards.pointsByLevel.filter((points) => points > 0).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {showHeader ? (
         <div className="space-y-1">
           <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
@@ -36,7 +36,7 @@ export function ReferralRewardsPanel({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.perSignup}
           locale={locale}
@@ -59,7 +59,7 @@ export function ReferralRewardsPanel({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {rewards.pointsByLevel.map((points, index) => (
           <RewardLevelCard
             key={`level-${index + 1}`}
@@ -108,14 +108,14 @@ function RewardMetricCard({
   return (
     <div
       className={cn(
-        "flex min-h-[116px] flex-col rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+        "flex min-h-[104px] flex-col rounded-[22px] border border-white/80 bg-white/90 p-3.5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-h-[116px] sm:rounded-[24px] sm:p-4",
         className,
       )}
     >
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
-      <p className="mt-6 text-right text-2xl font-semibold tracking-tight text-slate-950 tabular-nums">
+      <p className="mt-5 text-right text-[2.55rem] leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums sm:mt-6 sm:text-[2.35rem]">
         <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
@@ -134,11 +134,11 @@ function RewardLevelCard({
   points: number;
 }) {
   return (
-    <div className="flex min-h-[104px] flex-col rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-4 sm:px-4">
+    <div className="flex min-h-[94px] flex-col rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3.5 sm:min-h-[104px] sm:rounded-[20px] sm:px-4 sm:py-4">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {levelLabel} {level}
       </p>
-      <p className="mt-4 text-right text-lg font-semibold tracking-tight text-slate-950 tabular-nums sm:text-xl">
+      <p className="mt-3.5 text-right text-[1.65rem] leading-none font-bold tracking-[-0.04em] text-slate-950 tabular-nums sm:mt-4 sm:text-xl">
         <AnimatedNumberText locale={locale} value={`${points} P`} />
       </p>
     </div>
