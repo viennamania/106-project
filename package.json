@@ -9,6 +9,7 @@
     "lint": "eslint",
     "referral-placement:migrate": "node scripts/migrate-referral-placement-model.mjs",
     "referral-placement:repair-cycle": "node scripts/repair-referral-placement-cycle.mjs",
+    "referral-placement:reassign": "node scripts/reassign-referral-placement.mjs",
     "referral-rewards:reconcile": "node scripts/reconcile-referral-rewards.mjs",
     "referral-rewards:update-points": "node scripts/update-referral-reward-points.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
