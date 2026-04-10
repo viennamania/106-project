@@ -1071,13 +1071,15 @@ export function SmartWalletApp({
                           dictionary.member.noReferralApplied
                         }
                       />
-                      <InfoRow
-                        label={dictionary.member.labels.placementReferralCode}
-                        value={
-                          memberSync.member.placementReferralCode ??
-                          dictionary.common.notAvailable
-                        }
-                      />
+                      {shouldShowPlacementReferralCode(memberSync.member) ? (
+                        <InfoRow
+                          label={dictionary.member.labels.placementReferralCode}
+                          value={
+                            memberSync.member.placementReferralCode ??
+                            dictionary.common.notAvailable
+                          }
+                        />
+                      ) : null}
                     </div>
 
                     <div className="grid gap-3 sm:flex sm:flex-wrap">
@@ -1469,13 +1471,15 @@ function CompletedHomeDashboard({
             label={dictionary.member.labels.referredByCode}
             value={member.referredByCode ?? dictionary.member.noReferralApplied}
           />
-          <InfoRow
-            alignValueRight
-            label={dictionary.member.labels.placementReferralCode}
-            value={
-              member.placementReferralCode ?? dictionary.common.notAvailable
-            }
-          />
+          {shouldShowPlacementReferralCode(member) ? (
+            <InfoRow
+              alignValueRight
+              label={dictionary.member.labels.placementReferralCode}
+              value={
+                member.placementReferralCode ?? dictionary.common.notAvailable
+              }
+            />
+          ) : null}
           <InfoRow
             alignValueRight
             label={dictionary.member.labels.requiredDeposit}
@@ -1596,6 +1600,16 @@ function InfoRow({
       </p>
     </div>
   );
+}
+
+function shouldShowPlacementReferralCode(
+  member: Pick<MemberRecord, "placementReferralCode" | "referredByCode">,
+) {
+  if (!member.placementReferralCode) {
+    return false;
+  }
+
+  return member.placementReferralCode !== member.referredByCode;
 }
 
 function CompactMetaCard({
