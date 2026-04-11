@@ -97,11 +97,45 @@ type RecipientSearchState = {
 };
 
 const HISTORY_LIMIT = 24;
+const HISTORY_FETCH_TIMEOUT_MS = 10_000;
+const MEMBER_FETCH_TIMEOUT_MS = 10_000;
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
   client: thirdwebClient,
 });
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number,
+) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function getLoadErrorMessage(error: unknown, fallbackMessage: string) {
+  if (
+    error instanceof Error &&
+    (error.name === "AbortError" ||
+      error.message.toLowerCase().includes("timed out"))
+  ) {
+    return fallbackMessage;
+  }
+
+  return error instanceof Error ? error.message : fallbackMessage;
+}
 
 export function WalletPage({
   dictionary,
@@ -197,8 +231,10 @@ export function WalletPage({
       try {
         const historyTask = (async () => {
           try {
-            const historyResponse = await fetch(
+            const historyResponse = await fetchWithTimeout(
               `/api/wallet/usdt-history?walletAddress=${encodeURIComponent(accountAddress)}&limit=${HISTORY_LIMIT}`,
+              {},
+              HISTORY_FETCH_TIMEOUT_MS,
             );
             const historyData = (await historyResponse.json()) as
               | WalletTransferHistoryResponse
@@ -222,10 +258,10 @@ export function WalletPage({
               historyUpdatedAt: new Date().toISOString(),
             }));
           } catch (error) {
-            const message =
-              error instanceof Error
-                ? error.message
-                : dictionary.walletPage.errors.loadFailed;
+            const message = getLoadErrorMessage(
+              error,
+              dictionary.walletPage.errors.loadFailed,
+            );
 
             setDashboardIfCurrent((current) => {
               if (current.historyUpdatedAt || current.history.length > 0) {
@@ -260,20 +296,24 @@ export function WalletPage({
               email,
             }));
 
-            const syncResponse = await fetch("/api/members", {
-              body: JSON.stringify({
-                chainId: chain.id,
-                chainName: chain.name ?? "BSC",
-                email,
-                locale,
-                syncMode: "light",
-                walletAddress: accountAddress,
-              }),
-              headers: {
-                "Content-Type": "application/json",
+            const syncResponse = await fetchWithTimeout(
+              "/api/members",
+              {
+                body: JSON.stringify({
+                  chainId: chain.id,
+                  chainName: chain.name ?? "BSC",
+                  email,
+                  locale,
+                  syncMode: "light",
+                  walletAddress: accountAddress,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
               },
-              method: "POST",
-            });
+              MEMBER_FETCH_TIMEOUT_MS,
+            );
             const syncData = (await syncResponse.json()) as
               | SyncMemberResponse
               | { error?: string };
@@ -299,10 +339,10 @@ export function WalletPage({
               memberUpdatedAt: new Date().toISOString(),
             }));
           } catch (error) {
-            const message =
-              error instanceof Error
-                ? error.message
-                : dictionary.walletPage.errors.loadFailed;
+            const message = getLoadErrorMessage(
+              error,
+              dictionary.walletPage.errors.loadFailed,
+            );
 
             setDashboardIfCurrent((current) => {
               if (current.memberUpdatedAt || current.member || current.email) {

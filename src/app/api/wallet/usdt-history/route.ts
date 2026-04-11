@@ -38,7 +38,8 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to read wallet history.";
+    const status = message.toLowerCase().includes("timed out") ? 504 : 500;
 
-    return jsonError(message, 500);
+    return jsonError(message, status);
   }
 }

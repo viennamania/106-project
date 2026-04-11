@@ -30,6 +30,8 @@ const WALLET_HISTORY_INITIAL_LOG_CHUNK = BigInt(15_000);
 const WALLET_HISTORY_MIN_LOG_CHUNK = BigInt(250);
 const WALLET_HISTORY_MAX_LOOKBACK = BigInt(2_000_000);
 const WALLET_HISTORY_CACHE_TTL_MS = 1_500;
+const WALLET_HISTORY_INSIGHT_TIMEOUT_MS = 4_000;
+const WALLET_HISTORY_RPC_TIMEOUT_MS = 8_000;
 
 type WalletTransferLog = {
   blockNumber: bigint;
@@ -64,6 +66,25 @@ const walletTransferHistoryInFlight = new Map<
   string,
   Promise<WalletTransferRecord[]>
 >();
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
 
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -671,14 +692,22 @@ export async function getWalletTransferHistory({
 
   const historyPromise = (async () => {
     try {
-      const transfers = await getWalletTransferHistoryFromInsight({
-        historyLimit,
-        normalizedWalletAddress,
-      }).catch(() =>
-        getWalletTransferHistoryFromRpc({
+      const transfers = await withTimeout(
+        getWalletTransferHistoryFromInsight({
           historyLimit,
           normalizedWalletAddress,
         }),
+        WALLET_HISTORY_INSIGHT_TIMEOUT_MS,
+        "Wallet history insight request timed out.",
+      ).catch(() =>
+        withTimeout(
+          getWalletTransferHistoryFromRpc({
+            historyLimit,
+            normalizedWalletAddress,
+          }),
+          WALLET_HISTORY_RPC_TIMEOUT_MS,
+          "Wallet history RPC request timed out.",
+        ),
       );
 
       rememberWalletTransferHistory(cacheKey, transfers);
