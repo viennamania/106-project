@@ -241,6 +241,59 @@ export type Dictionary = {
       loadFailed: string;
     };
   };
+  walletPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    disconnected: string;
+    loading: string;
+    emptyHistory: string;
+    searchEmpty: string;
+    receiveNote: string;
+    sendNote: string;
+    historyDescription: string;
+    labels: {
+      availableBalance: string;
+      memberAccount: string;
+      walletAddress: string;
+      network: string;
+      asset: string;
+      memberStatus: string;
+      referralCode: string;
+      updatedAt: string;
+      receive: string;
+      send: string;
+      history: string;
+      recipient: string;
+      amount: string;
+      inbound: string;
+      outbound: string;
+    };
+    actions: {
+      refresh: string;
+      openExplorer: string;
+      showQr: string;
+      send: string;
+    };
+    placeholders: {
+      searchMember: string;
+      amount: string;
+    };
+    errors: {
+      loadFailed: string;
+      missingEmail: string;
+      invalidAmount: string;
+      insufficientBalance: string;
+      selectRecipient: string;
+      selfTransfer: string;
+      searchFailed: string;
+    };
+    notices: {
+      txSent: string;
+      txConfirmed: string;
+      qrUnavailable: string;
+    };
+  };
   signInMix: {
     title: string;
     eyebrow: string;
@@ -543,6 +596,65 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "레퍼럴 데이터를 불러오지 못했습니다.",
       },
     },
+    walletPage: {
+      title: "테더 관리",
+      eyebrow: "wallet service",
+      description:
+        "내 스마트 월렛의 BSC USDT 잔고를 확인하고, 입금 주소를 공유하고, 회원에게 USDT를 전송하고, 입출금 내역을 최신순으로 확인합니다.",
+      disconnected: "이메일 로그인 후 지갑 서비스를 이용할 수 있습니다.",
+      loading: "지갑 데이터를 불러오는 중입니다.",
+      emptyHistory: "아직 표시할 USDT 입출금 내역이 없습니다.",
+      searchEmpty: "검색된 회원이 없습니다.",
+      receiveNote:
+        "BSC(BEP20) USDT만 이 주소로 입금하세요. 다른 네트워크 자산은 복구되지 않을 수 있습니다.",
+      sendNote:
+        "받을 회원을 검색한 뒤 BSC USDT를 바로 전송할 수 있습니다.",
+      historyDescription:
+        "내 지갑의 BSC USDT 입출금 내역을 최신순으로 표시합니다.",
+      labels: {
+        availableBalance: "사용 가능 잔고",
+        memberAccount: "연결된 회원",
+        walletAddress: "지갑 주소",
+        network: "네트워크",
+        asset: "자산",
+        memberStatus: "회원 상태",
+        referralCode: "레퍼럴 코드",
+        updatedAt: "최근 갱신",
+        receive: "받기",
+        send: "보내기",
+        history: "입출금 내역",
+        recipient: "받는 회원",
+        amount: "보낼 금액",
+        inbound: "입금",
+        outbound: "출금",
+      },
+      actions: {
+        refresh: "새로고침",
+        openExplorer: "BscScan 보기",
+        showQr: "QR 보기",
+        send: "USDT 보내기",
+      },
+      placeholders: {
+        searchMember: "이메일, 레퍼럴 코드, 지갑 주소로 회원 검색",
+        amount: "0.0",
+      },
+      errors: {
+        loadFailed: "지갑 데이터를 불러오지 못했습니다.",
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        invalidAmount: "보낼 금액을 올바르게 입력하세요.",
+        insufficientBalance: "USDT 잔고가 부족합니다.",
+        selectRecipient: "받을 회원을 먼저 선택하세요.",
+        selfTransfer: "자기 지갑으로는 전송할 수 없습니다.",
+        searchFailed: "회원 검색에 실패했습니다.",
+      },
+      notices: {
+        txSent:
+          "전송이 제출되었습니다. 블록 반영 후 내역이 자동으로 갱신됩니다.",
+        txConfirmed:
+          "전송이 확인되었습니다. 잔고와 내역을 다시 불러오는 중입니다.",
+        qrUnavailable: "QR 코드를 생성하지 못했습니다.",
+      },
+    },
     signInMix: {
       title: "가입 경로",
       eyebrow: "signup checklist",
@@ -841,6 +953,66 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
         loadFailed: "Failed to load referral data.",
+      },
+    },
+    walletPage: {
+      title: "USDT Wallet",
+      eyebrow: "wallet service",
+      description:
+        "Check your BSC USDT balance, share your receive address, send USDT to members, and review the latest transfer history in one compact screen.",
+      disconnected: "Sign in with email to use the wallet service.",
+      loading: "Loading wallet data.",
+      emptyHistory: "There are no USDT transfers to show yet.",
+      searchEmpty: "No matching members were found.",
+      receiveNote:
+        "Only send BSC (BEP20) USDT to this address. Assets from other networks may not be recoverable.",
+      sendNote:
+        "Search for a member recipient, then send BSC USDT directly from this wallet.",
+      historyDescription:
+        "Recent inbound and outbound BSC USDT transfers for your wallet are shown newest first.",
+      labels: {
+        availableBalance: "Available balance",
+        memberAccount: "Connected member",
+        walletAddress: "Wallet address",
+        network: "Network",
+        asset: "Asset",
+        memberStatus: "Member status",
+        referralCode: "Referral code",
+        updatedAt: "Last updated",
+        receive: "Receive",
+        send: "Send",
+        history: "Transfer history",
+        recipient: "Recipient member",
+        amount: "Amount",
+        inbound: "Inbound",
+        outbound: "Outbound",
+      },
+      actions: {
+        refresh: "Refresh",
+        openExplorer: "Open in BscScan",
+        showQr: "Show QR",
+        send: "Send USDT",
+      },
+      placeholders: {
+        searchMember: "Search by email, referral code, or wallet address",
+        amount: "0.0",
+      },
+      errors: {
+        loadFailed: "Failed to load wallet data.",
+        missingEmail:
+          "Unable to read the email address from the current wallet session.",
+        invalidAmount: "Enter a valid amount to send.",
+        insufficientBalance: "Your USDT balance is too low.",
+        selectRecipient: "Select a recipient member first.",
+        selfTransfer: "You cannot send to your own wallet.",
+        searchFailed: "Failed to search members.",
+      },
+      notices: {
+        txSent:
+          "The transfer was submitted. History will refresh automatically after it lands onchain.",
+        txConfirmed:
+          "The transfer was confirmed. Reloading balance and history now.",
+        qrUnavailable: "Unable to generate a QR code right now.",
       },
     },
     signInMix: {
@@ -1144,6 +1316,67 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "レファラルデータの読み込みに失敗しました。",
       },
     },
+    walletPage: {
+      title: "USDT ウォレット",
+      eyebrow: "wallet service",
+      description:
+        "自分の BSC USDT 残高、受取アドレス共有、会員宛の送金、最新の入出金履歴を 1 画面で確認します。",
+      disconnected:
+        "ウォレットサービスを利用するにはメールログインしてください。",
+      loading: "ウォレットデータを読み込んでいます。",
+      emptyHistory: "表示できる USDT の入出金履歴はまだありません。",
+      searchEmpty: "一致する会員が見つかりませんでした。",
+      receiveNote:
+        "このアドレスには BSC(BEP20) USDT のみを送ってください。他ネットワークの資産は復旧できない場合があります。",
+      sendNote:
+        "送金先の会員を検索して、このウォレットから BSC USDT を送れます。",
+      historyDescription:
+        "ウォレットの BSC USDT 入出金履歴を新しい順に表示します。",
+      labels: {
+        availableBalance: "利用可能残高",
+        memberAccount: "接続中の会員",
+        walletAddress: "ウォレットアドレス",
+        network: "ネットワーク",
+        asset: "資産",
+        memberStatus: "会員状態",
+        referralCode: "レファラルコード",
+        updatedAt: "最終更新",
+        receive: "受け取る",
+        send: "送る",
+        history: "入出金履歴",
+        recipient: "送金先会員",
+        amount: "送金額",
+        inbound: "入金",
+        outbound: "出金",
+      },
+      actions: {
+        refresh: "更新",
+        openExplorer: "BscScan で見る",
+        showQr: "QR を表示",
+        send: "USDT を送る",
+      },
+      placeholders: {
+        searchMember: "メール、紹介コード、ウォレットで会員検索",
+        amount: "0.0",
+      },
+      errors: {
+        loadFailed: "ウォレットデータを読み込めませんでした。",
+        missingEmail:
+          "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        invalidAmount: "正しい送金額を入力してください。",
+        insufficientBalance: "USDT 残高が不足しています。",
+        selectRecipient: "先に送金先会員を選択してください。",
+        selfTransfer: "自分のウォレットには送金できません。",
+        searchFailed: "会員検索に失敗しました。",
+      },
+      notices: {
+        txSent:
+          "送金が送信されました。オンチェーン反映後に履歴が自動更新されます。",
+        txConfirmed:
+          "送金が確認されました。残高と履歴を再読み込みしています。",
+        qrUnavailable: "現在 QR コードを生成できません。",
+      },
+    },
     signInMix: {
       title: "登録フロー",
       eyebrow: "signup checklist",
@@ -1442,6 +1675,63 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
         loadFailed: "加载推荐数据失败。",
+      },
+    },
+    walletPage: {
+      title: "USDT 钱包",
+      eyebrow: "wallet service",
+      description:
+        "在一个紧凑页面中查看你的 BSC USDT 余额、分享收款地址、向会员转账，并按最新顺序查看收支记录。",
+      disconnected: "请先通过邮箱登录后再使用钱包服务。",
+      loading: "正在加载钱包数据。",
+      emptyHistory: "暂无可显示的 USDT 收支记录。",
+      searchEmpty: "没有找到匹配的会员。",
+      receiveNote:
+        "此地址仅支持接收 BSC(BEP20) USDT。其他网络资产可能无法找回。",
+      sendNote:
+        "搜索收款会员后，可直接从当前钱包发送 BSC USDT。",
+      historyDescription:
+        "按最新顺序显示你的钱包 BSC USDT 收入与支出记录。",
+      labels: {
+        availableBalance: "可用余额",
+        memberAccount: "当前会员",
+        walletAddress: "钱包地址",
+        network: "网络",
+        asset: "资产",
+        memberStatus: "会员状态",
+        referralCode: "推荐码",
+        updatedAt: "最近更新",
+        receive: "收款",
+        send: "转账",
+        history: "收支记录",
+        recipient: "收款会员",
+        amount: "金额",
+        inbound: "收入",
+        outbound: "支出",
+      },
+      actions: {
+        refresh: "刷新",
+        openExplorer: "在 BscScan 打开",
+        showQr: "查看二维码",
+        send: "发送 USDT",
+      },
+      placeholders: {
+        searchMember: "通过邮箱、推荐码或钱包地址搜索会员",
+        amount: "0.0",
+      },
+      errors: {
+        loadFailed: "无法加载钱包数据。",
+        missingEmail: "无法从当前钱包会话读取邮箱地址。",
+        invalidAmount: "请输入正确的转账金额。",
+        insufficientBalance: "USDT 余额不足。",
+        selectRecipient: "请先选择收款会员。",
+        selfTransfer: "不能转给自己的钱包。",
+        searchFailed: "会员搜索失败。",
+      },
+      notices: {
+        txSent: "转账已提交。链上确认后，记录会自动刷新。",
+        txConfirmed: "转账已确认。正在重新加载余额和记录。",
+        qrUnavailable: "暂时无法生成二维码。",
       },
     },
     signInMix: {
