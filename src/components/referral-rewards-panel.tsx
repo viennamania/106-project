@@ -22,7 +22,6 @@ export function ReferralRewardsPanel({
   showHeader?: boolean;
 }) {
   const activeLevels = rewards.pointsByLevel.filter((points) => points > 0).length;
-  const rewardPerSignupValue = `G1 ${REFERRAL_REWARD_POINTS_LEVEL_ONE} P / G2-G6 ${REFERRAL_REWARD_POINTS_OTHER_LEVELS} P`;
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -39,11 +38,11 @@ export function ReferralRewardsPanel({
       ) : null}
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-        <RewardMetricCard
+        <RewardRuleCard
           label={dictionary.referralsPage.rewards.perSignup}
+          levelOnePoints={REFERRAL_REWARD_POINTS_LEVEL_ONE}
+          downstreamPoints={REFERRAL_REWARD_POINTS_OTHER_LEVELS}
           locale={locale}
-          value={rewardPerSignupValue}
-          valueClassName="text-[1.2rem] tracking-[-0.03em] sm:text-[1.4rem]"
         />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalPoints}
@@ -97,6 +96,38 @@ export function ReferralRewardsPanel({
   );
 }
 
+function RewardRuleCard({
+  downstreamPoints,
+  label,
+  levelOnePoints,
+  locale,
+}: {
+  downstreamPoints: number;
+  label: string;
+  levelOnePoints: number;
+  locale: Locale;
+}) {
+  return (
+    <div className="flex min-h-[104px] flex-col rounded-[22px] border border-white/80 bg-white/90 p-3.5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-h-[116px] sm:rounded-[24px] sm:p-4">
+      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+        {label}
+      </p>
+      <div className="mt-4 space-y-2.5 sm:mt-5">
+        <RewardRuleRow
+          level="G1"
+          locale={locale}
+          points={levelOnePoints}
+        />
+        <RewardRuleRow
+          level="G2-G6"
+          locale={locale}
+          points={downstreamPoints}
+        />
+      </div>
+    </div>
+  );
+}
+
 function RewardMetricCard({
   className,
   label,
@@ -128,6 +159,27 @@ function RewardMetricCard({
       >
         <AnimatedNumberText locale={locale} value={value} />
       </p>
+    </div>
+  );
+}
+
+function RewardRuleRow({
+  level,
+  locale,
+  points,
+}: {
+  level: string;
+  locale: Locale;
+  points: number;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-[16px] border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <span className="text-sm font-semibold tracking-[-0.02em] text-slate-600">
+        {level}
+      </span>
+      <span className="text-lg leading-none font-black tracking-[-0.04em] text-slate-950 tabular-nums sm:text-xl">
+        <AnimatedNumberText locale={locale} value={`${points} P`} />
+      </span>
     </div>
   );
 }
