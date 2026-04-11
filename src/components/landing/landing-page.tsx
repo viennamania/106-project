@@ -35,6 +35,8 @@ export function LandingPage({
   languageLabel,
   locale,
   projectWallet,
+  walletHref,
+  walletLabel,
 }: {
   copy: LandingCopy;
   disclaimerHref: string;
@@ -42,6 +44,8 @@ export function LandingPage({
   languageLabel: string;
   locale: Locale;
   projectWallet: string | null;
+  walletHref: string;
+  walletLabel: string;
 }) {
   const koreanHeroTitleHasBrand =
     locale === "ko" && copy.hero.title.endsWith(" 1066friend+");
@@ -80,8 +84,15 @@ export function LandingPage({
               >
                 {disclaimerLabel}
               </Link>
+              <Link
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                href={walletHref}
+              >
+                <WalletMinimal className="size-4" />
+                {walletLabel}
+              </Link>
               <ReferralAwareCta
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                 locale={locale}
               >
                 {copy.cta.primary}

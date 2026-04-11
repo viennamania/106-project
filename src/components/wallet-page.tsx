@@ -755,13 +755,15 @@ export function WalletPage({
                         {dictionary.walletPage.actions.showQr}
                       </button>
                       <a
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white px-4 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/18 bg-slate-50 px-4 text-sm font-medium !text-slate-950 shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition hover:bg-white"
                         href={connectedAccountUrl}
                         rel="noreferrer"
                         target="_blank"
                       >
-                        {dictionary.walletPage.actions.openExplorer}
-                        <ArrowUpRight className="size-4" />
+                        <span className="whitespace-nowrap !text-slate-950">
+                          {dictionary.walletPage.actions.openExplorer}
+                        </span>
+                        <ArrowUpRight className="size-4 !text-slate-950" />
                       </a>
                     </div>
 
