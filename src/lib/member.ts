@@ -3,7 +3,8 @@ export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
 export const REFERRAL_SIGNUP_LIMIT = 6;
 export const REFERRAL_TREE_DEPTH_LIMIT = 6;
-export const REFERRAL_REWARD_POINTS = 200;
+export const REFERRAL_REWARD_POINTS_LEVEL_ONE = 200;
+export const REFERRAL_REWARD_POINTS_OTHER_LEVELS = 80;
 export const REFERRAL_REWARD_HISTORY_LIMIT = 24;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
@@ -176,6 +177,12 @@ export function normalizeEmail(email: string) {
 export function normalizeReferralCode(referralCode?: string | null) {
   const normalized = referralCode?.trim().toUpperCase() ?? "";
   return normalized ? normalized : null;
+}
+
+export function getReferralRewardPoints(level: number) {
+  return level <= 1
+    ? REFERRAL_REWARD_POINTS_LEVEL_ONE
+    : REFERRAL_REWARD_POINTS_OTHER_LEVELS;
 }
 
 export function serializeMember(member: MemberDocument): MemberRecord {

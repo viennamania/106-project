@@ -527,7 +527,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "보상 포인트",
         description:
-          "하위 회원 1명 가입 완료당 상위 6단계까지 각 200포인트씩 적립됩니다.",
+          "하위 회원 1명 가입 완료당 상위 G1은 200포인트, G2부터 G6까지는 각 80포인트씩 적립됩니다.",
         empty: "아직 적립된 보상 내역이 없습니다.",
         recentTitle: "최근 지급 내역",
         perSignup: "가입당 보상",
@@ -827,7 +827,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "Reward points",
         description:
-          "Each completed downline signup awards 200 points to every eligible upline member across 6 levels.",
+          "Each completed downline signup awards 200 points to the first eligible upline level and 80 points to each eligible upline member across levels 2 through 6.",
         empty: "No reward entries have been issued yet.",
         recentTitle: "Recent rewards",
         perSignup: "Reward per signup",
@@ -1128,7 +1128,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "報酬ポイント",
         description:
-          "下位メンバー 1 人の登録完了ごとに、上位 6 段階まで各 200 ポイントずつ積み上がります。",
+          "下位メンバー 1 人の登録完了ごとに、上位 G1 には 200 ポイント、G2 から G6 までは各 80 ポイントずつ積み上がります。",
         empty: "まだ付与された報酬履歴はありません。",
         recentTitle: "最近の付与履歴",
         perSignup: "1件あたり報酬",
@@ -1428,7 +1428,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "奖励积分",
         description:
-          "每完成 1 名下级会员注册，上方 6 个层级内的每位有效推荐人都会各获得 200 积分。",
+          "每完成 1 名下级会员注册，G1 上级可获得 200 积分，G2 到 G6 各层有效上级各获得 80 积分。",
         empty: "目前还没有已发放的奖励记录。",
         recentTitle: "最近发放记录",
         perSignup: "每次注册奖励",
@@ -1741,7 +1741,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       rewards: {
         title: "Điểm thưởng",
         description:
-          "Mỗi khi 1 thành viên tuyến dưới hoàn tất đăng ký, tối đa 6 tầng phía trên sẽ nhận 200 điểm cho mỗi tầng hợp lệ.",
+          "Mỗi khi 1 thành viên tuyến dưới hoàn tất đăng ký, tầng G1 phía trên nhận 200 điểm, còn mỗi tầng hợp lệ từ G2 đến G6 nhận 80 điểm.",
         empty: "Hiện chưa có lịch sử thưởng nào được ghi nhận.",
         recentTitle: "Lịch sử chi trả gần đây",
         perSignup: "Thưởng mỗi lượt đăng ký",
@@ -2062,7 +2062,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       rewards: {
         title: "Poin hadiah",
         description:
-          "Setiap kali 1 anggota bawah menyelesaikan pendaftaran, hingga 6 level di atas akan menerima 200 poin untuk tiap level yang valid.",
+          "Setiap 1 anggota bawah menyelesaikan pendaftaran, upline G1 menerima 200 poin, sedangkan tiap level upline yang valid dari G2 hingga G6 menerima 80 poin.",
         empty: "Belum ada riwayat hadiah yang tercatat.",
         recentTitle: "Riwayat pembayaran terbaru",
         perSignup: "Hadiah per pendaftaran",

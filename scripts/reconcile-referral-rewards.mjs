@@ -4,7 +4,8 @@ import { loadLocalEnv } from "./lib/load-local-env.mjs";
 
 loadLocalEnv();
 
-const REFERRAL_REWARD_POINTS = 200;
+const REFERRAL_REWARD_POINTS_LEVEL_ONE = 200;
+const REFERRAL_REWARD_POINTS_OTHER_LEVELS = 80;
 const REFERRAL_TREE_DEPTH_LIMIT = 6;
 
 const writeChanges = ["1", "true", "yes"].includes(
@@ -50,6 +51,12 @@ function parseEmailList(value) {
       .filter(Boolean)
       .map(normalizeEmail),
   );
+}
+
+function getReferralRewardPoints(level) {
+  return level <= 1
+    ? REFERRAL_REWARD_POINTS_LEVEL_ONE
+    : REFERRAL_REWARD_POINTS_OTHER_LEVELS;
 }
 
 function rewardKey({ recipientEmail, sourceMemberEmail }) {
@@ -145,7 +152,7 @@ function buildExpectedRewards(members) {
           {
             awardedAt,
             level,
-            points: REFERRAL_REWARD_POINTS,
+            points: getReferralRewardPoints(level),
             recipientEmail: recipientMember.email,
             recipientReferralCode: normalizeReferralCode(
               recipientMember.referralCode,

@@ -2,7 +2,8 @@
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import {
-  REFERRAL_REWARD_POINTS,
+  REFERRAL_REWARD_POINTS_LEVEL_ONE,
+  REFERRAL_REWARD_POINTS_OTHER_LEVELS,
   ReferralRewardRecord,
   ReferralRewardsSummaryRecord,
 } from "@/lib/member";
@@ -21,6 +22,7 @@ export function ReferralRewardsPanel({
   showHeader?: boolean;
 }) {
   const activeLevels = rewards.pointsByLevel.filter((points) => points > 0).length;
+  const rewardPerSignupValue = `G1 ${REFERRAL_REWARD_POINTS_LEVEL_ONE} P / G2-G6 ${REFERRAL_REWARD_POINTS_OTHER_LEVELS} P`;
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -40,7 +42,8 @@ export function ReferralRewardsPanel({
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.perSignup}
           locale={locale}
-          value={`${REFERRAL_REWARD_POINTS} P`}
+          value={rewardPerSignupValue}
+          valueClassName="text-[1.2rem] tracking-[-0.03em] sm:text-[1.4rem]"
         />
         <RewardMetricCard
           label={dictionary.referralsPage.rewards.totalPoints}
@@ -99,11 +102,13 @@ function RewardMetricCard({
   label,
   locale,
   value,
+  valueClassName,
 }: {
   className?: string;
   label: string;
   locale: Locale;
   value: string;
+  valueClassName?: string;
 }) {
   return (
     <div
@@ -115,7 +120,12 @@ function RewardMetricCard({
       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
         {label}
       </p>
-      <p className="mt-5 text-right text-[2.55rem] leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums sm:mt-6 sm:text-[2.35rem]">
+      <p
+        className={cn(
+          "mt-5 text-right text-[2.55rem] leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums sm:mt-6 sm:text-[2.35rem]",
+          valueClassName,
+        )}
+      >
         <AnimatedNumberText locale={locale} value={value} />
       </p>
     </div>
