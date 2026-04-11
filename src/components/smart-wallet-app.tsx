@@ -980,7 +980,7 @@ export function SmartWalletApp({
                           </p>
                         </div>
 
-                        <div className="mt-5">
+                        <div className="mt-5 hidden lg:block">
                           <p className="mb-3 text-xs uppercase tracking-[0.24em] text-white/45">
                             {dictionary.sponsored.eyebrow}
                           </p>
