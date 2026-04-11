@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 import {
   ArrowDownLeft,
@@ -75,13 +76,18 @@ type WalletNotice = {
   tone: WalletNoticeTone;
 };
 
+type WalletLoadStatus = "idle" | "loading" | "ready" | "error";
+
 type WalletDashboardState = {
   email: string | null;
-  error: string | null;
   history: WalletTransferRecord[];
-  lastUpdatedAt: string | null;
+  historyError: string | null;
+  historyStatus: WalletLoadStatus;
+  historyUpdatedAt: string | null;
   member: MemberRecord | null;
-  status: "idle" | "loading" | "ready" | "error";
+  memberError: string | null;
+  memberStatus: WalletLoadStatus;
+  memberUpdatedAt: string | null;
 };
 
 type RecipientSearchState = {
@@ -125,11 +131,14 @@ export function WalletPage({
   );
   const [dashboard, setDashboard] = useState<WalletDashboardState>({
     email: null,
-    error: null,
     history: [],
-    lastUpdatedAt: null,
+    historyError: null,
+    historyStatus: "idle",
+    historyUpdatedAt: null,
     member: null,
-    status: "idle",
+    memberError: null,
+    memberStatus: "idle",
+    memberUpdatedAt: null,
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [searchState, setSearchState] = useState<RecipientSearchState>({
@@ -147,6 +156,7 @@ export function WalletPage({
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const syncInFlightRef = useRef(false);
+  const syncVersionRef = useRef(0);
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -159,107 +169,169 @@ export function WalletPage({
       }
 
       syncInFlightRef.current = true;
+      const syncVersion = syncVersionRef.current + 1;
+      syncVersionRef.current = syncVersion;
+
+      const setDashboardIfCurrent = (
+        updater: SetStateAction<WalletDashboardState>,
+      ) => {
+        if (syncVersionRef.current !== syncVersion) {
+          return;
+        }
+
+        setDashboard(updater);
+      };
 
       if (background) {
         setIsRefreshing(true);
       } else {
         setDashboard((current) => ({
           ...current,
-          error: null,
-          status: "loading",
+          historyError: null,
+          historyStatus: "loading",
+          memberError: null,
+          memberStatus: "loading",
         }));
       }
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const historyTask = (async () => {
+          try {
+            const historyResponse = await fetch(
+              `/api/wallet/usdt-history?walletAddress=${encodeURIComponent(accountAddress)}&limit=${HISTORY_LIMIT}`,
+            );
+            const historyData = (await historyResponse.json()) as
+              | WalletTransferHistoryResponse
+              | { error?: string };
 
-        if (!email) {
-          throw new Error(dictionary.walletPage.errors.missingEmail);
-        }
+            if (!historyResponse.ok || !("transfers" in historyData)) {
+              throw new Error(
+                historyResponse.status === 400
+                  ? dictionary.walletPage.errors.loadFailed
+                  : "error" in historyData && historyData.error
+                    ? historyData.error
+                    : dictionary.walletPage.errors.loadFailed,
+              );
+            }
 
-        const [syncResponse, historyResponse] = await Promise.all([
-          fetch("/api/members", {
-            body: JSON.stringify({
-              chainId: chain.id,
-              chainName: chain.name ?? "BSC",
-              email,
-              locale,
-              syncMode: "light",
-              walletAddress: accountAddress,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-          }),
-          fetch(
-            `/api/wallet/usdt-history?walletAddress=${encodeURIComponent(accountAddress)}&limit=${HISTORY_LIMIT}`,
-          ),
-        ]);
-        const syncData = (await syncResponse.json()) as
-          | SyncMemberResponse
-          | { error?: string };
-        const historyData = (await historyResponse.json()) as
-          | WalletTransferHistoryResponse
-          | { error?: string };
-
-        if (!syncResponse.ok) {
-          throw new Error(
-            "error" in syncData && syncData.error
-              ? syncData.error
-              : dictionary.walletPage.errors.loadFailed,
-          );
-        }
-
-        if ("validationError" in syncData && syncData.validationError) {
-          throw new Error(syncData.validationError);
-        }
-
-        if (!historyResponse.ok || !("transfers" in historyData)) {
-          throw new Error(
-            historyResponse.status === 400
-              ? dictionary.walletPage.errors.loadFailed
-              : "error" in historyData && historyData.error
-                ? historyData.error
-                : dictionary.walletPage.errors.loadFailed,
-          );
-        }
-
-        setDashboard({
-          email,
-          error: null,
-          history: historyData.transfers,
-          lastUpdatedAt: new Date().toISOString(),
-          member: "member" in syncData ? syncData.member : null,
-          status: "ready",
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : dictionary.walletPage.errors.loadFailed;
-
-        setDashboard((current) => {
-          if (current.lastUpdatedAt) {
-            return {
+            setDashboardIfCurrent((current) => ({
               ...current,
-              error: message,
-              status: "ready",
-            };
-          }
+              history: historyData.transfers,
+              historyError: null,
+              historyStatus: "ready",
+              historyUpdatedAt: new Date().toISOString(),
+            }));
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : dictionary.walletPage.errors.loadFailed;
 
-          return {
-            email: null,
-            error: message,
-            history: [],
-            lastUpdatedAt: null,
-            member: null,
-            status: "error",
-          };
-        });
+            setDashboardIfCurrent((current) => {
+              if (current.historyUpdatedAt || current.history.length > 0) {
+                return {
+                  ...current,
+                  historyError: message,
+                  historyStatus: "ready",
+                };
+              }
+
+              return {
+                ...current,
+                history: [],
+                historyError: message,
+                historyStatus: "error",
+                historyUpdatedAt: null,
+              };
+            });
+          }
+        })();
+
+        const memberTask = (async () => {
+          try {
+            const email = await getUserEmail({ client: thirdwebClient });
+
+            if (!email) {
+              throw new Error(dictionary.walletPage.errors.missingEmail);
+            }
+
+            setDashboardIfCurrent((current) => ({
+              ...current,
+              email,
+            }));
+
+            const syncResponse = await fetch("/api/members", {
+              body: JSON.stringify({
+                chainId: chain.id,
+                chainName: chain.name ?? "BSC",
+                email,
+                locale,
+                syncMode: "light",
+                walletAddress: accountAddress,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+            });
+            const syncData = (await syncResponse.json()) as
+              | SyncMemberResponse
+              | { error?: string };
+
+            if (!syncResponse.ok) {
+              throw new Error(
+                "error" in syncData && syncData.error
+                  ? syncData.error
+                  : dictionary.walletPage.errors.loadFailed,
+              );
+            }
+
+            if ("validationError" in syncData && syncData.validationError) {
+              throw new Error(syncData.validationError);
+            }
+
+            setDashboardIfCurrent((current) => ({
+              ...current,
+              email,
+              member: "member" in syncData ? syncData.member : null,
+              memberError: null,
+              memberStatus: "ready",
+              memberUpdatedAt: new Date().toISOString(),
+            }));
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : dictionary.walletPage.errors.loadFailed;
+
+            setDashboardIfCurrent((current) => {
+              if (current.memberUpdatedAt || current.member || current.email) {
+                return {
+                  ...current,
+                  memberError: message,
+                  memberStatus: "ready",
+                };
+              }
+
+              return {
+                ...current,
+                email: null,
+                member: null,
+                memberError: message,
+                memberStatus: "error",
+                memberUpdatedAt: null,
+              };
+            });
+          }
+        })();
+
+        await Promise.allSettled([memberTask, historyTask]);
       } finally {
         syncInFlightRef.current = false;
-        setIsRefreshing(false);
+
+        if (syncVersionRef.current === syncVersion) {
+          setIsRefreshing(false);
+        }
       }
     },
     [accountAddress, chain.id, chain.name, dictionary, locale],
@@ -359,14 +431,20 @@ export function WalletPage({
 
   useEffect(() => {
     if (status !== "connected") {
+      syncVersionRef.current += 1;
+      syncInFlightRef.current = false;
       setIsLogoutDialogOpen(false);
+      setIsRefreshing(false);
       setDashboard({
         email: null,
-        error: null,
         history: [],
-        lastUpdatedAt: null,
+        historyError: null,
+        historyStatus: "idle",
+        historyUpdatedAt: null,
         member: null,
-        status: "idle",
+        memberError: null,
+        memberStatus: "idle",
+        memberUpdatedAt: null,
       });
       setNotice(null);
       setSearchQuery("");
@@ -747,22 +825,24 @@ export function WalletPage({
                     />
                   </div>
 
-                  <div className="mt-4 rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                      {dictionary.walletPage.labels.updatedAt}
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-slate-900">
-                      {dashboard.lastUpdatedAt
-                        ? formatDateTime(dashboard.lastUpdatedAt, locale)
-                        : dashboard.status === "loading"
-                          ? dictionary.walletPage.loading
-                          : "-"}
-                    </p>
-                  </div>
+                    <div className="mt-4 rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                        {dictionary.walletPage.labels.updatedAt}
+                      </p>
+                      <p className="mt-2 text-sm font-medium text-slate-900">
+                        {dashboard.memberUpdatedAt
+                          ? formatDateTime(dashboard.memberUpdatedAt, locale)
+                          : dashboard.memberStatus === "loading"
+                            ? dictionary.walletPage.loading
+                            : "-"}
+                      </p>
+                    </div>
 
-                  {dashboard.error ? (
+                  {dashboard.memberError ? (
                     <div className="mt-4">
-                      <MessageCard tone="error">{dashboard.error}</MessageCard>
+                      <MessageCard tone="error">
+                        {dashboard.memberError}
+                      </MessageCard>
                     </div>
                   ) : null}
                 </section>
@@ -1068,10 +1148,10 @@ export function WalletPage({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
-                    {dashboard.lastUpdatedAt ? (
+                    {dashboard.historyUpdatedAt ? (
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
                         {dictionary.walletPage.labels.updatedAt}{" "}
-                        {formatDateTime(dashboard.lastUpdatedAt, locale)}
+                        {formatDateTime(dashboard.historyUpdatedAt, locale)}
                       </p>
                     ) : null}
                     <button
@@ -1091,12 +1171,22 @@ export function WalletPage({
                 </div>
 
                 <div className="mt-5">
-                  {dashboard.status === "loading" && dashboard.history.length === 0 ? (
+                  {dashboard.historyStatus === "loading" &&
+                  dashboard.history.length === 0 ? (
                     <MessageCard>{dictionary.walletPage.loading}</MessageCard>
+                  ) : dashboard.historyError && dashboard.history.length === 0 ? (
+                    <MessageCard tone="error">
+                      {dashboard.historyError}
+                    </MessageCard>
                   ) : dashboard.history.length === 0 ? (
                     <MessageCard>{dictionary.walletPage.emptyHistory}</MessageCard>
                   ) : (
                     <div className="space-y-3">
+                      {dashboard.historyError ? (
+                        <MessageCard tone="error">
+                          {dashboard.historyError}
+                        </MessageCard>
+                      ) : null}
                       {dashboard.history.map((transferRecord) => (
                         <HistoryRow
                           dictionary={dictionary}
