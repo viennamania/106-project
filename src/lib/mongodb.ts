@@ -10,6 +10,10 @@ import type {
   ThirdwebWebhookEventDocument,
   ThirdwebWebhookIngressLogDocument,
 } from "@/lib/thirdweb-webhooks";
+import type {
+  WalletTransferDocument,
+  WalletTransferSyncStateDocument,
+} from "@/lib/wallet";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -25,6 +29,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoThirdwebWebhookIngressLogsCollectionPromise?: Promise<
     Collection<ThirdwebWebhookIngressLogDocument>
+  >;
+  mongoWalletTransfersCollectionPromise?: Promise<
+    Collection<WalletTransferDocument>
+  >;
+  mongoWalletTransferSyncStatesCollectionPromise?: Promise<
+    Collection<WalletTransferSyncStateDocument>
   >;
 };
 
@@ -278,4 +288,62 @@ export async function getThirdwebWebhookIngressLogsCollection() {
   }
 
   return globalForMongo.mongoThirdwebWebhookIngressLogsCollectionPromise;
+}
+
+export async function getWalletTransfersCollection() {
+  if (!globalForMongo.mongoWalletTransfersCollectionPromise) {
+    globalForMongo.mongoWalletTransfersCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_WALLET_TRANSFERS_COLLECTION ?? "walletTransfers";
+      const collection = client
+        .db(dbName)
+        .collection<WalletTransferDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex(
+          { walletAddress: 1, transactionHash: 1, logIndex: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({
+          walletAddress: 1,
+          blockTimestamp: -1,
+          blockNumber: -1,
+          logIndex: -1,
+        }),
+        collection.createIndex({ walletAddress: 1, updatedAt: -1 }),
+        collection.createIndex({ transactionHash: 1, logIndex: 1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoWalletTransfersCollectionPromise;
+}
+
+export async function getWalletTransferSyncStatesCollection() {
+  if (!globalForMongo.mongoWalletTransferSyncStatesCollectionPromise) {
+    globalForMongo.mongoWalletTransferSyncStatesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_WALLET_TRANSFER_SYNC_STATES_COLLECTION ??
+        "walletTransferSyncStates";
+      const collection = client
+        .db(dbName)
+        .collection<WalletTransferSyncStateDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ walletAddress: 1 }, { unique: true }),
+        collection.createIndex({ lastSyncedAt: -1 }),
+        collection.createIndex({ updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoWalletTransferSyncStatesCollectionPromise;
 }

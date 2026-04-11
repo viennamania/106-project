@@ -19,6 +19,12 @@ export type WalletRecipientSearchResponse = {
 };
 
 export type WalletTransferDirection = "inbound" | "outbound";
+export type WalletTransferStatus = "pending" | "confirmed";
+export type WalletTransferSource =
+  | "insight_sync"
+  | "rpc_sync"
+  | "app_send"
+  | "project_wallet_webhook";
 
 export type WalletTransferRecord = {
   amountDisplay: string;
@@ -30,6 +36,32 @@ export type WalletTransferRecord = {
   logIndex: number;
   timestamp: string;
   transactionHash: string;
+};
+
+export type WalletTransferDocument = {
+  amountWei: string;
+  blockNumber: number;
+  blockTimestamp: Date;
+  chainId: number;
+  counterpartyWalletAddress: string;
+  createdAt: Date;
+  direction: WalletTransferDirection;
+  logIndex: number;
+  source: WalletTransferSource;
+  status: WalletTransferStatus;
+  tokenAddress: string;
+  transactionHash: string;
+  updatedAt: Date;
+  walletAddress: string;
+};
+
+export type WalletTransferSyncStateDocument = {
+  lastError: string | null;
+  lastSyncedAt: Date | null;
+  lastSyncedBlock: number | null;
+  source: WalletTransferSource | null;
+  updatedAt: Date;
+  walletAddress: string;
 };
 
 export type WalletTransferHistoryResponse = {

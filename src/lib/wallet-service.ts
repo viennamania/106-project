@@ -1,13 +1,20 @@
 import "server-only";
 
-import { getMembersCollection } from "@/lib/mongodb";
+import {
+  getMembersCollection,
+  getWalletTransfersCollection,
+  getWalletTransferSyncStatesCollection,
+} from "@/lib/mongodb";
 import { type MemberDocument, normalizeEmail } from "@/lib/member";
 import {
   WALLET_HISTORY_DEFAULT_LIMIT,
   WALLET_HISTORY_MAX_LIMIT,
   WALLET_MEMBER_SEARCH_LIMIT,
   type WalletMemberLookupRecord,
+  type WalletTransferDocument,
   type WalletTransferRecord,
+  type WalletTransferSource,
+  type WalletTransferSyncStateDocument,
   serializeWalletMemberLookup,
 } from "@/lib/wallet";
 import {
@@ -30,6 +37,7 @@ const WALLET_HISTORY_INITIAL_LOG_CHUNK = BigInt(15_000);
 const WALLET_HISTORY_MIN_LOG_CHUNK = BigInt(250);
 const WALLET_HISTORY_MAX_LOOKBACK = BigInt(2_000_000);
 const WALLET_HISTORY_CACHE_TTL_MS = 1_500;
+const WALLET_HISTORY_DB_SYNC_STALE_MS = 5 * 60_000;
 const WALLET_HISTORY_INSIGHT_TIMEOUT_MS = 4_000;
 const WALLET_HISTORY_RPC_TIMEOUT_MS = 8_000;
 
@@ -58,6 +66,17 @@ type WalletTransferHistoryCacheEntry = {
   transfers: WalletTransferRecord[];
 };
 
+type WalletStoredHistorySnapshot = {
+  hasStoredHistory: boolean;
+  syncState: WalletTransferSyncStateDocument | null;
+  transfers: WalletTransferRecord[];
+};
+
+type WalletChainSyncResult = {
+  draftTransfers: WalletDraftTransfer[];
+  source: WalletTransferSource;
+};
+
 const walletTransferHistoryCache = new Map<
   string,
   WalletTransferHistoryCacheEntry
@@ -66,6 +85,7 @@ const walletTransferHistoryInFlight = new Map<
   string,
   Promise<WalletTransferRecord[]>
 >();
+const walletTransferSyncInFlight = new Map<string, Promise<void>>();
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
   return new Promise<T>((resolve, reject) => {
@@ -221,6 +241,200 @@ function rememberWalletTransferHistory(
   });
 }
 
+function buildWalletTransferDocument({
+  draftTransfer,
+  normalizedWalletAddress,
+  source,
+}: {
+  draftTransfer: WalletDraftTransfer;
+  normalizedWalletAddress: string;
+  source: WalletTransferSource;
+}): WalletTransferDocument {
+  const synchronizedAt = new Date();
+
+  return {
+    amountWei: draftTransfer.amountWei,
+    blockNumber: draftTransfer.blockNumber,
+    blockTimestamp: new Date(draftTransfer.timestampMs),
+    chainId: Number(smartWalletChain.id),
+    counterpartyWalletAddress: normalizeAddress(
+      draftTransfer.counterpartyWalletAddress,
+    ),
+    createdAt: synchronizedAt,
+    direction: draftTransfer.direction,
+    logIndex: draftTransfer.logIndex,
+    source,
+    status: "confirmed",
+    tokenAddress: normalizeAddress(BSC_USDT_ADDRESS),
+    transactionHash: draftTransfer.transactionHash,
+    updatedAt: synchronizedAt,
+    walletAddress: normalizedWalletAddress,
+  };
+}
+
+function createDraftTransferFromStoredDocument(
+  document: WalletTransferDocument,
+): WalletDraftTransfer {
+  return {
+    amountDisplay: toTokens(BigInt(document.amountWei), 18),
+    amountWei: document.amountWei,
+    blockNumber: document.blockNumber,
+    counterpartyLookupKey: normalizeAddress(document.counterpartyWalletAddress),
+    counterpartyWalletAddress: document.counterpartyWalletAddress,
+    direction: document.direction,
+    logIndex: document.logIndex,
+    timestampMs: document.blockTimestamp.getTime(),
+    transactionHash: document.transactionHash,
+  };
+}
+
+async function readStoredWalletTransferHistory({
+  historyLimit,
+  normalizedWalletAddress,
+}: {
+  historyLimit: number;
+  normalizedWalletAddress: string;
+}): Promise<WalletStoredHistorySnapshot> {
+  const [syncStatesCollection, walletTransfersCollection] = await Promise.all([
+    getWalletTransferSyncStatesCollection(),
+    getWalletTransfersCollection(),
+  ]);
+  const [syncState, storedTransfers] = await Promise.all([
+    syncStatesCollection.findOne({ walletAddress: normalizedWalletAddress }),
+    walletTransfersCollection
+      .find({
+        status: "confirmed",
+        walletAddress: normalizedWalletAddress,
+      })
+      .sort({
+        blockTimestamp: -1,
+        blockNumber: -1,
+        logIndex: -1,
+      })
+      .limit(historyLimit)
+      .toArray(),
+  ]);
+
+  return {
+    hasStoredHistory: storedTransfers.length > 0,
+    syncState,
+    transfers: await hydrateWalletTransfers({
+      counterpartyWallets: new Set(
+        storedTransfers.map((transfer) =>
+          normalizeAddress(transfer.counterpartyWalletAddress),
+        ),
+      ),
+      draftTransfers: storedTransfers.map(createDraftTransferFromStoredDocument),
+    }),
+  };
+}
+
+async function persistWalletTransferHistory({
+  draftTransfers,
+  normalizedWalletAddress,
+  source,
+}: {
+  draftTransfers: WalletDraftTransfer[];
+  normalizedWalletAddress: string;
+  source: WalletTransferSource;
+}) {
+  const [syncStatesCollection, walletTransfersCollection] = await Promise.all([
+    getWalletTransferSyncStatesCollection(),
+    getWalletTransfersCollection(),
+  ]);
+  const synchronizedAt = new Date();
+  const transferDocuments = draftTransfers.map((draftTransfer) =>
+    buildWalletTransferDocument({
+      draftTransfer,
+      normalizedWalletAddress,
+      source,
+    }),
+  );
+
+  if (transferDocuments.length > 0) {
+    await walletTransfersCollection.bulkWrite(
+      transferDocuments.map((transferDocument) => ({
+        updateOne: {
+          filter: {
+            walletAddress: transferDocument.walletAddress,
+            transactionHash: transferDocument.transactionHash,
+            logIndex: transferDocument.logIndex,
+          },
+          update: {
+            $set: {
+              amountWei: transferDocument.amountWei,
+              blockNumber: transferDocument.blockNumber,
+              blockTimestamp: transferDocument.blockTimestamp,
+              chainId: transferDocument.chainId,
+              counterpartyWalletAddress:
+                transferDocument.counterpartyWalletAddress,
+              direction: transferDocument.direction,
+              source: transferDocument.source,
+              status: transferDocument.status,
+              tokenAddress: transferDocument.tokenAddress,
+              updatedAt: synchronizedAt,
+            },
+            $setOnInsert: {
+              createdAt: transferDocument.createdAt,
+            },
+          },
+          upsert: true,
+        },
+      })),
+      { ordered: false },
+    );
+  }
+
+  await syncStatesCollection.updateOne(
+    {
+      walletAddress: normalizedWalletAddress,
+    },
+    {
+      $set: {
+        lastError: null,
+        lastSyncedAt: synchronizedAt,
+        lastSyncedBlock: transferDocuments[0]?.blockNumber ?? null,
+        source,
+        updatedAt: synchronizedAt,
+      },
+      $setOnInsert: {
+        walletAddress: normalizedWalletAddress,
+      },
+    },
+    { upsert: true },
+  );
+}
+
+async function rememberWalletTransferSyncFailure({
+  error,
+  normalizedWalletAddress,
+}: {
+  error: unknown;
+  normalizedWalletAddress: string;
+}) {
+  const syncStatesCollection = await getWalletTransferSyncStatesCollection();
+  const message = error instanceof Error ? error.message : String(error);
+
+  await syncStatesCollection.updateOne(
+    {
+      walletAddress: normalizedWalletAddress,
+    },
+    {
+      $set: {
+        lastError: message,
+        updatedAt: new Date(),
+      },
+      $setOnInsert: {
+        lastSyncedAt: null,
+        lastSyncedBlock: null,
+        source: null,
+        walletAddress: normalizedWalletAddress,
+      },
+    },
+    { upsert: true },
+  );
+}
+
 async function hydrateWalletTransfers({
   counterpartyWallets,
   draftTransfers,
@@ -256,7 +470,7 @@ async function hydrateWalletTransfers({
     }));
 }
 
-async function getWalletTransferHistoryFromInsight({
+async function getWalletTransferDraftsFromInsight({
   historyLimit,
   normalizedWalletAddress,
 }: {
@@ -316,7 +530,6 @@ async function getWalletTransferHistoryFromInsight({
   const sortedEvents = [...eventsByKey.values()]
     .sort(sortTransferEventsDesc)
     .slice(0, historyLimit);
-  const counterpartyWallets = new Set<string>();
   const draftTransfers: WalletDraftTransfer[] = [];
 
   for (const event of sortedEvents) {
@@ -342,7 +555,6 @@ async function getWalletTransferHistoryFromInsight({
       direction === "inbound" ? fromAddress : toAddress;
     const amountValue = BigInt(event.data);
 
-    counterpartyWallets.add(counterpartyWalletAddress);
     draftTransfers.push({
       amountDisplay: toTokens(amountValue, 18),
       amountWei: amountValue.toString(),
@@ -356,10 +568,7 @@ async function getWalletTransferHistoryFromInsight({
     });
   }
 
-  return hydrateWalletTransfers({
-    counterpartyWallets,
-    draftTransfers,
-  });
+  return draftTransfers;
 }
 
 async function fetchTransferLogsChunk({
@@ -401,7 +610,7 @@ async function fetchTransferLogsChunk({
   }
 }
 
-async function getWalletTransferHistoryFromRpc({
+async function getWalletTransferDraftsFromRpc({
   historyLimit,
   normalizedWalletAddress,
 }: {
@@ -498,7 +707,6 @@ async function getWalletTransferHistoryFromRpc({
     .sort(sortTransferLogsDesc)
     .slice(0, historyLimit);
   const blockTimestampCache = new Map<bigint, string>();
-  const counterpartyWallets = new Set<string>();
   const draftTransfers: WalletDraftTransfer[] = [];
 
   for (const log of sortedLogs) {
@@ -522,7 +730,6 @@ async function getWalletTransferHistoryFromRpc({
 
     const counterpartyWalletAddress =
       direction === "inbound" ? fromAddress : toAddress;
-    counterpartyWallets.add(counterpartyWalletAddress);
 
     let timestamp = blockTimestampCache.get(log.blockNumber);
 
@@ -549,10 +756,7 @@ async function getWalletTransferHistoryFromRpc({
     });
   }
 
-  return hydrateWalletTransfers({
-    counterpartyWallets,
-    draftTransfers,
-  });
+  return draftTransfers;
 }
 
 async function searchMembersCollection({
@@ -655,6 +859,76 @@ export async function searchWalletRecipients({
   });
 }
 
+async function fetchWalletTransferDraftsFromChain({
+  normalizedWalletAddress,
+}: {
+  normalizedWalletAddress: string;
+}): Promise<WalletChainSyncResult> {
+  try {
+    return {
+      draftTransfers: await withTimeout(
+        getWalletTransferDraftsFromInsight({
+          historyLimit: WALLET_HISTORY_MAX_LIMIT,
+          normalizedWalletAddress,
+        }),
+        WALLET_HISTORY_INSIGHT_TIMEOUT_MS,
+        "Wallet history insight request timed out.",
+      ),
+      source: "insight_sync",
+    };
+  } catch {
+    return {
+      draftTransfers: await withTimeout(
+        getWalletTransferDraftsFromRpc({
+          historyLimit: WALLET_HISTORY_MAX_LIMIT,
+          normalizedWalletAddress,
+        }),
+        WALLET_HISTORY_RPC_TIMEOUT_MS,
+        "Wallet history RPC request timed out.",
+      ),
+      source: "rpc_sync",
+    };
+  }
+}
+
+async function syncWalletTransferHistory({
+  normalizedWalletAddress,
+}: {
+  normalizedWalletAddress: string;
+}) {
+  const inFlightSync = walletTransferSyncInFlight.get(normalizedWalletAddress);
+
+  if (inFlightSync) {
+    return inFlightSync;
+  }
+
+  const syncPromise = (async () => {
+    try {
+      const { draftTransfers, source } = await fetchWalletTransferDraftsFromChain({
+        normalizedWalletAddress,
+      });
+
+      await persistWalletTransferHistory({
+        draftTransfers,
+        normalizedWalletAddress,
+        source,
+      });
+    } catch (error) {
+      await rememberWalletTransferSyncFailure({
+        error,
+        normalizedWalletAddress,
+      });
+      throw error;
+    } finally {
+      walletTransferSyncInFlight.delete(normalizedWalletAddress);
+    }
+  })();
+
+  walletTransferSyncInFlight.set(normalizedWalletAddress, syncPromise);
+
+  return syncPromise;
+}
+
 export async function getWalletTransferHistory({
   limit = WALLET_HISTORY_DEFAULT_LIMIT,
   walletAddress,
@@ -692,23 +966,38 @@ export async function getWalletTransferHistory({
 
   const historyPromise = (async () => {
     try {
-      const transfers = await withTimeout(
-        getWalletTransferHistoryFromInsight({
-          historyLimit,
-          normalizedWalletAddress,
-        }),
-        WALLET_HISTORY_INSIGHT_TIMEOUT_MS,
-        "Wallet history insight request timed out.",
-      ).catch(() =>
-        withTimeout(
-          getWalletTransferHistoryFromRpc({
-            historyLimit,
+      const storedHistory = await readStoredWalletTransferHistory({
+        historyLimit,
+        normalizedWalletAddress,
+      });
+      const lastSyncedAt = storedHistory.syncState?.lastSyncedAt ?? null;
+      const hasFreshStoredHistory =
+        lastSyncedAt !== null &&
+        Date.now() - lastSyncedAt.getTime() < WALLET_HISTORY_DB_SYNC_STALE_MS;
+
+      if (storedHistory.hasStoredHistory) {
+        rememberWalletTransferHistory(cacheKey, storedHistory.transfers);
+
+        if (!hasFreshStoredHistory) {
+          void syncWalletTransferHistory({
             normalizedWalletAddress,
-          }),
-          WALLET_HISTORY_RPC_TIMEOUT_MS,
-          "Wallet history RPC request timed out.",
-        ),
-      );
+          }).catch((error: unknown) => {
+            console.error("Failed to refresh stored wallet history.", error);
+          });
+        }
+
+        return storedHistory.transfers;
+      }
+
+      await syncWalletTransferHistory({
+        normalizedWalletAddress,
+      });
+
+      const syncedHistory = await readStoredWalletTransferHistory({
+        historyLimit,
+        normalizedWalletAddress,
+      });
+      const transfers = syncedHistory.transfers;
 
       rememberWalletTransferHistory(cacheKey, transfers);
 
