@@ -65,6 +65,7 @@ export type WalletTransferSyncStateDocument = {
 };
 
 export type WalletTransferHistoryResponse = {
+  syncing?: boolean;
   transfers: WalletTransferRecord[];
   walletAddress: string;
 };

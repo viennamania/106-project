@@ -189,8 +189,10 @@ export function WalletPage({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const historyRetryTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
   const syncVersionRef = useRef(0);
+  const walletRefreshRequesterRef = useRef<(() => void) | null>(null);
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -215,6 +217,11 @@ export function WalletPage({
 
         setDashboard(updater);
       };
+
+      if (historyRetryTimeoutRef.current !== null) {
+        window.clearTimeout(historyRetryTimeoutRef.current);
+        historyRetryTimeoutRef.current = null;
+      }
 
       if (background) {
         setIsRefreshing(true);
@@ -250,12 +257,25 @@ export function WalletPage({
               );
             }
 
+            if (historyData.syncing) {
+              historyRetryTimeoutRef.current = window.setTimeout(() => {
+                historyRetryTimeoutRef.current = null;
+                walletRefreshRequesterRef.current?.();
+              }, 3000);
+            }
+
             setDashboardIfCurrent((current) => ({
               ...current,
               history: historyData.transfers,
               historyError: null,
-              historyStatus: "ready",
-              historyUpdatedAt: new Date().toISOString(),
+              historyStatus:
+                historyData.syncing && historyData.transfers.length === 0
+                  ? "loading"
+                  : "ready",
+              historyUpdatedAt:
+                historyData.syncing && historyData.transfers.length === 0
+                  ? current.historyUpdatedAt
+                  : new Date().toISOString(),
             }));
           } catch (error) {
             const message = getLoadErrorMessage(
@@ -377,6 +397,16 @@ export function WalletPage({
     [accountAddress, chain.id, chain.name, dictionary, locale],
   );
 
+  useEffect(() => {
+    walletRefreshRequesterRef.current = () => {
+      void runWalletSync({ background: true });
+    };
+
+    return () => {
+      walletRefreshRequesterRef.current = null;
+    };
+  }, [runWalletSync]);
+
   const runRecipientSearch = useCallback(
     async ({
       excludeEmail,
@@ -437,6 +467,14 @@ export function WalletPage({
   );
 
   useEffect(() => {
+    return () => {
+      if (historyRetryTimeoutRef.current !== null) {
+        window.clearTimeout(historyRetryTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!accountAddress) {
       setQrCodeUrl(null);
       return;
@@ -473,6 +511,10 @@ export function WalletPage({
     if (status !== "connected") {
       syncVersionRef.current += 1;
       syncInFlightRef.current = false;
+      if (historyRetryTimeoutRef.current !== null) {
+        window.clearTimeout(historyRetryTimeoutRef.current);
+        historyRetryTimeoutRef.current = null;
+      }
       setIsLogoutDialogOpen(false);
       setIsRefreshing(false);
       setDashboard({

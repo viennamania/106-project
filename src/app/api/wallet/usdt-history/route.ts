@@ -1,8 +1,12 @@
+import { after } from "next/server";
 import {
   WALLET_HISTORY_DEFAULT_LIMIT,
   type WalletTransferHistoryResponse,
 } from "@/lib/wallet";
-import { getWalletTransferHistory } from "@/lib/wallet-service";
+import {
+  getWalletTransferHistorySnapshot,
+  refreshWalletTransferHistory,
+} from "@/lib/wallet-service";
 import { normalizeAddress } from "@/lib/thirdweb-webhooks";
 
 function jsonError(message: string, status: number) {
@@ -26,11 +30,27 @@ export async function GET(request: Request) {
 
   try {
     const walletAddress = normalizeAddress(rawWalletAddress);
+    const snapshot = await getWalletTransferHistorySnapshot({
+      limit,
+      walletAddress,
+    });
+
+    if (snapshot.needsSync) {
+      after(async () => {
+        try {
+          await refreshWalletTransferHistory({
+            limit,
+            walletAddress,
+          });
+        } catch (error) {
+          console.error("Failed to refresh wallet history after response.", error);
+        }
+      });
+    }
+
     const response: WalletTransferHistoryResponse = {
-      transfers: await getWalletTransferHistory({
-        limit,
-        walletAddress,
-      }),
+      syncing: snapshot.needsSync,
+      transfers: snapshot.transfers,
       walletAddress,
     };
 

@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   getMembersCollection,
+  getThirdwebWebhookEventsCollection,
   getWalletTransfersCollection,
   getWalletTransferSyncStatesCollection,
 } from "@/lib/mongodb";
@@ -38,7 +39,7 @@ const WALLET_HISTORY_MIN_LOG_CHUNK = BigInt(250);
 const WALLET_HISTORY_MAX_LOOKBACK = BigInt(2_000_000);
 const WALLET_HISTORY_CACHE_TTL_MS = 1_500;
 const WALLET_HISTORY_DB_SYNC_STALE_MS = 5 * 60_000;
-const WALLET_HISTORY_INSIGHT_TIMEOUT_MS = 4_000;
+const WALLET_HISTORY_INSIGHT_TIMEOUT_MS = 8_000;
 const WALLET_HISTORY_RPC_TIMEOUT_MS = 8_000;
 
 type WalletTransferLog = {
@@ -68,6 +69,7 @@ type WalletTransferHistoryCacheEntry = {
 
 type WalletStoredHistorySnapshot = {
   hasStoredHistory: boolean;
+  isWebhookBacked: boolean;
   syncState: WalletTransferSyncStateDocument | null;
   transfers: WalletTransferRecord[];
 };
@@ -75,6 +77,12 @@ type WalletStoredHistorySnapshot = {
 type WalletChainSyncResult = {
   draftTransfers: WalletDraftTransfer[];
   source: WalletTransferSource;
+};
+
+type WalletTransferHistorySnapshot = {
+  hasStoredHistory: boolean;
+  needsSync: boolean;
+  transfers: WalletTransferRecord[];
 };
 
 const walletTransferHistoryCache = new Map<
@@ -86,6 +94,9 @@ const walletTransferHistoryInFlight = new Map<
   Promise<WalletTransferRecord[]>
 >();
 const walletTransferSyncInFlight = new Map<string, Promise<void>>();
+const normalizedProjectWalletAddress = normalizeAddress(
+  process.env.PROJECT_WALLET?.trim() ?? "",
+);
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
   return new Promise<T>((resolve, reject) => {
@@ -241,6 +252,39 @@ function rememberWalletTransferHistory(
   });
 }
 
+function isProjectWallet(normalizedWalletAddress: string) {
+  return (
+    normalizedProjectWalletAddress.length > 0 &&
+    normalizedWalletAddress === normalizedProjectWalletAddress
+  );
+}
+
+function resolveWalletHistoryRequest({
+  limit,
+  walletAddress,
+}: {
+  limit?: number;
+  walletAddress: string;
+}) {
+  const normalizedWalletAddress = normalizeAddress(walletAddress);
+
+  if (!/^0x[a-f0-9]{40}$/u.test(normalizedWalletAddress)) {
+    throw new Error("A valid wallet address is required.");
+  }
+
+  const historyLimit =
+    limit === undefined || limit < 1
+      ? WALLET_HISTORY_DEFAULT_LIMIT
+      : limit > WALLET_HISTORY_MAX_LIMIT
+        ? WALLET_HISTORY_MAX_LIMIT
+        : limit;
+
+  return {
+    historyLimit,
+    normalizedWalletAddress,
+  };
+}
+
 function buildWalletTransferDocument({
   draftTransfer,
   normalizedWalletAddress,
@@ -315,8 +359,59 @@ async function readStoredWalletTransferHistory({
       .toArray(),
   ]);
 
+  if (storedTransfers.length === 0 && isProjectWallet(normalizedWalletAddress)) {
+    const webhookEventsCollection = await getThirdwebWebhookEventsCollection();
+    const webhookTransfers = await webhookEventsCollection
+      .find({
+        projectWallet: normalizedWalletAddress,
+      })
+      .sort({
+        blockTimestamp: -1,
+        blockNumber: -1,
+        logIndex: -1,
+      })
+      .limit(historyLimit)
+      .toArray();
+
+    return {
+      hasStoredHistory: webhookTransfers.length > 0,
+      isWebhookBacked: webhookTransfers.length > 0,
+      syncState,
+      transfers: await hydrateWalletTransfers({
+        counterpartyWallets: new Set(
+          webhookTransfers.map((transfer) =>
+            normalizeAddress(
+              transfer.direction === "inbound"
+                ? transfer.fromAddress
+                : transfer.toAddress,
+            ),
+          ),
+        ),
+        draftTransfers: webhookTransfers.map((transfer) => {
+          const counterpartyWalletAddress =
+            transfer.direction === "inbound"
+              ? transfer.fromAddress
+              : transfer.toAddress;
+
+          return {
+            amountDisplay: toTokens(BigInt(transfer.amount), 18),
+            amountWei: transfer.amount,
+            blockNumber: transfer.blockNumber,
+            counterpartyLookupKey: normalizeAddress(counterpartyWalletAddress),
+            counterpartyWalletAddress,
+            direction: transfer.direction,
+            logIndex: transfer.logIndex,
+            timestampMs: transfer.blockTimestamp * 1000,
+            transactionHash: transfer.transactionHash,
+          };
+        }),
+      }),
+    };
+  }
+
   return {
     hasStoredHistory: storedTransfers.length > 0,
+    isWebhookBacked: false,
     syncState,
     transfers: await hydrateWalletTransfers({
       counterpartyWallets: new Set(
@@ -860,15 +955,17 @@ export async function searchWalletRecipients({
 }
 
 async function fetchWalletTransferDraftsFromChain({
+  historyLimit,
   normalizedWalletAddress,
 }: {
+  historyLimit: number;
   normalizedWalletAddress: string;
 }): Promise<WalletChainSyncResult> {
   try {
     return {
       draftTransfers: await withTimeout(
         getWalletTransferDraftsFromInsight({
-          historyLimit: WALLET_HISTORY_MAX_LIMIT,
+          historyLimit,
           normalizedWalletAddress,
         }),
         WALLET_HISTORY_INSIGHT_TIMEOUT_MS,
@@ -880,7 +977,7 @@ async function fetchWalletTransferDraftsFromChain({
     return {
       draftTransfers: await withTimeout(
         getWalletTransferDraftsFromRpc({
-          historyLimit: WALLET_HISTORY_MAX_LIMIT,
+          historyLimit,
           normalizedWalletAddress,
         }),
         WALLET_HISTORY_RPC_TIMEOUT_MS,
@@ -892,8 +989,10 @@ async function fetchWalletTransferDraftsFromChain({
 }
 
 async function syncWalletTransferHistory({
+  historyLimit,
   normalizedWalletAddress,
 }: {
+  historyLimit: number;
   normalizedWalletAddress: string;
 }) {
   const inFlightSync = walletTransferSyncInFlight.get(normalizedWalletAddress);
@@ -905,6 +1004,7 @@ async function syncWalletTransferHistory({
   const syncPromise = (async () => {
     try {
       const { draftTransfers, source } = await fetchWalletTransferDraftsFromChain({
+        historyLimit,
         normalizedWalletAddress,
       });
 
@@ -929,6 +1029,51 @@ async function syncWalletTransferHistory({
   return syncPromise;
 }
 
+export async function getWalletTransferHistorySnapshot({
+  limit = WALLET_HISTORY_DEFAULT_LIMIT,
+  walletAddress,
+}: {
+  limit?: number;
+  walletAddress: string;
+}): Promise<WalletTransferHistorySnapshot> {
+  const { historyLimit, normalizedWalletAddress } = resolveWalletHistoryRequest({
+    limit,
+    walletAddress,
+  });
+  const storedHistory = await readStoredWalletTransferHistory({
+    historyLimit,
+    normalizedWalletAddress,
+  });
+  const lastSyncedAt = storedHistory.syncState?.lastSyncedAt ?? null;
+
+  return {
+    hasStoredHistory: storedHistory.hasStoredHistory,
+    needsSync: !storedHistory.isWebhookBacked && (
+      lastSyncedAt === null ||
+      Date.now() - lastSyncedAt.getTime() >= WALLET_HISTORY_DB_SYNC_STALE_MS
+    ),
+    transfers: storedHistory.transfers,
+  };
+}
+
+export async function refreshWalletTransferHistory({
+  limit = WALLET_HISTORY_DEFAULT_LIMIT,
+  walletAddress,
+}: {
+  limit?: number;
+  walletAddress: string;
+}) {
+  const { historyLimit, normalizedWalletAddress } = resolveWalletHistoryRequest({
+    limit,
+    walletAddress,
+  });
+
+  await syncWalletTransferHistory({
+    historyLimit,
+    normalizedWalletAddress,
+  });
+}
+
 export async function getWalletTransferHistory({
   limit = WALLET_HISTORY_DEFAULT_LIMIT,
   walletAddress,
@@ -936,18 +1081,10 @@ export async function getWalletTransferHistory({
   limit?: number;
   walletAddress: string;
 }) {
-  const normalizedWalletAddress = normalizeAddress(walletAddress);
-
-  if (!/^0x[a-f0-9]{40}$/u.test(normalizedWalletAddress)) {
-    throw new Error("A valid wallet address is required.");
-  }
-
-  const historyLimit =
-    limit < 1
-      ? WALLET_HISTORY_DEFAULT_LIMIT
-      : limit > WALLET_HISTORY_MAX_LIMIT
-        ? WALLET_HISTORY_MAX_LIMIT
-        : limit;
+  const { historyLimit, normalizedWalletAddress } = resolveWalletHistoryRequest({
+    limit,
+    walletAddress,
+  });
   const cacheKey = `${normalizedWalletAddress}:${historyLimit}`;
   const cachedHistory = walletTransferHistoryCache.get(cacheKey);
 
@@ -972,14 +1109,16 @@ export async function getWalletTransferHistory({
       });
       const lastSyncedAt = storedHistory.syncState?.lastSyncedAt ?? null;
       const hasFreshStoredHistory =
-        lastSyncedAt !== null &&
-        Date.now() - lastSyncedAt.getTime() < WALLET_HISTORY_DB_SYNC_STALE_MS;
+        storedHistory.isWebhookBacked ||
+        (lastSyncedAt !== null &&
+          Date.now() - lastSyncedAt.getTime() < WALLET_HISTORY_DB_SYNC_STALE_MS);
 
       if (storedHistory.hasStoredHistory) {
         rememberWalletTransferHistory(cacheKey, storedHistory.transfers);
 
         if (!hasFreshStoredHistory) {
           void syncWalletTransferHistory({
+            historyLimit,
             normalizedWalletAddress,
           }).catch((error: unknown) => {
             console.error("Failed to refresh stored wallet history.", error);
@@ -990,6 +1129,7 @@ export async function getWalletTransferHistory({
       }
 
       await syncWalletTransferHistory({
+        historyLimit,
         normalizedWalletAddress,
       });
 
