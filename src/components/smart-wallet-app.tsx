@@ -218,16 +218,6 @@ export function SmartWalletApp({
   const signupBalanceValue = balance?.displayValue
     ? formatBalance(balance.displayValue, balance.symbol ?? "USDT", locale)
     : dictionary.common.notAvailable;
-  const mobilePrimaryHref = isSignupCompleted
-    ? `/${locale}/referrals`
-    : status === "connected" && hasThirdwebClientId
-      ? "#signup-payment"
-      : "#wallet-onboarding";
-  const mobilePrimaryLabel = isSignupCompleted
-    ? dictionary.member.actions.viewReferrals
-    : status === "connected" && hasThirdwebClientId
-      ? paymentCtaLabel
-      : dictionary.common.connectWallet;
   const mobileDockEyebrow = isSignupCompleted
     ? dictionary.member.eyebrow
     : status === "connected" && hasThirdwebClientId
@@ -240,6 +230,75 @@ export function SmartWalletApp({
       : dictionary.runway.steps[0].title;
   const showMobileActionDock =
     hasThirdwebClientId && status === "connected" && !isSignupCompleted;
+  const isSignupPaymentDisabled =
+    !accountAddress ||
+    !hasThirdwebClientId ||
+    isSignupBalanceLoading ||
+    isInsufficientUsdtBalance ||
+    !projectWallet ||
+    isIncomingReferralBlocked ||
+    isSignupCompleted;
+
+  function handleSignupPaymentError(error: Error) {
+    setNotice({
+      tone: "error",
+      text: error.message,
+    });
+  }
+
+  function handleSignupPaymentConfirmed(receipt: { transactionHash: string }) {
+    setNotice({
+      tone: "success",
+      text: dictionary.sponsored.txConfirmed,
+      href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+    });
+
+    window.setTimeout(() => {
+      void runMemberSync({ background: true });
+    }, 2500);
+  }
+
+  function handleSignupPaymentSent(result: { transactionHash: string }) {
+    setNotice({
+      tone: "info",
+      text: dictionary.sponsored.txSent,
+      href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+    });
+
+    window.setTimeout(() => {
+      void runMemberSync({ background: true });
+    }, 4000);
+  }
+
+  function createSignupPaymentTransaction() {
+    if (!accountAddress) {
+      throw new Error(dictionary.sponsored.connectFirst);
+    }
+
+    if (!projectWallet) {
+      throw new Error(dictionary.member.errors.projectWalletMissing);
+    }
+
+    if (isInsufficientUsdtBalance) {
+      throw new Error(insufficientBalanceMessage);
+    }
+
+    if (isIncomingReferralBlocked && incomingReferralState) {
+      throw new Error(
+        formatTemplate(dictionary.member.errors.referralLimitReached, {
+          code: incomingReferralState.code,
+          count: incomingReferralState.signupCount,
+          limit: incomingReferralState.limit,
+        }),
+      );
+    }
+
+    return transfer({
+      amount: MEMBER_SIGNUP_USDT_AMOUNT,
+      contract: usdtContract,
+      to: projectWallet,
+    });
+  }
 
   function resolveMemberSyncErrorMessage(error: unknown) {
     if (!(error instanceof Error)) {
@@ -986,80 +1045,11 @@ export function SmartWalletApp({
                           </p>
                           <TransactionButton
                             className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={
-                              !accountAddress ||
-                              !hasThirdwebClientId ||
-                              isSignupBalanceLoading ||
-                              isInsufficientUsdtBalance ||
-                              !projectWallet ||
-                              isIncomingReferralBlocked ||
-                              isSignupCompleted
-                            }
-                            onError={(error) =>
-                              setNotice({
-                                tone: "error",
-                                text: error.message,
-                              })
-                            }
-                            onTransactionConfirmed={(receipt) => {
-                              setNotice({
-                                tone: "success",
-                                text: dictionary.sponsored.txConfirmed,
-                                href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                              });
-
-                              window.setTimeout(() => {
-                                void runMemberSync({ background: true });
-                              }, 2500);
-                            }}
-                            onTransactionSent={(result) => {
-                              setNotice({
-                                tone: "info",
-                                text: dictionary.sponsored.txSent,
-                                href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                              });
-
-                              window.setTimeout(() => {
-                                void runMemberSync({ background: true });
-                              }, 4000);
-                            }}
-                            transaction={() => {
-                              if (!accountAddress) {
-                                throw new Error(dictionary.sponsored.connectFirst);
-                              }
-
-                              if (!projectWallet) {
-                                throw new Error(
-                                  dictionary.member.errors.projectWalletMissing,
-                                );
-                              }
-
-                              if (isInsufficientUsdtBalance) {
-                                throw new Error(insufficientBalanceMessage);
-                              }
-
-                              if (
-                                isIncomingReferralBlocked &&
-                                incomingReferralState
-                              ) {
-                                throw new Error(
-                                  formatTemplate(
-                                    dictionary.member.errors.referralLimitReached,
-                                    {
-                                      code: incomingReferralState.code,
-                                      count: incomingReferralState.signupCount,
-                                      limit: incomingReferralState.limit,
-                                    },
-                                  ),
-                                );
-                              }
-
-                              return transfer({
-                                amount: MEMBER_SIGNUP_USDT_AMOUNT,
-                                contract: usdtContract,
-                                to: projectWallet,
-                              });
-                            }}
+                            disabled={isSignupPaymentDisabled}
+                            onError={handleSignupPaymentError}
+                            onTransactionConfirmed={handleSignupPaymentConfirmed}
+                            onTransactionSent={handleSignupPaymentSent}
+                            transaction={createSignupPaymentTransaction}
                             type="button"
                             unstyled
                           >
@@ -1213,11 +1203,18 @@ export function SmartWalletApp({
                 </p>
               </div>
 
-              <PrimaryActionLink
+              <TransactionButton
                 className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
-                href={mobilePrimaryHref}
-                label={mobilePrimaryLabel}
-              />
+                disabled={isSignupPaymentDisabled}
+                onError={handleSignupPaymentError}
+                onTransactionConfirmed={handleSignupPaymentConfirmed}
+                onTransactionSent={handleSignupPaymentSent}
+                transaction={createSignupPaymentTransaction}
+                type="button"
+                unstyled
+              >
+                {paymentCtaLabel}
+              </TransactionButton>
             </div>
           </div>
         </div>
@@ -1901,30 +1898,6 @@ function StatusChip({
       />
       {copy}
     </div>
-  );
-}
-
-function PrimaryActionLink({
-  className,
-  href,
-  label,
-}: {
-  className?: string;
-  href: string;
-  label: string;
-}) {
-  if (href.startsWith("/")) {
-    return (
-      <Link className={className} href={href}>
-        {label}
-      </Link>
-    );
-  }
-
-  return (
-    <a className={className} href={href}>
-      {label}
-    </a>
   );
 }
 
