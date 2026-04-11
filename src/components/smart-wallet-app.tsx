@@ -84,6 +84,7 @@ type MemberSyncState = {
 
 type ReferralDashboardState = {
   error: string | null;
+  lastUpdatedAt: string | null;
   levelCounts: number[];
   referrals: ReferralTreeNodeRecord[];
   rewards: ReferralRewardsSummaryRecord;
@@ -142,6 +143,7 @@ export function SmartWalletApp({
   const [referralDashboard, setReferralDashboard] =
     useState<ReferralDashboardState>({
       error: null,
+      lastUpdatedAt: null,
       levelCounts: [],
       referrals: [],
       rewards: createEmptyReferralRewardsSummary(),
@@ -303,6 +305,7 @@ export function SmartWalletApp({
 
       setReferralDashboard({
         error: null,
+        lastUpdatedAt: new Date().toISOString(),
         levelCounts: data.levelCounts,
         referrals: data.referrals,
         rewards: data.rewards,
@@ -352,6 +355,7 @@ export function SmartWalletApp({
         });
         setReferralDashboard({
           error: null,
+          lastUpdatedAt: null,
           levelCounts: [],
           referrals: [],
           rewards: createEmptyReferralRewardsSummary(),
@@ -400,6 +404,7 @@ export function SmartWalletApp({
         });
         setReferralDashboard({
           error: null,
+          lastUpdatedAt: null,
           levelCounts: [],
           referrals: [],
           rewards: createEmptyReferralRewardsSummary(),
@@ -445,6 +450,7 @@ export function SmartWalletApp({
       } else {
         setReferralDashboard({
           error: null,
+          lastUpdatedAt: null,
           levelCounts: [],
           referrals: [],
           rewards: createEmptyReferralRewardsSummary(),
@@ -479,6 +485,7 @@ export function SmartWalletApp({
       });
       setReferralDashboard({
         error: null,
+        lastUpdatedAt: null,
         levelCounts: [],
         referrals: [],
         rewards: createEmptyReferralRewardsSummary(),
@@ -499,6 +506,10 @@ export function SmartWalletApp({
   ]);
 
   const pollForCompletedSignup = useEffectEvent(async () => {
+    await runMemberSync({ background: true });
+  });
+
+  const refreshCompletedNetwork = useEffectEvent(async () => {
     await runMemberSync({ background: true });
   });
 
@@ -523,6 +534,35 @@ export function SmartWalletApp({
   }, [
     accountAddress,
     memberSync.status,
+    memberSync.member?.status,
+    status,
+  ]);
+
+  useEffect(() => {
+    if (
+      status !== "connected" ||
+      !accountAddress ||
+      !hasThirdwebClientId ||
+      memberSync.member?.status !== "completed"
+    ) {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshCompletedNetwork();
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [
+    accountAddress,
     memberSync.member?.status,
     status,
   ]);
@@ -725,6 +765,10 @@ export function SmartWalletApp({
           <CompletedHomeDashboard
             dictionary={dictionary}
             isSelfIncomingReferral={isSelfIncomingReferral}
+            isRefreshing={
+              memberSync.status === "syncing" ||
+              referralDashboard.status === "loading"
+            }
             locale={locale}
             member={memberSync.member}
             onRefresh={() => {
@@ -1289,6 +1333,7 @@ function MembershipLoadingSection({
 function CompletedHomeDashboard({
   dictionary,
   isSelfIncomingReferral,
+  isRefreshing,
   locale,
   member,
   onRefresh,
@@ -1297,6 +1342,7 @@ function CompletedHomeDashboard({
 }: {
   dictionary: Dictionary;
   isSelfIncomingReferral: boolean;
+  isRefreshing: boolean;
   locale: Locale;
   member: MemberRecord;
   onRefresh: () => void;
@@ -1428,16 +1474,6 @@ function CompletedHomeDashboard({
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   {dictionary.member.synced}
                 </p>
-
-                <div className="mt-4">
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-                    onClick={onRefresh}
-                    type="button"
-                  >
-                    {dictionary.member.actions.refreshStatus}
-                  </button>
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1539,6 +1575,33 @@ function CompletedHomeDashboard({
         </div>
 
       </Panel>
+
+      <LandingReveal className="lg:col-span-2" delay={160} variant="soft">
+        <section className="glass-card rounded-[24px] p-4 sm:rounded-[28px] sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                {dictionary.member.labels.updatedAt}
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-700">
+                {referralDashboard.lastUpdatedAt
+                  ? formatDateTime(referralDashboard.lastUpdatedAt, locale)
+                  : dictionary.common.notAvailable}
+              </p>
+            </div>
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={isRefreshing}
+              onClick={onRefresh}
+              type="button"
+            >
+              {isRefreshing
+                ? dictionary.referralsPage.loading
+                : dictionary.referralsPage.actions.refresh}
+            </button>
+          </div>
+        </section>
+      </LandingReveal>
 
       <Panel
         className="lg:col-span-2"
