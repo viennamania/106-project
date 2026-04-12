@@ -358,6 +358,93 @@ async function claimManualPlacementSlot({
   });
 }
 
+async function claimSponsoredOverflowPlacementSlot({
+  collection,
+  email,
+  sponsor,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  email: string;
+  sponsor: MemberDocument;
+}) {
+  const sponsorReferralCode = normalizeReferralCode(sponsor.referralCode);
+
+  if (!sponsorReferralCode) {
+    return null;
+  }
+
+  const visitedReferralCodes = new Set<string>([sponsorReferralCode]);
+  let currentParentCodes = [sponsorReferralCode];
+
+  for (
+    let depth = 1;
+    depth < REFERRAL_TREE_DEPTH_LIMIT && currentParentCodes.length > 0;
+    depth += 1
+  ) {
+    const levelMembers = await collection
+      .find({
+        placementReferralCode: { $in: currentParentCodes },
+        status: "completed",
+      })
+      .sort({
+        registrationCompletedAt: 1,
+        createdAt: 1,
+        referralCode: 1,
+      })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    await Promise.all(
+      levelMembers.map((levelMember) =>
+        ensurePlacementSlotsForCompletedMember(levelMember),
+      ),
+    );
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      const levelReferralCode = normalizeReferralCode(levelMember.referralCode);
+
+      if (!levelReferralCode || visitedReferralCodes.has(levelReferralCode)) {
+        continue;
+      }
+
+      visitedReferralCodes.add(levelReferralCode);
+      nextParentCodes.push(levelReferralCode);
+    }
+
+    if (nextParentCodes.length === 0) {
+      break;
+    }
+
+    const overflowSlot = await claimPlacementSlot({
+      email,
+      filter: {
+        ownerReferralCode: {
+          $in: nextParentCodes,
+        },
+      },
+      sort: {
+        ownerRegistrationCompletedAt: 1,
+        ownerReferralCode: 1,
+        slotIndex: 1,
+      },
+      source: "auto",
+    });
+
+    if (overflowSlot) {
+      return overflowSlot;
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+
+  return null;
+}
+
 async function claimAutoPlacementSlot({
   collection,
   member,
@@ -484,6 +571,32 @@ async function ensurePlacementAssigned({
           member,
           slot: manualSlot,
         });
+      }
+
+      const overflowSlot = await claimSponsoredOverflowPlacementSlot({
+        collection,
+        email: member.email,
+        sponsor,
+      });
+
+      if (overflowSlot) {
+        if (
+          await placementWouldCreateCycle({
+            collection,
+            member,
+            slot: overflowSlot,
+          })
+        ) {
+          if (overflowSlot.claimSource === "auto") {
+            await releaseClaimedPlacementSlot(overflowSlot);
+          }
+        } else {
+          return applyPlacementFromSlot({
+            collection,
+            member,
+            slot: overflowSlot,
+          });
+        }
       }
     }
   }
@@ -654,25 +767,6 @@ function formatTemplate(
   return Object.entries(replacements).reduce((message, [key, value]) => {
     return message.replaceAll(`{${key}}`, String(value));
   }, template);
-}
-
-function getReferralLimitReachedMessage({
-  code,
-  count,
-  locale,
-}: {
-  code: string;
-  count: number;
-  locale: Locale;
-}) {
-  return formatTemplate(
-    getDictionary(locale).member.errors.referralLimitReached,
-    {
-      code,
-      count,
-      limit: REFERRAL_SIGNUP_LIMIT,
-    },
-  );
 }
 
 function getInsufficientBalanceMessage(locale: Locale) {
@@ -1462,25 +1556,12 @@ export async function syncMemberRegistration(
     effectiveSponsorReferralCode,
   );
 
-  if (
-    !existingSponsorReferralCode &&
-    incomingReferralState?.status === "full"
-  ) {
-    throw new MemberSyncError(
-      getReferralLimitReachedMessage({
-        code: incomingReferralState.code,
-        count: incomingReferralState.signupCount,
-        locale: resolvedLocale,
-      }),
-      409,
-    );
-  }
-
   const sponsor = await resolveSponsor({
     email,
     sponsorReferralCode:
       existingSponsorReferralCode ??
-      (incomingReferralState?.status === "available"
+      (incomingReferralState &&
+      incomingReferralState.status !== "invalid"
         ? incomingReferralState.code
         : null),
   });

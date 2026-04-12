@@ -169,17 +169,15 @@ export function SmartWalletApp({
   const homeHref = `/${locale}`;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
-    incomingReferralState?.status === "available"
+    incomingReferralState?.status !== "invalid"
       ? incomingReferralCode
       : null;
   const isSelfIncomingReferral =
     incomingReferralCode !== null &&
     memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
-  const isIncomingReferralBlocked =
-    incomingReferralState?.status === "full" &&
-    memberSync.member?.referredByCode !== incomingReferralState.code &&
-    !isSignupCompleted;
+  const isIncomingReferralOverflow =
+    incomingReferralState?.status === "full" && !isSignupCompleted;
   const isMembershipLoading =
     status === "connected" &&
     hasThirdwebClientId &&
@@ -236,7 +234,6 @@ export function SmartWalletApp({
     isSignupBalanceLoading ||
     isInsufficientUsdtBalance ||
     !projectWallet ||
-    isIncomingReferralBlocked ||
     isSignupCompleted;
 
   function handleSignupPaymentError(error: Error) {
@@ -281,16 +278,6 @@ export function SmartWalletApp({
 
     if (isInsufficientUsdtBalance) {
       throw new Error(insufficientBalanceMessage);
-    }
-
-    if (isIncomingReferralBlocked && incomingReferralState) {
-      throw new Error(
-        formatTemplate(dictionary.member.errors.referralLimitReached, {
-          code: incomingReferralState.code,
-          count: incomingReferralState.signupCount,
-          limit: incomingReferralState.limit,
-        }),
-      );
     }
 
     return transfer({
@@ -860,7 +847,7 @@ export function SmartWalletApp({
                     <h2 className="max-w-2xl text-[1.72rem] font-semibold leading-[1.03] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
                       {!hasThirdwebClientId
                         ? dictionary.env.title
-                        : isIncomingReferralBlocked
+                        : isIncomingReferralOverflow
                           ? dictionary.member.incomingReferralLimitTitle
                           : status === "connected" && accountAddress
                             ? dictionary.sponsored.title
@@ -869,7 +856,7 @@ export function SmartWalletApp({
                     <p className="max-w-2xl text-[0.96rem] leading-7 text-slate-600 sm:text-lg">
                       {!hasThirdwebClientId
                         ? dictionary.env.description
-                        : isIncomingReferralBlocked && incomingReferralState
+                        : isIncomingReferralOverflow && incomingReferralState
                           ? formatTemplate(
                               dictionary.member.incomingReferralLimitDescription,
                               {
@@ -884,8 +871,8 @@ export function SmartWalletApp({
                     </p>
                   </div>
 
-                  {isIncomingReferralBlocked && incomingReferralState ? (
-                    <MessageCard tone="error">
+                  {isIncomingReferralOverflow && incomingReferralState ? (
+                    <MessageCard>
                       {formatTemplate(
                         dictionary.member.incomingReferralLimitDescription,
                         {

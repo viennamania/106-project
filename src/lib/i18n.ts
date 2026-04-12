@@ -490,15 +490,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       incomingReferralTitle: "추천인 코드가 감지되었습니다.",
       incomingReferralDescription:
         "이메일 로그인 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",
-      incomingReferralLimitTitle: "이 추천인 코드는 마감되었습니다.",
+      incomingReferralLimitTitle: "이 추천인 코드는 직접 가입이 마감되었습니다.",
       incomingReferralLimitDescription:
-        "추천인 코드 {code} 는 이미 {count}명의 가입이 진행 중이거나 완료되어 더 이상 사용할 수 없습니다. 다른 레퍼럴 코드로 다시 접속한 뒤 회원가입을 진행하세요.",
+        "추천인 코드 {code} 는 직접 {limit}명이 모두 가입 진행 중이거나 완료되었습니다. 그래도 이 링크로 회원가입을 계속하면 시스템이 {code} 네트워크 하부의 빈 슬롯을 자동으로 찾아 연결합니다.",
       selfReferralNotice:
         "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
         "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
-        "추천 코드 없이 가입이 완료되어, 현재 자동 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
+        "직접 추천 슬롯이 가득 차 있어, 현재 자동 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -849,15 +849,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       incomingReferralTitle: "A referral code was detected.",
       incomingReferralDescription:
         "If signup completes on this page, referral code {code} will be stored on the member record.",
-      incomingReferralLimitTitle: "This referral code has reached its limit.",
+      incomingReferralLimitTitle:
+        "This referral code has reached its direct signup limit.",
       incomingReferralLimitDescription:
-        "Referral code {code} already has {count} signups in progress or completed and can no longer be used. Open the homepage with a different referral code before signing up.",
+        "Referral code {code} already has all {limit} direct signups in progress or completed. You can still continue signup from this link, and the system will automatically place you into the next open slot under the {code} network.",
       selfReferralNotice:
         "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
         "Referral code {code} is applied to this signup.",
       autoPlacementDescription:
-        "This signup completed without a referral code, so it was assigned to an open slot under network code {code} by the current auto-placement rules.",
+        "The direct referral slots were already full, so this signup was assigned to an open slot under network code {code} by the current auto-placement rules.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -1210,15 +1211,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       incomingReferralTitle: "紹介コードを検出しました。",
       incomingReferralDescription:
         "メールログイン後に登録が完了すると、紹介コード {code} が会員情報に保存されます。",
-      incomingReferralLimitTitle: "この紹介コードは受付終了です。",
+      incomingReferralLimitTitle:
+        "この紹介コードの直接登録枠は埋まっています。",
       incomingReferralLimitDescription:
-        "紹介コード {code} はすでに {count} 人が登録中または登録完了の状態で、これ以上は利用できません。別のレファラルコードでホームを開き直してから登録してください。",
+        "紹介コード {code} は直接 {limit} 人がすでに登録中または登録完了です。それでもこのリンクから登録を続けると、システムが {code} ネットワーク配下の空きスロットを自動で探して接続します。",
       selfReferralNotice:
         "自分のレファラルリンクを開いています。自分自身には紹介特典は適用されません。",
       appliedReferralDescription:
         "この登録には紹介コード {code} が適用されています。",
       autoPlacementDescription:
-        "紹介コードなしで登録が完了したため、現在の自動配置ルールに従ってネットワークコード {code} の空きスロットへ配置されました。",
+        "直接紹介枠が埋まっていたため、現在の自動配置ルールに従ってネットワークコード {code} の空きスロットへ配置されました。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
@@ -1571,15 +1573,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       incomingReferralTitle: "检测到推荐码。",
       incomingReferralDescription:
         "邮箱登录后，如果在此页面完成注册，推荐码 {code} 会写入会员信息。",
-      incomingReferralLimitTitle: "这个推荐码已满额。",
+      incomingReferralLimitTitle: "这个推荐码的直推名额已满。",
       incomingReferralLimitDescription:
-        "推荐码 {code} 已经有 {count} 位会员正在注册或已完成注册，不能再继续使用。请换一个推荐码重新打开首页后再注册。",
+        "推荐码 {code} 的直推 {limit} 个名额都已在进行中或已完成。你仍然可以继续通过这个链接注册，系统会自动在 {code} 网络下方寻找可用空位并完成挂接。",
       selfReferralNotice:
         "你打开的是自己的推荐链接。自己的注册不会获得推荐奖励。",
       appliedReferralDescription:
         "此注册已应用推荐码 {code}。",
       autoPlacementDescription:
-        "由于此注册在没有推荐码的情况下完成，系统已按当前自动分配规则将其放入网络代码 {code} 下的空槽位。",
+        "由于直属推荐位已满，系统已按当前自动分配规则将其放入网络代码 {code} 下的空槽位。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
@@ -1938,15 +1940,16 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       incomingReferralTitle: "Đã phát hiện mã giới thiệu.",
       incomingReferralDescription:
         "Nếu đăng ký hoàn tất trên trang này, mã giới thiệu {code} sẽ được lưu vào hồ sơ thành viên.",
-      incomingReferralLimitTitle: "Mã giới thiệu này đã đạt giới hạn.",
+      incomingReferralLimitTitle:
+        "Mã giới thiệu này đã kín suất đăng ký trực tiếp.",
       incomingReferralLimitDescription:
-        "Mã giới thiệu {code} đã có {count} lượt đăng ký đang xử lý hoặc đã hoàn tất nên không thể dùng thêm. Hãy mở lại trang chủ với mã khác trước khi đăng ký.",
+        "Mã giới thiệu {code} đã có đủ {limit} lượt đăng ký trực tiếp đang xử lý hoặc đã hoàn tất. Bạn vẫn có thể tiếp tục đăng ký từ liên kết này và hệ thống sẽ tự động tìm vị trí trống tiếp theo trong mạng {code}.",
       selfReferralNotice:
         "Bạn đang mở liên kết referral của chính mình. Tài khoản của bạn sẽ không nhận credit giới thiệu cho đăng ký này.",
       appliedReferralDescription:
         "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
       autoPlacementDescription:
-        "Lần đăng ký này hoàn tất mà không có mã giới thiệu, vì vậy hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc auto-placement hiện tại.",
+        "Các vị trí giới thiệu trực tiếp đã đầy, vì vậy hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc auto-placement hiện tại.",
       shareHint:
         "Chia sẻ liên kết này để mở trang đăng ký với mã referral của bạn đã được gắn sẵn.",
       noReferralApplied: "Chưa áp dụng",
@@ -2258,15 +2261,16 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       incomingReferralTitle: "Kode referral terdeteksi.",
       incomingReferralDescription:
         "Jika pendaftaran selesai di halaman ini, kode referral {code} akan disimpan pada data anggota.",
-      incomingReferralLimitTitle: "Kode referral ini sudah penuh.",
+      incomingReferralLimitTitle:
+        "Kode referral ini sudah penuh untuk pendaftaran langsung.",
       incomingReferralLimitDescription:
-        "Kode referral {code} sudah memiliki {count} pendaftaran yang sedang berjalan atau sudah selesai dan tidak bisa digunakan lagi. Buka kembali beranda dengan kode referral lain sebelum mendaftar.",
+        "Kode referral {code} sudah memiliki {limit} pendaftaran langsung yang sedang berjalan atau sudah selesai. Anda tetap bisa lanjut mendaftar dari tautan ini, dan sistem akan otomatis mencari slot kosong berikutnya di bawah jaringan {code}.",
       selfReferralNotice:
         "Anda membuka tautan referral sendiri. Kredit referral tidak berlaku untuk pendaftaran Anda sendiri.",
       appliedReferralDescription:
         "Kode referral {code} diterapkan pada pendaftaran ini.",
       autoPlacementDescription:
-        "Pendaftaran ini selesai tanpa kode referral, jadi sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan auto-placement saat ini.",
+        "Slot referral langsung sudah penuh, jadi sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan auto-placement saat ini.",
       shareHint:
         "Bagikan tautan ini untuk membuka halaman pendaftaran dengan kode referral Anda yang sudah terpasang.",
       noReferralApplied: "Belum diterapkan",
