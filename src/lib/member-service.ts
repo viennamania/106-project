@@ -58,6 +58,7 @@ const BACKFILL_MIN_LOG_CHUNK = BigInt(250);
 const BACKFILL_COOLDOWN_MS = 30_000;
 const ESTIMATED_BSC_BLOCK_TIME_SECONDS = 3;
 const SIGNUP_PAYMENT_LOOKBACK_MS = 60 * 60 * 1000;
+const DEFAULT_SIGNUP_SPONSOR_EMAIL = "jasonkim.v@gmail.com";
 
 export class MemberSyncError extends Error {
   status: number;
@@ -92,6 +93,11 @@ function getProjectWallet() {
   }
 
   return normalizeAddress(projectWallet);
+}
+
+function getDefaultSignupSponsorEmail() {
+  const configured = process.env.DEFAULT_SIGNUP_SPONSOR_EMAIL?.trim();
+  return normalizeEmail(configured || DEFAULT_SIGNUP_SPONSOR_EMAIL);
 }
 
 async function generateUniqueReferralCode(
@@ -132,6 +138,16 @@ function getSponsorEmail(member: MemberDocument) {
 
 function getPlacementReferralCode(member: MemberDocument) {
   return member.placementReferralCode ?? member.referredByCode ?? null;
+}
+
+function isLockedToDefaultSignupSponsor(member: MemberDocument) {
+  const sponsorEmail = getSponsorEmail(member);
+
+  if (!sponsorEmail) {
+    return false;
+  }
+
+  return sponsorEmail === getDefaultSignupSponsorEmail();
 }
 
 async function ensurePlacementSlotsForCompletedMember(
@@ -599,6 +615,10 @@ async function ensurePlacementAssigned({
         }
       }
     }
+  }
+
+  if (isLockedToDefaultSignupSponsor(member)) {
+    return member;
   }
 
   const autoSlot = await claimAutoPlacementSlot({
@@ -1369,6 +1389,36 @@ async function resolveSponsor({
   };
 }
 
+async function resolveDefaultSignupSponsor(email: string) {
+  const sponsorEmail = getDefaultSignupSponsorEmail();
+
+  if (!sponsorEmail || sponsorEmail === email) {
+    return {
+      sponsorEmail: null,
+      sponsorMember: null,
+      sponsorReferralCode: null,
+    };
+  }
+
+  const collection = await getMembersCollection();
+  const sponsorMember = await collection.findOne({
+    email: sponsorEmail,
+    status: "completed",
+  });
+
+  if (!sponsorMember?.referralCode) {
+    throw new Error(
+      `Default signup sponsor is not available as a completed member: ${sponsorEmail}`,
+    );
+  }
+
+  return {
+    sponsorEmail: sponsorMember.email,
+    sponsorMember,
+    sponsorReferralCode: sponsorMember.referralCode,
+  };
+}
+
 export async function getIncomingReferralState(
   referredByCode: string | null,
 ): Promise<IncomingReferralState | null> {
@@ -1555,16 +1605,25 @@ export async function syncMemberRegistration(
   const incomingReferralState = await getIncomingReferralState(
     effectiveSponsorReferralCode,
   );
-
-  const sponsor = await resolveSponsor({
-    email,
-    sponsorReferralCode:
-      existingSponsorReferralCode ??
-      (incomingReferralState &&
-      incomingReferralState.status !== "invalid"
-        ? incomingReferralState.code
-        : null),
-  });
+  const sponsorReferralCodeForSync =
+    existingSponsorReferralCode ??
+    (incomingReferralState && incomingReferralState.status !== "invalid"
+      ? incomingReferralState.code
+      : null);
+  const shouldApplyDefaultSponsor =
+    !existingSponsorReferralCode && !referredByCode;
+  const sponsor = sponsorReferralCodeForSync
+    ? await resolveSponsor({
+        email,
+        sponsorReferralCode: sponsorReferralCodeForSync,
+      })
+    : shouldApplyDefaultSponsor
+      ? await resolveDefaultSignupSponsor(email)
+      : {
+          sponsorEmail: null,
+          sponsorMember: null,
+          sponsorReferralCode: null,
+        };
 
   await collection.updateOne(
     { email },
