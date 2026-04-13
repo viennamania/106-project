@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThirdwebAppProvider } from "@/components/thirdweb-app-provider";
+import { PwaServiceWorker } from "@/components/pwa-service-worker";
 import type { ReactNode } from "react";
 
 const spaceGrotesk = Space_Grotesk({
@@ -16,9 +17,30 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Pocket Smart Wallet",
   title: "Pocket Smart Wallet",
   description:
     "Mobile-first smart wallet starter built with thirdweb and a v0-compatible Next.js setup.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Pocket Smart Wallet",
+  },
+  formatDetection: {
+    address: false,
+    email: false,
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#0a1325",
+  viewportFit: "cover",
+  width: "device-width",
 };
 
 export default function RootLayout({
@@ -34,6 +56,7 @@ export default function RootLayout({
     >
       <body className="min-h-full">
         <ThirdwebAppProvider>{children}</ThirdwebAppProvider>
+        <PwaServiceWorker />
       </body>
     </html>
   );
