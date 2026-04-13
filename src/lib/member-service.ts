@@ -45,6 +45,7 @@ import {
   type ThirdwebInsightEventRecord,
   type ThirdwebWebhookEventDocument,
 } from "@/lib/thirdweb-webhooks";
+import { syncPointLedgerForMemberEmails } from "@/lib/points-service";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
 import { getWalletBalance } from "thirdweb/wallets";
 
@@ -688,6 +689,7 @@ async function awardReferralRewardsForCompletedMember({
   const awardedAt = member.registrationCompletedAt ?? new Date();
   const seenReferralCodes = new Set<string>();
   const seenRecipientEmails = new Set<string>([member.email]);
+  const recipientEmailsToSync = new Set<string>();
   let currentReferralCode = getPlacementReferralCode(member);
 
   for (
@@ -741,9 +743,14 @@ async function awardReferralRewardsForCompletedMember({
       }
 
       seenRecipientEmails.add(recipient.email);
+      recipientEmailsToSync.add(recipient.email);
     }
 
     currentReferralCode = getPlacementReferralCode(recipient);
+  }
+
+  if (recipientEmailsToSync.size > 0) {
+    await syncPointLedgerForMemberEmails([...recipientEmailsToSync]);
   }
 }
 

@@ -35,6 +35,8 @@ export function LandingPage({
   languageLabel,
   locale,
   projectWallet,
+  rewardsHref,
+  rewardsLabel,
   walletHref,
   walletLabel,
 }: {
@@ -44,6 +46,8 @@ export function LandingPage({
   languageLabel: string;
   locale: Locale;
   projectWallet: string | null;
+  rewardsHref: string;
+  rewardsLabel: string;
   walletHref: string;
   walletLabel: string;
 }) {
@@ -83,6 +87,13 @@ export function LandingPage({
                 href={disclaimerHref}
               >
                 {disclaimerLabel}
+              </Link>
+              <Link
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                href={rewardsHref}
+              >
+                <Crown className="size-4" />
+                {rewardsLabel}
               </Link>
               <Link
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"

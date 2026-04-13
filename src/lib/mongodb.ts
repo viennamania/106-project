@@ -14,6 +14,11 @@ import type {
   WalletTransferDocument,
   WalletTransferSyncStateDocument,
 } from "@/lib/wallet";
+import type {
+  PointBalanceDocument,
+  PointLedgerDocument,
+  RewardRedemptionDocument,
+} from "@/lib/points";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -35,6 +40,15 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoWalletTransferSyncStatesCollectionPromise?: Promise<
     Collection<WalletTransferSyncStateDocument>
+  >;
+  mongoPointLedgerCollectionPromise?: Promise<
+    Collection<PointLedgerDocument>
+  >;
+  mongoPointBalancesCollectionPromise?: Promise<
+    Collection<PointBalanceDocument>
+  >;
+  mongoRewardRedemptionsCollectionPromise?: Promise<
+    Collection<RewardRedemptionDocument>
   >;
 };
 
@@ -346,4 +360,80 @@ export async function getWalletTransferSyncStatesCollection() {
   }
 
   return globalForMongo.mongoWalletTransferSyncStatesCollectionPromise;
+}
+
+export async function getPointLedgerCollection() {
+  if (!globalForMongo.mongoPointLedgerCollectionPromise) {
+    globalForMongo.mongoPointLedgerCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_POINT_LEDGER_COLLECTION ?? "pointLedger";
+      const collection = client
+        .db(dbName)
+        .collection<PointLedgerDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ ledgerEntryId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({
+          memberEmail: 1,
+          sourceType: 1,
+          sourceId: 1,
+        }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoPointLedgerCollectionPromise;
+}
+
+export async function getPointBalancesCollection() {
+  if (!globalForMongo.mongoPointBalancesCollectionPromise) {
+    globalForMongo.mongoPointBalancesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_POINT_BALANCES_COLLECTION ?? "pointBalances";
+      const collection = client
+        .db(dbName)
+        .collection<PointBalanceDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ memberEmail: 1 }, { unique: true }),
+        collection.createIndex({ updatedAt: -1 }),
+        collection.createIndex({ tier: 1, spendablePoints: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoPointBalancesCollectionPromise;
+}
+
+export async function getRewardRedemptionsCollection() {
+  if (!globalForMongo.mongoRewardRedemptionsCollectionPromise) {
+    globalForMongo.mongoRewardRedemptionsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_REWARD_REDEMPTIONS_COLLECTION ?? "rewardRedemptions";
+      const collection = client
+        .db(dbName)
+        .collection<RewardRedemptionDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ redemptionId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ status: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoRewardRedemptionsCollectionPromise;
 }

@@ -294,6 +294,91 @@ export type Dictionary = {
       qrUnavailable: string;
     };
   };
+  rewardsPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    disconnected: string;
+    loading: string;
+    paymentRequired: string;
+    emptyHistory: string;
+    emptyRedemptions: string;
+    previewNote: string;
+    labels: {
+      spendablePoints: string;
+      lifetimePoints: string;
+      currentTier: string;
+      nextTier: string;
+      pointsToNextTier: string;
+      progress: string;
+      rewardCatalog: string;
+      rewardCost: string;
+      earnHistory: string;
+      redemptionHistory: string;
+      maxTier: string;
+    };
+    actions: {
+      backHome: string;
+      completeSignup: string;
+      openReferrals: string;
+      refresh: string;
+    };
+    errors: {
+      missingEmail: string;
+      loadFailed: string;
+      catalogFailed: string;
+      redemptionsFailed: string;
+    };
+    tiers: {
+      basic: string;
+      silver: string;
+      gold: string;
+      vip: string;
+    };
+    rewardTypes: {
+      tierUpgrade: string;
+      nftClaim: string;
+      discountCoupon: string;
+    };
+    redemptionStatus: {
+      pending: string;
+      queued: string;
+      completed: string;
+      failed: string;
+      cancelled: string;
+    };
+    history: {
+      earn: string;
+      adjustment: string;
+      referralReward: string;
+      adminAdjustment: string;
+      levelReward: string;
+      other: string;
+    };
+    catalog: {
+      previewNote: string;
+      previewBadge: string;
+      eligible: string;
+      needMorePoints: string;
+      empty: string;
+      silverCard: {
+        title: string;
+        description: string;
+      };
+      goldCard: {
+        title: string;
+        description: string;
+      };
+      vipPass: {
+        title: string;
+        description: string;
+      };
+      serviceCredit: {
+        title: string;
+        description: string;
+      };
+    };
+  };
   signInMix: {
     title: string;
     eyebrow: string;
@@ -655,6 +740,99 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         qrUnavailable: "QR 코드를 생성하지 못했습니다.",
       },
     },
+    rewardsPage: {
+      title: "포인트 리워드",
+      eyebrow: "points utility",
+      description:
+        "추천으로 쌓인 포인트를 확인하고, 다음 등급까지의 진행도를 보고, 교환 예정 리워드를 한눈에 확인합니다.",
+      disconnected: "이메일 로그인 후 포인트 리워드 페이지를 확인할 수 있습니다.",
+      loading: "포인트 데이터를 불러오는 중입니다.",
+      paymentRequired:
+        "아직 회원가입이 완료되지 않았습니다. 활성화 화면에서 가입을 먼저 완료하세요.",
+      emptyHistory: "아직 적립된 포인트 이력이 없습니다.",
+      emptyRedemptions: "아직 사용 또는 교환 이력이 없습니다.",
+      previewNote:
+        "현재는 포인트 적립과 등급 진행도를 먼저 제공합니다. 리워드 교환 흐름은 다음 단계에서 연결됩니다.",
+      labels: {
+        spendablePoints: "사용 가능 포인트",
+        lifetimePoints: "누적 적립 포인트",
+        currentTier: "현재 등급",
+        nextTier: "다음 등급",
+        pointsToNextTier: "{points}P 남음",
+        progress: "등급 진행도",
+        rewardCatalog: "리워드 카탈로그",
+        rewardCost: "필요 포인트",
+        earnHistory: "적립 이력",
+        redemptionHistory: "사용 이력",
+        maxTier: "최고 등급",
+      },
+      actions: {
+        backHome: "홈으로 돌아가기",
+        completeSignup: "활성화 화면으로 이동",
+        openReferrals: "레퍼럴 보기",
+        refresh: "새로고침",
+      },
+      errors: {
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        loadFailed: "포인트 데이터를 불러오지 못했습니다.",
+        catalogFailed: "리워드 카탈로그를 불러오지 못했습니다.",
+        redemptionsFailed: "포인트 사용 이력을 불러오지 못했습니다.",
+      },
+      tiers: {
+        basic: "Basic",
+        silver: "Silver",
+        gold: "Gold",
+        vip: "VIP",
+      },
+      rewardTypes: {
+        tierUpgrade: "등급 리워드",
+        nftClaim: "NFT 패스",
+        discountCoupon: "서비스 크레딧",
+      },
+      redemptionStatus: {
+        pending: "대기",
+        queued: "처리중",
+        completed: "완료",
+        failed: "실패",
+        cancelled: "취소",
+      },
+      history: {
+        earn: "적립",
+        adjustment: "조정",
+        referralReward: "추천 보상",
+        adminAdjustment: "운영 조정",
+        levelReward: "G{level} 보상",
+        other: "기타",
+      },
+      catalog: {
+        previewNote:
+          "아래 리워드는 포인트가 쌓일수록 도달 가능한 목표입니다. 실제 교환 플로우는 다음 단계에서 연결됩니다.",
+        previewBadge: "phase 1",
+        eligible: "도달 가능",
+        needMorePoints: "{points}P 더 필요",
+        empty: "표시할 리워드 항목이 없습니다.",
+        silverCard: {
+          title: "Silver 멤버 카드",
+          description:
+            "1,000P 도달 시 받을 수 있는 첫 등급 카드입니다. 등급 혜택과 온체인 멤버십의 시작점입니다.",
+        },
+        goldCard: {
+          title: "Gold 멤버 카드",
+          description:
+            "5,000P 이상 회원을 위한 상위 등급 카드입니다. 더 높은 신뢰와 우선 혜택에 연결됩니다.",
+        },
+        vipPass: {
+          title: "VIP 패스 NFT",
+          description:
+            "10,000P 이상에서 열리는 한정 패스입니다. 이벤트, 특별 드롭, 전용 권한용 리워드로 사용됩니다.",
+        },
+        serviceCredit: {
+          title: "서비스 크레딧",
+          description:
+            "20,000P 이상에서 교환 가능한 사용형 크레딧입니다. 추후 결제 할인이나 서비스 이용권으로 연결됩니다.",
+        },
+      },
+    },
     signInMix: {
       title: "가입 경로",
       eyebrow: "signup checklist",
@@ -1014,6 +1192,100 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txConfirmed:
           "The transfer was confirmed. Reloading balance and history now.",
         qrUnavailable: "Unable to generate a QR code right now.",
+      },
+    },
+    rewardsPage: {
+      title: "Points Rewards",
+      eyebrow: "points utility",
+      description:
+        "Review your referral points, track the next tier target, and see the reward catalog that those points unlock.",
+      disconnected: "Sign in with email to view your points rewards.",
+      loading: "Loading points data.",
+      paymentRequired:
+        "Your signup is not complete yet. Finish the activation flow first.",
+      emptyHistory: "No point earnings have been recorded yet.",
+      emptyRedemptions: "There are no redemption events yet.",
+      previewNote:
+        "This phase focuses on point accrual and tier progress first. Redemption flows will connect next.",
+      labels: {
+        spendablePoints: "Spendable points",
+        lifetimePoints: "Lifetime points",
+        currentTier: "Current tier",
+        nextTier: "Next tier",
+        pointsToNextTier: "{points}P left",
+        progress: "Tier progress",
+        rewardCatalog: "Reward catalog",
+        rewardCost: "Required points",
+        earnHistory: "Earning history",
+        redemptionHistory: "Redemption history",
+        maxTier: "Top tier",
+      },
+      actions: {
+        backHome: "Back home",
+        completeSignup: "Open activation",
+        openReferrals: "Open referrals",
+        refresh: "Refresh",
+      },
+      errors: {
+        missingEmail:
+          "Could not resolve the authenticated email address from the current wallet session.",
+        loadFailed: "Failed to load points data.",
+        catalogFailed: "Failed to load the reward catalog.",
+        redemptionsFailed: "Failed to load reward redemption history.",
+      },
+      tiers: {
+        basic: "Basic",
+        silver: "Silver",
+        gold: "Gold",
+        vip: "VIP",
+      },
+      rewardTypes: {
+        tierUpgrade: "Tier reward",
+        nftClaim: "NFT pass",
+        discountCoupon: "Service credit",
+      },
+      redemptionStatus: {
+        pending: "Pending",
+        queued: "Queued",
+        completed: "Completed",
+        failed: "Failed",
+        cancelled: "Cancelled",
+      },
+      history: {
+        earn: "Earn",
+        adjustment: "Adjustment",
+        referralReward: "Referral reward",
+        adminAdjustment: "Admin adjustment",
+        levelReward: "Level G{level} reward",
+        other: "Other",
+      },
+      catalog: {
+        previewNote:
+          "These rewards show what your current point balance can unlock next. Actual redemption flows are the next build step.",
+        previewBadge: "phase 1",
+        eligible: "Eligible",
+        needMorePoints: "{points}P more needed",
+        empty: "No reward catalog items are available.",
+        silverCard: {
+          title: "Silver Member Card",
+          description:
+            "Your first loyalty tier at 1,000P. It marks the beginning of visible member benefits and onchain identity.",
+        },
+        goldCard: {
+          title: "Gold Member Card",
+          description:
+            "A higher status card unlocked at 5,000P for members with stronger network contribution.",
+        },
+        vipPass: {
+          title: "VIP Pass NFT",
+          description:
+            "A limited reward unlocked at 10,000P for premium events, special drops, and gated access.",
+        },
+        serviceCredit: {
+          title: "Service Credit",
+          description:
+            "A 20,000P milestone reward intended for future discounts, credits, or paid feature usage.",
+        },
       },
     },
     signInMix: {
@@ -1379,6 +1651,101 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         qrUnavailable: "現在 QR コードを生成できません。",
       },
     },
+    rewardsPage: {
+      title: "ポイントリワード",
+      eyebrow: "points utility",
+      description:
+        "紹介で積み上がったポイント、次の等級までの進行度、到達可能なリワードをまとめて確認します。",
+      disconnected:
+        "ポイントリワードを確認するにはメールログインしてください。",
+      loading: "ポイントデータを読み込んでいます。",
+      paymentRequired:
+        "まだ会員登録が完了していません。先にアクティベーションを完了してください。",
+      emptyHistory: "まだポイント積立履歴はありません。",
+      emptyRedemptions: "まだ使用または交換履歴はありません。",
+      previewNote:
+        "この段階ではポイント蓄積と等級進行を先に提供します。交換フローは次の段階で接続されます。",
+      labels: {
+        spendablePoints: "利用可能ポイント",
+        lifetimePoints: "累計ポイント",
+        currentTier: "現在の等級",
+        nextTier: "次の等級",
+        pointsToNextTier: "あと {points}P",
+        progress: "等級進行度",
+        rewardCatalog: "リワードカタログ",
+        rewardCost: "必要ポイント",
+        earnHistory: "積立履歴",
+        redemptionHistory: "使用履歴",
+        maxTier: "最高等級",
+      },
+      actions: {
+        backHome: "ホームへ戻る",
+        completeSignup: "アクティベーションへ",
+        openReferrals: "レファラルを見る",
+        refresh: "更新",
+      },
+      errors: {
+        missingEmail:
+          "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        loadFailed: "ポイントデータを読み込めませんでした。",
+        catalogFailed: "リワードカタログを読み込めませんでした。",
+        redemptionsFailed: "リワード使用履歴を読み込めませんでした。",
+      },
+      tiers: {
+        basic: "Basic",
+        silver: "Silver",
+        gold: "Gold",
+        vip: "VIP",
+      },
+      rewardTypes: {
+        tierUpgrade: "等級リワード",
+        nftClaim: "NFT パス",
+        discountCoupon: "サービスクレジット",
+      },
+      redemptionStatus: {
+        pending: "待機",
+        queued: "処理中",
+        completed: "完了",
+        failed: "失敗",
+        cancelled: "取消",
+      },
+      history: {
+        earn: "積立",
+        adjustment: "調整",
+        referralReward: "紹介報酬",
+        adminAdjustment: "運営調整",
+        levelReward: "G{level} 報酬",
+        other: "その他",
+      },
+      catalog: {
+        previewNote:
+          "以下のリワードは、ポイントが増えるほど到達可能になる目標です。実際の交換フローは次の段階で接続されます。",
+        previewBadge: "phase 1",
+        eligible: "到達可能",
+        needMorePoints: "あと {points}P 必要",
+        empty: "表示できるリワード項目がありません。",
+        silverCard: {
+          title: "Silver メンバーカード",
+          description:
+            "1,000P で到達する最初の等級カードです。会員特典とオンチェーン会員証明の出発点です。",
+        },
+        goldCard: {
+          title: "Gold メンバーカード",
+          description:
+            "5,000P で開放される上位等級カードです。より高い信頼と優先特典につながります。",
+        },
+        vipPass: {
+          title: "VIP パス NFT",
+          description:
+            "10,000P で開く限定パスです。イベント、特別ドロップ、専用アクセス向けのリワードです。",
+        },
+        serviceCredit: {
+          title: "サービスクレジット",
+          description:
+            "20,000P 到達時に目指せる使用型クレジットです。将来の割引や有料機能利用に接続されます。",
+        },
+      },
+    },
     signInMix: {
       title: "登録フロー",
       eyebrow: "signup checklist",
@@ -1734,6 +2101,98 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txSent: "转账已提交。链上确认后，记录会自动刷新。",
         txConfirmed: "转账已确认。正在重新加载余额和记录。",
         qrUnavailable: "暂时无法生成二维码。",
+      },
+    },
+    rewardsPage: {
+      title: "积分奖励",
+      eyebrow: "points utility",
+      description:
+        "查看推荐积分、距离下一等级还差多少，以及这些积分后续可以解锁的奖励目标。",
+      disconnected: "请先通过邮箱登录后再查看积分奖励页面。",
+      loading: "正在加载积分数据。",
+      paymentRequired: "你的会员注册尚未完成，请先完成激活流程。",
+      emptyHistory: "暂无积分累积记录。",
+      emptyRedemptions: "暂无使用或兑换记录。",
+      previewNote:
+        "当前阶段先提供积分累计与等级进度，后续再接入实际兑换流程。",
+      labels: {
+        spendablePoints: "可用积分",
+        lifetimePoints: "累计积分",
+        currentTier: "当前等级",
+        nextTier: "下一等级",
+        pointsToNextTier: "还差 {points}P",
+        progress: "等级进度",
+        rewardCatalog: "奖励目录",
+        rewardCost: "所需积分",
+        earnHistory: "积分记录",
+        redemptionHistory: "兑换记录",
+        maxTier: "最高等级",
+      },
+      actions: {
+        backHome: "返回首页",
+        completeSignup: "前往激活",
+        openReferrals: "查看推荐网络",
+        refresh: "刷新",
+      },
+      errors: {
+        missingEmail: "无法从当前钱包会话读取邮箱地址。",
+        loadFailed: "无法加载积分数据。",
+        catalogFailed: "无法加载奖励目录。",
+        redemptionsFailed: "无法加载积分使用记录。",
+      },
+      tiers: {
+        basic: "Basic",
+        silver: "Silver",
+        gold: "Gold",
+        vip: "VIP",
+      },
+      rewardTypes: {
+        tierUpgrade: "等级奖励",
+        nftClaim: "NFT 通行证",
+        discountCoupon: "服务额度",
+      },
+      redemptionStatus: {
+        pending: "待处理",
+        queued: "排队中",
+        completed: "已完成",
+        failed: "失败",
+        cancelled: "已取消",
+      },
+      history: {
+        earn: "积累",
+        adjustment: "调整",
+        referralReward: "推荐奖励",
+        adminAdjustment: "运营调整",
+        levelReward: "G{level} 奖励",
+        other: "其他",
+      },
+      catalog: {
+        previewNote:
+          "下面的奖励展示了当前积分接下来可以到达的目标，实际兑换流程将在下一阶段接入。",
+        previewBadge: "phase 1",
+        eligible: "已达标",
+        needMorePoints: "还需 {points}P",
+        empty: "暂无可显示的奖励项目。",
+        silverCard: {
+          title: "Silver 会员卡",
+          description:
+            "达到 1,000P 后可获得的首个等级卡，用于展示可见会员权益与链上身份。",
+        },
+        goldCard: {
+          title: "Gold 会员卡",
+          description:
+            "达到 5,000P 后解锁的更高等级卡，面向贡献更高的会员。",
+        },
+        vipPass: {
+          title: "VIP Pass NFT",
+          description:
+            "达到 10,000P 后可解锁的限定通行证，可用于活动、专属掉落和受限访问。",
+        },
+        serviceCredit: {
+          title: "服务额度",
+          description:
+            "20,000P 里程碑对应的可用型额度，后续可连接折扣、抵扣或付费功能使用。",
+        },
       },
     },
     signInMix: {

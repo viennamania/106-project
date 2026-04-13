@@ -45,6 +45,8 @@ export default async function LocalizedHome({
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
+      rewardsHref={`/${locale}/rewards`}
+      rewardsLabel={dictionary.rewardsPage.title}
       walletHref={`/${locale}/wallet`}
       walletLabel={dictionary.walletPage.title}
     />
