@@ -322,12 +322,18 @@ export type Dictionary = {
       completeSignup: string;
       openReferrals: string;
       refresh: string;
+      redeem: string;
+      redeeming: string;
     };
     errors: {
       missingEmail: string;
       loadFailed: string;
       catalogFailed: string;
       redemptionsFailed: string;
+      redeemFailed: string;
+    };
+    notices: {
+      redeemSuccess: string;
     };
     tiers: {
       basic: string;
@@ -752,7 +758,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       emptyHistory: "아직 적립된 포인트 이력이 없습니다.",
       emptyRedemptions: "아직 사용 또는 교환 이력이 없습니다.",
       previewNote:
-        "현재는 포인트 적립과 등급 진행도를 먼저 제공합니다. 리워드 교환 흐름은 다음 단계에서 연결됩니다.",
+        "조건을 충족한 리워드는 이 화면에서 바로 교환할 수 있으며, 처리 상태와 포인트 잔액이 즉시 반영됩니다.",
       labels: {
         spendablePoints: "사용 가능 포인트",
         lifetimePoints: "누적 적립 포인트",
@@ -771,12 +777,19 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         completeSignup: "활성화 화면으로 이동",
         openReferrals: "레퍼럴 보기",
         refresh: "새로고침",
+        redeem: "리워드 교환",
+        redeeming: "처리 중...",
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
         loadFailed: "포인트 데이터를 불러오지 못했습니다.",
         catalogFailed: "리워드 카탈로그를 불러오지 못했습니다.",
         redemptionsFailed: "포인트 사용 이력을 불러오지 못했습니다.",
+        redeemFailed: "리워드 교환을 처리하지 못했습니다.",
+      },
+      notices: {
+        redeemSuccess:
+          "리워드 교환 요청이 반영되었습니다. 포인트 잔액과 사용 이력을 갱신했습니다.",
       },
       tiers: {
         basic: "Basic",
@@ -806,8 +819,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "아래 리워드는 포인트가 쌓일수록 도달 가능한 목표입니다. 실제 교환 플로우는 다음 단계에서 연결됩니다.",
-        previewBadge: "phase 1",
+          "사용 가능한 리워드는 여기서 바로 교환됩니다. 한 번 교환한 항목은 계정 기준으로 잠기고, 상태는 사용 이력에서 계속 추적됩니다.",
+        previewBadge: "live",
         eligible: "도달 가능",
         needMorePoints: "{points}P 더 필요",
         empty: "표시할 리워드 항목이 없습니다.",
@@ -1206,7 +1219,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       emptyHistory: "No point earnings have been recorded yet.",
       emptyRedemptions: "There are no redemption events yet.",
       previewNote:
-        "This phase focuses on point accrual and tier progress first. Redemption flows will connect next.",
+        "Eligible rewards can now be redeemed directly from this page, with status and point balance updating immediately.",
       labels: {
         spendablePoints: "Spendable points",
         lifetimePoints: "Lifetime points",
@@ -1225,6 +1238,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         completeSignup: "Open activation",
         openReferrals: "Open referrals",
         refresh: "Refresh",
+        redeem: "Redeem reward",
+        redeeming: "Processing...",
       },
       errors: {
         missingEmail:
@@ -1232,6 +1247,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "Failed to load points data.",
         catalogFailed: "Failed to load the reward catalog.",
         redemptionsFailed: "Failed to load reward redemption history.",
+        redeemFailed: "Failed to redeem the selected reward.",
+      },
+      notices: {
+        redeemSuccess:
+          "The redemption request was applied. Points balance and history are up to date.",
       },
       tiers: {
         basic: "Basic",
@@ -1261,8 +1281,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "These rewards show what your current point balance can unlock next. Actual redemption flows are the next build step.",
-        previewBadge: "phase 1",
+          "Available rewards can be claimed here directly. Once a reward is redeemed, it stays locked to the current member account and remains visible in redemption history.",
+        previewBadge: "live",
         eligible: "Eligible",
         needMorePoints: "{points}P more needed",
         empty: "No reward catalog items are available.",
@@ -1664,7 +1684,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       emptyHistory: "まだポイント積立履歴はありません。",
       emptyRedemptions: "まだ使用または交換履歴はありません。",
       previewNote:
-        "この段階ではポイント蓄積と等級進行を先に提供します。交換フローは次の段階で接続されます。",
+        "条件を満たしたリワードはこの画面から直接交換でき、処理状態とポイント残高がすぐに反映されます。",
       labels: {
         spendablePoints: "利用可能ポイント",
         lifetimePoints: "累計ポイント",
@@ -1683,6 +1703,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         completeSignup: "アクティベーションへ",
         openReferrals: "レファラルを見る",
         refresh: "更新",
+        redeem: "リワード交換",
+        redeeming: "処理中...",
       },
       errors: {
         missingEmail:
@@ -1690,6 +1712,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "ポイントデータを読み込めませんでした。",
         catalogFailed: "リワードカタログを読み込めませんでした。",
         redemptionsFailed: "リワード使用履歴を読み込めませんでした。",
+        redeemFailed: "リワード交換を処理できませんでした。",
+      },
+      notices: {
+        redeemSuccess:
+          "リワード交換リクエストが反映されました。ポイント残高と使用履歴を更新しました。",
       },
       tiers: {
         basic: "Basic",
@@ -1719,8 +1746,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "以下のリワードは、ポイントが増えるほど到達可能になる目標です。実際の交換フローは次の段階で接続されます。",
-        previewBadge: "phase 1",
+          "利用可能なリワードはここで直接交換されます。一度交換した項目は会員アカウントに紐づき、使用履歴で継続して追跡できます。",
+        previewBadge: "live",
         eligible: "到達可能",
         needMorePoints: "あと {points}P 必要",
         empty: "表示できるリワード項目がありません。",
@@ -2114,7 +2141,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       emptyHistory: "暂无积分累积记录。",
       emptyRedemptions: "暂无使用或兑换记录。",
       previewNote:
-        "当前阶段先提供积分累计与等级进度，后续再接入实际兑换流程。",
+        "满足条件的奖励现在可以直接在此页面兑换，状态和积分余额会立即刷新。",
       labels: {
         spendablePoints: "可用积分",
         lifetimePoints: "累计积分",
@@ -2133,12 +2160,18 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         completeSignup: "前往激活",
         openReferrals: "查看推荐网络",
         refresh: "刷新",
+        redeem: "兑换奖励",
+        redeeming: "处理中...",
       },
       errors: {
         missingEmail: "无法从当前钱包会话读取邮箱地址。",
         loadFailed: "无法加载积分数据。",
         catalogFailed: "无法加载奖励目录。",
         redemptionsFailed: "无法加载积分使用记录。",
+        redeemFailed: "无法处理当前奖励兑换。",
+      },
+      notices: {
+        redeemSuccess: "兑换请求已记录，积分余额与兑换记录已同步更新。",
       },
       tiers: {
         basic: "Basic",
@@ -2168,8 +2201,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "下面的奖励展示了当前积分接下来可以到达的目标，实际兑换流程将在下一阶段接入。",
-        previewBadge: "phase 1",
+          "可用奖励现在可以直接在这里兑换。每个已兑换项目都会锁定到当前会员账号，并持续显示在兑换记录中。",
+        previewBadge: "live",
         eligible: "已达标",
         needMorePoints: "还需 {points}P",
         empty: "暂无可显示的奖励项目。",

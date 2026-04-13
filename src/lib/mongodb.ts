@@ -80,7 +80,7 @@ function createMongoClient() {
   });
 }
 
-async function getMongoClient() {
+export async function getMongoClient() {
   if (!globalForMongo.mongoClientPromise) {
     globalForMongo.mongoClientPromise = createMongoClient().connect();
   }
@@ -427,6 +427,7 @@ export async function getRewardRedemptionsCollection() {
 
       await Promise.all([
         collection.createIndex({ redemptionId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, rewardId: 1 }, { unique: true }),
         collection.createIndex({ memberEmail: 1, createdAt: -1 }),
         collection.createIndex({ status: 1, updatedAt: -1 }),
       ]);

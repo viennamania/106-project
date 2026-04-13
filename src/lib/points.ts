@@ -183,6 +183,18 @@ export type RewardRedemptionsResponse = {
   redemptions: RewardRedemptionRecord[];
 };
 
+export type RewardRedeemRequest = {
+  email: string;
+  rewardId: RewardCatalogId;
+};
+
+export type RewardRedeemResponse = {
+  member: MemberRecord;
+  redemption: RewardRedemptionRecord;
+  redemptions: RewardRedemptionRecord[];
+  summary: PointsSummaryRecord;
+};
+
 export function createEmptyPointsSummary(): PointsSummaryRecord {
   return {
     history: [],
@@ -279,4 +291,8 @@ export function serializeRewardRedemption(
     status: redemption.status,
     txHash: redemption.txHash ?? null,
   };
+}
+
+export function isRewardCatalogId(value: string): value is RewardCatalogId {
+  return rewardCatalogIds.includes(value as RewardCatalogId);
 }

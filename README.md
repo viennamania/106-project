@@ -19,6 +19,7 @@
 - MongoDB Atlas 회원 상태 관리 (`pending_payment` -> `completed`)
 - 가입 완료 시점 레퍼럴 코드 생성 및 추천인 코드 저장
 - thirdweb Insight BSC USDT webhook 수신
+- 포인트 리워드 조회 및 교환 요청 처리
 - explorer / USDT contract / dashboard 빠른 링크
 
 ## Run locally
@@ -70,6 +71,8 @@ pnpm dev
 - 연결된 지갑에서 `PROJECT_WALLET` 로 정확히 `10 USDT` 를 보내야 회원가입이 완료됩니다.
 - `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 저장하고, 정확히 `10 USDT` 입금이 확인되면 회원 상태를 `completed` 로 승격합니다.
 - 레퍼럴 코드는 회원가입 완료 시점에만 생성됩니다.
+- `/[lang]/rewards` 에서 현재 포인트, 적립 이력, 리워드 사용 이력을 확인하고 사용 가능한 리워드를 바로 교환할 수 있습니다.
+- `POST /api/rewards/redemptions` 는 리워드 교환 요청을 생성하고 포인트 ledger를 차감한 뒤 사용 이력을 반환합니다.
 - 브라우저는 `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`를 사용하고, 서버 API 및 Railway worker는 `THIRDWEB_SECRET_KEY`가 있으면 이를 우선 사용합니다.
 
 ## thirdweb webhook setup
@@ -126,5 +129,7 @@ pnpm thirdweb:webhooks:register
 
 ```bash
 pnpm lint
-pnpm build
+pnpm exec tsc --noEmit
 ```
+
+`pnpm build` 는 현재 Next.js 16.2.1 요구사항 때문에 Node.js `>=20.9.0` 환경에서 실행해야 합니다.

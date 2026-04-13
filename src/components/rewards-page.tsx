@@ -31,6 +31,8 @@ import {
   type PointLedgerRecord,
   type PointTier,
   type PointsSummaryRecord,
+  type RewardRedeemRequest,
+  type RewardRedeemResponse,
   type PointsSummaryResponse,
   type RewardCatalogId,
   type RewardCatalogItemRecord,
@@ -89,6 +91,10 @@ export function RewardsPage({
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [redeemingRewardId, setRedeemingRewardId] =
+    useState<RewardCatalogId | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
@@ -259,6 +265,9 @@ export function RewardsPage({
     if (status !== "connected") {
       setIsLogoutDialogOpen(false);
       setIsRefreshing(false);
+      setRedeemingRewardId(null);
+      setActionError(null);
+      setActionNotice(null);
       setState({
         catalog: [],
         catalogError: null,
@@ -323,6 +332,68 @@ export function RewardsPage({
   const activeMember = state.member;
   const canBrowseRewards =
     state.status === "ready" || state.status === "loading" || Boolean(activeMember);
+  const latestRedemptionsByReward = state.redemptions.reduce<
+    Partial<Record<RewardCatalogId, RewardRedemptionRecord>>
+  >((accumulator, redemption) => {
+    if (!accumulator[redemption.rewardId]) {
+      accumulator[redemption.rewardId] = redemption;
+    }
+
+    return accumulator;
+  }, {});
+
+  async function handleRedeemReward(rewardId: RewardCatalogId) {
+    if (!state.email) {
+      setActionError(dictionary.rewardsPage.errors.missingEmail);
+      return;
+    }
+
+    setActionError(null);
+    setActionNotice(null);
+    setRedeemingRewardId(rewardId);
+
+    try {
+      const response = await fetch("/api/rewards/redemptions", {
+        body: JSON.stringify({
+          email: state.email,
+          rewardId,
+        } satisfies RewardRedeemRequest),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as
+        | RewardRedeemResponse
+        | { error?: string };
+
+      if (!response.ok || !("summary" in data) || !("redemptions" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : dictionary.rewardsPage.errors.redeemFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        member: data.member,
+        redemptions: data.redemptions,
+        redemptionsError: null,
+        summary: data.summary,
+      }));
+      setActionNotice(dictionary.rewardsPage.notices.redeemSuccess);
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : dictionary.rewardsPage.errors.redeemFailed,
+      );
+    } finally {
+      setRedeemingRewardId(null);
+    }
+  }
 
   return (
     <div className="relative isolate overflow-hidden">
@@ -675,6 +746,16 @@ export function RewardsPage({
               </div>
 
               <div className="mt-5">
+                {actionNotice ? (
+                  <div className="mb-4">
+                    <MessageCard>{actionNotice}</MessageCard>
+                  </div>
+                ) : null}
+                {actionError ? (
+                  <div className="mb-4">
+                    <MessageCard tone="error">{actionError}</MessageCard>
+                  </div>
+                ) : null}
                 {state.status === "loading" && state.catalog.length === 0 ? (
                   <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
                 ) : state.catalog.length === 0 ? (
@@ -683,9 +764,13 @@ export function RewardsPage({
                   <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                     {state.catalog.map((reward) => (
                       <RewardCatalogCard
+                        canRedeem={activeMember?.status === "completed"}
                         dictionary={dictionary}
+                        isRedeeming={redeemingRewardId === reward.rewardId}
                         key={reward.rewardId}
                         locale={locale}
+                        onRedeem={handleRedeemReward}
+                        redemption={latestRedemptionsByReward[reward.rewardId] ?? null}
                         reward={reward}
                         spendablePoints={state.summary.spendablePoints}
                       />
@@ -809,22 +894,38 @@ function MetricCard({
 }
 
 function RewardCatalogCard({
+  canRedeem,
   dictionary,
+  isRedeeming,
   locale,
+  onRedeem,
+  redemption,
   reward,
   spendablePoints,
 }: {
+  canRedeem: boolean;
   dictionary: Dictionary;
+  isRedeeming: boolean;
   locale: Locale;
+  onRedeem: (rewardId: RewardCatalogId) => void;
+  redemption: RewardRedemptionRecord | null;
   reward: RewardCatalogItemRecord;
   spendablePoints: number;
 }) {
   const isEligible = spendablePoints >= reward.costPoints;
-  const statusLabel = isEligible
-    ? dictionary.rewardsPage.catalog.eligible
-    : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-        points: formatNumber(reward.costPoints - spendablePoints, locale),
-      });
+  const statusLabel = redemption
+    ? getRedemptionStatusLabel(redemption.status, dictionary)
+    : isEligible
+      ? dictionary.rewardsPage.catalog.eligible
+      : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
+          points: formatNumber(reward.costPoints - spendablePoints, locale),
+        });
+  const actionLabel = redemption
+    ? getRedemptionStatusLabel(redemption.status, dictionary)
+    : isRedeeming
+      ? dictionary.rewardsPage.actions.redeeming
+      : dictionary.rewardsPage.actions.redeem;
+  const isActionDisabled = !canRedeem || !isEligible || Boolean(redemption) || isRedeeming;
   const Icon =
     reward.rewardType === "tier_upgrade"
       ? Crown
@@ -867,13 +968,32 @@ function RewardCatalogCard({
         <div
           className={cn(
             "rounded-[20px] border px-4 py-3 text-sm font-medium",
-            isEligible
-              ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-              : "border-slate-200 bg-slate-50 text-slate-700",
+            redemption
+              ? "border-blue-200 bg-blue-50 text-blue-900"
+              : isEligible
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-slate-200 bg-slate-50 text-slate-700",
           )}
         >
           {statusLabel}
         </div>
+        <button
+          className={cn(
+            "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+            redemption
+              ? "border border-blue-200 bg-blue-50 text-blue-900"
+              : isEligible && canRedeem
+                ? "bg-slate-950 text-white hover:bg-slate-800"
+                : "border border-slate-200 bg-white text-slate-500",
+          )}
+          disabled={isActionDisabled}
+          onClick={() => {
+            onRedeem(reward.rewardId);
+          }}
+          type="button"
+        >
+          {actionLabel}
+        </button>
       </div>
     </div>
   );

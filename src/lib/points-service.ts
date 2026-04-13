@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  getMongoClient,
   getPointBalancesCollection,
   getPointLedgerCollection,
   getReferralRewardsCollection,
@@ -18,9 +19,13 @@ import {
   serializeRewardRedemption,
   type PointBalanceDocument,
   type PointLedgerDocument,
+  type PointLedgerSourceType,
   type PointsSummaryRecord,
   type RewardCatalogResponse,
+  type RewardCatalogId,
   type RewardCatalogItemRecord,
+  type RewardRedeemResponse,
+  type RewardRedemptionDocument,
   type RewardRedemptionsResponse,
 } from "@/lib/points";
 
@@ -29,6 +34,40 @@ function getReferralRewardLedgerEntryId(
   sourceMemberEmail: string,
 ) {
   return `${memberEmail}:referral_reward:${sourceMemberEmail}`;
+}
+
+function getRewardRedemptionLedgerEntryId(
+  memberEmail: string,
+  rewardId: RewardCatalogId,
+) {
+  return `${memberEmail}:reward_redemption:${rewardId}`;
+}
+
+function isDuplicateKeyError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 11000
+  );
+}
+
+function getPointLedgerSourceTypeForReward(
+  reward: RewardCatalogItemRecord,
+): PointLedgerSourceType {
+  if (reward.rewardType === "tier_upgrade") {
+    return "tier_upgrade";
+  }
+
+  if (reward.rewardType === "nft_claim") {
+    return "nft_redemption";
+  }
+
+  return "discount_redemption";
+}
+
+function getRedemptionStatusForReward(reward: RewardCatalogItemRecord) {
+  return reward.rewardType === "tier_upgrade" ? "completed" : "queued";
 }
 
 function buildPointsSummary({
@@ -262,4 +301,123 @@ export async function getRewardRedemptionsForMember(
 
 export function getRewardCatalogById(rewardId: RewardCatalogItemRecord["rewardId"]) {
   return REWARD_CATALOG.find((reward) => reward.rewardId === rewardId) ?? null;
+}
+
+export async function redeemRewardForMember(
+  member: MemberDocument,
+  rewardId: RewardCatalogId,
+): Promise<Omit<RewardRedeemResponse, "member">> {
+  if (member.status !== "completed") {
+    throw new Error("Member is not eligible for reward redemptions.");
+  }
+
+  const reward = getRewardCatalogById(rewardId);
+
+  if (!reward) {
+    throw new Error("Reward not found.");
+  }
+
+  await syncPointLedgerForMemberEmail(member.email);
+
+  const client = await getMongoClient();
+  const [balancesCollection, ledgerCollection, redemptionsCollection] =
+    await Promise.all([
+      getPointBalancesCollection(),
+      getPointLedgerCollection(),
+      getRewardRedemptionsCollection(),
+    ]);
+  const session = client.startSession();
+  const now = new Date();
+  const redemptionId = crypto.randomUUID();
+  const ledgerEntryId = getRewardRedemptionLedgerEntryId(member.email, rewardId);
+  const redemption: RewardRedemptionDocument = {
+    costPoints: reward.costPoints,
+    createdAt: now,
+    engineQueueId:
+      reward.rewardType === "tier_upgrade" ? null : `queue:${redemptionId}`,
+    failureReason: null,
+    memberEmail: member.email,
+    redemptionId,
+    rewardId,
+    status: getRedemptionStatusForReward(reward),
+    txHash: null,
+    updatedAt: now,
+  };
+
+  try {
+    await session.withTransaction(async () => {
+      const existingRedemption = await redemptionsCollection.findOne(
+        {
+          memberEmail: member.email,
+          rewardId,
+        },
+        { session },
+      );
+
+      if (existingRedemption) {
+        throw new Error("Reward has already been redeemed for this member.");
+      }
+
+      const balanceUpdate = await balancesCollection.updateOne(
+        {
+          memberEmail: member.email,
+          spendablePoints: { $gte: reward.costPoints },
+        },
+        {
+          $inc: {
+            spendablePoints: -reward.costPoints,
+          },
+          $set: {
+            updatedAt: now,
+            ...(reward.rewardType === "tier_upgrade"
+              ? { loyaltyCardTokenId: reward.rewardId }
+              : {}),
+          },
+        },
+        { session },
+      );
+
+      if (balanceUpdate.modifiedCount === 0) {
+        throw new Error("Insufficient points for this reward.");
+      }
+
+      await redemptionsCollection.insertOne(redemption, { session });
+
+      await ledgerCollection.insertOne(
+        {
+          createdAt: now,
+          delta: -reward.costPoints,
+          ledgerEntryId,
+          memberEmail: member.email,
+          memo: reward.rewardId,
+          rewardLevel: null,
+          sourceId: redemptionId,
+          sourceMemberEmail: null,
+          sourceType: getPointLedgerSourceTypeForReward(reward),
+          type: "spend",
+          updatedAt: now,
+        },
+        { session },
+      );
+    });
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      throw new Error("Reward has already been redeemed for this member.");
+    }
+
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+
+  const [summary, redemptions] = await Promise.all([
+    syncPointLedgerForMemberEmail(member.email),
+    getRewardRedemptionsForMember(member),
+  ]);
+
+  return {
+    redemption: serializeRewardRedemption(redemption),
+    redemptions: redemptions.redemptions,
+    summary,
+  };
 }
