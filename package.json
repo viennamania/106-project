@@ -12,6 +12,7 @@
     "referral-placement:reassign": "node scripts/reassign-referral-placement.mjs",
     "referral-rewards:reconcile": "node scripts/reconcile-referral-rewards.mjs",
     "referral-rewards:update-points": "node scripts/update-referral-reward-points.mjs",
+    "reconcile:completed": "node scripts/trigger-reconcile-completed-members.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
     "reconcile:worker": "node scripts/run-reconcile-worker.mjs",
     "thirdweb:webhooks:register": "node scripts/register-thirdweb-usdt-webhooks.mjs"

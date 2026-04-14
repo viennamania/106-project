@@ -10,7 +10,6 @@ import {
   getRewardRedemptionsForMember,
   redeemRewardForMember,
 } from "@/lib/points-service";
-import { syncReferralRewardsForCompletedNetwork } from "@/lib/member-service";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -72,19 +71,9 @@ export async function POST(request: Request) {
       return jsonError("Member not found.", 404);
     }
 
-    if (member.status === "completed") {
-      await syncReferralRewardsForCompletedNetwork(member);
-    }
-
-    const nextMember = await collection.findOne({ email: member.email });
-
-    if (!nextMember) {
-      return jsonError("Member not found.", 404);
-    }
-
-    const redemptionResult = await redeemRewardForMember(nextMember, rawRewardId);
+    const redemptionResult = await redeemRewardForMember(member, rawRewardId);
     const response: RewardRedeemResponse = {
-      member: serializeMember(nextMember),
+      member: serializeMember(member),
       redemption: redemptionResult.redemption,
       redemptions: redemptionResult.redemptions,
       summary: redemptionResult.summary,

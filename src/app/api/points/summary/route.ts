@@ -1,6 +1,5 @@
 import { getMembersCollection } from "@/lib/mongodb";
 import { normalizeEmail, serializeMember } from "@/lib/member";
-import { syncReferralRewardsForCompletedNetwork } from "@/lib/member-service";
 import { getPointsSummaryForMember } from "@/lib/points-service";
 import type { PointsSummaryResponse } from "@/lib/points";
 
@@ -24,19 +23,9 @@ export async function GET(request: Request) {
       return jsonError("Member not found.", 404);
     }
 
-    if (member.status === "completed") {
-      await syncReferralRewardsForCompletedNetwork(member);
-    }
-
-    const nextMember = await collection.findOne({ email: member.email });
-
-    if (!nextMember) {
-      return jsonError("Member not found.", 404);
-    }
-
     const response: PointsSummaryResponse = {
-      member: serializeMember(nextMember),
-      summary: await getPointsSummaryForMember(nextMember),
+      member: serializeMember(member),
+      summary: await getPointsSummaryForMember(member),
     };
 
     return Response.json(response);

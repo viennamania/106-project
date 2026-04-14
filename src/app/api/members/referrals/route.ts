@@ -12,7 +12,6 @@ import {
   type ReferralRewardsSummaryRecord,
   type ReferralTreeNodeRecord,
 } from "@/lib/member";
-import { syncReferralRewardsForCompletedNetwork } from "@/lib/member-service";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -194,21 +193,14 @@ export async function GET(request: Request) {
       return jsonError("Member signup is not complete.", 403);
     }
 
-    await syncReferralRewardsForCompletedNetwork(member);
-    const nextMember = await collection.findOne({ email: member.email });
-
-    if (!nextMember || nextMember.status !== "completed" || !nextMember.referralCode) {
-      return jsonError("Member signup is not complete.", 403);
-    }
-
     const [referralTree, rewards] = await Promise.all([
-      buildReferralTree(nextMember),
-      buildReferralRewardsSummary(nextMember),
+      buildReferralTree(member),
+      buildReferralRewardsSummary(member),
     ]);
 
     const response: MemberReferralsResponse = {
       levelCounts: referralTree.levelCounts,
-      member: serializeMember(nextMember),
+      member: serializeMember(member),
       referrals: referralTree.referrals,
       rewards,
       totalReferrals: referralTree.totalReferrals,

@@ -28,11 +28,13 @@ function normalizeRequestPayload(overrides = {}) {
   const email =
     typeof overrides.email === "string"
       ? overrides.email.trim()
-      : process.env.RECONCILE_EMAIL?.trim();
+      : process.env.RECONCILE_COMPLETED_EMAIL?.trim() ??
+        process.env.RECONCILE_EMAIL?.trim();
   const rawLimit =
     typeof overrides.limit === "number"
       ? String(overrides.limit)
-      : process.env.RECONCILE_LIMIT?.trim();
+      : process.env.RECONCILE_COMPLETED_LIMIT?.trim() ??
+        process.env.RECONCILE_LIMIT?.trim();
 
   if (email) {
     payload.email = email;
@@ -49,7 +51,7 @@ function normalizeRequestPayload(overrides = {}) {
   return payload;
 }
 
-export async function runReconcileRequest(overrides) {
+export async function runCompletedMembersReconcileRequest(overrides) {
   const baseUrl = normalizeBaseUrl(
     process.env.RECONCILE_BASE_URL?.trim() ??
       process.env.BACKEND_BASE_URL?.trim() ??
@@ -58,7 +60,7 @@ export async function runReconcileRequest(overrides) {
   );
   const token = getRequiredToken();
   const response = await fetch(
-    new URL("/api/internal/reconcile-signups", baseUrl),
+    new URL("/api/internal/reconcile-completed-members", baseUrl),
     {
       body: JSON.stringify(normalizeRequestPayload(overrides)),
       headers: {
@@ -79,7 +81,7 @@ export async function runReconcileRequest(overrides) {
 
   if (!response.ok) {
     throw new Error(
-      `Reconcile request failed (${response.status}): ${
+      `Completed-network reconcile request failed (${response.status}): ${
         typeof data?.error === "string" ? data.error : text
       }`,
     );

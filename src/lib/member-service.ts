@@ -1360,6 +1360,64 @@ export async function reconcilePendingMemberRegistrations(options?: {
   };
 }
 
+export async function reconcileCompletedMemberNetworks(options?: {
+  email?: string | null;
+  limit?: number | null;
+}) {
+  const normalizedEmail = normalizeReconcileEmail(options?.email);
+  const limit = resolveReconcileLimit(options?.limit);
+  const collection = await getMembersCollection();
+  const completedMembers = await collection
+    .find({
+      ...(normalizedEmail ? { email: normalizedEmail } : {}),
+      status: "completed",
+    })
+    .sort({
+      registrationCompletedAt: 1,
+      createdAt: 1,
+    })
+    .limit(limit)
+    .toArray();
+
+  let reconciled = 0;
+  const members = [];
+
+  for (const member of completedMembers) {
+    const beforePlacementReferralCode = member.placementReferralCode ?? null;
+    const beforeRewardsIssuedAt = member.referralRewardsIssuedAt ?? null;
+    const nextMember = await finalizeCompletedMember({
+      collection,
+      member,
+    });
+    const placementChanged =
+      (nextMember.placementReferralCode ?? null) !== beforePlacementReferralCode;
+    const rewardsIssued =
+      beforeRewardsIssuedAt === null &&
+      nextMember.referralRewardsIssuedAt instanceof Date;
+
+    if (placementChanged || rewardsIssued) {
+      reconciled += 1;
+    }
+
+    members.push({
+      email: nextMember.email,
+      placementChanged,
+      placementReferralCode: nextMember.placementReferralCode ?? null,
+      referralRewardsIssuedAt:
+        nextMember.referralRewardsIssuedAt?.toISOString() ?? null,
+      rewardsIssued,
+      status: nextMember.status,
+    });
+  }
+
+  return {
+    checked: completedMembers.length,
+    limit,
+    members,
+    reconciled,
+  };
+}
+
 async function resolveSponsor({
   email,
   sponsorReferralCode,
