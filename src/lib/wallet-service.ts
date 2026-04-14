@@ -1121,16 +1121,11 @@ async function searchMembersCollection({
     collection,
     memberEmail: normalizedMemberEmail,
   });
-  const descendantEmails = [...descendantLevels.keys()];
-
-  if (descendantEmails.length === 0) {
-    return [];
-  }
 
   const results = await collection
     .find({
       email: {
-        $in: descendantEmails,
+        $ne: normalizedMemberEmail,
       },
       lastWalletAddress: {
         $exists: true,
