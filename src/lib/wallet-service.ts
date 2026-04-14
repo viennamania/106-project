@@ -6,7 +6,12 @@ import {
   getWalletTransfersCollection,
   getWalletTransferSyncStatesCollection,
 } from "@/lib/mongodb";
-import { type MemberDocument, normalizeEmail } from "@/lib/member";
+import {
+  REFERRAL_TREE_DEPTH_LIMIT,
+  type MemberDocument,
+  normalizeEmail,
+  normalizeReferralCode,
+} from "@/lib/member";
 import {
   WALLET_HISTORY_DEFAULT_LIMIT,
   WALLET_HISTORY_MAX_LIMIT,
@@ -855,10 +860,10 @@ async function getWalletTransferDraftsFromRpc({
 }
 
 async function searchMembersCollection({
-  excludeEmail,
+  memberEmail,
   query,
 }: {
-  excludeEmail?: string | null;
+  memberEmail: string;
   query: string;
 }) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -867,22 +872,28 @@ async function searchMembersCollection({
     return [];
   }
 
-  const normalizedExcludeEmail = excludeEmail ? normalizeEmail(excludeEmail) : null;
+  const normalizedMemberEmail = normalizeEmail(memberEmail);
   const normalizedReferralCode = query.trim().toUpperCase() || null;
   const normalizedWallet = query.trim().startsWith("0x")
     ? normalizeAddress(query)
     : null;
   const safePattern = escapeRegex(query.trim());
   const collection = await getMembersCollection();
+  const descendantLevels = await getPlacementDescendantLevels({
+    collection,
+    memberEmail: normalizedMemberEmail,
+  });
+  const descendantEmails = [...descendantLevels.keys()];
+
+  if (descendantEmails.length === 0) {
+    return [];
+  }
+
   const results = await collection
     .find({
-      ...(normalizedExcludeEmail
-        ? {
-            email: {
-              $ne: normalizedExcludeEmail,
-            },
-          }
-        : {}),
+      email: {
+        $in: descendantEmails,
+      },
       lastWalletAddress: {
         $exists: true,
         $ne: "",
@@ -938,20 +949,90 @@ async function searchMembersCollection({
       return right.lastConnectedAt.getTime() - left.lastConnectedAt.getTime();
     })
     .slice(0, WALLET_MEMBER_SEARCH_LIMIT)
-    .map(serializeWalletMemberLookup);
+    .map((member) => ({
+      ...serializeWalletMemberLookup(member),
+      level: descendantLevels.get(member.email) ?? null,
+    }));
 }
 
 export async function searchWalletRecipients({
-  excludeEmail,
+  memberEmail,
   query,
 }: {
-  excludeEmail?: string | null;
+  memberEmail: string;
   query: string;
 }) {
   return searchMembersCollection({
-    excludeEmail,
+    memberEmail,
     query,
   });
+}
+
+async function getPlacementDescendantLevels({
+  collection,
+  memberEmail,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  memberEmail: string;
+}) {
+  const rootMember = await collection.findOne(
+    { email: memberEmail },
+    {
+      projection: {
+        referralCode: 1,
+        status: 1,
+      },
+    },
+  );
+  const rootReferralCode = normalizeReferralCode(rootMember?.referralCode);
+
+  if (!rootMember || rootMember.status !== "completed" || !rootReferralCode) {
+    return new Map<string, number>();
+  }
+
+  const descendantLevels = new Map<string, number>();
+  const visitedReferralCodes = new Set<string>([rootReferralCode]);
+  let currentParentCodes = [rootReferralCode];
+
+  for (
+    let depth = 1;
+    depth <= REFERRAL_TREE_DEPTH_LIMIT && currentParentCodes.length > 0;
+    depth += 1
+  ) {
+    const levelMembers = await collection
+      .find({
+        placementReferralCode: { $in: currentParentCodes },
+        status: "completed",
+      })
+      .project<Pick<MemberDocument, "email" | "referralCode">>({
+        email: 1,
+        referralCode: 1,
+      })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      descendantLevels.set(levelMember.email, depth);
+
+      const referralCode = normalizeReferralCode(levelMember.referralCode);
+
+      if (!referralCode || visitedReferralCodes.has(referralCode)) {
+        continue;
+      }
+
+      visitedReferralCodes.add(referralCode);
+      nextParentCodes.push(referralCode);
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+
+  return descendantLevels;
 }
 
 async function fetchWalletTransferDraftsFromChain({

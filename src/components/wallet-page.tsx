@@ -409,11 +409,11 @@ export function WalletPage({
 
   const runRecipientSearch = useCallback(
     async ({
-      excludeEmail,
+      memberEmail,
       query,
       signal,
     }: {
-      excludeEmail: string | null;
+      memberEmail: string;
       query: string;
       signal: AbortSignal;
     }) => {
@@ -424,11 +424,9 @@ export function WalletPage({
           status: "loading",
         }));
         const response = await fetch(
-          `/api/members/search?query=${encodeURIComponent(query)}${
-            excludeEmail
-              ? `&excludeEmail=${encodeURIComponent(excludeEmail)}`
-              : ""
-          }`,
+          `/api/members/search?memberEmail=${encodeURIComponent(
+            memberEmail,
+          )}&query=${encodeURIComponent(query)}`,
           { signal },
         );
         const data = (await response.json()) as
@@ -584,6 +582,7 @@ export function WalletPage({
     if (
       status !== "connected" ||
       !accountAddress ||
+      !currentEmail ||
       !hasThirdwebClientId ||
       normalizedQuery.length < 2
     ) {
@@ -610,7 +609,7 @@ export function WalletPage({
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
       void runRecipientSearch({
-        excludeEmail: currentEmail,
+        memberEmail: currentEmail,
         query: normalizedQuery,
         signal: controller.signal,
       });
@@ -1054,6 +1053,12 @@ export function WalletPage({
                             ? dictionary.member.completedValue
                             : dictionary.member.pendingValue}
                         </InfoBadge>
+                        {selectedRecipient.level ? (
+                          <InfoBadge>
+                            {dictionary.referralsPage.labels.level}{" "}
+                            {selectedRecipient.level}
+                          </InfoBadge>
+                        ) : null}
                         {selectedRecipient.referralCode ? (
                           <InfoBadge>
                             {dictionary.walletPage.labels.referralCode}:{" "}
@@ -1097,11 +1102,19 @@ export function WalletPage({
                               </p>
                             </div>
                             <div className="shrink-0">
-                              <InfoBadge>
-                                {result.status === "completed"
-                                  ? dictionary.member.completedValue
-                                  : dictionary.member.pendingValue}
-                              </InfoBadge>
+                              <div className="flex flex-wrap justify-end gap-2">
+                                <InfoBadge>
+                                  {result.status === "completed"
+                                    ? dictionary.member.completedValue
+                                    : dictionary.member.pendingValue}
+                                </InfoBadge>
+                                {result.level ? (
+                                  <InfoBadge>
+                                    {dictionary.referralsPage.labels.level}{" "}
+                                    {result.level}
+                                  </InfoBadge>
+                                ) : null}
+                              </div>
                             </div>
                           </button>
                         ))

@@ -7,8 +7,12 @@ function jsonError(message: string, status: number) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const memberEmail = url.searchParams.get("memberEmail");
   const query = url.searchParams.get("query");
-  const excludeEmail = url.searchParams.get("excludeEmail");
+
+  if (!memberEmail) {
+    return jsonError("memberEmail query parameter is required.", 400);
+  }
 
   if (!query) {
     return jsonError("query parameter is required.", 400);
@@ -17,7 +21,7 @@ export async function GET(request: Request) {
   try {
     const response: WalletRecipientSearchResponse = {
       results: await searchWalletRecipients({
-        excludeEmail,
+        memberEmail,
         query,
       }),
     };

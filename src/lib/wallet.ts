@@ -7,6 +7,7 @@ export const WALLET_HISTORY_MAX_LIMIT = 50;
 export type WalletMemberLookupRecord = {
   email: string;
   lastConnectedAt: string;
+  level?: number | null;
   locale: string;
   referralCode: string | null;
   registrationCompletedAt: string | null;
@@ -85,6 +86,7 @@ export function serializeWalletMemberLookup(
   return {
     email: member.email,
     lastConnectedAt: member.lastConnectedAt.toISOString(),
+    level: null,
     locale: member.locale,
     referralCode: member.referralCode ?? null,
     registrationCompletedAt:
