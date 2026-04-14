@@ -8,7 +8,6 @@ import {
 } from "@/lib/mongodb";
 import {
   REFERRAL_TREE_DEPTH_LIMIT,
-  memberStatuses,
   type MemberDocument,
   normalizeEmail,
   normalizeReferralCode,
@@ -1386,12 +1385,25 @@ async function getPlacementDescendantLevels({
   ) {
     const levelMembers = await collection
       .find({
-        placementReferralCode: { $in: currentParentCodes },
-        status: { $in: [...memberStatuses] },
+        $or: [
+          {
+            placementReferralCode: { $in: currentParentCodes },
+            status: "completed",
+          },
+          {
+            sponsorReferralCode: { $in: currentParentCodes },
+            status: "pending_payment",
+          },
+          {
+            referredByCode: { $in: currentParentCodes },
+            status: "pending_payment",
+          },
+        ],
       })
-      .project<Pick<MemberDocument, "email" | "referralCode">>({
+      .project<Pick<MemberDocument, "email" | "referralCode" | "status">>({
         email: 1,
         referralCode: 1,
+        status: 1,
       })
       .toArray();
 
@@ -1403,6 +1415,10 @@ async function getPlacementDescendantLevels({
 
     for (const levelMember of levelMembers) {
       descendantLevels.set(levelMember.email, depth);
+
+      if (levelMember.status !== "completed") {
+        continue;
+      }
 
       const referralCode = normalizeReferralCode(levelMember.referralCode);
 
