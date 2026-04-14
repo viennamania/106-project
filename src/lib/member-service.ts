@@ -1317,6 +1317,7 @@ export async function reconcilePendingMemberRegistrations(options?: {
       status: "pending_payment",
     })
     .sort({
+      paymentBackfillCheckedAt: 1,
       awaitingPaymentSince: 1,
     })
     .limit(limit)

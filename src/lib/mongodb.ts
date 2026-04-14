@@ -135,6 +135,11 @@ async function ensureMembersIndexes(
     }),
     collection.createIndex({
       status: 1,
+      paymentBackfillCheckedAt: 1,
+      awaitingPaymentSince: 1,
+    }),
+    collection.createIndex({
+      status: 1,
       referredByCode: 1,
       registrationCompletedAt: -1,
     }),
