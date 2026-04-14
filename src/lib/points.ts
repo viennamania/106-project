@@ -122,6 +122,7 @@ export type PointBalanceDocument = {
 };
 
 export type RewardRedemptionDocument = {
+  contractAddress?: string | null;
   costPoints: number;
   createdAt: Date;
   engineQueueId?: string | null;
@@ -130,6 +131,8 @@ export type RewardRedemptionDocument = {
   redemptionId: string;
   rewardId: RewardCatalogId;
   status: RewardRedemptionStatus;
+  tokenId?: string | null;
+  tokenUri?: string | null;
   txHash?: string | null;
   updatedAt: Date;
 };
@@ -147,6 +150,7 @@ export type PointLedgerRecord = {
 };
 
 export type RewardRedemptionRecord = {
+  contractAddress: string | null;
   costPoints: number;
   createdAt: string;
   engineQueueId: string | null;
@@ -154,6 +158,8 @@ export type RewardRedemptionRecord = {
   redemptionId: string;
   rewardId: RewardCatalogId;
   status: RewardRedemptionStatus;
+  tokenId: string | null;
+  tokenUri: string | null;
   txHash: string | null;
 };
 
@@ -282,6 +288,7 @@ export function serializeRewardRedemption(
   redemption: RewardRedemptionDocument,
 ): RewardRedemptionRecord {
   return {
+    contractAddress: redemption.contractAddress ?? null,
     costPoints: redemption.costPoints,
     createdAt: redemption.createdAt.toISOString(),
     engineQueueId: redemption.engineQueueId ?? null,
@@ -289,6 +296,8 @@ export function serializeRewardRedemption(
     redemptionId: redemption.redemptionId,
     rewardId: redemption.rewardId,
     status: redemption.status,
+    tokenId: redemption.tokenId ?? null,
+    tokenUri: redemption.tokenUri ?? null,
     txHash: redemption.txHash ?? null,
   };
 }

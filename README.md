@@ -20,6 +20,7 @@
 - 가입 완료 시점 레퍼럴 코드 생성 및 추천인 코드 저장
 - thirdweb Insight BSC USDT webhook 수신
 - 포인트 리워드 조회 및 교환 요청 처리
+- Silver / Gold / VIP 리워드의 온체인 NFT 민팅
 - explorer / USDT contract / dashboard 빠른 링크
 
 ## Run locally
@@ -36,6 +37,11 @@ cp .env.example .env.local
 THIRDWEB_SECRET_KEY=your_server_secret_key
 NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
 NEXT_PUBLIC_APP_URL=https://your-public-web-domain
+THIRDWEB_REWARDS_NFT_ADMIN_PRIVATE_KEY=your_admin_wallet_private_key
+THIRDWEB_REWARDS_NFT_CONTRACT_ADDRESS=0x...
+THIRDWEB_REWARDS_NFT_CONTRACT_TYPE=TokenERC721
+THIRDWEB_REWARDS_NFT_NAME=Pocket Rewards NFT
+THIRDWEB_REWARDS_NFT_SYMBOL=PRWD
 PROJECT_WALLET=0x...
 THIRDWEB_WEBHOOK_BASE_URL=https://your-railway-api-domain
 THIRDWEB_WEBHOOK_URL=
@@ -76,8 +82,24 @@ pnpm dev
 - `POST /api/webhooks/thirdweb`는 thirdweb Insight webhook를 검증한 뒤 BSC USDT 전송 이벤트를 저장하고, 정확히 `10 USDT` 입금이 확인되면 회원 상태를 `completed` 로 승격합니다.
 - 레퍼럴 코드는 회원가입 완료 시점에만 생성됩니다.
 - `/[lang]/rewards` 에서 현재 포인트, 적립 이력, 리워드 사용 이력을 확인하고 사용 가능한 리워드를 바로 교환할 수 있습니다.
-- `POST /api/rewards/redemptions` 는 리워드 교환 요청을 생성하고 포인트 ledger를 차감한 뒤 사용 이력을 반환합니다.
+- `POST /api/rewards/redemptions` 는 Silver / Gold / VIP 리워드를 thirdweb ERC721 컨트랙트에 민팅하고, tx hash / token id를 사용 이력에 기록합니다.
 - 브라우저는 `NEXT_PUBLIC_THIRDWEB_CLIENT_ID`를 사용하고, 서버 API 및 Railway worker는 `THIRDWEB_SECRET_KEY`가 있으면 이를 우선 사용합니다.
+
+## Rewards NFT contract
+
+리워드 NFT는 thirdweb ERC721 컨트랙트 하나에 발급하는 구조입니다.
+
+- `THIRDWEB_REWARDS_NFT_ADMIN_PRIVATE_KEY` 는 민팅 트랜잭션을 서명하는 서버 지갑입니다.
+- `THIRDWEB_REWARDS_NFT_CONTRACT_ADDRESS` 는 Silver / Gold / VIP NFT를 발급할 ERC721 컨트랙트 주소입니다.
+- 권장 타입은 `TokenERC721` 입니다.
+
+컨트랙트가 아직 없으면 아래 스크립트로 배포할 수 있습니다.
+
+```bash
+pnpm rewards:nft:deploy
+```
+
+성공하면 `THIRDWEB_REWARDS_NFT_CONTRACT_ADDRESS=0x...` 값을 출력합니다.
 
 ## thirdweb webhook setup
 

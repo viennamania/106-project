@@ -11,6 +11,9 @@ import {
   redeemRewardForMember,
 } from "@/lib/points-service";
 
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
@@ -87,9 +90,13 @@ export async function POST(request: Request) {
       message === "Reward has already been redeemed for this member."
         ? 409
         : message === "Insufficient points for this reward." ||
-            message === "Member is not eligible for reward redemptions."
+              message === "Member is not eligible for reward redemptions." ||
+              message ===
+                "Member does not have a valid wallet address for reward NFT minting."
           ? 400
-          : 500;
+          : message.includes("not configured") || message.includes("required")
+            ? 503
+            : 500;
 
     return jsonError(message, status);
   }

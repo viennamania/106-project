@@ -28,6 +28,11 @@ import {
   type RewardRedemptionDocument,
   type RewardRedemptionsResponse,
 } from "@/lib/points";
+import {
+  isOnchainRewardCatalogId,
+  mintRewardNftToWallet,
+} from "@/lib/rewards-nft";
+import { isAddress } from "thirdweb";
 
 function getReferralRewardLedgerEntryId(
   memberEmail: string,
@@ -38,9 +43,13 @@ function getReferralRewardLedgerEntryId(
 
 function getRewardRedemptionLedgerEntryId(
   memberEmail: string,
-  rewardId: RewardCatalogId,
+  redemptionId: string,
 ) {
-  return `${memberEmail}:reward_redemption:${rewardId}`;
+  return `${memberEmail}:reward_redemption:${redemptionId}`;
+}
+
+function getRewardRollbackLedgerEntryId(memberEmail: string, redemptionId: string) {
+  return `${memberEmail}:reward_rollback:${redemptionId}`;
 }
 
 function isDuplicateKeyError(error: unknown) {
@@ -67,7 +76,89 @@ function getPointLedgerSourceTypeForReward(
 }
 
 function getRedemptionStatusForReward(reward: RewardCatalogItemRecord) {
-  return reward.rewardType === "tier_upgrade" ? "completed" : "queued";
+  return isOnchainRewardCatalogId(reward.rewardId) ? "pending" : "queued";
+}
+
+function getMemberRewardWalletAddress(member: MemberDocument) {
+  const candidateWallets = [
+    member.lastWalletAddress,
+    ...member.walletAddresses,
+  ].filter(Boolean);
+
+  for (const walletAddress of candidateWallets) {
+    if (isAddress(walletAddress)) {
+      return walletAddress;
+    }
+  }
+
+  return null;
+}
+
+async function rollbackRewardRedemption({
+  balancesCollection,
+  ledgerCollection,
+  member,
+  now,
+  redemptionsCollection,
+  redemption,
+}: {
+  balancesCollection: Awaited<ReturnType<typeof getPointBalancesCollection>>;
+  ledgerCollection: Awaited<ReturnType<typeof getPointLedgerCollection>>;
+  member: MemberDocument;
+  now: Date;
+  redemptionsCollection: Awaited<ReturnType<typeof getRewardRedemptionsCollection>>;
+  redemption: RewardRedemptionDocument;
+}) {
+  const client = await getMongoClient();
+  const session = client.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      await balancesCollection.updateOne(
+        { memberEmail: member.email },
+        {
+          $inc: {
+            spendablePoints: redemption.costPoints,
+          },
+          $set: {
+            updatedAt: now,
+          },
+        },
+        { session },
+      );
+
+      await ledgerCollection.insertOne(
+        {
+          createdAt: now,
+          delta: redemption.costPoints,
+          ledgerEntryId: getRewardRollbackLedgerEntryId(
+            member.email,
+            redemption.redemptionId,
+          ),
+          memberEmail: member.email,
+          memo: redemption.rewardId,
+          rewardLevel: null,
+          sourceId: redemption.redemptionId,
+          sourceMemberEmail: null,
+          sourceType: getPointLedgerSourceTypeForReward(
+            getRewardCatalogById(redemption.rewardId)!,
+          ),
+          type: "rollback",
+          updatedAt: now,
+        },
+        { session },
+      );
+
+      await redemptionsCollection.deleteOne(
+        {
+          redemptionId: redemption.redemptionId,
+        },
+        { session },
+      );
+    });
+  } finally {
+    await session.endSession();
+  }
 }
 
 function buildPointsSummary({
@@ -329,17 +420,21 @@ export async function redeemRewardForMember(
   const session = client.startSession();
   const now = new Date();
   const redemptionId = crypto.randomUUID();
-  const ledgerEntryId = getRewardRedemptionLedgerEntryId(member.email, rewardId);
+  const ledgerEntryId = getRewardRedemptionLedgerEntryId(member.email, redemptionId);
   const redemption: RewardRedemptionDocument = {
+    contractAddress: null,
     costPoints: reward.costPoints,
     createdAt: now,
-    engineQueueId:
-      reward.rewardType === "tier_upgrade" ? null : `queue:${redemptionId}`,
+    engineQueueId: isOnchainRewardCatalogId(reward.rewardId)
+      ? null
+      : `queue:${redemptionId}`,
     failureReason: null,
     memberEmail: member.email,
     redemptionId,
     rewardId,
     status: getRedemptionStatusForReward(reward),
+    tokenId: null,
+    tokenUri: null,
     txHash: null,
     updatedAt: now,
   };
@@ -369,9 +464,6 @@ export async function redeemRewardForMember(
           },
           $set: {
             updatedAt: now,
-            ...(reward.rewardType === "tier_upgrade"
-              ? { loyaltyCardTokenId: reward.rewardId }
-              : {}),
           },
         },
         { session },
@@ -408,6 +500,87 @@ export async function redeemRewardForMember(
     throw error;
   } finally {
     await session.endSession();
+  }
+
+  if (isOnchainRewardCatalogId(reward.rewardId)) {
+    const rewardWalletAddress = getMemberRewardWalletAddress(member);
+
+    if (!rewardWalletAddress) {
+      const error = new Error(
+        "Member does not have a valid wallet address for reward NFT minting.",
+      );
+
+      await rollbackRewardRedemption({
+        balancesCollection,
+        ledgerCollection,
+        member,
+        now: new Date(),
+        redemptionsCollection,
+        redemption,
+      });
+
+      throw error;
+    }
+
+    let mintedReward: Awaited<ReturnType<typeof mintRewardNftToWallet>>;
+
+    try {
+      mintedReward = await mintRewardNftToWallet({
+        rewardId,
+        walletAddress: rewardWalletAddress,
+      });
+    } catch (error) {
+      await rollbackRewardRedemption({
+        balancesCollection,
+        ledgerCollection,
+        member,
+        now: new Date(),
+        redemptionsCollection,
+        redemption,
+      });
+
+      throw error;
+    }
+
+    redemption.contractAddress = mintedReward.contractAddress;
+    redemption.status = "completed";
+    redemption.tokenId = mintedReward.tokenId;
+    redemption.tokenUri = mintedReward.tokenUri;
+    redemption.txHash = mintedReward.transactionHash;
+    redemption.updatedAt = new Date();
+
+    const updateResult = await redemptionsCollection.updateOne(
+      {
+        redemptionId,
+      },
+      {
+        $set: {
+          contractAddress: redemption.contractAddress,
+          engineQueueId: null,
+          status: redemption.status,
+          tokenId: redemption.tokenId,
+          tokenUri: redemption.tokenUri,
+          txHash: redemption.txHash,
+          updatedAt: redemption.updatedAt,
+        },
+      },
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      throw new Error("Reward NFT was minted but redemption finalization failed.");
+    }
+
+    if (reward.rewardType === "tier_upgrade" && redemption.tokenId) {
+      await balancesCollection.updateOne(
+        { memberEmail: member.email },
+        {
+          $set: {
+            loyaltyCardTokenId: redemption.tokenId,
+            updatedAt: redemption.updatedAt,
+          },
+        },
+      );
+    }
   }
 
   const [summary, redemptions] = await Promise.all([

@@ -1069,6 +1069,10 @@ function RedemptionRow({
   locale: Locale;
   redemption: RewardRedemptionRecord;
 }) {
+  const transactionUrl = redemption.txHash
+    ? `${BSC_EXPLORER}/tx/${redemption.txHash}`
+    : null;
+
   return (
     <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -1080,6 +1084,22 @@ function RedemptionRow({
             <InfoBadge>
               {getRewardTypeLabelById(redemption.rewardId, dictionary)}
             </InfoBadge>
+            {redemption.tokenId ? (
+              <InfoBadge className="font-mono">{`#${redemption.tokenId}`}</InfoBadge>
+            ) : null}
+            {transactionUrl ? (
+              <Link
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                href={transactionUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="font-mono">
+                  {shortenHash(redemption.txHash ?? "")}
+                </span>
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            ) : null}
           </div>
           <p className="mt-3 truncate text-base font-semibold text-slate-950">
             {getRewardTitle(redemption.rewardId, dictionary)}
@@ -1095,6 +1115,14 @@ function RedemptionRow({
       </div>
     </div>
   );
+}
+
+function shortenHash(value: string) {
+  if (value.length <= 14) {
+    return value;
+  }
+
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
 }
 
 function MessageCard({
