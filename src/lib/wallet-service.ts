@@ -16,10 +16,12 @@ import {
   WALLET_HISTORY_DEFAULT_LIMIT,
   WALLET_HISTORY_MAX_LIMIT,
   WALLET_MEMBER_SEARCH_LIMIT,
+  type WalletTransferDirection,
   type WalletMemberLookupRecord,
   type WalletTransferDocument,
   type WalletTransferRecord,
   type WalletTransferSource,
+  type WalletTransferStatus,
   type WalletTransferSyncStateDocument,
   serializeWalletMemberLookup,
 } from "@/lib/wallet";
@@ -35,6 +37,7 @@ import {
   eth_blockNumber,
   eth_getBlockByNumber,
   eth_getLogs,
+  eth_getTransactionReceipt,
   getRpcClient,
 } from "thirdweb/rpc";
 import { toTokens } from "thirdweb/utils";
@@ -74,6 +77,7 @@ type WalletTransferHistoryCacheEntry = {
 
 type WalletStoredHistorySnapshot = {
   hasStoredHistory: boolean;
+  hasPendingAppTransfers: boolean;
   isWebhookBacked: boolean;
   syncState: WalletTransferSyncStateDocument | null;
   transfers: WalletTransferRecord[];
@@ -313,7 +317,7 @@ function buildWalletTransferDocument({
     direction: draftTransfer.direction,
     logIndex: draftTransfer.logIndex,
     source,
-    status: "confirmed",
+    status: draftTransfer.status,
     tokenAddress: normalizeAddress(BSC_USDT_ADDRESS),
     transactionHash: draftTransfer.transactionHash,
     updatedAt: synchronizedAt,
@@ -332,6 +336,7 @@ function createDraftTransferFromStoredDocument(
     counterpartyWalletAddress: document.counterpartyWalletAddress,
     direction: document.direction,
     logIndex: document.logIndex,
+    status: document.status,
     timestampMs: document.blockTimestamp.getTime(),
     transactionHash: document.transactionHash,
   };
@@ -352,7 +357,6 @@ async function readStoredWalletTransferHistory({
     syncStatesCollection.findOne({ walletAddress: normalizedWalletAddress }),
     walletTransfersCollection
       .find({
-        status: "confirmed",
         walletAddress: normalizedWalletAddress,
       })
       .sort({
@@ -380,6 +384,7 @@ async function readStoredWalletTransferHistory({
 
     return {
       hasStoredHistory: webhookTransfers.length > 0,
+      hasPendingAppTransfers: false,
       isWebhookBacked: webhookTransfers.length > 0,
       syncState,
       transfers: await hydrateWalletTransfers({
@@ -406,6 +411,7 @@ async function readStoredWalletTransferHistory({
             counterpartyWalletAddress,
             direction: transfer.direction,
             logIndex: transfer.logIndex,
+            status: "confirmed",
             timestampMs: transfer.blockTimestamp * 1000,
             transactionHash: transfer.transactionHash,
           };
@@ -416,6 +422,10 @@ async function readStoredWalletTransferHistory({
 
   return {
     hasStoredHistory: storedTransfers.length > 0,
+    hasPendingAppTransfers: storedTransfers.some(
+      (transfer) =>
+        transfer.source === "app_send" && transfer.status === "pending",
+    ),
     isWebhookBacked: false,
     syncState,
     transfers: await hydrateWalletTransfers({
@@ -535,6 +545,231 @@ async function rememberWalletTransferSyncFailure({
   );
 }
 
+async function rememberWalletTransferSyncSuccess({
+  lastSyncedBlock,
+  normalizedWalletAddress,
+  source,
+}: {
+  lastSyncedBlock: number | null;
+  normalizedWalletAddress: string;
+  source: WalletTransferSource;
+}) {
+  const syncStatesCollection = await getWalletTransferSyncStatesCollection();
+
+  await syncStatesCollection.updateOne(
+    {
+      walletAddress: normalizedWalletAddress,
+    },
+    {
+      $set: {
+        lastError: null,
+        lastSyncedAt: new Date(),
+        lastSyncedBlock,
+        source,
+        updatedAt: new Date(),
+      },
+      $setOnInsert: {
+        walletAddress: normalizedWalletAddress,
+      },
+    },
+    { upsert: true },
+  );
+}
+
+function buildAppWalletTransferDraft({
+  amountWei,
+  blockNumber,
+  counterpartyWalletAddress,
+  direction,
+  logIndex,
+  status,
+  timestampMs,
+  transactionHash,
+}: {
+  amountWei: string;
+  blockNumber: number;
+  counterpartyWalletAddress: string;
+  direction: WalletTransferDirection;
+  logIndex: number;
+  status: WalletTransferStatus;
+  timestampMs: number;
+  transactionHash: string;
+}): WalletDraftTransfer {
+  return {
+    amountDisplay: toTokens(BigInt(amountWei), 18),
+    amountWei,
+    blockNumber,
+    counterpartyLookupKey: normalizeAddress(counterpartyWalletAddress),
+    counterpartyWalletAddress,
+    direction,
+    logIndex,
+    status,
+    timestampMs,
+    transactionHash,
+  };
+}
+
+async function upsertAppWalletTransfer({
+  amountWei,
+  blockNumber,
+  counterpartyWalletAddress,
+  direction,
+  logIndex,
+  normalizedWalletAddress,
+  status,
+  timestamp,
+  transactionHash,
+}: {
+  amountWei: string;
+  blockNumber: number;
+  counterpartyWalletAddress: string;
+  direction: WalletTransferDirection;
+  logIndex: number;
+  normalizedWalletAddress: string;
+  status: WalletTransferStatus;
+  timestamp: Date;
+  transactionHash: string;
+}) {
+  const collection = await getWalletTransfersCollection();
+
+  await collection.updateOne(
+    {
+      source: "app_send",
+      transactionHash,
+      walletAddress: normalizedWalletAddress,
+    },
+    {
+      $set: {
+        amountWei,
+        blockNumber,
+        blockTimestamp: timestamp,
+        chainId: Number(smartWalletChain.id),
+        counterpartyWalletAddress: normalizeAddress(counterpartyWalletAddress),
+        direction,
+        logIndex,
+        source: "app_send",
+        status,
+        tokenAddress: normalizeAddress(BSC_USDT_ADDRESS),
+        updatedAt: new Date(),
+      },
+      $setOnInsert: {
+        createdAt: new Date(),
+        transactionHash,
+        walletAddress: normalizedWalletAddress,
+      },
+    },
+    { upsert: true },
+  );
+}
+
+function isUsdtTransferLog(
+  log: {
+    address: string;
+    data: string;
+    logIndex: bigint | number | null;
+    topics: readonly string[];
+  },
+  {
+    amountWei,
+    fromWalletAddress,
+    toWalletAddress,
+  }: {
+    amountWei: string;
+    fromWalletAddress: string;
+    toWalletAddress: string;
+  },
+) {
+  if (normalizeAddress(log.address) !== normalizeAddress(BSC_USDT_ADDRESS)) {
+    return false;
+  }
+
+  const topics = log.topics.filter(Boolean) as string[];
+
+  if (topics.length < 3) {
+    return false;
+  }
+
+  const fromAddress = extractTopicAddress(topics[1]);
+  const toAddress = extractTopicAddress(topics[2]);
+
+  if (!fromAddress || !toAddress) {
+    return false;
+  }
+
+  return (
+    fromAddress === normalizeAddress(fromWalletAddress) &&
+    toAddress === normalizeAddress(toWalletAddress) &&
+    BigInt(log.data).toString() === amountWei
+  );
+}
+
+async function findConfirmedAppWalletTransfer({
+  amountWei,
+  fromWalletAddress,
+  toWalletAddress,
+  transactionHash,
+}: {
+  amountWei: string;
+  fromWalletAddress: string;
+  toWalletAddress: string;
+  transactionHash: string;
+}) {
+  const rpcClient = getRpcClient({
+    chain: smartWalletChain,
+    client: serverThirdwebClient,
+  });
+  const receipt = await eth_getTransactionReceipt(rpcClient, {
+    hash: transactionHash as `0x${string}`,
+  });
+  const matchingLog = receipt.logs.find((log) =>
+    isUsdtTransferLog(log, {
+      amountWei,
+      fromWalletAddress,
+      toWalletAddress,
+    }),
+  );
+
+  if (!matchingLog || matchingLog.logIndex === null) {
+    throw new Error("Matching USDT transfer log not found in receipt.");
+  }
+
+  const blockNumber =
+    typeof receipt.blockNumber === "bigint"
+      ? receipt.blockNumber
+      : BigInt(receipt.blockNumber);
+  const block = await eth_getBlockByNumber(rpcClient, {
+    blockNumber,
+  });
+  const timestampMs = Number(block.timestamp) * 1000;
+  const resolvedLogIndex =
+    typeof matchingLog.logIndex === "bigint"
+      ? Number(matchingLog.logIndex)
+      : matchingLog.logIndex;
+
+  return {
+    outbound: buildAppWalletTransferDraft({
+      amountWei,
+      blockNumber: Number(blockNumber),
+      counterpartyWalletAddress: toWalletAddress,
+      direction: "outbound",
+      logIndex: resolvedLogIndex,
+      status: "confirmed",
+      timestampMs,
+      transactionHash,
+    }),
+    inbound: buildAppWalletTransferDraft({
+      amountWei,
+      blockNumber: Number(blockNumber),
+      counterpartyWalletAddress: fromWalletAddress,
+      direction: "inbound",
+      logIndex: resolvedLogIndex,
+      status: "confirmed",
+      timestampMs,
+      transactionHash,
+    }),
+  };
+}
+
 async function hydrateWalletTransfers({
   counterpartyWallets,
   draftTransfers,
@@ -565,6 +800,7 @@ async function hydrateWalletTransfers({
       counterpartyWalletAddress: transfer.counterpartyWalletAddress,
       direction: transfer.direction,
       logIndex: transfer.logIndex,
+      status: transfer.status,
       timestamp: new Date(transfer.timestampMs).toISOString(),
       transactionHash: transfer.transactionHash,
     }));
@@ -663,6 +899,7 @@ async function getWalletTransferDraftsFromInsight({
       counterpartyWalletAddress,
       direction,
       logIndex: event.log_index,
+      status: "confirmed",
       timestampMs: event.block_timestamp * 1000,
       transactionHash: event.transaction_hash,
     });
@@ -851,6 +1088,7 @@ async function getWalletTransferDraftsFromRpc({
       counterpartyWalletAddress,
       direction,
       logIndex: Number(log.logIndex),
+      status: "confirmed",
       timestampMs: Date.parse(timestamp),
       transactionHash: log.transactionHash,
     });
@@ -966,6 +1204,152 @@ export async function searchWalletRecipients({
     memberEmail,
     query,
   });
+}
+
+export async function recordWalletAppSendTransfer({
+  amountWei,
+  fromWalletAddress,
+  toWalletAddress,
+  transactionHash,
+}: {
+  amountWei: string;
+  fromWalletAddress: string;
+  toWalletAddress: string;
+  transactionHash: string;
+}) {
+  const normalizedFromWalletAddress = normalizeAddress(fromWalletAddress);
+  const normalizedToWalletAddress = normalizeAddress(toWalletAddress);
+  const normalizedTransactionHash = transactionHash.trim().toLowerCase();
+  const now = new Date();
+
+  await Promise.all([
+    upsertAppWalletTransfer({
+      amountWei,
+      blockNumber: 0,
+      counterpartyWalletAddress: normalizedToWalletAddress,
+      direction: "outbound",
+      logIndex: -1,
+      normalizedWalletAddress: normalizedFromWalletAddress,
+      status: "pending",
+      timestamp: now,
+      transactionHash: normalizedTransactionHash,
+    }),
+    upsertAppWalletTransfer({
+      amountWei,
+      blockNumber: 0,
+      counterpartyWalletAddress: normalizedFromWalletAddress,
+      direction: "inbound",
+      logIndex: -1,
+      normalizedWalletAddress: normalizedToWalletAddress,
+      status: "pending",
+      timestamp: now,
+      transactionHash: normalizedTransactionHash,
+    }),
+    rememberWalletTransferSyncSuccess({
+      lastSyncedBlock: null,
+      normalizedWalletAddress: normalizedFromWalletAddress,
+      source: "app_send",
+    }),
+    rememberWalletTransferSyncSuccess({
+      lastSyncedBlock: null,
+      normalizedWalletAddress: normalizedToWalletAddress,
+      source: "app_send",
+    }),
+  ]);
+}
+
+export async function confirmWalletAppSendTransfer({
+  amountWei,
+  fromWalletAddress,
+  toWalletAddress,
+  transactionHash,
+}: {
+  amountWei: string;
+  fromWalletAddress: string;
+  toWalletAddress: string;
+  transactionHash: string;
+}) {
+  const normalizedFromWalletAddress = normalizeAddress(fromWalletAddress);
+  const normalizedToWalletAddress = normalizeAddress(toWalletAddress);
+  const normalizedTransactionHash = transactionHash.trim().toLowerCase();
+  const confirmedTransfer = await findConfirmedAppWalletTransfer({
+    amountWei,
+    fromWalletAddress: normalizedFromWalletAddress,
+    toWalletAddress: normalizedToWalletAddress,
+    transactionHash: normalizedTransactionHash,
+  });
+  const confirmedTimestamp = new Date(confirmedTransfer.outbound.timestampMs);
+
+  await Promise.all([
+    upsertAppWalletTransfer({
+      amountWei: confirmedTransfer.outbound.amountWei,
+      blockNumber: confirmedTransfer.outbound.blockNumber,
+      counterpartyWalletAddress: confirmedTransfer.outbound.counterpartyWalletAddress,
+      direction: confirmedTransfer.outbound.direction,
+      logIndex: confirmedTransfer.outbound.logIndex,
+      normalizedWalletAddress: normalizedFromWalletAddress,
+      status: "confirmed",
+      timestamp: confirmedTimestamp,
+      transactionHash: normalizedTransactionHash,
+    }),
+    upsertAppWalletTransfer({
+      amountWei: confirmedTransfer.inbound.amountWei,
+      blockNumber: confirmedTransfer.inbound.blockNumber,
+      counterpartyWalletAddress: confirmedTransfer.inbound.counterpartyWalletAddress,
+      direction: confirmedTransfer.inbound.direction,
+      logIndex: confirmedTransfer.inbound.logIndex,
+      normalizedWalletAddress: normalizedToWalletAddress,
+      status: "confirmed",
+      timestamp: confirmedTimestamp,
+      transactionHash: normalizedTransactionHash,
+    }),
+    rememberWalletTransferSyncSuccess({
+      lastSyncedBlock: confirmedTransfer.outbound.blockNumber,
+      normalizedWalletAddress: normalizedFromWalletAddress,
+      source: "app_send",
+    }),
+    rememberWalletTransferSyncSuccess({
+      lastSyncedBlock: confirmedTransfer.inbound.blockNumber,
+      normalizedWalletAddress: normalizedToWalletAddress,
+      source: "app_send",
+    }),
+  ]);
+}
+
+async function reconcilePendingAppWalletTransfers({
+  normalizedWalletAddress,
+}: {
+  normalizedWalletAddress: string;
+}) {
+  const collection = await getWalletTransfersCollection();
+  const pendingTransfers = await collection
+    .find({
+      source: "app_send",
+      status: "pending",
+      walletAddress: normalizedWalletAddress,
+    })
+    .sort({
+      updatedAt: -1,
+    })
+    .limit(6)
+    .toArray();
+
+  for (const pendingTransfer of pendingTransfers) {
+    if (pendingTransfer.direction !== "outbound") {
+      continue;
+    }
+
+    try {
+      await confirmWalletAppSendTransfer({
+        amountWei: pendingTransfer.amountWei,
+        fromWalletAddress: pendingTransfer.walletAddress,
+        toWalletAddress: pendingTransfer.counterpartyWalletAddress,
+        transactionHash: pendingTransfer.transactionHash,
+      });
+    } catch {
+      // Leave the transfer pending and try again on the next refresh cycle.
+    }
+  }
 }
 
 async function getPlacementDescendantLevels({
@@ -1129,10 +1513,13 @@ export async function getWalletTransferHistorySnapshot({
 
   return {
     hasStoredHistory: storedHistory.hasStoredHistory,
-    needsSync: !storedHistory.isWebhookBacked && (
-      lastSyncedAt === null ||
-      Date.now() - lastSyncedAt.getTime() >= WALLET_HISTORY_DB_SYNC_STALE_MS
-    ),
+    needsSync:
+      storedHistory.hasPendingAppTransfers ||
+      (!storedHistory.hasStoredHistory &&
+        !storedHistory.isWebhookBacked &&
+        (lastSyncedAt === null ||
+          Date.now() - lastSyncedAt.getTime() >=
+            WALLET_HISTORY_DB_SYNC_STALE_MS)),
     transfers: storedHistory.transfers,
   };
 }
@@ -1148,6 +1535,19 @@ export async function refreshWalletTransferHistory({
     limit,
     walletAddress,
   });
+
+  await reconcilePendingAppWalletTransfers({
+    normalizedWalletAddress,
+  });
+
+  const storedHistory = await readStoredWalletTransferHistory({
+    historyLimit,
+    normalizedWalletAddress,
+  });
+
+  if (storedHistory.hasStoredHistory) {
+    return;
+  }
 
   await syncWalletTransferHistory({
     historyLimit,

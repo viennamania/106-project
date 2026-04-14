@@ -35,6 +35,7 @@ export type WalletTransferRecord = {
   counterpartyWalletAddress: string;
   direction: WalletTransferDirection;
   logIndex: number;
+  status: WalletTransferStatus;
   timestamp: string;
   transactionHash: string;
 };
@@ -70,6 +71,22 @@ export type WalletTransferHistoryResponse = {
   transfers: WalletTransferRecord[];
   walletAddress: string;
 };
+
+export type WalletTransferMutationRequest =
+  | {
+      action: "record_send";
+      amountWei: string;
+      fromWalletAddress: string;
+      toWalletAddress: string;
+      transactionHash: string;
+    }
+  | {
+      action: "confirm_send";
+      amountWei: string;
+      fromWalletAddress: string;
+      toWalletAddress: string;
+      transactionHash: string;
+    };
 
 export function serializeWalletMemberLookup(
   member: Pick<

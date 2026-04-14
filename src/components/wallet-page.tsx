@@ -65,6 +65,7 @@ import type {
   WalletMemberLookupRecord,
   WalletRecipientSearchResponse,
   WalletTransferHistoryResponse,
+  WalletTransferMutationRequest,
   WalletTransferRecord,
 } from "@/lib/wallet";
 
@@ -99,6 +100,7 @@ type RecipientSearchState = {
 const HISTORY_LIMIT = 24;
 const HISTORY_FETCH_TIMEOUT_MS = 10_000;
 const MEMBER_FETCH_TIMEOUT_MS = 10_000;
+const TRANSFER_MUTATION_TIMEOUT_MS = 10_000;
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
@@ -197,6 +199,30 @@ export function WalletPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const currentEmail = dashboard.member?.email ?? dashboard.email;
+
+  const persistWalletTransfer = useCallback(
+    async (payload: WalletTransferMutationRequest) => {
+      const response = await fetchWithTimeout(
+        "/api/wallet/usdt-history",
+        {
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+        TRANSFER_MUTATION_TIMEOUT_MS,
+      );
+      const data = (await response.json()) as { error?: string; ok?: boolean };
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ?? dictionary.walletPage.errors.loadFailed,
+        );
+      }
+    },
+    [dictionary],
+  );
 
   const runWalletSync = useCallback(
     async ({ background = false } = {}) => {
@@ -1163,6 +1189,31 @@ export function WalletPage({
                         });
                       }}
                       onTransactionConfirmed={(receipt) => {
+                        const confirmedRecipient = selectedRecipient;
+                        const confirmedAmount = sendAmount.trim();
+
+                        if (
+                          accountAddress &&
+                          confirmedRecipient &&
+                          confirmedAmount &&
+                          /^\d+(\.\d+)?$/u.test(confirmedAmount)
+                        ) {
+                          const amountWei = toUnits(
+                            confirmedAmount,
+                            MEMBER_SIGNUP_USDT_DECIMALS,
+                          ).toString();
+
+                          void persistWalletTransfer({
+                            action: "confirm_send",
+                            amountWei,
+                            fromWalletAddress: accountAddress,
+                            toWalletAddress: confirmedRecipient.walletAddress,
+                            transactionHash: receipt.transactionHash,
+                          }).catch(() => {
+                            // The history row stays pending until the next refresh retry.
+                          });
+                        }
+
                         setNotice({
                           href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
                           text: dictionary.walletPage.notices.txConfirmed,
@@ -1174,6 +1225,31 @@ export function WalletPage({
                         }, 1800);
                       }}
                       onTransactionSent={(result) => {
+                        const sentRecipient = selectedRecipient;
+                        const sentAmount = sendAmount.trim();
+
+                        if (
+                          accountAddress &&
+                          sentRecipient &&
+                          sentAmount &&
+                          /^\d+(\.\d+)?$/u.test(sentAmount)
+                        ) {
+                          const amountWei = toUnits(
+                            sentAmount,
+                            MEMBER_SIGNUP_USDT_DECIMALS,
+                          ).toString();
+
+                          void persistWalletTransfer({
+                            action: "record_send",
+                            amountWei,
+                            fromWalletAddress: accountAddress,
+                            toWalletAddress: sentRecipient.walletAddress,
+                            transactionHash: result.transactionHash,
+                          }).catch(() => {
+                            // Keep the UI moving even if the history write fails.
+                          });
+                        }
+
                         setNotice({
                           href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
                           text: dictionary.walletPage.notices.txSent,
@@ -1415,6 +1491,10 @@ function HistoryRow({
   const counterpartyLabel =
     transfer.counterparty?.email ?? formatAddressLabel(transfer.counterpartyWalletAddress);
   const amountValue = `${isInbound ? "+" : "-"}${formatTokenDisplay(transfer.amountDisplay, locale)} USDT`;
+  const transferStatusLabel =
+    transfer.status === "pending"
+      ? dictionary.rewardsPage.redemptionStatus.pending
+      : dictionary.rewardsPage.redemptionStatus.completed;
 
   return (
     <div className="rounded-[26px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
@@ -1443,6 +1523,7 @@ function HistoryRow({
                   : dictionary.member.pendingValue}
               </InfoBadge>
             ) : null}
+            <InfoBadge>{transferStatusLabel}</InfoBadge>
           </div>
           <p className="mt-3 truncate text-base font-semibold text-slate-950">
             {counterpartyLabel}
