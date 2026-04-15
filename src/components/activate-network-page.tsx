@@ -461,89 +461,72 @@ export function ActivateNetworkPage({
         ) : (
           <>
             <LandingReveal variant="hero">
-              <section className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-                <div className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(150deg,#09111f_0%,#0f172a_48%,#1d4ed8_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(250,204,21,0.14),transparent_28%)]" />
-                  <div className="relative">
-                    <div className="flex flex-wrap gap-2">
-                      <Badge>{dictionary.member.completedValue}</Badge>
-                      <Badge>{dictionary.activateNetworkPage.title}</Badge>
-                    </div>
-
-                    <div className="mt-6 space-y-3">
-                      <p className="eyebrow text-white/70">
-                        {dictionary.activateNetworkPage.eyebrow}
-                      </p>
-                      <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-white sm:text-[2.85rem] sm:leading-[1.04]">
-                        {dictionary.activateNetworkPage.title}
-                      </h2>
-                      <p className="max-w-2xl text-[0.98rem] leading-7 text-white/76 sm:text-lg">
-                        {dictionary.activateNetworkPage.description}
-                      </p>
-                    </div>
-
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                      <SummaryMetricCard
-                        icon={<Users className="size-4" />}
-                        label={dictionary.activateNetworkPage.labels.totalMembers}
-                        locale={locale}
-                        value={String(state.summary.totalMembers)}
-                      />
-                      <SummaryMetricCard
-                        icon={<GitBranch className="size-4" />}
-                        label={dictionary.activateNetworkPage.labels.directMembers}
-                        locale={locale}
-                        value={String(state.summary.directMembers)}
-                      />
-                      <SummaryMetricCard
-                        icon={<Trophy className="size-4" />}
-                        label={
-                          dictionary.activateNetworkPage.labels.totalLifetimePoints
-                        }
-                        locale={locale}
-                        value={`${formatInteger(state.summary.totalLifetimePoints, locale)}P`}
-                      />
-                      <SummaryMetricCard
-                        icon={<Layers3 className="size-4" />}
-                        label={
-                          dictionary.activateNetworkPage.labels.totalSpendablePoints
-                        }
-                        locale={locale}
-                        value={`${formatInteger(state.summary.totalSpendablePoints, locale)}P`}
-                      />
-                    </div>
+              <section className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(150deg,#09111f_0%,#0f172a_48%,#1d4ed8_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(250,204,21,0.14),transparent_28%)]" />
+                <div className="relative">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge>{dictionary.member.completedValue}</Badge>
+                    <Badge>{dictionary.activateNetworkPage.title}</Badge>
                   </div>
-                </div>
 
-                <div className="glass-card rounded-[30px] p-5 sm:p-6">
-                  <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                      {dictionary.activateNetworkPage.labels.currentMember}
+                  <div className="mt-6 space-y-3">
+                    <p className="eyebrow text-white/70">
+                      {dictionary.activateNetworkPage.eyebrow}
+                    </p>
+                    <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-white sm:text-[2.85rem] sm:leading-[1.04]">
+                      {dictionary.activateNetworkPage.title}
                     </h2>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.activateNetworkPage.selectionHint}
+                    <p className="max-w-2xl text-[0.98rem] leading-7 text-white/76 sm:text-lg">
+                      {dictionary.activateNetworkPage.description}
                     </p>
                   </div>
 
-                  {selectedMember ? (
-                    <SelectedMemberCard
-                      dictionary={dictionary}
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <SummaryMetricCard
+                      icon={<Users className="size-4" />}
+                      label={dictionary.activateNetworkPage.labels.totalMembers}
                       locale={locale}
-                      member={selectedMember}
+                      value={String(state.summary.totalMembers)}
                     />
-                  ) : (
-                    <div className="mt-5">
-                      <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
-                    </div>
-                  )}
+                    <SummaryMetricCard
+                      icon={<GitBranch className="size-4" />}
+                      label={dictionary.activateNetworkPage.labels.directMembers}
+                      locale={locale}
+                      value={String(state.summary.directMembers)}
+                    />
+                    <SummaryMetricCard
+                      icon={<Trophy className="size-4" />}
+                      label={
+                        dictionary.activateNetworkPage.labels.totalLifetimePoints
+                      }
+                      locale={locale}
+                      value={`${formatInteger(state.summary.totalLifetimePoints, locale)}P`}
+                    />
+                    <SummaryMetricCard
+                      icon={<Layers3 className="size-4" />}
+                      label={
+                        dictionary.activateNetworkPage.labels.totalSpendablePoints
+                      }
+                      locale={locale}
+                      value={`${formatInteger(state.summary.totalSpendablePoints, locale)}P`}
+                    />
+                  </div>
                 </div>
               </section>
             </LandingReveal>
 
-            <section className="grid gap-4 lg:grid-cols-[0.94fr_1.06fr]">
+            <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
               <LandingReveal delay={100} variant="soft">
-                <section className="glass-card rounded-[28px] p-4 sm:p-5">
+                <div className="space-y-4">
+                  <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
+                    <SelectedMemberPanel
+                      dictionary={dictionary}
+                      locale={locale}
+                      member={selectedMember}
+                    />
+                  </section>
+
+                  <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="space-y-1">
                       <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
@@ -650,11 +633,25 @@ export function ActivateNetworkPage({
                       ))
                     )}
                   </div>
-                </section>
+                  </section>
+                </div>
               </LandingReveal>
 
               <LandingReveal delay={140} variant="soft">
-                <section className="glass-card rounded-[28px] p-4 sm:p-5">
+                <section className="hidden rounded-[28px] lg:sticky lg:top-24 lg:block">
+                  <div className="glass-card rounded-[28px] p-4 sm:p-5">
+                    <SelectedMemberPanel
+                      dictionary={dictionary}
+                      locale={locale}
+                      member={selectedMember}
+                    />
+                  </div>
+                </section>
+              </LandingReveal>
+            </section>
+
+            <LandingReveal delay={180} variant="soft">
+              <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="space-y-1">
                     <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
                     <h3 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -677,13 +674,48 @@ export function ActivateNetworkPage({
                       totalReferrals={state.totalReferrals}
                     />
                   </div>
-                </section>
-              </LandingReveal>
-            </section>
+              </section>
+            </LandingReveal>
           </>
         )}
       </main>
     </div>
+  );
+}
+
+function SelectedMemberPanel({
+  dictionary,
+  locale,
+  member,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord | null;
+}) {
+  return (
+    <>
+      <div className="space-y-1">
+        <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
+        <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+          {dictionary.activateNetworkPage.labels.currentMember}
+        </h2>
+        <p className="text-sm leading-6 text-slate-600">
+          {dictionary.activateNetworkPage.selectionHint}
+        </p>
+      </div>
+
+      {member ? (
+        <SelectedMemberCard
+          dictionary={dictionary}
+          locale={locale}
+          member={member}
+        />
+      ) : (
+        <div className="mt-5">
+          <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
+        </div>
+      )}
+    </>
   );
 }
 
