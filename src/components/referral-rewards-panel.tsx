@@ -5,8 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import {
+  getReferralRewardPoints,
   REFERRAL_REWARD_POINTS_LEVEL_ONE,
   REFERRAL_REWARD_POINTS_OTHER_LEVELS,
+  REFERRAL_SIGNUP_LIMIT,
   ReferralRewardRecord,
   ReferralRewardsSummaryRecord,
 } from "@/lib/member";
@@ -76,7 +78,7 @@ export function ReferralRewardsPanel({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3 sm:gap-3">
         {rewards.pointsByLevel.map((points, index) => (
           <RewardLevelCard
             key={`level-${index + 1}`}
@@ -216,14 +218,70 @@ function RewardLevelCard({
   locale: Locale;
   points: number;
 }) {
+  const targetPoints = getRewardTargetPoints(level);
+  const progress =
+    targetPoints > 0 ? Math.min((points / targetPoints) * 100, 100) : 0;
+  const progressBadgeClassName =
+    level === 1
+      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      : level === 2
+        ? "border-sky-200 bg-sky-50 text-sky-900"
+        : level === 3
+          ? "border-violet-200 bg-violet-50 text-violet-900"
+          : level === 4
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : level === 5
+              ? "border-rose-200 bg-rose-50 text-rose-900"
+              : "border-slate-200 bg-slate-50 text-slate-700";
+  const progressBarClassName =
+    level === 1
+      ? "from-emerald-500 via-emerald-400 to-lime-400"
+      : level === 2
+        ? "from-sky-500 via-cyan-400 to-blue-400"
+        : level === 3
+          ? "from-violet-500 via-fuchsia-400 to-pink-400"
+          : level === 4
+            ? "from-amber-500 via-orange-400 to-yellow-300"
+            : level === 5
+              ? "from-rose-500 via-pink-400 to-orange-300"
+              : "from-slate-700 via-slate-500 to-slate-300";
+
   return (
-    <div className="flex min-h-[94px] flex-col rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3.5 sm:min-h-[104px] sm:rounded-[20px] sm:px-4 sm:py-4">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-        {levelLabel} {level}
-      </p>
-      <p className="mt-3.5 text-right text-[1.65rem] leading-none font-bold tracking-[-0.04em] text-slate-950 tabular-nums sm:mt-4 sm:text-xl">
-        <AnimatedNumberText locale={locale} value={`${points} P`} />
-      </p>
+    <div className="flex min-h-[152px] flex-col rounded-[20px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)] sm:min-h-[164px] sm:rounded-[22px] sm:px-5 sm:py-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+            {levelLabel} {level}
+          </p>
+          <p className="mt-3 text-[1.7rem] leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums sm:text-[1.9rem]">
+            <AnimatedNumberText locale={locale} value={`${points} P`} />
+          </p>
+        </div>
+        <span
+          className={cn(
+            "inline-flex min-w-[3.6rem] items-center justify-center rounded-full border px-2.5 py-1.5 text-xs font-semibold tabular-nums",
+            progressBadgeClassName,
+          )}
+        >
+          {Math.round(progress)}%
+        </span>
+      </div>
+
+      <div className="mt-auto space-y-2.5 pt-5">
+        <div className="h-2.5 overflow-hidden rounded-full bg-slate-200/80">
+          <div
+            className={cn(
+              "h-full rounded-full bg-gradient-to-r transition-[width]",
+              progressBarClassName,
+            )}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[0.72rem] font-medium text-slate-500 tabular-nums">
+          <span>{formatPoints(points, locale)}</span>
+          <span>{formatPoints(targetPoints, locale)}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -366,4 +424,14 @@ function formatDateTime(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getRewardTargetPoints(level: number) {
+  return (
+    Math.pow(REFERRAL_SIGNUP_LIMIT, level) * getReferralRewardPoints(level)
+  );
+}
+
+function formatPoints(value: number, locale: Locale) {
+  return `${new Intl.NumberFormat(locale).format(value)} P`;
 }
