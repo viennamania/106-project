@@ -15,6 +15,7 @@ import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
+  Coins,
   QrCode,
   RefreshCcw,
   Search,
@@ -750,6 +751,13 @@ export function WalletPage({
               label={dictionary.common.languageLabel}
               locale={locale}
             />
+            <Link
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+              href={`/${locale}/wallet/bnb`}
+            >
+              <Coins className="size-4" />
+              {dictionary.bnbPage.title}
+            </Link>
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
               status === "connected" ? (

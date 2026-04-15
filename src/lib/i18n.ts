@@ -294,6 +294,35 @@ export type Dictionary = {
       qrUnavailable: string;
     };
   };
+  bnbPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    disconnected: string;
+    loading: string;
+    labels: {
+      availableBalance: string;
+      destination: string;
+      sendableAmount: string;
+    };
+    actions: {
+      sendAll: string;
+    };
+    placeholders: {
+      destination: string;
+    };
+    errors: {
+      loadFailed: string;
+      invalidAddress: string;
+      selfTransfer: string;
+      insufficientBalance: string;
+    };
+    notices: {
+      sendHint: string;
+      txSent: string;
+      txConfirmed: string;
+    };
+  };
   rewardsPage: {
     title: string;
     eyebrow: string;
@@ -744,6 +773,39 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txConfirmed:
           "전송이 확인되었습니다. 잔고와 내역을 다시 불러오는 중입니다.",
         qrUnavailable: "QR 코드를 생성하지 못했습니다.",
+      },
+    },
+    bnbPage: {
+      title: "BNB 관리",
+      eyebrow: "bnb payout",
+      description:
+        "내 스마트 월렛의 BNB 잔고를 확인하고, 외부 지갑 또는 거래소 주소로 전액 출금합니다.",
+      disconnected: "이메일 로그인 후 BNB 관리 페이지를 이용할 수 있습니다.",
+      loading: "BNB 잔고를 불러오는 중입니다.",
+      labels: {
+        availableBalance: "출금 가능 잔고",
+        destination: "출금 주소",
+        sendableAmount: "전액 전송 수량",
+      },
+      actions: {
+        sendAll: "전액 전송",
+      },
+      placeholders: {
+        destination: "0x... 외부 BNB 주소",
+      },
+      errors: {
+        loadFailed: "BNB 잔고를 불러오지 못했습니다.",
+        invalidAddress: "출금 주소를 올바르게 입력하세요.",
+        selfTransfer: "자기 지갑으로는 전송할 수 없습니다.",
+        insufficientBalance: "전송할 BNB 잔고가 없습니다.",
+      },
+      notices: {
+        sendHint:
+          "현재 보이는 BNB 잔고 전체를 입력한 주소로 전송합니다. 거래소는 BSC 입금을 지원하는 주소만 사용하세요.",
+        txSent:
+          "BNB 출금이 제출되었습니다. 블록 반영 후 잔고가 자동으로 갱신됩니다.",
+        txConfirmed:
+          "BNB 출금이 확인되었습니다. 최신 잔고를 다시 불러오는 중입니다.",
       },
     },
     rewardsPage: {
@@ -1205,6 +1267,39 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txConfirmed:
           "The transfer was confirmed. Reloading balance and history now.",
         qrUnavailable: "Unable to generate a QR code right now.",
+      },
+    },
+    bnbPage: {
+      title: "BNB Payout",
+      eyebrow: "bnb payout",
+      description:
+        "Check the BNB balance in your smart wallet and withdraw the full amount to an external wallet or exchange address.",
+      disconnected: "Sign in with email to use the BNB payout page.",
+      loading: "Loading BNB balance.",
+      labels: {
+        availableBalance: "Available balance",
+        destination: "Withdrawal address",
+        sendableAmount: "Full send amount",
+      },
+      actions: {
+        sendAll: "Send full balance",
+      },
+      placeholders: {
+        destination: "0x... external BNB address",
+      },
+      errors: {
+        loadFailed: "Failed to load BNB balance.",
+        invalidAddress: "Enter a valid withdrawal address.",
+        selfTransfer: "You cannot send to your own wallet.",
+        insufficientBalance: "There is no BNB balance available to send.",
+      },
+      notices: {
+        sendHint:
+          "The button sends the full visible BNB balance to the address above. Use only exchange addresses that support BSC BNB deposits.",
+        txSent:
+          "The BNB withdrawal was submitted. Your balance will refresh automatically after it lands onchain.",
+        txConfirmed:
+          "The BNB withdrawal was confirmed. Reloading the latest balance now.",
       },
     },
     rewardsPage: {
@@ -1671,6 +1766,40 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         qrUnavailable: "現在 QR コードを生成できません。",
       },
     },
+    bnbPage: {
+      title: "BNB 出金",
+      eyebrow: "bnb payout",
+      description:
+        "スマートウォレット内の BNB 残高を確認し、外部ウォレットや取引所アドレスへ全額送金します。",
+      disconnected:
+        "BNB 出金ページを利用するにはメールログインしてください。",
+      loading: "BNB 残高を読み込んでいます。",
+      labels: {
+        availableBalance: "出金可能残高",
+        destination: "出金先アドレス",
+        sendableAmount: "全額送金量",
+      },
+      actions: {
+        sendAll: "全額送金",
+      },
+      placeholders: {
+        destination: "0x... 外部 BNB アドレス",
+      },
+      errors: {
+        loadFailed: "BNB 残高を読み込めませんでした。",
+        invalidAddress: "正しい出金先アドレスを入力してください。",
+        selfTransfer: "自分のウォレットには送金できません。",
+        insufficientBalance: "送金できる BNB 残高がありません。",
+      },
+      notices: {
+        sendHint:
+          "表示されている BNB 残高の全額を入力先へ送ります。取引所は BSC の BNB 入金に対応したアドレスのみ使用してください。",
+        txSent:
+          "BNB 出金が送信されました。オンチェーン反映後に残高が自動更新されます。",
+        txConfirmed:
+          "BNB 出金が確認されました。最新残高を再読み込みしています。",
+      },
+    },
     rewardsPage: {
       title: "ポイントリワード",
       eyebrow: "points utility",
@@ -2128,6 +2257,37 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txSent: "转账已提交。链上确认后，记录会自动刷新。",
         txConfirmed: "转账已确认。正在重新加载余额和记录。",
         qrUnavailable: "暂时无法生成二维码。",
+      },
+    },
+    bnbPage: {
+      title: "BNB 提现",
+      eyebrow: "bnb payout",
+      description:
+        "查看你当前智能钱包里的 BNB 余额，并将全部余额提现到外部钱包或交易所地址。",
+      disconnected: "请先通过邮箱登录后再使用 BNB 提现页面。",
+      loading: "正在加载 BNB 余额。",
+      labels: {
+        availableBalance: "可提现余额",
+        destination: "提现地址",
+        sendableAmount: "全额发送数量",
+      },
+      actions: {
+        sendAll: "发送全部余额",
+      },
+      placeholders: {
+        destination: "0x... 外部 BNB 地址",
+      },
+      errors: {
+        loadFailed: "无法加载 BNB 余额。",
+        invalidAddress: "请输入正确的提现地址。",
+        selfTransfer: "不能转给自己的钱包。",
+        insufficientBalance: "当前没有可发送的 BNB 余额。",
+      },
+      notices: {
+        sendHint:
+          "按钮会把当前显示的全部 BNB 余额发送到上方地址。交易所地址必须支持 BSC BNB 充值。",
+        txSent: "BNB 提现已提交。链上确认后，余额会自动刷新。",
+        txConfirmed: "BNB 提现已确认。正在重新加载最新余额。",
       },
     },
     rewardsPage: {
