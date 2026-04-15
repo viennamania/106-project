@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
-  Coins,
   RefreshCcw,
   Sparkles,
   WalletMinimal,
@@ -546,72 +545,6 @@ export function BnbWalletPage({
               <section className="glass-card rounded-[30px] p-5 sm:p-6">
                 <div className="flex items-start gap-3">
                   <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <Coins className="size-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
-                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                      {dictionary.bnbPage.labels.valuation}
-                    </h2>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.bnbPage.notices.priceHint}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-3 lg:grid-cols-3">
-                  <MarketMetricCard
-                    label={dictionary.bnbPage.labels.availableBalance}
-                    value={formattedBalance}
-                  />
-                  <MarketMetricCard
-                    label={dictionary.bnbPage.labels.spotPrice}
-                    value={formattedSpotPrice}
-                  />
-                  <MarketMetricCard
-                    label={dictionary.bnbPage.labels.valuation}
-                    value={formattedValuation}
-                  />
-                </div>
-
-                <div className="mt-5 rounded-[28px] border border-[#f3ba2f]/16 bg-[linear-gradient(135deg,#111827_0%,#172554_48%,#9a3412_100%)] p-5 text-white shadow-[0_20px_55px_rgba(15,23,42,0.14)]">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/16 bg-slate-950/22 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/88">
-                        <Image
-                          alt="Bithumb logo"
-                          className="h-4 w-auto object-contain"
-                          height={16}
-                          src={BITHUMB_LOGO_URL}
-                          width={76}
-                        />
-                        BNB/KRW
-                      </div>
-                      <p className="mt-4 text-lg font-semibold tracking-tight text-white">
-                        {dictionary.bnbPage.actions.openBithumbTrade}
-                      </p>
-                      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/68">
-                        {dictionary.bnbPage.notices.exchangeHint}
-                      </p>
-                    </div>
-                    <a
-                      className="inline-flex h-auto min-h-12 w-full shrink-0 items-center justify-between gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold !text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition hover:bg-slate-100 sm:h-12 sm:w-auto sm:justify-center sm:py-0"
-                      href={BITHUMB_TRADE_URL}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <span>{dictionary.bnbPage.actions.openBithumbTrade}</span>
-                      <ArrowUpRight className="size-4 shrink-0" />
-                    </a>
-                  </div>
-                </div>
-              </section>
-            </LandingReveal>
-
-            <LandingReveal delay={160} variant="soft">
-              <section className="glass-card rounded-[30px] p-5 sm:p-6">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
                     <WalletMinimal className="size-5" />
                   </div>
                   <div className="space-y-1">
@@ -778,23 +711,6 @@ function HeroStatCard({
         {label}
       </p>
       <p className="mt-2 text-lg font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function MarketMetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-slate-200 bg-white/95 px-4 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-        {value}
-      </p>
     </div>
   );
 }
