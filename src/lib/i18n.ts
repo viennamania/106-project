@@ -235,6 +235,8 @@ export type Dictionary = {
       activeLevels: string;
       sourceMember: string;
       awardedAt: string;
+      previousPage: string;
+      nextPage: string;
     };
     errors: {
       missingEmail: string;
@@ -823,6 +825,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         activeLevels: "적립 단계",
         sourceMember: "가입 회원",
         awardedAt: "지급 시각",
+        previousPage: "이전 페이지",
+        nextPage: "다음 페이지",
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
@@ -1445,6 +1449,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         activeLevels: "Active levels",
         sourceMember: "Signup member",
         awardedAt: "Awarded at",
+        previousPage: "Previous page",
+        nextPage: "Next page",
       },
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
@@ -2073,6 +2079,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         activeLevels: "付与段階",
         sourceMember: "登録メンバー",
         awardedAt: "付与時刻",
+        previousPage: "前のページ",
+        nextPage: "次のページ",
       },
       errors: {
         missingEmail: "現在のウォレット接続からメールアドレスを取得できませんでした。",
@@ -2703,6 +2711,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         activeLevels: "发放层级",
         sourceMember: "注册会员",
         awardedAt: "发放时间",
+        previousPage: "上一页",
+        nextPage: "下一页",
       },
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
@@ -3330,6 +3340,8 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
         activeLevels: "Số tầng có thưởng",
         sourceMember: "Thành viên đăng ký",
         awardedAt: "Thời điểm chi trả",
+        previousPage: "Trang trước",
+        nextPage: "Trang sau",
       },
       errors: {
         missingEmail:
@@ -3652,6 +3664,8 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
         activeLevels: "Level aktif",
         sourceMember: "Anggota yang mendaftar",
         awardedAt: "Waktu pembayaran",
+        previousPage: "Halaman sebelumnya",
+        nextPage: "Halaman berikutnya",
       },
       errors: {
         missingEmail:
