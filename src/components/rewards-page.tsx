@@ -856,8 +856,8 @@ export function RewardsPage({
               </div>
             </section>
 
-            <section className="grid gap-5 lg:grid-cols-[1.02fr_0.98fr]">
-              <section className="glass-card rounded-[30px] p-5 sm:p-6">
+            <section className="grid min-w-0 gap-5 lg:grid-cols-[1.02fr_0.98fr]">
+              <section className="glass-card min-w-0 rounded-[30px] p-5 sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -865,7 +865,7 @@ export function RewardsPage({
                   </h2>
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-5 min-w-0">
                   {state.status === "loading" && state.summary.history.length === 0 ? (
                     <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
                   ) : state.summary.history.length === 0 ? (
@@ -884,7 +884,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="glass-card rounded-[30px] p-5 sm:p-6">
+              <section className="glass-card min-w-0 rounded-[30px] p-5 sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -892,7 +892,7 @@ export function RewardsPage({
                   </h2>
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-5 min-w-0">
                   {state.redemptionsError ? (
                     <MessageCard tone="error">{state.redemptionsError}</MessageCard>
                   ) : state.redemptions.length === 0 ? (
