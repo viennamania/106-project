@@ -327,17 +327,17 @@ function RewardHistoryTable({
     <div className="space-y-4">
       <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
         <div className="w-full overflow-x-auto overscroll-x-contain md:overflow-x-visible">
-          <table className="w-full min-w-[26.25rem] border-separate border-spacing-0 md:min-w-0 md:table-fixed">
+          <table className="w-full min-w-[24.75rem] border-separate border-spacing-0 md:min-w-0 md:table-fixed">
             <thead>
               <tr className="bg-slate-50/90">
                 <th
-                  className="w-[5rem] border-b border-slate-200 px-2.5 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 md:w-[6.5rem] md:px-4"
+                  className="w-[4.65rem] border-b border-slate-200 px-2 py-3 text-left text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-slate-500 md:w-[6.5rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
                   scope="col"
                 >
                   {levelLabel}
                 </th>
                 <th
-                  className="w-[13.5rem] border-b border-slate-200 px-2.5 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 md:w-[15rem] md:px-4"
+                  className="w-[12.3rem] border-b border-slate-200 px-2 py-3 text-left text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-slate-500 md:w-[15rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
                   scope="col"
                 >
                   <div className="flex flex-col gap-1">
@@ -348,7 +348,7 @@ function RewardHistoryTable({
                   </div>
                 </th>
                 <th
-                  className="w-[5.75rem] border-b border-slate-200 px-2.5 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 md:w-[7rem] md:px-4"
+                  className="w-[5rem] border-b border-slate-200 px-2 py-3 text-right text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-slate-500 md:w-[7rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
                   scope="col"
                 >
                   {pointsLabel}
@@ -362,23 +362,23 @@ function RewardHistoryTable({
 
                 return (
                   <tr className="align-top" key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}>
-                    <td className={cn("px-2.5 py-3.5 md:px-4", rowBorderClass)}>
-                      <span className="inline-flex whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
+                      <span className="inline-flex whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.7rem] font-medium text-slate-700 md:px-3 md:text-xs">
                         {levelLabel} {reward.level}
                       </span>
                     </td>
-                    <td className={cn("px-2.5 py-3.5 md:px-4", rowBorderClass)}>
+                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
                       <div className="space-y-1.5">
-                        <p className="whitespace-nowrap text-[0.94rem] font-medium text-slate-900 md:text-sm md:whitespace-normal md:break-all">
+                        <p className="whitespace-nowrap text-[0.88rem] font-medium text-slate-900 md:text-sm md:whitespace-normal md:break-all">
                           {reward.sourceMemberEmail}
                         </p>
-                        <p className="whitespace-nowrap text-xs text-slate-500">
+                        <p className="whitespace-nowrap text-[0.7rem] text-slate-500 md:text-xs">
                           {formatDateTime(reward.awardedAt, locale)}
                         </p>
                       </div>
                     </td>
-                    <td className={cn("px-2.5 py-3.5 text-right md:px-4", rowBorderClass)}>
-                      <span className="ml-auto inline-flex whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-900 tabular-nums md:px-3 md:text-sm">
+                    <td className={cn("px-2 py-3.5 text-right md:px-4", rowBorderClass)}>
+                      <span className="ml-auto inline-flex whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[0.7rem] font-semibold text-emerald-900 tabular-nums md:px-3 md:text-sm">
                         <AnimatedNumberText locale={locale} value={`+${reward.points} P`} />
                       </span>
                     </td>
