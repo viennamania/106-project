@@ -200,9 +200,12 @@ function RewardRuleRow({
       <span className="text-sm font-semibold tracking-[-0.02em] text-slate-600">
         {level}
       </span>
-      <span className="text-lg leading-none font-black tracking-[-0.04em] text-slate-950 tabular-nums sm:text-xl">
-        <AnimatedNumberText locale={locale} value={`${points} P`} />
-      </span>
+      <PointValue
+        locale={locale}
+        points={points}
+        sizeClassName="text-lg sm:text-xl"
+        unitClassName="text-[0.72rem] sm:text-[0.78rem]"
+      />
     </div>
   );
 }
@@ -253,9 +256,13 @@ function RewardLevelCard({
           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
             {levelLabel} {level}
           </p>
-          <p className="mt-3 text-[1.7rem] leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums sm:text-[1.9rem]">
-            <AnimatedNumberText locale={locale} value={`${points} P`} />
-          </p>
+          <PointValue
+            className="mt-3"
+            locale={locale}
+            points={points}
+            sizeClassName="text-[1.7rem] sm:text-[1.9rem]"
+            unitClassName="text-[1rem] sm:text-[1.05rem]"
+          />
         </div>
         <span
           className={cn(
@@ -426,6 +433,40 @@ function formatDateTime(value: string, locale: Locale) {
   }).format(new Date(value));
 }
 
+function PointValue({
+  className,
+  locale,
+  points,
+  sizeClassName,
+  unitClassName,
+}: {
+  className?: string;
+  locale: Locale;
+  points: number;
+  sizeClassName: string;
+  unitClassName?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "inline-flex items-baseline gap-1 whitespace-nowrap leading-none font-black tracking-[-0.05em] text-slate-950 tabular-nums",
+        sizeClassName,
+        className,
+      )}
+    >
+      <AnimatedNumberText locale={locale} value={formatPointNumber(points, locale)} />
+      <span
+        className={cn(
+          "font-bold tracking-[0.12em] text-slate-700",
+          unitClassName,
+        )}
+      >
+        P
+      </span>
+    </div>
+  );
+}
+
 function getRewardTargetPoints(level: number) {
   return (
     Math.pow(REFERRAL_SIGNUP_LIMIT, level) * getReferralRewardPoints(level)
@@ -434,4 +475,8 @@ function getRewardTargetPoints(level: number) {
 
 function formatPoints(value: number, locale: Locale) {
   return `${new Intl.NumberFormat(locale).format(value)} P`;
+}
+
+function formatPointNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
 }

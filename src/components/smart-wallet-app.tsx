@@ -1617,11 +1617,11 @@ function CompletedHomeDashboard({
               </p>
             </div>
             <Link
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
               href={`/${locale}/rewards`}
             >
-              {dictionary.rewardsPage.title}
-              <ArrowUpRight className="size-4" />
+              <span className="!text-white">{dictionary.rewardsPage.title}</span>
+              <ArrowUpRight className="size-4 !text-white" />
             </Link>
           </div>
         </div>
