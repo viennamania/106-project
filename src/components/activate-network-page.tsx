@@ -537,7 +537,7 @@ export function ActivateNetworkPage({
                       </p>
                     </div>
                     <button
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                      className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                       disabled={state.status === "loading"}
                       onClick={() => {
                         void loadNetwork();
@@ -546,7 +546,7 @@ export function ActivateNetworkPage({
                     >
                       <RefreshCcw
                         className={cn(
-                          "mr-2 size-4",
+                          "size-4 shrink-0",
                           state.status === "loading" && "animate-spin",
                         )}
                       />
