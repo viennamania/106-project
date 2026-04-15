@@ -488,6 +488,7 @@ export type Dictionary = {
       labels: {
         rewardValue: string;
         estimatedBnb: string;
+        claimedBnb: string;
         estimatedKrw: string;
         usdtKrw: string;
         bnbKrw: string;
@@ -1109,6 +1110,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         labels: {
           rewardValue: "기준 보상",
           estimatedBnb: "예상 지급 BNB",
+          claimedBnb: "지급 완료 BNB",
           estimatedKrw: "원화 환산",
           usdtKrw: "Bithumb USDT/KRW",
           bnbKrw: "Bithumb BNB/KRW",
@@ -1736,6 +1738,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         labels: {
           rewardValue: "Reward baseline",
           estimatedBnb: "Estimated BNB payout",
+          claimedBnb: "BNB paid",
           estimatedKrw: "Estimated KRW value",
           usdtKrw: "Bithumb USDT/KRW",
           bnbKrw: "Bithumb BNB/KRW",
@@ -2370,6 +2373,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         labels: {
           rewardValue: "基準報酬",
           estimatedBnb: "推定 BNB 支給量",
+          claimedBnb: "支給済み BNB",
           estimatedKrw: "KRW 換算額",
           usdtKrw: "Bithumb USDT/KRW",
           bnbKrw: "Bithumb BNB/KRW",
@@ -2989,6 +2993,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         labels: {
           rewardValue: "奖励基准",
           estimatedBnb: "预计发放 BNB",
+          claimedBnb: "已发放 BNB",
           estimatedKrw: "韩元估值",
           usdtKrw: "Bithumb USDT/KRW",
           bnbKrw: "Bithumb BNB/KRW",

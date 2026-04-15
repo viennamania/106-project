@@ -1000,6 +1000,8 @@ function RewardCatalogCard({
     redemption?.status === "pending" || redemption?.status === "queued";
   const isSilverReward =
     reward.rewardId === "silver-card" && redemption?.status === "completed";
+  const isCompletedSilverClaim =
+    isSilverReward && silverClaim?.status === "completed";
   const isLocked = !hasRedemption && !isEligible;
   const StateIcon = isCompletedReward
     ? CheckCircle2
@@ -1073,6 +1075,10 @@ function RewardCatalogCard({
     : isEligible && canRedeem
       ? theme.readyActionClassName
       : "border border-slate-200 bg-white !text-slate-500";
+  const silverClaimTransactionUrl =
+    isCompletedSilverClaim && silverClaim.txHash
+      ? `${BSC_EXPLORER}/tx/${silverClaim.txHash}`
+      : null;
   const highlightCopy = isCompletedReward
     ? isSilverReward && silverClaim?.status !== "completed"
       ? dictionary.rewardsPage.silverClaim.actions.open
@@ -1219,6 +1225,40 @@ function RewardCatalogCard({
               </div>
             ) : null}
           </div>
+          {isCompletedSilverClaim ? (
+            <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
+              <p
+                className={cn(
+                  "text-xs uppercase tracking-[0.22em]",
+                  metaLabelClassName,
+                )}
+              >
+                {dictionary.rewardsPage.silverClaim.labels.claimedBnb}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                <p className={cn("text-sm font-semibold", costValueClassName)}>
+                  {silverClaim.bnbAmount} BNB
+                </p>
+                {silverClaimTransactionUrl ? (
+                  <Link
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                      isCompletedReward
+                        ? "border-white/14 bg-white/8 text-white/82 hover:bg-white/12 hover:text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950",
+                    )}
+                    href={silverClaimTransactionUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                    title={silverClaim.txHash ?? undefined}
+                  >
+                    <span>{dictionary.rewardsPage.silverClaim.actions.openTransaction}</span>
+                    <ArrowUpRight className="size-3.5" />
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
         <div className="mt-auto pt-6">
           {isSilverReward && !isActionDisabled ? (
