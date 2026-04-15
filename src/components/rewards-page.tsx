@@ -5,9 +5,12 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
+  CheckCircle2,
   Crown,
   Gift,
+  LockKeyhole,
   RefreshCcw,
+  Sparkles,
   Ticket,
 } from "lucide-react";
 import {
@@ -968,9 +971,22 @@ function RewardCatalogCard({
   silverClaim: SilverRewardClaimRecord | null;
   spendablePoints: number;
 }) {
+  const theme = getRewardCardTheme(reward.rewardId, dictionary);
   const isEligible = spendablePoints >= reward.costPoints;
+  const hasRedemption = Boolean(redemption);
+  const isCompletedReward = redemption?.status === "completed";
+  const isProcessingReward =
+    redemption?.status === "pending" || redemption?.status === "queued";
   const isSilverReward =
     reward.rewardId === "silver-card" && redemption?.status === "completed";
+  const isLocked = !hasRedemption && !isEligible;
+  const StateIcon = isCompletedReward
+    ? CheckCircle2
+    : hasRedemption
+      ? RefreshCcw
+      : isEligible
+        ? Sparkles
+        : LockKeyhole;
   const statusLabel = isSilverReward
     ? silverClaim
       ? getSilverClaimStatusLabel(silverClaim.status, dictionary)
@@ -1002,79 +1018,208 @@ function RewardCatalogCard({
       : reward.rewardType === "nft_claim"
         ? Ticket
         : Gift;
+  const surfaceClassName = isCompletedReward
+    ? theme.completedSurfaceClassName
+    : theme.pendingSurfaceClassName;
+  const iconClassName = isCompletedReward
+    ? theme.completedIconClassName
+    : theme.pendingIconClassName;
+  const toneLabelClassName = isCompletedReward
+    ? theme.completedToneLabelClassName
+    : theme.pendingToneLabelClassName;
+  const statusClassName = isCompletedReward
+    ? theme.completedStatusClassName
+    : hasRedemption
+      ? "border-blue-200 bg-blue-50 text-blue-900"
+      : isEligible
+        ? theme.readyStatusClassName
+        : "border-slate-200 bg-slate-50 text-slate-700";
+  const panelClassName = isCompletedReward
+    ? "border-white/12 bg-white/10 text-white/88"
+    : "border-slate-200 bg-white/90 text-slate-700";
+  const titleClassName = isCompletedReward ? "text-white" : "text-slate-950";
+  const descriptionClassName = isCompletedReward
+    ? "text-white/72"
+    : "text-slate-600";
+  const metaLabelClassName = isCompletedReward
+    ? "text-white/55"
+    : "text-slate-500";
+  const costValueClassName = isCompletedReward ? "text-white" : "text-slate-950";
+  const actionClassName = isCompletedReward
+    ? isActionDisabled
+      ? "border border-white/14 bg-white/10 !text-white/75"
+      : "bg-white !text-slate-950 hover:bg-slate-100"
+    : isEligible && canRedeem
+      ? theme.readyActionClassName
+      : "border border-slate-200 bg-white !text-slate-500";
+  const highlightCopy = isCompletedReward
+    ? isSilverReward && silverClaim?.status !== "completed"
+      ? dictionary.rewardsPage.silverClaim.actions.open
+      : dictionary.rewardsPage.redemptionStatus.completed
+    : hasRedemption
+      ? getRedemptionStatusLabel(redemption?.status ?? "pending", dictionary)
+      : isLocked
+        ? formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
+            points: formatNumber(reward.costPoints - spendablePoints, locale),
+          })
+        : dictionary.rewardsPage.catalog.eligible;
 
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
-          <Icon className="size-5" />
-        </div>
-        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-700">
-          {dictionary.rewardsPage.catalog.previewBadge}
-        </span>
-      </div>
-
-      <div className="mt-5">
-        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-          {getRewardTypeLabel(reward.rewardType, dictionary)}
-        </p>
-        <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
-          {getRewardTitle(reward.rewardId, dictionary)}
-        </h3>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          {getRewardDescription(reward.rewardId, dictionary)}
-        </p>
-      </div>
-
-      <div className="mt-5 space-y-3">
-        <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-            {dictionary.rewardsPage.labels.rewardCost}
-          </p>
-          <p className="mt-2 text-sm font-semibold text-slate-950">
-            {formatPoints(reward.costPoints, locale)}
-          </p>
-        </div>
-        {!redemption ? (
-          <div
-            className={cn(
-              "rounded-[20px] border px-4 py-3 text-sm font-medium",
-              isEligible
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-slate-200 bg-slate-50 text-slate-700",
-            )}
-          >
-            {statusLabel}
-          </div>
-        ) : null}
-        {isSilverReward && !isActionDisabled ? (
-          <Link
-            className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
-            href={`/${locale}/rewards/silver-claim`}
-          >
-            {actionLabel}
-          </Link>
-        ) : (
-          <button
-            className={cn(
-              "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
-              redemption || isSilverReward
-                ? "border border-blue-200 bg-blue-50 text-blue-900"
-                : isEligible && canRedeem
-                  ? "bg-slate-950 text-white hover:bg-slate-800"
-                  : "border border-slate-200 bg-white text-slate-500",
-            )}
-            disabled={isActionDisabled}
-            onClick={() => {
-              onRedeem(reward.rewardId);
-            }}
-            type="button"
-          >
-            {actionLabel}
-          </button>
+    <article
+      className={cn(
+        "group relative overflow-hidden rounded-[30px] p-[1px] transition duration-300",
+        isCompletedReward
+          ? theme.completedFrameClassName
+          : theme.pendingFrameClassName,
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-6 top-0 h-24 rounded-b-[28px] blur-3xl",
+          theme.glowClassName,
         )}
+      />
+      <div
+        className={cn(
+          "relative flex h-full flex-col rounded-[29px] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)]",
+          surfaceClassName,
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className={cn(
+                "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-[0_14px_28px_rgba(15,23,42,0.12)]",
+                iconClassName,
+              )}
+            >
+              <Icon className="size-5" />
+            </div>
+            <div className="min-w-0 space-y-2">
+              <span
+                className={cn(
+                  "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em]",
+                  toneLabelClassName,
+                )}
+              >
+                {theme.accentLabel}
+              </span>
+              <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
+                {getRewardTypeLabel(reward.rewardType, dictionary)}
+              </p>
+            </div>
+          </div>
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em]",
+              statusClassName,
+            )}
+          >
+            <StateIcon
+              className={cn(
+                "size-3.5",
+                isProcessingReward && "animate-spin",
+              )}
+            />
+            {statusLabel}
+          </span>
+        </div>
+
+        <div className="mt-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em]",
+                isCompletedReward
+                  ? "border-white/14 bg-white/10 text-white/82"
+                  : "border-slate-200 bg-white/80 text-slate-700",
+              )}
+            >
+              {dictionary.rewardsPage.catalog.previewBadge}
+            </span>
+            {isCompletedReward ? (
+              <span className="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-300/14 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                {dictionary.rewardsPage.redemptionStatus.completed}
+              </span>
+            ) : null}
+          </div>
+
+          <h3
+            className={cn(
+              "mt-4 text-xl font-semibold tracking-tight",
+              titleClassName,
+            )}
+          >
+            {getRewardTitle(reward.rewardId, dictionary)}
+          </h3>
+          <p className={cn("mt-3 text-sm leading-6", descriptionClassName)}>
+            {getRewardDescription(reward.rewardId, dictionary)}
+          </p>
+        </div>
+
+        <div className="mt-6 grid gap-3">
+          <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
+            <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
+              {dictionary.rewardsPage.labels.rewardCost}
+            </p>
+            <p className={cn("mt-2 text-sm font-semibold", costValueClassName)}>
+              {formatPoints(reward.costPoints, locale)}
+            </p>
+          </div>
+          <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
+            <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
+              {dictionary.rewardsPage.labels.progress}
+            </p>
+            <p className={cn("mt-2 text-sm font-semibold", costValueClassName)}>
+              {highlightCopy}
+            </p>
+            {!isCompletedReward && !hasRedemption ? (
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200/80">
+                <div
+                  className={cn("h-full rounded-full", theme.progressBarClassName)}
+                  style={{
+                    width: `${Math.max(
+                      8,
+                      Math.min(
+                        100,
+                        Math.round((spendablePoints / reward.costPoints) * 100),
+                      ),
+                    )}%`,
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <div className="mt-6">
+          {isSilverReward && !isActionDisabled ? (
+            <Link
+              className={cn(
+                "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition",
+                actionClassName,
+              )}
+              href={`/${locale}/rewards/silver-claim`}
+            >
+              {actionLabel}
+            </Link>
+          ) : (
+            <button
+              className={cn(
+                "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+                actionClassName,
+              )}
+              disabled={isActionDisabled}
+              onClick={() => {
+                onRedeem(reward.rewardId);
+              }}
+              type="button"
+            >
+              {actionLabel}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -1370,6 +1515,138 @@ function getRedemptionStatusLabel(
   }
 
   return dictionary.rewardsPage.redemptionStatus.pending;
+}
+
+type RewardCardTheme = {
+  accentLabel: string;
+  completedFrameClassName: string;
+  completedIconClassName: string;
+  completedStatusClassName: string;
+  completedSurfaceClassName: string;
+  completedToneLabelClassName: string;
+  glowClassName: string;
+  pendingFrameClassName: string;
+  pendingIconClassName: string;
+  pendingSurfaceClassName: string;
+  pendingToneLabelClassName: string;
+  progressBarClassName: string;
+  readyActionClassName: string;
+  readyStatusClassName: string;
+};
+
+function getRewardCardTheme(
+  rewardId: RewardCatalogId,
+  dictionary: Dictionary,
+): RewardCardTheme {
+  if (rewardId === "silver-card") {
+    return {
+      accentLabel: dictionary.rewardsPage.tiers.silver,
+      completedFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(226,232,240,0.9),rgba(148,163,184,0.96),rgba(34,211,238,0.82))]",
+      completedIconClassName: "bg-white/14 text-white",
+      completedStatusClassName:
+        "border-white/14 bg-white/12 text-white/88",
+      completedSurfaceClassName:
+        "bg-[linear-gradient(145deg,#0f172a_0%,#334155_48%,#0f766e_100%)]",
+      completedToneLabelClassName:
+        "border-white/14 bg-white/10 text-white/82",
+      glowClassName: "bg-cyan-300/30",
+      pendingFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(226,232,240,0.95),rgba(203,213,225,0.9),rgba(125,211,252,0.82))]",
+      pendingIconClassName: "bg-slate-100 text-slate-700",
+      pendingSurfaceClassName:
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(240,249,255,0.95))]",
+      pendingToneLabelClassName:
+        "border-slate-300 bg-slate-50 text-slate-700",
+      progressBarClassName:
+        "bg-[linear-gradient(90deg,#94a3b8_0%,#38bdf8_55%,#22d3ee_100%)]",
+      readyActionClassName:
+        "bg-[linear-gradient(135deg,#0f172a_0%,#334155_58%,#0891b2_100%)] !text-white hover:opacity-95",
+      readyStatusClassName: "border-cyan-200 bg-cyan-50 text-cyan-900",
+    };
+  }
+
+  if (rewardId === "gold-card") {
+    return {
+      accentLabel: dictionary.rewardsPage.tiers.gold,
+      completedFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(254,240,138,0.95),rgba(251,191,36,0.98),rgba(249,115,22,0.82))]",
+      completedIconClassName: "bg-white/14 text-white",
+      completedStatusClassName:
+        "border-white/14 bg-white/12 text-white/88",
+      completedSurfaceClassName:
+        "bg-[linear-gradient(145deg,#451a03_0%,#b45309_52%,#f59e0b_100%)]",
+      completedToneLabelClassName:
+        "border-white/14 bg-white/10 text-white/82",
+      glowClassName: "bg-amber-300/35",
+      pendingFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(254,243,199,0.95),rgba(253,230,138,0.95),rgba(251,146,60,0.82))]",
+      pendingIconClassName: "bg-amber-100 text-amber-700",
+      pendingSurfaceClassName:
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,251,235,0.96))]",
+      pendingToneLabelClassName:
+        "border-amber-200 bg-amber-50 text-amber-800",
+      progressBarClassName:
+        "bg-[linear-gradient(90deg,#fcd34d_0%,#f59e0b_55%,#f97316_100%)]",
+      readyActionClassName:
+        "bg-[linear-gradient(135deg,#78350f_0%,#b45309_58%,#f59e0b_100%)] !text-white hover:opacity-95",
+      readyStatusClassName: "border-amber-200 bg-amber-50 text-amber-900",
+    };
+  }
+
+  if (rewardId === "vip-pass") {
+    return {
+      accentLabel: dictionary.rewardsPage.tiers.vip,
+      completedFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(167,243,208,0.92),rgba(16,185,129,0.95),rgba(56,189,248,0.82))]",
+      completedIconClassName: "bg-white/14 text-white",
+      completedStatusClassName:
+        "border-white/14 bg-white/12 text-white/88",
+      completedSurfaceClassName:
+        "bg-[linear-gradient(145deg,#052e2b_0%,#065f46_48%,#0284c7_100%)]",
+      completedToneLabelClassName:
+        "border-white/14 bg-white/10 text-white/82",
+      glowClassName: "bg-emerald-300/35",
+      pendingFrameClassName:
+        "bg-[linear-gradient(145deg,rgba(209,250,229,0.95),rgba(167,243,208,0.94),rgba(125,211,252,0.8))]",
+      pendingIconClassName: "bg-emerald-100 text-emerald-700",
+      pendingSurfaceClassName:
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(236,253,245,0.96))]",
+      pendingToneLabelClassName:
+        "border-emerald-200 bg-emerald-50 text-emerald-800",
+      progressBarClassName:
+        "bg-[linear-gradient(90deg,#34d399_0%,#10b981_50%,#38bdf8_100%)]",
+      readyActionClassName:
+        "bg-[linear-gradient(135deg,#064e3b_0%,#059669_54%,#0284c7_100%)] !text-white hover:opacity-95",
+      readyStatusClassName: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    };
+  }
+
+  return {
+    accentLabel: dictionary.rewardsPage.rewardTypes.discountCoupon,
+    completedFrameClassName:
+      "bg-[linear-gradient(145deg,rgba(191,219,254,0.95),rgba(56,189,248,0.92),rgba(251,113,133,0.78))]",
+    completedIconClassName: "bg-white/14 text-white",
+    completedStatusClassName:
+      "border-white/14 bg-white/12 text-white/88",
+    completedSurfaceClassName:
+      "bg-[linear-gradient(145deg,#0f172a_0%,#0369a1_50%,#fb7185_100%)]",
+    completedToneLabelClassName:
+      "border-white/14 bg-white/10 text-white/82",
+    glowClassName: "bg-sky-300/35",
+    pendingFrameClassName:
+      "bg-[linear-gradient(145deg,rgba(219,234,254,0.95),rgba(186,230,253,0.9),rgba(254,205,211,0.85))]",
+    pendingIconClassName: "bg-sky-100 text-sky-700",
+    pendingSurfaceClassName:
+      "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.96))]",
+    pendingToneLabelClassName:
+      "border-sky-200 bg-sky-50 text-sky-800",
+    progressBarClassName:
+      "bg-[linear-gradient(90deg,#60a5fa_0%,#0ea5e9_55%,#fb7185_100%)]",
+    readyActionClassName:
+      "bg-[linear-gradient(135deg,#0f172a_0%,#0369a1_56%,#fb7185_100%)] !text-white hover:opacity-95",
+    readyStatusClassName: "border-sky-200 bg-sky-50 text-sky-900",
+  };
 }
 
 function getSilverClaimStatusLabel(
