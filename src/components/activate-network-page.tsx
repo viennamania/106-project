@@ -1045,9 +1045,11 @@ function DarkMetric({
       <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-white/45">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold text-white">
-        <AnimatedNumberText locale={locale} value={value} />
-      </p>
+      <div className="mt-2 flex justify-end">
+        <p className="text-right text-lg font-semibold text-white tabular-nums">
+          <AnimatedNumberText locale={locale} value={value} />
+        </p>
+      </div>
     </div>
   );
 }
