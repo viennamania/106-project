@@ -90,34 +90,32 @@ export function LandingPage({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-              <LanguageSwitcher label={languageLabel} locale={locale} />
-              <Link
-                className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                href={disclaimerHref}
-              >
-                {disclaimerLabel}
-              </Link>
-              <Link
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                href={rewardsHref}
-              >
-                <Crown className="size-4" />
-                {rewardsLabel}
-              </Link>
-              <Link
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
-                href={walletHref}
-              >
-                <WalletMinimal className="size-4" />
-                {walletLabel}
-              </Link>
+            <div className="flex flex-col gap-3 sm:items-end">
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <LanguageSwitcher label={languageLabel} locale={locale} />
+                <div className="flex flex-wrap items-center gap-2 rounded-[24px] border border-slate-200/90 bg-slate-50/90 p-2 shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
+                  <HeaderUtilityLink href={disclaimerHref}>
+                    {disclaimerLabel}
+                  </HeaderUtilityLink>
+                  <HeaderUtilityLink href={rewardsHref} icon={<Crown className="size-4" />}>
+                    {rewardsLabel}
+                  </HeaderUtilityLink>
+                  <HeaderUtilityLink
+                    href={walletHref}
+                    icon={<WalletMinimal className="size-4" />}
+                  >
+                    {walletLabel}
+                  </HeaderUtilityLink>
+                </div>
+              </div>
               <ReferralAwareCta
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_52%,#b45309_100%)] px-6 text-sm font-semibold !text-white shadow-[0_20px_45px_rgba(15,23,42,0.22)] ring-1 ring-white/15 transition hover:translate-y-[-1px] hover:shadow-[0_26px_55px_rgba(15,23,42,0.28)] sm:min-w-[15rem] sm:w-auto"
                 locale={locale}
               >
-                {copy.cta.primary}
-                <ArrowRight className="size-4" />
+                <span>{copy.cta.primary}</span>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-white/14 text-white ring-1 ring-white/16">
+                  <ArrowRight className="size-4" />
+                </span>
               </ReferralAwareCta>
             </div>
           </header>
@@ -164,20 +162,31 @@ export function LandingPage({
                 {copy.hero.note}
               </p>
 
-              <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:justify-center">
+              <div className="mt-8 flex flex-col items-center gap-3">
                 <ReferralAwareCta
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition hover:bg-slate-100 sm:w-auto"
+                  className="group inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,#fff9dd_0%,#ffffff_48%,#f5c34d_100%)] px-7 text-base font-semibold !text-slate-950 shadow-[0_28px_70px_rgba(245,195,77,0.26)] ring-1 ring-white/16 transition hover:translate-y-[-1px] hover:shadow-[0_34px_80px_rgba(245,195,77,0.32)] sm:min-w-[18rem] sm:w-auto"
                   locale={locale}
                 >
-                  {copy.cta.primary}
-                  <ArrowRight className="size-4" />
+                  <span>{copy.cta.primary}</span>
+                  <span className="inline-flex size-9 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.2)] transition group-hover:translate-x-0.5">
+                    <ArrowRight className="size-4" />
+                  </span>
                 </ReferralAwareCta>
-                <a
-                  className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/14 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12 sm:w-auto"
-                  href="#profit-structure"
-                >
-                  {copy.cta.secondary}
-                </a>
+                <div className="grid w-full gap-3 sm:flex sm:w-auto sm:flex-wrap sm:justify-center">
+                  <a
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/14 bg-white/8 px-5 text-sm font-semibold text-white/88 transition hover:bg-white/12 sm:w-auto"
+                    href="#profit-structure"
+                  >
+                    {copy.cta.secondary}
+                  </a>
+                  <Link
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/6 px-5 text-sm font-medium text-white/72 transition hover:bg-white/10 hover:text-white sm:w-auto"
+                    href={walletHref}
+                  >
+                    <WalletMinimal className="size-4" />
+                    {walletLabel}
+                  </Link>
+                </div>
               </div>
             </div>
           </LandingReveal>
@@ -659,6 +668,26 @@ function SalesSection({
     >
       <div className="space-y-6">{children}</div>
     </section>
+  );
+}
+
+function HeaderUtilityLink({
+  children,
+  href,
+  icon,
+}: {
+  children: ReactNode;
+  href: string;
+  icon?: ReactNode;
+}) {
+  return (
+    <Link
+      className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+      href={href}
+    >
+      {icon}
+      {children}
+    </Link>
   );
 }
 
