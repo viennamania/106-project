@@ -252,18 +252,9 @@ function RewardLevelCard({
   return (
     <div className="flex min-h-[152px] flex-col rounded-[20px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)] sm:min-h-[164px] sm:rounded-[22px] sm:px-5 sm:py-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-            {levelLabel} {level}
-          </p>
-          <PointValue
-            className="mt-3"
-            locale={locale}
-            points={points}
-            sizeClassName="text-[1.7rem] sm:text-[1.9rem]"
-            unitClassName="text-[1rem] sm:text-[1.05rem]"
-          />
-        </div>
+        <p className="min-w-0 text-xs uppercase tracking-[0.22em] text-slate-500">
+          {levelLabel} {level}
+        </p>
         <span
           className={cn(
             "inline-flex min-w-[3.6rem] items-center justify-center rounded-full border px-2.5 py-1.5 text-xs font-semibold tabular-nums",
@@ -272,6 +263,16 @@ function RewardLevelCard({
         >
           {Math.round(progress)}%
         </span>
+      </div>
+
+      <div className="mt-3 flex justify-end">
+        <PointValue
+          className="text-right"
+          locale={locale}
+          points={points}
+          sizeClassName="text-[1.7rem] sm:text-[1.9rem]"
+          unitClassName="text-[1rem] sm:text-[1.05rem]"
+        />
       </div>
 
       <div className="mt-auto space-y-2.5 pt-5">
