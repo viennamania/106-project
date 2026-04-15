@@ -516,172 +516,166 @@ export function ActivateNetworkPage({
             </LandingReveal>
 
             <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
-              <LandingReveal delay={100} variant="soft">
-                <div className="space-y-4">
-                  <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
-                    <SelectedMemberPanel
-                      dictionary={dictionary}
-                      locale={locale}
-                      member={selectedMember}
-                    />
-                  </section>
+              <div className="space-y-4">
+                <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
+                  <SelectedMemberPanel
+                    dictionary={dictionary}
+                    locale={locale}
+                    member={selectedMember}
+                  />
+                </section>
 
-                  <section className="glass-card rounded-[28px] p-4 sm:p-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                      <div className="space-y-1">
-                        <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-                        <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-                          {dictionary.activateNetworkPage.labels.searchResults}
-                        </h3>
-                        <p className="text-sm leading-6 text-slate-600">
-                          {dictionary.activateNetworkPage.leaderboardDescription}
-                        </p>
-                      </div>
-                      <button
-                        className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-                        disabled={state.status === "loading"}
-                        onClick={() => {
-                          void loadNetwork();
+                <section className="glass-card rounded-[28px] p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
+                      <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+                        {dictionary.activateNetworkPage.labels.searchResults}
+                      </h3>
+                      <p className="text-sm leading-6 text-slate-600">
+                        {dictionary.activateNetworkPage.leaderboardDescription}
+                      </p>
+                    </div>
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                      disabled={state.status === "loading"}
+                      onClick={() => {
+                        void loadNetwork();
+                      }}
+                      type="button"
+                    >
+                      <RefreshCcw
+                        className={cn(
+                          "mr-2 size-4",
+                          state.status === "loading" && "animate-spin",
+                        )}
+                      />
+                      {dictionary.activateNetworkPage.actions.refresh}
+                    </button>
+                  </div>
+
+                  <label className="mt-5 block">
+                    <span className="sr-only">
+                      {dictionary.activateNetworkPage.searchPlaceholder}
+                    </span>
+                    <div className="flex items-center gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]">
+                      <Search className="size-4 shrink-0 text-slate-400" />
+                      <input
+                        className="w-full min-w-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
+                        onChange={(event) => {
+                          setSearchQuery(event.target.value);
                         }}
-                        type="button"
-                      >
-                        <RefreshCcw
-                          className={cn(
-                            "mr-2 size-4",
-                            state.status === "loading" && "animate-spin",
-                          )}
-                        />
-                        {dictionary.activateNetworkPage.actions.refresh}
-                      </button>
+                        placeholder={dictionary.activateNetworkPage.searchPlaceholder}
+                        type="text"
+                        value={searchQuery}
+                      />
                     </div>
+                  </label>
 
-                    <label className="mt-5 block">
-                      <span className="sr-only">
-                        {dictionary.activateNetworkPage.searchPlaceholder}
-                      </span>
-                      <div className="flex items-center gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]">
-                        <Search className="size-4 shrink-0 text-slate-400" />
-                        <input
-                          className="w-full min-w-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
-                          onChange={(event) => {
-                            setSearchQuery(event.target.value);
-                          }}
-                          placeholder={dictionary.activateNetworkPage.searchPlaceholder}
-                          type="text"
-                          value={searchQuery}
-                        />
-                      </div>
-                    </label>
+                  <div className="mt-4 space-y-3 lg:max-h-[42rem] lg:overflow-y-auto lg:pr-1">
+                    {state.error ? (
+                      <MessageCard tone="error">{state.error}</MessageCard>
+                    ) : null}
 
-                    <div className="mt-4 space-y-3 lg:max-h-[42rem] lg:overflow-y-auto lg:pr-1">
-                      {state.error ? (
-                        <MessageCard tone="error">{state.error}</MessageCard>
-                      ) : null}
+                    {filteredMembers.length === 0 ? (
+                      <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
+                    ) : (
+                      filteredMembers.map((member) => {
+                        const isSelected = selectedMember?.email === member.email;
 
-                      {filteredMembers.length === 0 ? (
-                        <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
-                      ) : (
-                        filteredMembers.map((member) => {
-                          const isSelected = selectedMember?.email === member.email;
-
-                          return (
-                            <article
-                              className={cn(
-                                "rounded-[22px] border px-4 py-4 transition",
-                                isSelected
-                                  ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_45px_rgba(15,23,42,0.16)]"
-                                  : "border-white/80 bg-white/90 text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-50",
-                              )}
-                              key={member.email}
+                        return (
+                          <article
+                            className={cn(
+                              "rounded-[22px] border px-4 py-4 transition",
+                              isSelected
+                                ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_45px_rgba(15,23,42,0.16)]"
+                                : "border-white/80 bg-white/90 text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-50",
+                            )}
+                            key={member.email}
+                          >
+                            <button
+                              className="w-full text-left"
+                              onClick={() => {
+                                setSelectedMemberEmail(member.email);
+                              }}
+                              type="button"
                             >
-                              <button
-                                className="w-full text-left"
-                                onClick={() => {
-                                  setSelectedMemberEmail(member.email);
-                                }}
-                                type="button"
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="break-all text-base font-semibold tracking-tight sm:truncate">
-                                      {member.email}
-                                    </p>
-                                    <p
-                                      className={cn(
-                                        "mt-1 text-sm",
-                                        isSelected ? "text-white/72" : "text-slate-600",
-                                      )}
-                                    >
-                                      {formatAddressLabel(member.lastWalletAddress)}
-                                    </p>
-                                  </div>
-                                  <TierBadge
-                                    active={isSelected}
-                                    dictionary={dictionary}
-                                    tier={member.tier}
-                                  />
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="break-all text-base font-semibold tracking-tight sm:truncate">
+                                    {member.email}
+                                  </p>
+                                  <p
+                                    className={cn(
+                                      "mt-1 text-sm",
+                                      isSelected ? "text-white/72" : "text-slate-600",
+                                    )}
+                                  >
+                                    {formatAddressLabel(member.lastWalletAddress)}
+                                  </p>
                                 </div>
+                                <TierBadge
+                                  active={isSelected}
+                                  dictionary={dictionary}
+                                  tier={member.tier}
+                                />
+                              </div>
 
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  <Pill active={isSelected}>
-                                    {dictionary.activateNetworkPage.labels.level} {member.depth}
-                                  </Pill>
-                                  <Pill active={isSelected}>
-                                    {formatInteger(member.lifetimePoints, locale)}P
-                                  </Pill>
-                                  <Pill active={isSelected}>
-                                    {formatInteger(member.spendablePoints, locale)}P
-                                  </Pill>
-                                </div>
-                              </button>
-                            </article>
-                          );
-                        })
-                      )}
-                    </div>
-                  </section>
-                </div>
-              </LandingReveal>
-
-              <LandingReveal delay={140} variant="soft">
-                <section className="hidden rounded-[28px] lg:sticky lg:top-24 lg:block">
-                  <div className="glass-card rounded-[28px] p-4 sm:p-5">
-                    <SelectedMemberPanel
-                      dictionary={dictionary}
-                      locale={locale}
-                      member={selectedMember}
-                    />
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <Pill active={isSelected}>
+                                  {dictionary.activateNetworkPage.labels.level} {member.depth}
+                                </Pill>
+                                <Pill active={isSelected}>
+                                  {formatInteger(member.lifetimePoints, locale)}P
+                                </Pill>
+                                <Pill active={isSelected}>
+                                  {formatInteger(member.spendablePoints, locale)}P
+                                </Pill>
+                              </div>
+                            </button>
+                          </article>
+                        );
+                      })
+                    )}
                   </div>
                 </section>
-              </LandingReveal>
+              </div>
+
+              <section className="hidden rounded-[28px] lg:sticky lg:top-24 lg:block">
+                <div className="glass-card rounded-[28px] p-4 sm:p-5">
+                  <SelectedMemberPanel
+                    dictionary={dictionary}
+                    locale={locale}
+                    member={selectedMember}
+                  />
+                </div>
+              </section>
             </section>
 
-            <LandingReveal delay={180} variant="soft">
-              <section className="glass-card rounded-[28px] p-4 sm:p-5">
-                  <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-                    <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-                      {dictionary.referralsPage.listTitle}
-                    </h3>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.activateNetworkPage.treeDescription}
-                    </p>
-                  </div>
+            <section className="glass-card rounded-[28px] p-4 sm:p-5">
+              <div className="space-y-1">
+                <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
+                <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+                  {dictionary.referralsPage.listTitle}
+                </h3>
+                <p className="text-sm leading-6 text-slate-600">
+                  {dictionary.activateNetworkPage.treeDescription}
+                </p>
+              </div>
 
-                  <div className="mt-5">
-                    <ManagedReferralNetworkExplorer
-                      dictionary={dictionary}
-                      levelCounts={state.levelCounts}
-                      locale={locale}
-                      onSelectMember={(email) => {
-                        setSelectedMemberEmail(email);
-                      }}
-                      referrals={state.referrals}
-                      totalReferrals={state.totalReferrals}
-                    />
-                  </div>
-              </section>
-            </LandingReveal>
+              <div className="mt-5">
+                <ManagedReferralNetworkExplorer
+                  dictionary={dictionary}
+                  levelCounts={state.levelCounts}
+                  locale={locale}
+                  onSelectMember={(email) => {
+                    setSelectedMemberEmail(email);
+                  }}
+                  referrals={state.referrals}
+                  totalReferrals={state.totalReferrals}
+                />
+              </div>
+            </section>
           </>
         )}
       </main>
