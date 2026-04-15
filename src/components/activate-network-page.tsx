@@ -518,14 +518,6 @@ export function ActivateNetworkPage({
             <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
               <LandingReveal delay={100} variant="soft">
                 <div className="space-y-4">
-                  <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
-                    <SelectedMemberPanel
-                      dictionary={dictionary}
-                      locale={locale}
-                      member={selectedMember}
-                    />
-                  </section>
-
                   <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="space-y-1">
@@ -633,6 +625,14 @@ export function ActivateNetworkPage({
                       ))
                     )}
                   </div>
+                  </section>
+
+                  <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
+                    <SelectedMemberPanel
+                      dictionary={dictionary}
+                      locale={locale}
+                      member={selectedMember}
+                    />
                   </section>
                 </div>
               </LandingReveal>
