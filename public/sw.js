@@ -1,5 +1,5 @@
 const PAGE_CACHE = "pocket-smart-wallet-pages-v1";
-const ASSET_CACHE = "pocket-smart-wallet-assets-v1";
+const ASSET_CACHE = "pocket-smart-wallet-assets-v2";
 const PRECACHE_URLS = [
   "/offline",
   "/manifest.webmanifest",
@@ -105,7 +105,7 @@ async function handleNavigation(request) {
 
 async function handleAsset(request) {
   const cache = await caches.open(ASSET_CACHE);
-  const cachedResponse = await cache.match(request, { ignoreSearch: true });
+  const cachedResponse = await cache.match(request);
 
   if (cachedResponse) {
     void refreshAsset(cache, request);
