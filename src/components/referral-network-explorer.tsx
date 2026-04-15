@@ -185,6 +185,7 @@ export function ReferralNetworkExplorer({
                   animateValue
                   label={dictionary.referralsPage.labels.descendants}
                   locale={locale}
+                  progress={getReferralProgressMeta(referral)}
                   value={String(referral.totalReferralCount)}
                 />
               </div>
@@ -247,12 +248,18 @@ function ExplorerInfoRow({
   className,
   label,
   locale,
+  progress,
   value,
 }: {
   animateValue?: boolean;
   className?: string;
   label: string;
   locale: Locale;
+  progress?: {
+    current: number;
+    percent: number;
+    target: number;
+  } | null;
   value: string;
 }) {
   return (
@@ -270,6 +277,24 @@ function ExplorerInfoRow({
           value
         )}
       </p>
+      {progress ? (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between gap-2 text-[0.68rem] font-medium text-slate-500 tabular-nums">
+            <span>
+              {new Intl.NumberFormat(locale).format(progress.current)}
+            </span>
+            <span>
+              {new Intl.NumberFormat(locale).format(progress.target)}
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200/90">
+            <div
+              className="h-full rounded-full bg-[linear-gradient(90deg,#0f766e_0%,#14b8a6_52%,#84cc16_100%)] transition-[width]"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -294,4 +319,30 @@ function formatDateTime(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function getReferralProgressMeta(referral: ReferralTreeNodeRecord) {
+  const target = getDescendantTargetForDepth(referral.depth);
+
+  if (target <= 0) {
+    return null;
+  }
+
+  return {
+    current: referral.totalReferralCount,
+    percent: Math.min((referral.totalReferralCount / target) * 100, 100),
+    target,
+  };
+}
+
+function getDescendantTargetForDepth(depth: number) {
+  const remainingDepth = REFERRAL_TREE_DEPTH_LIMIT - depth;
+
+  if (remainingDepth <= 0) {
+    return 0;
+  }
+
+  return Array.from({ length: remainingDepth }, (_, index) =>
+    Math.pow(REFERRAL_SIGNUP_LIMIT, index + 1),
+  ).reduce((sum, count) => sum + count, 0);
 }
