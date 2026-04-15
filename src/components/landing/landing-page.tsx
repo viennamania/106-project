@@ -21,12 +21,14 @@ import { ReferralAwareCta } from "@/components/landing/referral-aware-cta";
 import type { Locale } from "@/lib/i18n";
 import type { LandingCopy } from "@/lib/marketing-copy";
 
+const LANDING_IMAGE_VERSION = "20260415";
+
 const HERO_WORLD_IMAGE =
-  "/landing/global-network-map.png";
+  `/landing/global-network-map.png?v=${LANDING_IMAGE_VERSION}`;
 const REWARD_PHONE_IMAGE =
-  "/landing/premium-phone.png";
+  `/landing/premium-phone.png?v=${LANDING_IMAGE_VERSION}`;
 const REWARD_BIKE_IMAGE =
-  "/landing/electric-bike.png";
+  `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
 
 export function LandingPage({
   copy,
