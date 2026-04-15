@@ -573,66 +573,78 @@ export function ActivateNetworkPage({
                     {filteredMembers.length === 0 ? (
                       <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
                     ) : (
-                      filteredMembers.map((member) => (
-                        <button
-                          className={cn(
-                            "w-full rounded-[22px] border px-4 py-4 text-left transition",
-                            selectedMember?.email === member.email
-                              ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_45px_rgba(15,23,42,0.16)]"
-                              : "border-white/80 bg-white/90 text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-50",
-                          )}
-                          key={member.email}
-                          onClick={() => {
-                            setSelectedMemberEmail(member.email);
-                          }}
-                          type="button"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-base font-semibold tracking-tight">
-                                {member.email}
-                              </p>
-                              <p
-                                className={cn(
-                                  "mt-1 text-sm",
-                                  selectedMember?.email === member.email
-                                    ? "text-white/72"
-                                    : "text-slate-600",
-                                )}
-                              >
-                                {formatAddressLabel(member.lastWalletAddress)}
-                              </p>
-                            </div>
-                            <TierBadge
-                              active={selectedMember?.email === member.email}
-                              dictionary={dictionary}
-                              tier={member.tier}
-                            />
-                          </div>
+                      filteredMembers.map((member) => {
+                        const isSelected = selectedMember?.email === member.email;
 
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <Pill active={selectedMember?.email === member.email}>
-                              {dictionary.activateNetworkPage.labels.level} {member.depth}
-                            </Pill>
-                            <Pill active={selectedMember?.email === member.email}>
-                              {formatInteger(member.lifetimePoints, locale)}P
-                            </Pill>
-                            <Pill active={selectedMember?.email === member.email}>
-                              {formatInteger(member.spendablePoints, locale)}P
-                            </Pill>
-                          </div>
-                        </button>
-                      ))
+                        return (
+                          <article
+                            className={cn(
+                              "rounded-[22px] border px-4 py-4 transition",
+                              isSelected
+                                ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_45px_rgba(15,23,42,0.16)]"
+                                : "border-white/80 bg-white/90 text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-50",
+                            )}
+                            key={member.email}
+                          >
+                            <button
+                              className="w-full text-left"
+                              onClick={() => {
+                                setSelectedMemberEmail(member.email);
+                              }}
+                              type="button"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="break-all text-base font-semibold tracking-tight sm:truncate">
+                                    {member.email}
+                                  </p>
+                                  <p
+                                    className={cn(
+                                      "mt-1 text-sm",
+                                      isSelected ? "text-white/72" : "text-slate-600",
+                                    )}
+                                  >
+                                    {formatAddressLabel(member.lastWalletAddress)}
+                                  </p>
+                                </div>
+                                <TierBadge
+                                  active={isSelected}
+                                  dictionary={dictionary}
+                                  tier={member.tier}
+                                />
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <Pill active={isSelected}>
+                                  {dictionary.activateNetworkPage.labels.level} {member.depth}
+                                </Pill>
+                                <Pill active={isSelected}>
+                                  {formatInteger(member.lifetimePoints, locale)}P
+                                </Pill>
+                                <Pill active={isSelected}>
+                                  {formatInteger(member.spendablePoints, locale)}P
+                                </Pill>
+                              </div>
+                            </button>
+
+                            {isSelected ? (
+                              <div className="mt-4 border-t border-white/12 pt-4 lg:hidden">
+                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/52">
+                                  {dictionary.activateNetworkPage.labels.currentMember}
+                                </p>
+                                <SelectedMemberCard
+                                  className="mt-3 space-y-4"
+                                  dictionary={dictionary}
+                                  locale={locale}
+                                  member={member}
+                                />
+                              </div>
+                            ) : null}
+                          </article>
+                        );
+                      })
                     )}
                   </div>
-                  </section>
-
-                  <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
-                    <SelectedMemberPanel
-                      dictionary={dictionary}
-                      locale={locale}
-                      member={selectedMember}
-                    />
                   </section>
                 </div>
               </LandingReveal>
@@ -720,16 +732,18 @@ function SelectedMemberPanel({
 }
 
 function SelectedMemberCard({
+  className,
   dictionary,
   locale,
   member,
 }: {
+  className?: string;
   dictionary: Dictionary;
   locale: Locale;
   member: ManagedReferralTreeNodeRecord;
 }) {
   return (
-    <div className="mt-5 space-y-4">
+    <div className={cn("mt-5 space-y-4", className)}>
       <div className="rounded-[26px] border border-slate-900/90 bg-[linear-gradient(150deg,#0f172a_0%,#13233d_48%,#14532d_100%)] p-4 text-white shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

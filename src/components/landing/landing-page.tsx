@@ -29,6 +29,8 @@ const REWARD_PHONE_IMAGE =
   `/landing/premium-phone.png?v=${LANDING_IMAGE_VERSION}`;
 const REWARD_BIKE_IMAGE =
   `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
+const BITHUMB_LOGO_URL =
+  "https://www.bithumb.com/resources/img/comm/20171115_site_logo.png";
 
 export function LandingPage({
   bnbWalletDescription,
@@ -235,9 +237,16 @@ export function LandingPage({
 
             <div className="relative grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/78">
-                  <BnbLogoMark className="size-4 text-[#f3ba2f]" />
-                  BNB / KRW Live
+                <div className="inline-flex flex-wrap items-center gap-3 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/78">
+                  <span className="inline-flex items-center gap-2">
+                    <BnbLogoMark className="size-4 text-[#f3ba2f]" />
+                    BNB
+                  </span>
+                  <span className="hidden h-4 w-px bg-white/12 sm:block" />
+                  <span className="rounded-full bg-white px-2.5 py-1 shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
+                    <BithumbWordmark className="h-auto w-[76px]" />
+                  </span>
+                  <span>KRW Live</span>
                 </div>
                 <h2 className="mt-5 text-[2rem] font-semibold tracking-tight text-white sm:text-[2.6rem]">
                   {bnbWalletLabel}
@@ -247,9 +256,15 @@ export function LandingPage({
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#f5c34d]/28 bg-[#f3ba2f]/12 px-3 py-2 text-sm font-medium text-[#ffe6a7]">
-                    <Sparkles className="size-4" />
-                    Smart Wallet + Bithumb
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-[22px] border border-[#f5c34d]/28 bg-[#f3ba2f]/12 px-3 py-2.5 text-sm font-medium text-[#ffe6a7]">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[#111827] px-3 py-1.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                      <BnbLogoMark className="size-4 text-[#f3ba2f]" />
+                      BNB
+                    </span>
+                    <span className="text-[#f5d78e]/72">×</span>
+                    <span className="inline-flex items-center rounded-full bg-white px-3 py-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+                      <BithumbWordmark className="h-auto w-[82px]" />
+                    </span>
                   </div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-sm font-medium text-white/74">
                     KRW valuation
@@ -263,10 +278,35 @@ export function LandingPage({
               </div>
 
               <div className="flex items-center justify-center md:justify-end">
-                <div className="relative flex size-[13rem] items-center justify-center rounded-full border border-[#f5c34d]/26 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:size-[18rem]">
-                  <div className="absolute inset-[11%] rounded-full border border-[#f5c34d]/18 bg-[radial-gradient(circle,rgba(243,186,47,0.14),transparent_62%)]" />
-                  <div className="absolute inset-[22%] rounded-full border border-[#f5c34d]/20 bg-[linear-gradient(180deg,rgba(243,186,47,0.18),rgba(243,186,47,0.04))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
-                  <BnbLogoMark className="relative size-16 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-24" />
+                <div className="relative w-full max-w-[22rem] rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(11,18,32,0.64),rgba(17,24,39,0.34))] p-4 shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:max-w-[25rem] sm:p-5">
+                  <div className="pointer-events-none absolute inset-x-8 top-[38%] h-px bg-gradient-to-r from-transparent via-[#f5c34d]/30 to-transparent" />
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                    <div className="relative flex aspect-square items-center justify-center rounded-[28px] border border-[#f5c34d]/18 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)]">
+                      <div className="absolute inset-[11%] rounded-full border border-[#f5c34d]/18 bg-[radial-gradient(circle,rgba(243,186,47,0.14),transparent_62%)]" />
+                      <div className="absolute inset-[22%] rounded-full border border-[#f5c34d]/20 bg-[linear-gradient(180deg,rgba(243,186,47,0.18),rgba(243,186,47,0.04))]" />
+                      <BnbLogoMark className="relative size-12 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-16" />
+                    </div>
+
+                    <div className="flex size-11 items-center justify-center rounded-full border border-[#f5c34d]/20 bg-white/8 text-lg font-semibold text-[#ffe6a7] shadow-[0_18px_40px_rgba(15,23,42,0.22)]">
+                      ×
+                    </div>
+
+                    <div className="relative flex aspect-square items-center justify-center rounded-[28px] border border-white/12 bg-[radial-gradient(circle,rgba(255,255,255,0.1),rgba(17,24,39,0.72))]">
+                      <div className="rounded-[24px] border border-white/70 bg-white px-4 py-5 shadow-[0_22px_50px_rgba(15,23,42,0.26)]">
+                        <BithumbWordmark className="h-auto w-[112px] sm:w-[128px]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-[22px] border border-white/10 bg-white/7 px-4 py-4">
+                    <div className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[#f5d78e]">
+                      <Sparkles className="size-4" />
+                      Smart Wallet + Bithumb
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/70">
+                      BNB balance visibility and direct KRW trade intent in one branded flow.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -828,5 +868,17 @@ function BnbLogoMark({ className }: { className?: string }) {
       <path d="M48 53.3 58.7 64 48 74.7 37.3 64 48 53.3Z" />
       <path d="M48 41 49.6 42.6 48 44.2 46.4 42.6 48 41Z" />
     </svg>
+  );
+}
+
+function BithumbWordmark({ className }: { className?: string }) {
+  return (
+    <Image
+      alt="Bithumb"
+      className={className}
+      height={24}
+      src={BITHUMB_LOGO_URL}
+      width={124}
+    />
   );
 }
