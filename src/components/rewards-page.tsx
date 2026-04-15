@@ -40,6 +40,10 @@ import {
   type RewardRedemptionRecord,
   type RewardRedemptionsResponse,
 } from "@/lib/points";
+import type {
+  SilverRewardClaimRecord,
+  SilverRewardClaimSummaryResponse,
+} from "@/lib/silver-reward-claim";
 import {
   BSC_EXPLORER,
   getAppMetadata,
@@ -59,6 +63,8 @@ type RewardsPageState = {
   member: MemberRecord | null;
   redemptions: RewardRedemptionRecord[];
   redemptionsError: string | null;
+  silverClaim: SilverRewardClaimRecord | null;
+  silverClaimError: string | null;
   status: "idle" | "loading" | "ready" | "error";
   summary: PointsSummaryRecord;
 };
@@ -85,6 +91,8 @@ export function RewardsPage({
     member: null,
     redemptions: [],
     redemptionsError: null,
+    silverClaim: null,
+    silverClaimError: null,
     status: "idle",
     summary: createEmptyPointsSummary(),
   });
@@ -114,6 +122,7 @@ export function RewardsPage({
           catalogError: null,
           error: null,
           redemptionsError: null,
+          silverClaimError: null,
           status: "loading",
         }));
       }
@@ -228,11 +237,44 @@ export function RewardsPage({
               redemptions: [],
             });
 
-        const [catalog, summaryResult, redemptionsResult] = await Promise.all([
-          catalogTask,
-          summaryTask,
-          redemptionsTask,
-        ]);
+        const silverClaimTask = member.status === "completed"
+          ? (async () => {
+              const response = await fetch(
+                `/api/rewards/silver-claim?email=${encodeURIComponent(email)}`,
+              );
+              const data = (await response.json()) as
+                | SilverRewardClaimSummaryResponse
+                | { error?: string };
+
+              if (!response.ok || !("claim" in data)) {
+                throw new Error(dictionary.rewardsPage.silverClaim.errors.loadFailed);
+              }
+
+              return {
+                claim: data.claim,
+                error: null,
+              };
+            })().catch((error) => {
+              return {
+                claim: null,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : dictionary.rewardsPage.silverClaim.errors.loadFailed,
+              };
+            })
+          : Promise.resolve({
+              claim: null,
+              error: null,
+            });
+
+        const [catalog, summaryResult, redemptionsResult, silverClaimResult] =
+          await Promise.all([
+            catalogTask,
+            summaryTask,
+            redemptionsTask,
+            silverClaimTask,
+          ]);
 
         setState({
           catalog,
@@ -242,6 +284,8 @@ export function RewardsPage({
           member: summaryResult.member,
           redemptions: redemptionsResult.redemptions,
           redemptionsError: redemptionsResult.error,
+          silverClaim: silverClaimResult.claim,
+          silverClaimError: silverClaimResult.error,
           status: "ready",
           summary: summaryResult.summary,
         });
@@ -276,6 +320,8 @@ export function RewardsPage({
         member: null,
         redemptions: [],
         redemptionsError: null,
+        silverClaim: null,
+        silverClaimError: null,
         status: "idle",
         summary: createEmptyPointsSummary(),
       });
@@ -756,6 +802,11 @@ export function RewardsPage({
                     <MessageCard tone="error">{actionError}</MessageCard>
                   </div>
                 ) : null}
+                {state.silverClaimError ? (
+                  <div className="mb-4">
+                    <MessageCard tone="error">{state.silverClaimError}</MessageCard>
+                  </div>
+                ) : null}
                 {state.status === "loading" && state.catalog.length === 0 ? (
                   <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
                 ) : state.catalog.length === 0 ? (
@@ -772,6 +823,9 @@ export function RewardsPage({
                         onRedeem={handleRedeemReward}
                         redemption={latestRedemptionsByReward[reward.rewardId] ?? null}
                         reward={reward}
+                        silverClaim={
+                          reward.rewardId === "silver-card" ? state.silverClaim : null
+                        }
                         spendablePoints={state.summary.spendablePoints}
                       />
                     ))}
@@ -901,6 +955,7 @@ function RewardCatalogCard({
   onRedeem,
   redemption,
   reward,
+  silverClaim,
   spendablePoints,
 }: {
   canRedeem: boolean;
@@ -910,22 +965,37 @@ function RewardCatalogCard({
   onRedeem: (rewardId: RewardCatalogId) => void;
   redemption: RewardRedemptionRecord | null;
   reward: RewardCatalogItemRecord;
+  silverClaim: SilverRewardClaimRecord | null;
   spendablePoints: number;
 }) {
   const isEligible = spendablePoints >= reward.costPoints;
-  const statusLabel = redemption
-    ? getRedemptionStatusLabel(redemption.status, dictionary)
-    : isEligible
-      ? dictionary.rewardsPage.catalog.eligible
-      : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-          points: formatNumber(reward.costPoints - spendablePoints, locale),
-        });
-  const actionLabel = redemption
-    ? getRedemptionStatusLabel(redemption.status, dictionary)
-    : isRedeeming
-      ? dictionary.rewardsPage.actions.redeeming
-      : dictionary.rewardsPage.actions.redeem;
-  const isActionDisabled = !canRedeem || !isEligible || Boolean(redemption) || isRedeeming;
+  const isSilverReward =
+    reward.rewardId === "silver-card" && redemption?.status === "completed";
+  const statusLabel = isSilverReward
+    ? silverClaim
+      ? getSilverClaimStatusLabel(silverClaim.status, dictionary)
+      : dictionary.rewardsPage.silverClaim.statuses.available
+    : redemption
+      ? getRedemptionStatusLabel(redemption.status, dictionary)
+      : isEligible
+        ? dictionary.rewardsPage.catalog.eligible
+        : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
+            points: formatNumber(reward.costPoints - spendablePoints, locale),
+          });
+  const actionLabel = isSilverReward
+    ? silverClaim?.status === "completed"
+      ? dictionary.rewardsPage.silverClaim.statuses.completed
+      : silverClaim?.status === "pending"
+        ? dictionary.rewardsPage.silverClaim.statuses.pending
+        : dictionary.rewardsPage.silverClaim.actions.open
+    : redemption
+      ? getRedemptionStatusLabel(redemption.status, dictionary)
+      : isRedeeming
+        ? dictionary.rewardsPage.actions.redeeming
+        : dictionary.rewardsPage.actions.redeem;
+  const isActionDisabled = isSilverReward
+    ? silverClaim?.status === "completed" || silverClaim?.status === "pending"
+    : !canRedeem || !isEligible || Boolean(redemption) || isRedeeming;
   const Icon =
     reward.rewardType === "tier_upgrade"
       ? Crown
@@ -965,35 +1035,44 @@ function RewardCatalogCard({
             {formatPoints(reward.costPoints, locale)}
           </p>
         </div>
-        <div
-          className={cn(
-            "rounded-[20px] border px-4 py-3 text-sm font-medium",
-            redemption
-              ? "border-blue-200 bg-blue-50 text-blue-900"
-              : isEligible
+        {!redemption ? (
+          <div
+            className={cn(
+              "rounded-[20px] border px-4 py-3 text-sm font-medium",
+              isEligible
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : "border-slate-200 bg-slate-50 text-slate-700",
-          )}
-        >
-          {statusLabel}
-        </div>
-        <button
-          className={cn(
-            "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
-            redemption
-              ? "border border-blue-200 bg-blue-50 text-blue-900"
-              : isEligible && canRedeem
-                ? "bg-slate-950 text-white hover:bg-slate-800"
-                : "border border-slate-200 bg-white text-slate-500",
-          )}
-          disabled={isActionDisabled}
-          onClick={() => {
-            onRedeem(reward.rewardId);
-          }}
-          type="button"
-        >
-          {actionLabel}
-        </button>
+            )}
+          >
+            {statusLabel}
+          </div>
+        ) : null}
+        {isSilverReward && !isActionDisabled ? (
+          <Link
+            className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+            href={`/${locale}/rewards/silver-claim`}
+          >
+            {actionLabel}
+          </Link>
+        ) : (
+          <button
+            className={cn(
+              "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+              redemption || isSilverReward
+                ? "border border-blue-200 bg-blue-50 text-blue-900"
+                : isEligible && canRedeem
+                  ? "bg-slate-950 text-white hover:bg-slate-800"
+                  : "border border-slate-200 bg-white text-slate-500",
+            )}
+            disabled={isActionDisabled}
+            onClick={() => {
+              onRedeem(reward.rewardId);
+            }}
+            type="button"
+          >
+            {actionLabel}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1291,6 +1370,21 @@ function getRedemptionStatusLabel(
   }
 
   return dictionary.rewardsPage.redemptionStatus.pending;
+}
+
+function getSilverClaimStatusLabel(
+  status: SilverRewardClaimRecord["status"],
+  dictionary: Dictionary,
+) {
+  if (status === "completed") {
+    return dictionary.rewardsPage.silverClaim.statuses.completed;
+  }
+
+  if (status === "failed") {
+    return dictionary.rewardsPage.silverClaim.statuses.failed;
+  }
+
+  return dictionary.rewardsPage.silverClaim.statuses.pending;
 }
 
 function getTierLabel(tier: PointTier, dictionary: Dictionary) {

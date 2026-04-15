@@ -19,6 +19,7 @@ import type {
   PointLedgerDocument,
   RewardRedemptionDocument,
 } from "@/lib/points";
+import type { SilverRewardClaimDocument } from "@/lib/silver-reward-claim";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -49,6 +50,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoRewardRedemptionsCollectionPromise?: Promise<
     Collection<RewardRedemptionDocument>
+  >;
+  mongoSilverRewardClaimsCollectionPromise?: Promise<
+    Collection<SilverRewardClaimDocument>
   >;
 };
 
@@ -442,4 +446,30 @@ export async function getRewardRedemptionsCollection() {
   }
 
   return globalForMongo.mongoRewardRedemptionsCollectionPromise;
+}
+
+export async function getSilverRewardClaimsCollection() {
+  if (!globalForMongo.mongoSilverRewardClaimsCollectionPromise) {
+    globalForMongo.mongoSilverRewardClaimsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_SILVER_REWARD_CLAIMS_COLLECTION ??
+        "silverRewardClaims";
+      const collection = client
+        .db(dbName)
+        .collection<SilverRewardClaimDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ claimId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, rewardId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ status: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoSilverRewardClaimsCollectionPromise;
 }

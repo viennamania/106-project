@@ -471,6 +471,53 @@ export type Dictionary = {
         description: string;
       };
     };
+    silverClaim: {
+      title: string;
+      description: string;
+      quoteNote: string;
+      labels: {
+        rewardValue: string;
+        estimatedBnb: string;
+        estimatedKrw: string;
+        usdtKrw: string;
+        bnbKrw: string;
+        destinationWallet: string;
+        silverCardStatus: string;
+        claimStatus: string;
+        quotedAt: string;
+      };
+      actions: {
+        open: string;
+        claim: string;
+        claiming: string;
+        backToRewards: string;
+        openTransaction: string;
+      };
+      statuses: {
+        available: string;
+        silverCardCompleted: string;
+        silverCardRequired: string;
+        pending: string;
+        completed: string;
+        failed: string;
+      };
+      messages: {
+        requiresSignup: string;
+        requiresSilverCard: string;
+        missingWallet: string;
+        alreadyClaimed: string;
+        pending: string;
+        failed: string;
+        completed: string;
+      };
+      notices: {
+        claimSuccess: string;
+      };
+      errors: {
+        loadFailed: string;
+        claimFailed: string;
+      };
+    };
   };
   signInMix: {
     title: string;
@@ -1031,6 +1078,59 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           title: "서비스 크레딧",
           description:
             "20,000P 이상에서 교환 가능한 사용형 크레딧입니다. 추후 결제 할인이나 서비스 이용권으로 연결됩니다.",
+        },
+      },
+      silverClaim: {
+        title: "Silver BNB 클레임",
+        description:
+          "Silver 멤버 카드 완료 회원에게 1회성으로 10 USD 상당의 BNB를 지급합니다.",
+        quoteNote:
+          "지급 수량은 Bithumb USDT/KRW 와 BNB/KRW 시세를 기준으로 지금 다시 계산됩니다.",
+        labels: {
+          rewardValue: "기준 보상",
+          estimatedBnb: "예상 지급 BNB",
+          estimatedKrw: "원화 환산",
+          usdtKrw: "Bithumb USDT/KRW",
+          bnbKrw: "Bithumb BNB/KRW",
+          destinationWallet: "지급 대상 지갑",
+          silverCardStatus: "Silver 카드 상태",
+          claimStatus: "클레임 상태",
+          quotedAt: "시세 기준 시각",
+        },
+        actions: {
+          open: "BNB 클레임 보기",
+          claim: "클레임 신청",
+          claiming: "신청 처리 중...",
+          backToRewards: "리워드로 돌아가기",
+          openTransaction: "거래 보기",
+        },
+        statuses: {
+          available: "클레임 가능",
+          silverCardCompleted: "Silver 카드 완료",
+          silverCardRequired: "Silver 카드 필요",
+          pending: "처리 중",
+          completed: "클레임 완료",
+          failed: "재신청 가능",
+        },
+        messages: {
+          requiresSignup:
+            "회원가입 완료 후 Silver 카드 클레임을 진행할 수 있습니다.",
+          requiresSilverCard:
+            "먼저 Silver 멤버 카드를 완료해야 이 BNB 클레임을 신청할 수 있습니다.",
+          missingWallet:
+            "지급받을 회원 지갑 주소를 확인하지 못했습니다. 다시 로그인한 뒤 새로고침하세요.",
+          alreadyClaimed: "이 Silver BNB 클레임은 이미 완료되었습니다.",
+          pending: "현재 클레임 전송을 처리 중입니다. 잠시 후 다시 확인하세요.",
+          failed: "이전 클레임이 실패했습니다. 내용을 확인한 뒤 다시 신청할 수 있습니다.",
+          completed: "Silver BNB 클레임이 완료되었습니다.",
+        },
+        notices: {
+          claimSuccess:
+            "Silver BNB 클레임이 완료되었습니다. 최신 상태를 다시 반영했습니다.",
+        },
+        errors: {
+          loadFailed: "Silver BNB 클레임 정보를 불러오지 못했습니다.",
+          claimFailed: "Silver BNB 클레임을 처리하지 못했습니다.",
         },
       },
     },
@@ -1595,6 +1695,61 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           title: "Service Credit",
           description:
             "A 20,000P milestone reward intended for future discounts, credits, or paid feature usage.",
+        },
+      },
+      silverClaim: {
+        title: "Silver BNB Claim",
+        description:
+          "Members with a completed Silver member card can claim a one-time BNB payout equal to 10 USD.",
+        quoteNote:
+          "The payout amount is recalculated from the current Bithumb USDT/KRW and BNB/KRW market prices.",
+        labels: {
+          rewardValue: "Reward baseline",
+          estimatedBnb: "Estimated BNB payout",
+          estimatedKrw: "Estimated KRW value",
+          usdtKrw: "Bithumb USDT/KRW",
+          bnbKrw: "Bithumb BNB/KRW",
+          destinationWallet: "Destination wallet",
+          silverCardStatus: "Silver card status",
+          claimStatus: "Claim status",
+          quotedAt: "Quoted at",
+        },
+        actions: {
+          open: "Open BNB claim",
+          claim: "Submit claim",
+          claiming: "Submitting...",
+          backToRewards: "Back to rewards",
+          openTransaction: "View transaction",
+        },
+        statuses: {
+          available: "Claim available",
+          silverCardCompleted: "Silver card completed",
+          silverCardRequired: "Silver card required",
+          pending: "In progress",
+          completed: "Claim completed",
+          failed: "Retry available",
+        },
+        messages: {
+          requiresSignup:
+            "Finish signup before requesting the Silver BNB claim.",
+          requiresSilverCard:
+            "Complete the Silver member card first to unlock this BNB claim.",
+          missingWallet:
+            "No eligible member wallet address is available yet. Sign in again and refresh.",
+          alreadyClaimed: "This Silver BNB claim has already been completed.",
+          pending:
+            "The Silver BNB claim transfer is still being processed. Check again shortly.",
+          failed:
+            "The previous Silver BNB claim attempt failed. Review the details and try again.",
+          completed: "The Silver BNB claim is complete.",
+        },
+        notices: {
+          claimSuccess:
+            "The Silver BNB claim is complete and the latest status has been refreshed.",
+        },
+        errors: {
+          loadFailed: "Failed to load the Silver BNB claim.",
+          claimFailed: "Failed to process the Silver BNB claim.",
         },
       },
     },
@@ -2166,6 +2321,61 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
             "20,000P 到達時に目指せる使用型クレジットです。将来の割引や有料機能利用に接続されます。",
         },
       },
+      silverClaim: {
+        title: "Silver BNB クレーム",
+        description:
+          "Silver メンバーカードを完了した会員は、10 USD 相当の BNB を一度だけクレームできます。",
+        quoteNote:
+          "支給数量は Bithumb の USDT/KRW と BNB/KRW の現在価格を基準に再計算されます。",
+        labels: {
+          rewardValue: "基準報酬",
+          estimatedBnb: "推定 BNB 支給量",
+          estimatedKrw: "KRW 換算額",
+          usdtKrw: "Bithumb USDT/KRW",
+          bnbKrw: "Bithumb BNB/KRW",
+          destinationWallet: "受取ウォレット",
+          silverCardStatus: "Silver カード状態",
+          claimStatus: "クレーム状態",
+          quotedAt: "価格基準時刻",
+        },
+        actions: {
+          open: "BNB クレームを見る",
+          claim: "クレーム申請",
+          claiming: "申請処理中...",
+          backToRewards: "リワードへ戻る",
+          openTransaction: "取引を見る",
+        },
+        statuses: {
+          available: "クレーム可能",
+          silverCardCompleted: "Silver カード完了",
+          silverCardRequired: "Silver カードが必要",
+          pending: "処理中",
+          completed: "クレーム完了",
+          failed: "再申請可能",
+        },
+        messages: {
+          requiresSignup:
+            "Silver BNB クレームを申請するには先に登録を完了してください。",
+          requiresSilverCard:
+            "この BNB クレームを利用するには、先に Silver メンバーカードを完了してください。",
+          missingWallet:
+            "受取先の会員ウォレットアドレスを確認できません。再ログインして更新してください。",
+          alreadyClaimed: "この Silver BNB クレームはすでに完了しています。",
+          pending:
+            "Silver BNB クレームの送金を処理中です。しばらくしてから再確認してください。",
+          failed:
+            "前回の Silver BNB クレームは失敗しました。内容を確認して再申請できます。",
+          completed: "Silver BNB クレームが完了しました。",
+        },
+        notices: {
+          claimSuccess:
+            "Silver BNB クレームが完了し、最新状態を再反映しました。",
+        },
+        errors: {
+          loadFailed: "Silver BNB クレーム情報を読み込めませんでした。",
+          claimFailed: "Silver BNB クレームを処理できませんでした。",
+        },
+      },
     },
     signInMix: {
       title: "登録フロー",
@@ -2718,6 +2928,57 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           title: "服务额度",
           description:
             "20,000P 里程碑对应的可用型额度，后续可连接折扣、抵扣或付费功能使用。",
+        },
+      },
+      silverClaim: {
+        title: "Silver BNB 领取",
+        description:
+          "已完成 Silver 会员卡的会员可一次性领取价值 10 USD 的 BNB。",
+        quoteNote:
+          "发放数量会根据 Bithumb 的 USDT/KRW 与 BNB/KRW 实时价格重新计算。",
+        labels: {
+          rewardValue: "奖励基准",
+          estimatedBnb: "预计发放 BNB",
+          estimatedKrw: "韩元估值",
+          usdtKrw: "Bithumb USDT/KRW",
+          bnbKrw: "Bithumb BNB/KRW",
+          destinationWallet: "接收钱包",
+          silverCardStatus: "Silver 卡状态",
+          claimStatus: "领取状态",
+          quotedAt: "报价时间",
+        },
+        actions: {
+          open: "查看 BNB 领取",
+          claim: "提交领取",
+          claiming: "提交中...",
+          backToRewards: "返回奖励",
+          openTransaction: "查看交易",
+        },
+        statuses: {
+          available: "可领取",
+          silverCardCompleted: "Silver 卡已完成",
+          silverCardRequired: "需要 Silver 卡",
+          pending: "处理中",
+          completed: "领取完成",
+          failed: "可重新申请",
+        },
+        messages: {
+          requiresSignup: "请先完成注册，再申请 Silver BNB 领取。",
+          requiresSilverCard:
+            "请先完成 Silver 会员卡，才能解锁此 BNB 领取。",
+          missingWallet:
+            "暂时无法确认可接收奖励的钱包地址。请重新登录后刷新。",
+          alreadyClaimed: "该 Silver BNB 领取已经完成。",
+          pending: "Silver BNB 转账仍在处理中，请稍后再查看。",
+          failed: "上一次 Silver BNB 领取失败。确认详情后可重新申请。",
+          completed: "Silver BNB 领取已完成。",
+        },
+        notices: {
+          claimSuccess: "Silver BNB 领取已完成，页面已刷新为最新状态。",
+        },
+        errors: {
+          loadFailed: "无法加载 Silver BNB 领取信息。",
+          claimFailed: "无法处理 Silver BNB 领取。",
         },
       },
     },
