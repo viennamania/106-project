@@ -112,6 +112,36 @@ export type ReferralRewardsSummaryRecord = {
   totalRewards: number;
 };
 
+export type ReferralMemberTier = "basic" | "silver" | "gold" | "vip";
+
+export type ManagedReferralTreeNodeRecord = ReferralMemberRecord & {
+  children: ManagedReferralTreeNodeRecord[];
+  depth: number;
+  directReferralCount: number;
+  lifetimePoints: number;
+  spendablePoints: number;
+  status: MemberStatus;
+  tier: ReferralMemberTier;
+  totalReferralCount: number;
+};
+
+export type ReferralNetworkSummaryRecord = {
+  directMembers: number;
+  tierCounts: Record<ReferralMemberTier, number>;
+  totalLifetimePoints: number;
+  totalMembers: number;
+  totalSpendablePoints: number;
+};
+
+export type ManagedMemberReferralsResponse = {
+  levelCounts: number[];
+  member: MemberRecord;
+  members: ManagedReferralTreeNodeRecord[];
+  referrals: ManagedReferralTreeNodeRecord[];
+  summary: ReferralNetworkSummaryRecord;
+  totalReferrals: number;
+};
+
 export type ReferralRewardDocument = {
   awardedAt: Date;
   createdAt: Date;
@@ -273,5 +303,20 @@ export function createEmptyReferralRewardsSummary(): ReferralRewardsSummaryRecor
     ),
     totalPoints: 0,
     totalRewards: 0,
+  };
+}
+
+export function createEmptyReferralNetworkSummary(): ReferralNetworkSummaryRecord {
+  return {
+    directMembers: 0,
+    tierCounts: {
+      basic: 0,
+      gold: 0,
+      silver: 0,
+      vip: 0,
+    },
+    totalLifetimePoints: 0,
+    totalMembers: 0,
+    totalSpendablePoints: 0,
   };
 }

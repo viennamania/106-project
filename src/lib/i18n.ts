@@ -241,6 +241,49 @@ export type Dictionary = {
       loadFailed: string;
     };
   };
+  activateNetworkPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    disconnected: string;
+    loading: string;
+    empty: string;
+    memberMissing: string;
+    paymentRequired: string;
+    searchPlaceholder: string;
+    selectionHint: string;
+    leaderboardDescription: string;
+    treeDescription: string;
+    labels: {
+      currentMember: string;
+      descendants: string;
+      directChildren: string;
+      directMembers: string;
+      joinedAt: string;
+      lastConnectedAt: string;
+      level: string;
+      lifetimePoints: string;
+      locale: string;
+      memberStatus: string;
+      referralCode: string;
+      searchResults: string;
+      spendablePoints: string;
+      tier: string;
+      totalLifetimePoints: string;
+      totalMembers: string;
+      totalSpendablePoints: string;
+      walletAddress: string;
+    };
+    actions: {
+      backToActivate: string;
+      openManagement: string;
+      refresh: string;
+    };
+    errors: {
+      loadFailed: string;
+      missingEmail: string;
+    };
+  };
   walletPage: {
     title: string;
     eyebrow: string;
@@ -714,6 +757,55 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
         loadFailed: "레퍼럴 데이터를 불러오지 못했습니다.",
+      },
+    },
+    activateNetworkPage: {
+      title: "내 코드 가입 회원 관리",
+      eyebrow: "network control",
+      description:
+        "내 코드로 가입한 완료 회원의 조직도, 누적 포인트, 사용 가능 포인트, 현재 등급을 한 화면에서 관리합니다.",
+      disconnected:
+        "이메일 로그인 후 내 코드 가입 회원 관리 페이지를 이용할 수 있습니다.",
+      loading: "조직도 데이터를 불러오는 중입니다.",
+      empty: "표시할 회원이 없습니다.",
+      memberMissing: "회원 조직도 데이터를 찾을 수 없습니다.",
+      paymentRequired:
+        "회원가입 완료 후에만 내 코드 가입 회원 관리 페이지를 확인할 수 있습니다.",
+      searchPlaceholder: "이메일, 레퍼럴 코드, 지갑 주소로 검색",
+      selectionHint:
+        "좌측 목록이나 하단 조직도에서 회원을 선택하면 누적 포인트와 등급을 바로 확인할 수 있습니다.",
+      leaderboardDescription:
+        "포인트 순으로 정렬된 회원 목록입니다. 빠르게 선택해 상태를 확인할 수 있습니다.",
+      treeDescription:
+        "조직도를 단계별로 탐색하면서 각 회원의 포인트와 등급을 함께 확인합니다.",
+      labels: {
+        currentMember: "선택 회원",
+        descendants: "전체 하위",
+        directChildren: "직접 하위",
+        directMembers: "직접 가입 회원",
+        joinedAt: "가입 완료 시각",
+        lastConnectedAt: "최근 연결",
+        level: "단계",
+        lifetimePoints: "누적 포인트",
+        locale: "회원 언어",
+        memberStatus: "회원 상태",
+        referralCode: "레퍼럴 코드",
+        searchResults: "회원 목록",
+        spendablePoints: "사용 가능 포인트",
+        tier: "회원 등급",
+        totalLifetimePoints: "전체 누적 포인트",
+        totalMembers: "전체 회원 수",
+        totalSpendablePoints: "전체 사용 가능 포인트",
+        walletAddress: "지갑 주소",
+      },
+      actions: {
+        backToActivate: "활성화 화면으로",
+        openManagement: "상세 관리",
+        refresh: "새로고침",
+      },
+      errors: {
+        loadFailed: "조직도 관리 데이터를 불러오지 못했습니다.",
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
       },
     },
     walletPage: {
@@ -1207,6 +1299,56 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         missingEmail: "Could not resolve the authenticated email address from the current wallet session.",
         loadFailed: "Failed to load referral data.",
+      },
+    },
+    activateNetworkPage: {
+      title: "Referral Member Management",
+      eyebrow: "network control",
+      description:
+        "Manage the completed members who joined with your code, including network structure, lifetime points, spendable points, and current tier.",
+      disconnected:
+        "Sign in with email to manage the members who joined with your code.",
+      loading: "Loading referral network data.",
+      empty: "There are no members to display.",
+      memberMissing: "Referral network data could not be found.",
+      paymentRequired:
+        "This page becomes available after your signup is completed.",
+      searchPlaceholder: "Search by email, referral code, or wallet address",
+      selectionHint:
+        "Pick a member from the list or network map to review points, tier, and network depth instantly.",
+      leaderboardDescription:
+        "Members sorted by points so you can review key accounts quickly.",
+      treeDescription:
+        "Explore the network by level while checking each member's points and tier.",
+      labels: {
+        currentMember: "Selected member",
+        descendants: "Descendants",
+        directChildren: "Direct children",
+        directMembers: "Direct signups",
+        joinedAt: "Joined at",
+        lastConnectedAt: "Last connected",
+        level: "Level",
+        lifetimePoints: "Lifetime points",
+        locale: "Member locale",
+        memberStatus: "Member status",
+        referralCode: "Referral code",
+        searchResults: "Member list",
+        spendablePoints: "Spendable points",
+        tier: "Tier",
+        totalLifetimePoints: "Total lifetime points",
+        totalMembers: "Total members",
+        totalSpendablePoints: "Total spendable points",
+        walletAddress: "Wallet address",
+      },
+      actions: {
+        backToActivate: "Back to activation",
+        openManagement: "Open management",
+        refresh: "Refresh",
+      },
+      errors: {
+        loadFailed: "Failed to load referral management data.",
+        missingEmail:
+          "Unable to read the email address from the current wallet session.",
       },
     },
     walletPage: {
@@ -1705,6 +1847,56 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "レファラルデータの読み込みに失敗しました。",
       },
     },
+    activateNetworkPage: {
+      title: "紹介会員管理",
+      eyebrow: "network control",
+      description:
+        "自分のコードで登録した完了会員の組織図、累計ポイント、利用可能ポイント、現在の等級をまとめて管理します。",
+      disconnected:
+        "紹介会員管理ページを利用するにはメールログインしてください。",
+      loading: "組織図データを読み込んでいます。",
+      empty: "表示できる会員がありません。",
+      memberMissing: "組織データが見つかりませんでした。",
+      paymentRequired:
+        "登録完了後にのみ紹介会員管理ページを確認できます。",
+      searchPlaceholder: "メール、紹介コード、ウォレットで検索",
+      selectionHint:
+        "左の一覧または下の組織図から会員を選ぶと、ポイントと等級をすぐ確認できます。",
+      leaderboardDescription:
+        "ポイント順に並んだ会員一覧です。重要な会員を素早く確認できます。",
+      treeDescription:
+        "組織図を段階ごとに辿りながら、各会員のポイントと等級を確認します。",
+      labels: {
+        currentMember: "選択中の会員",
+        descendants: "全下位",
+        directChildren: "直接下位",
+        directMembers: "直接登録会員",
+        joinedAt: "登録完了日時",
+        lastConnectedAt: "最終接続",
+        level: "段階",
+        lifetimePoints: "累計ポイント",
+        locale: "会員言語",
+        memberStatus: "会員状態",
+        referralCode: "紹介コード",
+        searchResults: "会員一覧",
+        spendablePoints: "利用可能ポイント",
+        tier: "等級",
+        totalLifetimePoints: "全体累計ポイント",
+        totalMembers: "全体会員数",
+        totalSpendablePoints: "全体利用可能ポイント",
+        walletAddress: "ウォレットアドレス",
+      },
+      actions: {
+        backToActivate: "アクティベーションへ戻る",
+        openManagement: "詳細管理",
+        refresh: "更新",
+      },
+      errors: {
+        loadFailed: "組織管理データを読み込めませんでした。",
+        missingEmail:
+          "現在のウォレット接続からメールアドレスを取得できませんでした。",
+      },
+    },
     walletPage: {
       title: "USDT ウォレット",
       eyebrow: "wallet service",
@@ -2200,6 +2392,53 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         missingEmail: "当前钱包会话中未能解析出邮箱地址。",
         loadFailed: "加载推荐数据失败。",
+      },
+    },
+    activateNetworkPage: {
+      title: "我的推荐会员管理",
+      eyebrow: "network control",
+      description:
+        "集中管理通过你的代码完成注册的会员组织图，并查看每位会员的累计积分、可用积分和当前等级。",
+      disconnected: "请先通过邮箱登录后再使用推荐会员管理页面。",
+      loading: "正在加载组织图数据。",
+      empty: "暂无可显示的会员。",
+      memberMissing: "找不到推荐网络数据。",
+      paymentRequired: "只有在你的注册完成后才能查看此管理页面。",
+      searchPlaceholder: "通过邮箱、推荐码或钱包地址搜索",
+      selectionHint:
+        "从左侧列表或下方组织图中选择会员，即可立即查看积分、等级和层级结构。",
+      leaderboardDescription:
+        "按积分排序的会员列表，便于快速定位重点会员。",
+      treeDescription:
+        "按层级浏览组织图，同时查看每位会员的积分和等级。",
+      labels: {
+        currentMember: "当前选中会员",
+        descendants: "全部下级",
+        directChildren: "直属下级",
+        directMembers: "直属注册会员",
+        joinedAt: "完成注册时间",
+        lastConnectedAt: "最近连接",
+        level: "层级",
+        lifetimePoints: "累计积分",
+        locale: "会员语言",
+        memberStatus: "会员状态",
+        referralCode: "推荐码",
+        searchResults: "会员列表",
+        spendablePoints: "可用积分",
+        tier: "会员等级",
+        totalLifetimePoints: "全网累计积分",
+        totalMembers: "全网会员数",
+        totalSpendablePoints: "全网可用积分",
+        walletAddress: "钱包地址",
+      },
+      actions: {
+        backToActivate: "返回激活页",
+        openManagement: "详细管理",
+        refresh: "刷新",
+      },
+      errors: {
+        loadFailed: "无法加载组织管理数据。",
+        missingEmail: "无法从当前钱包会话读取邮箱地址。",
       },
     },
     walletPage: {

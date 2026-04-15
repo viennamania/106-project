@@ -1610,6 +1610,16 @@ function CompletedHomeDashboard({
         revealDelay={220}
         title={dictionary.referralsPage.listTitle}
       >
+        <div className="flex justify-end">
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+            href={`/${locale}/activate/network`}
+          >
+            {dictionary.activateNetworkPage.actions.openManagement}
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </div>
+
         {referralDashboard.error ? (
           <MessageCard tone="error">{referralDashboard.error}</MessageCard>
         ) : null}
