@@ -1279,39 +1279,34 @@ function LedgerHistoryTable({
         <span>{dictionary.rewardsPage.history.mobileScrollHint}</span>
       </div>
       <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-        <div className="-mx-5 w-[calc(100%+2.5rem)] overflow-x-auto px-5 pb-2 pt-0.5 touch-pan-x overscroll-x-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] sm:mx-0 sm:w-full sm:px-0">
-          <table className="w-full min-w-[52rem] border-separate border-spacing-0 sm:min-w-[54rem]">
+        <div className="-mx-5 w-[calc(100%+2.5rem)] overflow-x-auto px-5 pb-2 pt-0.5 touch-pan-x overscroll-x-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] lg:mx-0 lg:w-full lg:overflow-visible lg:px-0 lg:pb-0">
+          <table className="w-full min-w-[33rem] border-separate border-spacing-0 lg:min-w-0 lg:table-fixed">
             <thead>
               <tr className="bg-slate-50/90">
                 <th
-                  className="min-w-[8rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  className="w-[7rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.typeLabel}
                 </th>
                 <th
-                  className="min-w-[16rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  className="w-[13rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[15rem]"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.sourceLabel}
                 </th>
                 <th
-                  className="min-w-[9rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  className="w-[13rem] border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-auto"
                   scope="col"
                 >
-                  {dictionary.rewardsPage.history.detailsLabel}
-                </th>
-                <th
-                  className="min-w-[12rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
-                  scope="col"
-                >
-                  {dictionary.rewardsPage.history.dateLabel}
-                </th>
-                <th
-                  className="min-w-[8rem] whitespace-nowrap border-b border-slate-200 px-4 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
-                  scope="col"
-                >
-                  {dictionary.rewardsPage.history.pointsLabel}
+                  <div className="flex flex-col gap-1">
+                    <span className="whitespace-nowrap">
+                      {dictionary.rewardsPage.history.detailsLabel}
+                    </span>
+                    <span className="whitespace-nowrap text-[0.62rem] text-slate-400">
+                      {dictionary.rewardsPage.history.pointsLabel}
+                    </span>
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -1340,7 +1335,7 @@ function LedgerHistoryTable({
 
                 return (
                   <tr className="align-middle" key={entry.ledgerEntryId}>
-                    <td className={cn("min-w-[8rem] px-4 py-3.5", rowBorderClass)}>
+                    <td className={cn("px-4 py-3.5", rowBorderClass)}>
                       <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">
                         <InfoBadge>{typeLabel}</InfoBadge>
                         {entry.rewardLevel ? (
@@ -1348,33 +1343,35 @@ function LedgerHistoryTable({
                         ) : null}
                       </div>
                     </td>
-                    <td className={cn("min-w-[16rem] px-4 py-3.5", rowBorderClass)}>
-                      <p className="whitespace-nowrap text-sm font-medium text-slate-950">
-                        {sourceLabel}
-                      </p>
+                    <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                      <div className="space-y-1.5">
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-950 lg:whitespace-normal lg:break-all">
+                          {sourceLabel}
+                        </p>
+                        <p className="whitespace-nowrap text-xs text-slate-500">
+                          {formatDateTime(entry.createdAt, locale)}
+                        </p>
+                      </div>
                     </td>
-                    <td className={cn("min-w-[9rem] px-4 py-3.5", rowBorderClass)}>
-                      <p className="whitespace-nowrap text-sm leading-6 text-slate-600">
-                        {detailsLabel}
-                      </p>
-                    </td>
-                    <td className={cn("min-w-[12rem] px-4 py-3.5", rowBorderClass)}>
-                      <p className="whitespace-nowrap text-sm text-slate-600">
-                        {formatDateTime(entry.createdAt, locale)}
-                      </p>
-                    </td>
-                    <td className={cn("min-w-[8rem] px-4 py-3.5 text-right", rowBorderClass)}>
-                      <span
-                        className={cn(
-                          "ml-auto inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold tabular-nums",
-                          isPositive
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                            : "border-rose-200 bg-rose-50 text-rose-900",
-                        )}
-                      >
-                        {isPositive ? "+" : ""}
-                        {formatPoints(entry.delta, locale)}
-                      </span>
+                    <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                      <div className="space-y-2">
+                        <p className="whitespace-nowrap text-sm leading-6 text-slate-600 lg:whitespace-normal">
+                          {detailsLabel}
+                        </p>
+                        <div className="flex justify-start lg:justify-end">
+                          <span
+                            className={cn(
+                              "inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold tabular-nums",
+                              isPositive
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                                : "border-rose-200 bg-rose-50 text-rose-900",
+                            )}
+                          >
+                            {isPositive ? "+" : ""}
+                            {formatPoints(entry.delta, locale)}
+                          </span>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 );
