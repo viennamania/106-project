@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
+  ArrowLeftRight,
   ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
@@ -1272,10 +1273,14 @@ function LedgerHistoryTable({
   const endIndex = Math.min(currentPage * HISTORY_PAGE_SIZE, totalEntries);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600 sm:hidden">
+        <ArrowLeftRight className="size-3.5 shrink-0 text-slate-400" />
+        <span>{dictionary.rewardsPage.history.mobileScrollHint}</span>
+      </div>
       <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-        <div className="w-full overflow-x-auto overscroll-x-contain">
-          <table className="min-w-[48rem] w-full border-separate border-spacing-0">
+        <div className="-mx-5 w-[calc(100%+2.5rem)] overflow-x-auto px-5 pb-2 pt-0.5 touch-pan-x overscroll-x-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] sm:mx-0 sm:w-full sm:px-0">
+          <table className="w-full min-w-[44rem] border-separate border-spacing-0 sm:min-w-[48rem]">
             <thead>
               <tr className="bg-slate-50/90">
                 <th
@@ -1343,12 +1348,12 @@ function LedgerHistoryTable({
                         ) : null}
                       </div>
                     </td>
-                    <td className={cn("min-w-[13rem] px-4 py-3.5", rowBorderClass)}>
+                    <td className={cn("min-w-[12rem] px-4 py-3.5 sm:min-w-[13rem]", rowBorderClass)}>
                       <p className="break-all text-sm font-medium text-slate-950">
                         {sourceLabel}
                       </p>
                     </td>
-                    <td className={cn("min-w-[14rem] px-4 py-3.5", rowBorderClass)}>
+                    <td className={cn("min-w-[13rem] px-4 py-3.5 sm:min-w-[14rem]", rowBorderClass)}>
                       <p className="break-words text-sm leading-6 text-slate-600">
                         {detailsLabel}
                       </p>

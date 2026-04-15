@@ -454,6 +454,7 @@ export type Dictionary = {
       pointsLabel: string;
       previousPage: string;
       nextPage: string;
+      mobileScrollHint: string;
     };
     catalog: {
       previewNote: string;
@@ -1065,6 +1066,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pointsLabel: "포인트",
         previousPage: "이전 페이지",
         nextPage: "다음 페이지",
+        mobileScrollHint: "좌우로 밀어서 전체 이력을 확인하세요",
       },
       catalog: {
         previewNote:
@@ -1689,6 +1691,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pointsLabel: "Points",
         previousPage: "Previous page",
         nextPage: "Next page",
+        mobileScrollHint: "Swipe horizontally to view the full history",
       },
       catalog: {
         previewNote:
@@ -2320,6 +2323,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pointsLabel: "ポイント",
         previousPage: "前のページ",
         nextPage: "次のページ",
+        mobileScrollHint: "左右にスワイプして履歴全体を確認",
       },
       catalog: {
         previewNote:
@@ -2936,6 +2940,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pointsLabel: "积分",
         previousPage: "上一页",
         nextPage: "下一页",
+        mobileScrollHint: "左右滑动即可查看完整记录",
       },
       catalog: {
         previewNote:
