@@ -447,6 +447,13 @@ export type Dictionary = {
       adminAdjustment: string;
       levelReward: string;
       other: string;
+      typeLabel: string;
+      sourceLabel: string;
+      detailsLabel: string;
+      dateLabel: string;
+      pointsLabel: string;
+      previousPage: string;
+      nextPage: string;
     };
     catalog: {
       previewNote: string;
@@ -1051,6 +1058,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         adminAdjustment: "운영 조정",
         levelReward: "G{level} 보상",
         other: "기타",
+        typeLabel: "유형",
+        sourceLabel: "출처",
+        detailsLabel: "상세",
+        dateLabel: "적립 시각",
+        pointsLabel: "포인트",
+        previousPage: "이전 페이지",
+        nextPage: "다음 페이지",
       },
       catalog: {
         previewNote:
@@ -1668,6 +1682,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         adminAdjustment: "Admin adjustment",
         levelReward: "Level G{level} reward",
         other: "Other",
+        typeLabel: "Type",
+        sourceLabel: "Source",
+        detailsLabel: "Details",
+        dateLabel: "Date",
+        pointsLabel: "Points",
+        previousPage: "Previous page",
+        nextPage: "Next page",
       },
       catalog: {
         previewNote:
@@ -2292,6 +2313,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         adminAdjustment: "運営調整",
         levelReward: "G{level} 報酬",
         other: "その他",
+        typeLabel: "区分",
+        sourceLabel: "発生元",
+        detailsLabel: "詳細",
+        dateLabel: "積立日時",
+        pointsLabel: "ポイント",
+        previousPage: "前のページ",
+        nextPage: "次のページ",
       },
       catalog: {
         previewNote:
@@ -2901,6 +2929,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         adminAdjustment: "运营调整",
         levelReward: "G{level} 奖励",
         other: "其他",
+        typeLabel: "类型",
+        sourceLabel: "来源",
+        detailsLabel: "详情",
+        dateLabel: "时间",
+        pointsLabel: "积分",
+        previousPage: "上一页",
+        nextPage: "下一页",
       },
       catalog: {
         previewNote:

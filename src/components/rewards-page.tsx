@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Crown,
   Gift,
   LockKeyhole,
@@ -72,6 +74,8 @@ type RewardsPageState = {
   summary: PointsSummaryRecord;
 };
 
+const HISTORY_PAGE_SIZE = 8;
+
 export function RewardsPage({
   dictionary,
   locale,
@@ -106,10 +110,24 @@ export function RewardsPage({
     useState<RewardCatalogId | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
   const isDisconnected = status !== "connected" || !accountAddress;
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const historyPageCount = Math.max(
+    1,
+    Math.ceil(state.summary.history.length / HISTORY_PAGE_SIZE),
+  );
+  const currentHistoryPage = Math.min(historyPage, historyPageCount);
+  const paginatedHistory = state.summary.history.slice(
+    (currentHistoryPage - 1) * HISTORY_PAGE_SIZE,
+    currentHistoryPage * HISTORY_PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setHistoryPage((currentPage) => Math.min(currentPage, historyPageCount));
+  }, [historyPageCount]);
 
   const loadRewards = useCallback(
     async ({ background = false } = {}) => {
@@ -852,16 +870,15 @@ export function RewardsPage({
                   ) : state.summary.history.length === 0 ? (
                     <MessageCard>{dictionary.rewardsPage.emptyHistory}</MessageCard>
                   ) : (
-                    <div className="space-y-3">
-                      {state.summary.history.map((entry) => (
-                        <LedgerHistoryRow
-                          dictionary={dictionary}
-                          entry={entry}
-                          key={entry.ledgerEntryId}
-                          locale={locale}
-                        />
-                      ))}
-                    </div>
+                    <LedgerHistoryTable
+                      currentPage={currentHistoryPage}
+                      dictionary={dictionary}
+                      entries={paginatedHistory}
+                      locale={locale}
+                      onPageChange={setHistoryPage}
+                      pageCount={historyPageCount}
+                      totalEntries={state.summary.history.length}
+                    />
                   )}
                 </div>
               </section>
@@ -1234,62 +1251,165 @@ function RewardCatalogCard({
   );
 }
 
-function LedgerHistoryRow({
+function LedgerHistoryTable({
+  currentPage,
   dictionary,
-  entry,
+  entries,
   locale,
+  onPageChange,
+  pageCount,
+  totalEntries,
 }: {
+  currentPage: number;
   dictionary: Dictionary;
-  entry: PointLedgerRecord;
+  entries: PointLedgerRecord[];
   locale: Locale;
+  onPageChange: (page: number) => void;
+  pageCount: number;
+  totalEntries: number;
 }) {
-  const isPositive = entry.delta >= 0;
-  const title =
-    entry.sourceMemberEmail ??
-    (entry.sourceType === "referral_reward"
-      ? dictionary.rewardsPage.history.referralReward
-      : entry.sourceType === "admin"
-        ? dictionary.rewardsPage.history.adminAdjustment
-        : dictionary.rewardsPage.history.other);
-  const subtitle =
-    entry.sourceType === "referral_reward" && entry.rewardLevel
-      ? formatTemplate(dictionary.rewardsPage.history.levelReward, {
-          level: entry.rewardLevel,
-        })
-      : entry.memo ?? dictionary.rewardsPage.history.other;
+  const startIndex = (currentPage - 1) * HISTORY_PAGE_SIZE + 1;
+  const endIndex = Math.min(currentPage * HISTORY_PAGE_SIZE, totalEntries);
 
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <InfoBadge>
-              {entry.type === "earn"
-                ? dictionary.rewardsPage.history.earn
-                : dictionary.rewardsPage.history.adjustment}
-            </InfoBadge>
-            {entry.rewardLevel ? (
-              <InfoBadge>{`G${entry.rewardLevel}`}</InfoBadge>
-            ) : null}
-          </div>
-          <p className="mt-3 truncate text-base font-semibold text-slate-950">
-            {title}
-          </p>
-          <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
-          <p className="mt-2 text-xs uppercase tracking-[0.22em] text-slate-500">
-            {formatDateTime(entry.createdAt, locale)}
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <div className="w-full overflow-x-auto overscroll-x-contain">
+          <table className="min-w-[48rem] w-full border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-slate-50/90">
+                <th
+                  className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  scope="col"
+                >
+                  {dictionary.rewardsPage.history.typeLabel}
+                </th>
+                <th
+                  className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  scope="col"
+                >
+                  {dictionary.rewardsPage.history.sourceLabel}
+                </th>
+                <th
+                  className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  scope="col"
+                >
+                  {dictionary.rewardsPage.history.detailsLabel}
+                </th>
+                <th
+                  className="border-b border-slate-200 px-4 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  scope="col"
+                >
+                  {dictionary.rewardsPage.history.dateLabel}
+                </th>
+                <th
+                  className="border-b border-slate-200 px-4 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  scope="col"
+                >
+                  {dictionary.rewardsPage.history.pointsLabel}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry, index) => {
+                const isPositive = entry.delta >= 0;
+                const typeLabel =
+                  entry.type === "earn"
+                    ? dictionary.rewardsPage.history.earn
+                    : dictionary.rewardsPage.history.adjustment;
+                const sourceLabel =
+                  entry.sourceMemberEmail ??
+                  (entry.sourceType === "referral_reward"
+                    ? dictionary.rewardsPage.history.referralReward
+                    : entry.sourceType === "admin"
+                      ? dictionary.rewardsPage.history.adminAdjustment
+                      : dictionary.rewardsPage.history.other);
+                const detailsLabel =
+                  entry.sourceType === "referral_reward" && entry.rewardLevel
+                    ? formatTemplate(dictionary.rewardsPage.history.levelReward, {
+                        level: entry.rewardLevel,
+                      })
+                    : entry.memo ?? dictionary.rewardsPage.history.other;
+                const rowBorderClass =
+                  index < entries.length - 1 ? "border-b border-slate-100" : "";
 
-        <p
-          className={cn(
-            "shrink-0 text-lg font-semibold tracking-tight",
-            isPositive ? "text-emerald-700" : "text-rose-700",
-          )}
-        >
-          {isPositive ? "+" : ""}
-          {formatPoints(entry.delta, locale)}
+                return (
+                  <tr className="align-top" key={entry.ledgerEntryId}>
+                    <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <InfoBadge>{typeLabel}</InfoBadge>
+                        {entry.rewardLevel ? (
+                          <InfoBadge>{`G${entry.rewardLevel}`}</InfoBadge>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className={cn("min-w-[13rem] px-4 py-3.5", rowBorderClass)}>
+                      <p className="break-all text-sm font-medium text-slate-950">
+                        {sourceLabel}
+                      </p>
+                    </td>
+                    <td className={cn("min-w-[14rem] px-4 py-3.5", rowBorderClass)}>
+                      <p className="break-words text-sm leading-6 text-slate-600">
+                        {detailsLabel}
+                      </p>
+                    </td>
+                    <td className={cn("px-4 py-3.5", rowBorderClass)}>
+                      <p className="whitespace-nowrap text-sm text-slate-600">
+                        {formatDateTime(entry.createdAt, locale)}
+                      </p>
+                    </td>
+                    <td className={cn("px-4 py-3.5 text-right", rowBorderClass)}>
+                      <span
+                        className={cn(
+                          "ml-auto inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold tabular-nums",
+                          isPositive
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                            : "border-rose-200 bg-rose-50 text-rose-900",
+                        )}
+                      >
+                        {isPositive ? "+" : ""}
+                        {formatPoints(entry.delta, locale)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-500">
+          {startIndex}-{endIndex} / {totalEntries}
         </p>
+        <div className="flex items-center gap-2">
+          <button
+            aria-label={dictionary.rewardsPage.history.previousPage}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={currentPage <= 1}
+            onClick={() => {
+              onPageChange(currentPage - 1);
+            }}
+            type="button"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <div className="min-w-16 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-center text-sm font-medium text-slate-700">
+            {currentPage} / {pageCount}
+          </div>
+          <button
+            aria-label={dictionary.rewardsPage.history.nextPage}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={currentPage >= pageCount}
+            onClick={() => {
+              onPageChange(currentPage + 1);
+            }}
+            type="button"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
