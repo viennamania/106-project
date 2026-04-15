@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
         search: "?v=20260415",
       },
     ],
+    remotePatterns: [
+      {
+        hostname: "www.bithumb.com",
+        pathname: "/resources/img/**",
+        protocol: "https",
+      },
+    ],
   },
   turbopack: {
     root: path.resolve(__dirname),

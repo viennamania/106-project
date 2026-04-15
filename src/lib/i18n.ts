@@ -345,25 +345,26 @@ export type Dictionary = {
     loading: string;
     labels: {
       availableBalance: string;
-      destination: string;
-      sendableAmount: string;
+      dailyChange: string;
+      dailyRange: string;
+      lastUpdated: string;
+      marketPair: string;
+      marketSource: string;
+      spotPrice: string;
+      valuation: string;
+      walletAddress: string;
     };
     actions: {
-      sendAll: string;
-    };
-    placeholders: {
-      destination: string;
+      openBithumbTrade: string;
+      refresh: string;
     };
     errors: {
       loadFailed: string;
-      invalidAddress: string;
-      selfTransfer: string;
-      insufficientBalance: string;
+      marketFailed: string;
     };
     notices: {
-      sendHint: string;
-      txSent: string;
-      txConfirmed: string;
+      exchangeHint: string;
+      priceHint: string;
     };
   };
   rewardsPage: {
@@ -869,35 +870,35 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
     },
     bnbPage: {
       title: "BNB 관리",
-      eyebrow: "bnb payout",
+      eyebrow: "live valuation",
       description:
-        "내 스마트 월렛의 BNB 잔고를 확인하고, 외부 지갑 또는 거래소 주소로 전액 출금합니다.",
+        "내 스마트 월렛의 BNB 잔고와 빗썸 BNB/KRW 시세를 기준으로 실시간 평가금액을 확인합니다.",
       disconnected: "이메일 로그인 후 BNB 관리 페이지를 이용할 수 있습니다.",
       loading: "BNB 잔고를 불러오는 중입니다.",
       labels: {
-        availableBalance: "출금 가능 잔고",
-        destination: "출금 주소",
-        sendableAmount: "전액 전송 수량",
+        availableBalance: "보유 BNB",
+        dailyChange: "24시간 변동",
+        dailyRange: "24시간 범위",
+        lastUpdated: "시세 갱신 시각",
+        marketPair: "마켓",
+        marketSource: "시세 출처",
+        spotPrice: "BNB/KRW 실시간 시세",
+        valuation: "원화 평가금액",
+        walletAddress: "내 지갑 주소",
       },
       actions: {
-        sendAll: "전액 전송",
-      },
-      placeholders: {
-        destination: "0x... 외부 BNB 주소",
+        openBithumbTrade: "빗썸 거래 화면으로 이동",
+        refresh: "시세 새로고침",
       },
       errors: {
         loadFailed: "BNB 잔고를 불러오지 못했습니다.",
-        invalidAddress: "출금 주소를 올바르게 입력하세요.",
-        selfTransfer: "자기 지갑으로는 전송할 수 없습니다.",
-        insufficientBalance: "전송할 BNB 잔고가 없습니다.",
+        marketFailed: "빗썸 시세를 불러오지 못했습니다.",
       },
       notices: {
-        sendHint:
-          "현재 보이는 BNB 잔고 전체를 입력한 주소로 전송합니다. 거래소는 BSC 입금을 지원하는 주소만 사용하세요.",
-        txSent:
-          "BNB 출금이 제출되었습니다. 블록 반영 후 잔고가 자동으로 갱신됩니다.",
-        txConfirmed:
-          "BNB 출금이 확인되었습니다. 최신 잔고를 다시 불러오는 중입니다.",
+        exchangeHint:
+          "BNB 보유 잔고를 확인한 뒤 빗썸 BNB/KRW 거래 화면으로 바로 이동해 실거래를 이어갈 수 있습니다.",
+        priceHint:
+          "빗썸 공개 BNB/KRW 체결 시세와 현재 지갑 잔고를 5초 단위로 다시 불러와 원화 평가금액을 반영합니다.",
       },
     },
     rewardsPage: {
@@ -1412,36 +1413,36 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     bnbPage: {
-      title: "BNB Payout",
-      eyebrow: "bnb payout",
+      title: "BNB Valuation",
+      eyebrow: "live valuation",
       description:
-        "Check the BNB balance in your smart wallet and withdraw the full amount to an external wallet or exchange address.",
-      disconnected: "Sign in with email to use the BNB payout page.",
+        "Track the BNB balance in your smart wallet alongside the live BNB/KRW price from Bithumb and the estimated KRW value.",
+      disconnected: "Sign in with email to use the BNB valuation page.",
       loading: "Loading BNB balance.",
       labels: {
         availableBalance: "Available balance",
-        destination: "Withdrawal address",
-        sendableAmount: "Full send amount",
+        dailyChange: "24h change",
+        dailyRange: "24h range",
+        lastUpdated: "Price updated",
+        marketPair: "Market",
+        marketSource: "Price source",
+        spotPrice: "Live BNB/KRW",
+        valuation: "Estimated KRW value",
+        walletAddress: "Wallet address",
       },
       actions: {
-        sendAll: "Send full balance",
-      },
-      placeholders: {
-        destination: "0x... external BNB address",
+        openBithumbTrade: "Open Bithumb trade",
+        refresh: "Refresh price",
       },
       errors: {
         loadFailed: "Failed to load BNB balance.",
-        invalidAddress: "Enter a valid withdrawal address.",
-        selfTransfer: "You cannot send to your own wallet.",
-        insufficientBalance: "There is no BNB balance available to send.",
+        marketFailed: "Failed to load the Bithumb BNB/KRW price.",
       },
       notices: {
-        sendHint:
-          "The button sends the full visible BNB balance to the address above. Use only exchange addresses that support BSC BNB deposits.",
-        txSent:
-          "The BNB withdrawal was submitted. Your balance will refresh automatically after it lands onchain.",
-        txConfirmed:
-          "The BNB withdrawal was confirmed. Reloading the latest balance now.",
+        exchangeHint:
+          "Review your BNB balance, then jump straight into the official Bithumb BNB/KRW trading screen.",
+        priceHint:
+          "The wallet balance and Bithumb public BNB/KRW spot price are refreshed every five seconds for a live KRW estimate.",
       },
     },
     rewardsPage: {
@@ -1959,37 +1960,37 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     bnbPage: {
-      title: "BNB 出金",
-      eyebrow: "bnb payout",
+      title: "BNB 評価",
+      eyebrow: "live valuation",
       description:
-        "スマートウォレット内の BNB 残高を確認し、外部ウォレットや取引所アドレスへ全額送金します。",
+        "スマートウォレット内の BNB 残高と Bithumb の BNB/KRW レートを合わせて、現在の評価額をリアルタイムで確認します。",
       disconnected:
-        "BNB 出金ページを利用するにはメールログインしてください。",
+        "BNB 評価ページを利用するにはメールログインしてください。",
       loading: "BNB 残高を読み込んでいます。",
       labels: {
-        availableBalance: "出金可能残高",
-        destination: "出金先アドレス",
-        sendableAmount: "全額送金量",
+        availableBalance: "保有 BNB",
+        dailyChange: "24時間変動",
+        dailyRange: "24時間レンジ",
+        lastUpdated: "更新時刻",
+        marketPair: "マーケット",
+        marketSource: "価格ソース",
+        spotPrice: "BNB/KRW リアルタイム価格",
+        valuation: "推定 KRW 評価額",
+        walletAddress: "ウォレットアドレス",
       },
       actions: {
-        sendAll: "全額送金",
-      },
-      placeholders: {
-        destination: "0x... 外部 BNB アドレス",
+        openBithumbTrade: "Bithumb 取引画面を開く",
+        refresh: "価格を更新",
       },
       errors: {
         loadFailed: "BNB 残高を読み込めませんでした。",
-        invalidAddress: "正しい出金先アドレスを入力してください。",
-        selfTransfer: "自分のウォレットには送金できません。",
-        insufficientBalance: "送金できる BNB 残高がありません。",
+        marketFailed: "Bithumb の BNB/KRW 価格を取得できませんでした。",
       },
       notices: {
-        sendHint:
-          "表示されている BNB 残高の全額を入力先へ送ります。取引所は BSC の BNB 入金に対応したアドレスのみ使用してください。",
-        txSent:
-          "BNB 出金が送信されました。オンチェーン反映後に残高が自動更新されます。",
-        txConfirmed:
-          "BNB 出金が確認されました。最新残高を再読み込みしています。",
+        exchangeHint:
+          "保有 BNB を確認した後、そのまま Bithumb の BNB/KRW 取引画面へ移動できます。",
+        priceHint:
+          "ウォレット残高と Bithumb 公開 BNB/KRW 価格を 5 秒ごとに再取得し、現在の KRW 評価額を反映します。",
       },
     },
     rewardsPage: {
@@ -2499,34 +2500,36 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     bnbPage: {
-      title: "BNB 提现",
-      eyebrow: "bnb payout",
+      title: "BNB 估值",
+      eyebrow: "live valuation",
       description:
-        "查看你当前智能钱包里的 BNB 余额，并将全部余额提现到外部钱包或交易所地址。",
-      disconnected: "请先通过邮箱登录后再使用 BNB 提现页面。",
+        "查看你当前智能钱包中的 BNB 余额，结合 Bithumb 的 BNB/KRW 实时价格，显示当前韩元估值。",
+      disconnected: "请先通过邮箱登录后再使用 BNB 估值页面。",
       loading: "正在加载 BNB 余额。",
       labels: {
-        availableBalance: "可提现余额",
-        destination: "提现地址",
-        sendableAmount: "全额发送数量",
+        availableBalance: "持有 BNB",
+        dailyChange: "24小时变化",
+        dailyRange: "24小时区间",
+        lastUpdated: "价格更新时间",
+        marketPair: "市场",
+        marketSource: "价格来源",
+        spotPrice: "BNB/KRW 实时价格",
+        valuation: "韩元估值",
+        walletAddress: "钱包地址",
       },
       actions: {
-        sendAll: "发送全部余额",
-      },
-      placeholders: {
-        destination: "0x... 外部 BNB 地址",
+        openBithumbTrade: "打开 Bithumb 交易页",
+        refresh: "刷新价格",
       },
       errors: {
         loadFailed: "无法加载 BNB 余额。",
-        invalidAddress: "请输入正确的提现地址。",
-        selfTransfer: "不能转给自己的钱包。",
-        insufficientBalance: "当前没有可发送的 BNB 余额。",
+        marketFailed: "无法加载 Bithumb BNB/KRW 价格。",
       },
       notices: {
-        sendHint:
-          "按钮会把当前显示的全部 BNB 余额发送到上方地址。交易所地址必须支持 BSC BNB 充值。",
-        txSent: "BNB 提现已提交。链上确认后，余额会自动刷新。",
-        txConfirmed: "BNB 提现已确认。正在重新加载最新余额。",
+        exchangeHint:
+          "确认你的 BNB 持仓后，可以直接跳转到 Bithumb 的 BNB/KRW 官方交易页面继续操作。",
+        priceHint:
+          "钱包余额与 Bithumb 公开 BNB/KRW 价格会每 5 秒刷新一次，用于实时显示韩元估值。",
       },
     },
     rewardsPage: {

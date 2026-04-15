@@ -31,6 +31,9 @@ const REWARD_BIKE_IMAGE =
   `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
 
 export function LandingPage({
+  bnbWalletDescription,
+  bnbWalletHref,
+  bnbWalletLabel,
   copy,
   disclaimerHref,
   disclaimerLabel,
@@ -42,6 +45,9 @@ export function LandingPage({
   walletHref,
   walletLabel,
 }: {
+  bnbWalletDescription: string;
+  bnbWalletHref: string;
+  bnbWalletLabel: string;
   copy: LandingCopy;
   disclaimerHref: string;
   disclaimerLabel: string;
@@ -218,6 +224,54 @@ export function LandingPage({
             </div>
           </LandingReveal>
         </section>
+
+        <LandingReveal delay={260} variant="hero">
+          <Link
+            className="group relative overflow-hidden rounded-[32px] border border-[#f5c34d]/22 bg-[linear-gradient(135deg,#111827_0%,#172554_45%,#b45309_100%)] p-5 text-white shadow-[0_28px_100px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px] sm:rounded-[36px] sm:p-7"
+            href={bnbWalletHref}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(250,204,21,0.2),transparent_22%),radial-gradient(circle_at_88%_50%,rgba(255,255,255,0.16),transparent_24%)]" />
+            <div className="pointer-events-none absolute -right-8 top-1/2 hidden h-56 w-56 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.3),transparent_68%)] blur-3xl md:block" />
+
+            <div className="relative grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/78">
+                  <BnbLogoMark className="size-4 text-[#f3ba2f]" />
+                  BNB / KRW Live
+                </div>
+                <h2 className="mt-5 text-[2rem] font-semibold tracking-tight text-white sm:text-[2.6rem]">
+                  {bnbWalletLabel}
+                </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
+                  {bnbWalletDescription}
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#f5c34d]/28 bg-[#f3ba2f]/12 px-3 py-2 text-sm font-medium text-[#ffe6a7]">
+                    <Sparkles className="size-4" />
+                    Smart Wallet + Bithumb
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-sm font-medium text-white/74">
+                    KRW valuation
+                  </div>
+                </div>
+
+                <div className="mt-7 inline-flex items-center gap-3 rounded-full border border-white/12 bg-white px-4 py-3 text-sm font-semibold text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition group-hover:bg-[#fff6d8]">
+                  <span>{bnbWalletLabel}</span>
+                  <ArrowRight className="size-4" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center md:justify-end">
+                <div className="relative flex size-[15.5rem] items-center justify-center rounded-full border border-[#f5c34d]/26 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:size-[18rem]">
+                  <div className="absolute inset-[11%] rounded-full border border-[#f5c34d]/18 bg-[radial-gradient(circle,rgba(243,186,47,0.14),transparent_62%)]" />
+                  <div className="absolute inset-[22%] rounded-full border border-[#f5c34d]/20 bg-[linear-gradient(180deg,rgba(243,186,47,0.18),rgba(243,186,47,0.04))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
+                  <BnbLogoMark className="relative size-20 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-24" />
+                </div>
+              </div>
+            </div>
+          </Link>
+        </LandingReveal>
 
         <SalesSection>
           <SectionIntro
@@ -756,5 +810,23 @@ function DarkSummaryCard({
         <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
       ) : null}
     </div>
+  );
+}
+
+function BnbLogoMark({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="currentColor"
+      viewBox="0 0 96 96"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M48 10.5 58.7 21.2 48 31.9 37.3 21.2 48 10.5Z" />
+      <path d="M26.6 31.9 37.3 42.6 26.6 53.3 15.9 42.6 26.6 31.9Z" />
+      <path d="M69.4 31.9 80.1 42.6 69.4 53.3 58.7 42.6 69.4 31.9Z" />
+      <path d="M48 31.9 58.7 42.6 48 53.3 37.3 42.6 48 31.9Z" />
+      <path d="M48 53.3 58.7 64 48 74.7 37.3 64 48 53.3Z" />
+      <path d="M48 41 49.6 42.6 48 44.2 46.4 42.6 48 41Z" />
+    </svg>
   );
 }

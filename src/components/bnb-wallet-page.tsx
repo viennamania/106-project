@@ -1,18 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
   Coins,
   RefreshCcw,
-  WalletMinimal,
+  Sparkles,
 } from "lucide-react";
-import { getAddress, isAddress, prepareTransaction } from "thirdweb";
 import {
   AutoConnect,
-  TransactionButton,
   useActiveAccount,
   useActiveWallet,
   useActiveWalletConnectionStatus,
@@ -36,12 +35,19 @@ import {
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
 
-type BnbNoticeTone = "info" | "success" | "error";
+const BITHUMB_TRADE_URL = "https://www.bithumb.com/react/trade/order/BNB-KRW";
+const BITHUMB_LOGO_URL =
+  "https://www.bithumb.com/resources/img/comm/20171115_site_logo.png";
 
-type BnbNotice = {
-  href?: string;
-  text: string;
-  tone: BnbNoticeTone;
+type BnbMarketSnapshot = {
+  asOf: string;
+  change24hKrw: number;
+  changeRate24h: number;
+  high24hKrw: number;
+  low24hKrw: number;
+  market: string;
+  priceKrw: number;
+  source: string;
 };
 
 export function BnbWalletPage({
@@ -74,10 +80,43 @@ export function BnbWalletPage({
       refetchIntervalInBackground: true,
     },
   );
-  const [destination, setDestination] = useState("");
-  const [notice, setNotice] = useState<BnbNotice | null>(null);
+  const [market, setMarket] = useState<BnbMarketSnapshot | null>(null);
+  const [marketError, setMarketError] = useState<string | null>(null);
+  const [isMarketFetching, setIsMarketFetching] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  const loadMarket = useCallback(async () => {
+    setIsMarketFetching(true);
+
+    try {
+      const response = await fetch("/api/market/bnb-krw", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as
+        | BnbMarketSnapshot
+        | { error?: string };
+
+      if (!response.ok || !("priceKrw" in payload)) {
+        throw new Error(
+          "error" in payload && payload.error
+            ? payload.error
+            : dictionary.bnbPage.errors.marketFailed,
+        );
+      }
+
+      setMarket(payload);
+      setMarketError(null);
+    } catch (error) {
+      setMarketError(
+        error instanceof Error
+          ? error.message
+          : dictionary.bnbPage.errors.marketFailed,
+      );
+    } finally {
+      setIsMarketFetching(false);
+    }
+  }, [dictionary.bnbPage.errors.marketFailed]);
 
   useEffect(() => {
     if (status === "connected") {
@@ -85,29 +124,62 @@ export function BnbWalletPage({
       return;
     }
 
-    setDestination("");
-    setNotice(null);
+    setMarket(null);
+    setMarketError(null);
   }, [status]);
 
-  const trimmedDestination = destination.trim();
-  const hasValidDestination = isAddress(trimmedDestination);
-  const normalizedDestination = hasValidDestination
-    ? getAddress(trimmedDestination)
-    : null;
-  const normalizedAccountAddress = accountAddress
-    ? accountAddress.toLowerCase()
-    : null;
-  const isSelfTransfer =
-    normalizedDestination !== null &&
-    normalizedAccountAddress !== null &&
-    normalizedDestination.toLowerCase() === normalizedAccountAddress;
-  const balanceValue =
-    typeof balance?.value === "bigint" ? balance.value : BigInt(0);
+  useEffect(() => {
+    if (status !== "connected" || !hasThirdwebClientId) {
+      return;
+    }
+
+    void loadMarket();
+    const intervalId = window.setInterval(() => {
+      void loadMarket();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [loadMarket, status]);
+
   const balanceSymbol = balance?.symbol ?? "BNB";
   const formattedBalance =
     balance?.displayValue !== undefined
       ? `${formatTokenDisplay(balance.displayValue, locale)} ${balanceSymbol}`
       : `0 ${balanceSymbol}`;
+  const parsedBalance =
+    balance?.displayValue !== undefined
+      ? Number.parseFloat(balance.displayValue)
+      : 0;
+  const bnbBalance = Number.isFinite(parsedBalance) ? parsedBalance : 0;
+  const estimatedKrwValue = market ? bnbBalance * market.priceKrw : null;
+  const formattedValuation =
+    estimatedKrwValue !== null
+      ? formatKrw(estimatedKrwValue, locale)
+      : isBalanceLoading || isMarketFetching
+        ? dictionary.bnbPage.loading
+        : "-";
+  const formattedSpotPrice = market
+    ? formatKrw(market.priceKrw, locale)
+    : isMarketFetching
+      ? dictionary.bnbPage.loading
+      : "-";
+  const formattedDailyRange =
+    market !== null
+      ? `${formatKrw(market.low24hKrw, locale)} - ${formatKrw(
+          market.high24hKrw,
+          locale,
+        )}`
+      : "-";
+  const changeIsPositive = (market?.change24hKrw ?? 0) >= 0;
+  const formattedDailyChange =
+    market !== null
+      ? `${formatSignedKrw(market.change24hKrw, locale)} · ${formatSignedPercent(
+          market.changeRate24h,
+          locale,
+        )}`
+      : "-";
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -116,6 +188,7 @@ export function BnbWalletPage({
     balanceError instanceof Error
       ? balanceError.message
       : dictionary.bnbPage.errors.loadFailed;
+  const isRefreshing = isBalanceFetching || isMarketFetching;
 
   function confirmLogout() {
     if (!wallet) {
@@ -161,7 +234,7 @@ export function BnbWalletPage({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <Link
@@ -260,110 +333,82 @@ export function BnbWalletPage({
           </section>
         ) : (
           <>
-            <LandingReveal delay={0} variant="soft">
-              <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
-                <div className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(135deg,#111827_0%,#1e293b_48%,#9a3412_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.14),transparent_28%)]" />
+            <LandingReveal delay={0} variant="hero">
+              <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+                <div className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(135deg,#0b1220_0%,#172554_42%,#b45309_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.14),transparent_28%)]" />
                   <div className="relative">
                     <div className="flex flex-wrap items-center gap-2">
                       <InfoBadge className="border-white/14 bg-white/10 text-white/85">
-                        {dictionary.walletPage.labels.network}: BSC
+                        {dictionary.bnbPage.labels.marketPair}: {market?.market ?? "BNB_KRW"}
                       </InfoBadge>
                       <InfoBadge className="border-white/14 bg-white/10 text-white/85">
-                        BNB
+                        {dictionary.bnbPage.labels.marketSource}: Bithumb
                       </InfoBadge>
                     </div>
 
-                    <div className="mt-8 space-y-2">
+                    <div className="mt-7 space-y-3">
                       <p className="text-sm uppercase tracking-[0.26em] text-white/55">
-                        {dictionary.bnbPage.labels.availableBalance}
+                        {dictionary.bnbPage.labels.valuation}
                       </p>
-                      <p className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                        {isBalanceLoading
-                          ? dictionary.bnbPage.loading
-                          : formattedBalance}
+                      <div className="flex items-start gap-3">
+                        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/10 text-white/82">
+                          <Sparkles className="size-5" />
+                        </div>
+                        <p className="text-[2.6rem] font-semibold tracking-tight text-white sm:text-[4.2rem]">
+                          {formattedValuation}
+                        </p>
+                      </div>
+                      <p className="max-w-2xl text-sm leading-6 text-white/68 sm:text-base">
+                        {dictionary.bnbPage.notices.priceHint}
                       </p>
                     </div>
 
-                    <div className="mt-8 flex flex-wrap gap-3">
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                      <div
+                        className={cn(
+                          "inline-flex items-center rounded-full border px-3 py-2 text-sm font-medium",
+                          changeIsPositive
+                            ? "border-emerald-300/40 bg-emerald-400/12 text-emerald-50"
+                            : "border-rose-300/40 bg-rose-400/12 text-rose-50",
+                        )}
+                      >
+                        {dictionary.bnbPage.labels.dailyChange}: {formattedDailyChange}
+                      </div>
                       <button
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/14 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={isBalanceFetching}
+                        disabled={isRefreshing}
                         onClick={() => {
                           void refetchBalance();
+                          void loadMarket();
                         }}
                         type="button"
                       >
                         <RefreshCcw
-                          className={cn("size-4", isBalanceFetching && "animate-spin")}
+                          className={cn("size-4", isRefreshing && "animate-spin")}
                         />
-                        {dictionary.walletPage.actions.refresh}
+                        {dictionary.bnbPage.actions.refresh}
                       </button>
-                      <a
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/18 bg-slate-50 px-4 text-sm font-medium !text-slate-950 shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition hover:bg-white"
-                        href={connectedAccountUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <span className="whitespace-nowrap !text-slate-950">
-                          {dictionary.walletPage.actions.openExplorer}
-                        </span>
-                        <ArrowUpRight className="size-4 !text-slate-950" />
-                      </a>
                     </div>
 
-                    {notice ? (
-                      <div className="mt-6">
-                        <NoticeCard
-                          actionLabel={dictionary.walletPage.actions.openExplorer}
-                          notice={notice}
-                        />
-                      </div>
-                    ) : null}
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      <HeroStatCard
+                        label={dictionary.bnbPage.labels.availableBalance}
+                        value={isBalanceLoading ? dictionary.bnbPage.loading : formattedBalance}
+                      />
+                      <HeroStatCard
+                        label={dictionary.bnbPage.labels.spotPrice}
+                        value={formattedSpotPrice}
+                      />
+                      <HeroStatCard
+                        label={dictionary.bnbPage.labels.dailyRange}
+                        value={formattedDailyRange}
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="glass-card rounded-[30px] p-5 sm:p-6">
-                  <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
-                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                      {dictionary.walletPage.labels.walletAddress}
-                    </h2>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.bnbPage.notices.sendHint}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 grid gap-3">
-                    <MetricCard
-                      label={dictionary.walletPage.labels.walletAddress}
-                      value={accountAddress ?? "-"}
-                    />
-                    <MetricCard
-                      label={dictionary.walletPage.labels.network}
-                      value="BSC"
-                    />
-                    <MetricCard
-                      label={dictionary.bnbPage.labels.sendableAmount}
-                      value={formattedBalance}
-                    />
-                  </div>
-
-                  {balanceError ? (
-                    <div className="mt-4">
-                      <MessageCard tone="error">{balanceErrorMessage}</MessageCard>
-                    </div>
-                  ) : null}
-                </div>
-              </section>
-            </LandingReveal>
-
-            <LandingReveal delay={80} variant="soft">
-              <section className="glass-card rounded-[30px] p-5 sm:p-6">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <Coins className="size-5" />
-                  </div>
                   <div className="space-y-1">
                     <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -373,112 +418,162 @@ export function BnbWalletPage({
                       {dictionary.bnbPage.description}
                     </p>
                   </div>
-                </div>
 
-                <label className="mt-5 block">
-                  <span className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                    {dictionary.bnbPage.labels.destination}
-                  </span>
-                  <div className="mt-2 flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]">
-                    <WalletMinimal className="size-4 shrink-0 text-slate-400" />
-                    <input
-                      className="w-full min-w-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
-                      onChange={(event) => {
-                        setDestination(event.target.value);
-                      }}
-                      placeholder={dictionary.bnbPage.placeholders.destination}
-                      spellCheck={false}
-                      type="text"
-                      value={destination}
+                  <a
+                    className="mt-5 block overflow-hidden rounded-[28px] border border-[#f3ba2f]/20 bg-[linear-gradient(135deg,#fffaf2_0%,#fff1d6_100%)] p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition hover:border-[#f3ba2f]/36 hover:shadow-[0_22px_55px_rgba(15,23,42,0.09)]"
+                    href={BITHUMB_TRADE_URL}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[#f3ba2f]/24 bg-white/80 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#9a3412]">
+                          <Image
+                            alt="Bithumb logo"
+                            className="h-4 w-auto object-contain"
+                            height={16}
+                            src={BITHUMB_LOGO_URL}
+                            width={76}
+                          />
+                          Official
+                        </div>
+                        <p className="mt-4 text-lg font-semibold tracking-tight text-slate-950">
+                          BNB/KRW
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                          {dictionary.bnbPage.notices.exchangeHint}
+                        </p>
+                      </div>
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-[#f3ba2f]/20 bg-slate-950 text-white">
+                        <ArrowUpRight className="size-5" />
+                      </div>
+                    </div>
+                  </a>
+
+                  <div className="mt-5 grid gap-3">
+                    <MetricCard
+                      label={dictionary.bnbPage.labels.walletAddress}
+                      value={accountAddress ?? "-"}
+                    />
+                    <MetricCard
+                      label={dictionary.bnbPage.labels.lastUpdated}
+                      value={
+                        market?.asOf
+                          ? formatDateTime(market.asOf, locale)
+                          : dictionary.bnbPage.loading
+                      }
+                    />
+                    <MetricCard
+                      label={dictionary.bnbPage.labels.marketSource}
+                      value="Bithumb Public API"
                     />
                   </div>
-                </label>
 
-                <div className="mt-4 rounded-[24px] border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm leading-6 text-amber-950">
-                  {dictionary.bnbPage.notices.sendHint}
-                </div>
-
-                {trimmedDestination ? (
-                  <div className="mt-4">
-                    {!hasValidDestination ? (
-                      <MessageCard tone="error">
-                        {dictionary.bnbPage.errors.invalidAddress}
-                      </MessageCard>
-                    ) : isSelfTransfer ? (
-                      <MessageCard tone="error">
-                        {dictionary.bnbPage.errors.selfTransfer}
-                      </MessageCard>
-                    ) : null}
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <a
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                      href={connectedAccountUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {dictionary.walletPage.actions.openExplorer}
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                    <a
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#f3ba2f]/28 bg-[#fff7e5] px-4 text-sm font-semibold text-[#9a3412] transition hover:bg-[#ffefc7]"
+                      href={BITHUMB_TRADE_URL}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <Image
+                        alt="Bithumb logo"
+                        className="h-4 w-auto object-contain"
+                        height={16}
+                        src={BITHUMB_LOGO_URL}
+                        width={76}
+                      />
+                      {dictionary.bnbPage.actions.openBithumbTrade}
+                    </a>
                   </div>
-                ) : null}
+                </div>
+              </section>
+            </LandingReveal>
 
-                <div className="mt-5 rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                    {dictionary.bnbPage.labels.sendableAmount}
-                  </p>
-                  <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
-                    {formattedBalance}
-                  </p>
+            {(balanceError || marketError) ? (
+              <LandingReveal delay={80} variant="soft">
+                <section className="grid gap-3">
+                  {balanceError ? (
+                    <MessageCard tone="error">{balanceErrorMessage}</MessageCard>
+                  ) : null}
+                  {marketError ? (
+                    <MessageCard tone="error">{marketError}</MessageCard>
+                  ) : null}
+                </section>
+              </LandingReveal>
+            ) : null}
+
+            <LandingReveal delay={120} variant="soft">
+              <section className="glass-card rounded-[30px] p-5 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <Coins className="size-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
+                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                      {dictionary.bnbPage.labels.valuation}
+                    </h2>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {dictionary.bnbPage.notices.priceHint}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="mt-5">
-                  <TransactionButton
-                    className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={
-                      !accountAddress ||
-                      !hasValidDestination ||
-                      isSelfTransfer ||
-                      balanceValue <= BigInt(0)
-                    }
-                    onError={(error) => {
-                      setNotice({
-                        text: error.message,
-                        tone: "error",
-                      });
-                    }}
-                    onTransactionConfirmed={(receipt) => {
-                      setNotice({
-                        href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                        text: dictionary.bnbPage.notices.txConfirmed,
-                        tone: "success",
-                      });
-                      setDestination("");
-                      void refetchBalance();
-                    }}
-                    onTransactionSent={(result) => {
-                      setNotice({
-                        href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                        text: dictionary.bnbPage.notices.txSent,
-                        tone: "info",
-                      });
-                    }}
-                    transaction={() => {
-                      if (!normalizedDestination) {
-                        throw new Error(dictionary.bnbPage.errors.invalidAddress);
-                      }
+                <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                  <MarketMetricCard
+                    label={dictionary.bnbPage.labels.availableBalance}
+                    value={formattedBalance}
+                  />
+                  <MarketMetricCard
+                    label={dictionary.bnbPage.labels.spotPrice}
+                    value={formattedSpotPrice}
+                  />
+                  <MarketMetricCard
+                    label={dictionary.bnbPage.labels.valuation}
+                    value={formattedValuation}
+                  />
+                </div>
 
-                      if (isSelfTransfer) {
-                        throw new Error(dictionary.bnbPage.errors.selfTransfer);
-                      }
-
-                      if (balanceValue <= BigInt(0)) {
-                        throw new Error(
-                          dictionary.bnbPage.errors.insufficientBalance,
-                        );
-                      }
-
-                      return prepareTransaction({
-                        chain: smartWalletChain,
-                        client: thirdwebClient,
-                        to: normalizedDestination,
-                        value: balanceValue,
-                      });
-                    }}
-                    type="button"
-                    unstyled
-                  >
-                    {dictionary.bnbPage.actions.sendAll}
-                  </TransactionButton>
+                <div className="mt-5 rounded-[28px] border border-[#f3ba2f]/16 bg-[linear-gradient(135deg,#111827_0%,#172554_48%,#9a3412_100%)] p-5 text-white shadow-[0_20px_55px_rgba(15,23,42,0.14)]">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/76">
+                        <Image
+                          alt="Bithumb logo"
+                          className="h-4 w-auto object-contain"
+                          height={16}
+                          src={BITHUMB_LOGO_URL}
+                          width={76}
+                        />
+                        BNB/KRW
+                      </div>
+                      <p className="mt-4 text-lg font-semibold tracking-tight text-white">
+                        {dictionary.bnbPage.actions.openBithumbTrade}
+                      </p>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/68">
+                        {dictionary.bnbPage.notices.exchangeHint}
+                      </p>
+                    </div>
+                    <a
+                      className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition hover:bg-slate-100"
+                      href={BITHUMB_TRADE_URL}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {dictionary.bnbPage.actions.openBithumbTrade}
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                  </div>
                 </div>
               </section>
             </LandingReveal>
@@ -498,10 +593,40 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
+      <p className="mt-2 break-all text-sm font-semibold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function HeroStatCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/12 bg-white/10 p-4 backdrop-blur">
+      <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/55">
         {label}
       </p>
-      <p className="mt-2 break-all text-sm font-semibold text-slate-950">
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function MarketMetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-slate-200 bg-white/95 px-4 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
+      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
+      <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
         {value}
       </p>
     </div>
@@ -525,41 +650,6 @@ function MessageCard({
       )}
     >
       {children}
-    </div>
-  );
-}
-
-function NoticeCard({
-  actionLabel,
-  notice,
-}: {
-  actionLabel: string;
-  notice: BnbNotice;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-[24px] border px-4 py-4 text-sm",
-        notice.tone === "error" &&
-          "border-rose-300/60 bg-rose-400/12 text-rose-50",
-        notice.tone === "success" &&
-          "border-emerald-300/40 bg-emerald-400/12 text-emerald-50",
-        notice.tone === "info" &&
-          "border-sky-200/40 bg-white/10 text-white/80",
-      )}
-    >
-      <p>{notice.text}</p>
-      {notice.href ? (
-        <a
-          className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em]"
-          href={notice.href}
-          rel="noreferrer"
-          target="_blank"
-        >
-          {actionLabel}
-          <ArrowUpRight className="size-3.5" />
-        </a>
-      ) : null}
     </div>
   );
 }
@@ -647,4 +737,80 @@ function formatTokenDisplay(value: string, locale: string) {
   return `${prefix}${formattedInteger}${
     trimmedFraction ? `.${trimmedFraction}` : ""
   }`;
+}
+
+function formatKrw(value: number, locale: Locale) {
+  return new Intl.NumberFormat(toLocaleTag(locale), {
+    currency: "KRW",
+    maximumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
+}
+
+function formatSignedKrw(value: number, locale: Locale) {
+  const absolute = formatKrw(Math.abs(value), locale);
+
+  if (value > 0) {
+    return `+${absolute}`;
+  }
+
+  if (value < 0) {
+    return `-${absolute}`;
+  }
+
+  return absolute;
+}
+
+function formatSignedPercent(value: number, locale: Locale) {
+  const absolute = new Intl.NumberFormat(toLocaleTag(locale), {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  }).format(Math.abs(value));
+
+  if (value > 0) {
+    return `+${absolute}%`;
+  }
+
+  if (value < 0) {
+    return `-${absolute}%`;
+  }
+
+  return `${absolute}%`;
+}
+
+function formatDateTime(value: string, locale: Locale) {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(toLocaleTag(locale), {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(parsed);
+}
+
+function toLocaleTag(locale: Locale) {
+  if (locale === "ko") {
+    return "ko-KR";
+  }
+
+  if (locale === "ja") {
+    return "ja-JP";
+  }
+
+  if (locale === "zh") {
+    return "zh-CN";
+  }
+
+  if (locale === "vi") {
+    return "vi-VN";
+  }
+
+  if (locale === "id") {
+    return "id-ID";
+  }
+
+  return "en-US";
 }
