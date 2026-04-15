@@ -1595,6 +1595,36 @@ function CompletedHomeDashboard({
         revealDelay={180}
         title={dictionary.referralsPage.rewards.title}
       >
+        <div className="rounded-[22px] border border-[#e7d6b7] bg-[linear-gradient(135deg,#fff9ec_0%,#ffffff_72%)] p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                <div className="inline-flex items-center rounded-full border border-[#ead7b5] bg-[#fff5df] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#8d7142]">
+                  {dictionary.rewardsPage.labels.rewardCatalog}
+                </div>
+                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-700">
+                  {dictionary.referralsPage.rewards.totalPoints}
+                  <span className="ml-2 text-slate-950">
+                    {new Intl.NumberFormat(locale).format(
+                      referralDashboard.rewards.totalPoints,
+                    )}
+                    P
+                  </span>
+                </div>
+              </div>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                {dictionary.rewardsPage.previewNote}
+              </p>
+            </div>
+            <Link
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
+              href={`/${locale}/rewards`}
+            >
+              {dictionary.rewardsPage.title}
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </div>
+        </div>
         <ReferralRewardsPanel
           dictionary={dictionary}
           locale={locale}
