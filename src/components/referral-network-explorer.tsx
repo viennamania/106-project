@@ -64,17 +64,14 @@ export function ReferralNetworkExplorer({
         <div className="space-y-2">
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             {levelCounts.map((count, index) => (
-              <div
-                className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700"
+              <LevelCountChip
+                count={count}
                 key={index}
-              >
-                {dictionary.referralsPage.labels.level} {index + 1}
-                <span className="ml-2 text-slate-500">
-                  {index === 0
-                    ? `${count} / ${REFERRAL_SIGNUP_LIMIT} ${dictionary.referralsPage.labels.members}`
-                    : `${count} ${dictionary.referralsPage.labels.members}`}
-                </span>
-              </div>
+                level={index + 1}
+                levelLabel={dictionary.referralsPage.labels.level}
+                locale={locale}
+                membersLabel={dictionary.referralsPage.labels.members}
+              />
             ))}
           </div>
           <p className="text-sm leading-6 text-slate-600">
@@ -243,6 +240,48 @@ function ExplorerMetricCard({
   );
 }
 
+function LevelCountChip({
+  count,
+  level,
+  levelLabel,
+  locale,
+  membersLabel,
+}: {
+  count: number;
+  level: number;
+  levelLabel: string;
+  locale: Locale;
+  membersLabel: string;
+}) {
+  const target = getLevelTarget(level);
+  const progress = target > 0 ? Math.min((count / target) * 100, 100) : 0;
+
+  return (
+    <div className="shrink-0 min-w-[8.7rem] rounded-[20px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3.5 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {levelLabel} {level}
+        </p>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-semibold tabular-nums text-slate-700">
+          {Math.round(progress)}%
+        </span>
+      </div>
+      <p className="mt-2 text-sm font-semibold tracking-tight text-slate-950 tabular-nums">
+        <AnimatedNumberText
+          locale={locale}
+          value={`${count} / ${target} ${membersLabel}`}
+        />
+      </p>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200/90">
+        <div
+          className="h-full rounded-full bg-[linear-gradient(90deg,#0f172a_0%,#2563eb_48%,#14b8a6_100%)] transition-[width]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function ExplorerInfoRow({
   animateValue = false,
   className,
@@ -345,4 +384,8 @@ function getDescendantTargetForDepth(depth: number) {
   return Array.from({ length: remainingDepth }, (_, index) =>
     Math.pow(REFERRAL_SIGNUP_LIMIT, index + 1),
   ).reduce((sum, count) => sum + count, 0);
+}
+
+function getLevelTarget(level: number) {
+  return Math.pow(REFERRAL_SIGNUP_LIMIT, level);
 }
