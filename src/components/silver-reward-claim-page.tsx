@@ -298,7 +298,11 @@ export function SilverRewardClaimPage({
         status: "ready",
         walletAddress: data.walletAddress,
       });
-      setActionNotice(dictionary.rewardsPage.silverClaim.notices.claimSuccess);
+      setActionNotice(
+        data.claim?.status === "pending"
+          ? dictionary.rewardsPage.silverClaim.messages.pending
+          : dictionary.rewardsPage.silverClaim.notices.claimSuccess,
+      );
     } catch (error) {
       setActionError(
         error instanceof Error

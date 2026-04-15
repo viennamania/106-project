@@ -28,6 +28,7 @@ export type SilverRewardClaimDocument = {
   memberEmail: string;
   rewardId: "silver-card";
   status: SilverRewardClaimStatus;
+  transactionId?: string | null;
   txHash?: string | null;
   updatedAt: Date;
   usdAmount: number;

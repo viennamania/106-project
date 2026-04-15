@@ -1,13 +1,14 @@
 import "server-only";
 
 import {
+  Engine,
   getAddress,
   isAddress,
   prepareTransaction,
-  sendAndConfirmTransaction,
 } from "thirdweb";
+import type { ExecutionResult } from "thirdweb/engine";
 import { toTokens } from "thirdweb/utils";
-import { getWalletBalance, privateKeyToAccount } from "thirdweb/wallets";
+import { getWalletBalance } from "thirdweb/wallets";
 
 import {
   getMongoClient,
@@ -28,13 +29,11 @@ import {
 } from "@/lib/silver-reward-claim";
 import { smartWalletChain } from "@/lib/thirdweb";
 import { hasThirdwebSecretKey, serverThirdwebClient } from "@/lib/thirdweb-server";
-import { normalizeAddress } from "@/lib/thirdweb-webhooks";
 
 const SILVER_REWARD_USD_AMOUNT = 10;
 const SILVER_REWARD_PRICE_SCALE = 8;
 const BNB_WEI_DECIMALS = 18;
-const PROJECT_WALLET_PRIVATE_KEY =
-  process.env.PROJECT_WALLET_PRIVATE_KEY?.trim() ?? "";
+const SILVER_REWARD_TX_WAIT_TIMEOUT_SECONDS = 20;
 
 function isDuplicateKeyError(error: unknown) {
   return (
@@ -145,28 +144,16 @@ function getProjectWalletAddress() {
   return getAddress(projectWallet);
 }
 
-function getProjectWalletAccount() {
+function getProjectServerWallet() {
   if (!hasThirdwebSecretKey) {
     throw new Error("THIRDWEB_SECRET_KEY is required for server wallet transfers.");
   }
 
-  if (!PROJECT_WALLET_PRIVATE_KEY) {
-    throw new Error("PROJECT_WALLET_PRIVATE_KEY is not configured.");
-  }
-
-  const account = privateKeyToAccount({
+  return Engine.serverWallet({
+    address: getProjectWalletAddress(),
+    chain: smartWalletChain,
     client: serverThirdwebClient,
-    privateKey: PROJECT_WALLET_PRIVATE_KEY,
   });
-  const projectWalletAddress = getProjectWalletAddress();
-
-  if (
-    normalizeAddress(account.address) !== normalizeAddress(projectWalletAddress)
-  ) {
-    throw new Error("PROJECT_WALLET_PRIVATE_KEY does not match PROJECT_WALLET.");
-  }
-
-  return account;
 }
 
 function getMemberRewardWalletAddress(member: MemberDocument) {
@@ -200,6 +187,129 @@ async function getExistingSilverRewardClaim(memberEmail: string) {
     memberEmail,
     rewardId: "silver-card",
   });
+}
+
+function stringifyUnknownError(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function getEngineExecutionFailureReason(
+  executionResult: ExecutionResult,
+): string | null {
+  if (executionResult.status === "FAILED") {
+    const reason = stringifyUnknownError(executionResult.error);
+
+    return reason
+      ? `Transaction failed: ${reason}`
+      : "Transaction failed unexpectedly.";
+  }
+
+  if (
+    executionResult.status === "CONFIRMED" &&
+    executionResult.onchainStatus === "REVERTED"
+  ) {
+    const errorName = executionResult.revertData?.errorName ?? "unknown error";
+    const errorArgs = executionResult.revertData?.errorArgs
+      ? ` ${stringifyUnknownError(executionResult.revertData.errorArgs)}`
+      : "";
+    const txHash = executionResult.transactionHash
+      ? ` - ${executionResult.transactionHash}`
+      : "";
+
+    return `Transaction reverted: ${errorName}${errorArgs}${txHash}`;
+  }
+
+  return null;
+}
+
+async function syncPendingSilverRewardClaim(
+  claim: SilverRewardClaimDocument | null,
+) {
+  if (
+    !claim ||
+    claim.status !== "pending" ||
+    !claim.transactionId ||
+    !hasThirdwebSecretKey
+  ) {
+    return claim;
+  }
+
+  try {
+    const executionResult = await Engine.getTransactionStatus({
+      client: serverThirdwebClient,
+      transactionId: claim.transactionId,
+    });
+    const failureReason = getEngineExecutionFailureReason(executionResult);
+
+    if (failureReason) {
+      const updatedClaim: SilverRewardClaimDocument = {
+        ...claim,
+        failureReason,
+        status: "failed",
+        txHash:
+          executionResult.status === "CONFIRMED"
+            ? executionResult.transactionHash
+            : claim.txHash ?? null,
+        updatedAt: new Date(),
+      };
+      const collection = await getSilverRewardClaimsCollection();
+
+      await collection.updateOne(
+        { claimId: claim.claimId, status: "pending" },
+        {
+          $set: {
+            failureReason: updatedClaim.failureReason,
+            status: updatedClaim.status,
+            txHash: updatedClaim.txHash,
+            updatedAt: updatedClaim.updatedAt,
+          },
+        },
+      );
+
+      return updatedClaim;
+    }
+
+    if (executionResult.status === "CONFIRMED") {
+      const updatedClaim: SilverRewardClaimDocument = {
+        ...claim,
+        failureReason: null,
+        status: "completed",
+        txHash: executionResult.transactionHash,
+        updatedAt: new Date(),
+      };
+      const collection = await getSilverRewardClaimsCollection();
+
+      await collection.updateOne(
+        { claimId: claim.claimId, status: "pending" },
+        {
+          $set: {
+            failureReason: null,
+            status: "completed",
+            txHash: updatedClaim.txHash,
+            updatedAt: updatedClaim.updatedAt,
+          },
+        },
+      );
+
+      return updatedClaim;
+    }
+
+    return claim;
+  } catch {
+    return claim;
+  }
 }
 
 export async function getSilverRewardQuote(): Promise<SilverRewardQuoteRecord> {
@@ -245,11 +355,12 @@ export async function getSilverRewardClaimSummary(
   member: MemberDocument,
 ): Promise<SilverRewardClaimSummaryResponse> {
   const walletAddress = getMemberRewardWalletAddress(member);
-  const [claim, quote, rewardRedemption] = await Promise.all([
+  const [rawClaim, quote, rewardRedemption] = await Promise.all([
     getExistingSilverRewardClaim(member.email),
     getSilverRewardQuote(),
     getSilverCardRedemption(member.email),
   ]);
+  const claim = await syncPendingSilverRewardClaim(rawClaim);
   const eligibilityReason = getSilverRewardEligibilityReason({
     claim,
     member,
@@ -288,11 +399,12 @@ async function markClaimFailed(claimId: string, failureReason: string) {
 export async function submitSilverRewardClaim(
   member: MemberDocument,
 ): Promise<SilverRewardClaimResponse> {
-  const [quote, rewardRedemption, existingClaim] = await Promise.all([
+  const [quote, rewardRedemption, rawExistingClaim] = await Promise.all([
     getSilverRewardQuote(),
     getSilverCardRedemption(member.email),
     getExistingSilverRewardClaim(member.email),
   ]);
+  const existingClaim = await syncPendingSilverRewardClaim(rawExistingClaim);
   const walletAddress = getMemberRewardWalletAddress(member);
   const eligibilityReason = getSilverRewardEligibilityReason({
     claim: existingClaim,
@@ -317,6 +429,7 @@ export async function submitSilverRewardClaim(
     memberEmail: member.email,
     rewardId: "silver-card",
     status: "pending",
+    transactionId: null,
     txHash: null,
     updatedAt: now,
     usdAmount: quote.usdAmount,
@@ -358,6 +471,7 @@ export async function submitSilverRewardClaim(
               bnbKrwPrice: pendingClaim.bnbKrwPrice,
               failureReason: null,
               status: "pending",
+              transactionId: null,
               txHash: null,
               updatedAt: pendingClaim.updatedAt,
               usdAmount: pendingClaim.usdAmount,
@@ -406,23 +520,76 @@ export async function submitSilverRewardClaim(
       to: pendingClaim.walletAddress,
       value: transferAmountWei,
     });
-    const receipt = await sendAndConfirmTransaction({
-      account: getProjectWalletAccount(),
+    const { transactionId } = await getProjectServerWallet().enqueueTransaction({
       transaction,
     });
-    const updateResult = await collection.updateOne(
+    const queueUpdateResult = await collection.updateOne(
       { claimId },
       {
         $set: {
-          status: "completed",
-          txHash: receipt.transactionHash,
+          transactionId,
           updatedAt: new Date(),
         },
       },
     );
 
-    if (updateResult.modifiedCount === 0) {
-      throw new Error("Silver reward transfer succeeded but the claim record was not updated.");
+    if (queueUpdateResult.modifiedCount === 0) {
+      throw new Error(
+        "Silver reward transaction was queued but the claim record could not store the transaction reference.",
+      );
+    }
+
+    try {
+      const receipt = await Engine.waitForTransactionHash({
+        client: serverThirdwebClient,
+        timeoutInSeconds: SILVER_REWARD_TX_WAIT_TIMEOUT_SECONDS,
+        transactionId,
+      });
+      const updateResult = await collection.updateOne(
+        { claimId },
+        {
+          $set: {
+            failureReason: null,
+            status: "completed",
+            txHash: receipt.transactionHash,
+            updatedAt: new Date(),
+          },
+        },
+      );
+
+      if (updateResult.modifiedCount === 0) {
+        throw new Error(
+          "Silver reward transfer succeeded but the claim record was not updated.",
+        );
+      }
+    } catch (error) {
+      const executionResult = await Engine.getTransactionStatus({
+        client: serverThirdwebClient,
+        transactionId,
+      }).catch(() => null);
+      const failureReason = executionResult
+        ? getEngineExecutionFailureReason(executionResult)
+        : null;
+
+      if (failureReason) {
+        await markClaimFailed(claimId, failureReason);
+        throw new Error(failureReason);
+      }
+
+      const timeoutMessage =
+        error instanceof Error ? error.message : "Silver reward transfer is pending.";
+      await collection.updateOne(
+        { claimId },
+        {
+          $set: {
+            failureReason: timeoutMessage,
+            transactionId,
+            updatedAt: new Date(),
+          },
+        },
+      );
+
+      return getSilverRewardClaimSummary(member);
     }
   } catch (error) {
     const failureReason =
