@@ -29,11 +29,8 @@ const REWARD_PHONE_IMAGE =
   `/landing/premium-phone.png?v=${LANDING_IMAGE_VERSION}`;
 const REWARD_BIKE_IMAGE =
   `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
-const BITHUMB_LOGO_URL =
-  "https://www.bithumb.com/resources/img/comm/20171115_site_logo.png";
 
 export function LandingPage({
-  bnbWalletDescription,
   bnbWalletHref,
   bnbWalletLabel,
   copy,
@@ -47,7 +44,6 @@ export function LandingPage({
   walletHref,
   walletLabel,
 }: {
-  bnbWalletDescription: string;
   bnbWalletHref: string;
   bnbWalletLabel: string;
   copy: LandingCopy;
@@ -186,6 +182,13 @@ export function LandingPage({
                     <WalletMinimal className="size-4" />
                     {walletLabel}
                   </Link>
+                  <Link
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#f5c34d]/24 bg-[#f5c34d]/10 px-5 text-sm font-medium text-[#ffe9b0] transition hover:bg-[#f5c34d]/16 hover:text-white sm:w-auto"
+                    href={bnbWalletHref}
+                  >
+                    <Coins className="size-4" />
+                    {bnbWalletLabel}
+                  </Link>
                 </div>
               </div>
             </div>
@@ -235,92 +238,6 @@ export function LandingPage({
             </div>
           </LandingReveal>
         </section>
-
-        <LandingReveal delay={260} variant="hero">
-          <Link
-            className="group relative block w-full overflow-hidden rounded-[32px] border border-[#f5c34d]/22 bg-[linear-gradient(135deg,#111827_0%,#172554_45%,#b45309_100%)] p-5 text-white shadow-[0_28px_100px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px] sm:rounded-[36px] sm:p-7"
-            href={bnbWalletHref}
-          >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(250,204,21,0.2),transparent_22%),radial-gradient(circle_at_88%_50%,rgba(255,255,255,0.16),transparent_24%)]" />
-            <div className="pointer-events-none absolute -right-10 top-1/2 hidden h-44 w-44 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.3),transparent_68%)] blur-3xl sm:block md:h-56 md:w-56" />
-
-            <div className="relative grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
-              <div className="min-w-0">
-                <div className="inline-flex flex-wrap items-center gap-3 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/78">
-                  <span className="inline-flex items-center gap-2">
-                    <BnbLogoMark className="size-4 text-[#f3ba2f]" />
-                    BNB
-                  </span>
-                  <span className="hidden h-4 w-px bg-white/12 sm:block" />
-                  <span className="rounded-full bg-white px-2.5 py-1 shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
-                    <BithumbWordmark className="h-auto w-[76px]" />
-                  </span>
-                  <span>KRW Live</span>
-                </div>
-                <h2 className="mt-5 text-[2rem] font-semibold tracking-tight text-white sm:text-[2.6rem]">
-                  {bnbWalletLabel}
-                </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
-                  {bnbWalletDescription}
-                </p>
-
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <div className="inline-flex flex-wrap items-center gap-2 rounded-[22px] border border-[#f5c34d]/28 bg-[#f3ba2f]/12 px-3 py-2.5 text-sm font-medium text-[#ffe6a7]">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[#111827] px-3 py-1.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                      <BnbLogoMark className="size-4 text-[#f3ba2f]" />
-                      BNB
-                    </span>
-                    <span className="text-[#f5d78e]/72">×</span>
-                    <span className="inline-flex items-center rounded-full bg-white px-3 py-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
-                      <BithumbWordmark className="h-auto w-[82px]" />
-                    </span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-sm font-medium text-white/74">
-                    KRW valuation
-                  </div>
-                </div>
-
-                <div className="mt-7 inline-flex items-center gap-3 rounded-full border border-white/12 bg-white px-4 py-3 text-sm font-semibold text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition group-hover:bg-[#fff6d8]">
-                  <span>{bnbWalletLabel}</span>
-                  <ArrowRight className="size-4" />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-center md:justify-end">
-                <div className="relative w-full max-w-[22rem] rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(11,18,32,0.64),rgba(17,24,39,0.34))] p-4 shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:max-w-[25rem] sm:p-5">
-                  <div className="pointer-events-none absolute inset-x-8 top-[38%] h-px bg-gradient-to-r from-transparent via-[#f5c34d]/30 to-transparent" />
-                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                    <div className="relative flex aspect-square items-center justify-center rounded-[28px] border border-[#f5c34d]/18 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)]">
-                      <div className="absolute inset-[11%] rounded-full border border-[#f5c34d]/18 bg-[radial-gradient(circle,rgba(243,186,47,0.14),transparent_62%)]" />
-                      <div className="absolute inset-[22%] rounded-full border border-[#f5c34d]/20 bg-[linear-gradient(180deg,rgba(243,186,47,0.18),rgba(243,186,47,0.04))]" />
-                      <BnbLogoMark className="relative size-12 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-16" />
-                    </div>
-
-                    <div className="flex size-11 items-center justify-center rounded-full border border-[#f5c34d]/20 bg-white/8 text-lg font-semibold text-[#ffe6a7] shadow-[0_18px_40px_rgba(15,23,42,0.22)]">
-                      ×
-                    </div>
-
-                    <div className="relative flex aspect-square items-center justify-center rounded-[28px] border border-white/12 bg-[radial-gradient(circle,rgba(255,255,255,0.1),rgba(17,24,39,0.72))]">
-                      <div className="rounded-[24px] border border-white/70 bg-white px-4 py-5 shadow-[0_22px_50px_rgba(15,23,42,0.26)]">
-                        <BithumbWordmark className="h-auto w-[112px] sm:w-[128px]" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 rounded-[22px] border border-white/10 bg-white/7 px-4 py-4">
-                    <div className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[#f5d78e]">
-                      <Sparkles className="size-4" />
-                      Smart Wallet + Bithumb
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-white/70">
-                      BNB balance visibility and direct KRW trade intent in one branded flow.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </LandingReveal>
 
         <SalesSection>
           <SectionIntro
@@ -879,35 +796,5 @@ function DarkSummaryCard({
         <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
       ) : null}
     </div>
-  );
-}
-
-function BnbLogoMark({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="currentColor"
-      viewBox="0 0 96 96"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M48 10.5 58.7 21.2 48 31.9 37.3 21.2 48 10.5Z" />
-      <path d="M26.6 31.9 37.3 42.6 26.6 53.3 15.9 42.6 26.6 31.9Z" />
-      <path d="M69.4 31.9 80.1 42.6 69.4 53.3 58.7 42.6 69.4 31.9Z" />
-      <path d="M48 31.9 58.7 42.6 48 53.3 37.3 42.6 48 31.9Z" />
-      <path d="M48 53.3 58.7 64 48 74.7 37.3 64 48 53.3Z" />
-      <path d="M48 41 49.6 42.6 48 44.2 46.4 42.6 48 41Z" />
-    </svg>
-  );
-}
-
-function BithumbWordmark({ className }: { className?: string }) {
-  return (
-    <Image
-      alt="Bithumb"
-      className={className}
-      height={24}
-      src={BITHUMB_LOGO_URL}
-      width={124}
-    />
   );
 }

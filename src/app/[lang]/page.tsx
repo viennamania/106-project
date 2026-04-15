@@ -39,7 +39,6 @@ export default async function LocalizedHome({
 
   return (
     <LandingPage
-      bnbWalletDescription={dictionary.bnbPage.description}
       bnbWalletHref={`/${locale}/wallet/bnb`}
       bnbWalletLabel={dictionary.bnbPage.title}
       copy={copy}
