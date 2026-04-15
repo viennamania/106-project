@@ -815,7 +815,7 @@ export function RewardsPage({
                 ) : state.catalog.length === 0 ? (
                   <MessageCard>{dictionary.rewardsPage.catalog.empty}</MessageCard>
                 ) : (
-                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
                     {state.catalog.map((reward) => (
                       <RewardCatalogCard
                         canRedeem={activeMember?.status === "completed"}
@@ -972,6 +972,9 @@ function RewardCatalogCard({
   spendablePoints: number;
 }) {
   const theme = getRewardCardTheme(reward.rewardId, dictionary);
+  const rewardTypeLabel = getRewardTypeLabel(reward.rewardType, dictionary);
+  const rewardTitle = getRewardTitle(reward.rewardId, dictionary);
+  const rewardDescription = getRewardDescription(reward.rewardId, dictionary);
   const isEligible = spendablePoints >= reward.costPoints;
   const hasRedemption = Boolean(redemption);
   const isCompletedReward = redemption?.status === "completed";
@@ -1081,11 +1084,11 @@ function RewardCatalogCard({
       />
       <div
         className={cn(
-          "relative flex h-full flex-col rounded-[29px] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)]",
+          "relative flex h-full flex-col rounded-[29px] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-6",
           surfaceClassName,
         )}
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={cn(
@@ -1095,38 +1098,27 @@ function RewardCatalogCard({
             >
               <Icon className="size-5" />
             </div>
-            <div className="min-w-0 space-y-2">
-              <span
+            <div className="min-w-0">
+              <p
                 className={cn(
-                  "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em]",
-                  toneLabelClassName,
+                  "break-keep text-[0.72rem] font-medium leading-5 tracking-[0.14em]",
+                  metaLabelClassName,
                 )}
               >
-                {theme.accentLabel}
-              </span>
-              <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
-                {getRewardTypeLabel(reward.rewardType, dictionary)}
+                {rewardTypeLabel}
               </p>
             </div>
           </div>
-          <span
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em]",
-              statusClassName,
-            )}
-          >
-            <StateIcon
-              className={cn(
-                "size-3.5",
-                isProcessingReward && "animate-spin",
-              )}
-            />
-            {statusLabel}
-          </span>
-        </div>
 
-        <div className="mt-6">
           <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em]",
+                toneLabelClassName,
+              )}
+            >
+              {theme.accentLabel}
+            </span>
             <span
               className={cn(
                 "inline-flex items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em]",
@@ -1142,18 +1134,37 @@ function RewardCatalogCard({
                 {dictionary.rewardsPage.redemptionStatus.completed}
               </span>
             ) : null}
+            <span
+              className={cn(
+                "inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold tracking-[0.14em] sm:ml-auto",
+                statusClassName,
+              )}
+            >
+              <StateIcon
+                className={cn(
+                  "size-3.5 shrink-0",
+                  isProcessingReward && "animate-spin",
+                )}
+              />
+              <span className="break-keep">{statusLabel}</span>
+            </span>
           </div>
 
           <h3
             className={cn(
-              "mt-4 text-xl font-semibold tracking-tight",
+              "mt-1 break-keep text-xl font-semibold leading-[1.2] tracking-tight",
               titleClassName,
             )}
           >
-            {getRewardTitle(reward.rewardId, dictionary)}
+            {rewardTitle}
           </h3>
-          <p className={cn("mt-3 text-sm leading-6", descriptionClassName)}>
-            {getRewardDescription(reward.rewardId, dictionary)}
+          <p
+            className={cn(
+              "mt-3 break-keep text-sm leading-6",
+              descriptionClassName,
+            )}
+          >
+            {rewardDescription}
           </p>
         </div>
 
@@ -1191,7 +1202,7 @@ function RewardCatalogCard({
             ) : null}
           </div>
         </div>
-        <div className="mt-6">
+        <div className="mt-auto pt-6">
           {isSilverReward && !isActionDisabled ? (
             <Link
               className={cn(
