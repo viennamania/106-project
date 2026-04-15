@@ -517,8 +517,7 @@ export function ActivateNetworkPage({
 
             <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
               <LandingReveal delay={100} variant="soft">
-                <div className="space-y-4">
-                  <section className="glass-card rounded-[28px] p-4 sm:p-5">
+                <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="space-y-1">
                       <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
@@ -626,31 +625,16 @@ export function ActivateNetworkPage({
                                 </Pill>
                               </div>
                             </button>
-
-                            {isSelected ? (
-                              <div className="mt-4 border-t border-white/12 pt-4 lg:hidden">
-                                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/52">
-                                  {dictionary.activateNetworkPage.labels.currentMember}
-                                </p>
-                                <SelectedMemberCard
-                                  className="mt-3 space-y-4"
-                                  dictionary={dictionary}
-                                  locale={locale}
-                                  member={member}
-                                />
-                              </div>
-                            ) : null}
                           </article>
                         );
                       })
                     )}
                   </div>
-                  </section>
-                </div>
+                </section>
               </LandingReveal>
 
               <LandingReveal delay={140} variant="soft">
-                <section className="hidden rounded-[28px] lg:sticky lg:top-24 lg:block">
+                <section className="rounded-[28px] lg:sticky lg:top-24">
                   <div className="glass-card rounded-[28px] p-4 sm:p-5">
                     <SelectedMemberPanel
                       dictionary={dictionary}

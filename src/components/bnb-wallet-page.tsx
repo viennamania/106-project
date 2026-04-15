@@ -368,16 +368,16 @@ export function BnbWalletPage({
                   <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.14),transparent_28%)]" />
                   <div className="relative">
                     <div className="flex flex-wrap items-center gap-2">
-                      <InfoBadge className="border-white/18 bg-slate-950/28 text-white/92 shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+                      <InfoBadge className="!border-white/18 !bg-slate-950/46 !text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
                         {dictionary.bnbPage.labels.marketPair}: {market?.market ?? "BNB_KRW"}
                       </InfoBadge>
-                      <InfoBadge className="border-white/18 bg-slate-950/28 text-white/92 shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+                      <InfoBadge className="!border-white/18 !bg-slate-950/46 !text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
                         {dictionary.bnbPage.labels.marketSource}: Bithumb
                       </InfoBadge>
                     </div>
 
                     <div className="mt-7 space-y-3">
-                      <p className="text-sm uppercase tracking-[0.26em] text-white/55">
+                      <p className="text-sm uppercase tracking-[0.26em] text-white/72">
                         {dictionary.bnbPage.labels.valuation}
                       </p>
                       <div className="flex items-start gap-3">
@@ -388,7 +388,7 @@ export function BnbWalletPage({
                           {formattedValuation}
                         </p>
                       </div>
-                      <p className="max-w-2xl text-sm leading-6 text-white/68 sm:text-base">
+                      <p className="max-w-2xl text-sm leading-6 text-white/82 sm:text-base">
                         {dictionary.bnbPage.notices.priceHint}
                       </p>
                     </div>
