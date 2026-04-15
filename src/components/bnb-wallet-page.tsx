@@ -376,7 +376,7 @@ export function BnbWalletPage({
                         {dictionary.bnbPage.labels.dailyChange}: {formattedDailyChange}
                       </div>
                       <button
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/14 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/40 bg-white px-4 text-sm font-semibold text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition hover:bg-[#fff6d8] disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={isRefreshing}
                         onClick={() => {
                           void refetchBalance();
@@ -480,18 +480,20 @@ export function BnbWalletPage({
                       <ArrowUpRight className="size-4" />
                     </a>
                     <a
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#f3ba2f]/28 bg-[#fff7e5] px-4 text-sm font-semibold text-[#9a3412] transition hover:bg-[#ffefc7]"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#f3ba2f]/32 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] transition hover:bg-slate-800"
                       href={BITHUMB_TRADE_URL}
                       rel="noreferrer"
                       target="_blank"
                     >
-                      <Image
-                        alt="Bithumb logo"
-                        className="h-4 w-auto object-contain"
-                        height={16}
-                        src={BITHUMB_LOGO_URL}
-                        width={76}
-                      />
+                      <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1">
+                        <Image
+                          alt="Bithumb logo"
+                          className="h-4 w-auto object-contain"
+                          height={16}
+                          src={BITHUMB_LOGO_URL}
+                          width={76}
+                        />
+                      </span>
                       {dictionary.bnbPage.actions.openBithumbTrade}
                     </a>
                   </div>

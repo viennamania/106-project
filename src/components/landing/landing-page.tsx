@@ -227,11 +227,11 @@ export function LandingPage({
 
         <LandingReveal delay={260} variant="hero">
           <Link
-            className="group relative overflow-hidden rounded-[32px] border border-[#f5c34d]/22 bg-[linear-gradient(135deg,#111827_0%,#172554_45%,#b45309_100%)] p-5 text-white shadow-[0_28px_100px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px] sm:rounded-[36px] sm:p-7"
+            className="group relative block w-full overflow-hidden rounded-[32px] border border-[#f5c34d]/22 bg-[linear-gradient(135deg,#111827_0%,#172554_45%,#b45309_100%)] p-5 text-white shadow-[0_28px_100px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px] sm:rounded-[36px] sm:p-7"
             href={bnbWalletHref}
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(250,204,21,0.2),transparent_22%),radial-gradient(circle_at_88%_50%,rgba(255,255,255,0.16),transparent_24%)]" />
-            <div className="pointer-events-none absolute -right-8 top-1/2 hidden h-56 w-56 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.3),transparent_68%)] blur-3xl md:block" />
+            <div className="pointer-events-none absolute -right-10 top-1/2 hidden h-44 w-44 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.3),transparent_68%)] blur-3xl sm:block md:h-56 md:w-56" />
 
             <div className="relative grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
               <div className="min-w-0">
@@ -263,10 +263,10 @@ export function LandingPage({
               </div>
 
               <div className="flex items-center justify-center md:justify-end">
-                <div className="relative flex size-[15.5rem] items-center justify-center rounded-full border border-[#f5c34d]/26 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:size-[18rem]">
+                <div className="relative flex size-[13rem] items-center justify-center rounded-full border border-[#f5c34d]/26 bg-[radial-gradient(circle,#1f2937_0%,#111827_52%,#0b1220_100%)] shadow-[0_30px_80px_rgba(15,23,42,0.3)] sm:size-[18rem]">
                   <div className="absolute inset-[11%] rounded-full border border-[#f5c34d]/18 bg-[radial-gradient(circle,rgba(243,186,47,0.14),transparent_62%)]" />
                   <div className="absolute inset-[22%] rounded-full border border-[#f5c34d]/20 bg-[linear-gradient(180deg,rgba(243,186,47,0.18),rgba(243,186,47,0.04))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
-                  <BnbLogoMark className="relative size-20 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-24" />
+                  <BnbLogoMark className="relative size-16 text-[#f3ba2f] drop-shadow-[0_0_28px_rgba(243,186,47,0.38)] sm:size-24" />
                 </div>
               </div>
             </div>
