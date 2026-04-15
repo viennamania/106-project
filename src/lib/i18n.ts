@@ -347,9 +347,11 @@ export type Dictionary = {
       availableBalance: string;
       dailyChange: string;
       dailyRange: string;
+      destination: string;
       lastUpdated: string;
       marketPair: string;
       marketSource: string;
+      sendableAmount: string;
       spotPrice: string;
       valuation: string;
       walletAddress: string;
@@ -357,14 +359,26 @@ export type Dictionary = {
     actions: {
       openBithumbTrade: string;
       refresh: string;
+      sendAll: string;
+    };
+    placeholders: {
+      destination: string;
     };
     errors: {
+      insufficientBalance: string;
+      invalidAddress: string;
       loadFailed: string;
       marketFailed: string;
+      selfTransfer: string;
     };
     notices: {
+      bithumbRecommendation: string;
+      destinationWarning: string;
       exchangeHint: string;
       priceHint: string;
+      sendHint: string;
+      txConfirmed: string;
+      txSent: string;
     };
   };
   rewardsPage: {
@@ -879,9 +893,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableBalance: "보유 BNB",
         dailyChange: "24시간 변동",
         dailyRange: "24시간 범위",
+        destination: "외부 지갑 주소",
         lastUpdated: "시세 갱신 시각",
         marketPair: "마켓",
         marketSource: "시세 출처",
+        sendableAmount: "전체 출금 가능 수량",
         spotPrice: "BNB/KRW 실시간 시세",
         valuation: "원화 평가금액",
         walletAddress: "내 지갑 주소",
@@ -889,16 +905,33 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         openBithumbTrade: "빗썸 거래 화면으로 이동",
         refresh: "시세 새로고침",
+        sendAll: "전체 출금하기",
+      },
+      placeholders: {
+        destination: "출금받을 외부 BNB 지갑 주소",
       },
       errors: {
+        insufficientBalance: "출금할 BNB 잔고가 부족합니다.",
+        invalidAddress: "유효한 BNB 지갑 주소를 입력하세요.",
         loadFailed: "BNB 잔고를 불러오지 못했습니다.",
         marketFailed: "빗썸 시세를 불러오지 못했습니다.",
+        selfTransfer: "현재 연결된 내 지갑 주소로는 출금할 수 없습니다.",
       },
       notices: {
+        bithumbRecommendation:
+          "가능하면 본인 빗썸 BNB 입금 주소를 다시 확인한 뒤 사용하세요. 잘못된 주소로 보내는 실수를 줄일 수 있습니다.",
+        destinationWarning:
+          "외부 지갑 주소를 잘못 입력하면 자산이 영구적으로 분실될 수 있습니다. 출금 전에 주소를 반드시 다시 확인하세요.",
         exchangeHint:
           "BNB 보유 잔고를 확인한 뒤 빗썸 BNB/KRW 거래 화면으로 바로 이동해 실거래를 이어갈 수 있습니다.",
         priceHint:
           "빗썸 공개 BNB/KRW 체결 시세와 현재 지갑 잔고를 5초 단위로 다시 불러와 원화 평가금액을 반영합니다.",
+        sendHint:
+          "연결된 스마트 월렛의 BNB 잔고 전액을 외부 지갑으로 한 번에 출금합니다.",
+        txConfirmed:
+          "BNB 전체 출금이 확인되었습니다. 최신 잔고를 다시 반영합니다.",
+        txSent:
+          "BNB 전체 출금 요청을 보냈습니다. 온체인 반영 후 잔고가 다시 갱신됩니다.",
       },
     },
     rewardsPage: {
@@ -1423,9 +1456,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableBalance: "Available balance",
         dailyChange: "24h change",
         dailyRange: "24h range",
+        destination: "External wallet address",
         lastUpdated: "Price updated",
         marketPair: "Market",
         marketSource: "Price source",
+        sendableAmount: "Sendable amount",
         spotPrice: "Live BNB/KRW",
         valuation: "Estimated KRW value",
         walletAddress: "Wallet address",
@@ -1433,16 +1468,33 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         openBithumbTrade: "Open Bithumb trade",
         refresh: "Refresh price",
+        sendAll: "Withdraw full balance",
+      },
+      placeholders: {
+        destination: "External BNB wallet address",
       },
       errors: {
+        insufficientBalance: "There is not enough BNB available to withdraw.",
+        invalidAddress: "Enter a valid BNB wallet address.",
         loadFailed: "Failed to load BNB balance.",
         marketFailed: "Failed to load the Bithumb BNB/KRW price.",
+        selfTransfer: "You cannot withdraw to the currently connected wallet address.",
       },
       notices: {
+        bithumbRecommendation:
+          "If possible, use your own verified Bithumb BNB deposit address to reduce the risk of copying the wrong address.",
+        destinationWarning:
+          "A wrong external wallet address can cause permanent asset loss. Verify the destination carefully before sending.",
         exchangeHint:
           "Review your BNB balance, then jump straight into the official Bithumb BNB/KRW trading screen.",
         priceHint:
           "The wallet balance and Bithumb public BNB/KRW spot price are refreshed every five seconds for a live KRW estimate.",
+        sendHint:
+          "Send the entire BNB balance from the connected smart wallet to one external address in a single transaction.",
+        txConfirmed:
+          "The full BNB withdrawal was confirmed. Reloading the latest balance now.",
+        txSent:
+          "The full BNB withdrawal was submitted. The balance will refresh after it lands onchain.",
       },
     },
     rewardsPage: {
@@ -1971,9 +2023,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableBalance: "保有 BNB",
         dailyChange: "24時間変動",
         dailyRange: "24時間レンジ",
+        destination: "外部ウォレットアドレス",
         lastUpdated: "更新時刻",
         marketPair: "マーケット",
         marketSource: "価格ソース",
+        sendableAmount: "全額出金可能数量",
         spotPrice: "BNB/KRW リアルタイム価格",
         valuation: "推定 KRW 評価額",
         walletAddress: "ウォレットアドレス",
@@ -1981,16 +2035,34 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         openBithumbTrade: "Bithumb 取引画面を開く",
         refresh: "価格を更新",
+        sendAll: "全額出金する",
+      },
+      placeholders: {
+        destination: "出金先の外部 BNB ウォレットアドレス",
       },
       errors: {
+        insufficientBalance: "出金できる BNB 残高が不足しています。",
+        invalidAddress: "有効な BNB ウォレットアドレスを入力してください。",
         loadFailed: "BNB 残高を読み込めませんでした。",
         marketFailed: "Bithumb の BNB/KRW 価格を取得できませんでした。",
+        selfTransfer:
+          "現在接続中の自分のウォレットアドレスには出金できません。",
       },
       notices: {
+        bithumbRecommendation:
+          "できるだけ自分の Bithumb BNB 入金アドレスを再確認してから使ってください。誤ったアドレスへの送信を減らせます。",
+        destinationWarning:
+          "外部ウォレットアドレスを誤入力すると資産を永久に失う可能性があります。送信前に必ず再確認してください。",
         exchangeHint:
           "保有 BNB を確認した後、そのまま Bithumb の BNB/KRW 取引画面へ移動できます。",
         priceHint:
           "ウォレット残高と Bithumb 公開 BNB/KRW 価格を 5 秒ごとに再取得し、現在の KRW 評価額を反映します。",
+        sendHint:
+          "接続中のスマートウォレットにある BNB 残高全額を、外部ウォレットへ一度に出金します。",
+        txConfirmed:
+          "BNB 全額出金が確認されました。最新残高を再反映します。",
+        txSent:
+          "BNB 全額出金リクエストを送信しました。オンチェーン反映後に残高が更新されます。",
       },
     },
     rewardsPage: {
@@ -2510,9 +2582,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableBalance: "持有 BNB",
         dailyChange: "24小时变化",
         dailyRange: "24小时区间",
+        destination: "外部钱包地址",
         lastUpdated: "价格更新时间",
         marketPair: "市场",
         marketSource: "价格来源",
+        sendableAmount: "可全额提取数量",
         spotPrice: "BNB/KRW 实时价格",
         valuation: "韩元估值",
         walletAddress: "钱包地址",
@@ -2520,16 +2594,33 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         openBithumbTrade: "打开 Bithumb 交易页",
         refresh: "刷新价格",
+        sendAll: "全部提取",
+      },
+      placeholders: {
+        destination: "接收提取的外部 BNB 钱包地址",
       },
       errors: {
+        insufficientBalance: "可提取的 BNB 余额不足。",
+        invalidAddress: "请输入有效的 BNB 钱包地址。",
         loadFailed: "无法加载 BNB 余额。",
         marketFailed: "无法加载 Bithumb BNB/KRW 价格。",
+        selfTransfer: "不能提取到当前已连接的钱包地址。",
       },
       notices: {
+        bithumbRecommendation:
+          "如无特殊需求，建议优先使用你本人已确认的 Bithumb BNB 充值地址，降低复制错误地址的风险。",
+        destinationWarning:
+          "如果外部钱包地址输入错误，资产可能会永久丢失。转出前请务必再次核对地址。",
         exchangeHint:
           "确认你的 BNB 持仓后，可以直接跳转到 Bithumb 的 BNB/KRW 官方交易页面继续操作。",
         priceHint:
           "钱包余额与 Bithumb 公开 BNB/KRW 价格会每 5 秒刷新一次，用于实时显示韩元估值。",
+        sendHint:
+          "将当前已连接智能钱包中的全部 BNB 一次性提取到一个外部地址。",
+        txConfirmed:
+          "BNB 全额提取已确认，正在刷新最新余额。",
+        txSent:
+          "BNB 全额提取请求已发送，链上确认后会自动刷新余额。",
       },
     },
     rewardsPage: {
