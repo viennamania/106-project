@@ -10,6 +10,7 @@ import {
   type ReferralTreeNodeRecord,
 } from "@/lib/member";
 import type { Dictionary, Locale } from "@/lib/i18n";
+import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import { cn } from "@/lib/utils";
 
 export function ReferralNetworkExplorer({
@@ -255,26 +256,53 @@ function LevelCountChip({
 }) {
   const target = getLevelTarget(level);
   const progress = target > 0 ? Math.min((count / target) * 100, 100) : 0;
+  const theme = getReferralLevelTheme(level);
 
   return (
-    <div className="shrink-0 min-w-[8.7rem] rounded-[20px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3.5 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+    <div
+      className={cn(
+        "shrink-0 min-w-[8.7rem] rounded-[20px] border px-3.5 py-3",
+        theme.surfaceClassName,
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-          {levelLabel} {level}
-        </p>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[0.68rem] font-semibold tabular-nums text-slate-700">
+        <div className="flex items-center gap-2">
+          <span className={cn("inline-flex size-2.5 rounded-full", theme.dotClassName)} />
+          <p
+            className={cn(
+              "text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
+              theme.eyebrowClassName,
+            )}
+          >
+            {levelLabel} {level}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "rounded-full border px-2 py-1 text-[0.68rem] font-semibold tabular-nums",
+            theme.badgeClassName,
+          )}
+        >
           {Math.round(progress)}%
         </span>
       </div>
-      <p className="mt-2 text-sm font-semibold tracking-tight text-slate-950 tabular-nums">
+      <p
+        className={cn(
+          "mt-2 text-sm font-semibold tracking-tight tabular-nums",
+          theme.compactValueClassName,
+        )}
+      >
         <AnimatedNumberText
           locale={locale}
           value={`${count} / ${target} ${membersLabel}`}
         />
       </p>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200/90">
+      <div className={cn("mt-3 h-2 overflow-hidden rounded-full", theme.progressTrackClassName)}>
         <div
-          className="h-full rounded-full bg-[linear-gradient(90deg,#0f172a_0%,#2563eb_48%,#14b8a6_100%)] transition-[width]"
+          className={cn(
+            "h-full rounded-full bg-gradient-to-r transition-[width]",
+            theme.progressBarClassName,
+          )}
           style={{ width: `${progress}%` }}
         />
       </div>

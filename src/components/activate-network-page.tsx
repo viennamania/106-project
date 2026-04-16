@@ -52,6 +52,7 @@ import {
   type SyncMemberResponse,
 } from "@/lib/member";
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
+import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import {
   BSC_EXPLORER,
   getAppMetadata,
@@ -1437,17 +1438,44 @@ function ManagedReferralNetworkExplorer({
 
       {levelCounts.length > 0 ? (
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-          {levelCounts.map((count, index) => (
-            <div
-              className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700"
-              key={index}
-            >
-              {dictionary.activateNetworkPage.labels.level} {index + 1}
-              <span className="ml-2 text-slate-500">
-                {formatInteger(count, locale)}
-              </span>
-            </div>
-          ))}
+          {levelCounts.map((count, index) => {
+            const theme = getReferralLevelTheme(index + 1);
+
+            return (
+              <div
+                className={cn(
+                  "shrink-0 min-w-[7.6rem] rounded-[18px] border px-3.5 py-3",
+                  theme.compactCardClassName,
+                )}
+                key={index}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p
+                    className={cn(
+                      "text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
+                      theme.eyebrowClassName,
+                    )}
+                  >
+                    {dictionary.activateNetworkPage.labels.level} {index + 1}
+                  </p>
+                  <span
+                    className={cn(
+                      "mt-1 inline-flex size-2.5 rounded-full",
+                      theme.dotClassName,
+                    )}
+                  />
+                </div>
+                <p
+                  className={cn(
+                    "mt-2 text-base font-semibold tracking-tight tabular-nums",
+                    theme.compactValueClassName,
+                  )}
+                >
+                  {formatInteger(count, locale)}
+                </p>
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
