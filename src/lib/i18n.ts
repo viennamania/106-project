@@ -286,6 +286,8 @@ export type Dictionary = {
     notifications: {
       title: string;
       empty: string;
+      loadMore: string;
+      loadingMore: string;
       markAllRead: string;
       unreadCount: string;
       preferenceDirect: string;
@@ -998,6 +1000,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notifications: {
         title: "알림 센터",
         empty: "아직 확인할 알림이 없습니다.",
+        loadMore: "알림 더 보기",
+        loadingMore: "알림 불러오는 중...",
         markAllRead: "모두 읽음",
         unreadCount: "{count}개의 읽지 않은 알림",
         preferenceDirect: "새 회원 활성화 알림",
@@ -1745,6 +1749,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notifications: {
         title: "Notification center",
         empty: "There are no alerts to review yet.",
+        loadMore: "Load more alerts",
+        loadingMore: "Loading more alerts...",
         markAllRead: "Mark all read",
         unreadCount: "{count} unread alerts",
         preferenceDirect: "New member activation alerts",
@@ -2497,6 +2503,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notifications: {
         title: "通知センター",
         empty: "確認できる通知はまだありません。",
+        loadMore: "通知をさらに表示",
+        loadingMore: "通知を読み込み中...",
         markAllRead: "すべて既読",
         unreadCount: "未読 {count} 件",
         preferenceDirect: "新規会員の有効化通知",
@@ -3250,6 +3258,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notifications: {
         title: "通知中心",
         empty: "暂时没有需要查看的通知。",
+        loadMore: "查看更多通知",
+        loadingMore: "正在加载更多通知...",
         markAllRead: "全部标为已读",
         unreadCount: "未读通知 {count} 条",
         preferenceDirect: "新会员激活提醒",

@@ -76,6 +76,9 @@ type ActivateNetworkState = {
 
 type ActivateNetworkNotificationsState = {
   error: string | null;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  nextCursor: string | null;
   notifications: AppNotificationRecord[];
   open: boolean;
   preferences: AppNotificationPreferencesRecord | null;
@@ -113,6 +116,9 @@ export function ActivateNetworkPage({
   const [notificationsState, setNotificationsState] =
     useState<ActivateNetworkNotificationsState>({
       error: null,
+      hasMore: false,
+      isLoadingMore: false,
+      nextCursor: null,
       notifications: [],
       open: false,
       preferences: null,
@@ -168,6 +174,9 @@ export function ActivateNetworkPage({
     setSelectedMemberEmail(null);
     setNotificationsState({
       error: null,
+      hasMore: false,
+      isLoadingMore: false,
+      nextCursor: null,
       notifications: [],
       open: false,
       preferences: null,
@@ -341,17 +350,29 @@ export function ActivateNetworkPage({
 
   const loadNotifications = useCallback(
     async ({
+      append = false,
       background = false,
+      cursor = null,
+      lightweight = false,
       memberEmail,
     }: {
+      append?: boolean;
       background?: boolean;
+      cursor?: string | null;
+      lightweight?: boolean;
       memberEmail: string;
     }) => {
-      if (!memberEmail) {
+      if (!memberEmail || !accountAddress) {
         return;
       }
 
-      if (!background) {
+      if (append) {
+        setNotificationsState((current) => ({
+          ...current,
+          error: null,
+          isLoadingMore: true,
+        }));
+      } else if (!background) {
         setNotificationsState((current) => ({
           ...current,
           error: null,
@@ -360,15 +381,25 @@ export function ActivateNetworkPage({
       }
 
       try {
-        const response = await fetch(
-          `/api/notifications?email=${encodeURIComponent(memberEmail)}`,
-        );
+        const searchParams = new URLSearchParams({
+          email: memberEmail,
+          pageSize: lightweight ? "1" : "20",
+          walletAddress: accountAddress,
+        });
+
+        if (cursor) {
+          searchParams.set("cursor", cursor);
+        }
+
+        const response = await fetch(`/api/notifications?${searchParams.toString()}`);
         const data = (await response.json()) as
           | AppNotificationsResponse
           | { error?: string };
 
         if (
           !response.ok ||
+          !("hasMore" in data) ||
+          !("nextCursor" in data) ||
           !("notifications" in data) ||
           !("preferences" in data)
         ) {
@@ -379,14 +410,39 @@ export function ActivateNetworkPage({
           );
         }
 
-        setNotificationsState((current) => ({
-          ...current,
-          error: null,
-          notifications: data.notifications,
-          preferences: data.preferences,
-          status: "ready",
-          unreadCount: data.unreadCount,
-        }));
+        setNotificationsState((current) => {
+          if (background && lightweight && !current.open) {
+            return {
+              ...current,
+              error: null,
+              status: current.status === "idle" ? "ready" : current.status,
+              unreadCount: data.unreadCount,
+            };
+          }
+
+          return {
+            ...current,
+            error: null,
+            hasMore: data.hasMore,
+            isLoadingMore: false,
+            nextCursor: data.nextCursor,
+            notifications: append
+              ? [
+                  ...current.notifications,
+                  ...data.notifications.filter((notification) => {
+                    return !current.notifications.some((existing) => {
+                      return (
+                        existing.notificationId === notification.notificationId
+                      );
+                    });
+                  }),
+                ]
+              : data.notifications,
+            preferences: data.preferences,
+            status: "ready",
+            unreadCount: data.unreadCount,
+          };
+        });
       } catch (error) {
         setNotificationsState((current) => ({
           ...current,
@@ -394,17 +450,18 @@ export function ActivateNetworkPage({
             error instanceof Error
               ? error.message
               : dictionary.activateNetworkPage.errors.loadFailed,
+          isLoadingMore: false,
           status: "error",
         }));
       }
     },
-    [dictionary],
+    [accountAddress, dictionary],
   );
 
   const markAllNotificationsAsRead = useCallback(async () => {
     const memberEmail = state.member?.email;
 
-    if (!memberEmail) {
+    if (!memberEmail || !accountAddress) {
       return;
     }
 
@@ -413,6 +470,7 @@ export function ActivateNetworkPage({
         body: JSON.stringify({
           action: "mark_all_read",
           email: memberEmail,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -425,6 +483,8 @@ export function ActivateNetworkPage({
 
       if (
         !response.ok ||
+        !("hasMore" in data) ||
+        !("nextCursor" in data) ||
         !("notifications" in data) ||
         !("preferences" in data)
       ) {
@@ -438,6 +498,9 @@ export function ActivateNetworkPage({
       setNotificationsState((current) => ({
         ...current,
         error: null,
+        hasMore: data.hasMore,
+        isLoadingMore: false,
+        nextCursor: data.nextCursor,
         notifications: data.notifications,
         preferences: data.preferences,
         status: "ready",
@@ -450,16 +513,17 @@ export function ActivateNetworkPage({
           error instanceof Error
             ? error.message
             : dictionary.activateNetworkPage.errors.loadFailed,
+        isLoadingMore: false,
         status: "error",
       }));
     }
-  }, [dictionary, state.member?.email]);
+  }, [accountAddress, dictionary, state.member?.email]);
 
   const markNotificationAsRead = useCallback(
     async (notificationId: string) => {
       const memberEmail = state.member?.email;
 
-      if (!memberEmail || !notificationId) {
+      if (!memberEmail || !notificationId || !accountAddress) {
         return;
       }
 
@@ -469,6 +533,7 @@ export function ActivateNetworkPage({
             action: "mark_read",
             email: memberEmail,
             notificationIds: [notificationId],
+            walletAddress: accountAddress,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -481,6 +546,8 @@ export function ActivateNetworkPage({
 
         if (
           !response.ok ||
+          !("hasMore" in data) ||
+          !("nextCursor" in data) ||
           !("notifications" in data) ||
           !("preferences" in data)
         ) {
@@ -494,6 +561,9 @@ export function ActivateNetworkPage({
         setNotificationsState((current) => ({
           ...current,
           error: null,
+          hasMore: data.hasMore,
+          isLoadingMore: false,
+          nextCursor: data.nextCursor,
           notifications: data.notifications,
           preferences: data.preferences,
           status: "ready",
@@ -506,11 +576,12 @@ export function ActivateNetworkPage({
             error instanceof Error
               ? error.message
               : dictionary.activateNetworkPage.errors.loadFailed,
+          isLoadingMore: false,
           status: "error",
         }));
       }
     },
-    [dictionary, state.member?.email],
+    [accountAddress, dictionary, state.member?.email],
   );
 
   const updateNotificationPreference = useCallback(
@@ -520,7 +591,7 @@ export function ActivateNetworkPage({
     ) => {
       const memberEmail = state.member?.email;
 
-      if (!memberEmail) {
+      if (!memberEmail || !accountAddress) {
         return;
       }
 
@@ -530,6 +601,7 @@ export function ActivateNetworkPage({
             action: "update_preferences",
             email: memberEmail,
             [key]: value,
+            walletAddress: accountAddress,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -542,6 +614,8 @@ export function ActivateNetworkPage({
 
         if (
           !response.ok ||
+          !("hasMore" in data) ||
+          !("nextCursor" in data) ||
           !("notifications" in data) ||
           !("preferences" in data)
         ) {
@@ -555,6 +629,9 @@ export function ActivateNetworkPage({
         setNotificationsState((current) => ({
           ...current,
           error: null,
+          hasMore: data.hasMore,
+          isLoadingMore: false,
+          nextCursor: data.nextCursor,
           notifications: data.notifications,
           preferences: data.preferences,
           status: "ready",
@@ -567,11 +644,12 @@ export function ActivateNetworkPage({
             error instanceof Error
               ? error.message
               : dictionary.activateNetworkPage.errors.loadFailed,
+          isLoadingMore: false,
           status: "error",
         }));
       }
     },
-    [dictionary, state.member?.email],
+    [accountAddress, dictionary, state.member?.email],
   );
 
   const openNotification = useCallback(
@@ -633,6 +711,9 @@ export function ActivateNetworkPage({
     ) {
       setNotificationsState({
         error: null,
+        hasMore: false,
+        isLoadingMore: false,
+        nextCursor: null,
         notifications: [],
         open: false,
         preferences: null,
@@ -643,12 +724,15 @@ export function ActivateNetworkPage({
     }
 
     void loadNotifications({
+      background: true,
+      lightweight: true,
       memberEmail: state.member.email,
     });
 
     const intervalId = window.setInterval(() => {
       void loadNotifications({
         background: true,
+        lightweight: true,
         memberEmail: state.member?.email ?? "",
       });
     }, 30000);
@@ -657,6 +741,27 @@ export function ActivateNetworkPage({
       window.clearInterval(intervalId);
     };
   }, [loadNotifications, state.member?.email, state.member?.status, status]);
+
+  useEffect(() => {
+    if (
+      !notificationsState.open ||
+      status !== "connected" ||
+      state.member?.status !== "completed" ||
+      !state.member.email
+    ) {
+      return;
+    }
+
+    void loadNotifications({
+      memberEmail: state.member.email,
+    });
+  }, [
+    loadNotifications,
+    notificationsState.open,
+    state.member?.email,
+    state.member?.status,
+    status,
+  ]);
 
   function confirmLogout() {
     if (!wallet) {
@@ -1121,6 +1226,29 @@ export function ActivateNetworkPage({
                     ))
                   )}
                 </div>
+                {notificationsState.hasMore && state.member?.email ? (
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={
+                        notificationsState.isLoadingMore ||
+                        !notificationsState.nextCursor
+                      }
+                      onClick={() => {
+                        void loadNotifications({
+                          append: true,
+                          cursor: notificationsState.nextCursor,
+                          memberEmail: state.member?.email ?? "",
+                        });
+                      }}
+                      type="button"
+                    >
+                      {notificationsState.isLoadingMore
+                        ? notificationCopy.loadingMore
+                        : notificationCopy.loadMore}
+                    </button>
+                  </div>
+                ) : null}
               </section>
             ) : null}
 

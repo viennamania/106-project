@@ -26,8 +26,39 @@ import {
   type AppNotificationsResponse,
 } from "@/lib/notifications";
 
+const NOTIFICATION_PAGE_SIZE = 20;
+
 function resolveLocale(input?: string | null): Locale {
   return input && hasLocale(input) ? input : defaultLocale;
+}
+
+function encodeNotificationCursor(notification: AppNotificationDocument) {
+  return `${notification.createdAt.toISOString()}::${notification.notificationId}`;
+}
+
+function decodeNotificationCursor(cursor?: string | null) {
+  if (!cursor) {
+    return null;
+  }
+
+  const separatorIndex = cursor.indexOf("::");
+
+  if (separatorIndex <= 0) {
+    return null;
+  }
+
+  const createdAtValue = cursor.slice(0, separatorIndex);
+  const notificationId = cursor.slice(separatorIndex + 2).trim();
+  const createdAt = new Date(createdAtValue);
+
+  if (!notificationId || Number.isNaN(createdAt.getTime())) {
+    return null;
+  }
+
+  return {
+    createdAt,
+    notificationId,
+  };
 }
 
 function formatTemplate(
@@ -273,26 +304,66 @@ export async function emitCompletedMemberNotifications(member: MemberDocument) {
 
 export async function getNotificationCenterForMember(
   memberEmail: string,
+  options?: {
+    cursor?: string | null;
+    pageSize?: number;
+  },
 ): Promise<AppNotificationsResponse> {
   const normalizedEmail = normalizeEmail(memberEmail);
+  const requestedPageSize = options?.pageSize;
+  const pageSize =
+    typeof requestedPageSize === "number" && Number.isFinite(requestedPageSize)
+      ? Math.max(1, Math.min(Math.trunc(requestedPageSize), 50))
+      : NOTIFICATION_PAGE_SIZE;
+  const parsedCursor = decodeNotificationCursor(options?.cursor);
   const [collection, preferences] = await Promise.all([
     getAppNotificationsCollection(),
     getOrCreateNotificationPreferences(normalizedEmail),
   ]);
+  const notificationFilter = parsedCursor
+    ? {
+        memberEmail: normalizedEmail,
+        $or: [
+          {
+            createdAt: {
+              $lt: parsedCursor.createdAt,
+            },
+          },
+          {
+            createdAt: parsedCursor.createdAt,
+            notificationId: {
+              $lt: parsedCursor.notificationId,
+            },
+          },
+        ],
+      }
+    : { memberEmail: normalizedEmail };
   const [notifications, unreadCount] = await Promise.all([
     collection
-      .find({ memberEmail: normalizedEmail })
+      .find(notificationFilter)
       .sort({ createdAt: -1, notificationId: -1 })
-      .limit(20)
+      .limit(pageSize + 1)
       .toArray(),
     collection.countDocuments({
       memberEmail: normalizedEmail,
       readAt: null,
     }),
   ]);
+  const hasMore = notifications.length > pageSize;
+  const visibleNotifications = hasMore
+    ? notifications.slice(0, pageSize)
+    : notifications;
+  const nextCursor =
+    hasMore && visibleNotifications.length > 0
+      ? encodeNotificationCursor(
+          visibleNotifications[visibleNotifications.length - 1]!,
+        )
+      : null;
 
   return {
-    notifications: notifications.map(serializeAppNotification),
+    hasMore,
+    nextCursor,
+    notifications: visibleNotifications.map(serializeAppNotification),
     preferences: serializeAppNotificationPreferences(preferences),
     unreadCount,
   };

@@ -50,6 +50,8 @@ export type AppNotificationPreferencesRecord = {
 };
 
 export type AppNotificationsResponse = {
+  hasMore: boolean;
+  nextCursor: string | null;
   notifications: AppNotificationRecord[];
   preferences: AppNotificationPreferencesRecord;
   unreadCount: number;
