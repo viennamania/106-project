@@ -871,21 +871,10 @@ export function SmartWalletApp({
                     </p>
                   </div>
 
-                  {isIncomingReferralOverflow && incomingReferralState ? (
-                    <MessageCard>
-                      {formatTemplate(
-                        dictionary.member.incomingReferralLimitDescription,
-                        {
-                          code: incomingReferralState.code,
-                          count: incomingReferralState.signupCount,
-                          limit: incomingReferralState.limit,
-                        },
-                      )}
-                    </MessageCard>
-                  ) : null}
-
                   {!hasThirdwebClientId ? (
-                    <MessageCard>{dictionary.env.description}</MessageCard>
+                    <div className="rounded-[22px] border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-950 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+                      {dictionary.common.clientIdRequired}
+                    </div>
                   ) : status !== "connected" || !accountAddress ? (
                     <div className="grid gap-2.5 sm:grid-cols-[0.92fr_1.08fr] sm:gap-3">
                       <div className="order-2 relative overflow-hidden rounded-[24px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-3.5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:order-1 sm:rounded-[26px] sm:p-5">
