@@ -981,16 +981,22 @@ export function ActivateNetworkPage({
                                     {formatAddressLabel(member.lastWalletAddress)}
                                   </p>
                                 </div>
-                                <TierBadge
-                                  active={isSelected}
-                                  dictionary={dictionary}
-                                  tier={member.tier}
-                                />
+                                {member.membershipCardTier !== "none" ? (
+                                  <MembershipCardBadge
+                                    active={isSelected}
+                                    dictionary={dictionary}
+                                    membershipCardTier={member.membershipCardTier}
+                                  />
+                                ) : null}
                               </div>
 
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <Pill active={isSelected}>
                                   {dictionary.activateNetworkPage.labels.level} {member.depth}
+                                </Pill>
+                                <Pill active={isSelected}>
+                                  {dictionary.activateNetworkPage.labels.pointTier}{" "}
+                                  {getTierLabel(dictionary, member.tier)}
                                 </Pill>
                                 <Pill active={isSelected}>
                                   {formatInteger(member.lifetimePoints, locale)}P
@@ -1208,7 +1214,13 @@ function SelectedMemberCard({
               {member.email}
             </p>
           </div>
-          <TierBadge active dictionary={dictionary} tier={member.tier} />
+          {member.membershipCardTier !== "none" ? (
+            <MembershipCardBadge
+              active
+              dictionary={dictionary}
+              membershipCardTier={member.membershipCardTier}
+            />
+          ) : null}
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -1264,8 +1276,12 @@ function SelectedMemberCard({
           value={member.referralCode ?? dictionary.common.notAvailable}
         />
         <InfoCard
-          label={dictionary.activateNetworkPage.labels.tier}
+          label={dictionary.activateNetworkPage.labels.pointTier}
           value={getTierLabel(dictionary, member.tier)}
+        />
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.membershipCard}
+          value={getMembershipCardLabel(dictionary, member.membershipCardTier)}
         />
       </div>
     </div>
@@ -1389,7 +1405,12 @@ function ManagedReferralNetworkExplorer({
                   </p>
                 </div>
 
-                <TierBadge dictionary={dictionary} tier={member.tier} />
+                {member.membershipCardTier !== "none" ? (
+                  <MembershipCardBadge
+                    dictionary={dictionary}
+                    membershipCardTier={member.membershipCardTier}
+                  />
+                ) : null}
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -1400,6 +1421,14 @@ function ManagedReferralNetworkExplorer({
                 <InfoCard
                   label={dictionary.activateNetworkPage.labels.spendablePoints}
                   value={`${formatInteger(member.spendablePoints, locale)}P`}
+                />
+                <InfoCard
+                  label={dictionary.activateNetworkPage.labels.pointTier}
+                  value={getTierLabel(dictionary, member.tier)}
+                />
+                <InfoCard
+                  label={dictionary.activateNetworkPage.labels.membershipCard}
+                  value={getMembershipCardLabel(dictionary, member.membershipCardTier)}
                 />
                 <InfoCard
                   label={dictionary.activateNetworkPage.labels.directChildren}
@@ -1681,14 +1710,14 @@ function Pill({
   );
 }
 
-function TierBadge({
+function MembershipCardBadge({
   active = false,
   dictionary,
-  tier,
+  membershipCardTier,
 }: {
   active?: boolean;
   dictionary: Dictionary;
-  tier: ManagedReferralTreeNodeRecord["tier"];
+  membershipCardTier: ManagedReferralTreeNodeRecord["membershipCardTier"];
 }) {
   return (
     <span
@@ -1696,16 +1725,12 @@ function TierBadge({
         "inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]",
         active
           ? "bg-white/12 text-white"
-          : tier === "vip"
+          : membershipCardTier === "gold"
             ? "bg-amber-100 text-amber-950"
-            : tier === "gold"
-              ? "bg-yellow-100 text-yellow-900"
-              : tier === "silver"
-                ? "bg-slate-200 text-slate-800"
-                : "bg-slate-100 text-slate-700",
+            : "bg-emerald-100 text-emerald-950",
       )}
     >
-      {getTierLabel(dictionary, tier)}
+      {getMembershipCardLabel(dictionary, membershipCardTier)}
     </span>
   );
 }
@@ -1780,6 +1805,21 @@ function getTierLabel(
   tier: ManagedReferralTreeNodeRecord["tier"],
 ) {
   return dictionary.rewardsPage.tiers[tier];
+}
+
+function getMembershipCardLabel(
+  dictionary: Dictionary,
+  membershipCardTier: ManagedReferralTreeNodeRecord["membershipCardTier"],
+) {
+  if (membershipCardTier === "gold") {
+    return dictionary.rewardsPage.tiers.gold;
+  }
+
+  if (membershipCardTier === "silver") {
+    return dictionary.rewardsPage.tiers.silver;
+  }
+
+  return dictionary.common.notAvailable;
 }
 
 function formatAddressLabel(address: string) {

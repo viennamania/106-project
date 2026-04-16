@@ -1,9 +1,11 @@
 import {
   getMembersCollection,
   getPointBalancesCollection,
+  getRewardRedemptionsCollection,
 } from "@/lib/mongodb";
 import type {
   ManagedMemberReferralsResponse,
+  ReferralMembershipCardTier,
   ManagedReferralTreeNodeRecord,
 } from "@/lib/member";
 import {
@@ -24,6 +26,7 @@ function createManagedReferralNode(
   member: MemberDocument,
   depth: number,
   balance?: PointBalanceDocument | null,
+  membershipCardTier: ReferralMembershipCardTier = "none",
 ): ManagedReferralTreeNodeRecord {
   return {
     ...serializeReferralMember(member),
@@ -31,6 +34,7 @@ function createManagedReferralNode(
     depth,
     directReferralCount: 0,
     lifetimePoints: balance?.lifetimePoints ?? 0,
+    membershipCardTier,
     spendablePoints: balance?.spendablePoints ?? 0,
     status: member.status,
     tier: balance?.tier ?? "basic",
@@ -137,16 +141,45 @@ async function buildManagedReferralTree(
   const descendantEmails = [...new Set(collectedMembers.map(({ member: levelMember }) =>
     normalizeEmail(levelMember.email),
   ))];
-  const pointBalancesCollection = await getPointBalancesCollection();
-  const pointBalances =
+  const [pointBalancesCollection, rewardRedemptionsCollection] = await Promise.all([
+    getPointBalancesCollection(),
+    getRewardRedemptionsCollection(),
+  ]);
+  const [pointBalances, tierRewardRedemptions] =
     descendantEmails.length > 0
-      ? await pointBalancesCollection
-          .find({ memberEmail: { $in: descendantEmails } })
-          .toArray()
-      : [];
+      ? await Promise.all([
+          pointBalancesCollection
+            .find({ memberEmail: { $in: descendantEmails } })
+            .toArray(),
+          rewardRedemptionsCollection
+            .find({
+              memberEmail: { $in: descendantEmails },
+              rewardId: { $in: ["silver-card", "gold-card"] },
+              status: "completed",
+            })
+            .project<{ memberEmail: string; rewardId: "silver-card" | "gold-card" }>({
+              memberEmail: 1,
+              rewardId: 1,
+            })
+            .toArray(),
+        ])
+      : [[], []];
   const balanceByEmail = new Map(
     pointBalances.map((balance) => [normalizeEmail(balance.memberEmail), balance]),
   );
+  const membershipCardTierByEmail = new Map<string, ReferralMembershipCardTier>();
+
+  for (const redemption of tierRewardRedemptions) {
+    const memberEmail = normalizeEmail(redemption.memberEmail);
+    const candidateTier = redemption.rewardId === "gold-card" ? "gold" : "silver";
+    const currentTier = membershipCardTierByEmail.get(memberEmail) ?? "none";
+
+    if (currentTier === "gold" || currentTier === candidateTier) {
+      continue;
+    }
+
+    membershipCardTierByEmail.set(memberEmail, candidateTier);
+  }
 
   const referrals: ManagedReferralTreeNodeRecord[] = [];
   const members: ManagedReferralTreeNodeRecord[] = [];
@@ -157,6 +190,7 @@ async function buildManagedReferralTree(
       levelMember,
       depth,
       balanceByEmail.get(normalizeEmail(levelMember.email)),
+      membershipCardTierByEmail.get(normalizeEmail(levelMember.email)) ?? "none",
     );
 
     members.push(node);

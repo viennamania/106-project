@@ -113,12 +113,14 @@ export type ReferralRewardsSummaryRecord = {
 };
 
 export type ReferralMemberTier = "basic" | "silver" | "gold" | "vip";
+export type ReferralMembershipCardTier = "none" | "silver" | "gold";
 
 export type ManagedReferralTreeNodeRecord = ReferralMemberRecord & {
   children: ManagedReferralTreeNodeRecord[];
   depth: number;
   directReferralCount: number;
   lifetimePoints: number;
+  membershipCardTier: ReferralMembershipCardTier;
   spendablePoints: number;
   status: MemberStatus;
   tier: ReferralMemberTier;

@@ -409,6 +409,7 @@ export function RewardsPage({
 
     return accumulator;
   }, {});
+  const membershipCardTier = getMembershipCardTier(state.redemptions);
 
   async function handleRedeemReward(rewardId: RewardCatalogId) {
     if (!state.email) {
@@ -635,14 +636,18 @@ export function RewardsPage({
                     {dictionary.rewardsPage.previewNote}
                   </p>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <MiniStat
                       label={dictionary.rewardsPage.labels.lifetimePoints}
                       value={formatPoints(state.summary.lifetimePoints, locale)}
                     />
                     <MiniStat
-                      label={dictionary.rewardsPage.labels.currentTier}
+                      label={dictionary.rewardsPage.labels.pointTier}
                       value={getTierLabel(state.summary.tier, dictionary)}
+                    />
+                    <MiniStat
+                      label={dictionary.rewardsPage.labels.membershipCard}
+                      value={getMembershipCardLabel(membershipCardTier, dictionary)}
                     />
                     <MiniStat
                       label={dictionary.rewardsPage.labels.nextTier}
@@ -715,8 +720,12 @@ export function RewardsPage({
                     value={activeMember?.referralCode ?? "-"}
                   />
                   <MetricCard
-                    label={dictionary.rewardsPage.labels.currentTier}
+                    label={dictionary.rewardsPage.labels.pointTier}
                     value={getTierLabel(state.summary.tier, dictionary)}
+                  />
+                  <MetricCard
+                    label={dictionary.rewardsPage.labels.membershipCard}
+                    value={getMembershipCardLabel(membershipCardTier, dictionary)}
                   />
                 </div>
 
@@ -761,7 +770,7 @@ export function RewardsPage({
               </section>
             </section>
 
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <MetricStatCard
                 label={dictionary.rewardsPage.labels.spendablePoints}
                 value={formatPoints(state.summary.spendablePoints, locale)}
@@ -771,8 +780,12 @@ export function RewardsPage({
                 value={formatPoints(state.summary.lifetimePoints, locale)}
               />
               <MetricStatCard
-                label={dictionary.rewardsPage.labels.currentTier}
+                label={dictionary.rewardsPage.labels.pointTier}
                 value={getTierLabel(state.summary.tier, dictionary)}
+              />
+              <MetricStatCard
+                label={dictionary.rewardsPage.labels.membershipCard}
+                value={getMembershipCardLabel(membershipCardTier, dictionary)}
               />
               <MetricStatCard
                 label={dictionary.rewardsPage.labels.nextTier}
@@ -1851,6 +1864,43 @@ function getTierLabel(tier: PointTier, dictionary: Dictionary) {
   }
 
   return dictionary.rewardsPage.tiers.basic;
+}
+
+function getMembershipCardTier(redemptions: RewardRedemptionRecord[]) {
+  if (
+    redemptions.some(
+      (redemption) =>
+        redemption.rewardId === "gold-card" && redemption.status === "completed",
+    )
+  ) {
+    return "gold" as const;
+  }
+
+  if (
+    redemptions.some(
+      (redemption) =>
+        redemption.rewardId === "silver-card" && redemption.status === "completed",
+    )
+  ) {
+    return "silver" as const;
+  }
+
+  return "none" as const;
+}
+
+function getMembershipCardLabel(
+  membershipCardTier: ReturnType<typeof getMembershipCardTier>,
+  dictionary: Dictionary,
+) {
+  if (membershipCardTier === "gold") {
+    return dictionary.rewardsPage.catalog.goldCard.title;
+  }
+
+  if (membershipCardTier === "silver") {
+    return dictionary.rewardsPage.catalog.silverCard.title;
+  }
+
+  return dictionary.common.notAvailable;
 }
 
 function formatAddressLabel(address: string) {

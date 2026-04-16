@@ -266,7 +266,9 @@ export type Dictionary = {
       level: string;
       lifetimePoints: string;
       locale: string;
+      membershipCard: string;
       memberStatus: string;
+      pointTier: string;
       referralCode: string;
       searchResults: string;
       spendablePoints: string;
@@ -411,7 +413,9 @@ export type Dictionary = {
       spendablePoints: string;
       lifetimePoints: string;
       currentTier: string;
+      membershipCard: string;
       nextTier: string;
+      pointTier: string;
       pointsToNextTier: string;
       progress: string;
       rewardCatalog: string;
@@ -949,7 +953,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "내 코드 가입 회원 관리",
       eyebrow: "network control",
       description:
-        "내 코드로 가입한 완료 회원의 조직도, 누적 포인트, 사용 가능 포인트, 현재 등급을 한 화면에서 관리합니다.",
+        "내 코드로 가입한 완료 회원의 조직도, 누적 포인트, 사용 가능 포인트, 포인트 등급, 카드 보유 상태를 한 화면에서 관리합니다.",
       disconnected:
         "이메일 로그인 후 내 코드 가입 회원 관리 페이지를 이용할 수 있습니다.",
       loading: "조직도 데이터를 불러오는 중입니다.",
@@ -959,11 +963,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "회원가입 완료 후에만 내 코드 가입 회원 관리 페이지를 확인할 수 있습니다.",
       searchPlaceholder: "이메일, 레퍼럴 코드, 지갑 주소로 검색",
       selectionHint:
-        "좌측 목록이나 하단 조직도에서 회원을 선택하면 누적 포인트와 등급을 바로 확인할 수 있습니다.",
+        "좌측 목록이나 하단 조직도에서 회원을 선택하면 누적 포인트, 포인트 등급, 카드 상태를 바로 확인할 수 있습니다.",
       leaderboardDescription:
-        "포인트 순으로 정렬된 회원 목록입니다. 빠르게 선택해 상태를 확인할 수 있습니다.",
+        "포인트 순으로 정렬된 회원 목록입니다. 포인트 등급과 카드 보유 상태를 빠르게 확인할 수 있습니다.",
       treeDescription:
-        "조직도를 단계별로 탐색하면서 각 회원의 포인트와 등급을 함께 확인합니다.",
+        "조직도를 단계별로 탐색하면서 각 회원의 포인트, 포인트 등급, 카드 상태를 함께 확인합니다.",
       labels: {
         currentMember: "선택 회원",
         descendants: "전체 하위",
@@ -974,7 +978,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         level: "단계",
         lifetimePoints: "누적 포인트",
         locale: "회원 언어",
+        membershipCard: "멤버 카드",
         memberStatus: "회원 상태",
+        pointTier: "포인트 등급",
         referralCode: "레퍼럴 코드",
         searchResults: "회원 목록",
         spendablePoints: "사용 가능 포인트",
@@ -1138,7 +1144,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         spendablePoints: "사용 가능 포인트",
         lifetimePoints: "누적 적립 포인트",
         currentTier: "현재 등급",
+        membershipCard: "보유 멤버 카드",
         nextTier: "다음 등급",
+        pointTier: "현재 포인트 등급",
         pointsToNextTier: "{points}P 남음",
         progress: "등급 진행도",
         rewardCatalog: "리워드 카탈로그",
@@ -1692,7 +1700,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "Referral Member Management",
       eyebrow: "network control",
       description:
-        "Manage the completed members who joined with your code, including network structure, lifetime points, spendable points, and current tier.",
+        "Manage the completed members who joined with your code, including network structure, lifetime points, spendable points, point tier, and member card status.",
       disconnected:
         "Sign in with email to manage the members who joined with your code.",
       loading: "Loading referral network data.",
@@ -1702,11 +1710,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "This page becomes available after your signup is completed.",
       searchPlaceholder: "Search by email, referral code, or wallet address",
       selectionHint:
-        "Pick a member from the list or network map to review points, tier, and network depth instantly.",
+        "Pick a member from the list or network map to review points, point tier, card status, and network depth instantly.",
       leaderboardDescription:
-        "Members sorted by points so you can review key accounts quickly.",
+        "Members sorted by points so you can review point tier and card status quickly.",
       treeDescription:
-        "Explore the network by level while checking each member's points and tier.",
+        "Explore the network by level while checking each member's points, point tier, and card status.",
       labels: {
         currentMember: "Selected member",
         descendants: "Descendants",
@@ -1717,7 +1725,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         level: "Level",
         lifetimePoints: "Lifetime points",
         locale: "Member locale",
+        membershipCard: "Member card",
         memberStatus: "Member status",
+        pointTier: "Point tier",
         referralCode: "Referral code",
         searchResults: "Member list",
         spendablePoints: "Spendable points",
@@ -1883,7 +1893,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         spendablePoints: "Spendable points",
         lifetimePoints: "Lifetime points",
         currentTier: "Current tier",
+        membershipCard: "Member card",
         nextTier: "Next tier",
+        pointTier: "Current point tier",
         pointsToNextTier: "{points}P left",
         progress: "Tier progress",
         rewardCatalog: "Reward catalog",
@@ -2440,7 +2452,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "紹介会員管理",
       eyebrow: "network control",
       description:
-        "自分のコードで登録した完了会員の組織図、累計ポイント、利用可能ポイント、現在の等級をまとめて管理します。",
+        "自分のコードで登録した完了会員の組織図、累計ポイント、利用可能ポイント、ポイント等級、カード保有状態をまとめて管理します。",
       disconnected:
         "紹介会員管理ページを利用するにはメールログインしてください。",
       loading: "組織図データを読み込んでいます。",
@@ -2450,11 +2462,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "登録完了後にのみ紹介会員管理ページを確認できます。",
       searchPlaceholder: "メール、紹介コード、ウォレットで検索",
       selectionHint:
-        "左の一覧または下の組織図から会員を選ぶと、ポイントと等級をすぐ確認できます。",
+        "左の一覧または下の組織図から会員を選ぶと、ポイント、ポイント等級、カード状態をすぐ確認できます。",
       leaderboardDescription:
-        "ポイント順に並んだ会員一覧です。重要な会員を素早く確認できます。",
+        "ポイント順に並んだ会員一覧です。ポイント等級とカード保有状態を素早く確認できます。",
       treeDescription:
-        "組織図を段階ごとに辿りながら、各会員のポイントと等級を確認します。",
+        "組織図を段階ごとに辿りながら、各会員のポイント、ポイント等級、カード状態を確認します。",
       labels: {
         currentMember: "選択中の会員",
         descendants: "全下位",
@@ -2465,7 +2477,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         level: "段階",
         lifetimePoints: "累計ポイント",
         locale: "会員言語",
+        membershipCard: "メンバーカード",
         memberStatus: "会員状態",
+        pointTier: "ポイント等級",
         referralCode: "紹介コード",
         searchResults: "会員一覧",
         spendablePoints: "利用可能ポイント",
@@ -2635,7 +2649,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         spendablePoints: "利用可能ポイント",
         lifetimePoints: "累計ポイント",
         currentTier: "現在の等級",
+        membershipCard: "保有メンバーカード",
         nextTier: "次の等級",
+        pointTier: "現在のポイント等級",
         pointsToNextTier: "あと {points}P",
         progress: "等級進行度",
         rewardCatalog: "リワードカタログ",
@@ -3191,7 +3207,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "我的推荐会员管理",
       eyebrow: "network control",
       description:
-        "集中管理通过你的代码完成注册的会员组织图，并查看每位会员的累计积分、可用积分和当前等级。",
+        "集中管理通过你的代码完成注册的会员组织图，并查看每位会员的累计积分、可用积分、积分等级和卡片持有状态。",
       disconnected: "请先通过邮箱登录后再使用推荐会员管理页面。",
       loading: "正在加载组织图数据。",
       empty: "暂无可显示的会员。",
@@ -3199,11 +3215,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       paymentRequired: "只有在你的注册完成后才能查看此管理页面。",
       searchPlaceholder: "通过邮箱、推荐码或钱包地址搜索",
       selectionHint:
-        "从左侧列表或下方组织图中选择会员，即可立即查看积分、等级和层级结构。",
+        "从左侧列表或下方组织图中选择会员，即可立即查看积分、积分等级、卡片状态和层级结构。",
       leaderboardDescription:
-        "按积分排序的会员列表，便于快速定位重点会员。",
+        "按积分排序的会员列表，方便快速查看积分等级和卡片状态。",
       treeDescription:
-        "按层级浏览组织图，同时查看每位会员的积分和等级。",
+        "按层级浏览组织图，同时查看每位会员的积分、积分等级和卡片状态。",
       labels: {
         currentMember: "当前选中会员",
         descendants: "全部下级",
@@ -3214,7 +3230,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         level: "层级",
         lifetimePoints: "累计积分",
         locale: "会员语言",
+        membershipCard: "会员卡",
         memberStatus: "会员状态",
+        pointTier: "积分等级",
         referralCode: "推荐码",
         searchResults: "会员列表",
         spendablePoints: "可用积分",
@@ -3375,7 +3393,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         spendablePoints: "可用积分",
         lifetimePoints: "累计积分",
         currentTier: "当前等级",
+        membershipCard: "已持有会员卡",
         nextTier: "下一等级",
+        pointTier: "当前积分等级",
         pointsToNextTier: "还差 {points}P",
         progress: "等级进度",
         rewardCatalog: "奖励目录",
