@@ -24,6 +24,12 @@ import type {
   AppNotificationDocument,
   AppNotificationPreferencesDocument,
 } from "@/lib/notifications";
+import type {
+  ActivityDailyStateDocument,
+  ActivityLedgerDocument,
+  ActivityProfileDocument,
+  ActivityTapSessionDocument,
+} from "@/lib/activity";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -63,6 +69,18 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoAppNotificationPreferencesCollectionPromise?: Promise<
     Collection<AppNotificationPreferencesDocument>
+  >;
+  mongoActivityProfilesCollectionPromise?: Promise<
+    Collection<ActivityProfileDocument>
+  >;
+  mongoActivityLedgerCollectionPromise?: Promise<
+    Collection<ActivityLedgerDocument>
+  >;
+  mongoActivityDailyStatesCollectionPromise?: Promise<
+    Collection<ActivityDailyStateDocument>
+  >;
+  mongoActivityTapSessionsCollectionPromise?: Promise<
+    Collection<ActivityTapSessionDocument>
   >;
 };
 
@@ -531,4 +549,104 @@ export async function getAppNotificationPreferencesCollection() {
   }
 
   return globalForMongo.mongoAppNotificationPreferencesCollectionPromise;
+}
+
+export async function getActivityProfilesCollection() {
+  if (!globalForMongo.mongoActivityProfilesCollectionPromise) {
+    globalForMongo.mongoActivityProfilesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_ACTIVITY_PROFILES_COLLECTION ?? "activityProfiles";
+      const collection = client
+        .db(dbName)
+        .collection<ActivityProfileDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ memberEmail: 1 }, { unique: true }),
+        collection.createIndex({ updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoActivityProfilesCollectionPromise;
+}
+
+export async function getActivityLedgerCollection() {
+  if (!globalForMongo.mongoActivityLedgerCollectionPromise) {
+    globalForMongo.mongoActivityLedgerCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_ACTIVITY_LEDGER_COLLECTION ?? "activityLedger";
+      const collection = client
+        .db(dbName)
+        .collection<ActivityLedgerDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ ledgerEntryId: 1 }, { unique: true }),
+        collection.createIndex(
+          { memberEmail: 1, sourceType: 1, sourceId: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, dateKey: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoActivityLedgerCollectionPromise;
+}
+
+export async function getActivityDailyStatesCollection() {
+  if (!globalForMongo.mongoActivityDailyStatesCollectionPromise) {
+    globalForMongo.mongoActivityDailyStatesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_ACTIVITY_DAILY_STATES_COLLECTION ??
+        "activityDailyStates";
+      const collection = client
+        .db(dbName)
+        .collection<ActivityDailyStateDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ memberEmail: 1, dateKey: 1 }, { unique: true }),
+        collection.createIndex({ dateKey: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoActivityDailyStatesCollectionPromise;
+}
+
+export async function getActivityTapSessionsCollection() {
+  if (!globalForMongo.mongoActivityTapSessionsCollectionPromise) {
+    globalForMongo.mongoActivityTapSessionsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_ACTIVITY_TAP_SESSIONS_COLLECTION ??
+        "activityTapSessions";
+      const collection = client
+        .db(dbName)
+        .collection<ActivityTapSessionDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ sessionId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, status: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, expiresAt: 1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoActivityTapSessionsCollectionPromise;
 }

@@ -544,6 +544,96 @@ export type Dictionary = {
       };
     };
   };
+  playPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    badge: string;
+    disconnected: string;
+    loading: string;
+    requiresSignup: string;
+    hero: {
+      title: string;
+      description: string;
+      sideTitle: string;
+      teamHint: string;
+    };
+    labels: {
+      activityPoints: string;
+      todayPoints: string;
+      streak: string;
+      streakValue: string;
+      teamBonus: string;
+      dailyMissions: string;
+      tapChallenge: string;
+      tapProgress: string;
+      history: string;
+      dateKey: string;
+      bestTap: string;
+      bestTapValue: string;
+    };
+    actions: {
+      backHome: string;
+      completeSignup: string;
+      checkIn: string;
+      checkingIn: string;
+      checkedIn: string;
+      startTap: string;
+      startingTap: string;
+      tapMore: string;
+      claimTapReward: string;
+      finishingTap: string;
+    };
+    missions: {
+      check_in: {
+        title: string;
+        description: string;
+      };
+      tap_challenge: {
+        title: string;
+        description: string;
+      };
+      team_bonus: {
+        title: string;
+        description: string;
+      };
+    };
+    tap: {
+      title: string;
+      idleLabel: string;
+      liveLabel: string;
+      idleDescription: string;
+      targetLabel: string;
+      progressLabel: string;
+      timerLabel: string;
+      timerIdle: string;
+      rewardLabel: string;
+      remainingLabel: string;
+      remainingValue: string;
+    };
+    history: {
+      title: string;
+      empty: string;
+      checkIn: string;
+      tapChallenge: string;
+      teamBonus: string;
+      teamBonusFallback: string;
+    };
+    notices: {
+      checkInSuccess: string;
+      tapStarted: string;
+      tapSuccess: string;
+      tapMissed: string;
+      tapExpired: string;
+    };
+    errors: {
+      missingEmail: string;
+      loadFailed: string;
+      checkInFailed: string;
+      tapFailed: string;
+      dailyLimitReached: string;
+    };
+  };
   signInMix: {
     title: string;
     eyebrow: string;
@@ -1184,6 +1274,101 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           loadFailed: "Silver BNB 클레임 정보를 불러오지 못했습니다.",
           claimFailed: "Silver BNB 클레임을 처리하지 못했습니다.",
         },
+      },
+    },
+    playPage: {
+      title: "데일리 플레이",
+      eyebrow: "activity loop",
+      description:
+        "매일 출석하고 탭 챌린지를 완료해 활동 포인트를 쌓는 모바일 우선 플레이 허브입니다.",
+      badge: "daily play",
+      disconnected:
+        "이메일 로그인 후 데일리 플레이에 참여할 수 있습니다.",
+      loading: "데일리 플레이 데이터를 불러오는 중입니다.",
+      requiresSignup:
+        "회원가입 완료 후에만 데일리 플레이와 활동 포인트 적립을 이용할 수 있습니다.",
+      hero: {
+        title: "매일 들어오게 만드는 모바일 플레이 루프",
+        description:
+          "출석, 30초 탭 챌린지, 팀 보너스를 한 화면에서 빠르게 확인하고 바로 참여할 수 있도록 구성했습니다.",
+        sideTitle: "오늘의 미션 3개",
+        teamHint:
+          "내 하위 회원이 활동하면 G1, G2 상위 네트워크에도 활동 포인트가 적립됩니다.",
+      },
+      labels: {
+        activityPoints: "활동 포인트",
+        todayPoints: "오늘 획득",
+        streak: "연속 출석",
+        streakValue: "{days}일",
+        teamBonus: "오늘 팀 보너스",
+        dailyMissions: "오늘의 미션",
+        tapChallenge: "탭 챌린지",
+        tapProgress: "탭 진행도",
+        history: "최근 적립",
+        dateKey: "오늘 기준일",
+        bestTap: "오늘 최고 탭",
+        bestTapValue: "{count} taps",
+      },
+      actions: {
+        backHome: "홈으로 돌아가기",
+        completeSignup: "활성화 화면으로 이동",
+        checkIn: "오늘 출석하기",
+        checkingIn: "출석 처리 중...",
+        checkedIn: "오늘 출석 완료",
+        startTap: "30초 탭 챌린지 시작",
+        startingTap: "챌린지 준비 중...",
+        tapMore: "조금만 더 탭하기",
+        claimTapReward: "1P 받기",
+        finishingTap: "결과 정리 중...",
+      },
+      missions: {
+        check_in: {
+          title: "오늘 출석",
+          description: "하루 한 번 출석하면 즉시 활동 포인트를 적립합니다.",
+        },
+        tap_challenge: {
+          title: "100탭 챌린지",
+          description: "30초 안에 100회를 터치하면 1P를 적립합니다.",
+        },
+        team_bonus: {
+          title: "팀 활동 보너스",
+          description: "하위 네트워크 활동이 있으면 오늘 보너스가 쌓입니다.",
+        },
+      },
+      tap: {
+        title: "30초 탭 챌린지",
+        idleLabel: "ready",
+        liveLabel: "live",
+        idleDescription: "시작 버튼을 누르면 30초 동안 탭이 집계됩니다.",
+        targetLabel: "목표 {target} taps",
+        progressLabel: "{current} / {target}",
+        timerLabel: "{seconds}s 남음",
+        timerIdle: "대기 중",
+        rewardLabel: "성공 보상",
+        remainingLabel: "오늘 남은 보상",
+        remainingValue: "{count}회",
+      },
+      history: {
+        title: "최근 활동 적립",
+        empty: "아직 활동 포인트 적립 내역이 없습니다.",
+        checkIn: "오늘 출석 보상",
+        tapChallenge: "탭 챌린지 성공",
+        teamBonus: "팀 보너스 · {email} · G{level}",
+        teamBonusFallback: "팀 활동 보너스",
+      },
+      notices: {
+        checkInSuccess: "오늘 출석이 완료되어 {points}P가 적립되었습니다.",
+        tapStarted: "탭 챌린지가 시작되었습니다. 30초 안에 100회를 채워보세요.",
+        tapSuccess: "탭 챌린지 성공으로 {points}P가 적립되었습니다.",
+        tapMissed: "이번에는 목표에 닿지 못했습니다. 다시 도전해보세요.",
+        tapExpired: "챌린지 시간이 종료되었습니다. 결과를 정리했습니다.",
+      },
+      errors: {
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        loadFailed: "데일리 플레이 데이터를 불러오지 못했습니다.",
+        checkInFailed: "오늘 출석을 처리하지 못했습니다.",
+        tapFailed: "탭 챌린지를 처리하지 못했습니다.",
+        dailyLimitReached: "오늘 받을 수 있는 탭 보상 횟수를 모두 사용했습니다.",
       },
     },
     signInMix: {
@@ -1830,6 +2015,100 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           loadFailed: "Failed to load the Silver BNB claim.",
           claimFailed: "Failed to process the Silver BNB claim.",
         },
+      },
+    },
+    playPage: {
+      title: "Daily Play",
+      eyebrow: "activity loop",
+      description:
+        "A mobile-first play hub for daily check-ins, tap challenges, and team activity points.",
+      badge: "daily play",
+      disconnected: "Sign in with email to open Daily Play.",
+      loading: "Loading Daily Play data.",
+      requiresSignup:
+        "Finish signup before joining Daily Play and earning activity points.",
+      hero: {
+        title: "A mobile loop that gives members a reason to come back every day",
+        description:
+          "Check in, clear a 30-second tap challenge, and collect team bonuses from one compact screen.",
+        sideTitle: "3 missions today",
+        teamHint:
+          "When your downline stays active, G1 and G2 uplines also collect activity points.",
+      },
+      labels: {
+        activityPoints: "Activity points",
+        todayPoints: "Today earned",
+        streak: "Check-in streak",
+        streakValue: "{days} days",
+        teamBonus: "Team bonus today",
+        dailyMissions: "Daily missions",
+        tapChallenge: "Tap challenge",
+        tapProgress: "Tap progress",
+        history: "Recent rewards",
+        dateKey: "Today key",
+        bestTap: "Best taps today",
+        bestTapValue: "{count} taps",
+      },
+      actions: {
+        backHome: "Back home",
+        completeSignup: "Go to activate",
+        checkIn: "Check in today",
+        checkingIn: "Checking in...",
+        checkedIn: "Checked in today",
+        startTap: "Start 30s tap challenge",
+        startingTap: "Preparing challenge...",
+        tapMore: "Tap a little more",
+        claimTapReward: "Claim 1P",
+        finishingTap: "Finishing...",
+      },
+      missions: {
+        check_in: {
+          title: "Daily check-in",
+          description: "Check in once per day for an instant activity point boost.",
+        },
+        tap_challenge: {
+          title: "100 tap challenge",
+          description: "Reach 100 taps in 30 seconds to earn 1P.",
+        },
+        team_bonus: {
+          title: "Team bonus",
+          description: "Downline activity can unlock extra points for today.",
+        },
+      },
+      tap: {
+        title: "30-second tap challenge",
+        idleLabel: "ready",
+        liveLabel: "live",
+        idleDescription: "Press start to open a 30-second tap window.",
+        targetLabel: "Target {target} taps",
+        progressLabel: "{current} / {target}",
+        timerLabel: "{seconds}s left",
+        timerIdle: "Standby",
+        rewardLabel: "Reward",
+        remainingLabel: "Remaining today",
+        remainingValue: "{count} left",
+      },
+      history: {
+        title: "Recent activity rewards",
+        empty: "No activity point history yet.",
+        checkIn: "Daily check-in reward",
+        tapChallenge: "Tap challenge success",
+        teamBonus: "Team bonus · {email} · G{level}",
+        teamBonusFallback: "Team activity bonus",
+      },
+      notices: {
+        checkInSuccess: "Daily check-in completed. {points}P was added.",
+        tapStarted: "Tap challenge started. Try to reach 100 taps in 30 seconds.",
+        tapSuccess: "Tap challenge complete. {points}P was added.",
+        tapMissed: "You missed the target this round. Try again.",
+        tapExpired: "The challenge timer ended and your result was saved.",
+      },
+      errors: {
+        missingEmail: "The connected session did not return an email address.",
+        loadFailed: "Failed to load Daily Play data.",
+        checkInFailed: "Failed to complete the daily check-in.",
+        tapFailed: "Failed to process the tap challenge.",
+        dailyLimitReached: "You already used all tap rewards for today.",
       },
     },
     signInMix: {
@@ -2483,6 +2762,101 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         },
       },
     },
+    playPage: {
+      title: "デイリープレイ",
+      eyebrow: "activity loop",
+      description:
+        "毎日の出席、タップチャレンジ、チームボーナスを集めるモバイル優先のプレイハブです。",
+      badge: "daily play",
+      disconnected: "メールログイン後にデイリープレイへ参加できます。",
+      loading: "デイリープレイのデータを読み込み中です。",
+      requiresSignup:
+        "会員登録完了後にのみ、デイリープレイと活動ポイントの獲得を利用できます。",
+      hero: {
+        title: "毎日戻ってきたくなるモバイルプレイループ",
+        description:
+          "出席、30秒タップチャレンジ、チームボーナスを 1 画面で素早く確認してすぐ参加できます。",
+        sideTitle: "今日のミッション 3つ",
+        teamHint:
+          "下位メンバーが活動すると、G1 と G2 の上位ネットワークにも活動ポイントが入ります。",
+      },
+      labels: {
+        activityPoints: "活動ポイント",
+        todayPoints: "今日の獲得",
+        streak: "連続出席",
+        streakValue: "{days}日",
+        teamBonus: "今日のチームボーナス",
+        dailyMissions: "今日のミッション",
+        tapChallenge: "タップチャレンジ",
+        tapProgress: "タップ進行度",
+        history: "最近の獲得",
+        dateKey: "本日基準日",
+        bestTap: "今日の最高タップ",
+        bestTapValue: "{count} taps",
+      },
+      actions: {
+        backHome: "ホームへ戻る",
+        completeSignup: "有効化画面へ移動",
+        checkIn: "今日の出席",
+        checkingIn: "出席処理中...",
+        checkedIn: "今日の出席完了",
+        startTap: "30秒タップチャレンジ開始",
+        startingTap: "準備中...",
+        tapMore: "もう少しタップ",
+        claimTapReward: "1P 受け取る",
+        finishingTap: "結果を整理中...",
+      },
+      missions: {
+        check_in: {
+          title: "今日の出席",
+          description: "1日1回の出席で活動ポイントを即時に獲得します。",
+        },
+        tap_challenge: {
+          title: "100タップチャレンジ",
+          description: "30秒以内に100回タップすると 1P を獲得できます。",
+        },
+        team_bonus: {
+          title: "チームボーナス",
+          description: "下位ネットワークの活動があると今日のボーナスが増えます。",
+        },
+      },
+      tap: {
+        title: "30秒タップチャレンジ",
+        idleLabel: "ready",
+        liveLabel: "live",
+        idleDescription: "開始を押すと 30 秒間のタップ集計が始まります。",
+        targetLabel: "目標 {target} taps",
+        progressLabel: "{current} / {target}",
+        timerLabel: "残り {seconds}s",
+        timerIdle: "待機中",
+        rewardLabel: "成功報酬",
+        remainingLabel: "今日の残り",
+        remainingValue: "{count}回",
+      },
+      history: {
+        title: "最近の活動報酬",
+        empty: "まだ活動ポイントの履歴がありません。",
+        checkIn: "今日の出席報酬",
+        tapChallenge: "タップチャレンジ成功",
+        teamBonus: "チームボーナス · {email} · G{level}",
+        teamBonusFallback: "チーム活動ボーナス",
+      },
+      notices: {
+        checkInSuccess: "今日の出席が完了し、{points}P が積み立てられました。",
+        tapStarted:
+          "タップチャレンジが始まりました。30秒以内に100回を目指してください。",
+        tapSuccess: "タップチャレンジ成功で {points}P が積み立てられました。",
+        tapMissed: "今回は目標に届きませんでした。もう一度挑戦してください。",
+        tapExpired: "チャレンジ時間が終了し、結果を保存しました。",
+      },
+      errors: {
+        missingEmail: "現在の接続からメールアドレスを取得できませんでした。",
+        loadFailed: "デイリープレイのデータを読み込めませんでした。",
+        checkInFailed: "今日の出席を処理できませんでした。",
+        tapFailed: "タップチャレンジを処理できませんでした。",
+        dailyLimitReached: "今日受け取れるタップ報酬をすべて使い切りました。",
+      },
+    },
     signInMix: {
       title: "登録フロー",
       eyebrow: "signup checklist",
@@ -3113,6 +3487,100 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           loadFailed: "无法加载 Silver BNB 领取信息。",
           claimFailed: "无法处理 Silver BNB 领取。",
         },
+      },
+    },
+    playPage: {
+      title: "每日玩法",
+      eyebrow: "activity loop",
+      description:
+        "一个面向移动端的每日玩法中心，可完成签到、点击挑战并领取团队活动积分。",
+      badge: "daily play",
+      disconnected: "邮箱登录后即可参与每日玩法。",
+      loading: "正在加载每日玩法数据。",
+      requiresSignup:
+        "只有完成注册后，才能参与每日玩法并获得活动积分。",
+      hero: {
+        title: "让会员每天都愿意回来的移动端玩法循环",
+        description:
+          "把签到、30秒点击挑战和团队奖励整合到一个紧凑页面里，打开后即可参与。",
+        sideTitle: "今日 3 个任务",
+        teamHint:
+          "当你的下级网络保持活跃时，G1 与 G2 上级也会获得活动积分。",
+      },
+      labels: {
+        activityPoints: "活动积分",
+        todayPoints: "今日获得",
+        streak: "连续签到",
+        streakValue: "{days}天",
+        teamBonus: "今日团队奖励",
+        dailyMissions: "今日任务",
+        tapChallenge: "点击挑战",
+        tapProgress: "点击进度",
+        history: "最近奖励",
+        dateKey: "今日日期键",
+        bestTap: "今日最高点击",
+        bestTapValue: "{count} taps",
+      },
+      actions: {
+        backHome: "返回首页",
+        completeSignup: "前往激活页面",
+        checkIn: "今日签到",
+        checkingIn: "签到处理中...",
+        checkedIn: "今日已签到",
+        startTap: "开始 30 秒点击挑战",
+        startingTap: "正在准备挑战...",
+        tapMore: "再点几下",
+        claimTapReward: "领取 1P",
+        finishingTap: "正在整理结果...",
+      },
+      missions: {
+        check_in: {
+          title: "今日签到",
+          description: "每天签到一次即可立即获得活动积分。",
+        },
+        tap_challenge: {
+          title: "100 次点击挑战",
+          description: "在 30 秒内完成 100 次点击即可获得 1P。",
+        },
+        team_bonus: {
+          title: "团队奖励",
+          description: "下级网络活跃后，今天还能追加团队奖励。",
+        },
+      },
+      tap: {
+        title: "30 秒点击挑战",
+        idleLabel: "ready",
+        liveLabel: "live",
+        idleDescription: "点击开始后，会开启 30 秒计数窗口。",
+        targetLabel: "目标 {target} taps",
+        progressLabel: "{current} / {target}",
+        timerLabel: "剩余 {seconds}s",
+        timerIdle: "待机中",
+        rewardLabel: "成功奖励",
+        remainingLabel: "今日剩余",
+        remainingValue: "{count}次",
+      },
+      history: {
+        title: "最近活动奖励",
+        empty: "暂无活动积分记录。",
+        checkIn: "今日签到奖励",
+        tapChallenge: "点击挑战成功",
+        teamBonus: "团队奖励 · {email} · G{level}",
+        teamBonusFallback: "团队活动奖励",
+      },
+      notices: {
+        checkInSuccess: "今日签到完成，已发放 {points}P。",
+        tapStarted: "点击挑战已开始，请在 30 秒内完成 100 次点击。",
+        tapSuccess: "点击挑战成功，已发放 {points}P。",
+        tapMissed: "这次没有达到目标，稍后再试一次。",
+        tapExpired: "挑战时间结束，结果已保存。",
+      },
+      errors: {
+        missingEmail: "当前连接中未能读取到邮箱地址。",
+        loadFailed: "无法加载每日玩法数据。",
+        checkInFailed: "无法处理今日签到。",
+        tapFailed: "无法处理点击挑战。",
+        dailyLimitReached: "今天可领取的点击奖励次数已经用完。",
       },
     },
     signInMix: {
