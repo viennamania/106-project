@@ -16,7 +16,6 @@ import {
   ArrowUpRight,
   Bell,
   Check,
-  CheckCheck,
   Copy,
   Mail,
   Sparkles,
@@ -41,6 +40,7 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
@@ -1251,131 +1251,6 @@ export function SmartWalletApp({
           </header>
         </LandingReveal>
 
-        {notificationsState.open &&
-        isSignupCompleted &&
-        memberSync.member?.email ? (
-          <section className="glass-card rounded-[28px] p-4 sm:p-5">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-                <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-                  {notificationCopy.title}
-                </h3>
-                <p className="text-sm leading-6 text-slate-600">
-                  {formatTemplate(notificationCopy.unreadCount, {
-                    count: new Intl.NumberFormat(locale).format(
-                      notificationsState.unreadCount,
-                    ),
-                  })}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={notificationsState.unreadCount === 0}
-                  onClick={() => {
-                    void markAllNotificationsAsRead();
-                  }}
-                  type="button"
-                >
-                  <CheckCheck className="size-4" />
-                  {notificationCopy.markAllRead}
-                </button>
-                <button
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-                  onClick={() => {
-                    setNotificationsState((current) => ({
-                      ...current,
-                      open: false,
-                    }));
-                  }}
-                  type="button"
-                >
-                  {dictionary.common.loginDialog.close}
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <NotificationPreferenceCard
-                checked={
-                  notificationsState.preferences?.directMemberCompletedEnabled ??
-                  true
-                }
-                label={notificationCopy.preferenceDirect}
-                onChange={(checked) => {
-                  void updateNotificationPreference(
-                    "directMemberCompletedEnabled",
-                    checked,
-                  );
-                }}
-              />
-              <NotificationPreferenceCard
-                checked={
-                  notificationsState.preferences?.networkLevelCompletedEnabled ??
-                  true
-                }
-                label={notificationCopy.preferenceLevel}
-                onChange={(checked) => {
-                  void updateNotificationPreference(
-                    "networkLevelCompletedEnabled",
-                    checked,
-                  );
-                }}
-              />
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {notificationsState.error ? (
-                <MessageCard>{notificationsState.error}</MessageCard>
-              ) : null}
-
-              {notificationsState.status === "loading" &&
-              notificationsState.notifications.length === 0 ? (
-                <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
-              ) : notificationsState.notifications.length === 0 ? (
-                <MessageCard>{notificationCopy.empty}</MessageCard>
-              ) : (
-                notificationsState.notifications.map((notification) => (
-                  <ActivateNotificationCard
-                    dictionary={dictionary}
-                    key={notification.notificationId}
-                    locale={locale}
-                    notification={notification}
-                    onOpen={() => {
-                      void openNotification(notification);
-                    }}
-                  />
-                ))
-              )}
-            </div>
-
-            {notificationsState.hasMore && memberSync.member?.email ? (
-              <div className="mt-4 flex justify-center">
-                <button
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={
-                    notificationsState.isLoadingMore ||
-                    !notificationsState.nextCursor
-                  }
-                  onClick={() => {
-                    void loadNotifications({
-                      append: true,
-                      cursor: notificationsState.nextCursor,
-                      memberEmail: memberSync.member?.email ?? "",
-                    });
-                  }}
-                  type="button"
-                >
-                  {notificationsState.isLoadingMore
-                    ? notificationCopy.loadingMore
-                    : notificationCopy.loadMore}
-                </button>
-              </div>
-            ) : null}
-          </section>
-        ) : null}
-
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
             dictionary={dictionary}
@@ -1734,6 +1609,108 @@ export function SmartWalletApp({
           </section>
         )}
       </main>
+
+      <NotificationCenterSheet
+        closeLabel={dictionary.common.loginDialog.close}
+        eyebrow={dictionary.activateNetworkPage.eyebrow}
+        markAllDisabled={notificationsState.unreadCount === 0}
+        markAllReadLabel={notificationCopy.markAllRead}
+        onClose={() => {
+          setNotificationsState((current) => ({
+            ...current,
+            open: false,
+          }));
+        }}
+        onMarkAllRead={() => {
+          void markAllNotificationsAsRead();
+        }}
+        open={
+          notificationsState.open &&
+          isSignupCompleted &&
+          Boolean(memberSync.member?.email)
+        }
+        title={notificationCopy.title}
+        unreadCountText={formatTemplate(notificationCopy.unreadCount, {
+          count: new Intl.NumberFormat(locale).format(
+            notificationsState.unreadCount,
+          ),
+        })}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <NotificationPreferenceCard
+            checked={
+              notificationsState.preferences?.directMemberCompletedEnabled ?? true
+            }
+            label={notificationCopy.preferenceDirect}
+            onChange={(checked) => {
+              void updateNotificationPreference(
+                "directMemberCompletedEnabled",
+                checked,
+              );
+            }}
+          />
+          <NotificationPreferenceCard
+            checked={
+              notificationsState.preferences?.networkLevelCompletedEnabled ?? true
+            }
+            label={notificationCopy.preferenceLevel}
+            onChange={(checked) => {
+              void updateNotificationPreference(
+                "networkLevelCompletedEnabled",
+                checked,
+              );
+            }}
+          />
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {notificationsState.error ? (
+            <MessageCard>{notificationsState.error}</MessageCard>
+          ) : null}
+
+          {notificationsState.status === "loading" &&
+          notificationsState.notifications.length === 0 ? (
+            <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
+          ) : notificationsState.notifications.length === 0 ? (
+            <MessageCard>{notificationCopy.empty}</MessageCard>
+          ) : (
+            notificationsState.notifications.map((notification) => (
+              <ActivateNotificationCard
+                dictionary={dictionary}
+                key={notification.notificationId}
+                locale={locale}
+                notification={notification}
+                onOpen={() => {
+                  void openNotification(notification);
+                }}
+              />
+            ))
+          )}
+        </div>
+
+        {notificationsState.hasMore && memberSync.member?.email ? (
+          <div className="mt-4 flex justify-center">
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                notificationsState.isLoadingMore || !notificationsState.nextCursor
+              }
+              onClick={() => {
+                void loadNotifications({
+                  append: true,
+                  cursor: notificationsState.nextCursor,
+                  memberEmail: memberSync.member?.email ?? "",
+                });
+              }}
+              type="button"
+            >
+              {notificationsState.isLoadingMore
+                ? notificationCopy.loadingMore
+                : notificationCopy.loadMore}
+            </button>
+          </div>
+        ) : null}
+      </NotificationCenterSheet>
 
       {showMobileActionDock ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] lg:hidden">
