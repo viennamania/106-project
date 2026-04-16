@@ -1280,7 +1280,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "데일리 플레이",
       eyebrow: "activity loop",
       description:
-        "매일 출석하고 탭 챌린지를 완료해 활동 포인트를 쌓는 모바일 우선 플레이 허브입니다.",
+        "출석, 탭 챌린지, 팀 보너스로 활동 포인트를 매일 쌓아가는 모바일 우선 플레이 허브입니다.",
       badge: "daily play",
       disconnected:
         "이메일 로그인 후 데일리 플레이에 참여할 수 있습니다.",
@@ -1288,9 +1288,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       requiresSignup:
         "회원가입 완료 후에만 데일리 플레이와 활동 포인트 적립을 이용할 수 있습니다.",
       hero: {
-        title: "매일 들어오게 만드는 모바일 플레이 루프",
+        title: "매일 참여할수록 활동 포인트가 쌓이는 데일리 플레이",
         description:
-          "출석, 30초 탭 챌린지, 팀 보너스를 한 화면에서 빠르게 확인하고 바로 참여할 수 있도록 구성했습니다.",
+          "오늘 출석하고, 30초 탭 챌린지에 도전하고, 팀 활동 보너스까지 한 번에 챙기세요. 내가 움직일수록 쌓이고, 내 네트워크가 함께 움직일수록 더 커집니다.",
         sideTitle: "오늘의 미션 3개",
         teamHint:
           "내 하위 회원이 활동하면 G1, G2 상위 네트워크에도 활동 포인트가 적립됩니다.",
