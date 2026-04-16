@@ -221,6 +221,15 @@ async function countCompletedMembersAtDepth({
 }
 
 async function notifyDirectSponsorOfCompletedMember(member: MemberDocument) {
+  return notifyDirectSponsorOfCompletedMemberWithOptions(member, {});
+}
+
+async function notifyDirectSponsorOfCompletedMemberWithOptions(
+  member: MemberDocument,
+  options: {
+    ignorePreferences?: boolean;
+  },
+) {
   const rawSponsorEmail = member.sponsorEmail ?? member.referredByEmail ?? null;
 
   if (!rawSponsorEmail) {
@@ -248,7 +257,7 @@ async function notifyDirectSponsorOfCompletedMember(member: MemberDocument) {
 
   const preferences = await getOrCreateNotificationPreferences(sponsor.email);
 
-  if (!preferences.directMemberCompletedEnabled) {
+  if (!options.ignorePreferences && !preferences.directMemberCompletedEnabled) {
     return;
   }
 
@@ -271,6 +280,15 @@ async function notifyDirectSponsorOfCompletedMember(member: MemberDocument) {
 }
 
 async function notifyPlacementAncestorsOfCompletedMember(member: MemberDocument) {
+  return notifyPlacementAncestorsOfCompletedMemberWithOptions(member, {});
+}
+
+async function notifyPlacementAncestorsOfCompletedMemberWithOptions(
+  member: MemberDocument,
+  options: {
+    ignorePreferences?: boolean;
+  },
+) {
   const collection = await getMembersCollection();
   const seenReferralCodes = new Set<string>();
   const directSponsorEmail = normalizeEmail(
@@ -305,7 +323,10 @@ async function notifyPlacementAncestorsOfCompletedMember(member: MemberDocument)
 
     const preferences = await getOrCreateNotificationPreferences(recipient.email);
 
-    if (!preferences.networkMemberCompletedEnabled) {
+    if (
+      !options.ignorePreferences &&
+      !preferences.networkMemberCompletedEnabled
+    ) {
       currentReferralCode = recipient.placementReferralCode ?? null;
       continue;
     }
@@ -334,6 +355,15 @@ async function notifyPlacementAncestorsOfCompletedMember(member: MemberDocument)
 }
 
 async function notifyCompletedLevelMilestones(member: MemberDocument) {
+  return notifyCompletedLevelMilestonesWithOptions(member, {});
+}
+
+async function notifyCompletedLevelMilestonesWithOptions(
+  member: MemberDocument,
+  options: {
+    ignorePreferences?: boolean;
+  },
+) {
   const collection = await getMembersCollection();
   const seenReferralCodes = new Set<string>();
   let currentReferralCode = member.placementReferralCode ?? null;
@@ -360,7 +390,7 @@ async function notifyCompletedLevelMilestones(member: MemberDocument) {
 
     const preferences = await getOrCreateNotificationPreferences(recipient.email);
 
-    if (preferences.networkLevelCompletedEnabled) {
+    if (options.ignorePreferences || preferences.networkLevelCompletedEnabled) {
       const targetCount = REFERRAL_SIGNUP_LIMIT ** level;
       const currentCount = await countCompletedMembersAtDepth({
         depth: level,
@@ -393,15 +423,66 @@ async function notifyCompletedLevelMilestones(member: MemberDocument) {
 }
 
 export async function emitCompletedMemberNotifications(member: MemberDocument) {
+  return emitCompletedMemberNotificationsWithOptions(member, {});
+}
+
+export async function emitCompletedMemberNotificationsWithOptions(
+  member: MemberDocument,
+  options: {
+    ignorePreferences?: boolean;
+  },
+) {
   if (member.status !== "completed") {
     return;
   }
 
   await Promise.all([
-    notifyDirectSponsorOfCompletedMember(member),
-    notifyPlacementAncestorsOfCompletedMember(member),
-    notifyCompletedLevelMilestones(member),
+    notifyDirectSponsorOfCompletedMemberWithOptions(member, options),
+    notifyPlacementAncestorsOfCompletedMemberWithOptions(member, options),
+    notifyCompletedLevelMilestonesWithOptions(member, options),
   ]);
+}
+
+export async function backfillAppNotifications(options?: {
+  email?: string;
+  limit?: number;
+}) {
+  const membersCollection = await getMembersCollection();
+  const notificationsCollection = await getAppNotificationsCollection();
+  const normalizedEmail =
+    typeof options?.email === "string" ? normalizeEmail(options.email) : null;
+  const limit =
+    typeof options?.limit === "number" && Number.isFinite(options.limit)
+      ? Math.max(1, Math.trunc(options.limit))
+      : null;
+  const filter = normalizedEmail
+    ? { email: normalizedEmail, status: "completed" as const }
+    : { status: "completed" as const };
+  const beforeCount = await notificationsCollection.countDocuments();
+  const cursor = membersCollection
+    .find(filter)
+    .sort({ registrationCompletedAt: 1, createdAt: 1, email: 1 });
+
+  if (limit) {
+    cursor.limit(limit);
+  }
+
+  const members = await cursor.toArray();
+
+  for (const member of members) {
+    await emitCompletedMemberNotificationsWithOptions(member, {
+      ignorePreferences: true,
+    });
+  }
+
+  const afterCount = await notificationsCollection.countDocuments();
+
+  return {
+    createdCount: Math.max(0, afterCount - beforeCount),
+    memberEmail: normalizedEmail,
+    processedMembers: members.length,
+    totalNotifications: afterCount,
+  };
 }
 
 export async function getNotificationCenterForMember(
