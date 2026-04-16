@@ -313,7 +313,7 @@ export function PlayPage({
         setActionNotice(
           data.rewardEarned > 0
             ? formatTemplate(dictionary.playPage.notices.tapSuccess, {
-                points: String(data.rewardEarned),
+                coins: formatPlayCoins(data.rewardEarned, locale, dictionary),
               })
             : reason === "timeout"
               ? dictionary.playPage.notices.tapExpired
@@ -331,11 +331,9 @@ export function PlayPage({
     },
     [
       activeSession,
-      dictionary.playPage.errors.tapFailed,
-      dictionary.playPage.notices.tapExpired,
-      dictionary.playPage.notices.tapMissed,
-      dictionary.playPage.notices.tapSuccess,
+      dictionary,
       isFinishingTap,
+      locale,
       state.email,
       tapCount,
     ],
@@ -384,7 +382,11 @@ export function PlayPage({
       }));
       setActionNotice(
         formatTemplate(dictionary.playPage.notices.checkInSuccess, {
-          points: String(data.summary.today.checkInPoints),
+          coins: formatPlayCoins(
+            data.summary.today.checkInPoints,
+            locale,
+            dictionary,
+          ),
         }),
       );
     } catch (error) {
@@ -579,6 +581,9 @@ export function PlayPage({
                   <p className="max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
                     {dictionary.playPage.hero.description}
                   </p>
+                  <div className="inline-flex items-center rounded-full border border-amber-300/24 bg-amber-300/10 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-amber-100">
+                    {dictionary.playPage.currency.separateNotice}
+                  </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -586,13 +591,17 @@ export function PlayPage({
                     icon={<Sparkles className="size-4" />}
                     label={dictionary.playPage.labels.activityPoints}
                     locale={locale}
-                    value={`${summary.profile.spendableActivityPoints}P`}
+                    value={formatPlayCoins(
+                      summary.profile.spendableActivityPoints,
+                      locale,
+                      dictionary,
+                    )}
                   />
                   <PlayMetricCard
                     icon={<Trophy className="size-4" />}
                     label={dictionary.playPage.labels.todayPoints}
                     locale={locale}
-                    value={`${summary.today.totalPoints}P`}
+                    value={formatPlayCoins(summary.today.totalPoints, locale, dictionary)}
                   />
                   <PlayMetricCard
                     icon={<Flame className="size-4" />}
@@ -643,7 +652,11 @@ export function PlayPage({
                       <p className="mt-2 text-2xl font-semibold tracking-tight text-white tabular-nums">
                         <AnimatedNumberText
                           locale={locale}
-                          value={`${summary.today.teamBonusPoints}P`}
+                          value={formatPlayCoins(
+                            summary.today.teamBonusPoints,
+                            locale,
+                            dictionary,
+                          )}
                         />
                       </p>
                     </div>
@@ -771,7 +784,12 @@ export function PlayPage({
                       <div className="mt-4 grid gap-2 sm:grid-cols-2">
                         <StatPill
                           label={dictionary.playPage.tap.rewardLabel}
-                          value={`+${summary.today.tapRewardPoints}P`}
+                          value={formatPlayCoins(
+                            summary.today.tapRewardPoints,
+                            locale,
+                            dictionary,
+                            { signed: true },
+                          )}
                         />
                         <StatPill
                           label={dictionary.playPage.tap.remainingLabel}
@@ -832,7 +850,12 @@ export function PlayPage({
                       </h3>
                     </div>
                     <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900">
-                      +{summary.today.checkInPoints}P
+                      {formatPlayCoins(
+                        summary.today.checkInPoints,
+                        locale,
+                        dictionary,
+                        { signed: true },
+                      )}
                     </div>
                   </div>
 
@@ -904,7 +927,9 @@ export function PlayPage({
                           key={entry.ledgerEntryId}
                           locale={locale}
                           timestamp={entry.createdAt}
-                          value={`+${entry.points}P`}
+                          value={formatPlayCoins(entry.points, locale, dictionary, {
+                            signed: true,
+                          })}
                         />
                       ))
                     ) : (
@@ -1089,6 +1114,27 @@ function formatDateTime(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatPlayCoins(
+  value: number,
+  locale: Locale,
+  dictionary: Dictionary,
+  options?: { signed?: boolean },
+) {
+  const formattedCount = new Intl.NumberFormat(locale).format(value);
+  const isSingle = Math.abs(value) === 1;
+  const template = options?.signed
+    ? isSingle
+      ? dictionary.playPage.currency.signedValueSingle
+      : dictionary.playPage.currency.signedValuePlural
+    : isSingle
+      ? dictionary.playPage.currency.valueSingle
+      : dictionary.playPage.currency.valuePlural;
+
+  return formatTemplate(template, {
+    count: formattedCount,
+  });
 }
 
 function formatAddressLabel(address: string) {

@@ -558,6 +558,13 @@ export type Dictionary = {
       sideTitle: string;
       teamHint: string;
     };
+    currency: {
+      valueSingle: string;
+      valuePlural: string;
+      signedValueSingle: string;
+      signedValuePlural: string;
+      separateNotice: string;
+    };
     labels: {
       activityPoints: string;
       todayPoints: string;
@@ -1280,24 +1287,31 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "데일리 플레이",
       eyebrow: "activity loop",
       description:
-        "출석, 탭 챌린지, 팀 보너스로 활동 포인트를 매일 쌓아가는 모바일 우선 플레이 허브입니다.",
+        "출석, 탭 챌린지, 팀 보너스로 플레이 코인을 매일 쌓아가는 모바일 우선 플레이 허브입니다.",
       badge: "daily play",
       disconnected:
         "이메일 로그인 후 데일리 플레이에 참여할 수 있습니다.",
       loading: "데일리 플레이 데이터를 불러오는 중입니다.",
       requiresSignup:
-        "회원가입 완료 후에만 데일리 플레이와 활동 포인트 적립을 이용할 수 있습니다.",
+        "회원가입 완료 후에만 데일리 플레이와 플레이 코인 적립을 이용할 수 있습니다.",
       hero: {
-        title: "매일 참여할수록 활동 포인트가 쌓이는 데일리 플레이",
+        title: "매일 참여할수록 플레이 코인이 쌓이는 데일리 플레이",
         description:
           "오늘 출석하고, 30초 탭 챌린지에 도전하고, 팀 활동 보너스까지 한 번에 챙기세요. 내가 움직일수록 쌓이고, 내 네트워크가 함께 움직일수록 더 커집니다.",
         sideTitle: "오늘의 미션 3개",
         teamHint:
-          "내 하위 회원이 활동하면 G1, G2 상위 네트워크에도 활동 포인트가 적립됩니다.",
+          "내 하위 회원이 활동하면 G1, G2 상위 네트워크에도 플레이 코인이 적립됩니다.",
+      },
+      currency: {
+        valueSingle: "{count}코인",
+        valuePlural: "{count}코인",
+        signedValueSingle: "+{count}코인",
+        signedValuePlural: "+{count}코인",
+        separateNotice: "리워드 포인트와 별도 적립",
       },
       labels: {
-        activityPoints: "활동 포인트",
-        todayPoints: "오늘 획득",
+        activityPoints: "플레이 코인",
+        todayPoints: "오늘 모은 코인",
         streak: "연속 출석",
         streakValue: "{days}일",
         teamBonus: "오늘 팀 보너스",
@@ -1318,17 +1332,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         startTap: "30초 탭 챌린지 시작",
         startingTap: "챌린지 준비 중...",
         tapMore: "조금만 더 탭하기",
-        claimTapReward: "1P 받기",
+        claimTapReward: "1코인 받기",
         finishingTap: "결과 정리 중...",
       },
       missions: {
         check_in: {
           title: "오늘 출석",
-          description: "하루 한 번 출석하면 즉시 활동 포인트를 적립합니다.",
+          description: "하루 한 번 출석하면 즉시 플레이 코인을 적립합니다.",
         },
         tap_challenge: {
           title: "100탭 챌린지",
-          description: "30초 안에 100회를 터치하면 1P를 적립합니다.",
+          description: "30초 안에 100회를 터치하면 1코인을 적립합니다.",
         },
         team_bonus: {
           title: "팀 활동 보너스",
@@ -1349,17 +1363,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         remainingValue: "{count}회",
       },
       history: {
-        title: "최근 활동 적립",
-        empty: "아직 활동 포인트 적립 내역이 없습니다.",
+        title: "최근 플레이 코인 적립",
+        empty: "아직 플레이 코인 적립 내역이 없습니다.",
         checkIn: "오늘 출석 보상",
         tapChallenge: "탭 챌린지 성공",
         teamBonus: "팀 보너스 · {email} · G{level}",
         teamBonusFallback: "팀 활동 보너스",
       },
       notices: {
-        checkInSuccess: "오늘 출석이 완료되어 {points}P가 적립되었습니다.",
+        checkInSuccess: "오늘 출석이 완료되어 {coins}이 적립되었습니다.",
         tapStarted: "탭 챌린지가 시작되었습니다. 30초 안에 100회를 채워보세요.",
-        tapSuccess: "탭 챌린지 성공으로 {points}P가 적립되었습니다.",
+        tapSuccess: "탭 챌린지 성공으로 {coins}이 적립되었습니다.",
         tapMissed: "이번에는 목표에 닿지 못했습니다. 다시 도전해보세요.",
         tapExpired: "챌린지 시간이 종료되었습니다. 결과를 정리했습니다.",
       },
@@ -2021,23 +2035,30 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "Daily Play",
       eyebrow: "activity loop",
       description:
-        "A mobile-first play hub for daily check-ins, tap challenges, and team activity points.",
+        "A mobile-first play hub for collecting play coins through daily check-ins, tap challenges, and team bonuses.",
       badge: "daily play",
       disconnected: "Sign in with email to open Daily Play.",
       loading: "Loading Daily Play data.",
       requiresSignup:
-        "Finish signup before joining Daily Play and earning activity points.",
+        "Finish signup before joining Daily Play and earning play coins.",
       hero: {
         title: "A mobile loop that gives members a reason to come back every day",
         description:
-          "Check in, clear a 30-second tap challenge, and collect team bonuses from one compact screen.",
+          "Check in, clear a 30-second tap challenge, and collect team bonuses from one compact screen. The more you play, the more play coins stack up for you and your network.",
         sideTitle: "3 missions today",
         teamHint:
-          "When your downline stays active, G1 and G2 uplines also collect activity points.",
+          "When your downline stays active, G1 and G2 uplines also collect play coins.",
+      },
+      currency: {
+        valueSingle: "{count} coin",
+        valuePlural: "{count} coins",
+        signedValueSingle: "+{count} coin",
+        signedValuePlural: "+{count} coins",
+        separateNotice: "Tracked separately from reward points",
       },
       labels: {
-        activityPoints: "Activity points",
-        todayPoints: "Today earned",
+        activityPoints: "Play coins",
+        todayPoints: "Coins earned today",
         streak: "Check-in streak",
         streakValue: "{days} days",
         teamBonus: "Team bonus today",
@@ -2058,21 +2079,21 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         startTap: "Start 30s tap challenge",
         startingTap: "Preparing challenge...",
         tapMore: "Tap a little more",
-        claimTapReward: "Claim 1P",
+        claimTapReward: "Claim 1 coin",
         finishingTap: "Finishing...",
       },
       missions: {
         check_in: {
           title: "Daily check-in",
-          description: "Check in once per day for an instant activity point boost.",
+          description: "Check in once per day for an instant play coin boost.",
         },
         tap_challenge: {
           title: "100 tap challenge",
-          description: "Reach 100 taps in 30 seconds to earn 1P.",
+          description: "Reach 100 taps in 30 seconds to earn 1 coin.",
         },
         team_bonus: {
           title: "Team bonus",
-          description: "Downline activity can unlock extra points for today.",
+          description: "Downline activity can unlock extra play coins for today.",
         },
       },
       tap: {
@@ -2089,17 +2110,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         remainingValue: "{count} left",
       },
       history: {
-        title: "Recent activity rewards",
-        empty: "No activity point history yet.",
+        title: "Recent play coin rewards",
+        empty: "No play coin history yet.",
         checkIn: "Daily check-in reward",
         tapChallenge: "Tap challenge success",
         teamBonus: "Team bonus · {email} · G{level}",
         teamBonusFallback: "Team activity bonus",
       },
       notices: {
-        checkInSuccess: "Daily check-in completed. {points}P was added.",
+        checkInSuccess: "Daily check-in completed. {coins} was added.",
         tapStarted: "Tap challenge started. Try to reach 100 taps in 30 seconds.",
-        tapSuccess: "Tap challenge complete. {points}P was added.",
+        tapSuccess: "Tap challenge complete. {coins} was added.",
         tapMissed: "You missed the target this round. Try again.",
         tapExpired: "The challenge timer ended and your result was saved.",
       },
@@ -2766,23 +2787,30 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "デイリープレイ",
       eyebrow: "activity loop",
       description:
-        "毎日の出席、タップチャレンジ、チームボーナスを集めるモバイル優先のプレイハブです。",
+        "毎日の出席、タップチャレンジ、チームボーナスでプレイコインを集めるモバイル優先のプレイハブです。",
       badge: "daily play",
       disconnected: "メールログイン後にデイリープレイへ参加できます。",
       loading: "デイリープレイのデータを読み込み中です。",
       requiresSignup:
-        "会員登録完了後にのみ、デイリープレイと活動ポイントの獲得を利用できます。",
+        "会員登録完了後にのみ、デイリープレイとプレイコインの獲得を利用できます。",
       hero: {
         title: "毎日戻ってきたくなるモバイルプレイループ",
         description:
-          "出席、30秒タップチャレンジ、チームボーナスを 1 画面で素早く確認してすぐ参加できます。",
+          "出席、30秒タップチャレンジ、チームボーナスを 1 画面で素早く確認してすぐ参加できます。参加するほどプレイコインが増え、ネットワークが動くほどさらに広がります。",
         sideTitle: "今日のミッション 3つ",
         teamHint:
-          "下位メンバーが活動すると、G1 と G2 の上位ネットワークにも活動ポイントが入ります。",
+          "下位メンバーが活動すると、G1 と G2 の上位ネットワークにもプレイコインが入ります。",
+      },
+      currency: {
+        valueSingle: "{count}コイン",
+        valuePlural: "{count}コイン",
+        signedValueSingle: "+{count}コイン",
+        signedValuePlural: "+{count}コイン",
+        separateNotice: "リワードポイントとは別で積み立て",
       },
       labels: {
-        activityPoints: "活動ポイント",
-        todayPoints: "今日の獲得",
+        activityPoints: "プレイコイン",
+        todayPoints: "今日の獲得コイン",
         streak: "連続出席",
         streakValue: "{days}日",
         teamBonus: "今日のチームボーナス",
@@ -2803,17 +2831,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         startTap: "30秒タップチャレンジ開始",
         startingTap: "準備中...",
         tapMore: "もう少しタップ",
-        claimTapReward: "1P 受け取る",
+        claimTapReward: "1コイン受け取る",
         finishingTap: "結果を整理中...",
       },
       missions: {
         check_in: {
           title: "今日の出席",
-          description: "1日1回の出席で活動ポイントを即時に獲得します。",
+          description: "1日1回の出席でプレイコインを即時に獲得します。",
         },
         tap_challenge: {
           title: "100タップチャレンジ",
-          description: "30秒以内に100回タップすると 1P を獲得できます。",
+          description: "30秒以内に100回タップすると 1コインを獲得できます。",
         },
         team_bonus: {
           title: "チームボーナス",
@@ -2834,18 +2862,18 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         remainingValue: "{count}回",
       },
       history: {
-        title: "最近の活動報酬",
-        empty: "まだ活動ポイントの履歴がありません。",
+        title: "最近のプレイコイン獲得",
+        empty: "まだプレイコインの履歴がありません。",
         checkIn: "今日の出席報酬",
         tapChallenge: "タップチャレンジ成功",
         teamBonus: "チームボーナス · {email} · G{level}",
         teamBonusFallback: "チーム活動ボーナス",
       },
       notices: {
-        checkInSuccess: "今日の出席が完了し、{points}P が積み立てられました。",
+        checkInSuccess: "今日の出席が完了し、{coins}が積み立てられました。",
         tapStarted:
           "タップチャレンジが始まりました。30秒以内に100回を目指してください。",
-        tapSuccess: "タップチャレンジ成功で {points}P が積み立てられました。",
+        tapSuccess: "タップチャレンジ成功で {coins}が積み立てられました。",
         tapMissed: "今回は目標に届きませんでした。もう一度挑戦してください。",
         tapExpired: "チャレンジ時間が終了し、結果を保存しました。",
       },
@@ -3493,23 +3521,30 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "每日玩法",
       eyebrow: "activity loop",
       description:
-        "一个面向移动端的每日玩法中心，可完成签到、点击挑战并领取团队活动积分。",
+        "一个面向移动端的每日玩法中心，可通过签到、点击挑战和团队奖励积累玩法币。",
       badge: "daily play",
       disconnected: "邮箱登录后即可参与每日玩法。",
       loading: "正在加载每日玩法数据。",
       requiresSignup:
-        "只有完成注册后，才能参与每日玩法并获得活动积分。",
+        "只有完成注册后，才能参与每日玩法并获得玩法币。",
       hero: {
         title: "让会员每天都愿意回来的移动端玩法循环",
         description:
-          "把签到、30秒点击挑战和团队奖励整合到一个紧凑页面里，打开后即可参与。",
+          "把签到、30秒点击挑战和团队奖励整合到一个紧凑页面里，打开后即可参与。你越活跃，玩法币累积得越快；你的网络越活跃，增长也会越明显。",
         sideTitle: "今日 3 个任务",
         teamHint:
-          "当你的下级网络保持活跃时，G1 与 G2 上级也会获得活动积分。",
+          "当你的下级网络保持活跃时，G1 与 G2 上级也会获得玩法币。",
+      },
+      currency: {
+        valueSingle: "{count}币",
+        valuePlural: "{count}币",
+        signedValueSingle: "+{count}币",
+        signedValuePlural: "+{count}币",
+        separateNotice: "与奖励积分分开累计",
       },
       labels: {
-        activityPoints: "活动积分",
-        todayPoints: "今日获得",
+        activityPoints: "玩法币",
+        todayPoints: "今日获得币",
         streak: "连续签到",
         streakValue: "{days}天",
         teamBonus: "今日团队奖励",
@@ -3530,17 +3565,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         startTap: "开始 30 秒点击挑战",
         startingTap: "正在准备挑战...",
         tapMore: "再点几下",
-        claimTapReward: "领取 1P",
+        claimTapReward: "领取 1币",
         finishingTap: "正在整理结果...",
       },
       missions: {
         check_in: {
           title: "今日签到",
-          description: "每天签到一次即可立即获得活动积分。",
+          description: "每天签到一次即可立即获得玩法币。",
         },
         tap_challenge: {
           title: "100 次点击挑战",
-          description: "在 30 秒内完成 100 次点击即可获得 1P。",
+          description: "在 30 秒内完成 100 次点击即可获得 1币。",
         },
         team_bonus: {
           title: "团队奖励",
@@ -3561,17 +3596,17 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         remainingValue: "{count}次",
       },
       history: {
-        title: "最近活动奖励",
-        empty: "暂无活动积分记录。",
+        title: "最近玩法币记录",
+        empty: "暂无玩法币记录。",
         checkIn: "今日签到奖励",
         tapChallenge: "点击挑战成功",
         teamBonus: "团队奖励 · {email} · G{level}",
         teamBonusFallback: "团队活动奖励",
       },
       notices: {
-        checkInSuccess: "今日签到完成，已发放 {points}P。",
+        checkInSuccess: "今日签到完成，已发放 {coins}。",
         tapStarted: "点击挑战已开始，请在 30 秒内完成 100 次点击。",
-        tapSuccess: "点击挑战成功，已发放 {points}P。",
+        tapSuccess: "点击挑战成功，已发放 {coins}。",
         tapMissed: "这次没有达到目标，稍后再试一次。",
         tapExpired: "挑战时间结束，结果已保存。",
       },
