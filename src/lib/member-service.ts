@@ -46,6 +46,7 @@ import {
   type ThirdwebWebhookEventDocument,
 } from "@/lib/thirdweb-webhooks";
 import { syncPointLedgerForMemberEmails } from "@/lib/points-service";
+import { emitCompletedMemberNotifications } from "@/lib/notifications-service";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
 import { getWalletBalance } from "thirdweb/wallets";
 
@@ -1143,10 +1144,14 @@ async function markMemberAsCompleted({
     const nextMember = await getFreshMemberOrThrow(collection, member.email);
 
     if (result.matchedCount > 0) {
-      return finalizeCompletedMember({
+      const finalizedMember = await finalizeCompletedMember({
         collection,
         member: nextMember,
       });
+
+      await emitCompletedMemberNotifications(finalizedMember);
+
+      return finalizedMember;
     }
 
     return nextMember;
@@ -1167,10 +1172,14 @@ async function markMemberAsCompleted({
 
       if (result.matchedCount > 0) {
         const nextMember = await getFreshMemberOrThrow(collection, member.email);
-        return finalizeCompletedMember({
+        const finalizedMember = await finalizeCompletedMember({
           collection,
           member: nextMember,
         });
+
+        await emitCompletedMemberNotifications(finalizedMember);
+
+        return finalizedMember;
       }
 
       break;
@@ -1193,10 +1202,14 @@ async function markMemberAsCompleted({
   const nextMember = await getFreshMemberOrThrow(collection, member.email);
 
   if (result.matchedCount > 0) {
-    return finalizeCompletedMember({
+    const finalizedMember = await finalizeCompletedMember({
       collection,
       member: nextMember,
     });
+
+    await emitCompletedMemberNotifications(finalizedMember);
+
+    return finalizedMember;
   }
 
   return nextMember;

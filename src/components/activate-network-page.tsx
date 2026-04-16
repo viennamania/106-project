@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useDeferredValue,
@@ -12,7 +13,9 @@ import {
 import {
   ArrowLeft,
   ArrowUpRight,
+  Bell,
   ChevronRight,
+  CheckCheck,
   GitBranch,
   Layers3,
   RefreshCcw,
@@ -36,6 +39,11 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import type {
+  AppNotificationPreferencesRecord,
+  AppNotificationRecord,
+  AppNotificationsResponse,
+} from "@/lib/notifications";
 import {
   createEmptyReferralNetworkSummary,
   type ManagedMemberReferralsResponse,
@@ -66,16 +74,28 @@ type ActivateNetworkState = {
   totalReferrals: number;
 };
 
+type ActivateNetworkNotificationsState = {
+  error: string | null;
+  notifications: AppNotificationRecord[];
+  open: boolean;
+  preferences: AppNotificationPreferencesRecord | null;
+  status: "idle" | "loading" | "ready" | "error";
+  unreadCount: number;
+};
+
 export function ActivateNetworkPage({
   dictionary,
   locale,
+  requestedMemberEmail = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  requestedMemberEmail?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
   const { disconnect } = useDisconnect();
+  const router = useRouter();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -90,6 +110,15 @@ export function ActivateNetworkPage({
     summary: createEmptyReferralNetworkSummary(),
     totalReferrals: 0,
   });
+  const [notificationsState, setNotificationsState] =
+    useState<ActivateNetworkNotificationsState>({
+      error: null,
+      notifications: [],
+      open: false,
+      preferences: null,
+      status: "idle",
+      unreadCount: 0,
+    });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,6 +133,7 @@ export function ActivateNetworkPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
+  const notificationCopy = dictionary.activateNetworkPage.notifications;
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -136,6 +166,14 @@ export function ActivateNetworkPage({
 
     setSearchQuery("");
     setSelectedMemberEmail(null);
+    setNotificationsState({
+      error: null,
+      notifications: [],
+      open: false,
+      preferences: null,
+      status: "idle",
+      unreadCount: 0,
+    });
   }, [status]);
 
   useEffect(() => {
@@ -152,6 +190,22 @@ export function ActivateNetworkPage({
       setSelectedMemberEmail(filteredMembers[0]?.email ?? null);
     }
   }, [filteredMembers, selectedMemberEmail]);
+
+  useEffect(() => {
+    const normalizedRequestedEmail = requestedMemberEmail?.trim().toLowerCase();
+
+    if (!normalizedRequestedEmail) {
+      return;
+    }
+
+    const matchedMember = state.members.find((member) => {
+      return member.email.toLowerCase() === normalizedRequestedEmail;
+    });
+
+    if (matchedMember && matchedMember.email !== selectedMemberEmail) {
+      setSelectedMemberEmail(matchedMember.email);
+    }
+  }, [requestedMemberEmail, selectedMemberEmail, state.members]);
 
   const loadNetwork = useCallback(async () => {
     if (!accountAddress) {
@@ -285,6 +339,264 @@ export function ActivateNetworkPage({
     }
   }, [accountAddress, chain.id, chain.name, dictionary, locale]);
 
+  const loadNotifications = useCallback(
+    async ({
+      background = false,
+      memberEmail,
+    }: {
+      background?: boolean;
+      memberEmail: string;
+    }) => {
+      if (!memberEmail) {
+        return;
+      }
+
+      if (!background) {
+        setNotificationsState((current) => ({
+          ...current,
+          error: null,
+          status: "loading",
+        }));
+      }
+
+      try {
+        const response = await fetch(
+          `/api/notifications?email=${encodeURIComponent(memberEmail)}`,
+        );
+        const data = (await response.json()) as
+          | AppNotificationsResponse
+          | { error?: string };
+
+        if (
+          !response.ok ||
+          !("notifications" in data) ||
+          !("preferences" in data)
+        ) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          );
+        }
+
+        setNotificationsState((current) => ({
+          ...current,
+          error: null,
+          notifications: data.notifications,
+          preferences: data.preferences,
+          status: "ready",
+          unreadCount: data.unreadCount,
+        }));
+      } catch (error) {
+        setNotificationsState((current) => ({
+          ...current,
+          error:
+            error instanceof Error
+              ? error.message
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          status: "error",
+        }));
+      }
+    },
+    [dictionary],
+  );
+
+  const markAllNotificationsAsRead = useCallback(async () => {
+    const memberEmail = state.member?.email;
+
+    if (!memberEmail) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/notifications", {
+        body: JSON.stringify({
+          action: "mark_all_read",
+          email: memberEmail,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as
+        | AppNotificationsResponse
+        | { error?: string };
+
+      if (
+        !response.ok ||
+        !("notifications" in data) ||
+        !("preferences" in data)
+      ) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : dictionary.activateNetworkPage.errors.loadFailed,
+        );
+      }
+
+      setNotificationsState((current) => ({
+        ...current,
+        error: null,
+        notifications: data.notifications,
+        preferences: data.preferences,
+        status: "ready",
+        unreadCount: data.unreadCount,
+      }));
+    } catch (error) {
+      setNotificationsState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : dictionary.activateNetworkPage.errors.loadFailed,
+        status: "error",
+      }));
+    }
+  }, [dictionary, state.member?.email]);
+
+  const markNotificationAsRead = useCallback(
+    async (notificationId: string) => {
+      const memberEmail = state.member?.email;
+
+      if (!memberEmail || !notificationId) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/notifications", {
+          body: JSON.stringify({
+            action: "mark_read",
+            email: memberEmail,
+            notificationIds: [notificationId],
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const data = (await response.json()) as
+          | AppNotificationsResponse
+          | { error?: string };
+
+        if (
+          !response.ok ||
+          !("notifications" in data) ||
+          !("preferences" in data)
+        ) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          );
+        }
+
+        setNotificationsState((current) => ({
+          ...current,
+          error: null,
+          notifications: data.notifications,
+          preferences: data.preferences,
+          status: "ready",
+          unreadCount: data.unreadCount,
+        }));
+      } catch (error) {
+        setNotificationsState((current) => ({
+          ...current,
+          error:
+            error instanceof Error
+              ? error.message
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          status: "error",
+        }));
+      }
+    },
+    [dictionary, state.member?.email],
+  );
+
+  const updateNotificationPreference = useCallback(
+    async (
+      key: "directMemberCompletedEnabled" | "networkLevelCompletedEnabled",
+      value: boolean,
+    ) => {
+      const memberEmail = state.member?.email;
+
+      if (!memberEmail) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/notifications", {
+          body: JSON.stringify({
+            action: "update_preferences",
+            email: memberEmail,
+            [key]: value,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const data = (await response.json()) as
+          | AppNotificationsResponse
+          | { error?: string };
+
+        if (
+          !response.ok ||
+          !("notifications" in data) ||
+          !("preferences" in data)
+        ) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          );
+        }
+
+        setNotificationsState((current) => ({
+          ...current,
+          error: null,
+          notifications: data.notifications,
+          preferences: data.preferences,
+          status: "ready",
+          unreadCount: data.unreadCount,
+        }));
+      } catch (error) {
+        setNotificationsState((current) => ({
+          ...current,
+          error:
+            error instanceof Error
+              ? error.message
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          status: "error",
+        }));
+      }
+    },
+    [dictionary, state.member?.email],
+  );
+
+  const openNotification = useCallback(
+    async (notification: AppNotificationRecord) => {
+      if (!notification.isRead) {
+        await markNotificationAsRead(notification.notificationId);
+      }
+
+      if (notification.targetMemberEmail) {
+        setSearchQuery("");
+        setSelectedMemberEmail(notification.targetMemberEmail);
+      }
+
+      if (notification.href) {
+        router.replace(notification.href, { scroll: false });
+      }
+
+      setNotificationsState((current) => ({
+        ...current,
+        open: false,
+      }));
+    },
+    [markNotificationAsRead, router],
+  );
+
   useEffect(() => {
     if (status !== "connected") {
       setIsLogoutDialogOpen(false);
@@ -312,6 +624,39 @@ export function ActivateNetworkPage({
 
     void loadNetwork();
   }, [accountAddress, loadNetwork, status]);
+
+  useEffect(() => {
+    if (
+      status !== "connected" ||
+      state.member?.status !== "completed" ||
+      !state.member.email
+    ) {
+      setNotificationsState({
+        error: null,
+        notifications: [],
+        open: false,
+        preferences: null,
+        status: "idle",
+        unreadCount: 0,
+      });
+      return;
+    }
+
+    void loadNotifications({
+      memberEmail: state.member.email,
+    });
+
+    const intervalId = window.setInterval(() => {
+      void loadNotifications({
+        background: true,
+        memberEmail: state.member?.email ?? "",
+      });
+    }, 30000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [loadNotifications, state.member?.email, state.member?.status, status]);
 
   function confirmLogout() {
     if (!wallet) {
@@ -388,6 +733,28 @@ export function ActivateNetworkPage({
             {hasThirdwebClientId ? (
               status === "connected" ? (
                 <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+                  {state.member?.status === "completed" ? (
+                    <button
+                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                      onClick={() => {
+                        setNotificationsState((current) => ({
+                          ...current,
+                          open: !current.open,
+                        }));
+                      }}
+                      type="button"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Bell className="size-4" />
+                        {notificationCopy.title}
+                      </span>
+                      {notificationsState.unreadCount > 0 ? (
+                        <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[0.68rem] font-semibold leading-none text-white">
+                          {formatInteger(notificationsState.unreadCount, locale)}
+                        </span>
+                      ) : null}
+                    </button>
+                  ) : null}
                   {accountLabel ? (
                     <a
                       className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
@@ -651,6 +1018,105 @@ export function ActivateNetworkPage({
                 </div>
               </section>
             </section>
+
+            {notificationsState.open ? (
+              <section className="glass-card rounded-[28px] p-4 sm:p-5">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
+                    <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+                      {notificationCopy.title}
+                    </h3>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {formatTemplate(notificationCopy.unreadCount, {
+                        count: formatInteger(notificationsState.unreadCount, locale),
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={notificationsState.unreadCount === 0}
+                      onClick={() => {
+                        void markAllNotificationsAsRead();
+                      }}
+                      type="button"
+                    >
+                      <CheckCheck className="size-4" />
+                      {notificationCopy.markAllRead}
+                    </button>
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      onClick={() => {
+                        setNotificationsState((current) => ({
+                          ...current,
+                          open: false,
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {dictionary.common.loginDialog.close}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <NotificationPreferenceCard
+                    checked={
+                      notificationsState.preferences?.directMemberCompletedEnabled ??
+                      true
+                    }
+                    label={notificationCopy.preferenceDirect}
+                    onChange={(checked) => {
+                      void updateNotificationPreference(
+                        "directMemberCompletedEnabled",
+                        checked,
+                      );
+                    }}
+                  />
+                  <NotificationPreferenceCard
+                    checked={
+                      notificationsState.preferences?.networkLevelCompletedEnabled ??
+                      true
+                    }
+                    label={notificationCopy.preferenceLevel}
+                    onChange={(checked) => {
+                      void updateNotificationPreference(
+                        "networkLevelCompletedEnabled",
+                        checked,
+                      );
+                    }}
+                  />
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {notificationsState.error ? (
+                    <MessageCard tone="error">
+                      {notificationsState.error}
+                    </MessageCard>
+                  ) : null}
+
+                  {notificationsState.status === "loading" &&
+                  notificationsState.notifications.length === 0 ? (
+                    <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
+                  ) : notificationsState.notifications.length === 0 ? (
+                    <MessageCard>{notificationCopy.empty}</MessageCard>
+                  ) : (
+                    notificationsState.notifications.map((notification) => (
+                      <NotificationCard
+                        dictionary={dictionary}
+                        key={notification.notificationId}
+                        locale={locale}
+                        notification={notification}
+                        onOpen={() => {
+                          void openNotification(notification);
+                        }}
+                      />
+                    ))
+                  )}
+                </div>
+              </section>
+            ) : null}
 
             <section className="glass-card rounded-[28px] p-4 sm:p-5">
               <div className="space-y-1">
@@ -979,6 +1445,107 @@ function ManagedReferralNetworkExplorer({
   );
 }
 
+function NotificationPreferenceCard({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      aria-checked={checked}
+      role="switch"
+      className="flex items-center justify-between gap-3 rounded-[22px] border border-slate-200 bg-white/90 px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50"
+      onClick={() => {
+        onChange(!checked);
+      }}
+      type="button"
+    >
+      <div>
+        <p className="text-sm font-semibold text-slate-950">{label}</p>
+      </div>
+      <span
+        className={cn(
+          "relative inline-flex h-7 w-12 shrink-0 rounded-full border transition",
+          checked
+            ? "border-emerald-300 bg-emerald-100"
+            : "border-slate-200 bg-slate-100",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-1 size-5 rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition",
+            checked ? "right-1" : "left-1",
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+function NotificationCard({
+  dictionary,
+  locale,
+  notification,
+  onOpen,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  notification: AppNotificationRecord;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "w-full rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50",
+        notification.isRead
+          ? "border-slate-200 bg-white/90"
+          : "border-sky-200 bg-sky-50/70",
+      )}
+      onClick={onOpen}
+      type="button"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
+                notification.type === "network_level_completed"
+                  ? "bg-violet-100 text-violet-900"
+                  : "bg-emerald-100 text-emerald-900",
+              )}
+            >
+              {notification.type === "network_level_completed"
+                ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
+                : dictionary.activateNetworkPage.labels.currentMember}
+            </span>
+            {!notification.isRead ? (
+              <span className="inline-flex size-2 rounded-full bg-slate-950">
+                <span className="sr-only">{notification.title}</span>
+              </span>
+            ) : null}
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-slate-950">
+              {notification.title}
+            </p>
+            <p className="text-sm leading-6 text-slate-600">
+              {notification.body}
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 text-xs font-medium text-slate-500">
+          {formatDateTime(notification.createdAt, locale)}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function SummaryMetricCard({
   icon,
   label,
@@ -1232,4 +1799,13 @@ function formatDateTime(value: string, locale: string) {
 
 function formatInteger(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatTemplate(
+  template: string,
+  replacements: Record<string, string | number>,
+) {
+  return Object.entries(replacements).reduce((message, [key, value]) => {
+    return message.replaceAll(`{${key}}`, String(value));
+  }, template);
 }

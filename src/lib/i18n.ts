@@ -281,6 +281,20 @@ export type Dictionary = {
       openManagement: string;
       refresh: string;
     };
+    notifications: {
+      title: string;
+      empty: string;
+      markAllRead: string;
+      unreadCount: string;
+      preferenceDirect: string;
+      preferenceLevel: string;
+      messages: {
+        directMemberCompletedTitle: string;
+        directMemberCompletedBody: string;
+        networkLevelCompletedTitle: string;
+        networkLevelCompletedBody: string;
+      };
+    };
     errors: {
       loadFailed: string;
       missingEmail: string;
@@ -877,6 +891,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         backToActivate: "활성화 화면으로",
         openManagement: "상세 관리",
         refresh: "새로고침",
+      },
+      notifications: {
+        title: "알림 센터",
+        empty: "아직 확인할 알림이 없습니다.",
+        markAllRead: "모두 읽음",
+        unreadCount: "{count}개의 읽지 않은 알림",
+        preferenceDirect: "새 회원 활성화 알림",
+        preferenceLevel: "단계 달성 알림",
+        messages: {
+          directMemberCompletedTitle: "새 회원 활성화 완료",
+          directMemberCompletedBody:
+            "{email} 님이 회원 활성화를 완료했습니다.",
+          networkLevelCompletedTitle: "단계 달성",
+          networkLevelCompletedBody:
+            "단계 {level}이 {count}/{target}명으로 가득 찼습니다.",
+        },
       },
       errors: {
         loadFailed: "조직도 관리 데이터를 불러오지 못했습니다.",
@@ -1502,6 +1532,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         backToActivate: "Back to activation",
         openManagement: "Open management",
         refresh: "Refresh",
+      },
+      notifications: {
+        title: "Notification center",
+        empty: "There are no alerts to review yet.",
+        markAllRead: "Mark all read",
+        unreadCount: "{count} unread alerts",
+        preferenceDirect: "New member activation alerts",
+        preferenceLevel: "Level milestone alerts",
+        messages: {
+          directMemberCompletedTitle: "New member activated",
+          directMemberCompletedBody:
+            "{email} completed member activation.",
+          networkLevelCompletedTitle: "Level milestone reached",
+          networkLevelCompletedBody:
+            "Level {level} is now full at {count}/{target} members.",
+        },
       },
       errors: {
         loadFailed: "Failed to load referral management data.",
@@ -2134,6 +2180,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         openManagement: "詳細管理",
         refresh: "更新",
       },
+      notifications: {
+        title: "通知センター",
+        empty: "確認できる通知はまだありません。",
+        markAllRead: "すべて既読",
+        unreadCount: "未読 {count} 件",
+        preferenceDirect: "新規会員の有効化通知",
+        preferenceLevel: "段階達成通知",
+        messages: {
+          directMemberCompletedTitle: "新規会員の有効化完了",
+          directMemberCompletedBody:
+            "{email} さんの会員有効化が完了しました。",
+          networkLevelCompletedTitle: "段階達成",
+          networkLevelCompletedBody:
+            "段階 {level} が {count}/{target} 人で満員になりました。",
+        },
+      },
       errors: {
         loadFailed: "組織管理データを読み込めませんでした。",
         missingEmail:
@@ -2764,6 +2826,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         backToActivate: "返回激活页",
         openManagement: "详细管理",
         refresh: "刷新",
+      },
+      notifications: {
+        title: "通知中心",
+        empty: "暂时没有需要查看的通知。",
+        markAllRead: "全部标为已读",
+        unreadCount: "未读通知 {count} 条",
+        preferenceDirect: "新会员激活提醒",
+        preferenceLevel: "层级达成提醒",
+        messages: {
+          directMemberCompletedTitle: "新会员已完成激活",
+          directMemberCompletedBody:
+            "{email} 已完成会员激活。",
+          networkLevelCompletedTitle: "层级已达成",
+          networkLevelCompletedBody:
+            "第 {level} 层已达到 {count}/{target} 名会员。",
+        },
       },
       errors: {
         loadFailed: "无法加载组织管理数据。",

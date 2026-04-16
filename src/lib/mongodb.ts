@@ -20,6 +20,10 @@ import type {
   RewardRedemptionDocument,
 } from "@/lib/points";
 import type { SilverRewardClaimDocument } from "@/lib/silver-reward-claim";
+import type {
+  AppNotificationDocument,
+  AppNotificationPreferencesDocument,
+} from "@/lib/notifications";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -53,6 +57,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoSilverRewardClaimsCollectionPromise?: Promise<
     Collection<SilverRewardClaimDocument>
+  >;
+  mongoAppNotificationsCollectionPromise?: Promise<
+    Collection<AppNotificationDocument>
+  >;
+  mongoAppNotificationPreferencesCollectionPromise?: Promise<
+    Collection<AppNotificationPreferencesDocument>
   >;
 };
 
@@ -472,4 +482,53 @@ export async function getSilverRewardClaimsCollection() {
   }
 
   return globalForMongo.mongoSilverRewardClaimsCollectionPromise;
+}
+
+export async function getAppNotificationsCollection() {
+  if (!globalForMongo.mongoAppNotificationsCollectionPromise) {
+    globalForMongo.mongoAppNotificationsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_APP_NOTIFICATIONS_COLLECTION ?? "appNotifications";
+      const collection = client
+        .db(dbName)
+        .collection<AppNotificationDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ eventKey: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, readAt: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoAppNotificationsCollectionPromise;
+}
+
+export async function getAppNotificationPreferencesCollection() {
+  if (!globalForMongo.mongoAppNotificationPreferencesCollectionPromise) {
+    globalForMongo.mongoAppNotificationPreferencesCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_APP_NOTIFICATION_PREFERENCES_COLLECTION ??
+          "appNotificationPreferences";
+        const collection = client
+          .db(dbName)
+          .collection<AppNotificationPreferencesDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ memberEmail: 1 }, { unique: true }),
+          collection.createIndex({ updatedAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoAppNotificationPreferencesCollectionPromise;
 }

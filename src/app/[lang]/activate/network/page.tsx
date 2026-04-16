@@ -21,10 +21,13 @@ export async function generateMetadata({
 
 export default async function LocalizedActivateNetworkPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ member?: string | string[] }>;
 }) {
   const { lang } = await params;
+  const query = await searchParams;
 
   if (!hasLocale(lang)) {
     notFound();
@@ -32,6 +35,15 @@ export default async function LocalizedActivateNetworkPage({
 
   const locale = lang as Locale;
   const dictionary = getDictionary(locale);
+  const requestedMemberEmail = Array.isArray(query.member)
+    ? query.member[0] ?? null
+    : query.member ?? null;
 
-  return <ActivateNetworkPage dictionary={dictionary} locale={locale} />;
+  return (
+    <ActivateNetworkPage
+      dictionary={dictionary}
+      locale={locale}
+      requestedMemberEmail={requestedMemberEmail}
+    />
+  );
 }
