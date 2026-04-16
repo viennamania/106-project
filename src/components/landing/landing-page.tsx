@@ -59,7 +59,7 @@ export function LandingPage({
 }) {
   const koreanHeroTitleHasBrand =
     locale === "ko" && copy.hero.title.endsWith(" 1066friend+");
-  const koreanHeroLead = koreanHeroTitleHasBrand
+  const heroTitle = koreanHeroTitleHasBrand
     ? copy.hero.title.replace(/\s*1066friend\+$/, "")
     : copy.hero.title;
 
@@ -133,23 +133,21 @@ export function LandingPage({
               <p className="mt-5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/58 sm:mt-6 sm:text-xs sm:tracking-[0.28em]">
                 {copy.hero.eyebrow}
               </p>
+              {koreanHeroTitleHasBrand ? (
+                <div className="mt-4 flex justify-center sm:mt-5">
+                  <span className="inline-flex items-center rounded-full border border-[#f5c34d]/24 bg-[#f5c34d]/10 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#ffe9b0] shadow-[0_18px_45px_rgba(15,23,42,0.18)]">
+                    1066friend+
+                  </span>
+                </div>
+              ) : null}
               <h1
-                className={`mx-auto mt-3 font-semibold tracking-tight text-white sm:mt-4 sm:max-w-4xl sm:text-6xl sm:leading-[0.92] ${
+                className={`mx-auto mt-3 font-semibold tracking-tight text-white ${
                   locale === "ko"
-                    ? "max-w-[12ch] break-keep text-[1.9rem] leading-[1.02]"
-                    : "max-w-4xl text-[2.15rem] leading-[0.94]"
+                    ? "max-w-[10ch] break-keep text-[1.9rem] leading-[1.02] sm:mt-5 sm:max-w-[11ch] sm:text-[4.5rem] sm:leading-[0.94] lg:text-[5.35rem] xl:text-[5.85rem]"
+                    : "sm:mt-4 max-w-4xl text-[2.15rem] leading-[0.94] sm:text-6xl sm:leading-[0.92]"
                 }`}
               >
-                {koreanHeroTitleHasBrand ? (
-                  <>
-                    <span>{koreanHeroLead}</span>
-                    <span className="mt-2 block text-[1.75rem] leading-none tracking-[-0.04em] sm:mt-0 sm:inline sm:text-inherit sm:leading-inherit sm:tracking-tight">
-                      1066friend+
-                    </span>
-                  </>
-                ) : (
-                  copy.hero.title
-                )}
+                {heroTitle}
               </h1>
               <p className="mx-auto mt-4 max-w-3xl text-[0.97rem] leading-7 text-white/76 sm:mt-5 sm:text-lg">
                 {copy.hero.description}
