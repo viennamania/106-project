@@ -38,6 +38,7 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
+import { NotificationPushCard } from "@/components/notification-push-card";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import type {
   AppNotificationPreferencesRecord,
@@ -1191,7 +1192,15 @@ export function ActivateNetworkPage({
           count: formatInteger(notificationsState.unreadCount, locale),
         })}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="space-y-3">
+          <NotificationPushCard
+            active={notificationsState.open && Boolean(state.member?.email)}
+            copy={notificationCopy.push}
+            locale={locale}
+            memberEmail={state.member?.email ?? null}
+            walletAddress={accountAddress ?? null}
+          />
+          <div className="grid gap-3 sm:grid-cols-3">
           <NotificationPreferenceCard
             checked={
               notificationsState.preferences?.directMemberCompletedEnabled ?? true
@@ -1229,6 +1238,7 @@ export function ActivateNetworkPage({
               );
             }}
           />
+          </div>
         </div>
 
         <div className="mt-4 space-y-3">

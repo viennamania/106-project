@@ -290,6 +290,20 @@ export type Dictionary = {
       loadingMore: string;
       markAllRead: string;
       unreadCount: string;
+      push: {
+        title: string;
+        description: string;
+        enable: string;
+        disable: string;
+        enabling: string;
+        disabling: string;
+        denied: string;
+        subscribed: string;
+        unsubscribed: string;
+        unsupported: string;
+        installRequired: string;
+        notConfigured: string;
+      };
       preferenceDirect: string;
       preferenceNetworkMembers: string;
       preferenceLevel: string;
@@ -1006,6 +1020,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadingMore: "알림 불러오는 중...",
         markAllRead: "모두 읽음",
         unreadCount: "{count}개의 읽지 않은 알림",
+        push: {
+          title: "모바일 푸시 알림",
+          description:
+            "새 회원 활성화와 네트워크 변화를 앱이 닫혀 있어도 바로 받아보세요.",
+          enable: "푸시 알림 켜기",
+          disable: "푸시 알림 끄기",
+          enabling: "설정 중...",
+          disabling: "해제 중...",
+          denied: "브라우저에서 알림 권한이 차단되었습니다. 기기 설정에서 허용해 주세요.",
+          subscribed: "이 기기에서 푸시 알림을 받고 있습니다.",
+          unsubscribed: "아직 이 기기는 푸시 알림에 연결되지 않았습니다.",
+          unsupported: "이 브라우저에서는 웹 푸시를 지원하지 않습니다.",
+          installRequired:
+            "iPhone과 iPad에서는 홈 화면에 추가한 앱에서만 푸시 알림을 받을 수 있습니다.",
+          notConfigured: "서버의 웹 푸시 설정이 아직 완료되지 않았습니다.",
+        },
         preferenceDirect: "새 회원 활성화 알림",
         preferenceNetworkMembers: "하위 네트워크 활성화 알림",
         preferenceLevel: "단계 달성 알림",
@@ -1758,6 +1788,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadingMore: "Loading more alerts...",
         markAllRead: "Mark all read",
         unreadCount: "{count} unread alerts",
+        push: {
+          title: "Mobile push alerts",
+          description:
+            "Keep member activation and network changes coming through even when the app is not open.",
+          enable: "Enable push alerts",
+          disable: "Disable push alerts",
+          enabling: "Enabling...",
+          disabling: "Disabling...",
+          denied:
+            "Notification permission is blocked in this browser. Allow it in device settings to continue.",
+          subscribed: "This device is receiving push notifications.",
+          unsubscribed: "This device is not subscribed to push notifications yet.",
+          unsupported: "This browser does not support web push notifications.",
+          installRequired:
+            "On iPhone and iPad, push alerts only work from the app added to the Home Screen.",
+          notConfigured: "Web push is not configured on the server yet.",
+        },
         preferenceDirect: "New member activation alerts",
         preferenceNetworkMembers: "Downline activation alerts",
         preferenceLevel: "Level milestone alerts",
@@ -2515,6 +2562,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadingMore: "通知を読み込み中...",
         markAllRead: "すべて既読",
         unreadCount: "未読 {count} 件",
+        push: {
+          title: "モバイルプッシュ通知",
+          description:
+            "新規会員の有効化やネットワーク変化を、アプリを閉じていてもすぐ受け取れます。",
+          enable: "プッシュ通知を有効化",
+          disable: "プッシュ通知を停止",
+          enabling: "設定中...",
+          disabling: "停止中...",
+          denied:
+            "ブラウザで通知権限がブロックされています。端末設定から許可してください。",
+          subscribed: "この端末ではプッシュ通知を受信しています。",
+          unsubscribed: "この端末はまだプッシュ通知に接続されていません。",
+          unsupported: "このブラウザは Web プッシュ通知に対応していません。",
+          installRequired:
+            "iPhone と iPad では、ホーム画面に追加したアプリでのみプッシュ通知を受け取れます。",
+          notConfigured: "サーバー側の Web プッシュ設定がまだ完了していません。",
+        },
         preferenceDirect: "新規会員の有効化通知",
         preferenceNetworkMembers: "下位ネットワークの有効化通知",
         preferenceLevel: "段階達成通知",
@@ -3273,6 +3337,22 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadingMore: "正在加载更多通知...",
         markAllRead: "全部标为已读",
         unreadCount: "未读通知 {count} 条",
+        push: {
+          title: "移动端推送提醒",
+          description:
+            "即使应用未打开，也能及时收到新会员激活和网络变化提醒。",
+          enable: "开启推送提醒",
+          disable: "关闭推送提醒",
+          enabling: "正在开启...",
+          disabling: "正在关闭...",
+          denied: "当前浏览器已拦截通知权限，请到设备设置中重新允许。",
+          subscribed: "这台设备正在接收推送通知。",
+          unsubscribed: "这台设备尚未接入推送通知。",
+          unsupported: "当前浏览器不支持 Web 推送通知。",
+          installRequired:
+            "在 iPhone 和 iPad 上，只有添加到主屏幕的应用才能接收推送提醒。",
+          notConfigured: "服务器端的 Web 推送配置尚未完成。",
+        },
         preferenceDirect: "新会员激活提醒",
         preferenceNetworkMembers: "下级网络激活提醒",
         preferenceLevel: "层级达成提醒",

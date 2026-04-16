@@ -38,6 +38,79 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("push", (event) => {
+  if (!event.data) {
+    return;
+  }
+
+  event.waitUntil(
+    (async () => {
+      let payload = {
+        badge: "/icon-192.png",
+        body: "",
+        href: "/ko/activate",
+        icon: "/icon-192.png",
+        notificationId: "",
+        tag: "",
+        title: "Pocket Smart Wallet",
+        type: "direct_member_completed",
+      };
+
+      try {
+        payload = {
+          ...payload,
+          ...event.data.json(),
+        };
+      } catch {
+        payload.body = event.data.text();
+      }
+
+      await self.registration.showNotification(payload.title, {
+        badge: payload.badge,
+        body: payload.body,
+        data: {
+          href: payload.href,
+          notificationId: payload.notificationId,
+          type: payload.type,
+        },
+        icon: payload.icon,
+        tag: payload.tag || payload.notificationId || payload.href,
+      });
+    })(),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    (async () => {
+      const href =
+        event.notification.data?.href && typeof event.notification.data.href === "string"
+          ? event.notification.data.href
+          : "/ko/activate";
+      const targetUrl = new URL(href, self.location.origin).href;
+      const windowClients = await self.clients.matchAll({
+        includeUncontrolled: true,
+        type: "window",
+      });
+
+      for (const client of windowClients) {
+        if ("focus" in client) {
+          if ("navigate" in client) {
+            await client.navigate(targetUrl);
+          }
+
+          await client.focus();
+          return;
+        }
+      }
+
+      await self.clients.openWindow(targetUrl);
+    })(),
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 

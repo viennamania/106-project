@@ -23,6 +23,7 @@ import type { SilverRewardClaimDocument } from "@/lib/silver-reward-claim";
 import type {
   AppNotificationDocument,
   AppNotificationPreferencesDocument,
+  AppPushSubscriptionDocument,
 } from "@/lib/notifications";
 import type {
   ActivityDailyStateDocument,
@@ -69,6 +70,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoAppNotificationPreferencesCollectionPromise?: Promise<
     Collection<AppNotificationPreferencesDocument>
+  >;
+  mongoAppPushSubscriptionsCollectionPromise?: Promise<
+    Collection<AppPushSubscriptionDocument>
   >;
   mongoActivityProfilesCollectionPromise?: Promise<
     Collection<ActivityProfileDocument>
@@ -549,6 +553,31 @@ export async function getAppNotificationPreferencesCollection() {
   }
 
   return globalForMongo.mongoAppNotificationPreferencesCollectionPromise;
+}
+
+export async function getAppPushSubscriptionsCollection() {
+  if (!globalForMongo.mongoAppPushSubscriptionsCollectionPromise) {
+    globalForMongo.mongoAppPushSubscriptionsCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_APP_PUSH_SUBSCRIPTIONS_COLLECTION ??
+          "appPushSubscriptions";
+        const collection = client
+          .db(dbName)
+          .collection<AppPushSubscriptionDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ endpoint: 1 }, { unique: true }),
+          collection.createIndex({ memberEmail: 1, updatedAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoAppPushSubscriptionsCollectionPromise;
 }
 
 export async function getActivityProfilesCollection() {

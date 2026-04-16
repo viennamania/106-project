@@ -52,6 +52,24 @@ export type AppNotificationPreferencesRecord = {
   updatedAt: string;
 };
 
+export type AppPushSubscriptionDocument = {
+  createdAt: Date;
+  endpoint: string;
+  keys: {
+    auth: string;
+    p256dh: string;
+  };
+  locale: string | null;
+  memberEmail: string;
+  updatedAt: Date;
+  userAgent: string | null;
+};
+
+export type AppPushSubscriptionStatusResponse = {
+  isConfigured: boolean;
+  isSubscribed: boolean;
+};
+
 export type AppNotificationsResponse = {
   hasMore: boolean;
   nextCursor: string | null;

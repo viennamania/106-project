@@ -9,6 +9,7 @@ import {
 import {
   getAppNotificationPreferencesCollection,
   getAppNotificationsCollection,
+  getAppPushSubscriptionsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
 import {
@@ -25,6 +26,7 @@ import {
   type AppNotificationPreferencesDocument,
   type AppNotificationsResponse,
 } from "@/lib/notifications";
+import { isWebPushConfigured, sendWebPushNotification } from "@/lib/web-push";
 
 const NOTIFICATION_PAGE_SIZE = 20;
 
@@ -143,6 +145,7 @@ async function createNotification({
   targetMemberEmail = null,
   title,
   type,
+  sendPush = true,
 }: {
   body: string;
   createdAt: Date;
@@ -153,11 +156,13 @@ async function createNotification({
   targetMemberEmail?: string | null;
   title: string;
   type: AppNotificationDocument["type"];
+  sendPush?: boolean;
 }) {
   const collection = await getAppNotificationsCollection();
   const now = new Date();
+  const notificationId = crypto.randomUUID();
 
-  await collection.updateOne(
+  const result = await collection.updateOne(
     { eventKey },
     {
       $setOnInsert: {
@@ -166,7 +171,7 @@ async function createNotification({
         eventKey,
         href,
         memberEmail,
-        notificationId: crypto.randomUUID(),
+        notificationId,
         readAt: null,
         targetLevel,
         targetMemberEmail,
@@ -176,6 +181,74 @@ async function createNotification({
       } satisfies AppNotificationDocument,
     },
     { upsert: true },
+  );
+
+  if (sendPush && result.upsertedCount > 0) {
+    await sendPushNotificationToMember({
+      body,
+      href,
+      memberEmail,
+      notificationId,
+      title,
+      type,
+    });
+  }
+}
+
+async function sendPushNotificationToMember({
+  body,
+  href,
+  memberEmail,
+  notificationId,
+  title,
+  type,
+}: {
+  body: string;
+  href: string | null;
+  memberEmail: string;
+  notificationId: string;
+  title: string;
+  type: AppNotificationDocument["type"];
+}) {
+  if (!isWebPushConfigured()) {
+    return;
+  }
+
+  const collection = await getAppPushSubscriptionsCollection();
+  const normalizedEmail = normalizeEmail(memberEmail);
+  const subscriptions = await collection.find({ memberEmail: normalizedEmail }).toArray();
+
+  if (subscriptions.length === 0) {
+    return;
+  }
+
+  await Promise.allSettled(
+    subscriptions.map(async (subscription) => {
+      try {
+        await sendWebPushNotification(subscription, {
+          body,
+          href,
+          notificationId,
+          title,
+          type,
+        });
+      } catch (error) {
+        const statusCode =
+          typeof error === "object" &&
+          error !== null &&
+          "statusCode" in error &&
+          typeof error.statusCode === "number"
+            ? error.statusCode
+            : null;
+
+        if (statusCode === 404 || statusCode === 410) {
+          await collection.deleteOne({ endpoint: subscription.endpoint });
+          return;
+        }
+
+        console.error("Failed to deliver web push notification.", error);
+      }
+    }),
   );
 }
 
@@ -228,6 +301,7 @@ async function notifyDirectSponsorOfCompletedMemberWithOptions(
   member: MemberDocument,
   options: {
     ignorePreferences?: boolean;
+    sendPush?: boolean;
   },
 ) {
   const rawSponsorEmail = member.sponsorEmail ?? member.referredByEmail ?? null;
@@ -276,6 +350,7 @@ async function notifyDirectSponsorOfCompletedMemberWithOptions(
     targetMemberEmail: member.email,
     title: copy.messages.directMemberCompletedTitle,
     type: "direct_member_completed",
+    sendPush: options.sendPush,
   });
 }
 
@@ -287,6 +362,7 @@ async function notifyPlacementAncestorsOfCompletedMemberWithOptions(
   member: MemberDocument,
   options: {
     ignorePreferences?: boolean;
+    sendPush?: boolean;
   },
 ) {
   const collection = await getMembersCollection();
@@ -348,6 +424,7 @@ async function notifyPlacementAncestorsOfCompletedMemberWithOptions(
       targetMemberEmail: member.email,
       title: copy.messages.networkMemberCompletedTitle,
       type: "network_member_completed",
+      sendPush: options.sendPush,
     });
 
     currentReferralCode = recipient.placementReferralCode ?? null;
@@ -362,6 +439,7 @@ async function notifyCompletedLevelMilestonesWithOptions(
   member: MemberDocument,
   options: {
     ignorePreferences?: boolean;
+    sendPush?: boolean;
   },
 ) {
   const collection = await getMembersCollection();
@@ -414,6 +492,7 @@ async function notifyCompletedLevelMilestonesWithOptions(
           targetLevel: level,
           title: copy.messages.networkLevelCompletedTitle,
           type: "network_level_completed",
+          sendPush: options.sendPush,
         });
       }
     }
@@ -423,13 +502,16 @@ async function notifyCompletedLevelMilestonesWithOptions(
 }
 
 export async function emitCompletedMemberNotifications(member: MemberDocument) {
-  return emitCompletedMemberNotificationsWithOptions(member, {});
+  return emitCompletedMemberNotificationsWithOptions(member, {
+    sendPush: true,
+  });
 }
 
 export async function emitCompletedMemberNotificationsWithOptions(
   member: MemberDocument,
   options: {
     ignorePreferences?: boolean;
+    sendPush?: boolean;
   },
 ) {
   if (member.status !== "completed") {
@@ -472,6 +554,7 @@ export async function backfillAppNotifications(options?: {
   for (const member of members) {
     await emitCompletedMemberNotificationsWithOptions(member, {
       ignorePreferences: true,
+      sendPush: false,
     });
   }
 
@@ -482,6 +565,71 @@ export async function backfillAppNotifications(options?: {
     memberEmail: normalizedEmail,
     processedMembers: members.length,
     totalNotifications: afterCount,
+  };
+}
+
+export async function upsertPushSubscription({
+  endpoint,
+  keys,
+  locale,
+  memberEmail,
+  userAgent,
+}: {
+  endpoint: string;
+  keys: {
+    auth: string;
+    p256dh: string;
+  };
+  locale?: string | null;
+  memberEmail: string;
+  userAgent?: string | null;
+}) {
+  const collection = await getAppPushSubscriptionsCollection();
+  const normalizedEmail = normalizeEmail(memberEmail);
+  const now = new Date();
+
+  await collection.updateOne(
+    { endpoint },
+    {
+      $set: {
+        keys,
+        locale: locale?.trim() || null,
+        memberEmail: normalizedEmail,
+        updatedAt: now,
+        userAgent: userAgent?.trim() || null,
+      },
+      $setOnInsert: {
+        createdAt: now,
+        endpoint,
+      },
+    },
+    { upsert: true },
+  );
+
+  return {
+    isConfigured: isWebPushConfigured(),
+    isSubscribed: true,
+  };
+}
+
+export async function removePushSubscription({
+  endpoint,
+  memberEmail,
+}: {
+  endpoint: string;
+  memberEmail: string;
+}) {
+  const collection = await getAppPushSubscriptionsCollection();
+  const normalizedEmail = normalizeEmail(memberEmail);
+
+  await collection.deleteOne({
+    endpoint,
+    memberEmail: normalizedEmail,
+  });
+
+  return {
+    isConfigured: isWebPushConfigured(),
+    isSubscribed: false,
   };
 }
 
