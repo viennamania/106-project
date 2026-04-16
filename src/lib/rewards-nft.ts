@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  Engine,
   getAddress,
   getContract,
   isAddress,
@@ -11,7 +12,6 @@ import {
   mintTo,
   transferEvent as erc721TransferEvent,
 } from "thirdweb/extensions/erc721";
-import { privateKeyToAccount } from "thirdweb/wallets";
 
 import type { RewardCatalogId } from "@/lib/points";
 import { hasThirdwebSecretKey, serverThirdwebClient } from "@/lib/thirdweb-server";
@@ -20,8 +20,9 @@ import { smartWalletChain } from "@/lib/thirdweb";
 
 const REWARDS_NFT_CONTRACT_ADDRESS =
   process.env.THIRDWEB_REWARDS_NFT_CONTRACT_ADDRESS?.trim() ?? "";
-const REWARDS_NFT_ADMIN_PRIVATE_KEY =
-  process.env.THIRDWEB_REWARDS_NFT_ADMIN_PRIVATE_KEY?.trim() ?? "";
+const REWARDS_NFT_SERVER_WALLET_ADDRESS =
+  process.env.THIRDWEB_REWARDS_NFT_SERVER_WALLET_ADDRESS?.trim() ?? "";
+const PROJECT_WALLET = process.env.PROJECT_WALLET?.trim() ?? "";
 const REWARDS_APP_URL = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
 
 export function isOnchainRewardCatalogId(rewardId: RewardCatalogId) {
@@ -31,7 +32,7 @@ export function isOnchainRewardCatalogId(rewardId: RewardCatalogId) {
 export function hasRewardsNftMintingConfig() {
   return (
     hasThirdwebSecretKey &&
-    REWARDS_NFT_ADMIN_PRIVATE_KEY.length > 0 &&
+    (REWARDS_NFT_SERVER_WALLET_ADDRESS.length > 0 || PROJECT_WALLET.length > 0) &&
     REWARDS_NFT_CONTRACT_ADDRESS.length > 0
   );
 }
@@ -48,18 +49,33 @@ function getRewardsNftContractAddress() {
   return getAddress(REWARDS_NFT_CONTRACT_ADDRESS);
 }
 
-function getRewardsNftAdminAccount() {
+function getRewardsNftServerWalletAddress() {
+  const candidateAddress = REWARDS_NFT_SERVER_WALLET_ADDRESS || PROJECT_WALLET;
+
+  if (!candidateAddress) {
+    throw new Error(
+      "THIRDWEB_REWARDS_NFT_SERVER_WALLET_ADDRESS or PROJECT_WALLET is not configured.",
+    );
+  }
+
+  if (!isAddress(candidateAddress)) {
+    throw new Error(
+      "THIRDWEB_REWARDS_NFT_SERVER_WALLET_ADDRESS or PROJECT_WALLET is invalid.",
+    );
+  }
+
+  return getAddress(candidateAddress);
+}
+
+function getRewardsNftServerWallet() {
   if (!hasThirdwebSecretKey) {
     throw new Error("THIRDWEB_SECRET_KEY is required for reward NFT minting.");
   }
 
-  if (!REWARDS_NFT_ADMIN_PRIVATE_KEY) {
-    throw new Error("THIRDWEB_REWARDS_NFT_ADMIN_PRIVATE_KEY is not configured.");
-  }
-
-  return privateKeyToAccount({
+  return Engine.serverWallet({
+    address: getRewardsNftServerWalletAddress(),
+    chain: smartWalletChain,
     client: serverThirdwebClient,
-    privateKey: REWARDS_NFT_ADMIN_PRIVATE_KEY,
   });
 }
 
@@ -136,7 +152,7 @@ export async function mintRewardNftToWallet({
     client: serverThirdwebClient,
   });
   const normalizedWalletAddress = getAddress(walletAddress);
-  const account = getRewardsNftAdminAccount();
+  const account = getRewardsNftServerWallet();
   const transaction = mintTo({
     contract,
     nft: getRewardsNftMetadata(rewardId),
