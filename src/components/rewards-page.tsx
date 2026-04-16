@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
-  ArrowLeftRight,
   ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
@@ -1327,32 +1326,28 @@ function LedgerHistoryTable({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600 sm:hidden">
-        <ArrowLeftRight className="size-3.5 shrink-0 text-slate-400" />
-        <span>{dictionary.rewardsPage.history.mobileScrollHint}</span>
-      </div>
       <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-        <div className="-mx-5 w-[calc(100%+2.5rem)] overflow-x-auto px-5 pb-2 pt-0.5 touch-pan-x overscroll-x-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] lg:mx-0 lg:w-full lg:overflow-visible lg:px-0 lg:pb-0">
-          <table className="w-full min-w-[27rem] border-separate border-spacing-0 lg:min-w-0 lg:table-fixed">
+        <div className="w-full overflow-hidden">
+          <table className="w-full table-fixed border-separate border-spacing-0">
             <thead>
               <tr className="bg-slate-50/90">
                 <th
-                  className="w-[4.75rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[7rem] lg:px-4"
+                  className="w-[4.75rem] whitespace-nowrap border-b border-slate-200 px-2 py-3 text-left text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:w-[7rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.typeLabel}
                 </th>
                 <th
-                  className="w-[10.75rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[15rem] lg:px-4"
+                  className="w-[8.25rem] border-b border-slate-200 px-2 py-3 text-left text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:w-[15rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.sourceLabel}
                 </th>
                 <th
-                  className="w-[9.5rem] border-b border-slate-200 px-3 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-auto lg:px-4 lg:text-left"
+                  className="w-auto border-b border-slate-200 px-2 py-3 text-right text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:px-4 md:text-[0.68rem] md:tracking-[0.18em] md:text-left"
                   scope="col"
                 >
-                  <div className="flex flex-col items-end gap-1 text-right lg:items-start lg:text-left">
+                  <div className="flex flex-col items-end gap-1 text-right md:items-start md:text-left">
                     <span className="whitespace-nowrap">
                       {dictionary.rewardsPage.history.detailsLabel}
                     </span>
@@ -1388,7 +1383,7 @@ function LedgerHistoryTable({
 
                 return (
                   <tr className="align-middle" key={entry.ledgerEntryId}>
-                    <td className={cn("px-3 py-3.5 lg:px-4", rowBorderClass)}>
+                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
                       <div className="flex flex-col items-start gap-1.5 whitespace-nowrap sm:flex-row sm:items-center sm:gap-2">
                         <InfoBadge>{typeLabel}</InfoBadge>
                         {entry.rewardLevel ? (
@@ -1396,25 +1391,25 @@ function LedgerHistoryTable({
                         ) : null}
                       </div>
                     </td>
-                    <td className={cn("px-3 py-3.5 lg:px-4", rowBorderClass)}>
+                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
                       <div className="space-y-1.5">
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-950 lg:whitespace-normal lg:break-all">
+                        <p className="break-all text-[0.82rem] leading-5 font-medium text-slate-950 md:text-sm md:leading-6">
                           {sourceLabel}
                         </p>
-                        <p className="whitespace-nowrap text-xs text-slate-500">
+                        <p className="text-[0.68rem] leading-4 text-slate-500 md:text-xs md:leading-5">
                           {formatDateTime(entry.createdAt, locale)}
                         </p>
                       </div>
                     </td>
-                    <td className={cn("px-3 py-3.5 text-right lg:px-4 lg:text-left", rowBorderClass)}>
+                    <td className={cn("px-2 py-3.5 text-right md:px-4 md:text-left", rowBorderClass)}>
                       <div className="space-y-2">
-                        <p className="whitespace-nowrap text-sm leading-6 text-slate-600 lg:whitespace-normal">
+                        <p className="break-words text-[0.8rem] leading-5 text-slate-600 md:text-sm md:leading-6">
                           {detailsLabel}
                         </p>
                         <div className="flex justify-end">
                           <span
                             className={cn(
-                              "inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold tabular-nums",
+                              "inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.82rem] font-semibold tabular-nums md:px-3 md:text-sm",
                               isPositive
                                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                                 : "border-rose-200 bg-rose-50 text-rose-900",
