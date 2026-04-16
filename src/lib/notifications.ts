@@ -1,5 +1,6 @@
 export const appNotificationTypes = [
   "direct_member_completed",
+  "network_member_completed",
   "network_level_completed",
 ] as const;
 
@@ -38,6 +39,7 @@ export type AppNotificationPreferencesDocument = {
   createdAt: Date;
   directMemberCompletedEnabled: boolean;
   memberEmail: string;
+  networkMemberCompletedEnabled: boolean;
   networkLevelCompletedEnabled: boolean;
   updatedAt: Date;
 };
@@ -45,6 +47,7 @@ export type AppNotificationPreferencesDocument = {
 export type AppNotificationPreferencesRecord = {
   directMemberCompletedEnabled: boolean;
   memberEmail: string;
+  networkMemberCompletedEnabled: boolean;
   networkLevelCompletedEnabled: boolean;
   updatedAt: string;
 };
@@ -66,6 +69,7 @@ export function createDefaultAppNotificationPreferencesDocument(
     createdAt: now,
     directMemberCompletedEnabled: true,
     memberEmail,
+    networkMemberCompletedEnabled: true,
     networkLevelCompletedEnabled: true,
     updatedAt: now,
   };
@@ -95,6 +99,7 @@ export function serializeAppNotificationPreferences(
   return {
     directMemberCompletedEnabled: preferences.directMemberCompletedEnabled,
     memberEmail: preferences.memberEmail,
+    networkMemberCompletedEnabled: preferences.networkMemberCompletedEnabled,
     networkLevelCompletedEnabled: preferences.networkLevelCompletedEnabled,
     updatedAt: preferences.updatedAt.toISOString(),
   };

@@ -92,6 +92,44 @@ async function getOrCreateNotificationPreferences(
     throw new Error("Notification preferences could not be loaded.");
   }
 
+  const missingDefaults = {
+    ...(typeof preferences.directMemberCompletedEnabled !== "boolean"
+      ? {
+          directMemberCompletedEnabled: defaults.directMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof preferences.networkMemberCompletedEnabled !== "boolean"
+      ? {
+          networkMemberCompletedEnabled: defaults.networkMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof preferences.networkLevelCompletedEnabled !== "boolean"
+      ? {
+          networkLevelCompletedEnabled: defaults.networkLevelCompletedEnabled,
+        }
+      : {}),
+  };
+
+  if (Object.keys(missingDefaults).length > 0) {
+    const updatedAt = new Date();
+
+    await collection.updateOne(
+      { memberEmail: normalizedEmail },
+      {
+        $set: {
+          ...missingDefaults,
+          updatedAt,
+        },
+      },
+    );
+
+    return {
+      ...preferences,
+      ...missingDefaults,
+      updatedAt,
+    };
+  }
+
   return preferences;
 }
 
@@ -232,6 +270,69 @@ async function notifyDirectSponsorOfCompletedMember(member: MemberDocument) {
   });
 }
 
+async function notifyPlacementAncestorsOfCompletedMember(member: MemberDocument) {
+  const collection = await getMembersCollection();
+  const seenReferralCodes = new Set<string>();
+  const directSponsorEmail = normalizeEmail(
+    member.sponsorEmail ?? member.referredByEmail ?? "",
+  );
+  let currentReferralCode = member.placementReferralCode ?? null;
+
+  for (
+    let level = 1;
+    level <= REFERRAL_TREE_DEPTH_LIMIT && currentReferralCode;
+    level += 1
+  ) {
+    if (seenReferralCodes.has(currentReferralCode)) {
+      break;
+    }
+
+    seenReferralCodes.add(currentReferralCode);
+
+    const recipient = await collection.findOne({
+      referralCode: currentReferralCode,
+      status: "completed",
+    });
+
+    if (!recipient) {
+      break;
+    }
+
+    if (directSponsorEmail && normalizeEmail(recipient.email) === directSponsorEmail) {
+      currentReferralCode = recipient.placementReferralCode ?? null;
+      continue;
+    }
+
+    const preferences = await getOrCreateNotificationPreferences(recipient.email);
+
+    if (!preferences.networkMemberCompletedEnabled) {
+      currentReferralCode = recipient.placementReferralCode ?? null;
+      continue;
+    }
+
+    const locale = resolveLocale(recipient.locale);
+    const copy = getDictionary(locale).activateNetworkPage.notifications;
+    const createdAt = member.registrationCompletedAt ?? new Date();
+
+    await createNotification({
+      body: formatTemplate(copy.messages.networkMemberCompletedBody, {
+        email: member.email,
+        level,
+      }),
+      createdAt,
+      eventKey: `network_member_completed:${recipient.email}:${member.email}:${level}`,
+      href: `/${locale}/activate/network?member=${encodeURIComponent(member.email)}`,
+      memberEmail: recipient.email,
+      targetLevel: level,
+      targetMemberEmail: member.email,
+      title: copy.messages.networkMemberCompletedTitle,
+      type: "network_member_completed",
+    });
+
+    currentReferralCode = recipient.placementReferralCode ?? null;
+  }
+}
+
 async function notifyCompletedLevelMilestones(member: MemberDocument) {
   const collection = await getMembersCollection();
   const seenReferralCodes = new Set<string>();
@@ -298,6 +399,7 @@ export async function emitCompletedMemberNotifications(member: MemberDocument) {
 
   await Promise.all([
     notifyDirectSponsorOfCompletedMember(member),
+    notifyPlacementAncestorsOfCompletedMember(member),
     notifyCompletedLevelMilestones(member),
   ]);
 }
@@ -421,10 +523,12 @@ export async function markNotificationsRead(
 export async function updateNotificationPreferences({
   directMemberCompletedEnabled,
   memberEmail,
+  networkMemberCompletedEnabled,
   networkLevelCompletedEnabled,
 }: {
   directMemberCompletedEnabled?: boolean;
   memberEmail: string;
+  networkMemberCompletedEnabled?: boolean;
   networkLevelCompletedEnabled?: boolean;
 }) {
   const collection = await getAppNotificationPreferencesCollection();
@@ -437,6 +541,11 @@ export async function updateNotificationPreferences({
     ...(typeof directMemberCompletedEnabled !== "boolean"
       ? {
           directMemberCompletedEnabled: defaults.directMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof networkMemberCompletedEnabled !== "boolean"
+      ? {
+          networkMemberCompletedEnabled: defaults.networkMemberCompletedEnabled,
         }
       : {}),
     ...(typeof networkLevelCompletedEnabled !== "boolean"
@@ -453,6 +562,9 @@ export async function updateNotificationPreferences({
       $set: {
         ...(typeof directMemberCompletedEnabled === "boolean"
           ? { directMemberCompletedEnabled }
+          : {}),
+        ...(typeof networkMemberCompletedEnabled === "boolean"
+          ? { networkMemberCompletedEnabled }
           : {}),
         ...(typeof networkLevelCompletedEnabled === "boolean"
           ? { networkLevelCompletedEnabled }

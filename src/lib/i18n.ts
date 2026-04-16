@@ -291,10 +291,13 @@ export type Dictionary = {
       markAllRead: string;
       unreadCount: string;
       preferenceDirect: string;
+      preferenceNetworkMembers: string;
       preferenceLevel: string;
       messages: {
         directMemberCompletedTitle: string;
         directMemberCompletedBody: string;
+        networkMemberCompletedTitle: string;
+        networkMemberCompletedBody: string;
         networkLevelCompletedTitle: string;
         networkLevelCompletedBody: string;
       };
@@ -1004,11 +1007,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         markAllRead: "모두 읽음",
         unreadCount: "{count}개의 읽지 않은 알림",
         preferenceDirect: "새 회원 활성화 알림",
+        preferenceNetworkMembers: "하위 네트워크 활성화 알림",
         preferenceLevel: "단계 달성 알림",
         messages: {
           directMemberCompletedTitle: "새 회원 활성화 완료",
           directMemberCompletedBody:
             "{email} 님이 회원 활성화를 완료했습니다.",
+          networkMemberCompletedTitle: "하위 네트워크 활성화 완료",
+          networkMemberCompletedBody:
+            "{email} 님이 내 네트워크 단계 {level}에서 회원 활성화를 완료했습니다.",
           networkLevelCompletedTitle: "단계 달성",
           networkLevelCompletedBody:
             "단계 {level}이 {count}/{target}명으로 가득 찼습니다.",
@@ -1752,11 +1759,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         markAllRead: "Mark all read",
         unreadCount: "{count} unread alerts",
         preferenceDirect: "New member activation alerts",
+        preferenceNetworkMembers: "Downline activation alerts",
         preferenceLevel: "Level milestone alerts",
         messages: {
           directMemberCompletedTitle: "New member activated",
           directMemberCompletedBody:
             "{email} completed member activation.",
+          networkMemberCompletedTitle: "Downline member activated",
+          networkMemberCompletedBody:
+            "{email} completed activation in level {level} of your network.",
           networkLevelCompletedTitle: "Level milestone reached",
           networkLevelCompletedBody:
             "Level {level} is now full at {count}/{target} members.",
@@ -2505,11 +2516,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         markAllRead: "すべて既読",
         unreadCount: "未読 {count} 件",
         preferenceDirect: "新規会員の有効化通知",
+        preferenceNetworkMembers: "下位ネットワークの有効化通知",
         preferenceLevel: "段階達成通知",
         messages: {
           directMemberCompletedTitle: "新規会員の有効化完了",
           directMemberCompletedBody:
             "{email} さんの会員有効化が完了しました。",
+          networkMemberCompletedTitle: "下位ネットワークの有効化完了",
+          networkMemberCompletedBody:
+            "{email} さんがあなたのネットワークの段階 {level} で会員有効化を完了しました。",
           networkLevelCompletedTitle: "段階達成",
           networkLevelCompletedBody:
             "段階 {level} が {count}/{target} 人で満員になりました。",
@@ -3259,11 +3274,15 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         markAllRead: "全部标为已读",
         unreadCount: "未读通知 {count} 条",
         preferenceDirect: "新会员激活提醒",
+        preferenceNetworkMembers: "下级网络激活提醒",
         preferenceLevel: "层级达成提醒",
         messages: {
           directMemberCompletedTitle: "新会员已完成激活",
           directMemberCompletedBody:
             "{email} 已完成会员激活。",
+          networkMemberCompletedTitle: "下级网络成员已完成激活",
+          networkMemberCompletedBody:
+            "{email} 已在你的网络第 {level} 层完成会员激活。",
           networkLevelCompletedTitle: "层级已达成",
           networkLevelCompletedBody:
             "第 {level} 层已达到 {count}/{target} 名会员。",

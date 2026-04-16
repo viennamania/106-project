@@ -791,7 +791,10 @@ export function SmartWalletApp({
 
   const updateNotificationPreference = useCallback(
     async (
-      key: "directMemberCompletedEnabled" | "networkLevelCompletedEnabled",
+      key:
+        | "directMemberCompletedEnabled"
+        | "networkMemberCompletedEnabled"
+        | "networkLevelCompletedEnabled",
       value: boolean,
     ) => {
       const memberEmail = memberSync.member?.email;
@@ -1640,7 +1643,7 @@ export function SmartWalletApp({
           ),
         })}
       >
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           <NotificationPreferenceCard
             checked={
               notificationsState.preferences?.directMemberCompletedEnabled ?? true
@@ -1649,6 +1652,19 @@ export function SmartWalletApp({
             onChange={(checked) => {
               void updateNotificationPreference(
                 "directMemberCompletedEnabled",
+                checked,
+              );
+            }}
+          />
+          <NotificationPreferenceCard
+            checked={
+              notificationsState.preferences?.networkMemberCompletedEnabled ??
+              true
+            }
+            label={notificationCopy.preferenceNetworkMembers}
+            onChange={(checked) => {
+              void updateNotificationPreference(
+                "networkMemberCompletedEnabled",
                 checked,
               );
             }}
@@ -2424,12 +2440,16 @@ function ActivateNotificationCard({
                 "inline-flex items-center rounded-full px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
                 notification.type === "network_level_completed"
                   ? "bg-violet-100 text-violet-900"
-                  : "bg-emerald-100 text-emerald-900",
+                  : notification.type === "network_member_completed"
+                    ? "bg-sky-100 text-sky-900"
+                    : "bg-emerald-100 text-emerald-900",
               )}
             >
               {notification.type === "network_level_completed"
                 ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
-                : dictionary.activateNetworkPage.labels.currentMember}
+                : notification.type === "network_member_completed"
+                  ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
+                  : dictionary.activateNetworkPage.labels.currentMember}
             </span>
             {!notification.isRead ? (
               <span className="inline-flex size-2 rounded-full bg-slate-950">

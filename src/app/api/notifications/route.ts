@@ -24,6 +24,7 @@ type NotificationActionRequest =
       action: "update_preferences";
       directMemberCompletedEnabled?: boolean;
       email: string;
+      networkMemberCompletedEnabled?: boolean;
       networkLevelCompletedEnabled?: boolean;
       walletAddress: string;
     };
@@ -170,6 +171,7 @@ export async function POST(request: Request) {
         await updateNotificationPreferences({
           directMemberCompletedEnabled: body.directMemberCompletedEnabled,
           memberEmail: authorization.normalizedEmail,
+          networkMemberCompletedEnabled: body.networkMemberCompletedEnabled,
           networkLevelCompletedEnabled: body.networkLevelCompletedEnabled,
         }),
       );
