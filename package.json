@@ -15,6 +15,7 @@
     "reconcile:completed": "node scripts/trigger-reconcile-completed-members.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
     "reconcile:worker": "node scripts/run-reconcile-worker.mjs",
+    "rewards:nft:backfill-legacy": "node scripts/backfill-legacy-reward-nft.mjs",
     "rewards:nft:deploy": "node scripts/deploy-rewards-nft-contract.mjs",
     "thirdweb:webhooks:register": "node scripts/register-thirdweb-usdt-webhooks.mjs"
   },
