@@ -1183,7 +1183,13 @@ export function SmartWalletApp({
                   <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                     {isSignupCompleted && memberSync.member?.email ? (
                       <button
-                        className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                        className={cn(
+                          "group inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-full border px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
+                          notificationsState.open
+                            ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
+                            : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
+                          "sm:w-auto sm:justify-start",
+                        )}
                         onClick={() => {
                           setNotificationsState((current) => ({
                             ...current,
@@ -1192,12 +1198,12 @@ export function SmartWalletApp({
                         }}
                         type="button"
                       >
-                        <span className="inline-flex items-center gap-2">
-                          <Bell className="size-4" />
+                        <span className="inline-flex items-center gap-2 transition group-hover:text-sky-900">
+                          <Bell className="size-4 transition group-hover:scale-105 group-hover:text-sky-700" />
                           {notificationCopy.title}
                         </span>
                         {notificationsState.unreadCount > 0 ? (
-                          <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[0.68rem] font-semibold leading-none text-white">
+                          <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[0.68rem] font-semibold leading-none text-white transition group-hover:bg-sky-900 group-hover:shadow-[0_10px_20px_rgba(14,165,233,0.18)]">
                             {new Intl.NumberFormat(locale).format(
                               notificationsState.unreadCount,
                             )}
