@@ -431,11 +431,25 @@ export async function updateNotificationPreferences({
   const normalizedEmail = normalizeEmail(memberEmail);
   const defaults =
     createDefaultAppNotificationPreferencesDocument(normalizedEmail);
+  const insertDefaults = {
+    createdAt: defaults.createdAt,
+    memberEmail: defaults.memberEmail,
+    ...(typeof directMemberCompletedEnabled !== "boolean"
+      ? {
+          directMemberCompletedEnabled: defaults.directMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof networkLevelCompletedEnabled !== "boolean"
+      ? {
+          networkLevelCompletedEnabled: defaults.networkLevelCompletedEnabled,
+        }
+      : {}),
+  };
 
   await collection.updateOne(
     { memberEmail: normalizedEmail },
     {
-      $setOnInsert: defaults,
+      $setOnInsert: insertDefaults,
       $set: {
         ...(typeof directMemberCompletedEnabled === "boolean"
           ? { directMemberCompletedEnabled }
