@@ -614,10 +614,14 @@ export function SmartWalletApp({
         }
 
         setNotificationsState((current) => {
-          if (background && lightweight && !current.open) {
+          // Lightweight polling only exists to keep the badge count fresh.
+          // Never let those responses overwrite the full notification list,
+          // because they can resolve after the sheet has already opened.
+          if (lightweight) {
             return {
               ...current,
               error: null,
+              preferences: current.preferences ?? data.preferences,
               status: current.status === "idle" ? "ready" : current.status,
               unreadCount: data.unreadCount,
             };
