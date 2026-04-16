@@ -1320,26 +1320,26 @@ function LedgerHistoryTable({
       </div>
       <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
         <div className="-mx-5 w-[calc(100%+2.5rem)] overflow-x-auto px-5 pb-2 pt-0.5 touch-pan-x overscroll-x-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch] lg:mx-0 lg:w-full lg:overflow-visible lg:px-0 lg:pb-0">
-          <table className="w-full min-w-[30rem] border-separate border-spacing-0 lg:min-w-0 lg:table-fixed">
+          <table className="w-full min-w-[27rem] border-separate border-spacing-0 lg:min-w-0 lg:table-fixed">
             <thead>
               <tr className="bg-slate-50/90">
                 <th
-                  className="w-[5.5rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[7rem] lg:px-4"
+                  className="w-[4.75rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[7rem] lg:px-4"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.typeLabel}
                 </th>
                 <th
-                  className="w-[12rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[15rem] lg:px-4"
+                  className="w-[10.75rem] whitespace-nowrap border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-[15rem] lg:px-4"
                   scope="col"
                 >
                   {dictionary.rewardsPage.history.sourceLabel}
                 </th>
                 <th
-                  className="w-[12.5rem] border-b border-slate-200 px-3 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-auto lg:px-4"
+                  className="w-[9.5rem] border-b border-slate-200 px-3 py-3 text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:w-auto lg:px-4 lg:text-left"
                   scope="col"
                 >
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col items-end gap-1 text-right lg:items-start lg:text-left">
                     <span className="whitespace-nowrap">
                       {dictionary.rewardsPage.history.detailsLabel}
                     </span>
@@ -1393,12 +1393,12 @@ function LedgerHistoryTable({
                         </p>
                       </div>
                     </td>
-                    <td className={cn("px-3 py-3.5 lg:px-4", rowBorderClass)}>
+                    <td className={cn("px-3 py-3.5 text-right lg:px-4 lg:text-left", rowBorderClass)}>
                       <div className="space-y-2">
                         <p className="whitespace-nowrap text-sm leading-6 text-slate-600 lg:whitespace-normal">
                           {detailsLabel}
                         </p>
-                        <div className="flex justify-start lg:justify-end">
+                        <div className="flex justify-end">
                           <span
                             className={cn(
                               "inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold tabular-nums",
