@@ -51,6 +51,7 @@ import {
   type SyncMemberResponse,
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
@@ -1088,7 +1089,13 @@ export function WalletPage({
                             : dictionary.member.pendingValue}
                         </InfoBadge>
                         {selectedRecipient.level ? (
-                          <InfoBadge>
+                          <InfoBadge
+                            className={cn(
+                              "bg-transparent",
+                              getReferralLevelTheme(selectedRecipient.level)
+                                .badgeClassName,
+                            )}
+                          >
                             {dictionary.referralsPage.labels.level}{" "}
                             {selectedRecipient.level}
                           </InfoBadge>
@@ -1143,7 +1150,13 @@ export function WalletPage({
                                     : dictionary.member.pendingValue}
                                 </InfoBadge>
                                 {result.level ? (
-                                  <InfoBadge>
+                                  <InfoBadge
+                                    className={cn(
+                                      "bg-transparent",
+                                      getReferralLevelTheme(result.level)
+                                        .badgeClassName,
+                                    )}
+                                  >
                                     {dictionary.referralsPage.labels.level}{" "}
                                     {result.level}
                                   </InfoBadge>

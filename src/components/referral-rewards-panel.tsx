@@ -13,6 +13,7 @@ import {
   ReferralRewardsSummaryRecord,
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import { cn } from "@/lib/utils";
 
 const REWARD_HISTORY_PAGE_SIZE = 6;
@@ -360,11 +361,17 @@ function RewardHistoryTable({
               {rewards.map((reward, index) => {
                 const rowBorderClass =
                   index < rewards.length - 1 ? "border-b border-slate-100" : "";
+                const levelTheme = getReferralLevelTheme(reward.level);
 
                 return (
                   <tr className="align-top" key={`${reward.sourceMemberEmail}:${reward.level}:${reward.awardedAt}`}>
                     <td className={cn("px-1.5 py-3.5 md:px-4", rowBorderClass)}>
-                      <span className="inline-flex whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[0.66rem] font-medium text-slate-700 md:px-3 md:text-xs">
+                      <span
+                        className={cn(
+                          "inline-flex whitespace-nowrap rounded-full border px-2 py-1 text-[0.66rem] font-medium md:px-3 md:text-xs",
+                          levelTheme.badgeClassName,
+                        )}
+                      >
                         {levelLabel} {reward.level}
                       </span>
                     </td>
