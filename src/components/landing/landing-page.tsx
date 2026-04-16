@@ -143,7 +143,7 @@ export function LandingPage({
               <h1
                 className={`mx-auto mt-3 font-semibold tracking-tight text-white ${
                   locale === "ko"
-                    ? "max-w-[10ch] break-keep text-[1.9rem] leading-[1.02] sm:mt-5 sm:max-w-[11ch] sm:text-[4.5rem] sm:leading-[0.94] lg:text-[5.35rem] xl:text-[5.85rem]"
+                    ? "max-w-[10ch] break-keep text-[1.9rem] leading-[1.02] sm:mt-5 sm:max-w-[11ch] sm:text-[4rem] sm:leading-[0.96] lg:text-[4.7rem] xl:text-[5.1rem]"
                     : "sm:mt-4 max-w-4xl text-[2.15rem] leading-[0.94] sm:text-6xl sm:leading-[0.92]"
                 }`}
               >
