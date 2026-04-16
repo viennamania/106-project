@@ -785,14 +785,18 @@ function DarkSummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-[#d6bb8a]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-5 text-right sm:rounded-[24px]">
-      <p className="text-xs uppercase tracking-[0.2em] text-[#d8bd89]">{label}</p>
-      <p className="mt-3 text-[1.8rem] font-semibold tracking-tight text-white sm:text-3xl">
-        <AnimatedNumberText locale={locale} value={value} />
-      </p>
+    <div className="flex min-h-[12.5rem] flex-col justify-between rounded-[22px] border border-[#d6bb8a]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-5 text-right sm:min-h-[13.5rem] sm:rounded-[24px]">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-[#d8bd89]">{label}</p>
+        <p className="mt-3 text-[1.8rem] font-semibold tracking-tight text-white sm:text-3xl">
+          <AnimatedNumberText locale={locale} value={value} />
+        </p>
+      </div>
       {hint ? (
-        <p className="mt-2 text-sm leading-6 text-white/62">{hint}</p>
-      ) : null}
+        <p className="mt-4 text-sm leading-6 text-white/62">{hint}</p>
+      ) : (
+        <div className="mt-4 min-h-[1.5rem]" aria-hidden="true" />
+      )}
     </div>
   );
 }

@@ -176,7 +176,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
         {
           label: "현금 환산",
           value: "$44,796",
-          hint: "",
+          hint: "6세대 완성 기준 예상 현금 환산",
         },
         {
           label: "글로벌 파트너",
@@ -360,7 +360,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
         {
           label: "Cash equivalent",
           value: "$44,796",
-          hint: "",
+          hint: "Estimated cash equivalent at full 6-generation completion",
         },
         {
           label: "Global network size",
@@ -544,7 +544,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
         {
           label: "現金換算",
           value: "$44,796",
-          hint: "",
+          hint: "6 世代完成時の想定現金換算",
         },
         {
           label: "グローバル規模",
@@ -728,7 +728,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
         {
           label: "现金等值",
           value: "$44,796",
-          hint: "",
+          hint: "以 6 代完成为基准的预计现金等值",
         },
         {
           label: "全球网络规模",
@@ -916,7 +916,7 @@ function createVietnameseLandingCopy(base: LandingCopy): LandingCopy {
         {
           label: "Quy đổi tiền mặt",
           value: "$44,796",
-          hint: "",
+          hint: "Giá trị quy đổi tiền mặt ước tính khi đủ 6 thế hệ",
         },
         {
           label: "Quy mô mạng toàn cầu",
@@ -1104,7 +1104,7 @@ function createIndonesianLandingCopy(base: LandingCopy): LandingCopy {
         {
           label: "Setara tunai",
           value: "$44,796",
-          hint: "",
+          hint: "Estimasi setara tunai saat 6 generasi telah lengkap",
         },
         {
           label: "Skala jaringan global",
