@@ -2347,25 +2347,41 @@ function NotificationPreferenceCard({
 }) {
   return (
     <button
-      className="flex items-center justify-between rounded-[22px] border border-slate-200 bg-white/90 px-4 py-4 text-left shadow-[0_16px_40px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50"
+      aria-checked={checked}
+      role="switch"
+      className={cn(
+        "group flex items-center justify-between gap-3 rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/14 focus-visible:ring-offset-2 active:translate-y-0",
+        checked
+          ? "border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))] hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-[0_22px_48px_rgba(16,185,129,0.14)]"
+          : "border-slate-200 bg-white/90 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(15,23,42,0.10)]",
+      )}
       onClick={() => {
         onChange(!checked);
       }}
       type="button"
     >
-      <span className="pr-4 text-sm font-medium text-slate-900">{label}</span>
+      <span
+        className={cn(
+          "pr-4 text-sm font-semibold transition-colors duration-200",
+          checked
+            ? "text-emerald-950"
+            : "text-slate-950 group-hover:text-slate-950",
+        )}
+      >
+        {label}
+      </span>
       <span
         aria-hidden="true"
         className={cn(
-          "relative inline-flex h-7 w-12 shrink-0 rounded-full border transition",
+          "relative inline-flex h-7 w-12 shrink-0 rounded-full border transition duration-200 ease-out group-hover:scale-[1.04]",
           checked
-            ? "border-emerald-300 bg-emerald-100"
-            : "border-slate-200 bg-slate-100",
+            ? "border-emerald-400 bg-emerald-100 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.08)]"
+            : "border-slate-200 bg-slate-100 group-hover:border-slate-300 group-hover:bg-slate-200/80",
         )}
       >
         <span
           className={cn(
-            "absolute top-1 size-5 rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition",
+            "absolute top-1 size-5 rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition duration-200 ease-out group-hover:shadow-[0_12px_24px_rgba(15,23,42,0.18)]",
             checked ? "right-1" : "left-1",
           )}
         />
