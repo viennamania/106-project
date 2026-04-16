@@ -212,7 +212,16 @@ async function createOrUpdatePointBalance({
             _id: null,
             lifetimePoints: {
               $sum: {
-                $cond: [{ $gt: ["$delta", 0] }, "$delta", 0],
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$delta", 0] },
+                      { $ne: ["$type", "rollback"] },
+                    ],
+                  },
+                  "$delta",
+                  0,
+                ],
               },
             },
             spendablePoints: {
