@@ -2,12 +2,14 @@ import type { MemberStatus } from "@/lib/member";
 
 export type MemberAnnouncementRecipientPreview = {
   email: string;
+  pushSubscribed: boolean;
   status: MemberStatus;
 };
 
 export type MemberAnnouncementRecipientSummary = {
   completedCount: number;
   pendingCount: number;
+  pushSubscribedCount: number;
   preview: MemberAnnouncementRecipientPreview[];
   totalCount: number;
 };
@@ -56,7 +58,10 @@ export function serializeMemberAnnouncement(
     href: announcement.href ?? null,
     pendingRecipientCount: announcement.pendingRecipientCount,
     recipientCount: announcement.recipientCount,
-    recipientPreview: announcement.recipientPreview,
+    recipientPreview: announcement.recipientPreview.map((recipient) => ({
+      ...recipient,
+      pushSubscribed: Boolean(recipient.pushSubscribed),
+    })),
     senderEmail: announcement.senderEmail,
     title: announcement.title,
   };

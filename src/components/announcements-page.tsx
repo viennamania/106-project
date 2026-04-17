@@ -12,6 +12,7 @@ import {
   ArrowUpRight,
   Clock3,
   Megaphone,
+  Smartphone,
   RefreshCcw,
   Send,
   Users,
@@ -483,7 +484,7 @@ export function AnnouncementsPage({
                     </div>
                   ) : null}
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <StatusChip
                       label={copy.labels.totalRecipients}
                       value={new Intl.NumberFormat(locale).format(
@@ -500,6 +501,12 @@ export function AnnouncementsPage({
                       label={copy.labels.pendingRecipients}
                       value={new Intl.NumberFormat(locale).format(
                         announcementsState.recipients?.pendingCount ?? 0,
+                      )}
+                    />
+                    <StatusChip
+                      label={copy.labels.pushRecipients}
+                      value={new Intl.NumberFormat(locale).format(
+                        announcementsState.recipients?.pushSubscribedCount ?? 0,
                       )}
                     />
                   </div>
@@ -525,6 +532,19 @@ export function AnnouncementsPage({
                               {recipient.status === "completed"
                                 ? copy.labels.completedRecipients
                                 : copy.labels.pendingRecipients}
+                            </span>
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em]",
+                                recipient.pushSubscribed
+                                  ? "bg-slate-950 text-white"
+                                  : "bg-white/70 text-slate-500",
+                              )}
+                            >
+                              <Smartphone className="size-3" />
+                              {recipient.pushSubscribed
+                                ? copy.labels.pushReady
+                                : copy.labels.pushUnavailable}
                             </span>
                           </span>
                         ))}
@@ -694,10 +714,13 @@ export function AnnouncementsPage({
                               <div className="flex flex-wrap gap-2">
                                 {announcement.recipientPreview.map((recipient) => (
                                   <span
-                                    className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
+                                    className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
                                     key={`${announcement.announcementId}:${recipient.email}`}
                                   >
                                     {recipient.email}
+                                    {recipient.pushSubscribed ? (
+                                      <Smartphone className="size-3 text-slate-950" />
+                                    ) : null}
                                   </span>
                                 ))}
                               </div>

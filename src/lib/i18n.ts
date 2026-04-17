@@ -336,18 +336,21 @@ export type Dictionary = {
     recipientSummaryDescription: string;
     emptyRecipients: string;
     emptyHistory: string;
-    labels: {
-      body: string;
-      completedRecipients: string;
-      deliveryTarget: string;
-      history: string;
-      latestMessages: string;
-      pendingRecipients: string;
-      recipientPreview: string;
-      sendLink: string;
-      title: string;
-      totalRecipients: string;
-    };
+      labels: {
+        body: string;
+        completedRecipients: string;
+        deliveryTarget: string;
+        history: string;
+        latestMessages: string;
+        pendingRecipients: string;
+        pushRecipients: string;
+        pushReady: string;
+        pushUnavailable: string;
+        recipientPreview: string;
+        sendLink: string;
+        title: string;
+        totalRecipients: string;
+      };
     placeholders: {
       body: string;
       href: string;
@@ -1130,6 +1133,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         history: "발송 이력",
         latestMessages: "최근 공지",
         pendingRecipients: "가입 진행 중",
+        pushRecipients: "푸시 수신 가능",
+        pushReady: "푸시 ON",
+        pushUnavailable: "푸시 없음",
         recipientPreview: "수신자 미리보기",
         sendLink: "이동 링크",
         title: "공지 제목",
@@ -1952,6 +1958,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         history: "Send history",
         latestMessages: "Recent announcements",
         pendingRecipients: "Pending",
+        pushRecipients: "Push ready",
+        pushReady: "Push ON",
+        pushUnavailable: "No push",
         recipientPreview: "Recipient preview",
         sendLink: "Target link",
         title: "Announcement title",
@@ -2780,6 +2789,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         history: "送信履歴",
         latestMessages: "最近の告知",
         pendingRecipients: "進行中",
+        pushRecipients: "プッシュ受信可能",
+        pushReady: "プッシュ ON",
+        pushUnavailable: "プッシュなし",
         recipientPreview: "受信者プレビュー",
         sendLink: "移動リンク",
         title: "告知タイトル",
@@ -3607,6 +3619,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         history: "发送记录",
         latestMessages: "最近公告",
         pendingRecipients: "进行中",
+        pushRecipients: "可推送",
+        pushReady: "推送 ON",
+        pushUnavailable: "无推送",
         recipientPreview: "接收者预览",
         sendLink: "跳转链接",
         title: "公告标题",
