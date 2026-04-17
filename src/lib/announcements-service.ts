@@ -20,6 +20,30 @@ const ANNOUNCEMENT_PREVIEW_LIMIT = 8;
 const MAX_ANNOUNCEMENT_TITLE_LENGTH = 80;
 const MAX_ANNOUNCEMENT_BODY_LENGTH = 500;
 
+async function getPushSubscribedMemberEmails(recipientEmails: string[]) {
+  if (recipientEmails.length === 0) {
+    return new Set<string>();
+  }
+
+  const collection = await getAppPushSubscriptionsCollection();
+  const rows = await collection
+    .aggregate<{ _id: string }>([
+      {
+        $match: {
+          memberEmail: { $in: recipientEmails },
+        },
+      },
+      {
+        $group: {
+          _id: "$memberEmail",
+        },
+      },
+    ])
+    .toArray();
+
+  return new Set(rows.map((row) => row._id));
+}
+
 function createDirectRecipientFilter(senderEmail: string) {
   return {
     email: { $ne: senderEmail },
@@ -76,10 +100,7 @@ function sanitizeAnnouncementHref(href?: string | null) {
 async function getDirectAnnouncementRecipientSummary(
   senderEmail: string,
 ): Promise<MemberAnnouncementRecipientSummary> {
-  const [collection, pushSubscriptionsCollection] = await Promise.all([
-    getMembersCollection(),
-    getAppPushSubscriptionsCollection(),
-  ]);
+  const collection = await getMembersCollection();
   const filter = createDirectRecipientFilter(senderEmail);
   const [totalCount, completedCount, pendingCount, preview, allRecipientEmails] =
     await Promise.all([
@@ -103,14 +124,7 @@ async function getDirectAnnouncementRecipientSummary(
         .toArray(),
     ]);
   const recipientEmails = allRecipientEmails.map((recipient) => recipient.email);
-  const pushSubscribedEmails =
-    recipientEmails.length > 0
-      ? new Set(
-          await pushSubscriptionsCollection.distinct("memberEmail", {
-            memberEmail: { $in: recipientEmails },
-          }),
-        )
-      : new Set<string>();
+  const pushSubscribedEmails = await getPushSubscribedMemberEmails(recipientEmails);
 
   return {
     completedCount,
@@ -161,10 +175,7 @@ export async function sendAnnouncementToDirectMembers({
   const normalizedTitle = sanitizeAnnouncementTitle(title);
   const normalizedBody = sanitizeAnnouncementBody(body);
   const normalizedHref = sanitizeAnnouncementHref(href);
-  const [membersCollection, pushSubscriptionsCollection] = await Promise.all([
-    getMembersCollection(),
-    getAppPushSubscriptionsCollection(),
-  ]);
+  const membersCollection = await getMembersCollection();
   const recipients = await membersCollection
     .find(createDirectRecipientFilter(normalizedEmail))
     .project<Pick<MemberAnnouncementRecipientPreview, "email" | "status">>({
@@ -180,14 +191,7 @@ export async function sendAnnouncementToDirectMembers({
   const announcementId = crypto.randomUUID();
   const createdAt = new Date();
   const recipientEmails = recipients.map((recipient) => recipient.email);
-  const pushSubscribedEmails =
-    recipientEmails.length > 0
-      ? new Set(
-          await pushSubscriptionsCollection.distinct("memberEmail", {
-            memberEmail: { $in: recipientEmails },
-          }),
-        )
-      : new Set<string>();
+  const pushSubscribedEmails = await getPushSubscribedMemberEmails(recipientEmails);
   const recipientPreview = recipients
     .slice(0, ANNOUNCEMENT_PREVIEW_LIMIT)
     .map((recipient) => ({
