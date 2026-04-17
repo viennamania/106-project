@@ -2305,9 +2305,6 @@ function CompletedHomeDashboard({
                 <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
                   {contentCopy.entry.title}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {contentCopy.entry.description}
-                </p>
                 <div className="mt-4 grid gap-3">
                   <Link
                     className="group rounded-[22px] border border-slate-200 bg-slate-50/90 p-4 transition hover:border-slate-300 hover:bg-white"
@@ -2325,9 +2322,6 @@ function CompletedHomeDashboard({
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {contentCopy.entry.viewerDescription}
                     </p>
-                    <p className="mt-3 text-sm font-medium text-slate-950">
-                      {contentCopy.actions.browseFeed}
-                    </p>
                   </Link>
                   <Link
                     className="group rounded-[22px] border border-slate-200 bg-slate-50/90 p-4 transition hover:border-slate-300 hover:bg-white"
@@ -2344,9 +2338,6 @@ function CompletedHomeDashboard({
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {contentCopy.entry.creatorDescription}
-                    </p>
-                    <p className="mt-3 text-sm font-medium text-slate-950">
-                      {contentCopy.actions.openStudio}
                     </p>
                   </Link>
                 </div>
