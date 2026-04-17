@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { MemberStatus } from "@/lib/member";
 import { normalizeEmail } from "@/lib/member";
 import { getMembersCollection } from "@/lib/mongodb";
 import { normalizeAddress } from "@/lib/thirdweb-webhooks";
@@ -9,9 +10,11 @@ function jsonError(message: string, status: number) {
 }
 
 export async function validateNotificationOwner({
+  allowedStatuses = ["completed"],
   email,
   walletAddress,
 }: {
+  allowedStatuses?: MemberStatus[];
   email: string;
   walletAddress: string;
 }) {
@@ -28,9 +31,9 @@ export async function validateNotificationOwner({
     };
   }
 
-  if (member.status !== "completed") {
+  if (!allowedStatuses.includes(member.status)) {
     return {
-      error: jsonError("Member signup is not complete.", 403),
+      error: jsonError("This member status is not authorized for this action.", 403),
       member: null,
       normalizedEmail,
     };

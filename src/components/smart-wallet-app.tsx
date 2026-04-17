@@ -212,6 +212,10 @@ export function SmartWalletApp({
     incomingReferralCode !== null &&
     memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
+  const canManagePushAlerts =
+    status === "connected" &&
+    Boolean(accountAddress) &&
+    Boolean(memberSync.member?.email);
   const isIncomingReferralOverflow =
     incomingReferralState?.status === "full" && !isSignupCompleted;
   const isMembershipLoading =
@@ -1564,6 +1568,16 @@ export function SmartWalletApp({
                       ) : null}
                     </div>
 
+                    {!isSignupCompleted ? (
+                      <NotificationPushCard
+                        active={canManagePushAlerts}
+                        copy={notificationCopy.push}
+                        locale={locale}
+                        memberEmail={memberSync.member.email}
+                        walletAddress={accountAddress ?? null}
+                      />
+                    ) : null}
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <InfoRow
                         label={dictionary.member.labels.emailKey}
@@ -1652,11 +1666,7 @@ export function SmartWalletApp({
       >
         <div className="space-y-3">
           <NotificationPushCard
-            active={
-              notificationsState.open &&
-              isSignupCompleted &&
-              Boolean(memberSync.member?.email)
-            }
+            active={notificationsState.open && isSignupCompleted}
             copy={notificationCopy.push}
             locale={locale}
             memberEmail={memberSync.member?.email ?? null}

@@ -643,11 +643,10 @@ export async function sendTestNotificationToMember(options: {
   const membersCollection = await getMembersCollection();
   const member = await membersCollection.findOne({
     email: normalizedEmail,
-    status: "completed",
   });
 
   if (!member) {
-    throw new Error("Completed member not found.");
+    throw new Error("Member not found.");
   }
 
   const locale = resolveLocale(member.locale);

@@ -59,6 +59,7 @@ export async function POST(request: Request) {
 
   try {
     const authorization = await validateNotificationOwner({
+      allowedStatuses: ["completed", "pending_payment"],
       email: body.email,
       walletAddress: body.walletAddress,
     });
@@ -114,6 +115,7 @@ export async function DELETE(request: Request) {
 
   try {
     const authorization = await validateNotificationOwner({
+      allowedStatuses: ["completed", "pending_payment"],
       email: body.email,
       walletAddress: body.walletAddress,
     });
