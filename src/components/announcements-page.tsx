@@ -615,35 +615,39 @@ export function AnnouncementsPage({
                     {announcementsState.recipients?.preview.length ? (
                       <div className="flex flex-wrap gap-2">
                         {announcementsState.recipients.preview.map((recipient) => (
-                          <span
+                          <div
                             className={cn(
-                              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm",
+                              "flex w-full flex-col gap-2 rounded-[24px] border px-4 py-3 text-sm sm:w-auto sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:px-3 sm:py-1.5",
                               recipient.status === "completed"
                                 ? "border-emerald-200 bg-emerald-50 text-emerald-950"
                                 : "border-amber-200 bg-amber-50 text-amber-950",
                             )}
                             key={`${recipient.email}:${recipient.status}`}
                           >
-                            <span className="font-medium">{recipient.email}</span>
-                            <span className="text-xs uppercase tracking-[0.16em] opacity-70">
-                              {recipient.status === "completed"
-                                ? copy.labels.completedRecipients
-                                : copy.labels.pendingRecipients}
+                            <span className="min-w-0 font-medium break-all sm:break-normal">
+                              {recipient.email}
                             </span>
-                            <span
-                              className={cn(
-                                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em]",
-                                recipient.pushSubscribed
-                                  ? "bg-slate-950 text-white"
-                                  : "bg-white/70 text-slate-500",
-                              )}
-                            >
-                              <Smartphone className="size-3" />
-                              {recipient.pushSubscribed
-                                ? copy.labels.pushReady
-                                : copy.labels.pushUnavailable}
+                            <span className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center rounded-full bg-white/75 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-700">
+                                {recipient.status === "completed"
+                                  ? copy.labels.completedRecipients
+                                  : copy.labels.pendingRecipients}
+                              </span>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em]",
+                                  recipient.pushSubscribed
+                                    ? "bg-slate-950 text-white"
+                                    : "bg-white/70 text-slate-500",
+                                )}
+                              >
+                                <Smartphone className="size-3" />
+                                {recipient.pushSubscribed
+                                  ? copy.labels.pushReady
+                                  : copy.labels.pushUnavailable}
+                              </span>
                             </span>
-                          </span>
+                          </div>
                         ))}
                       </div>
                     ) : (
