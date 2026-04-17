@@ -503,24 +503,34 @@ export function ReferralsPage({
                     >
                       {referralLink}
                     </a>
-                    <div className="mt-4 flex flex-wrap gap-3">
+                    <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
                       <CopyTextButton
                         className="w-full sm:w-auto"
                         copiedLabel={dictionary.common.copied}
                         copyLabel={dictionary.common.copyLink}
                         text={referralLink}
                       />
+                      <Link
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
+                        href={`/${locale}/branding-studio`}
+                      >
+                        {brandingCopy.actions.customizeLanding}
+                        <ArrowUpRight className="size-4" />
+                      </Link>
+                      <a
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                        href={referralLink}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {brandingCopy.actions.openPreview}
+                        <ArrowUpRight className="size-4" />
+                      </a>
                     </div>
                   </div>
                 ) : null}
 
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
-                  <Link
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                    href={`/${locale}/branding-studio`}
-                  >
-                    {brandingCopy.page.title}
-                  </Link>
                   <Link
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                     href={`/${locale}`}

@@ -6,6 +6,7 @@ export type LandingBrandingCopy = {
     backHome: string;
     completeSignup: string;
     connectWallet: string;
+    customizeLanding: string;
     openPreview: string;
     openReferrals: string;
     refresh: string;
@@ -83,6 +84,7 @@ const englishCopy: LandingBrandingCopy = {
     backHome: "Back home",
     completeSignup: "Complete signup",
     connectWallet: "Sign in with email",
+    customizeLanding: "Customize referral landing",
     openPreview: "Open referral preview",
     openReferrals: "Open referrals",
     refresh: "Refresh",
@@ -198,6 +200,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       backHome: "ホームへ戻る",
       completeSignup: "登録を完了",
       connectWallet: "メールでログイン",
+      customizeLanding: "紹介ランディングを編集",
       openPreview: "紹介プレビューを開く",
       openReferrals: "紹介ページへ",
       refresh: "更新",
@@ -298,6 +301,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       backHome: "홈으로",
       completeSignup: "가입 완료하기",
       connectWallet: "이메일 로그인",
+      customizeLanding: "레퍼럴 랜딩 꾸미기",
       openPreview: "레퍼럴 미리보기 열기",
       openReferrals: "레퍼럴 페이지",
       refresh: "새로고침",
@@ -416,6 +420,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       backHome: "返回首页",
       completeSignup: "完成注册",
       connectWallet: "邮箱登录",
+      customizeLanding: "自定义推荐落地页",
       openPreview: "打开推荐预览",
       openReferrals: "打开推荐页",
       refresh: "刷新",
