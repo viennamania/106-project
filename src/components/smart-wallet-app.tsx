@@ -2292,26 +2292,6 @@ function CompletedHomeDashboard({
                         <ArrowUpRight className="hidden size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5 2xl:block" />
                       </Link>
                     </div>
-                    <div className="grid gap-2.5 xl:grid-cols-2">
-                      <Link
-                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/8 px-4 text-sm font-medium text-white/92 transition hover:border-white/18 hover:bg-white/12"
-                        href={networkFeedHref}
-                      >
-                        <Rss className="size-4 shrink-0" />
-                        <span className="whitespace-nowrap">
-                          {contentCopy.actions.openFeed}
-                        </span>
-                      </Link>
-                      <Link
-                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/8 px-4 text-sm font-medium text-white/92 transition hover:border-white/18 hover:bg-white/12"
-                        href={creatorStudioHref}
-                      >
-                        <PenSquare className="size-4 shrink-0" />
-                        <span className="whitespace-nowrap">
-                          {contentCopy.actions.openStudio}
-                        </span>
-                      </Link>
-                    </div>
                   </>
                 ) : null}
               </div>
@@ -2320,14 +2300,56 @@ function CompletedHomeDashboard({
             <div className="grid gap-3">
               <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-5">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  {dictionary.member.eyebrow}
+                  {contentCopy.page.feedEyebrow}
                 </p>
                 <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                  {dictionary.member.newMember}
+                  {contentCopy.entry.title}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {dictionary.member.synced}
+                  {contentCopy.entry.description}
                 </p>
+                <div className="mt-4 grid gap-3">
+                  <Link
+                    className="group rounded-[22px] border border-slate-200 bg-slate-50/90 p-4 transition hover:border-slate-300 hover:bg-white"
+                    href={networkFeedHref}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        <Rss className="size-4" />
+                      </div>
+                      <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                    </div>
+                    <p className="mt-4 text-base font-semibold tracking-tight text-slate-950">
+                      {contentCopy.entry.viewerTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {contentCopy.entry.viewerDescription}
+                    </p>
+                    <p className="mt-3 text-sm font-medium text-slate-950">
+                      {contentCopy.actions.browseFeed}
+                    </p>
+                  </Link>
+                  <Link
+                    className="group rounded-[22px] border border-slate-200 bg-slate-50/90 p-4 transition hover:border-slate-300 hover:bg-white"
+                    href={creatorStudioHref}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        <PenSquare className="size-4" />
+                      </div>
+                      <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                    </div>
+                    <p className="mt-4 text-base font-semibold tracking-tight text-slate-950">
+                      {contentCopy.entry.creatorTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {contentCopy.entry.creatorDescription}
+                    </p>
+                    <p className="mt-3 text-sm font-medium text-slate-950">
+                      {contentCopy.actions.openStudio}
+                    </p>
+                  </Link>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

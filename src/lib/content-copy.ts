@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n";
 export type ContentCopy = {
   actions: {
     backHome: string;
+    browseFeed: string;
     connectWallet: string;
     createPost: string;
     disconnect: string;
@@ -16,6 +17,14 @@ export type ContentCopy = {
     uploadImage: string;
     uploadingImage: string;
     viewDetail: string;
+  };
+  entry: {
+    creatorDescription: string;
+    creatorTitle: string;
+    description: string;
+    title: string;
+    viewerDescription: string;
+    viewerTitle: string;
   };
   fields: {
     body: string;
@@ -86,6 +95,7 @@ export type ContentCopy = {
 const englishCopy: ContentCopy = {
   actions: {
     backHome: "Back home",
+    browseFeed: "Browse feed",
     connectWallet: "Sign in with email",
     createPost: "Create post",
     disconnect: "Disconnect",
@@ -99,6 +109,17 @@ const englishCopy: ContentCopy = {
     uploadImage: "Upload image",
     uploadingImage: "Uploading...",
     viewDetail: "View detail",
+  },
+  entry: {
+    creatorDescription:
+      "Set up your profile and publish posts for members in your downstream network.",
+    creatorTitle: "Start as creator",
+    description:
+      "Choose whether you want to browse upstream creators or publish content to your own network.",
+    title: "Network Content",
+    viewerDescription:
+      "Browse free posts shared by creators in your upstream 6-level network.",
+    viewerTitle: "View the feed",
   },
   fields: {
     body: "Content body",
@@ -176,6 +197,7 @@ const englishCopy: ContentCopy = {
 const koreanCopy: ContentCopy = {
   actions: {
     backHome: "홈으로 돌아가기",
+    browseFeed: "피드 보기",
     connectWallet: "이메일로 로그인",
     createPost: "콘텐츠 만들기",
     disconnect: "연결 해제",
@@ -189,6 +211,17 @@ const koreanCopy: ContentCopy = {
     uploadImage: "이미지 업로드",
     uploadingImage: "업로드 중...",
     viewDetail: "상세 보기",
+  },
+  entry: {
+    creatorDescription:
+      "내 프로필을 설정하고 하위 네트워크 회원에게 보여줄 콘텐츠를 발행하세요.",
+    creatorTitle: "크리에이터 시작하기",
+    description:
+      "상위 네트워크의 콘텐츠를 볼지, 내 네트워크에 콘텐츠를 발행할지 역할에 맞게 바로 이동할 수 있습니다.",
+    title: "네트워크 콘텐츠",
+    viewerDescription:
+      "내 상위 6단계 네트워크 크리에이터가 올린 무료 콘텐츠를 확인하세요.",
+    viewerTitle: "네트워크 피드 보기",
   },
   fields: {
     body: "본문",
