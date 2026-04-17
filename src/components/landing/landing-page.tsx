@@ -255,6 +255,27 @@ export function LandingPage({
                   </div>
                 </div>
               ) : null}
+              {activeBranding?.heroImageUrl ? (
+                <div className="mt-6 flex justify-center">
+                  <div
+                    className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-white/12 bg-black/20 shadow-[0_30px_90px_rgba(15,23,42,0.24)]"
+                    style={
+                      theme
+                        ? {
+                            boxShadow: `0 30px 90px ${theme.glow}`,
+                          }
+                        : undefined
+                    }
+                  >
+                    <div
+                      className="h-56 w-full bg-cover bg-center sm:h-72"
+                      style={{
+                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.28)), url(${activeBranding.heroImageUrl})`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
               <h1
                 className={`mx-auto mt-3 font-semibold tracking-tight text-white ${
                   locale === "ko"

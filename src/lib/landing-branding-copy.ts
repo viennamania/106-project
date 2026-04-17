@@ -9,8 +9,11 @@ export type LandingBrandingCopy = {
     openPreview: string;
     openReferrals: string;
     refresh: string;
+    removeImage: string;
     save: string;
     saving: string;
+    uploadImage: string;
+    uploadingImage: string;
   };
   defaults: {
     badgeLabel: string;
@@ -25,6 +28,7 @@ export type LandingBrandingCopy = {
     ctaLabel: string;
     description: string;
     headline: string;
+    heroImage: string;
     mode: string;
     preview: string;
     referralLink: string;
@@ -36,6 +40,7 @@ export type LandingBrandingCopy = {
     ctaLabel: string;
     description: string;
     headline: string;
+    heroImage: string;
   };
   landing: {
     brandedExperience: string;
@@ -52,6 +57,8 @@ export type LandingBrandingCopy = {
     paymentRequired: string;
     saveFailed: string;
     saveSuccess: string;
+    uploadFailed: string;
+    uploadSuccess: string;
   };
   meta: {
     description: string;
@@ -79,8 +86,11 @@ const englishCopy: LandingBrandingCopy = {
     openPreview: "Open referral preview",
     openReferrals: "Open referrals",
     refresh: "Refresh",
+    removeImage: "Remove image",
     save: "Save branding",
     saving: "Saving...",
+    uploadImage: "Upload image",
+    uploadingImage: "Uploading...",
   },
   defaults: {
     badgeLabel: "Private Invite",
@@ -96,6 +106,7 @@ const englishCopy: LandingBrandingCopy = {
     ctaLabel: "CTA label",
     description: "Hero description",
     headline: "Hero headline",
+    heroImage: "Hero image",
     mode: "Landing mode",
     preview: "Preview",
     referralLink: "Referral link",
@@ -107,6 +118,8 @@ const englishCopy: LandingBrandingCopy = {
     ctaLabel: "Primary CTA text used on the branded landing page.",
     description: "Use one or two sentences that explain why this referral page feels different.",
     headline: "Keep it concise. This becomes the main title on the branded landing page.",
+    heroImage:
+      "PNG, JPG, or WEBP up to 4MB. It appears on the branded landing page and OG preview.",
   },
   landing: {
     brandedExperience: "Branded Referral Landing",
@@ -127,6 +140,8 @@ const englishCopy: LandingBrandingCopy = {
       "Branding Studio is available after member signup is completed.",
     saveFailed: "Failed to save branding settings.",
     saveSuccess: "Branding settings saved.",
+    uploadFailed: "Failed to upload image.",
+    uploadSuccess: "Image uploaded. Save branding to publish it.",
   },
   meta: {
     description:
@@ -186,8 +201,11 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       openPreview: "紹介プレビューを開く",
       openReferrals: "紹介ページへ",
       refresh: "更新",
+      removeImage: "画像を削除",
       save: "ブランディングを保存",
       saving: "保存中...",
+      uploadImage: "画像をアップロード",
+      uploadingImage: "アップロード中...",
     },
     defaults: {
       badgeLabel: "限定招待",
@@ -198,17 +216,20 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       headlineTemplate: "{brandName} と一緒に 1066friend+ を始める",
     },
     fields: {
+      ...englishCopy.fields,
       badgeLabel: "バッジラベル",
       brandName: "ブランド名",
       ctaLabel: "CTA ラベル",
       description: "ヒーロー説明",
       headline: "ヒーロー見出し",
+      heroImage: "ヒーロー画像",
       mode: "ランディングモード",
       preview: "プレビュー",
       referralLink: "紹介リンク",
       theme: "テーマ",
     },
     hints: {
+      ...englishCopy.hints,
       badgeLabel: "ヒーロー上部に表示される短いラベルです。",
       brandName:
         "ランディングページと OG 画像で紹介者のブランドとして表示されます。",
@@ -217,6 +238,8 @@ const copies: Record<Locale, LandingBrandingCopy> = {
         "この紹介ページが通常版とどう違うかを 1〜2 文で説明してください。",
       headline:
         "短くまとめてください。ブランディング版ランディングのメイン見出しになります。",
+      heroImage:
+        "PNG / JPG / WEBP を 4MB までアップロードできます。ブランド版ランディングと OG プレビューに表示されます。",
     },
     landing: {
       brandedExperience: "ブランディング紹介ランディング",
@@ -224,6 +247,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       sharedBy: "Shared by",
     },
     messages: {
+      ...englishCopy.messages,
       customModeNotice:
         "カスタムモードでは、保存したコピーとテーマが紹介ランディングと OG プレビューに適用されます。",
       defaultModeNotice:
@@ -237,6 +261,9 @@ const copies: Record<Locale, LandingBrandingCopy> = {
         "ブランディングスタジオは会員登録完了後に利用できます。",
       saveFailed: "ブランディング設定を保存できませんでした。",
       saveSuccess: "ブランディング設定を保存しました。",
+      uploadFailed: "画像をアップロードできませんでした。",
+      uploadSuccess:
+        "画像をアップロードしました。保存するとランディングと OG に反映されます。",
     },
     meta: {
       description:
@@ -267,14 +294,18 @@ const copies: Record<Locale, LandingBrandingCopy> = {
   ko: {
     ...englishCopy,
     actions: {
+      ...englishCopy.actions,
       backHome: "홈으로",
       completeSignup: "가입 완료하기",
       connectWallet: "이메일 로그인",
       openPreview: "레퍼럴 미리보기 열기",
       openReferrals: "레퍼럴 페이지",
       refresh: "새로고침",
+      removeImage: "이미지 제거",
       save: "브랜딩 저장",
       saving: "저장 중...",
+      uploadImage: "이미지 업로드",
+      uploadingImage: "업로드 중...",
     },
     defaults: {
       badgeLabel: "프라이빗 초대",
@@ -285,17 +316,20 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       headlineTemplate: "{brandName}와 함께 1066friend+ 시작하기",
     },
     fields: {
+      ...englishCopy.fields,
       badgeLabel: "배지 문구",
       brandName: "브랜드 이름",
       ctaLabel: "CTA 문구",
       description: "히어로 설명",
       headline: "히어로 헤드라인",
+      heroImage: "히어로 이미지",
       mode: "랜딩 모드",
       preview: "미리보기",
       referralLink: "레퍼럴 링크",
       theme: "테마",
     },
     hints: {
+      ...englishCopy.hints,
       badgeLabel: "히어로 상단에 짧게 노출되는 문구입니다.",
       brandName:
         "랜딩 페이지와 OG 이미지에서 공유자 브랜드로 표시됩니다.",
@@ -304,6 +338,8 @@ const copies: Record<Locale, LandingBrandingCopy> = {
         "이 레퍼럴 페이지가 기본 페이지와 어떻게 다른지 1~2문장으로 설명하세요.",
       headline:
         "짧고 강하게 작성하세요. 브랜딩 랜딩 페이지의 메인 제목이 됩니다.",
+      heroImage:
+        "PNG, JPG, WEBP 이미지를 4MB까지 올릴 수 있습니다. 브랜딩 랜딩과 OG 미리보기에 함께 반영됩니다.",
     },
     landing: {
       brandedExperience: "브랜딩 레퍼럴 랜딩",
@@ -311,6 +347,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       sharedBy: "공유자",
     },
     messages: {
+      ...englishCopy.messages,
       customModeNotice:
         "커스텀 모드를 켜면 저장한 카피와 테마가 레퍼럴 랜딩과 OG 미리보기에 반영됩니다.",
       defaultModeNotice:
@@ -323,6 +360,9 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       paymentRequired: "브랜딩 스튜디오는 가입 완료 회원에게만 제공됩니다.",
       saveFailed: "브랜딩 설정 저장에 실패했습니다.",
       saveSuccess: "브랜딩 설정이 저장되었습니다.",
+      uploadFailed: "이미지 업로드에 실패했습니다.",
+      uploadSuccess:
+        "이미지를 업로드했습니다. 저장하면 랜딩 페이지와 OG에 반영됩니다.",
     },
     meta: {
       description:
@@ -391,22 +431,27 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       headlineTemplate: "与 {brandName} 一起开始 1066friend+",
     },
     fields: {
+      ...englishCopy.fields,
       badgeLabel: "徽章文案",
       brandName: "品牌名称",
       ctaLabel: "CTA 文案",
       description: "主视觉描述",
       headline: "主视觉标题",
+      heroImage: "主视觉图片",
       mode: "落地页模式",
       preview: "预览",
       referralLink: "推荐链接",
       theme: "主题",
     },
     hints: {
+      ...englishCopy.hints,
       badgeLabel: "显示在主视觉上方的短标签。",
       brandName: "会在落地页和 OG 图片中显示为分享者品牌。",
       ctaLabel: "品牌版落地页主 CTA 按钮文案。",
       description: "用 1 到 2 句话说明这个推荐页与默认页的差异。",
       headline: "尽量简洁，这会成为品牌版落地页的主标题。",
+      heroImage:
+        "支持 PNG、JPG、WEBP，最大 4MB。会显示在品牌版落地页和 OG 预览中。",
     },
     landing: {
       brandedExperience: "品牌推荐落地页",
@@ -414,6 +459,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       sharedBy: "分享者",
     },
     messages: {
+      ...englishCopy.messages,
       customModeNotice:
         "开启自定义模式后，保存的文案和主题会应用到推荐落地页和 OG 预览。",
       defaultModeNotice:
@@ -426,6 +472,8 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       paymentRequired: "Branding Studio 仅对完成注册的会员开放。",
       saveFailed: "保存品牌设置失败。",
       saveSuccess: "品牌设置已保存。",
+      uploadFailed: "图片上传失败。",
+      uploadSuccess: "图片已上传。保存后会同步到落地页和 OG 预览。",
     },
     meta: {
       description:

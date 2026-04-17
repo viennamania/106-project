@@ -61,6 +61,7 @@ export async function GET(request: Request) {
           style={{
             alignItems: "flex-start",
             display: "flex",
+            gap: 28,
             justifyContent: "space-between",
             position: "relative",
             width: "100%",
@@ -96,21 +97,75 @@ export async function GET(request: Request) {
             </div>
           </div>
 
-          <div
-            style={{
-              alignItems: "center",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: 999,
-              display: "flex",
-              fontSize: 20,
-              fontWeight: 600,
-              maxWidth: 460,
-              padding: "14px 20px",
-            }}
-          >
-            {topRightLabel}
-          </div>
+          {branding?.heroImageUrl ? (
+            <div
+              style={{
+                alignItems: "flex-end",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+                maxWidth: 300,
+              }}
+            >
+              <div
+                style={{
+                  alignItems: "center",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 999,
+                  display: "flex",
+                  fontSize: 20,
+                  fontWeight: 600,
+                  justifyContent: "center",
+                  maxWidth: 300,
+                  padding: "14px 20px",
+                  textAlign: "center",
+                }}
+              >
+                {topRightLabel}
+              </div>
+              <div
+                style={{
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 28,
+                  display: "flex",
+                  height: 180,
+                  overflow: "hidden",
+                  width: 300,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires a plain img for remote Blob assets. */}
+                <img
+                  alt={branding.brandName}
+                  height="180"
+                  src={branding.heroImageUrl}
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
+                  width="300"
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                alignItems: "center",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                borderRadius: 999,
+                display: "flex",
+                fontSize: 20,
+                fontWeight: 600,
+                maxWidth: 460,
+                padding: "14px 20px",
+              }}
+            >
+              {topRightLabel}
+            </div>
+          )}
         </div>
 
         <div
@@ -118,7 +173,7 @@ export async function GET(request: Request) {
             display: "flex",
             flexDirection: "column",
             gap: 22,
-            maxWidth: 980,
+            maxWidth: branding?.heroImageUrl ? 780 : 980,
             position: "relative",
           }}
         >

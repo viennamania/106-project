@@ -16,6 +16,7 @@ export const LANDING_BRANDING_LIMITS = {
   description: 220,
   headline: 88,
 } as const;
+export const BRANDING_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 
 export const defaultLandingBrandMode = "default";
 export const defaultLandingBrandThemeKey = "gold";
@@ -29,6 +30,8 @@ export type LandingBrandingInput = {
   ctaLabel: string;
   description: string;
   headline: string;
+  heroImagePathname: string | null;
+  heroImageUrl: string | null;
   mode: LandingBrandingMode;
   themeKey: LandingBrandThemeKey;
 };
@@ -177,8 +180,22 @@ function readString(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function readNullableString(value: unknown) {
+  const normalized = readString(value).trim();
+  return normalized ? normalized : null;
+}
+
 export function getConfiguredAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
+}
+
+export function isAllowedBrandingImageUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.hostname.endsWith(".public.blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
 }
 
 export function buildReferralLandingPath(
@@ -304,6 +321,8 @@ export function createDefaultLandingBranding({
       }),
       LANDING_BRANDING_LIMITS.headline,
     ),
+    heroImagePathname: null,
+    heroImageUrl: null,
     mode: defaultLandingBrandMode,
     themeKey: defaultLandingBrandThemeKey,
     updatedAt: null,
@@ -351,6 +370,10 @@ export function serializeLandingBranding(
       readString(branding.headline),
       LANDING_BRANDING_LIMITS.headline,
     ),
+    heroImagePathname: readNullableString(branding.heroImagePathname),
+    heroImageUrl: isAllowedBrandingImageUrl(readString(branding.heroImageUrl))
+      ? readString(branding.heroImageUrl).trim()
+      : null,
     mode,
     themeKey,
     updatedAt,
@@ -406,6 +429,8 @@ export function normalizeLandingBrandingInput(
     readString(input?.ctaLabel),
     LANDING_BRANDING_LIMITS.ctaLabel,
   );
+  const heroImageUrl = readNullableString(input?.heroImageUrl);
+  const heroImagePathname = readNullableString(input?.heroImagePathname);
   const rawMode = readString(input?.mode);
   const rawThemeKey = readString(input?.themeKey);
   const mode: LandingBrandingMode = isLandingBrandMode(rawMode)
@@ -450,6 +475,20 @@ export function normalizeLandingBrandingInput(
     };
   }
 
+  if (heroImageUrl && !isAllowedBrandingImageUrl(heroImageUrl)) {
+    return {
+      data: null,
+      error: "heroImageUrl must be a Vercel Blob public URL.",
+    };
+  }
+
+  if ((heroImageUrl && !heroImagePathname) || (!heroImageUrl && heroImagePathname)) {
+    return {
+      data: null,
+      error: "hero image metadata is incomplete.",
+    };
+  }
+
   return {
     data: {
       badgeLabel,
@@ -457,6 +496,8 @@ export function normalizeLandingBrandingInput(
       ctaLabel,
       description,
       headline,
+      heroImagePathname,
+      heroImageUrl,
       mode,
       themeKey,
     },

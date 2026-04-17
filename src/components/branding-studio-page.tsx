@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   useEffect,
   useEffectEvent,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -63,6 +64,12 @@ type BrandingStudioResponse = {
   referralLink: string | null;
 };
 
+type BrandingStudioUploadResponse = {
+  contentType: string;
+  pathname: string;
+  url: string;
+};
+
 type StudioState = {
   branding: LandingBrandingRecord | null;
   error: string | null;
@@ -110,8 +117,10 @@ export function BrandingStudioPage({
   const [form, setForm] = useState<LandingBrandingRecord | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   async function loadStudio() {
     if (!accountAddress) {
@@ -325,6 +334,61 @@ export function BrandingStudioPage({
       });
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function uploadHeroImage(file: File) {
+    if (!state.member?.email) {
+      return;
+    }
+
+    setIsUploading(true);
+    setNotice(null);
+
+    try {
+      const body = new FormData();
+      body.set("email", state.member.email);
+      body.set("file", file);
+
+      const response = await fetch("/api/members/landing-branding/upload", {
+        body,
+        method: "POST",
+      });
+      const data = (await response.json()) as
+        | BrandingStudioUploadResponse
+        | { error?: string };
+
+      if (!response.ok || !("url" in data) || !("pathname" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : studioCopy.messages.uploadFailed,
+        );
+      }
+
+      setForm((current) =>
+        current
+          ? {
+              ...current,
+              heroImagePathname: data.pathname,
+              heroImageUrl: data.url,
+            }
+          : current,
+      );
+      setNotice({
+        text: studioCopy.messages.uploadSuccess,
+        tone: "success",
+      });
+    } catch (error) {
+      setNotice({
+        text:
+          error instanceof Error
+            ? error.message
+            : studioCopy.messages.uploadFailed,
+        tone: "error",
+      });
+    } finally {
+      setIsUploading(false);
     }
   }
 
@@ -610,6 +674,79 @@ export function BrandingStudioPage({
                     value={form.description}
                   />
 
+                  <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                    <div className="grid gap-4 sm:flex sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {studioCopy.fields.heroImage}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                          {studioCopy.hints.heroImage}
+                        </p>
+                      </div>
+                      <input
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+
+                          if (file) {
+                            void uploadHeroImage(file);
+                          }
+
+                          event.target.value = "";
+                        }}
+                        ref={fileInputRef}
+                        type="file"
+                      />
+                      <div className="grid gap-3 sm:flex sm:flex-wrap">
+                        <button
+                          className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                          disabled={isUploading}
+                          onClick={() => {
+                            fileInputRef.current?.click();
+                          }}
+                          type="button"
+                        >
+                          {isUploading
+                            ? studioCopy.actions.uploadingImage
+                            : studioCopy.actions.uploadImage}
+                        </button>
+                        {form.heroImageUrl ? (
+                          <button
+                            className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                            onClick={() => {
+                              setForm((current) =>
+                                current
+                                  ? {
+                                      ...current,
+                                      heroImagePathname: null,
+                                      heroImageUrl: null,
+                                    }
+                                  : current,
+                              );
+                              setNotice(null);
+                            }}
+                            type="button"
+                          >
+                            {studioCopy.actions.removeImage}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {form.heroImageUrl ? (
+                      <div className="mt-4 overflow-hidden rounded-[26px] border border-slate-200 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                        <div
+                          className="h-52 w-full bg-cover bg-center sm:h-64"
+                          style={{
+                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${form.heroImageUrl})`,
+                          }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
                   <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
                     <Field
                       hint={studioCopy.hints.ctaLabel}
@@ -663,7 +800,7 @@ export function BrandingStudioPage({
                   <div className="grid gap-3 sm:flex sm:flex-wrap">
                     <button
                       className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                      disabled={isSaving}
+                      disabled={isSaving || isUploading}
                       onClick={() => {
                         void saveStudio();
                       }}
@@ -841,6 +978,8 @@ function ThemeOption({
       ctaLabel: "CTA",
       description: label,
       headline: label,
+      heroImagePathname: null,
+      heroImageUrl: null,
       mode: "custom",
       themeKey,
       updatedAt: null,
@@ -899,6 +1038,16 @@ function PreviewCard({ branding }: { branding: LandingPageBranding }) {
       <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
         {branding.brandName}
       </p>
+      {branding.heroImageUrl ? (
+        <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+          <div
+            className="h-44 w-full bg-cover bg-center"
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.28)), url(${branding.heroImageUrl})`,
+            }}
+          />
+        </div>
+      ) : null}
       <h3 className="mt-5 text-[1.9rem] font-semibold tracking-tight text-white">
         {branding.headline}
       </h3>

@@ -22,6 +22,7 @@
     "thirdweb:webhooks:register": "node scripts/register-thirdweb-usdt-webhooks.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
     "mongodb": "^7.1.1",
