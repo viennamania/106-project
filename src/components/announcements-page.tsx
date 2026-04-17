@@ -29,6 +29,7 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import type {
+  MemberAnnouncementRecipientFilter,
   MemberAnnouncementRecord,
   MemberAnnouncementsResponse,
   MemberAnnouncementRecipientSummary,
@@ -59,6 +60,12 @@ type AnnouncementsState = {
   recipients: MemberAnnouncementRecipientSummary | null;
   status: "idle" | "loading" | "ready" | "error";
 };
+
+const recipientFilterOrder: MemberAnnouncementRecipientFilter[] = [
+  "all",
+  "completed",
+  "push_ready",
+];
 
 function MessageCard({
   children,
@@ -144,6 +151,8 @@ export function AnnouncementsPage({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [href, setHref] = useState("");
+  const [selectedRecipientFilter, setSelectedRecipientFilter] =
+    useState<MemberAnnouncementRecipientFilter>("all");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitNotice, setSubmitNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,7 +163,10 @@ export function AnnouncementsPage({
     : null;
 
   const loadAnnouncements = useCallback(
-    async (memberEmail: string) => {
+    async (
+      memberEmail: string,
+      recipientFilter: MemberAnnouncementRecipientFilter,
+    ) => {
       if (!memberEmail || !accountAddress) {
         return;
       }
@@ -168,6 +180,7 @@ export function AnnouncementsPage({
       try {
         const searchParams = new URLSearchParams({
           email: memberEmail,
+          recipientFilter,
           walletAddress: accountAddress,
         });
         const response = await fetch(`/api/announcements?${searchParams.toString()}`);
@@ -307,8 +320,13 @@ export function AnnouncementsPage({
       return;
     }
 
-    void loadAnnouncements(memberSync.member.email);
-  }, [isCompletedMember, loadAnnouncements, memberSync.member?.email]);
+    void loadAnnouncements(memberSync.member.email, selectedRecipientFilter);
+  }, [
+    isCompletedMember,
+    loadAnnouncements,
+    memberSync.member?.email,
+    selectedRecipientFilter,
+  ]);
 
   async function handleSendAnnouncement() {
     if (!memberSync.member?.email || !accountAddress || isSubmitting) {
@@ -325,6 +343,7 @@ export function AnnouncementsPage({
           body,
           email: memberSync.member.email,
           href,
+          recipientFilter: selectedRecipientFilter,
           title,
           walletAddress: accountAddress,
         }),
@@ -485,6 +504,37 @@ export function AnnouncementsPage({
                   ) : null}
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="sm:col-span-2 xl:col-span-4">
+                      <p className="mb-2 text-sm font-semibold text-slate-950">
+                        {copy.labels.recipientFilter}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {recipientFilterOrder.map((recipientFilter) => {
+                          const isActive =
+                            selectedRecipientFilter === recipientFilter;
+
+                          return (
+                            <button
+                              className={cn(
+                                "inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-medium transition",
+                                isActive
+                                  ? "border-slate-950 bg-slate-950 text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
+                                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                              )}
+                              key={recipientFilter}
+                              onClick={() => {
+                                setSelectedRecipientFilter(recipientFilter);
+                                setSubmitError(null);
+                                setSubmitNotice(null);
+                              }}
+                              type="button"
+                            >
+                              {copy.filters[recipientFilter]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <StatusChip
                       label={copy.labels.totalRecipients}
                       value={new Intl.NumberFormat(locale).format(
@@ -678,6 +728,9 @@ export function AnnouncementsPage({
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="inline-flex items-center rounded-full bg-slate-950 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white">
                                 {copy.title}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                                {copy.filters[announcement.recipientFilter]}
                               </span>
                               <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
                                 {copy.labels.totalRecipients}

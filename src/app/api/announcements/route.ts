@@ -2,6 +2,10 @@ import {
   getAnnouncementCenterForMember,
   sendAnnouncementToDirectMembers,
 } from "@/lib/announcements-service";
+import {
+  isMemberAnnouncementRecipientFilter,
+  type MemberAnnouncementRecipientFilter,
+} from "@/lib/announcements";
 import { validateNotificationOwner } from "@/lib/notification-owner";
 
 function jsonError(message: string, status: number) {
@@ -12,6 +16,7 @@ type SendAnnouncementRequest = {
   body: string;
   email: string;
   href?: string | null;
+  recipientFilter?: MemberAnnouncementRecipientFilter;
   title: string;
   walletAddress: string;
 };
@@ -19,6 +24,7 @@ type SendAnnouncementRequest = {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const email = url.searchParams.get("email");
+  const rawRecipientFilter = url.searchParams.get("recipientFilter");
   const walletAddress = url.searchParams.get("walletAddress");
 
   if (!email) {
@@ -28,6 +34,18 @@ export async function GET(request: Request) {
   if (!walletAddress) {
     return jsonError("walletAddress query parameter is required.", 400);
   }
+
+  if (
+    rawRecipientFilter &&
+    !isMemberAnnouncementRecipientFilter(rawRecipientFilter)
+  ) {
+    return jsonError("recipientFilter query parameter is invalid.", 400);
+  }
+
+  const recipientFilter: MemberAnnouncementRecipientFilter =
+    rawRecipientFilter && isMemberAnnouncementRecipientFilter(rawRecipientFilter)
+      ? rawRecipientFilter
+      : "all";
 
   try {
     const authorization = await validateNotificationOwner({
@@ -40,7 +58,7 @@ export async function GET(request: Request) {
     }
 
     return Response.json(
-      await getAnnouncementCenterForMember(authorization.normalizedEmail),
+      await getAnnouncementCenterForMember(authorization.normalizedEmail, recipientFilter),
     );
   } catch (error) {
     const message =
@@ -67,6 +85,13 @@ export async function POST(request: Request) {
     return jsonError("walletAddress is required.", 400);
   }
 
+  if (
+    body.recipientFilter &&
+    !isMemberAnnouncementRecipientFilter(body.recipientFilter)
+  ) {
+    return jsonError("recipientFilter is invalid.", 400);
+  }
+
   try {
     const authorization = await validateNotificationOwner({
       email: body.email,
@@ -82,6 +107,7 @@ export async function POST(request: Request) {
         body: body.body,
         href: body.href,
         memberEmail: authorization.normalizedEmail,
+        recipientFilter: body.recipientFilter ?? "all",
         title: body.title,
         walletAddress: body.walletAddress,
       }),

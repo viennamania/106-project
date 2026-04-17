@@ -336,21 +336,27 @@ export type Dictionary = {
     recipientSummaryDescription: string;
     emptyRecipients: string;
     emptyHistory: string;
-      labels: {
-        body: string;
-        completedRecipients: string;
-        deliveryTarget: string;
-        history: string;
-        latestMessages: string;
-        pendingRecipients: string;
-        pushRecipients: string;
-        pushReady: string;
-        pushUnavailable: string;
-        recipientPreview: string;
-        sendLink: string;
-        title: string;
-        totalRecipients: string;
-      };
+    labels: {
+      body: string;
+      completedRecipients: string;
+      deliveryTarget: string;
+      history: string;
+      latestMessages: string;
+      pendingRecipients: string;
+      pushRecipients: string;
+      pushReady: string;
+      pushUnavailable: string;
+      recipientFilter: string;
+      recipientPreview: string;
+      sendLink: string;
+      title: string;
+      totalRecipients: string;
+    };
+    filters: {
+      all: string;
+      completed: string;
+      push_ready: string;
+    };
     placeholders: {
       body: string;
       href: string;
@@ -1136,10 +1142,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pushRecipients: "푸시 수신 가능",
         pushReady: "푸시 ON",
         pushUnavailable: "푸시 없음",
+        recipientFilter: "발송 대상",
         recipientPreview: "수신자 미리보기",
         sendLink: "이동 링크",
         title: "공지 제목",
         totalRecipients: "전체 수신자",
+      },
+      filters: {
+        all: "전체 직접 가입 회원",
+        completed: "활성화 완료만",
+        push_ready: "푸시 가능 회원만",
       },
       placeholders: {
         body: "오늘 전달할 핵심 내용과 다음 행동을 간단히 적어주세요.",
@@ -1961,10 +1973,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pushRecipients: "Push ready",
         pushReady: "Push ON",
         pushUnavailable: "No push",
+        recipientFilter: "Recipient filter",
         recipientPreview: "Recipient preview",
         sendLink: "Target link",
         title: "Announcement title",
         totalRecipients: "Total recipients",
+      },
+      filters: {
+        all: "All direct members",
+        completed: "Completed only",
+        push_ready: "Push-ready only",
       },
       placeholders: {
         body: "Write the key update and the next action members should take.",
@@ -2792,10 +2810,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pushRecipients: "プッシュ受信可能",
         pushReady: "プッシュ ON",
         pushUnavailable: "プッシュなし",
+        recipientFilter: "送信対象",
         recipientPreview: "受信者プレビュー",
         sendLink: "移動リンク",
         title: "告知タイトル",
         totalRecipients: "受信者合計",
+      },
+      filters: {
+        all: "直接登録会員全体",
+        completed: "完了済みのみ",
+        push_ready: "プッシュ可能のみ",
       },
       placeholders: {
         body: "今日共有したい要点と次のアクションを簡潔に入力してください。",
@@ -3622,10 +3646,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pushRecipients: "可推送",
         pushReady: "推送 ON",
         pushUnavailable: "无推送",
+        recipientFilter: "发送对象",
         recipientPreview: "接收者预览",
         sendLink: "跳转链接",
         title: "公告标题",
         totalRecipients: "接收者总数",
+      },
+      filters: {
+        all: "全部直属注册会员",
+        completed: "仅已完成",
+        push_ready: "仅可推送会员",
       },
       placeholders: {
         body: "简要写下这次要传达的重点和希望会员马上执行的动作。",

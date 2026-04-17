@@ -1,5 +1,14 @@
 import type { MemberStatus } from "@/lib/member";
 
+export const memberAnnouncementRecipientFilters = [
+  "all",
+  "completed",
+  "push_ready",
+] as const;
+
+export type MemberAnnouncementRecipientFilter =
+  (typeof memberAnnouncementRecipientFilters)[number];
+
 export type MemberAnnouncementRecipientPreview = {
   email: string;
   pushSubscribed: boolean;
@@ -21,6 +30,7 @@ export type MemberAnnouncementDocument = {
   createdAt: Date;
   href: string | null;
   pendingRecipientCount: number;
+  recipientFilter?: MemberAnnouncementRecipientFilter;
   recipientCount: number;
   recipientPreview: MemberAnnouncementRecipientPreview[];
   senderEmail: string;
@@ -36,6 +46,7 @@ export type MemberAnnouncementRecord = {
   createdAt: string;
   href: string | null;
   pendingRecipientCount: number;
+  recipientFilter: MemberAnnouncementRecipientFilter;
   recipientCount: number;
   recipientPreview: MemberAnnouncementRecipientPreview[];
   senderEmail: string;
@@ -47,6 +58,14 @@ export type MemberAnnouncementsResponse = {
   recipients: MemberAnnouncementRecipientSummary;
 };
 
+export function isMemberAnnouncementRecipientFilter(
+  value: string,
+): value is MemberAnnouncementRecipientFilter {
+  return memberAnnouncementRecipientFilters.includes(
+    value as MemberAnnouncementRecipientFilter,
+  );
+}
+
 export function serializeMemberAnnouncement(
   announcement: MemberAnnouncementDocument,
 ): MemberAnnouncementRecord {
@@ -57,6 +76,7 @@ export function serializeMemberAnnouncement(
     createdAt: announcement.createdAt.toISOString(),
     href: announcement.href ?? null,
     pendingRecipientCount: announcement.pendingRecipientCount,
+    recipientFilter: announcement.recipientFilter ?? "all",
     recipientCount: announcement.recipientCount,
     recipientPreview: announcement.recipientPreview.map((recipient) => ({
       ...recipient,
