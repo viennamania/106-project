@@ -1,10 +1,12 @@
 import {
   getAnnouncementCenterForMember,
-  sendAnnouncementToDirectMembers,
+  sendAnnouncement,
 } from "@/lib/announcements-service";
 import {
   isMemberAnnouncementRecipientFilter,
+  isMemberAnnouncementRecipientScope,
   type MemberAnnouncementRecipientFilter,
+  type MemberAnnouncementRecipientScope,
 } from "@/lib/announcements";
 import { validateNotificationOwner } from "@/lib/notification-owner";
 
@@ -17,6 +19,7 @@ type SendAnnouncementRequest = {
   email: string;
   href?: string | null;
   recipientFilter?: MemberAnnouncementRecipientFilter;
+  recipientScope?: MemberAnnouncementRecipientScope;
   title: string;
   walletAddress: string;
 };
@@ -25,6 +28,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const email = url.searchParams.get("email");
   const rawRecipientFilter = url.searchParams.get("recipientFilter");
+  const rawRecipientScope = url.searchParams.get("recipientScope");
   const walletAddress = url.searchParams.get("walletAddress");
 
   if (!email) {
@@ -42,10 +46,21 @@ export async function GET(request: Request) {
     return jsonError("recipientFilter query parameter is invalid.", 400);
   }
 
+  if (
+    rawRecipientScope &&
+    !isMemberAnnouncementRecipientScope(rawRecipientScope)
+  ) {
+    return jsonError("recipientScope query parameter is invalid.", 400);
+  }
+
   const recipientFilter: MemberAnnouncementRecipientFilter =
     rawRecipientFilter && isMemberAnnouncementRecipientFilter(rawRecipientFilter)
       ? rawRecipientFilter
       : "all";
+  const recipientScope: MemberAnnouncementRecipientScope =
+    rawRecipientScope && isMemberAnnouncementRecipientScope(rawRecipientScope)
+      ? rawRecipientScope
+      : "level_1";
 
   try {
     const authorization = await validateNotificationOwner({
@@ -58,7 +73,11 @@ export async function GET(request: Request) {
     }
 
     return Response.json(
-      await getAnnouncementCenterForMember(authorization.normalizedEmail, recipientFilter),
+      await getAnnouncementCenterForMember(
+        authorization.normalizedEmail,
+        recipientScope,
+        recipientFilter,
+      ),
     );
   } catch (error) {
     const message =
@@ -92,6 +111,13 @@ export async function POST(request: Request) {
     return jsonError("recipientFilter is invalid.", 400);
   }
 
+  if (
+    body.recipientScope &&
+    !isMemberAnnouncementRecipientScope(body.recipientScope)
+  ) {
+    return jsonError("recipientScope is invalid.", 400);
+  }
+
   try {
     const authorization = await validateNotificationOwner({
       email: body.email,
@@ -103,11 +129,12 @@ export async function POST(request: Request) {
     }
 
     return Response.json(
-      await sendAnnouncementToDirectMembers({
+      await sendAnnouncement({
         body: body.body,
         href: body.href,
         memberEmail: authorization.normalizedEmail,
         recipientFilter: body.recipientFilter ?? "all",
+        recipientScope: body.recipientScope ?? "level_1",
         title: body.title,
         walletAddress: body.walletAddress,
       }),

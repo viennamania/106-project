@@ -1,13 +1,19 @@
 import "server-only";
 
 import {
+  REFERRAL_TREE_DEPTH_LIMIT,
+  normalizeEmail,
+  type MemberDocument,
+  type MemberStatus,
+} from "@/lib/member";
+import {
   serializeMemberAnnouncement,
   type MemberAnnouncementRecipientFilter,
-  type MemberAnnouncementsResponse,
   type MemberAnnouncementRecipientPreview,
+  type MemberAnnouncementRecipientScope,
+  type MemberAnnouncementsResponse,
   type MemberAnnouncementRecipientSummary,
 } from "@/lib/announcements";
-import { normalizeEmail } from "@/lib/member";
 import {
   getAppPushSubscriptionsCollection,
   getMemberAnnouncementsCollection,
@@ -21,7 +27,51 @@ const ANNOUNCEMENT_PREVIEW_LIMIT = 8;
 const MAX_ANNOUNCEMENT_TITLE_LENGTH = 80;
 const MAX_ANNOUNCEMENT_BODY_LENGTH = 500;
 
+type AnnouncementRecipientCandidate = {
+  createdAt: Date;
+  email: string;
+  referralCode: string | null;
+  registrationCompletedAt: Date | null;
+  status: MemberStatus;
+};
+
 type AnnouncementRecipient = MemberAnnouncementRecipientPreview;
+
+function projectAnnouncementRecipientCandidate(
+  member: Pick<
+    MemberDocument,
+    "createdAt" | "email" | "referralCode" | "registrationCompletedAt" | "status"
+  >,
+): AnnouncementRecipientCandidate {
+  return {
+    createdAt: member.createdAt,
+    email: member.email,
+    referralCode: member.referralCode ?? null,
+    registrationCompletedAt: member.registrationCompletedAt ?? null,
+    status: member.status,
+  };
+}
+
+function compareAnnouncementRecipients(
+  left: AnnouncementRecipientCandidate,
+  right: AnnouncementRecipientCandidate,
+) {
+  const leftCompletedAt = left.registrationCompletedAt?.getTime() ?? 0;
+  const rightCompletedAt = right.registrationCompletedAt?.getTime() ?? 0;
+
+  if (rightCompletedAt !== leftCompletedAt) {
+    return rightCompletedAt - leftCompletedAt;
+  }
+
+  const leftCreatedAt = left.createdAt.getTime();
+  const rightCreatedAt = right.createdAt.getTime();
+
+  if (rightCreatedAt !== leftCreatedAt) {
+    return rightCreatedAt - leftCreatedAt;
+  }
+
+  return left.email.localeCompare(right.email);
+}
 
 async function getPushSubscribedMemberEmails(recipientEmails: string[]) {
   if (recipientEmails.length === 0) {
@@ -69,25 +119,121 @@ function applyRecipientFilter(
   return recipients;
 }
 
-async function getDirectAnnouncementRecipients(
-  senderEmail: string,
-): Promise<AnnouncementRecipient[]> {
+async function loadSenderMember(senderEmail: string) {
   const collection = await getMembersCollection();
-  const recipients = await collection
+  return collection.findOne({ email: senderEmail });
+}
+
+async function getDirectAnnouncementRecipientCandidates(
+  senderEmail: string,
+) {
+  const collection = await getMembersCollection();
+  const rows = await collection
     .find(createDirectRecipientFilter(senderEmail))
-    .project<Pick<MemberAnnouncementRecipientPreview, "email" | "status">>({
+    .project<AnnouncementRecipientCandidate>({
+      createdAt: 1,
       email: 1,
+      referralCode: 1,
+      registrationCompletedAt: 1,
       status: 1,
     })
-    .sort({ registrationCompletedAt: -1, createdAt: -1, email: 1 })
     .toArray();
+
+  return rows.sort(compareAnnouncementRecipients);
+}
+
+async function getPlacementAnnouncementRecipientCandidates(
+  senderEmail: string,
+  senderReferralCode: string,
+  recipientScope: Extract<MemberAnnouncementRecipientScope, "level_1" | "downline">,
+) {
+  const collection = await getMembersCollection();
+  const visitedEmails = new Set<string>([senderEmail]);
+  const visitedReferralCodes = new Set<string>([senderReferralCode]);
+  const collectedMembers: AnnouncementRecipientCandidate[] = [];
+  let currentParentCodes = [senderReferralCode];
+
+  for (
+    let depth = 1;
+    depth <= REFERRAL_TREE_DEPTH_LIMIT && currentParentCodes.length > 0;
+    depth += 1
+  ) {
+    const levelMembers = await collection
+      .find({
+        email: { $ne: senderEmail },
+        placementReferralCode: { $in: currentParentCodes },
+      })
+      .project<AnnouncementRecipientCandidate>({
+        createdAt: 1,
+        email: 1,
+        referralCode: 1,
+        registrationCompletedAt: 1,
+        status: 1,
+      })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      const normalizedRecipientEmail = normalizeEmail(levelMember.email);
+
+      if (!visitedEmails.has(normalizedRecipientEmail)) {
+        visitedEmails.add(normalizedRecipientEmail);
+        collectedMembers.push(levelMember);
+      }
+
+      if (
+        recipientScope === "downline" &&
+        levelMember.referralCode &&
+        !visitedReferralCodes.has(levelMember.referralCode)
+      ) {
+        visitedReferralCodes.add(levelMember.referralCode);
+        nextParentCodes.push(levelMember.referralCode);
+      }
+    }
+
+    if (recipientScope === "level_1") {
+      break;
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+
+  return collectedMembers.sort(compareAnnouncementRecipients);
+}
+
+async function getAnnouncementRecipientsForScope(
+  senderEmail: string,
+  recipientScope: MemberAnnouncementRecipientScope,
+) {
+  const candidates =
+    recipientScope === "direct"
+      ? await getDirectAnnouncementRecipientCandidates(senderEmail)
+      : await (async () => {
+          const sender = await loadSenderMember(senderEmail);
+
+          if (!sender?.referralCode) {
+            return [];
+          }
+
+          return getPlacementAnnouncementRecipientCandidates(
+            senderEmail,
+            sender.referralCode,
+            recipientScope,
+          );
+        })();
   const pushSubscribedEmails = await getPushSubscribedMemberEmails(
-    recipients.map((recipient) => recipient.email),
+    candidates.map((recipient) => recipient.email),
   );
 
-  return recipients.map((recipient) => ({
-    ...recipient,
+  return candidates.map((recipient) => ({
+    email: recipient.email,
     pushSubscribed: pushSubscribedEmails.has(recipient.email),
+    status: recipient.status,
   }));
 }
 
@@ -137,12 +283,13 @@ function sanitizeAnnouncementHref(href?: string | null) {
   return normalized;
 }
 
-async function getDirectAnnouncementRecipientSummary(
+async function getAnnouncementRecipientSummary(
   senderEmail: string,
+  recipientScope: MemberAnnouncementRecipientScope,
   recipientFilter: MemberAnnouncementRecipientFilter,
 ): Promise<MemberAnnouncementRecipientSummary> {
   const filteredRecipients = applyRecipientFilter(
-    await getDirectAnnouncementRecipients(senderEmail),
+    await getAnnouncementRecipientsForScope(senderEmail, recipientScope),
     recipientFilter,
   );
   const preview = filteredRecipients.slice(0, ANNOUNCEMENT_PREVIEW_LIMIT);
@@ -166,12 +313,17 @@ async function getDirectAnnouncementRecipientSummary(
 
 export async function getAnnouncementCenterForMember(
   memberEmail: string,
+  recipientScope: MemberAnnouncementRecipientScope = "level_1",
   recipientFilter: MemberAnnouncementRecipientFilter = "all",
 ): Promise<MemberAnnouncementsResponse> {
   const normalizedEmail = normalizeEmail(memberEmail);
   const [historyCollection, recipients] = await Promise.all([
     getMemberAnnouncementsCollection(),
-    getDirectAnnouncementRecipientSummary(normalizedEmail, recipientFilter),
+    getAnnouncementRecipientSummary(
+      normalizedEmail,
+      recipientScope,
+      recipientFilter,
+    ),
   ]);
   const history = await historyCollection
     .find({ senderEmail: normalizedEmail })
@@ -185,11 +337,12 @@ export async function getAnnouncementCenterForMember(
   };
 }
 
-export async function sendAnnouncementToDirectMembers({
+export async function sendAnnouncement({
   body,
   href,
   memberEmail,
   recipientFilter = "all",
+  recipientScope = "level_1",
   walletAddress,
   title,
 }: {
@@ -197,6 +350,7 @@ export async function sendAnnouncementToDirectMembers({
   href?: string | null;
   memberEmail: string;
   recipientFilter?: MemberAnnouncementRecipientFilter;
+  recipientScope?: MemberAnnouncementRecipientScope;
   walletAddress: string | null;
   title: string;
 }) {
@@ -205,7 +359,7 @@ export async function sendAnnouncementToDirectMembers({
   const normalizedBody = sanitizeAnnouncementBody(body);
   const normalizedHref = sanitizeAnnouncementHref(href);
   const recipients = applyRecipientFilter(
-    await getDirectAnnouncementRecipients(normalizedEmail),
+    await getAnnouncementRecipientsForScope(normalizedEmail, recipientScope),
     recipientFilter,
   );
 
@@ -230,6 +384,7 @@ export async function sendAnnouncementToDirectMembers({
     href: normalizedHref,
     pendingRecipientCount,
     recipientFilter,
+    recipientScope,
     recipientCount: recipients.length,
     recipientPreview,
     senderEmail: normalizedEmail,
@@ -252,5 +407,9 @@ export async function sendAnnouncementToDirectMembers({
     }),
   );
 
-  return getAnnouncementCenterForMember(normalizedEmail, recipientFilter);
+  return getAnnouncementCenterForMember(
+    normalizedEmail,
+    recipientScope,
+    recipientFilter,
+  );
 }

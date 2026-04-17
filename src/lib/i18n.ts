@@ -347,6 +347,7 @@ export type Dictionary = {
       pushReady: string;
       pushUnavailable: string;
       recipientFilter: string;
+      recipientScope: string;
       recipientPreview: string;
       sendLink: string;
       title: string;
@@ -356,6 +357,11 @@ export type Dictionary = {
       all: string;
       completed: string;
       push_ready: string;
+    };
+    scopes: {
+      direct: string;
+      downline: string;
+      level_1: string;
     };
     placeholders: {
       body: string;
@@ -1123,35 +1129,41 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "회원 공지",
       eyebrow: "member broadcast",
       description:
-        "내 코드로 가입한 회원들에게 공지와 이동 링크를 한 번에 전달합니다.",
+        "단계 1 회원과 전체 하위 네트워크에 공지와 이동 링크를 한 번에 전달합니다.",
       disconnected: "이메일 로그인 후 회원 공지 페이지를 이용할 수 있습니다.",
       paymentRequired: "회원가입 완료 후에만 회원 공지를 보낼 수 있습니다.",
       loading: "공지 대상을 불러오는 중입니다.",
       recipientSummaryTitle: "공지 발송 대상",
       recipientSummaryDescription:
-        "내 코드로 가입한 회원 전체를 기준으로 즉시 공지를 보낼 수 있습니다.",
+        "단계 1 배치 회원 또는 전체 하위 네트워크를 기준으로 즉시 공지를 보낼 수 있습니다.",
       emptyRecipients: "아직 공지를 받을 회원이 없습니다.",
       emptyHistory: "보낸 공지 이력이 아직 없습니다.",
       labels: {
         body: "공지 내용",
         completedRecipients: "활성화 완료",
-        deliveryTarget: "direct members",
+        deliveryTarget: "network scope",
         history: "발송 이력",
         latestMessages: "최근 공지",
         pendingRecipients: "가입 진행 중",
         pushRecipients: "푸시 수신 가능",
         pushReady: "푸시 ON",
         pushUnavailable: "푸시 없음",
-        recipientFilter: "발송 대상",
+        recipientFilter: "수신 조건",
+        recipientScope: "발송 범위",
         recipientPreview: "수신자 미리보기",
         sendLink: "이동 링크",
         title: "공지 제목",
         totalRecipients: "전체 수신자",
       },
       filters: {
-        all: "전체 직접 가입 회원",
+        all: "전체",
         completed: "활성화 완료만",
         push_ready: "푸시 가능 회원만",
+      },
+      scopes: {
+        direct: "직접 가입 회원(이전 기준)",
+        downline: "전체 하위 네트워크",
+        level_1: "단계 1 회원",
       },
       placeholders: {
         body: "오늘 전달할 핵심 내용과 다음 행동을 간단히 적어주세요.",
@@ -1954,35 +1966,41 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "Member announcements",
       eyebrow: "member broadcast",
       description:
-        "Send one update and a direct next-step link to everyone who signed up with your code.",
+        "Send one update and a direct next-step link to your level 1 members or the full downline network.",
       disconnected: "Sign in with email to open the member announcements page.",
       paymentRequired: "Announcements are available after member activation is complete.",
       loading: "Loading the current recipient list.",
       recipientSummaryTitle: "Announcement recipients",
       recipientSummaryDescription:
-        "Broadcast to every member who joined with your code from one screen.",
+        "Broadcast to level 1 placements or the full downline network from one screen.",
       emptyRecipients: "There are no members available to receive an announcement yet.",
       emptyHistory: "You have not sent any announcements yet.",
       labels: {
         body: "Message body",
         completedRecipients: "Completed",
-        deliveryTarget: "direct members",
+        deliveryTarget: "network scope",
         history: "Send history",
         latestMessages: "Recent announcements",
         pendingRecipients: "Pending",
         pushRecipients: "Push ready",
         pushReady: "Push ON",
         pushUnavailable: "No push",
-        recipientFilter: "Recipient filter",
+        recipientFilter: "Delivery condition",
+        recipientScope: "Audience scope",
         recipientPreview: "Recipient preview",
         sendLink: "Target link",
         title: "Announcement title",
         totalRecipients: "Total recipients",
       },
       filters: {
-        all: "All direct members",
+        all: "All",
         completed: "Completed only",
         push_ready: "Push-ready only",
+      },
+      scopes: {
+        direct: "Direct members (legacy)",
+        downline: "Full downline network",
+        level_1: "Level 1 members",
       },
       placeholders: {
         body: "Write the key update and the next action members should take.",
@@ -2791,35 +2809,41 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "会員告知",
       eyebrow: "member broadcast",
       description:
-        "自分のコードで登録した会員に、お知らせと移動リンクをまとめて送信できます。",
+        "第1段階会員と下位ネットワーク全体に、お知らせと移動リンクをまとめて送信できます。",
       disconnected: "メールログイン後に会員告知ページを利用できます。",
       paymentRequired: "会員登録完了後のみ会員告知を送信できます。",
       loading: "告知対象を読み込み中です。",
       recipientSummaryTitle: "告知送信先",
       recipientSummaryDescription:
-        "自分のコードで参加した会員全体へ、この画面からすぐに告知できます。",
+        "第1段階配置会員または下位ネットワーク全体へ、この画面からすぐに告知できます。",
       emptyRecipients: "まだ告知を受け取る会員がいません。",
       emptyHistory: "送信した告知履歴はまだありません。",
       labels: {
         body: "告知内容",
         completedRecipients: "完了済み",
-        deliveryTarget: "direct members",
+        deliveryTarget: "network scope",
         history: "送信履歴",
         latestMessages: "最近の告知",
         pendingRecipients: "進行中",
         pushRecipients: "プッシュ受信可能",
         pushReady: "プッシュ ON",
         pushUnavailable: "プッシュなし",
-        recipientFilter: "送信対象",
+        recipientFilter: "受信条件",
+        recipientScope: "送信範囲",
         recipientPreview: "受信者プレビュー",
         sendLink: "移動リンク",
         title: "告知タイトル",
         totalRecipients: "受信者合計",
       },
       filters: {
-        all: "直接登録会員全体",
+        all: "全体",
         completed: "完了済みのみ",
         push_ready: "プッシュ可能のみ",
+      },
+      scopes: {
+        direct: "直接登録会員(旧基準)",
+        downline: "下位ネットワーク全体",
+        level_1: "第1段階会員",
       },
       placeholders: {
         body: "今日共有したい要点と次のアクションを簡潔に入力してください。",
@@ -3627,35 +3651,41 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "会员公告",
       eyebrow: "member broadcast",
       description:
-        "把最新通知和页面入口一次发送给所有通过你代码注册的会员。",
+        "把最新通知和页面入口一次发送给一级会员或整个下级网络。",
       disconnected: "请先通过邮箱登录后再使用会员公告页面。",
       paymentRequired: "只有在你的注册完成后才能发送会员公告。",
       loading: "正在加载公告接收对象。",
       recipientSummaryTitle: "公告发送对象",
       recipientSummaryDescription:
-        "可以在同一个页面中向所有通过你代码加入的会员发送通知。",
+        "可以在同一个页面中向一级排位会员或整个下级网络发送通知。",
       emptyRecipients: "目前还没有可接收公告的会员。",
       emptyHistory: "暂时还没有已发送的公告记录。",
       labels: {
         body: "公告内容",
         completedRecipients: "已完成",
-        deliveryTarget: "direct members",
+        deliveryTarget: "network scope",
         history: "发送记录",
         latestMessages: "最近公告",
         pendingRecipients: "进行中",
         pushRecipients: "可推送",
         pushReady: "推送 ON",
         pushUnavailable: "无推送",
-        recipientFilter: "发送对象",
+        recipientFilter: "接收条件",
+        recipientScope: "发送范围",
         recipientPreview: "接收者预览",
         sendLink: "跳转链接",
         title: "公告标题",
         totalRecipients: "接收者总数",
       },
       filters: {
-        all: "全部直属注册会员",
+        all: "全部",
         completed: "仅已完成",
         push_ready: "仅可推送会员",
+      },
+      scopes: {
+        direct: "直属注册会员（旧口径）",
+        downline: "整个下级网络",
+        level_1: "一级会员",
       },
       placeholders: {
         body: "简要写下这次要传达的重点和希望会员马上执行的动作。",

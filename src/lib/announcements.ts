@@ -1,5 +1,14 @@
 import type { MemberStatus } from "@/lib/member";
 
+export const memberAnnouncementRecipientScopes = [
+  "direct",
+  "level_1",
+  "downline",
+] as const;
+
+export type MemberAnnouncementRecipientScope =
+  (typeof memberAnnouncementRecipientScopes)[number];
+
 export const memberAnnouncementRecipientFilters = [
   "all",
   "completed",
@@ -31,6 +40,7 @@ export type MemberAnnouncementDocument = {
   href: string | null;
   pendingRecipientCount: number;
   recipientFilter?: MemberAnnouncementRecipientFilter;
+  recipientScope?: MemberAnnouncementRecipientScope;
   recipientCount: number;
   recipientPreview: MemberAnnouncementRecipientPreview[];
   senderEmail: string;
@@ -47,6 +57,7 @@ export type MemberAnnouncementRecord = {
   href: string | null;
   pendingRecipientCount: number;
   recipientFilter: MemberAnnouncementRecipientFilter;
+  recipientScope: MemberAnnouncementRecipientScope;
   recipientCount: number;
   recipientPreview: MemberAnnouncementRecipientPreview[];
   senderEmail: string;
@@ -66,6 +77,14 @@ export function isMemberAnnouncementRecipientFilter(
   );
 }
 
+export function isMemberAnnouncementRecipientScope(
+  value: string,
+): value is MemberAnnouncementRecipientScope {
+  return memberAnnouncementRecipientScopes.includes(
+    value as MemberAnnouncementRecipientScope,
+  );
+}
+
 export function serializeMemberAnnouncement(
   announcement: MemberAnnouncementDocument,
 ): MemberAnnouncementRecord {
@@ -77,6 +96,7 @@ export function serializeMemberAnnouncement(
     href: announcement.href ?? null,
     pendingRecipientCount: announcement.pendingRecipientCount,
     recipientFilter: announcement.recipientFilter ?? "all",
+    recipientScope: announcement.recipientScope ?? "direct",
     recipientCount: announcement.recipientCount,
     recipientPreview: announcement.recipientPreview.map((recipient) => ({
       ...recipient,

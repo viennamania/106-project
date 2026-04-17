@@ -30,6 +30,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import type {
   MemberAnnouncementRecipientFilter,
+  MemberAnnouncementRecipientScope,
   MemberAnnouncementRecord,
   MemberAnnouncementsResponse,
   MemberAnnouncementRecipientSummary,
@@ -65,6 +66,11 @@ const recipientFilterOrder: MemberAnnouncementRecipientFilter[] = [
   "all",
   "completed",
   "push_ready",
+];
+
+const recipientScopeOrder: MemberAnnouncementRecipientScope[] = [
+  "level_1",
+  "downline",
 ];
 
 function MessageCard({
@@ -151,6 +157,8 @@ export function AnnouncementsPage({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [href, setHref] = useState("");
+  const [selectedRecipientScope, setSelectedRecipientScope] =
+    useState<MemberAnnouncementRecipientScope>("level_1");
   const [selectedRecipientFilter, setSelectedRecipientFilter] =
     useState<MemberAnnouncementRecipientFilter>("all");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -165,6 +173,7 @@ export function AnnouncementsPage({
   const loadAnnouncements = useCallback(
     async (
       memberEmail: string,
+      recipientScope: MemberAnnouncementRecipientScope,
       recipientFilter: MemberAnnouncementRecipientFilter,
     ) => {
       if (!memberEmail || !accountAddress) {
@@ -181,6 +190,7 @@ export function AnnouncementsPage({
         const searchParams = new URLSearchParams({
           email: memberEmail,
           recipientFilter,
+          recipientScope,
           walletAddress: accountAddress,
         });
         const response = await fetch(`/api/announcements?${searchParams.toString()}`);
@@ -320,11 +330,16 @@ export function AnnouncementsPage({
       return;
     }
 
-    void loadAnnouncements(memberSync.member.email, selectedRecipientFilter);
+    void loadAnnouncements(
+      memberSync.member.email,
+      selectedRecipientScope,
+      selectedRecipientFilter,
+    );
   }, [
     isCompletedMember,
     loadAnnouncements,
     memberSync.member?.email,
+    selectedRecipientScope,
     selectedRecipientFilter,
   ]);
 
@@ -344,6 +359,7 @@ export function AnnouncementsPage({
           email: memberSync.member.email,
           href,
           recipientFilter: selectedRecipientFilter,
+          recipientScope: selectedRecipientScope,
           title,
           walletAddress: accountAddress,
         }),
@@ -504,6 +520,37 @@ export function AnnouncementsPage({
                   ) : null}
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="sm:col-span-2 xl:col-span-4">
+                      <p className="mb-2 text-sm font-semibold text-slate-950">
+                        {copy.labels.recipientScope}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {recipientScopeOrder.map((recipientScope) => {
+                          const isActive =
+                            selectedRecipientScope === recipientScope;
+
+                          return (
+                            <button
+                              className={cn(
+                                "inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-medium transition",
+                                isActive
+                                  ? "border-slate-950 bg-slate-950 text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
+                                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                              )}
+                              key={recipientScope}
+                              onClick={() => {
+                                setSelectedRecipientScope(recipientScope);
+                                setSubmitError(null);
+                                setSubmitNotice(null);
+                              }}
+                              type="button"
+                            >
+                              {copy.scopes[recipientScope]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div className="sm:col-span-2 xl:col-span-4">
                       <p className="mb-2 text-sm font-semibold text-slate-950">
                         {copy.labels.recipientFilter}
@@ -728,6 +775,9 @@ export function AnnouncementsPage({
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="inline-flex items-center rounded-full bg-slate-950 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white">
                                 {copy.title}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                                {copy.scopes[announcement.recipientScope]}
                               </span>
                               <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
                                 {copy.filters[announcement.recipientFilter]}
