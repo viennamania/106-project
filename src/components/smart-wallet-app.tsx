@@ -2053,9 +2053,9 @@ function CompletedHomeDashboard({
                       </p>
                     </a>
 
-                    <div className="grid gap-2.5 md:grid-cols-[auto_minmax(0,1fr)] md:items-stretch">
+                    <div className="grid gap-2.5 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-stretch">
                       <CopyTextButton
-                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100 md:min-w-[7.5rem]"
+                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100 xl:min-w-[7.75rem]"
                         copiedLabel={dictionary.common.copied}
                         copyLabel={dictionary.common.copyLink}
                         text={referralLink}
@@ -2065,8 +2065,8 @@ function CompletedHomeDashboard({
                         href={brandingStudioHref}
                       >
                         <Sparkles className="size-4 shrink-0 !text-slate-950 transition group-hover:rotate-[-8deg]" />
-                        <span className="truncate !text-slate-950">{brandingCopy.actions.customizeLandingCompact}</span>
-                        <ArrowUpRight className="size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5" />
+                        <span className="whitespace-nowrap !text-slate-950">{brandingCopy.actions.customizeLandingCompact}</span>
+                        <ArrowUpRight className="hidden size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5 2xl:block" />
                       </Link>
                     </div>
                   </>
