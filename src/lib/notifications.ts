@@ -1,5 +1,6 @@
 export const appNotificationTypes = [
   "direct_member_completed",
+  "member_announcement",
   "network_member_completed",
   "network_level_completed",
 ] as const;

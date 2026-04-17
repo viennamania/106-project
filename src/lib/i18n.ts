@@ -288,6 +288,7 @@ export type Dictionary = {
       pageDescription: string;
       dismiss: string;
       availableAfterSignup: string;
+      announcementBadge: string;
       empty: string;
       loadMore: string;
       loadingMore: string;
@@ -322,6 +323,51 @@ export type Dictionary = {
     errors: {
       loadFailed: string;
       missingEmail: string;
+    };
+  };
+  announcementsPage: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    disconnected: string;
+    paymentRequired: string;
+    loading: string;
+    recipientSummaryTitle: string;
+    recipientSummaryDescription: string;
+    emptyRecipients: string;
+    emptyHistory: string;
+    labels: {
+      body: string;
+      completedRecipients: string;
+      deliveryTarget: string;
+      history: string;
+      latestMessages: string;
+      pendingRecipients: string;
+      recipientPreview: string;
+      sendLink: string;
+      title: string;
+      totalRecipients: string;
+    };
+    placeholders: {
+      body: string;
+      href: string;
+      title: string;
+    };
+    actions: {
+      refresh: string;
+      send: string;
+      sending: string;
+    };
+    help: {
+      hrefOptional: string;
+    };
+    notices: {
+      sent: string;
+    };
+    errors: {
+      loadFailed: string;
+      missingEmail: string;
+      sendFailed: string;
     };
   };
   walletPage: {
@@ -1022,6 +1068,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         dismiss: "나중에 보기",
         availableAfterSignup:
           "알림 목록은 회원 활성화 완료 후 자동으로 채워집니다.",
+        announcementBadge: "회원 공지",
         empty: "아직 확인할 알림이 없습니다.",
         loadMore: "알림 더 보기",
         loadingMore: "알림 불러오는 중...",
@@ -1061,6 +1108,53 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         loadFailed: "조직도 관리 데이터를 불러오지 못했습니다.",
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+      },
+    },
+    announcementsPage: {
+      title: "회원 공지",
+      eyebrow: "member broadcast",
+      description:
+        "내 코드로 가입한 회원들에게 공지와 이동 링크를 한 번에 전달합니다.",
+      disconnected: "이메일 로그인 후 회원 공지 페이지를 이용할 수 있습니다.",
+      paymentRequired: "회원가입 완료 후에만 회원 공지를 보낼 수 있습니다.",
+      loading: "공지 대상을 불러오는 중입니다.",
+      recipientSummaryTitle: "공지 발송 대상",
+      recipientSummaryDescription:
+        "내 코드로 가입한 회원 전체를 기준으로 즉시 공지를 보낼 수 있습니다.",
+      emptyRecipients: "아직 공지를 받을 회원이 없습니다.",
+      emptyHistory: "보낸 공지 이력이 아직 없습니다.",
+      labels: {
+        body: "공지 내용",
+        completedRecipients: "활성화 완료",
+        deliveryTarget: "direct members",
+        history: "발송 이력",
+        latestMessages: "최근 공지",
+        pendingRecipients: "가입 진행 중",
+        recipientPreview: "수신자 미리보기",
+        sendLink: "이동 링크",
+        title: "공지 제목",
+        totalRecipients: "전체 수신자",
+      },
+      placeholders: {
+        body: "오늘 전달할 핵심 내용과 다음 행동을 간단히 적어주세요.",
+        href: `/${defaultLocale}/rewards`,
+        title: "예: 오늘 리워드 확인 안내",
+      },
+      actions: {
+        refresh: "대상 새로고침",
+        send: "공지 보내기",
+        sending: "보내는 중...",
+      },
+      help: {
+        hrefOptional: "이동 링크는 선택 사항입니다. 내부 페이지 경로만 넣을 수 있습니다.",
+      },
+      notices: {
+        sent: "공지를 보냈습니다. 수신자 알림 센터와 모바일 푸시에 바로 반영됩니다.",
+      },
+      errors: {
+        loadFailed: "회원 공지 데이터를 불러오지 못했습니다.",
+        missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
+        sendFailed: "회원 공지를 보내지 못했습니다.",
       },
     },
     walletPage: {
@@ -1794,6 +1888,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         dismiss: "Maybe later",
         availableAfterSignup:
           "The alert list will start filling in automatically after member activation is complete.",
+        announcementBadge: "Member announcement",
         empty: "There are no alerts to review yet.",
         loadMore: "Load more alerts",
         loadingMore: "Loading more alerts...",
@@ -1835,6 +1930,55 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "Failed to load referral management data.",
         missingEmail:
           "Unable to read the email address from the current wallet session.",
+      },
+    },
+    announcementsPage: {
+      title: "Member announcements",
+      eyebrow: "member broadcast",
+      description:
+        "Send one update and a direct next-step link to everyone who signed up with your code.",
+      disconnected: "Sign in with email to open the member announcements page.",
+      paymentRequired: "Announcements are available after member activation is complete.",
+      loading: "Loading the current recipient list.",
+      recipientSummaryTitle: "Announcement recipients",
+      recipientSummaryDescription:
+        "Broadcast to every member who joined with your code from one screen.",
+      emptyRecipients: "There are no members available to receive an announcement yet.",
+      emptyHistory: "You have not sent any announcements yet.",
+      labels: {
+        body: "Message body",
+        completedRecipients: "Completed",
+        deliveryTarget: "direct members",
+        history: "Send history",
+        latestMessages: "Recent announcements",
+        pendingRecipients: "Pending",
+        recipientPreview: "Recipient preview",
+        sendLink: "Target link",
+        title: "Announcement title",
+        totalRecipients: "Total recipients",
+      },
+      placeholders: {
+        body: "Write the key update and the next action members should take.",
+        href: "/en/rewards",
+        title: "For example: Check today’s rewards update",
+      },
+      actions: {
+        refresh: "Refresh recipients",
+        send: "Send announcement",
+        sending: "Sending...",
+      },
+      help: {
+        hrefOptional:
+          "The link is optional. Only internal app paths that start with '/' are allowed.",
+      },
+      notices: {
+        sent: "The announcement was sent. It is now visible in member alerts and push delivery.",
+      },
+      errors: {
+        loadFailed: "Failed to load member announcement data.",
+        missingEmail:
+          "Unable to read the email address from the current wallet session.",
+        sendFailed: "Failed to send the announcement.",
       },
     },
     walletPage: {
@@ -2572,6 +2716,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         dismiss: "あとで見る",
         availableAfterSignup:
           "通知一覧は会員有効化が完了すると自動的に表示されます。",
+        announcementBadge: "会員告知",
         empty: "確認できる通知はまだありません。",
         loadMore: "通知をさらに表示",
         loadingMore: "通知を読み込み中...",
@@ -2613,6 +2758,55 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         loadFailed: "組織管理データを読み込めませんでした。",
         missingEmail:
           "現在のウォレット接続からメールアドレスを取得できませんでした。",
+      },
+    },
+    announcementsPage: {
+      title: "会員告知",
+      eyebrow: "member broadcast",
+      description:
+        "自分のコードで登録した会員に、お知らせと移動リンクをまとめて送信できます。",
+      disconnected: "メールログイン後に会員告知ページを利用できます。",
+      paymentRequired: "会員登録完了後のみ会員告知を送信できます。",
+      loading: "告知対象を読み込み中です。",
+      recipientSummaryTitle: "告知送信先",
+      recipientSummaryDescription:
+        "自分のコードで参加した会員全体へ、この画面からすぐに告知できます。",
+      emptyRecipients: "まだ告知を受け取る会員がいません。",
+      emptyHistory: "送信した告知履歴はまだありません。",
+      labels: {
+        body: "告知内容",
+        completedRecipients: "完了済み",
+        deliveryTarget: "direct members",
+        history: "送信履歴",
+        latestMessages: "最近の告知",
+        pendingRecipients: "進行中",
+        recipientPreview: "受信者プレビュー",
+        sendLink: "移動リンク",
+        title: "告知タイトル",
+        totalRecipients: "受信者合計",
+      },
+      placeholders: {
+        body: "今日共有したい要点と次のアクションを簡潔に入力してください。",
+        href: "/ja/rewards",
+        title: "例: 本日のリワード確認案内",
+      },
+      actions: {
+        refresh: "対象を更新",
+        send: "告知を送る",
+        sending: "送信中...",
+      },
+      help: {
+        hrefOptional:
+          "移動リンクは任意です。'/' で始まるアプリ内パスのみ入力できます。",
+      },
+      notices: {
+        sent: "告知を送信しました。受信者の通知センターとプッシュにすぐ反映されます。",
+      },
+      errors: {
+        loadFailed: "会員告知データを読み込めませんでした。",
+        missingEmail:
+          "現在のウォレット接続からメールアドレスを取得できませんでした。",
+        sendFailed: "会員告知を送信できませんでした。",
       },
     },
     walletPage: {
@@ -3351,6 +3545,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         dismiss: "稍后查看",
         availableAfterSignup:
           "完成会员激活后，通知列表会自动开始显示相关提醒。",
+        announcementBadge: "会员公告",
         empty: "暂时没有需要查看的通知。",
         loadMore: "查看更多通知",
         loadingMore: "正在加载更多通知...",
@@ -3390,6 +3585,53 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       errors: {
         loadFailed: "无法加载组织管理数据。",
         missingEmail: "无法从当前钱包会话读取邮箱地址。",
+      },
+    },
+    announcementsPage: {
+      title: "会员公告",
+      eyebrow: "member broadcast",
+      description:
+        "把最新通知和页面入口一次发送给所有通过你代码注册的会员。",
+      disconnected: "请先通过邮箱登录后再使用会员公告页面。",
+      paymentRequired: "只有在你的注册完成后才能发送会员公告。",
+      loading: "正在加载公告接收对象。",
+      recipientSummaryTitle: "公告发送对象",
+      recipientSummaryDescription:
+        "可以在同一个页面中向所有通过你代码加入的会员发送通知。",
+      emptyRecipients: "目前还没有可接收公告的会员。",
+      emptyHistory: "暂时还没有已发送的公告记录。",
+      labels: {
+        body: "公告内容",
+        completedRecipients: "已完成",
+        deliveryTarget: "direct members",
+        history: "发送记录",
+        latestMessages: "最近公告",
+        pendingRecipients: "进行中",
+        recipientPreview: "接收者预览",
+        sendLink: "跳转链接",
+        title: "公告标题",
+        totalRecipients: "接收者总数",
+      },
+      placeholders: {
+        body: "简要写下这次要传达的重点和希望会员马上执行的动作。",
+        href: "/zh/rewards",
+        title: "例如：请查看今日奖励更新",
+      },
+      actions: {
+        refresh: "刷新对象",
+        send: "发送公告",
+        sending: "发送中...",
+      },
+      help: {
+        hrefOptional: "跳转链接为可选项，只允许填写以 '/' 开头的站内路径。",
+      },
+      notices: {
+        sent: "公告已发送，会员通知中心和移动推送会立即开始显示。",
+      },
+      errors: {
+        loadFailed: "无法加载会员公告数据。",
+        missingEmail: "无法从当前钱包会话读取邮箱地址。",
+        sendFailed: "无法发送会员公告。",
       },
     },
     walletPage: {

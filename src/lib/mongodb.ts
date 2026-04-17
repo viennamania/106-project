@@ -31,6 +31,7 @@ import type {
   ActivityProfileDocument,
   ActivityTapSessionDocument,
 } from "@/lib/activity";
+import type { MemberAnnouncementDocument } from "@/lib/announcements";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -85,6 +86,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoActivityTapSessionsCollectionPromise?: Promise<
     Collection<ActivityTapSessionDocument>
+  >;
+  mongoMemberAnnouncementsCollectionPromise?: Promise<
+    Collection<MemberAnnouncementDocument>
   >;
 };
 
@@ -678,4 +682,29 @@ export async function getActivityTapSessionsCollection() {
   }
 
   return globalForMongo.mongoActivityTapSessionsCollectionPromise;
+}
+
+export async function getMemberAnnouncementsCollection() {
+  if (!globalForMongo.mongoMemberAnnouncementsCollectionPromise) {
+    globalForMongo.mongoMemberAnnouncementsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_MEMBER_ANNOUNCEMENTS_COLLECTION ??
+        "memberAnnouncements";
+      const collection = client
+        .db(dbName)
+        .collection<MemberAnnouncementDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ announcementId: 1 }, { unique: true }),
+        collection.createIndex({ senderEmail: 1, createdAt: -1 }),
+        collection.createIndex({ createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoMemberAnnouncementsCollectionPromise;
 }

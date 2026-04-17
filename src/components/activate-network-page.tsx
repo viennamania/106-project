@@ -17,6 +17,7 @@ import {
   ChevronRight,
   GitBranch,
   Layers3,
+  Megaphone,
   RefreshCcw,
   Search,
   ShieldCheck,
@@ -143,6 +144,7 @@ export function ActivateNetworkPage({
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const notificationsPageHref = `/${locale}/notifications`;
+  const announcementsPageHref = `/${locale}/announcements`;
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -859,6 +861,15 @@ export function ActivateNetworkPage({
             {hasThirdwebClientId ? (
               status === "connected" ? (
                 <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+                  {state.member?.status === "completed" ? (
+                    <Link
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2] sm:w-auto"
+                      href={announcementsPageHref}
+                    >
+                      <Megaphone className="size-4" />
+                      {dictionary.announcementsPage.title}
+                    </Link>
+                  ) : null}
                   {state.member?.status === "completed" ? (
                     <button
                       className={cn(

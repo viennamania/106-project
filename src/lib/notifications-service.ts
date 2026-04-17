@@ -195,6 +195,21 @@ async function createNotification({
   }
 }
 
+export async function createAppNotification(options: {
+  body: string;
+  createdAt: Date;
+  eventKey: string;
+  href: string | null;
+  memberEmail: string;
+  targetLevel?: number | null;
+  targetMemberEmail?: string | null;
+  title: string;
+  type: AppNotificationDocument["type"];
+  sendPush?: boolean;
+}) {
+  await createNotification(options);
+}
+
 async function sendPushNotificationToMember({
   body,
   href,

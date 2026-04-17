@@ -128,6 +128,8 @@ export function NotificationCard({
                 "inline-flex items-center rounded-full px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
                 notification.type === "network_level_completed"
                   ? "bg-violet-100 text-violet-900"
+                  : notification.type === "member_announcement"
+                    ? "bg-amber-100 text-amber-900"
                   : notification.type === "network_member_completed"
                     ? "bg-sky-100 text-sky-900"
                     : "bg-emerald-100 text-emerald-900",
@@ -135,6 +137,8 @@ export function NotificationCard({
             >
               {notification.type === "network_level_completed"
                 ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
+                : notification.type === "member_announcement"
+                  ? dictionary.activateNetworkPage.notifications.announcementBadge
                 : notification.type === "network_member_completed"
                   ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
                   : dictionary.activateNetworkPage.labels.currentMember}

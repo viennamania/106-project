@@ -18,6 +18,7 @@ import {
   Check,
   Copy,
   Mail,
+  Megaphone,
   Sparkles,
   Users,
   WalletMinimal,
@@ -205,6 +206,7 @@ export function SmartWalletApp({
     : BSC_EXPLORER;
   const homeHref = `/${locale}`;
   const notificationsPageHref = `/${locale}/notifications`;
+  const announcementsPageHref = `/${locale}/announcements`;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
@@ -1911,6 +1913,7 @@ function CompletedHomeDashboard({
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
+  const announcementsPageHref = `/${locale}/announcements`;
   const firstLevelLimitHint = formatTemplate(
     dictionary.referralsPage.firstLevelLimitHint,
     {
@@ -2217,13 +2220,22 @@ function CompletedHomeDashboard({
         title={dictionary.referralsPage.listTitle}
       >
         <div className="flex justify-end">
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
-            href={`/${locale}/activate/network`}
-          >
-            {dictionary.activateNetworkPage.actions.openManagement}
-            <ArrowUpRight className="size-4" />
-          </Link>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-semibold text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2]"
+              href={announcementsPageHref}
+            >
+              <Megaphone className="size-4" />
+              {dictionary.announcementsPage.title}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+              href={`/${locale}/activate/network`}
+            >
+              {dictionary.activateNetworkPage.actions.openManagement}
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </div>
         </div>
 
         {referralDashboard.error ? (
