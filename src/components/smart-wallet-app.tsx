@@ -48,6 +48,7 @@ import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
+import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -206,7 +207,6 @@ export function SmartWalletApp({
     : BSC_EXPLORER;
   const homeHref = `/${locale}`;
   const notificationsPageHref = `/${locale}/notifications`;
-  const announcementsPageHref = `/${locale}/announcements`;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
@@ -1914,6 +1914,7 @@ function CompletedHomeDashboard({
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
   const announcementsPageHref = `/${locale}/announcements`;
+  const brandingCopy = getLandingBrandingCopy(locale);
   const firstLevelLimitHint = formatTemplate(
     dictionary.referralsPage.firstLevelLimitHint,
     {
@@ -2015,12 +2016,22 @@ function CompletedHomeDashboard({
                       </p>
                     </a>
 
-                    <CopyTextButton
-                      className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
-                      copiedLabel={dictionary.common.copied}
-                      copyLabel={dictionary.common.copyLink}
-                      text={referralLink}
-                    />
+                    <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
+                      <CopyTextButton
+                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
+                        copiedLabel={dictionary.common.copied}
+                        copyLabel={dictionary.common.copyLink}
+                        text={referralLink}
+                      />
+                      <Link
+                        className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fff2bd_0%,#ffffff_48%,#f5c34d_100%)] px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)] sm:w-auto sm:min-w-[13.5rem]"
+                        href={`/${locale}/branding-studio`}
+                      >
+                        <Sparkles className="size-4 transition group-hover:rotate-[-8deg]" />
+                        <span>{brandingCopy.actions.customizeLanding}</span>
+                        <ArrowUpRight className="size-4 opacity-70 transition group-hover:translate-x-0.5" />
+                      </Link>
+                    </div>
                   </>
                 ) : null}
               </div>
