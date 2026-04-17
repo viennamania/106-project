@@ -31,6 +31,8 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
   LANDING_BRANDING_LIMITS,
   landingBrandThemeKeys,
   toLandingPageBranding,
@@ -94,9 +96,11 @@ const emptyState: StudioState = {
 export function BrandingStudioPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const studioCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
@@ -121,6 +125,9 @@ export function BrandingStudioPage({
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
 
   async function loadStudio() {
     if (!accountAddress) {
@@ -440,7 +447,7 @@ export function BrandingStudioPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}/referrals`}
+              href={referralsHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -538,13 +545,13 @@ export function BrandingStudioPage({
               <div className="grid gap-3 sm:flex sm:flex-wrap">
                 <Link
                   className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
-                  href={`/${locale}/activate`}
+                  href={activateHref}
                 >
                   {studioCopy.actions.completeSignup}
                 </Link>
                 <Link
                   className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                  href={`/${locale}`}
+                  href={homeHref}
                 >
                   {studioCopy.actions.backHome}
                 </Link>
@@ -821,7 +828,7 @@ export function BrandingStudioPage({
                     </button>
                     <Link
                       className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                      href={`/${locale}/referrals`}
+                      href={referralsHref}
                     >
                       {studioCopy.actions.openReferrals}
                     </Link>

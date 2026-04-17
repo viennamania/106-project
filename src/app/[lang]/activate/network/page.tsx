@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ActivateNetworkPage } from "@/components/activate-network-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { normalizeReferralCode } from "@/lib/member";
 
 export async function generateMetadata({
   params,
@@ -24,7 +25,7 @@ export default async function LocalizedActivateNetworkPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ member?: string | string[] }>;
+  searchParams: Promise<{ member?: string | string[]; ref?: string | string[] }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -38,11 +39,15 @@ export default async function LocalizedActivateNetworkPage({
   const requestedMemberEmail = Array.isArray(query.member)
     ? query.member[0] ?? null
     : query.member ?? null;
+  const referralCode = normalizeReferralCode(
+    Array.isArray(query.ref) ? query.ref[0] : query.ref,
+  );
 
   return (
     <ActivateNetworkPage
       dictionary={dictionary}
       locale={locale}
+      referralCode={referralCode}
       requestedMemberEmail={requestedMemberEmail}
     />
   );

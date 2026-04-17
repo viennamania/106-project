@@ -72,6 +72,10 @@ export type LandingPageBranding = LandingBrandingRecord & {
   theme: LandingBrandTheme;
 };
 
+type SearchParamsReader = {
+  get(name: string): string | null;
+};
+
 const landingBrandThemes: Record<LandingBrandThemeKey, LandingBrandTheme> = {
   emerald: {
     accent: "#34d399",
@@ -185,8 +189,49 @@ function readNullableString(value: unknown) {
   return normalized ? normalized : null;
 }
 
+function normalizeReferralQueryCode(value: string | null | undefined) {
+  const normalized = value?.trim().toUpperCase() ?? "";
+  return normalized ? normalized : null;
+}
+
 export function getConfiguredAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
+}
+
+export function readReferralCodeFromSearchParams(
+  searchParams?: SearchParamsReader | null,
+) {
+  return normalizeReferralQueryCode(searchParams?.get("ref"));
+}
+
+export function setPathSearchParams(
+  path: string,
+  params: Record<string, string | null | undefined>,
+) {
+  const [pathWithSearch, hashFragment = ""] = path.split("#", 2);
+  const [pathname, search = ""] = pathWithSearch.split("?", 2);
+  const searchParams = new URLSearchParams(search);
+
+  Object.entries(params).forEach(([key, value]) => {
+    const normalized = value?.trim();
+
+    if (normalized) {
+      searchParams.set(key, normalized);
+      return;
+    }
+
+    searchParams.delete(key);
+  });
+
+  const nextSearch = searchParams.toString();
+
+  return `${pathname}${nextSearch ? `?${nextSearch}` : ""}${hashFragment ? `#${hashFragment}` : ""}`;
+}
+
+export function buildPathWithReferral(path: string, referralCode: string | null) {
+  return setPathSearchParams(path, {
+    ref: normalizeReferralQueryCode(referralCode),
+  });
 }
 
 export function isAllowedBrandingImageUrl(value: string) {
@@ -202,13 +247,7 @@ export function buildReferralLandingPath(
   locale: Locale,
   referralCode: string | null,
 ) {
-  const pathname = `/${locale}`;
-
-  if (!referralCode) {
-    return pathname;
-  }
-
-  return `${pathname}?ref=${encodeURIComponent(referralCode)}`;
+  return buildPathWithReferral(`/${locale}`, referralCode);
 }
 
 export function buildReferralLandingUrl(

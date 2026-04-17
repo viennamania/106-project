@@ -25,6 +25,9 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import {
+  buildPathWithReferral,
+} from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
@@ -63,9 +66,11 @@ type BnbNotice = {
 export function BnbWalletPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -212,6 +217,7 @@ export function BnbWalletPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
+  const walletHref = buildPathWithReferral(`/${locale}/wallet`, referralCode);
   const balanceErrorMessage =
     balanceError instanceof Error
       ? balanceError.message
@@ -267,7 +273,7 @@ export function BnbWalletPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}/wallet`}
+              href={walletHref}
             >
               <ArrowLeft className="size-5" />
             </Link>

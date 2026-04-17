@@ -41,6 +41,10 @@ import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -92,10 +96,12 @@ type ActivateNetworkNotificationsState = {
 export function ActivateNetworkPage({
   dictionary,
   locale,
+  referralCode = null,
   requestedMemberEmail = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
   requestedMemberEmail?: string | null;
 }) {
   const account = useActiveAccount();
@@ -143,8 +149,15 @@ export function ActivateNetworkPage({
     : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
-  const notificationsPageHref = `/${locale}/notifications`;
-  const announcementsPageHref = `/${locale}/announcements`;
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const notificationsPageHref = buildPathWithReferral(
+    `/${locale}/notifications`,
+    referralCode,
+  );
+  const announcementsPageHref = buildPathWithReferral(
+    `/${locale}/announcements`,
+    referralCode,
+  );
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -360,7 +373,9 @@ export function ActivateNetworkPage({
 
     const returnTo = `${window.location.pathname}${window.location.search}`;
     router.push(
-      `${notificationsPageHref}?returnTo=${encodeURIComponent(returnTo)}`,
+      setPathSearchParams(notificationsPageHref, {
+        returnTo,
+      }),
     );
   }, [notificationsPageHref, router]);
 
@@ -835,7 +850,7 @@ export function ActivateNetworkPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}/activate`}
+              href={activateHref}
             >
               <ArrowLeft className="size-5" />
             </Link>

@@ -35,6 +35,10 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
+} from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type {
   ActivitySummaryRecord,
@@ -66,9 +70,11 @@ type PlayPageState = {
 export function PlayPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -113,6 +119,8 @@ export function PlayPage({
   const tapTargetReached =
     activeSession !== null && tapCount >= activeSession.targetTaps;
   const summary = state.summary;
+  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
 
   const loadActivity = useCallback(
     async ({ background = false } = {}) => {
@@ -517,7 +525,7 @@ export function PlayPage({
               <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <Link
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                  href={`/${locale}`}
+                  href={homeHref}
                 >
                   <ArrowLeft className="size-4" />
                   {dictionary.playPage.actions.backHome}
@@ -688,7 +696,7 @@ export function PlayPage({
             <MessageCard>{dictionary.playPage.requiresSignup}</MessageCard>
             <Link
               className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
-              href={`/${locale}/activate`}
+              href={activateHref}
             >
               {dictionary.playPage.actions.completeSignup}
             </Link>

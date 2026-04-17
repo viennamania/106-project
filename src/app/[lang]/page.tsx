@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { LandingPage } from "@/components/landing/landing-page";
 import { getDisclaimerCopy } from "@/lib/disclaimer-copy";
 import {
+  buildPathWithReferral,
   buildReferralLandingPath,
   buildReferralOgImagePath,
 } from "@/lib/landing-branding";
@@ -96,21 +97,22 @@ export default async function LocalizedHome({
   const disclaimerCopy = getDisclaimerCopy(locale);
   const dictionary = getDictionary(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
+  const activeReferralCode = experience.referralCode ?? referralCode;
 
   return (
     <LandingPage
-      bnbWalletHref={`/${locale}/wallet/bnb`}
+      bnbWalletHref={buildPathWithReferral(`/${locale}/wallet/bnb`, activeReferralCode)}
       bnbWalletLabel={dictionary.bnbPage.title}
       branding={experience.branding}
       copy={copy}
-      disclaimerHref={`/${locale}/disclaimer`}
+      disclaimerHref={buildPathWithReferral(`/${locale}/disclaimer`, activeReferralCode)}
       disclaimerLabel={disclaimerCopy.navLabel}
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
-      rewardsHref={`/${locale}/rewards`}
+      rewardsHref={buildPathWithReferral(`/${locale}/rewards`, activeReferralCode)}
       rewardsLabel={dictionary.rewardsPage.title}
-      walletHref={`/${locale}/wallet`}
+      walletHref={buildPathWithReferral(`/${locale}/wallet`, activeReferralCode)}
       walletLabel={dictionary.walletPage.title}
     />
   );

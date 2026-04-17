@@ -29,6 +29,10 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
+} from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import {
@@ -79,9 +83,11 @@ const HISTORY_PAGE_SIZE = 8;
 export function RewardsPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -111,6 +117,13 @@ export function RewardsPage({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
+  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const silverClaimHref = buildPathWithReferral(
+    `/${locale}/rewards/silver-claim`,
+    referralCode,
+  );
   const isDisconnected = status !== "connected" || !accountAddress;
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
@@ -501,7 +514,7 @@ export function RewardsPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}`}
+              href={homeHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -747,13 +760,13 @@ export function RewardsPage({
                     <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <Link
                         className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
-                        href={`/${locale}/activate`}
+                        href={activateHref}
                       >
                         {dictionary.rewardsPage.actions.completeSignup}
                       </Link>
                       <Link
                         className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                        href={`/${locale}/referrals`}
+                        href={referralsHref}
                       >
                         {dictionary.rewardsPage.actions.openReferrals}
                       </Link>
@@ -812,13 +825,13 @@ export function RewardsPage({
                 <div className="flex flex-wrap gap-3">
                   <Link
                     className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={`/${locale}/referrals`}
+                    href={referralsHref}
                   >
                     {dictionary.rewardsPage.actions.openReferrals}
                   </Link>
                   <Link
                     className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={`/${locale}`}
+                    href={homeHref}
                   >
                     {dictionary.rewardsPage.actions.backHome}
                   </Link>
@@ -857,6 +870,7 @@ export function RewardsPage({
                         onRedeem={handleRedeemReward}
                         redemption={latestRedemptionsByReward[reward.rewardId] ?? null}
                         reward={reward}
+                        silverClaimHref={silverClaimHref}
                         silverClaim={
                           reward.rewardId === "silver-card" ? state.silverClaim : null
                         }
@@ -988,6 +1002,7 @@ function RewardCatalogCard({
   onRedeem,
   redemption,
   reward,
+  silverClaimHref,
   silverClaim,
   spendablePoints,
 }: {
@@ -998,6 +1013,7 @@ function RewardCatalogCard({
   onRedeem: (rewardId: RewardCatalogId) => void;
   redemption: RewardRedemptionRecord | null;
   reward: RewardCatalogItemRecord;
+  silverClaimHref: string;
   silverClaim: SilverRewardClaimRecord | null;
   spendablePoints: number;
 }) {
@@ -1279,7 +1295,7 @@ function RewardCatalogCard({
                 "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition",
                 actionClassName,
               )}
-              href={`/${locale}/rewards/silver-claim`}
+              href={silverClaimHref}
             >
               {actionLabel}
             </Link>

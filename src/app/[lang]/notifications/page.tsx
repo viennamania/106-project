@@ -2,17 +2,23 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { NotificationsPage } from "@/components/notifications-page";
+import { buildPathWithReferral } from "@/lib/landing-branding";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { normalizeReferralCode } from "@/lib/member";
 
-function sanitizeReturnTo(input: string | null | undefined, locale: Locale) {
+function sanitizeReturnTo(
+  input: string | null | undefined,
+  locale: Locale,
+  referralCode: string | null,
+) {
   if (!input) {
-    return `/${locale}/activate`;
+    return buildPathWithReferral(`/${locale}/activate`, referralCode);
   }
 
   const trimmed = input.trim();
 
   if (!trimmed.startsWith("/")) {
-    return `/${locale}/activate`;
+    return buildPathWithReferral(`/${locale}/activate`, referralCode);
   }
 
   return trimmed;
@@ -38,7 +44,7 @@ export default async function LocalizedNotificationsPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ returnTo?: string | string[] }>;
+  searchParams: Promise<{ ref?: string | string[]; returnTo?: string | string[] }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -49,10 +55,13 @@ export default async function LocalizedNotificationsPage({
 
   const locale = lang as Locale;
   const dictionary = getDictionary(locale);
+  const referralCode = normalizeReferralCode(
+    Array.isArray(query.ref) ? query.ref[0] : query.ref,
+  );
   const returnToInput = Array.isArray(query.returnTo)
     ? query.returnTo[0]
     : query.returnTo;
-  const returnToHref = sanitizeReturnTo(returnToInput, locale);
+  const returnToHref = sanitizeReturnTo(returnToInput, locale, referralCode);
 
   return (
     <NotificationsPage

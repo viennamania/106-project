@@ -46,10 +46,15 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
+} from "@/lib/landing-branding";
+import {
   MEMBER_SIGNUP_USDT_DECIMALS,
   type MemberRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
+import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import {
@@ -144,10 +149,13 @@ function getLoadErrorMessage(error: unknown, fallbackMessage: string) {
 export function WalletPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
+  const brandingCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
   const wallet = useActiveWallet();
   const { disconnect } = useDisconnect();
@@ -201,6 +209,14 @@ export function WalletPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const currentEmail = dashboard.member?.email ?? dashboard.email;
+  const isCompletedMember = dashboard.member?.status === "completed";
+  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const bnbWalletHref = buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode);
+  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const brandingStudioHref = buildPathWithReferral(
+    `/${locale}/branding-studio`,
+    referralCode,
+  );
 
   const persistWalletTransfer = useCallback(
     async (payload: WalletTransferMutationRequest) => {
@@ -730,7 +746,7 @@ export function WalletPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}`}
+              href={homeHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -754,7 +770,7 @@ export function WalletPage({
             />
             <Link
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-              href={`/${locale}/wallet/bnb`}
+              href={bnbWalletHref}
             >
               <Coins className="size-4" />
               {dictionary.bnbPage.title}
@@ -955,6 +971,23 @@ export function WalletPage({
                             : "-"}
                       </p>
                     </div>
+
+                  {isCompletedMember ? (
+                    <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
+                      <Link
+                        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                        href={referralsHref}
+                      >
+                        {dictionary.member.actions.viewReferrals}
+                      </Link>
+                      <Link
+                        className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
+                        href={brandingStudioHref}
+                      >
+                        {brandingCopy.page.title}
+                      </Link>
+                    </div>
+                  ) : null}
 
                   {dashboard.memberError ? (
                     <div className="mt-4">

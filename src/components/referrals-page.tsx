@@ -21,6 +21,10 @@ import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
+} from "@/lib/landing-branding";
+import {
   createEmptyReferralRewardsSummary,
   REFERRAL_SIGNUP_LIMIT,
 } from "@/lib/member";
@@ -57,9 +61,11 @@ type ReferralsState = {
 export function ReferralsPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -80,6 +86,12 @@ export function ReferralsPage({
   });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const brandingStudioHref = buildPathWithReferral(
+    `/${locale}/branding-studio`,
+    referralCode,
+  );
   const referralLink = state.member?.referralCode
     ? getReferralLink(state.member.referralCode, locale)
     : null;
@@ -305,7 +317,7 @@ export function ReferralsPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}`}
+              href={homeHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -427,7 +439,7 @@ export function ReferralsPage({
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <Link
                     className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
-                    href={`/${locale}/activate`}
+                    href={activateHref}
                   >
                     {dictionary.referralsPage.actions.completeSignup}
                   </Link>
@@ -512,7 +524,7 @@ export function ReferralsPage({
                       />
                       <Link
                         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
-                        href={`/${locale}/branding-studio`}
+                        href={brandingStudioHref}
                       >
                         {brandingCopy.actions.customizeLanding}
                         <ArrowUpRight className="size-4" />
@@ -533,7 +545,7 @@ export function ReferralsPage({
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <Link
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                    href={`/${locale}`}
+                    href={homeHref}
                   >
                     {dictionary.referralsPage.actions.backHome}
                   </Link>

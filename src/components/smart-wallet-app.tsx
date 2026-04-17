@@ -48,6 +48,11 @@ import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
+import {
+  buildPathWithReferral,
+  buildReferralLandingPath,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
   AppNotificationPreferencesRecord,
@@ -205,14 +210,33 @@ export function SmartWalletApp({
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
-  const homeHref = `/${locale}`;
-  const notificationsPageHref = `/${locale}/notifications`;
-  const notificationCopy = dictionary.activateNetworkPage.notifications;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
     incomingReferralState?.status !== "invalid"
       ? incomingReferralCode
       : null;
+  const homeHref = buildReferralLandingPath(locale, activeIncomingReferralCode);
+  const notificationsPageHref = buildPathWithReferral(
+    `/${locale}/notifications`,
+    activeIncomingReferralCode,
+  );
+  const brandingStudioHref = buildPathWithReferral(
+    `/${locale}/branding-studio`,
+    activeIncomingReferralCode,
+  );
+  const rewardsHref = buildPathWithReferral(
+    `/${locale}/rewards`,
+    activeIncomingReferralCode,
+  );
+  const announcementsPageHref = buildPathWithReferral(
+    `/${locale}/announcements`,
+    activeIncomingReferralCode,
+  );
+  const activateNetworkHref = buildPathWithReferral(
+    `/${locale}/activate/network`,
+    activeIncomingReferralCode,
+  );
+  const notificationCopy = dictionary.activateNetworkPage.notifications;
   const isSelfIncomingReferral =
     incomingReferralCode !== null &&
     memberSync.member?.referralCode === incomingReferralCode;
@@ -933,7 +957,9 @@ export function SmartWalletApp({
     }
 
     const returnTo = `${window.location.pathname}${window.location.search}`;
-    const href = `${notificationsPageHref}?returnTo=${encodeURIComponent(returnTo)}`;
+    const href = setPathSearchParams(notificationsPageHref, {
+      returnTo,
+    });
 
     if (mode === "replace") {
       router.replace(href);
@@ -1334,6 +1360,9 @@ export function SmartWalletApp({
 
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
+            activateNetworkHref={activateNetworkHref}
+            announcementsPageHref={announcementsPageHref}
+            brandingStudioHref={brandingStudioHref}
             dictionary={dictionary}
             isSelfIncomingReferral={isSelfIncomingReferral}
             isRefreshing={
@@ -1347,6 +1376,7 @@ export function SmartWalletApp({
             }}
             referralDashboard={referralDashboard}
             referralLink={referralLink}
+            rewardsHref={rewardsHref}
           />
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
@@ -1893,6 +1923,9 @@ function MembershipLoadingSection({
 }
 
 function CompletedHomeDashboard({
+  activateNetworkHref,
+  announcementsPageHref,
+  brandingStudioHref,
   dictionary,
   isSelfIncomingReferral,
   isRefreshing,
@@ -1901,7 +1934,11 @@ function CompletedHomeDashboard({
   onRefresh,
   referralDashboard,
   referralLink,
+  rewardsHref,
 }: {
+  activateNetworkHref: string;
+  announcementsPageHref: string;
+  brandingStudioHref: string;
   dictionary: Dictionary;
   isSelfIncomingReferral: boolean;
   isRefreshing: boolean;
@@ -1910,10 +1947,10 @@ function CompletedHomeDashboard({
   onRefresh: () => void;
   referralDashboard: ReferralDashboardState;
   referralLink: string | null;
+  rewardsHref: string;
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
-  const announcementsPageHref = `/${locale}/announcements`;
   const brandingCopy = getLandingBrandingCopy(locale);
   const firstLevelLimitHint = formatTemplate(
     dictionary.referralsPage.firstLevelLimitHint,
@@ -2016,20 +2053,20 @@ function CompletedHomeDashboard({
                       </p>
                     </a>
 
-                    <div className="grid gap-2.5 md:grid-cols-2 md:items-stretch">
+                    <div className="grid gap-2.5 md:grid-cols-[auto_minmax(0,1fr)] md:items-stretch">
                       <CopyTextButton
-                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
+                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100 md:min-w-[7.5rem]"
                         copiedLabel={dictionary.common.copied}
                         copyLabel={dictionary.common.copyLink}
                         text={referralLink}
                       />
                       <Link
-                        className="group inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fff2bd_0%,#ffffff_48%,#f5c34d_100%)] px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)]"
-                        href={`/${locale}/branding-studio`}
+                        className="group inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#f7d97e_0%,#f5c34d_52%,#ecab1f_100%)] px-4 !text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)]"
+                        href={brandingStudioHref}
                       >
-                        <Sparkles className="size-4 transition group-hover:rotate-[-8deg]" />
-                        <span className="truncate">{brandingCopy.actions.customizeLanding}</span>
-                        <ArrowUpRight className="size-4 opacity-70 transition group-hover:translate-x-0.5" />
+                        <Sparkles className="size-4 shrink-0 !text-slate-950 transition group-hover:rotate-[-8deg]" />
+                        <span className="truncate !text-slate-950">{brandingCopy.actions.customizeLandingCompact}</span>
+                        <ArrowUpRight className="size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5" />
                       </Link>
                     </div>
                   </>
@@ -2208,7 +2245,7 @@ function CompletedHomeDashboard({
             </div>
             <Link
               className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
-              href={`/${locale}/rewards`}
+              href={rewardsHref}
             >
               <span className="!text-white">{dictionary.rewardsPage.title}</span>
               <ArrowUpRight className="size-4 !text-white" />
@@ -2241,7 +2278,7 @@ function CompletedHomeDashboard({
             </Link>
             <Link
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}/activate/network`}
+              href={activateNetworkHref}
             >
               {dictionary.activateNetworkPage.actions.openManagement}
               <ArrowUpRight className="size-4" />

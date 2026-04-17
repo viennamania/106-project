@@ -22,6 +22,9 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import {
+  buildPathWithReferral,
+} from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
@@ -75,9 +78,11 @@ function createEmptyState(): SilverRewardClaimPageState {
 export function SilverRewardClaimPage({
   dictionary,
   locale,
+  referralCode = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
+  referralCode?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -99,6 +104,7 @@ export function SilverRewardClaimPage({
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
+  const rewardsHref = buildPathWithReferral(`/${locale}/rewards`, referralCode);
 
   const loadClaim = useCallback(
     async ({ background = false } = {}) => {
@@ -371,7 +377,7 @@ export function SilverRewardClaimPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={`/${locale}/rewards`}
+              href={rewardsHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -612,7 +618,7 @@ export function SilverRewardClaimPage({
                 <div className="flex flex-wrap gap-3">
                   <Link
                     className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={`/${locale}/rewards`}
+                    href={rewardsHref}
                   >
                     {dictionary.rewardsPage.silverClaim.actions.backToRewards}
                   </Link>

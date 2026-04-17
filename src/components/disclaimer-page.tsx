@@ -6,15 +6,15 @@ import type { DisclaimerCopy } from "@/lib/disclaimer-copy";
 
 export function DisclaimerPage({
   copy,
+  homeHref,
   languageLabel,
   locale,
 }: {
   copy: DisclaimerCopy;
+  homeHref: string;
   languageLabel: string;
   locale: Locale;
 }) {
-  const homeHref = `/${locale}`;
-
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(217,161,58,0.18),transparent_24%),radial-gradient(circle_at_0%_8%,rgba(255,255,255,0.7),transparent_26%),linear-gradient(180deg,#f6efe3_0%,#fbf7ef_42%,#f7f1e8_100%)]" />
