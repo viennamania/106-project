@@ -189,6 +189,12 @@ export type CreatorProfileUploadResponse = {
   url: string;
 };
 
+export type ContentPostUploadResponse = {
+  contentType: string;
+  pathname: string;
+  url: string;
+};
+
 export type CreatorStudioPostsResponse = {
   member: MemberRecord;
   posts: ContentPostRecord[];

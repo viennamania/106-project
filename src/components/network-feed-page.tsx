@@ -345,6 +345,16 @@ export function NetworkFeedPage({
                 className="glass-card rounded-[28px] p-5"
                 key={item.contentId}
               >
+                {item.coverImageUrl ? (
+                  <div className="mb-4 overflow-hidden rounded-[22px] border border-slate-200 bg-slate-900/90">
+                    <div
+                      className="h-40 w-full bg-cover bg-center sm:h-48"
+                      style={{
+                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${item.coverImageUrl})`,
+                      }}
+                    />
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge>{contentCopy.labels.free}</Badge>
                   <Badge>

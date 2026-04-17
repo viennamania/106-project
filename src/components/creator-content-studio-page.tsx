@@ -24,6 +24,7 @@ import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentPostMutationResponse,
   ContentPostRecord,
+  ContentPostUploadResponse,
   CreatorProfileUploadResponse,
   CreatorProfileResponse,
   CreatorStudioPostsResponse,
@@ -66,6 +67,7 @@ const EMPTY_PROFILE = {
 
 const EMPTY_POST_FORM = {
   body: "",
+  coverImageUrl: "",
   summary: "",
   title: "",
 };
@@ -102,7 +104,9 @@ export function CreatorContentStudioPage({
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
+  const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
+  const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
 
   const publishedCount = useMemo(() => {
@@ -334,6 +338,7 @@ export function CreatorContentStudioPage({
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body: postForm.body,
+          coverImageUrl: postForm.coverImageUrl || null,
           email,
           priceType: "free",
           status: statusToSave,
@@ -478,6 +483,53 @@ export function CreatorContentStudioPage({
       }));
     } finally {
       setIsUploadingProfileImage(false);
+    }
+  }
+
+  async function uploadPostCoverImage(file: File) {
+    try {
+      setIsUploadingPostImage(true);
+      const email = await resolveMemberEmail();
+      const body = new FormData();
+      body.set("email", email);
+      body.set("file", file);
+
+      const response = await fetch("/api/content/posts/upload", {
+        body,
+        method: "POST",
+      });
+      const data = (await response.json()) as ContentPostUploadResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.uploadFailed,
+        );
+      }
+
+      setPostForm((current) => ({
+        ...current,
+        coverImageUrl: data.url,
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.uploadSuccess,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsUploadingPostImage(false);
     }
   }
 
@@ -747,6 +799,68 @@ export function CreatorContentStudioPage({
                 rows={3}
                 value={postForm.summary}
               />
+              <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+                <p className="text-sm font-medium text-slate-900">
+                  {contentCopy.fields.coverImage}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  {contentCopy.hints.coverImage}
+                </p>
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    if (file) {
+                      void uploadPostCoverImage(file);
+                    }
+
+                    event.target.value = "";
+                  }}
+                  ref={postImageInputRef}
+                  type="file"
+                />
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isUploadingPostImage}
+                    onClick={() => {
+                      postImageInputRef.current?.click();
+                    }}
+                    type="button"
+                  >
+                    <ImagePlus className="size-4" />
+                    {isUploadingPostImage
+                      ? contentCopy.actions.uploadingImage
+                      : contentCopy.actions.uploadImage}
+                  </button>
+                  {postForm.coverImageUrl ? (
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={() => {
+                        setPostForm((current) => ({
+                          ...current,
+                          coverImageUrl: "",
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {contentCopy.actions.removeImage}
+                    </button>
+                  ) : null}
+                </div>
+                {postForm.coverImageUrl ? (
+                  <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                    <div
+                      className="h-40 w-full bg-cover bg-center sm:h-52"
+                      style={{
+                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${postForm.coverImageUrl})`,
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
               <TextAreaField
                 hint={contentCopy.hints.body}
                 label={contentCopy.fields.body}
@@ -762,7 +876,9 @@ export function CreatorContentStudioPage({
               <div className="flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isSavingPost || isDisconnected}
+                  disabled={
+                    isSavingPost || isDisconnected || isUploadingPostImage
+                  }
                   onClick={() => {
                     void createPost("draft");
                   }}
@@ -772,7 +888,9 @@ export function CreatorContentStudioPage({
                 </button>
                 <button
                   className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isSavingPost || isDisconnected}
+                  disabled={
+                    isSavingPost || isDisconnected || isUploadingPostImage
+                  }
                   onClick={() => {
                     void createPost("published");
                   }}
@@ -816,6 +934,16 @@ export function CreatorContentStudioPage({
                   className="rounded-[24px] border border-white/80 bg-white/90 p-4"
                   key={post.contentId}
                 >
+                  {post.coverImageUrl ? (
+                    <div className="mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
+                      <div
+                        className="h-36 w-full bg-cover bg-center"
+                        style={{
+                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${post.coverImageUrl})`,
+                        }}
+                      />
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={post.status} />
                     <StatusBadge status={post.priceType} />

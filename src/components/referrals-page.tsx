@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
-import { ArrowLeft, ArrowUpRight, WalletMinimal } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  PenSquare,
+  Rss,
+  WalletMinimal,
+} from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -24,6 +30,7 @@ import {
   buildPathWithReferral,
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
+import { getContentCopy } from "@/lib/content-copy";
 import {
   createEmptyReferralRewardsSummary,
   REFERRAL_SIGNUP_LIMIT,
@@ -75,6 +82,7 @@ export function ReferralsPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const brandingCopy = getLandingBrandingCopy(locale);
+  const contentCopy = getContentCopy(locale);
   const [state, setState] = useState<ReferralsState>({
     error: null,
     levelCounts: [],
@@ -90,6 +98,14 @@ export function ReferralsPage({
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const brandingStudioHref = buildPathWithReferral(
     `/${locale}/branding-studio`,
+    referralCode,
+  );
+  const creatorStudioHref = buildPathWithReferral(
+    `/${locale}/creator/studio`,
+    referralCode,
+  );
+  const networkFeedHref = buildPathWithReferral(
+    `/${locale}/network-feed`,
     referralCode,
   );
   const referralLink = state.member?.referralCode
@@ -538,6 +554,22 @@ export function ReferralsPage({
                         {brandingCopy.actions.openPreview}
                         <ArrowUpRight className="size-4" />
                       </a>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <Link
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                        href={networkFeedHref}
+                      >
+                        <Rss className="size-4" />
+                        {contentCopy.actions.openFeed}
+                      </Link>
+                      <Link
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                        href={creatorStudioHref}
+                      >
+                        <PenSquare className="size-4" />
+                        {contentCopy.actions.openStudio}
+                      </Link>
                     </div>
                   </div>
                 ) : null}

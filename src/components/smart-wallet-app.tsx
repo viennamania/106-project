@@ -19,6 +19,8 @@ import {
   Copy,
   Mail,
   Megaphone,
+  PenSquare,
+  Rss,
   Sparkles,
   Users,
   WalletMinimal,
@@ -54,6 +56,7 @@ import {
   setPathSearchParams,
   type LandingPageBranding,
 } from "@/lib/landing-branding";
+import { getContentCopy } from "@/lib/content-copy";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
   AppNotificationPreferencesRecord,
@@ -248,6 +251,14 @@ export function SmartWalletApp({
   );
   const brandingStudioHref = buildPathWithReferral(
     `/${locale}/branding-studio`,
+    preferredReferralCode,
+  );
+  const creatorStudioHref = buildPathWithReferral(
+    `/${locale}/creator/studio`,
+    preferredReferralCode,
+  );
+  const networkFeedHref = buildPathWithReferral(
+    `/${locale}/network-feed`,
     preferredReferralCode,
   );
   const rewardsHref = buildPathWithReferral(
@@ -1452,6 +1463,7 @@ export function SmartWalletApp({
             activateNetworkHref={activateNetworkHref}
             announcementsPageHref={announcementsPageHref}
             brandingStudioHref={brandingStudioHref}
+            creatorStudioHref={creatorStudioHref}
             dictionary={dictionary}
             isSelfIncomingReferral={isSelfIncomingReferral}
             isRefreshing={
@@ -1460,6 +1472,7 @@ export function SmartWalletApp({
             }
             locale={locale}
             member={memberSync.member}
+            networkFeedHref={networkFeedHref}
             onRefresh={() => {
               void runMemberSync();
             }}
@@ -2131,11 +2144,13 @@ function CompletedHomeDashboard({
   activateNetworkHref,
   announcementsPageHref,
   brandingStudioHref,
+  creatorStudioHref,
   dictionary,
   isSelfIncomingReferral,
   isRefreshing,
   locale,
   member,
+  networkFeedHref,
   onRefresh,
   referralDashboard,
   referralLink,
@@ -2144,11 +2159,13 @@ function CompletedHomeDashboard({
   activateNetworkHref: string;
   announcementsPageHref: string;
   brandingStudioHref: string;
+  creatorStudioHref: string;
   dictionary: Dictionary;
   isSelfIncomingReferral: boolean;
   isRefreshing: boolean;
   locale: Locale;
   member: MemberRecord;
+  networkFeedHref: string;
   onRefresh: () => void;
   referralDashboard: ReferralDashboardState;
   referralLink: string | null;
@@ -2157,6 +2174,7 @@ function CompletedHomeDashboard({
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
   const brandingCopy = getLandingBrandingCopy(locale);
+  const contentCopy = getContentCopy(locale);
   const firstLevelLimitHint = formatTemplate(
     dictionary.referralsPage.firstLevelLimitHint,
     {
@@ -2272,6 +2290,26 @@ function CompletedHomeDashboard({
                         <Sparkles className="size-4 shrink-0 !text-slate-950 transition group-hover:rotate-[-8deg]" />
                         <span className="whitespace-nowrap !text-slate-950">{brandingCopy.actions.customizeLandingCompact}</span>
                         <ArrowUpRight className="hidden size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5 2xl:block" />
+                      </Link>
+                    </div>
+                    <div className="grid gap-2.5 xl:grid-cols-2">
+                      <Link
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/8 px-4 text-sm font-medium text-white/92 transition hover:border-white/18 hover:bg-white/12"
+                        href={networkFeedHref}
+                      >
+                        <Rss className="size-4 shrink-0" />
+                        <span className="whitespace-nowrap">
+                          {contentCopy.actions.openFeed}
+                        </span>
+                      </Link>
+                      <Link
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/8 px-4 text-sm font-medium text-white/92 transition hover:border-white/18 hover:bg-white/12"
+                        href={creatorStudioHref}
+                      >
+                        <PenSquare className="size-4 shrink-0" />
+                        <span className="whitespace-nowrap">
+                          {contentCopy.actions.openStudio}
+                        </span>
                       </Link>
                     </div>
                   </>

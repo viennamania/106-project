@@ -316,6 +316,17 @@ export function ContentDetailPage({
             {state.content.summary}
           </p>
 
+          {state.content.coverImageUrl ? (
+            <div className="mt-8 overflow-hidden rounded-[28px] border border-white/80 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+              <div
+                className="h-48 w-full bg-cover bg-center sm:h-72"
+                style={{
+                  backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${state.content.coverImageUrl})`,
+                }}
+              />
+            </div>
+          ) : null}
+
           <div className="mt-8 rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <p className="whitespace-pre-wrap text-[0.98rem] leading-8 text-slate-800">
               {state.content.body}

@@ -19,6 +19,7 @@ export type ContentCopy = {
   };
   fields: {
     body: string;
+    coverImage: string;
     displayName: string;
     heroImage: string;
     intro: string;
@@ -28,6 +29,7 @@ export type ContentCopy = {
   };
   hints: {
     body: string;
+    coverImage: string;
     displayName: string;
     heroImage: string;
     intro: string;
@@ -100,6 +102,7 @@ const englishCopy: ContentCopy = {
   },
   fields: {
     body: "Content body",
+    coverImage: "Cover image",
     displayName: "Display name",
     heroImage: "Hero image",
     intro: "Channel intro",
@@ -109,6 +112,7 @@ const englishCopy: ContentCopy = {
   },
   hints: {
     body: "This first slice supports rich text as plain text. Media and paid unlocks come next.",
+    coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
     displayName: "This name appears across the network feed and content detail pages.",
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
     intro: "Explain what people in your network should expect from your channel.",
@@ -188,6 +192,7 @@ const koreanCopy: ContentCopy = {
   },
   fields: {
     body: "본문",
+    coverImage: "커버 이미지",
     displayName: "표시 이름",
     heroImage: "히어로 이미지",
     intro: "채널 소개",
@@ -197,6 +202,7 @@ const koreanCopy: ContentCopy = {
   },
   hints: {
     body: "현재 1차 버전은 텍스트 기반 무료 콘텐츠만 지원합니다. 미디어/유료 잠금은 다음 단계에서 붙입니다.",
+    coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
     heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",
     intro: "내 하위 네트워크가 이 채널에서 무엇을 기대하면 되는지 적어주세요.",
