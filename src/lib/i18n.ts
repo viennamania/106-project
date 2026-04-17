@@ -285,6 +285,9 @@ export type Dictionary = {
     };
     notifications: {
       title: string;
+      pageDescription: string;
+      dismiss: string;
+      availableAfterSignup: string;
       empty: string;
       loadMore: string;
       loadingMore: string;
@@ -1015,6 +1018,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       notifications: {
         title: "알림 센터",
+        pageDescription: "읽지 않은 알림을 먼저 확인하고 바로 처리하세요.",
+        dismiss: "나중에 보기",
+        availableAfterSignup:
+          "알림 목록은 회원 활성화 완료 후 자동으로 채워집니다.",
         empty: "아직 확인할 알림이 없습니다.",
         loadMore: "알림 더 보기",
         loadingMore: "알림 불러오는 중...",
@@ -1783,6 +1790,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       notifications: {
         title: "Notification center",
+        pageDescription: "Review unread alerts first and handle them without hunting through the app.",
+        dismiss: "Maybe later",
+        availableAfterSignup:
+          "The alert list will start filling in automatically after member activation is complete.",
         empty: "There are no alerts to review yet.",
         loadMore: "Load more alerts",
         loadingMore: "Loading more alerts...",
@@ -2557,6 +2568,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       notifications: {
         title: "通知センター",
+        pageDescription: "未読通知を先に確認して、そのまま素早く対応できます。",
+        dismiss: "あとで見る",
+        availableAfterSignup:
+          "通知一覧は会員有効化が完了すると自動的に表示されます。",
         empty: "確認できる通知はまだありません。",
         loadMore: "通知をさらに表示",
         loadingMore: "通知を読み込み中...",
@@ -3332,6 +3347,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       notifications: {
         title: "通知中心",
+        pageDescription: "先查看未读通知，再直接处理，不用来回切换页面。",
+        dismiss: "稍后查看",
+        availableAfterSignup:
+          "完成会员激活后，通知列表会自动开始显示相关提醒。",
         empty: "暂时没有需要查看的通知。",
         loadMore: "查看更多通知",
         loadingMore: "正在加载更多通知...",

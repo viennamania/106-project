@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   type CSSProperties,
   useCallback,
@@ -40,6 +40,7 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
@@ -143,6 +144,7 @@ export function SmartWalletApp({
   const wallet = useActiveWallet();
   const { disconnect } = useDisconnect();
   const router = useRouter();
+  const pathname = usePathname();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const { data: balance } = useWalletBalance({
@@ -202,6 +204,7 @@ export function SmartWalletApp({
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
   const homeHref = `/${locale}`;
+  const notificationsPageHref = `/${locale}/notifications`;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const incomingReferralCode = incomingReferralState?.code ?? null;
   const activeIncomingReferralCode =
@@ -922,6 +925,22 @@ export function SmartWalletApp({
     await runMemberSync({ background: true });
   });
 
+  const openNotificationsPage = useCallback((mode: "push" | "replace" = "push") => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    const href = `${notificationsPageHref}?returnTo=${encodeURIComponent(returnTo)}`;
+
+    if (mode === "replace") {
+      router.replace(href);
+      return;
+    }
+
+    router.push(href);
+  }, [notificationsPageHref, router]);
+
   const refreshCompletedNetwork = useEffectEvent(async () => {
     await runMemberSync({ background: true });
   });
@@ -1049,6 +1068,40 @@ export function SmartWalletApp({
     memberSync.member?.status,
     notificationsState.open,
     status,
+  ]);
+
+  useEffect(() => {
+    if (
+      pathname === notificationsPageHref ||
+      !isSignupCompleted ||
+      !memberSync.member?.email ||
+      notificationsState.unreadCount < 1 ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    const isMobileViewport = window.matchMedia("(max-width: 1023px)").matches;
+
+    if (!isMobileViewport) {
+      return;
+    }
+
+    const sessionKey = `notification-inbox-auto-opened:${memberSync.member.email}`;
+
+    if (window.sessionStorage.getItem(sessionKey) === "1") {
+      return;
+    }
+
+    window.sessionStorage.setItem(sessionKey, "1");
+    openNotificationsPage("replace");
+  }, [
+    isSignupCompleted,
+    memberSync.member?.email,
+    notificationsPageHref,
+    notificationsState.unreadCount,
+    openNotificationsPage,
+    pathname,
   ]);
 
   useEffect(() => {
@@ -1196,6 +1249,14 @@ export function SmartWalletApp({
                           "sm:w-auto sm:justify-start",
                         )}
                         onClick={() => {
+                          if (
+                            typeof window !== "undefined" &&
+                            window.matchMedia("(max-width: 1023px)").matches
+                          ) {
+                            openNotificationsPage();
+                            return;
+                          }
+
                           setNotificationsState((current) => ({
                             ...current,
                             open: !current.open,
@@ -1664,102 +1725,32 @@ export function SmartWalletApp({
           ),
         })}
       >
-        <div className="space-y-3">
-          <NotificationPushCard
-            active={notificationsState.open && isSignupCompleted}
-            copy={notificationCopy.push}
-            locale={locale}
-            memberEmail={memberSync.member?.email ?? null}
-            walletAddress={accountAddress ?? null}
-          />
-          <div className="grid gap-3 sm:grid-cols-3">
-          <NotificationPreferenceCard
-            checked={
-              notificationsState.preferences?.directMemberCompletedEnabled ?? true
-            }
-            label={notificationCopy.preferenceDirect}
-            onChange={(checked) => {
-              void updateNotificationPreference(
-                "directMemberCompletedEnabled",
-                checked,
-              );
-            }}
-          />
-          <NotificationPreferenceCard
-            checked={
-              notificationsState.preferences?.networkMemberCompletedEnabled ??
-              true
-            }
-            label={notificationCopy.preferenceNetworkMembers}
-            onChange={(checked) => {
-              void updateNotificationPreference(
-                "networkMemberCompletedEnabled",
-                checked,
-              );
-            }}
-          />
-          <NotificationPreferenceCard
-            checked={
-              notificationsState.preferences?.networkLevelCompletedEnabled ?? true
-            }
-            label={notificationCopy.preferenceLevel}
-            onChange={(checked) => {
-              void updateNotificationPreference(
-                "networkLevelCompletedEnabled",
-                checked,
-              );
-            }}
-          />
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          {notificationsState.error ? (
-            <MessageCard>{notificationsState.error}</MessageCard>
-          ) : null}
-
-          {notificationsState.status === "loading" &&
-          notificationsState.notifications.length === 0 ? (
-            <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
-          ) : notificationsState.notifications.length === 0 ? (
-            <MessageCard>{notificationCopy.empty}</MessageCard>
-          ) : (
-            notificationsState.notifications.map((notification) => (
-              <ActivateNotificationCard
-                dictionary={dictionary}
-                key={notification.notificationId}
-                locale={locale}
-                notification={notification}
-                onOpen={() => {
-                  void openNotification(notification);
-                }}
-              />
-            ))
-          )}
-        </div>
-
-        {notificationsState.hasMore && memberSync.member?.email ? (
-          <div className="mt-4 flex justify-center">
-            <button
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                notificationsState.isLoadingMore || !notificationsState.nextCursor
-              }
-              onClick={() => {
-                void loadNotifications({
-                  append: true,
-                  cursor: notificationsState.nextCursor,
-                  memberEmail: memberSync.member?.email ?? "",
-                });
-              }}
-              type="button"
-            >
-              {notificationsState.isLoadingMore
-                ? notificationCopy.loadingMore
-                : notificationCopy.loadMore}
-            </button>
-          </div>
-        ) : null}
+        <NotificationCenterContent
+          activePushCard={notificationsState.open && isSignupCompleted}
+          dictionary={dictionary}
+          hasMore={notificationsState.hasMore && Boolean(memberSync.member?.email)}
+          isLoadingMore={notificationsState.isLoadingMore}
+          locale={locale}
+          memberEmail={memberSync.member?.email ?? null}
+          notifications={notificationsState.notifications}
+          notificationsError={notificationsState.error}
+          notificationsStatus={notificationsState.status}
+          onLoadMore={() => {
+            void loadNotifications({
+              append: true,
+              cursor: notificationsState.nextCursor,
+              memberEmail: memberSync.member?.email ?? "",
+            });
+          }}
+          onOpenNotification={(notification) => {
+            void openNotification(notification);
+          }}
+          onUpdatePreference={(key, value) => {
+            void updateNotificationPreference(key, value);
+          }}
+          preferences={notificationsState.preferences}
+          walletAddress={accountAddress ?? null}
+        />
       </NotificationCenterSheet>
 
       {showMobileActionDock ? (
@@ -2383,124 +2374,6 @@ function MessageCard({
     >
       {children}
     </div>
-  );
-}
-
-function NotificationPreferenceCard({
-  checked,
-  label,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <button
-      aria-checked={checked}
-      role="switch"
-      className={cn(
-        "group flex items-center justify-between gap-3 rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/14 focus-visible:ring-offset-2 active:translate-y-0",
-        checked
-          ? "border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))] hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-[0_22px_48px_rgba(16,185,129,0.14)]"
-          : "border-slate-200 bg-white/90 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(15,23,42,0.10)]",
-      )}
-      onClick={() => {
-        onChange(!checked);
-      }}
-      type="button"
-    >
-      <span
-        className={cn(
-          "pr-4 text-sm font-semibold transition-colors duration-200",
-          checked
-            ? "text-emerald-950"
-            : "text-slate-950 group-hover:text-slate-950",
-        )}
-      >
-        {label}
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "relative inline-flex h-7 w-12 shrink-0 rounded-full border transition duration-200 ease-out group-hover:scale-[1.04]",
-          checked
-            ? "border-emerald-400 bg-emerald-100 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.08)]"
-            : "border-slate-200 bg-slate-100 group-hover:border-slate-300 group-hover:bg-slate-200/80",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-1 size-5 rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)] transition duration-200 ease-out group-hover:shadow-[0_12px_24px_rgba(15,23,42,0.18)]",
-            checked ? "right-1" : "left-1",
-          )}
-        />
-      </span>
-    </button>
-  );
-}
-
-function ActivateNotificationCard({
-  dictionary,
-  locale,
-  notification,
-  onOpen,
-}: {
-  dictionary: Dictionary;
-  locale: Locale;
-  notification: AppNotificationRecord;
-  onOpen: () => void;
-}) {
-  return (
-    <button
-      className={cn(
-        "w-full rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50",
-        notification.isRead
-          ? "border-slate-200 bg-white/90"
-          : "border-sky-200 bg-sky-50/70",
-      )}
-      onClick={onOpen}
-      type="button"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
-                notification.type === "network_level_completed"
-                  ? "bg-violet-100 text-violet-900"
-                  : notification.type === "network_member_completed"
-                    ? "bg-sky-100 text-sky-900"
-                    : "bg-emerald-100 text-emerald-900",
-              )}
-            >
-              {notification.type === "network_level_completed"
-                ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
-                : notification.type === "network_member_completed"
-                  ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
-                  : dictionary.activateNetworkPage.labels.currentMember}
-            </span>
-            {!notification.isRead ? (
-              <span className="inline-flex size-2 rounded-full bg-slate-950">
-                <span className="sr-only">{notification.title}</span>
-              </span>
-            ) : null}
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-slate-950">
-              {notification.title}
-            </p>
-            <p className="text-sm leading-6 text-slate-600">
-              {notification.body}
-            </p>
-          </div>
-        </div>
-        <div className="shrink-0 text-xs font-medium text-slate-500">
-          {formatDateTime(notification.createdAt, locale)}
-        </div>
-      </div>
-    </button>
   );
 }
 
