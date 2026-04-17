@@ -24,6 +24,7 @@ import {
   createEmptyReferralRewardsSummary,
   REFERRAL_SIGNUP_LIMIT,
 } from "@/lib/member";
+import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
   MemberReferralsResponse,
   MemberRecord,
@@ -67,6 +68,7 @@ export function ReferralsPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
+  const brandingCopy = getLandingBrandingCopy(locale);
   const [state, setState] = useState<ReferralsState>({
     error: null,
     levelCounts: [],
@@ -513,6 +515,12 @@ export function ReferralsPage({
                 ) : null}
 
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
+                  <Link
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                    href={`/${locale}/branding-studio`}
+                  >
+                    {brandingCopy.page.title}
+                  </Link>
                   <Link
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                     href={`/${locale}`}

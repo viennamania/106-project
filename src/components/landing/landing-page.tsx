@@ -12,13 +12,14 @@ import {
   Sparkles,
   WalletMinimal,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ReferralAwareCta } from "@/components/landing/referral-aware-cta";
 import type { Locale } from "@/lib/i18n";
+import type { LandingPageBranding } from "@/lib/landing-branding";
 import type { LandingCopy } from "@/lib/marketing-copy";
 
 const LANDING_IMAGE_VERSION = "20260415";
@@ -33,6 +34,7 @@ const REWARD_BIKE_IMAGE =
 export function LandingPage({
   bnbWalletHref,
   bnbWalletLabel,
+  branding,
   copy,
   disclaimerHref,
   disclaimerLabel,
@@ -46,6 +48,7 @@ export function LandingPage({
 }: {
   bnbWalletHref: string;
   bnbWalletLabel: string;
+  branding?: LandingPageBranding | null;
   copy: LandingCopy;
   disclaimerHref: string;
   disclaimerLabel: string;
@@ -57,11 +60,57 @@ export function LandingPage({
   walletHref: string;
   walletLabel: string;
 }) {
+  const activeBranding = branding ?? null;
+  const heroBadges = activeBranding
+    ? [activeBranding.badgeLabel, ...copy.hero.badges.slice(0, 2)]
+    : copy.hero.badges;
+  const heroTitleSource = activeBranding?.headline ?? copy.hero.title;
+  const heroDescription = activeBranding?.description ?? copy.hero.description;
+  const primaryCtaLabel = activeBranding?.ctaLabel ?? copy.cta.primary;
+  const theme = activeBranding?.theme ?? null;
+  const heroSectionStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundImage: `linear-gradient(180deg,${theme.heroFrom} 0%,${theme.heroTo} 100%)`,
+      }
+    : undefined;
+  const primaryCtaStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundImage: `linear-gradient(135deg,${theme.buttonFrom} 0%,${theme.buttonMid} 52%,${theme.buttonTo} 100%)`,
+        boxShadow: `0 20px 45px ${theme.glow}`,
+      }
+    : undefined;
+  const heroPrimaryCtaStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundImage: `linear-gradient(135deg,#ffffff 0%,${theme.lightAccent} 52%,${theme.accent} 100%)`,
+        boxShadow: `0 28px 70px ${theme.glow}`,
+      }
+    : undefined;
+  const sponsorCardStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundImage: `linear-gradient(135deg,${theme.sponsorFrom} 0%,${theme.sponsorTo} 100%)`,
+        boxShadow: `0 30px 90px ${theme.glow}`,
+      }
+    : undefined;
+  const sponsorBadgeStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundColor: theme.accentSoft,
+        borderColor: theme.glow,
+        color: theme.lightAccent,
+      }
+    : undefined;
+  const sponsorCodeStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundColor: theme.codeSurface,
+        borderColor: theme.glow,
+      }
+    : undefined;
   const koreanHeroTitleHasBrand =
-    locale === "ko" && copy.hero.title.endsWith(" 1066friend+");
+    !activeBranding &&
+    locale === "ko" &&
+    heroTitleSource.endsWith(" 1066friend+");
   const heroTitle = koreanHeroTitleHasBrand
-    ? copy.hero.title.replace(/\s*1066friend\+$/, "")
-    : copy.hero.title;
+    ? heroTitleSource.replace(/\s*1066friend\+$/, "")
+    : heroTitleSource;
 
   return (
     <div className="relative isolate overflow-hidden">
@@ -107,8 +156,9 @@ export function LandingPage({
               <ReferralAwareCta
                 className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_52%,#b45309_100%)] px-6 text-sm font-semibold !text-white shadow-[0_20px_45px_rgba(15,23,42,0.22)] ring-1 ring-white/15 transition hover:translate-y-[-1px] hover:shadow-[0_26px_55px_rgba(15,23,42,0.28)] sm:min-w-[15rem] sm:w-auto"
                 locale={locale}
+                style={primaryCtaStyle}
               >
-                <span>{copy.cta.primary}</span>
+                <span>{primaryCtaLabel}</span>
                 <span className="inline-flex size-8 items-center justify-center rounded-full bg-white/14 text-white ring-1 ring-white/16">
                   <ArrowRight className="size-4" />
                 </span>
@@ -117,16 +167,46 @@ export function LandingPage({
           </header>
         </LandingReveal>
 
-        <section className="relative overflow-hidden rounded-[34px] border border-[#d5b782]/12 bg-[linear-gradient(180deg,#09111f_0%,#0f172a_38%,#1d2f4b_100%)] px-5 py-6 text-white shadow-[0_38px_120px_rgba(15,23,42,0.3)] sm:rounded-[40px] sm:px-8 sm:py-10">
-          <div className="absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_top,rgba(245,204,96,0.2),transparent_68%)]" />
-          <div className="absolute -left-16 top-12 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(131,169,238,0.18),transparent_70%)] blur-2xl" />
-          <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(228,181,80,0.18),transparent_72%)] blur-2xl" />
+        <section
+          className="relative overflow-hidden rounded-[34px] border border-[#d5b782]/12 bg-[linear-gradient(180deg,#09111f_0%,#0f172a_38%,#1d2f4b_100%)] px-5 py-6 text-white shadow-[0_38px_120px_rgba(15,23,42,0.3)] sm:rounded-[40px] sm:px-8 sm:py-10"
+          style={heroSectionStyle}
+        >
+          <div
+            className="absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_top,rgba(245,204,96,0.2),transparent_68%)]"
+            style={
+              theme
+                ? {
+                    backgroundImage: `radial-gradient(circle_at_top,${theme.heroGlow},transparent 68%)`,
+                  }
+                : undefined
+            }
+          />
+          <div
+            className="absolute -left-16 top-12 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(131,169,238,0.18),transparent_70%)] blur-2xl"
+            style={
+              theme
+                ? {
+                    backgroundImage: `radial-gradient(circle,${theme.heroGlowSecondary},transparent 70%)`,
+                  }
+                : undefined
+            }
+          />
+          <div
+            className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(228,181,80,0.18),transparent_72%)] blur-2xl"
+            style={
+              theme
+                ? {
+                    backgroundImage: `radial-gradient(circle,${theme.heroGlow},transparent 72%)`,
+                  }
+                : undefined
+            }
+          />
 
           <LandingReveal delay={40} variant="hero">
             <div className="relative mx-auto max-w-4xl text-center">
               <div className="flex flex-wrap justify-center gap-2">
-                {copy.hero.badges.map((badge) => (
-                  <HeroPill key={badge}>{badge}</HeroPill>
+                {heroBadges.map((badge, index) => (
+                  <HeroPill key={`${badge}-${index}`}>{badge}</HeroPill>
                 ))}
               </div>
 
@@ -140,6 +220,41 @@ export function LandingPage({
                   </span>
                 </div>
               ) : null}
+              {activeBranding ? (
+                <div className="mt-6 flex justify-center">
+                  <div
+                    className="w-full max-w-2xl rounded-[30px] border border-white/12 px-5 py-5 text-left backdrop-blur sm:px-6"
+                    style={sponsorCardStyle}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="inline-flex items-center rounded-full border px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]"
+                        style={sponsorBadgeStyle}
+                      >
+                        {activeBranding.brandedExperienceLabel}
+                      </span>
+                      {activeBranding.referralCode ? (
+                        <span
+                          className="inline-flex items-center rounded-full border px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-white/76"
+                          style={sponsorCodeStyle}
+                        >
+                          {activeBranding.referralCodeLabel}:{" "}
+                          {activeBranding.referralCode}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/56">
+                      {activeBranding.sharedByLabel}
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-[2rem]">
+                      {activeBranding.brandName}
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-white/72">
+                      {copy.hero.note}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
               <h1
                 className={`mx-auto mt-3 font-semibold tracking-tight text-white ${
                   locale === "ko"
@@ -150,7 +265,7 @@ export function LandingPage({
                 {heroTitle}
               </h1>
               <p className="mx-auto mt-4 max-w-3xl text-[0.97rem] leading-7 text-white/76 sm:mt-5 sm:text-lg">
-                {copy.hero.description}
+                {heroDescription}
               </p>
               <p className="mx-auto mt-4 max-w-3xl text-sm leading-6 text-white/56">
                 {copy.hero.note}
@@ -160,8 +275,9 @@ export function LandingPage({
                 <ReferralAwareCta
                   className="group inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,#fff9dd_0%,#ffffff_48%,#f5c34d_100%)] px-7 text-base font-semibold !text-slate-950 shadow-[0_28px_70px_rgba(245,195,77,0.26)] ring-1 ring-white/16 transition hover:translate-y-[-1px] hover:shadow-[0_34px_80px_rgba(245,195,77,0.32)] sm:min-w-[18rem] sm:w-auto"
                   locale={locale}
+                  style={heroPrimaryCtaStyle}
                 >
-                  <span>{copy.cta.primary}</span>
+                  <span>{primaryCtaLabel}</span>
                   <span className="inline-flex size-9 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.2)] transition group-hover:translate-x-0.5">
                     <ArrowRight className="size-4" />
                   </span>
@@ -526,8 +642,9 @@ export function LandingPage({
               <ReferralAwareCta
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.12)] transition hover:bg-slate-100"
                 locale={locale}
+                style={heroPrimaryCtaStyle}
               >
-                {copy.cta.primary}
+                {primaryCtaLabel}
                 <ArrowRight className="size-4" />
               </ReferralAwareCta>
             </div>

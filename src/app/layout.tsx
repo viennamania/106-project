@@ -5,6 +5,18 @@ import { ThirdwebAppProvider } from "@/components/thirdweb-app-provider";
 import { PwaServiceWorker } from "@/components/pwa-service-worker";
 import type { ReactNode } from "react";
 
+const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+const metadataBase = (() => {
+  if (!configuredAppUrl) {
+    return undefined;
+  }
+
+  try {
+    return new URL(configuredAppUrl);
+  } catch {
+    return undefined;
+  }
+})();
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
@@ -21,6 +33,7 @@ export const metadata: Metadata = {
   title: "Pocket Smart Wallet",
   description:
     "Mobile-first smart wallet starter built with thirdweb and a v0-compatible Next.js setup.",
+  metadataBase,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

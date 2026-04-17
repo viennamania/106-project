@@ -1,3 +1,5 @@
+import type { LandingBrandingDocument } from "@/lib/landing-branding";
+
 export const MEMBER_SIGNUP_USDT_AMOUNT = "10";
 export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
@@ -178,6 +180,7 @@ export type MemberDocument = {
   email: string;
   lastConnectedAt: Date;
   lastWalletAddress: string;
+  landingBranding?: LandingBrandingDocument | null;
   locale: string;
   paymentBackfillCheckedAt?: Date | null;
   paymentAmount?: string | null;

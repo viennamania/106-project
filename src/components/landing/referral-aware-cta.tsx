@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { MouseEvent, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -11,10 +11,12 @@ export function ReferralAwareCta({
   children,
   className,
   locale,
+  style,
 }: {
   children: ReactNode;
   className?: string;
   locale: Locale;
+  style?: CSSProperties;
 }) {
   const router = useRouter();
   const href = `/${locale}/activate`;
@@ -39,7 +41,7 @@ export function ReferralAwareCta({
   }
 
   return (
-    <Link className={cn(className)} href={href} onClick={handleClick}>
+    <Link className={cn(className)} href={href} onClick={handleClick} style={style}>
       {children}
     </Link>
   );
