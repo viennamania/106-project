@@ -2016,7 +2016,7 @@ function CompletedHomeDashboard({
                       </p>
                     </a>
 
-                    <div className="grid gap-2.5 md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch">
+                    <div className="grid gap-2.5 md:grid-cols-2 md:items-stretch">
                       <CopyTextButton
                         className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
                         copiedLabel={dictionary.common.copied}
@@ -2024,11 +2024,11 @@ function CompletedHomeDashboard({
                         text={referralLink}
                       />
                       <Link
-                        className="group inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[linear-gradient(135deg,#fff2bd_0%,#ffffff_48%,#f5c34d_100%)] px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)] md:w-auto md:min-w-[13.5rem]"
+                        className="group inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fff2bd_0%,#ffffff_48%,#f5c34d_100%)] px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)]"
                         href={`/${locale}/branding-studio`}
                       >
                         <Sparkles className="size-4 transition group-hover:rotate-[-8deg]" />
-                        <span>{brandingCopy.actions.customizeLanding}</span>
+                        <span className="truncate">{brandingCopy.actions.customizeLanding}</span>
                         <ArrowUpRight className="size-4 opacity-70 transition group-hover:translate-x-0.5" />
                       </Link>
                     </div>
