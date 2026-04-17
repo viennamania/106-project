@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, PenSquare, RefreshCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  ImagePlus,
+  PenSquare,
+  RefreshCcw,
+} from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -18,6 +24,7 @@ import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentPostMutationResponse,
   ContentPostRecord,
+  CreatorProfileUploadResponse,
   CreatorProfileResponse,
   CreatorStudioPostsResponse,
 } from "@/lib/content";
@@ -94,6 +101,8 @@ export function CreatorContentStudioPage({
   const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
+  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
+  const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
 
   const publishedCount = useMemo(() => {
@@ -425,6 +434,53 @@ export function CreatorContentStudioPage({
     }
   }
 
+  async function uploadProfileHeroImage(file: File) {
+    try {
+      setIsUploadingProfileImage(true);
+      const email = await resolveMemberEmail();
+      const body = new FormData();
+      body.set("email", email);
+      body.set("file", file);
+
+      const response = await fetch("/api/content/profile/upload", {
+        body,
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorProfileUploadResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.uploadFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.uploadSuccess,
+        profile: {
+          ...current.profile,
+          heroImageUrl: data.url,
+        },
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsUploadingProfileImage(false);
+    }
+  }
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
       {hasThirdwebClientId ? (
@@ -566,22 +622,77 @@ export function CreatorContentStudioPage({
                   }}
                   value={state.profile.payoutWalletAddress}
                 />
-                <InputField
-                  label="Hero image URL"
-                  onChange={(value) => {
-                    setState((current) => ({
-                      ...current,
-                      profile: {
-                        ...current.profile,
-                        heroImageUrl: value,
-                      },
-                    }));
-                  }}
-                  value={state.profile.heroImageUrl}
-                />
+                <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+                  <p className="text-sm font-medium text-slate-900">
+                    {contentCopy.fields.heroImage}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {contentCopy.hints.heroImage}
+                  </p>
+                  <input
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+
+                      if (file) {
+                        void uploadProfileHeroImage(file);
+                      }
+
+                      event.target.value = "";
+                    }}
+                    ref={profileImageInputRef}
+                    type="file"
+                  />
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={isUploadingProfileImage}
+                      onClick={() => {
+                        profileImageInputRef.current?.click();
+                      }}
+                      type="button"
+                    >
+                      <ImagePlus className="size-4" />
+                      {isUploadingProfileImage
+                        ? contentCopy.actions.uploadingImage
+                        : contentCopy.actions.uploadImage}
+                    </button>
+                    {state.profile.heroImageUrl ? (
+                      <button
+                        className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                        onClick={() => {
+                          setState((current) => ({
+                            ...current,
+                            notice: null,
+                            profile: {
+                              ...current.profile,
+                              heroImageUrl: "",
+                            },
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {contentCopy.actions.removeImage}
+                      </button>
+                    ) : null}
+                  </div>
+                  {state.profile.heroImageUrl ? (
+                    <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                      <div
+                        className="h-44 w-full bg-cover bg-center sm:h-56"
+                        style={{
+                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${state.profile.heroImageUrl})`,
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
                 <button
                   className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isSavingProfile || isDisconnected}
+                  disabled={
+                    isSavingProfile || isDisconnected || isUploadingProfileImage
+                  }
                   onClick={() => {
                     void saveProfile();
                   }}

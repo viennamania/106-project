@@ -10,13 +10,17 @@ export type ContentCopy = {
     openStudio: string;
     publish: string;
     refresh: string;
+    removeImage: string;
     saveProfile: string;
     saveDraft: string;
+    uploadImage: string;
+    uploadingImage: string;
     viewDetail: string;
   };
   fields: {
     body: string;
     displayName: string;
+    heroImage: string;
     intro: string;
     payoutWalletAddress: string;
     summary: string;
@@ -25,6 +29,7 @@ export type ContentCopy = {
   hints: {
     body: string;
     displayName: string;
+    heroImage: string;
     intro: string;
     payoutWalletAddress: string;
     summary: string;
@@ -53,6 +58,8 @@ export type ContentCopy = {
     publishSuccess: string;
     saveDraftSuccess: string;
     studioLoadFailed: string;
+    uploadFailed: string;
+    uploadSuccess: string;
   };
   meta: {
     detailDescription: string;
@@ -84,13 +91,17 @@ const englishCopy: ContentCopy = {
     openStudio: "Open creator studio",
     publish: "Publish now",
     refresh: "Refresh",
+    removeImage: "Remove image",
     saveProfile: "Save profile",
     saveDraft: "Save as draft",
+    uploadImage: "Upload image",
+    uploadingImage: "Uploading...",
     viewDetail: "View detail",
   },
   fields: {
     body: "Content body",
     displayName: "Display name",
+    heroImage: "Hero image",
     intro: "Channel intro",
     payoutWalletAddress: "Payout wallet",
     summary: "Summary",
@@ -99,6 +110,7 @@ const englishCopy: ContentCopy = {
   hints: {
     body: "This first slice supports rich text as plain text. Media and paid unlocks come next.",
     displayName: "This name appears across the network feed and content detail pages.",
+    heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
     intro: "Explain what people in your network should expect from your channel.",
     payoutWalletAddress: "Optional for now. This will be used when paid USDT unlocks are added.",
     summary: "Short preview shown in the network feed card.",
@@ -129,6 +141,8 @@ const englishCopy: ContentCopy = {
     publishSuccess: "Free post published to your network feed.",
     saveDraftSuccess: "Draft saved.",
     studioLoadFailed: "Failed to load the creator studio.",
+    uploadFailed: "Failed to upload image.",
+    uploadSuccess: "Image uploaded. Save your profile to publish it.",
   },
   meta: {
     detailDescription: "Read content shared inside your upstream network.",
@@ -165,13 +179,17 @@ const koreanCopy: ContentCopy = {
     openStudio: "크리에이터 스튜디오 열기",
     publish: "바로 게시하기",
     refresh: "새로고침",
+    removeImage: "이미지 제거",
     saveProfile: "프로필 저장",
     saveDraft: "임시 저장",
+    uploadImage: "이미지 업로드",
+    uploadingImage: "업로드 중...",
     viewDetail: "상세 보기",
   },
   fields: {
     body: "본문",
     displayName: "표시 이름",
+    heroImage: "히어로 이미지",
     intro: "채널 소개",
     payoutWalletAddress: "정산 지갑",
     summary: "요약",
@@ -180,6 +198,7 @@ const koreanCopy: ContentCopy = {
   hints: {
     body: "현재 1차 버전은 텍스트 기반 무료 콘텐츠만 지원합니다. 미디어/유료 잠금은 다음 단계에서 붙입니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
+    heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",
     intro: "내 하위 네트워크가 이 채널에서 무엇을 기대하면 되는지 적어주세요.",
     payoutWalletAddress:
       "지금은 선택 사항입니다. 이후 USDT 유료 잠금해제 정산 지갑으로 사용됩니다.",
@@ -211,6 +230,8 @@ const koreanCopy: ContentCopy = {
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
     studioLoadFailed: "크리에이터 스튜디오를 불러오지 못했습니다.",
+    uploadFailed: "이미지 업로드에 실패했습니다.",
+    uploadSuccess: "이미지를 업로드했습니다. 프로필 저장 후 반영됩니다.",
   },
   meta: {
     detailDescription: "상위 네트워크 안에서 공유된 콘텐츠를 확인하세요.",
