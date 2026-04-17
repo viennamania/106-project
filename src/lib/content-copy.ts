@@ -111,7 +111,7 @@ const englishCopy: ContentCopy = {
     title: "Title",
   },
   hints: {
-    body: "This first slice supports rich text as plain text. Media and paid unlocks come next.",
+    body: "Write the main text your network members will read. You can add a cover image below for the feed card and detail header.",
     coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
     displayName: "This name appears across the network feed and content detail pages.",
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
@@ -132,7 +132,7 @@ const englishCopy: ContentCopy = {
     published: "Published",
     recentPosts: "Recent posts",
     studioNotice:
-      "This first release only supports free posts for your upstream network feed.",
+      "This release supports free posts with cover images for your network feed.",
   },
   messages: {
     connectRequired:
@@ -201,7 +201,7 @@ const koreanCopy: ContentCopy = {
     title: "제목",
   },
   hints: {
-    body: "현재 1차 버전은 텍스트 기반 무료 콘텐츠만 지원합니다. 미디어/유료 잠금은 다음 단계에서 붙입니다.",
+    body: "네트워크 회원이 읽게 될 본문을 작성하세요. 커버 이미지는 아래에서 함께 올릴 수 있습니다.",
     coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
     heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",
@@ -223,7 +223,7 @@ const koreanCopy: ContentCopy = {
     published: "게시됨",
     recentPosts: "최근 콘텐츠",
     studioNotice:
-      "현재 1차 버전은 상위/하위 네트워크용 무료 콘텐츠만 지원합니다.",
+      "현재 버전은 네트워크 피드용 무료 콘텐츠와 커버 이미지 업로드를 지원합니다.",
   },
   messages: {
     connectRequired:

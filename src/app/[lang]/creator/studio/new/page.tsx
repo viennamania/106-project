@@ -16,12 +16,12 @@ export async function generateMetadata({
   const copy = getContentCopy(locale);
 
   return {
-    title: `${copy.meta.studioTitle} | 1066friend+`,
-    description: copy.meta.studioDescription,
+    title: `${copy.actions.createPost} | ${copy.meta.studioTitle} | 1066friend+`,
+    description: copy.labels.studioNotice,
   };
 }
 
-export default async function LocalizedCreatorStudioPage({
+export default async function LocalizedCreatorStudioNewPostPage({
   params,
   searchParams,
 }: {
@@ -46,7 +46,7 @@ export default async function LocalizedCreatorStudioPage({
       dictionary={dictionary}
       locale={locale}
       referralCode={referralCode}
-      view="hub"
+      view="new"
     />
   );
 }
