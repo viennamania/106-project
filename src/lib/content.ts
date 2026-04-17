@@ -1,0 +1,313 @@
+import type { MemberRecord } from "@/lib/member";
+
+export const CONTENT_FEED_PAGE_SIZE = 20;
+export const CONTENT_LIBRARY_PAGE_SIZE = 24;
+export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
+
+export const creatorProfileStatuses = ["active", "restricted"] as const;
+export const contentPostStatuses = ["draft", "published", "archived"] as const;
+export const contentPriceTypes = ["free", "paid"] as const;
+export const contentAssetKinds = [
+  "cover",
+  "preview_image",
+  "image",
+  "video",
+  "attachment",
+] as const;
+export const contentOrderStatuses = [
+  "pending_payment",
+  "confirmed",
+  "expired",
+  "failed",
+] as const;
+export const contentEntitlementSources = [
+  "free",
+  "purchase",
+  "complimentary",
+] as const;
+
+export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
+export type ContentPostStatus = (typeof contentPostStatuses)[number];
+export type ContentPriceType = (typeof contentPriceTypes)[number];
+export type ContentAssetKind = (typeof contentAssetKinds)[number];
+export type ContentOrderStatus = (typeof contentOrderStatuses)[number];
+export type ContentEntitlementSource =
+  (typeof contentEntitlementSources)[number];
+
+export type CreatorProfileDocument = {
+  avatarImageUrl?: string | null;
+  createdAt: Date;
+  displayName: string;
+  email: string;
+  heroImageUrl?: string | null;
+  intro: string;
+  payoutWalletAddress: string | null;
+  referralCode: string;
+  status: CreatorProfileStatus;
+  updatedAt: Date;
+};
+
+export type ContentAssetDocument = {
+  assetId: string;
+  blobUrl: string;
+  contentId: string;
+  createdAt: Date;
+  kind: ContentAssetKind;
+  mimeType: string;
+  sizeBytes: number;
+  thumbnailUrl?: string | null;
+  uploaderEmail: string;
+};
+
+export type ContentPostDocument = {
+  authorEmail: string;
+  authorReferralCode: string;
+  body: string;
+  contentId: string;
+  coverImageUrl: string | null;
+  createdAt: Date;
+  previewAssetIds: string[];
+  previewText: string | null;
+  priceType: ContentPriceType;
+  priceUsdt: string | null;
+  publishedAt?: Date | null;
+  status: ContentPostStatus;
+  summary: string;
+  tags: string[];
+  title: string;
+  updatedAt: Date;
+};
+
+export type ContentOrderDocument = {
+  amountUsdt: string;
+  buyerEmail: string;
+  buyerReferralCode?: string | null;
+  contentId: string;
+  createdAt: Date;
+  orderId: string;
+  sellerEmail: string;
+  sellerWalletAddress: string;
+  status: ContentOrderStatus;
+  txHash?: string | null;
+  updatedAt: Date;
+  verifiedAt?: Date | null;
+};
+
+export type ContentEntitlementDocument = {
+  contentId: string;
+  createdAt: Date;
+  grantedAt: Date;
+  memberEmail: string;
+  orderId?: string | null;
+  source: ContentEntitlementSource;
+};
+
+export type CreatorProfileRecord = {
+  avatarImageUrl: string | null;
+  displayName: string;
+  heroImageUrl: string | null;
+  intro: string;
+  payoutWalletAddress: string | null;
+  referralCode: string;
+  status: CreatorProfileStatus;
+  updatedAt: string;
+};
+
+export type ContentAssetRecord = {
+  assetId: string;
+  blobUrl: string;
+  kind: ContentAssetKind;
+  mimeType: string;
+  sizeBytes: number;
+  thumbnailUrl: string | null;
+};
+
+export type ContentPostRecord = {
+  authorEmail: string;
+  authorReferralCode: string;
+  contentId: string;
+  coverImageUrl: string | null;
+  createdAt: string;
+  previewText: string | null;
+  priceType: ContentPriceType;
+  priceUsdt: string | null;
+  publishedAt: string | null;
+  status: ContentPostStatus;
+  summary: string;
+  tags: string[];
+  title: string;
+  updatedAt: string;
+};
+
+export type ContentFeedItemRecord = ContentPostRecord & {
+  authorProfile: CreatorProfileRecord | null;
+  canAccess: boolean;
+  networkLevel: number | null;
+  previewAssets: ContentAssetRecord[];
+};
+
+export type ContentDetailRecord = ContentPostRecord & {
+  assets: ContentAssetRecord[];
+  authorProfile: CreatorProfileRecord | null;
+  body: string;
+  canAccess: boolean;
+  entitlementSource: ContentEntitlementSource | null;
+};
+
+export type ContentOrderRecord = {
+  amountUsdt: string;
+  contentId: string;
+  createdAt: string;
+  orderId: string;
+  status: ContentOrderStatus;
+  txHash: string | null;
+  verifiedAt: string | null;
+};
+
+export type ContentFeedResponse = {
+  items: ContentFeedItemRecord[];
+  member: MemberRecord;
+  nextCursor: string | null;
+};
+
+export type ContentDetailResponse = {
+  content: ContentDetailRecord;
+  member: MemberRecord;
+};
+
+export type ContentLibraryResponse = {
+  items: ContentFeedItemRecord[];
+};
+
+export type CreatorProfileResponse = {
+  profile: CreatorProfileRecord;
+};
+
+export type CreatorStudioPostsResponse = {
+  member: MemberRecord;
+  posts: ContentPostRecord[];
+  profile: CreatorProfileRecord;
+};
+
+export type CreatorProfileUpsertRequest = {
+  avatarImageUrl?: string | null;
+  displayName: string;
+  email: string;
+  heroImageUrl?: string | null;
+  intro: string;
+  payoutWalletAddress?: string | null;
+};
+
+export type ContentPostCreateRequest = {
+  body: string;
+  coverImageUrl?: string | null;
+  email: string;
+  previewAssetIds?: string[];
+  previewText?: string | null;
+  priceType: ContentPriceType;
+  priceUsdt?: string | null;
+  status?: ContentPostStatus;
+  summary: string;
+  tags?: string[];
+  title: string;
+};
+
+export type ContentPostUpdateRequest = Partial<ContentPostCreateRequest> & {
+  contentId: string;
+  email: string;
+};
+
+export type ContentPostMutationResponse = {
+  content: ContentPostRecord;
+};
+
+export type ContentOrderCreateRequest = {
+  contentId: string;
+  email: string;
+};
+
+export type ContentOrderCreateResponse = {
+  order: ContentOrderRecord;
+  recipientWalletAddress: string;
+};
+
+export type ContentOrderVerifyRequest = {
+  email: string;
+  txHash: string;
+};
+
+export type ContentOrderVerifyResponse = {
+  entitlementGranted: boolean;
+  order: ContentOrderRecord;
+};
+
+export function serializeCreatorProfile(
+  profile: CreatorProfileDocument,
+): CreatorProfileRecord {
+  return {
+    avatarImageUrl: profile.avatarImageUrl ?? null,
+    displayName: profile.displayName,
+    heroImageUrl: profile.heroImageUrl ?? null,
+    intro: profile.intro,
+    payoutWalletAddress: profile.payoutWalletAddress ?? null,
+    referralCode: profile.referralCode,
+    status: profile.status,
+    updatedAt: profile.updatedAt.toISOString(),
+  };
+}
+
+export function serializeContentAsset(
+  asset: ContentAssetDocument,
+): ContentAssetRecord {
+  return {
+    assetId: asset.assetId,
+    blobUrl: asset.blobUrl,
+    kind: asset.kind,
+    mimeType: asset.mimeType,
+    sizeBytes: asset.sizeBytes,
+    thumbnailUrl: asset.thumbnailUrl ?? null,
+  };
+}
+
+export function serializeContentPost(
+  content: ContentPostDocument,
+): ContentPostRecord {
+  return {
+    authorEmail: content.authorEmail,
+    authorReferralCode: content.authorReferralCode,
+    contentId: content.contentId,
+    coverImageUrl: content.coverImageUrl ?? null,
+    createdAt: content.createdAt.toISOString(),
+    previewText: content.previewText ?? null,
+    priceType: content.priceType,
+    priceUsdt: content.priceUsdt ?? null,
+    publishedAt: content.publishedAt?.toISOString() ?? null,
+    status: content.status,
+    summary: content.summary,
+    tags: content.tags,
+    title: content.title,
+    updatedAt: content.updatedAt.toISOString(),
+  };
+}
+
+export function serializeContentOrder(
+  order: ContentOrderDocument,
+): ContentOrderRecord {
+  return {
+    amountUsdt: order.amountUsdt,
+    contentId: order.contentId,
+    createdAt: order.createdAt.toISOString(),
+    orderId: order.orderId,
+    status: order.status,
+    txHash: order.txHash ?? null,
+    verifiedAt: order.verifiedAt?.toISOString() ?? null,
+  };
+}
+
+export function createEmptyContentFeed(member: MemberRecord): ContentFeedResponse {
+  return {
+    items: [],
+    member,
+    nextCursor: null,
+  };
+}

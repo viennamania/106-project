@@ -32,6 +32,10 @@ import type {
   ActivityTapSessionDocument,
 } from "@/lib/activity";
 import type { MemberAnnouncementDocument } from "@/lib/announcements";
+import type {
+  ContentPostDocument,
+  CreatorProfileDocument,
+} from "@/lib/content";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -89,6 +93,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoMemberAnnouncementsCollectionPromise?: Promise<
     Collection<MemberAnnouncementDocument>
+  >;
+  mongoCreatorProfilesCollectionPromise?: Promise<
+    Collection<CreatorProfileDocument>
+  >;
+  mongoContentPostsCollectionPromise?: Promise<
+    Collection<ContentPostDocument>
   >;
 };
 
@@ -707,4 +717,57 @@ export async function getMemberAnnouncementsCollection() {
   }
 
   return globalForMongo.mongoMemberAnnouncementsCollectionPromise;
+}
+
+export async function getCreatorProfilesCollection() {
+  if (!globalForMongo.mongoCreatorProfilesCollectionPromise) {
+    globalForMongo.mongoCreatorProfilesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CREATOR_PROFILES_COLLECTION ?? "creatorProfiles";
+      const collection = client
+        .db(dbName)
+        .collection<CreatorProfileDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ email: 1 }, { unique: true }),
+        collection.createIndex({ referralCode: 1 }),
+        collection.createIndex({ updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoCreatorProfilesCollectionPromise;
+}
+
+export async function getContentPostsCollection() {
+  if (!globalForMongo.mongoContentPostsCollectionPromise) {
+    globalForMongo.mongoContentPostsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_POSTS_COLLECTION ?? "contentPosts";
+      const collection = client
+        .db(dbName)
+        .collection<ContentPostDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ contentId: 1 }, { unique: true }),
+        collection.createIndex({ authorEmail: 1, updatedAt: -1 }),
+        collection.createIndex({
+          authorReferralCode: 1,
+          status: 1,
+          publishedAt: -1,
+        }),
+        collection.createIndex({ status: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentPostsCollectionPromise;
 }
