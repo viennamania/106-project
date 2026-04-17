@@ -52,6 +52,7 @@ import {
   buildPathWithReferral,
   buildReferralLandingPath,
   setPathSearchParams,
+  type LandingPageBranding,
 } from "@/lib/landing-branding";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
@@ -122,6 +123,12 @@ type MemberNotificationsState = {
   unreadCount: number;
 };
 
+type ReferralExperienceResponse = {
+  branding: LandingPageBranding | null;
+  memberEmail: string | null;
+  referralCode: string | null;
+};
+
 const GENERIC_MEMBER_SYNC_ERRORS = new Set([
   "error",
   "Failed to read member.",
@@ -138,11 +145,13 @@ const usdtContract = getContract({
 
 export function SmartWalletApp({
   dictionary,
+  incomingReferralBranding,
   incomingReferralState,
   locale,
   projectWallet,
 }: {
   dictionary: Dictionary;
+  incomingReferralBranding: LandingPageBranding | null;
   incomingReferralState: IncomingReferralState | null;
   locale: Locale;
   projectWallet: string | null;
@@ -194,6 +203,10 @@ export function SmartWalletApp({
       status: "idle",
       unreadCount: 0,
     });
+  const [memberSponsorBranding, setMemberSponsorBranding] =
+    useState<LandingPageBranding | null>(null);
+  const [memberSponsorBrandingCode, setMemberSponsorBrandingCode] =
+    useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
@@ -215,26 +228,39 @@ export function SmartWalletApp({
     incomingReferralState?.status !== "invalid"
       ? incomingReferralCode
       : null;
-  const homeHref = buildReferralLandingPath(locale, activeIncomingReferralCode);
+  const memberSponsorReferralCode = getPrioritySponsorReferralCode(
+    memberSync.member,
+  );
+  const preferredReferralCode =
+    memberSponsorReferralCode ?? activeIncomingReferralCode;
+  const preferredReferralBranding =
+    memberSponsorReferralCode === null
+      ? incomingReferralBranding
+      : memberSponsorReferralCode === activeIncomingReferralCode
+        ? incomingReferralBranding
+        : memberSponsorBrandingCode === memberSponsorReferralCode
+          ? memberSponsorBranding
+          : null;
+  const homeHref = buildReferralLandingPath(locale, preferredReferralCode);
   const notificationsPageHref = buildPathWithReferral(
     `/${locale}/notifications`,
-    activeIncomingReferralCode,
+    preferredReferralCode,
   );
   const brandingStudioHref = buildPathWithReferral(
     `/${locale}/branding-studio`,
-    activeIncomingReferralCode,
+    preferredReferralCode,
   );
   const rewardsHref = buildPathWithReferral(
     `/${locale}/rewards`,
-    activeIncomingReferralCode,
+    preferredReferralCode,
   );
   const announcementsPageHref = buildPathWithReferral(
     `/${locale}/announcements`,
-    activeIncomingReferralCode,
+    preferredReferralCode,
   );
   const activateNetworkHref = buildPathWithReferral(
     `/${locale}/activate/network`,
-    activeIncomingReferralCode,
+    preferredReferralCode,
   );
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const isSelfIncomingReferral =
@@ -486,7 +512,7 @@ export function SmartWalletApp({
           chainName: chain.name ?? "BSC",
           email,
           locale,
-          referredByCode: activeIncomingReferralCode,
+          referredByCode: preferredReferralCode,
           syncMode: options?.mode ?? "full",
           walletAddress: accountAddress,
         }),
@@ -944,7 +970,70 @@ export function SmartWalletApp({
     locale,
     chain.id,
     chain.name,
+    preferredReferralCode,
+  ]);
+
+  useEffect(() => {
+    if (
+      !memberSponsorReferralCode ||
+      memberSponsorReferralCode === activeIncomingReferralCode
+    ) {
+      setMemberSponsorBranding(null);
+      setMemberSponsorBrandingCode(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        const searchParams = new URLSearchParams({
+          lang: locale,
+          ref: memberSponsorReferralCode,
+        });
+        const response = await fetch(
+          `/api/referrals/experience?${searchParams.toString()}`,
+          {
+            signal: controller.signal,
+          },
+        );
+        const data = (await response.json()) as
+          | ReferralExperienceResponse
+          | { error?: string };
+
+        if (!response.ok || !("branding" in data)) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : "Failed to load referral branding experience.",
+          );
+        }
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setMemberSponsorBranding(data.branding ?? null);
+        setMemberSponsorBrandingCode(
+          data.referralCode ?? memberSponsorReferralCode,
+        );
+      } catch {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setMemberSponsorBranding(null);
+        setMemberSponsorBrandingCode(memberSponsorReferralCode);
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [
     activeIncomingReferralCode,
+    locale,
+    memberSponsorReferralCode,
   ]);
 
   const pollForCompletedSignup = useEffectEvent(async () => {
@@ -1425,6 +1514,14 @@ export function SmartWalletApp({
                             : dictionary.member.disconnected}
                     </p>
                   </div>
+
+                  {preferredReferralCode ? (
+                    <IncomingReferralHighlightCard
+                      branding={preferredReferralBranding}
+                      dictionary={dictionary}
+                      referralCode={preferredReferralCode}
+                    />
+                  ) : null}
 
                   {!hasThirdwebClientId ? (
                     <div className="rounded-[22px] border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-950 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
@@ -1922,6 +2019,114 @@ function MembershipLoadingSection({
   );
 }
 
+function IncomingReferralHighlightCard({
+  branding,
+  dictionary,
+  referralCode,
+}: {
+  branding: LandingPageBranding | null;
+  dictionary: Dictionary;
+  referralCode: string;
+}) {
+  const theme = branding?.theme ?? null;
+  const cardStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.98) 0%, ${theme.accentSoft} 100%)`,
+        borderColor: theme.glow,
+        boxShadow: `0 22px 55px ${theme.glow}`,
+      }
+    : undefined;
+  const accentBadgeStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundColor: theme.accentSoft,
+        borderColor: theme.glow,
+        color: theme.buttonFrom,
+      }
+    : undefined;
+  const codeBadgeStyle: CSSProperties | undefined = theme
+    ? {
+        backgroundColor: theme.codeSurface,
+        borderColor: theme.glow,
+        color: theme.buttonFrom,
+      }
+    : undefined;
+  const description = branding?.description ?? formatTemplate(
+    dictionary.member.incomingReferralDescription,
+    {
+      code: referralCode,
+    },
+  );
+
+  return (
+    <div
+      className="rounded-[24px] border border-[#ead7b5] bg-[linear-gradient(135deg,#fff9ee_0%,#ffffff_100%)] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-5"
+      style={cardStyle}
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-2">
+            <span
+              className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-amber-900"
+              style={accentBadgeStyle}
+            >
+              {branding?.brandedExperienceLabel ?? dictionary.member.labels.referredByCode}
+            </span>
+            <span
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-slate-700"
+              style={codeBadgeStyle}
+            >
+              {branding?.referralCodeLabel ?? dictionary.member.labels.referredByCode}:{" "}
+              {referralCode}
+            </span>
+          </div>
+
+          {branding ? (
+            <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              {branding.sharedByLabel}
+            </p>
+          ) : null}
+          <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+            {branding?.brandName ?? dictionary.member.incomingReferralTitle}
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            {description}
+          </p>
+          {branding ? (
+            <p className="mt-3 text-xs font-medium text-slate-500">
+              {formatTemplate(dictionary.member.appliedReferralDescription, {
+                code: referralCode,
+              })}
+            </p>
+          ) : null}
+        </div>
+
+        {branding?.heroImageUrl ? (
+          <div className="h-28 w-full overflow-hidden rounded-[20px] border border-white/70 bg-slate-950/5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] md:w-40 md:shrink-0">
+            <div
+              className="h-full w-full bg-cover bg-center"
+              style={{
+                backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.04), rgba(15,23,42,0.18)), url(${branding.heroImageUrl})`,
+              }}
+            />
+          </div>
+        ) : branding ? (
+          <div
+            className="hidden rounded-[22px] border px-4 py-3 text-right md:block md:shrink-0"
+            style={codeBadgeStyle}
+          >
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em]">
+              {branding.badgeLabel}
+            </p>
+            <p className="mt-2 text-sm font-medium opacity-80">
+              {branding.sharedByLabel}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function CompletedHomeDashboard({
   activateNetworkHref,
   announcementsPageHref,
@@ -2378,6 +2583,14 @@ function shouldShowPlacementReferralCode(
   }
 
   return member.placementReferralCode !== member.referredByCode;
+}
+
+function getPrioritySponsorReferralCode(member: MemberRecord | null) {
+  if (!member) {
+    return null;
+  }
+
+  return member.sponsorReferralCode ?? member.referredByCode ?? null;
 }
 
 function CompactMetaCard({

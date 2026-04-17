@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { SmartWalletApp } from "@/components/smart-wallet-app";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { getIncomingReferralState } from "@/lib/member-service";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -41,9 +42,14 @@ export default async function LocalizedActivatePage({
   const incomingReferralCode = normalizeReferralCode(referralInput);
   const incomingReferralState =
     await getIncomingReferralState(incomingReferralCode);
+  const incomingReferralBranding =
+    incomingReferralCode && incomingReferralState?.status !== "invalid"
+      ? (await getReferralLandingExperience(locale, incomingReferralCode)).branding
+      : null;
 
   return (
     <SmartWalletApp
+      incomingReferralBranding={incomingReferralBranding}
       dictionary={dictionary}
       incomingReferralState={incomingReferralState}
       locale={locale}
