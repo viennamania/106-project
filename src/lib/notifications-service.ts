@@ -633,6 +633,58 @@ export async function removePushSubscription({
   };
 }
 
+export async function sendTestNotificationToMember(options: {
+  body?: string;
+  email: string;
+  href?: string | null;
+  title?: string;
+}) {
+  const normalizedEmail = normalizeEmail(options.email);
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne({
+    email: normalizedEmail,
+    status: "completed",
+  });
+
+  if (!member) {
+    throw new Error("Completed member not found.");
+  }
+
+  const locale = resolveLocale(member.locale);
+  const copy = getDictionary(locale).activateNetworkPage.notifications;
+  const subscriptionsCollection = await getAppPushSubscriptionsCollection();
+  const subscriptionCount = await subscriptionsCollection.countDocuments({
+    memberEmail: normalizedEmail,
+  });
+  const title = options.title?.trim() || copy.push.title;
+  const body =
+    options.body?.trim() ||
+    `${member.email} · ${copy.push.subscribed}`;
+  const href =
+    typeof options.href === "string" && options.href.trim()
+      ? options.href.trim()
+      : `/${locale}/activate`;
+
+  await createNotification({
+    body,
+    createdAt: new Date(),
+    eventKey: `test_push:${normalizedEmail}:${crypto.randomUUID()}`,
+    href,
+    memberEmail: normalizedEmail,
+    targetMemberEmail: normalizedEmail,
+    title,
+    type: "direct_member_completed",
+    sendPush: true,
+  });
+
+  return {
+    isWebPushConfigured: isWebPushConfigured(),
+    locale,
+    memberEmail: normalizedEmail,
+    subscriptionCount,
+  };
+}
+
 export async function getNotificationCenterForMember(
   memberEmail: string,
   options?: {
