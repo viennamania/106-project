@@ -1353,9 +1353,7 @@ export function CreatorContentStudioPage({
                 key={job.jobId}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge
-                    status={job.status === "completed" ? "published" : "draft"}
-                  />
+                  <StatusBadge status={job.status} />
                   {job.score !== null ? (
                     <StatusBadge status={`score ${job.score}`} />
                   ) : null}
@@ -2049,16 +2047,32 @@ function StatusBadge({
   status: string;
 }) {
   const label =
-    status === "published"
+    status === "published" || status === "completed"
       ? "Published"
       : status === "draft"
         ? "Draft"
-        : status === "free"
-          ? "Free"
-          : status;
+        : status === "failed"
+          ? "Failed"
+          : status === "running"
+            ? "Running"
+            : status === "queued"
+              ? "Queued"
+              : status === "free"
+                ? "Free"
+                : status;
+  const className =
+    status === "failed"
+      ? "border-rose-200 bg-rose-50 text-rose-700"
+      : status === "running"
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : status === "queued"
+          ? "border-sky-200 bg-sky-50 text-sky-700"
+          : "border-slate-200 bg-white text-slate-700";
 
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-slate-700">
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.16em] ${className}`}
+    >
       {label}
     </span>
   );

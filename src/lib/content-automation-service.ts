@@ -313,6 +313,31 @@ function extractWebSearchSources(response: OpenAiResponsesApiResponse) {
   return Array.from(dedupe.values()).slice(0, CONTENT_AUTOMATION_MAX_SOURCE_COUNT);
 }
 
+function buildDiscoverySummaryFromSources(
+  profile: CreatorAutomationProfileDocument,
+  sources: DiscoverySource[],
+) {
+  const sourceTitles = sources
+    .map((source) => source.title.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  const sourceDomains = Array.from(
+    new Set(sources.map((source) => source.domain.trim()).filter(Boolean)),
+  ).slice(0, 3);
+
+  return trimToLength(
+    [
+      `${profile.personaName} 채널용 자동 수집 출처 요약입니다.`,
+      sourceTitles.length > 0 ? `핵심 주제: ${sourceTitles.join(", ")}.` : null,
+      sourceDomains.length > 0 ? `출처 도메인: ${sourceDomains.join(", ")}.` : null,
+      "공개 출처 기반으로 실용적인 네트워크 피드 초안을 생성합니다.",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    2_000,
+  );
+}
+
 async function discoverSourcesForProfile(
   profile: CreatorAutomationProfileDocument,
 ): Promise<{ discoveryText: string; sources: DiscoverySource[] }> {
@@ -360,7 +385,9 @@ async function discoverSourcesForProfile(
   });
 
   const sources = extractWebSearchSources(response);
-  const discoveryText = trimToLength(response.output_text, 2_000);
+  const discoveryText =
+    trimToLength(response.output_text, 2_000) ||
+    buildDiscoverySummaryFromSources(profile, sources);
 
   if (sources.length === 0) {
     throw new Error("No public sources were found for automation.");
