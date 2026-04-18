@@ -453,7 +453,7 @@ export function NetworkFeedPage({
                     <button
                       className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
                         levelFilter === item.key
-                          ? "border-slate-950 bg-slate-950 text-white"
+                          ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.2)]"
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                       key={item.key}
@@ -465,7 +465,9 @@ export function NetworkFeedPage({
                       <span>{item.label}</span>
                       <span
                         className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
-                          levelFilter === item.key ? "bg-white/15" : "bg-slate-100"
+                          levelFilter === item.key
+                            ? "bg-white text-slate-950"
+                            : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {item.count}

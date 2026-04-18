@@ -726,12 +726,12 @@ export function CreatorStudioPostsPage({
 
             <div className="flex flex-wrap gap-2">
               {filterItems.map((item) => (
-                <Link
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
-                    appliedStatus === item.key
-                      ? "border-slate-950 bg-slate-950 text-white"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
+                    <Link
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
+                        appliedStatus === item.key
+                          ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.2)]"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
                   href={buildPostsHref({
                     page: 1,
                     status: item.key,
@@ -739,11 +739,13 @@ export function CreatorStudioPostsPage({
                   key={item.key}
                 >
                   <span>{item.label}</span>
-                  <span
-                    className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
-                      appliedStatus === item.key ? "bg-white/15" : "bg-slate-100"
-                    }`}
-                  >
+                      <span
+                        className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
+                          appliedStatus === item.key
+                            ? "bg-white text-slate-950"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
                     {item.count}
                   </span>
                 </Link>
