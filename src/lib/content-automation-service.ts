@@ -71,6 +71,12 @@ type OpenAiResponsesApiResponse = {
         url?: string;
       }>;
     };
+    content?: Array<{
+      json?: unknown;
+      refusal?: string;
+      text?: string;
+      type?: string;
+    }>;
     type?: string;
   }>;
   output_text?: string;
@@ -336,6 +342,40 @@ async function createOpenAiResponse(payload: Record<string, unknown>) {
   return json ?? {};
 }
 
+function extractResponseTextContent(response: OpenAiResponsesApiResponse) {
+  const directOutputText = trimToLength(response.output_text, 20_000);
+
+  if (directOutputText) {
+    return directOutputText;
+  }
+
+  const parts: string[] = [];
+
+  for (const item of response.output ?? []) {
+    for (const content of item.content ?? []) {
+      if (typeof content.text === "string" && content.text.trim()) {
+        parts.push(content.text.trim());
+        continue;
+      }
+
+      if (content.json !== undefined) {
+        if (typeof content.json === "string" && content.json.trim()) {
+          parts.push(content.json.trim());
+          continue;
+        }
+
+        try {
+          parts.push(JSON.stringify(content.json));
+        } catch {
+          continue;
+        }
+      }
+    }
+  }
+
+  return trimToLength(parts.join("\n").trim(), 20_000);
+}
+
 function extractWebSearchSources(response: OpenAiResponsesApiResponse) {
   const dedupe = new Map<string, DiscoverySource>();
 
@@ -443,7 +483,7 @@ async function discoverSourcesForProfile(
 
   const sources = extractWebSearchSources(response);
   const discoveryText =
-    trimToLength(response.output_text, 2_000) ||
+    trimToLength(extractResponseTextContent(response), 2_000) ||
     buildDiscoverySummaryFromSources(profile, sources);
 
   if (sources.length === 0) {
@@ -548,7 +588,7 @@ async function generateDraftForProfile(
     },
   });
 
-  const outputText = trimToLength(response.output_text, 20_000);
+  const outputText = extractResponseTextContent(response);
 
   if (!outputText) {
     throw new Error("Draft generation returned an empty payload.");
