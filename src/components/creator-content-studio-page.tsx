@@ -324,7 +324,6 @@ export function CreatorContentStudioPage({
     `/${locale}/creator/studio/new`,
     referralCode,
   );
-  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
     view === "profile"
@@ -2378,13 +2377,6 @@ export function CreatorContentStudioPage({
             icon={<LayoutGrid className="size-5" />}
             title={contentCopy.actions.managePosts}
           />
-          <WorkspaceLaunchCard
-            description={contentCopy.page.feedDescription}
-            disabled={!canUseWorkspace}
-            href={feedHref}
-            icon={<Sparkles className="size-5" />}
-            title={contentCopy.entry.viewerTitle}
-          />
         </div>
       </section>
     );
@@ -2637,11 +2629,11 @@ export function CreatorContentStudioPage({
               title={title}
             />
             <WorkspaceSupportLink
-              description={contentCopy.page.feedDescription}
+              description={contentCopy.page.postsDescription}
               disabled={!canUseWorkspace}
-              href={feedHref}
-              icon={<Sparkles className="size-5" />}
-              title={contentCopy.entry.viewerTitle}
+              href={postsManagerHref}
+              icon={<LayoutGrid className="size-5" />}
+              title={contentCopy.actions.managePosts}
             />
           </div>
         </div>
@@ -2709,12 +2701,6 @@ export function CreatorContentStudioPage({
               {headerShortcutLabel}
             </Link>
           ) : null}
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-            href={feedHref}
-          >
-            {contentCopy.actions.openFeed}
-          </Link>
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
             onClick={() => {

@@ -157,8 +157,8 @@ const englishCopy: ContentCopy = {
     generatingAiCover: "Generating cover...",
     managePosts: "Manage posts",
     nextPage: "Next page",
-    openFeed: "Open network feed",
-    openStudio: "Open creator studio",
+    openFeed: "Go to feed",
+    openStudio: "Go to studio",
     previousPage: "Previous page",
     publish: "Publish now",
     refresh: "Refresh",
@@ -176,14 +176,14 @@ const englishCopy: ContentCopy = {
   },
   entry: {
     creatorDescription:
-      "Publish to your downstream network.",
-    creatorTitle: "Creator studio",
+      "Create, automate, and manage posts for your downstream network.",
+    creatorTitle: "Studio area",
     description:
-      "Choose whether you want to browse upstream creators or publish content to your own network.",
-    title: "Network Content",
+      "Feed is for consuming upstream content. Studio is for creating and managing your own content.",
+    title: "Choose your content area",
     viewerDescription:
-      "See posts from your upstream network.",
-    viewerTitle: "Browse feed",
+      "Read and browse content published by your upstream network.",
+    viewerTitle: "Feed area",
   },
   fields: {
     automationAllowedDomains: "Allowed domains",
@@ -278,10 +278,10 @@ const englishCopy: ContentCopy = {
     detailDescription: "Read content shared inside your upstream network.",
     detailTitle: "Network Content",
     feedDescription:
-      "Browse free content published by creators in your upstream referral network.",
+      "Consume free content published by creators in your upstream referral network.",
     feedTitle: "Network Feed",
     studioDescription:
-      "Set up your creator profile and publish free posts to your downstream network.",
+      "Create and manage free posts for your downstream network.",
     studioTitle: "Creator Studio",
   },
   page: {
@@ -289,8 +289,8 @@ const englishCopy: ContentCopy = {
       "Only members inside the matching network branch can open this content.",
     detailEyebrow: "network content",
     feedDescription:
-      "This feed is built from creators in your upstream 6-level network.",
-    feedEyebrow: "network content",
+      "This area is only for reading content from creators in your upstream 6-level network.",
+    feedEyebrow: "feed area",
     feedTitle: "Network Feed",
     newDescription:
       "Write and publish a free post for your downstream network.",
@@ -299,8 +299,8 @@ const englishCopy: ContentCopy = {
     profileDescription:
       "Update your creator identity and automation settings for this channel.",
     studioDescription:
-      "Create your profile and publish free posts that your downstream network can discover.",
-    studioEyebrow: "creator tools",
+      "This area is only for creating, automating, and managing posts for your downstream network.",
+    studioEyebrow: "studio area",
     studioTitle: "Creator Studio",
   },
 };
@@ -316,8 +316,8 @@ const koreanCopy: ContentCopy = {
     generatingAiCover: "커버 생성 중...",
     managePosts: "콘텐츠 관리",
     nextPage: "다음 페이지",
-    openFeed: "네트워크 피드 열기",
-    openStudio: "크리에이터 스튜디오 열기",
+    openFeed: "피드로 이동",
+    openStudio: "스튜디오로 이동",
     previousPage: "이전 페이지",
     publish: "바로 게시하기",
     refresh: "새로고침",
@@ -335,14 +335,14 @@ const koreanCopy: ContentCopy = {
   },
   entry: {
     creatorDescription:
-      "내 하위 네트워크에 콘텐츠를 발행합니다.",
-    creatorTitle: "크리에이터 스튜디오",
+      "내 하위 네트워크용 콘텐츠를 만들고 자동화하며 관리합니다.",
+    creatorTitle: "스튜디오 영역",
     description:
-      "상위 네트워크의 콘텐츠를 볼지, 내 네트워크에 콘텐츠를 발행할지 역할에 맞게 바로 이동할 수 있습니다.",
-    title: "네트워크 콘텐츠",
+      "피드는 상위 네트워크 콘텐츠를 보는 영역이고, 스튜디오는 내 콘텐츠를 만드는 영역입니다.",
+    title: "콘텐츠 영역 선택",
     viewerDescription:
-      "상위 네트워크 콘텐츠를 봅니다.",
-    viewerTitle: "피드 보기",
+      "상위 네트워크가 발행한 콘텐츠를 읽고 탐색합니다.",
+    viewerTitle: "피드 영역",
   },
   fields: {
     automationAllowedDomains: "허용 도메인",
@@ -438,10 +438,10 @@ const koreanCopy: ContentCopy = {
     detailDescription: "상위 네트워크 안에서 공유된 콘텐츠를 확인하세요.",
     detailTitle: "네트워크 콘텐츠",
     feedDescription:
-      "상위 6단계 네트워크의 크리에이터가 발행한 무료 콘텐츠를 확인하세요.",
+      "상위 6단계 네트워크의 크리에이터가 발행한 무료 콘텐츠를 소비하는 영역입니다.",
     feedTitle: "네트워크 피드",
     studioDescription:
-      "크리에이터 프로필을 설정하고 하위 네트워크에 노출될 무료 콘텐츠를 발행하세요.",
+      "하위 네트워크에 노출할 콘텐츠를 만들고 관리하는 영역입니다.",
     studioTitle: "크리에이터 스튜디오",
   },
   page: {
@@ -449,8 +449,8 @@ const koreanCopy: ContentCopy = {
       "이 콘텐츠는 해당 네트워크 브랜치 안의 회원만 열람할 수 있습니다.",
     detailEyebrow: "network content",
     feedDescription:
-      "이 피드는 내 상위 6단계 네트워크 크리에이터의 콘텐츠로 구성됩니다.",
-    feedEyebrow: "network content",
+      "이 영역은 내 상위 6단계 네트워크 크리에이터의 콘텐츠를 읽는 전용 공간입니다.",
+    feedEyebrow: "feed area",
     feedTitle: "네트워크 피드",
     newDescription:
       "내 하위 네트워크에 공개할 무료 콘텐츠를 작성하고 게시해보세요.",
@@ -459,8 +459,8 @@ const koreanCopy: ContentCopy = {
     profileDescription:
       "이 채널의 크리에이터 정보와 자동화 설정을 관리합니다.",
     studioDescription:
-      "내 프로필을 설정하고 하위 네트워크가 발견할 수 있는 무료 콘텐츠를 발행해보세요.",
-    studioEyebrow: "creator tools",
+      "이 영역은 내 하위 네트워크용 콘텐츠를 만들고 자동화하고 관리하는 전용 공간입니다.",
+    studioEyebrow: "studio area",
     studioTitle: "크리에이터 스튜디오",
   },
 };

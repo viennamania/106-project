@@ -11,7 +11,6 @@ import {
   PenSquare,
   RefreshCcw,
   Search,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import {
@@ -131,7 +130,6 @@ export function CreatorStudioPostsPage({
     `/${locale}/creator/studio/posts`,
     referralCode,
   );
-  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const appliedQuery = searchParams.get("q")?.trim() ?? "";
   const appliedStatus = isPostVisibilityFilter(searchParams.get("status"))
@@ -655,14 +653,14 @@ export function CreatorStudioPostsPage({
                 title={contentCopy.labels.creatorSettings}
               />
               <WorkspaceLaunchCard
-                description={contentCopy.page.feedDescription}
+                description={contentCopy.page.studioDescription}
                 disabled={!canUseWorkspace}
-                href={feedHref}
-                icon={<Sparkles className="size-5" />}
-                title={contentCopy.entry.viewerTitle}
+                href={studioHomeHref}
+                icon={<ArrowLeft className="size-5" />}
+                title={contentCopy.labels.studioHome}
               />
               <WorkspaceLaunchCard
-                description={contentCopy.page.studioDescription}
+                description={contentCopy.entry.description}
                 disabled={!canUseWorkspace}
                 href={homeHref}
                 icon={<ArrowLeft className="size-5" />}

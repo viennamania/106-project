@@ -7,7 +7,6 @@ import {
   ArrowUpRight,
   RefreshCcw,
   Rss,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import {
@@ -69,7 +68,6 @@ export function NetworkFeedPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const studioHref = buildPathWithReferral(`/${locale}/creator/studio`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const [state, setState] = useState<FeedState>({
     error: null,
@@ -322,12 +320,6 @@ export function NetworkFeedPage({
             label={dictionary.common.languageLabel}
             locale={locale}
           />
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-            href={studioHref}
-          >
-            {contentCopy.actions.openStudio}
-          </Link>
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
             onClick={() => {
@@ -582,20 +574,17 @@ export function NetworkFeedPage({
 
           <div className="glass-card rounded-[30px] p-5">
             <div>
-              <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+              <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
               <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                {contentCopy.labels.quickActions}
+                {contentCopy.entry.viewerTitle}
               </h2>
             </div>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              {contentCopy.entry.viewerDescription}
+            </p>
             <div className="mt-4 grid gap-3">
               <FeedActionCard
-                description={contentCopy.page.studioDescription}
-                href={studioHref}
-                icon={<Sparkles className="size-5" />}
-                title={contentCopy.actions.openStudio}
-              />
-              <FeedActionCard
-                description={contentCopy.entry.viewerDescription}
+                description={contentCopy.actions.backHome}
                 href={homeHref}
                 icon={<UserRound className="size-5" />}
                 title={contentCopy.actions.backHome}

@@ -555,24 +555,52 @@ export function ReferralsPage({
                         <ArrowUpRight className="size-4" />
                       </a>
                     </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <Link
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                        href={networkFeedHref}
-                      >
-                        <Rss className="size-4" />
-                        {contentCopy.actions.openFeed}
-                      </Link>
-                      <Link
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                        href={creatorStudioHref}
-                      >
-                        <PenSquare className="size-4" />
-                        {contentCopy.actions.openStudio}
-                      </Link>
-                    </div>
                   </div>
                 ) : null}
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Link
+                    className="group rounded-[24px] border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:bg-slate-50"
+                    href={networkFeedHref}
+                  >
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                      {contentCopy.page.feedEyebrow}
+                    </p>
+                    <div className="mt-3 flex items-start justify-between gap-3">
+                      <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        <Rss className="size-4" />
+                      </div>
+                      <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                    </div>
+                    <p className="mt-4 text-lg font-semibold tracking-tight text-slate-950">
+                      {contentCopy.entry.viewerTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {contentCopy.entry.viewerDescription}
+                    </p>
+                  </Link>
+
+                  <Link
+                    className="group rounded-[24px] border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:bg-slate-50"
+                    href={creatorStudioHref}
+                  >
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                      {contentCopy.page.studioEyebrow}
+                    </p>
+                    <div className="mt-3 flex items-start justify-between gap-3">
+                      <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        <PenSquare className="size-4" />
+                      </div>
+                      <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                    </div>
+                    <p className="mt-4 text-lg font-semibold tracking-tight text-slate-950">
+                      {contentCopy.entry.creatorTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {contentCopy.entry.creatorDescription}
+                    </p>
+                  </Link>
+                </div>
 
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <Link

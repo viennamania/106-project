@@ -62,7 +62,6 @@ export function ContentDetailPage({
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const backHref = returnToHref ?? feedHref;
-  const studioHref = buildPathWithReferral(`/${locale}/creator/studio`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const [state, setState] = useState<DetailState>({
     content: null,
@@ -243,12 +242,6 @@ export function ContentDetailPage({
             href={homeHref}
           >
             {contentCopy.actions.backHome}
-          </Link>
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-            href={studioHref}
-          >
-            {contentCopy.actions.openStudio}
           </Link>
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
