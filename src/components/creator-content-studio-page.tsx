@@ -28,7 +28,6 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { getContentCopy } from "@/lib/content-copy";
 import { contentAutomationRunProgressSteps } from "@/lib/content-automation";
 import type {
@@ -904,6 +903,7 @@ export function CreatorContentStudioPage({
           body: postForm.body,
           coverImageUrl: postForm.coverImageUrl || null,
           email,
+          locale,
           priceType: "free",
           status: statusToSave,
           summary: postForm.summary,
@@ -2683,16 +2683,14 @@ export function CreatorContentStudioPage({
               <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                 {pageTitle}
               </h1>
-              <p className="text-sm text-slate-600">{pageDescription}</p>
+              <p className="hidden text-sm text-slate-600 sm:block">
+                {pageDescription}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <LanguageSwitcher
-            label={dictionary.common.languageLabel}
-            locale={locale}
-          />
           {headerShortcutHref && headerShortcutLabel ? (
             <Link
               className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"

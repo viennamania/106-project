@@ -1,4 +1,5 @@
 import type { MemberRecord } from "@/lib/member";
+import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 
 export const CONTENT_FEED_PAGE_SIZE = 20;
 export const CONTENT_LIBRARY_PAGE_SIZE = 24;
@@ -66,6 +67,7 @@ export type ContentPostDocument = {
   contentId: string;
   coverImageUrl: string | null;
   createdAt: Date;
+  locale?: Locale | null;
   previewAssetIds: string[];
   previewText: string | null;
   priceType: ContentPriceType;
@@ -128,6 +130,7 @@ export type ContentPostRecord = {
   contentId: string;
   coverImageUrl: string | null;
   createdAt: string;
+  locale: Locale;
   previewText: string | null;
   priceType: ContentPriceType;
   priceUsdt: string | null;
@@ -241,6 +244,7 @@ export type ContentPostCreateRequest = {
   body: string;
   coverImageUrl?: string | null;
   email: string;
+  locale?: Locale | null;
   previewAssetIds?: string[];
   previewText?: string | null;
   priceType: ContentPriceType;
@@ -317,6 +321,7 @@ export function serializeContentPost(
     contentId: content.contentId,
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
+    locale: normalizeContentLocale(content.locale),
     previewText: content.previewText ?? null,
     priceType: content.priceType,
     priceUsdt: content.priceUsdt ?? null,
@@ -327,6 +332,14 @@ export function serializeContentPost(
     title: content.title,
     updatedAt: content.updatedAt.toISOString(),
   };
+}
+
+export function normalizeContentLocale(locale: string | null | undefined): Locale {
+  if (locale && hasLocale(locale)) {
+    return locale;
+  }
+
+  return defaultLocale;
 }
 
 export function serializeContentOrder(

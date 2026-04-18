@@ -1109,6 +1109,7 @@ export async function runContentAutomationForMember(
       body: draft.body,
       coverImageUrl,
       email: member.email,
+      locale: storedProfile.language,
       priceType: "free",
       status: nextStatus,
       summary: draft.summary,

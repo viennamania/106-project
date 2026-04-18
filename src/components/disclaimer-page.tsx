@@ -1,19 +1,13 @@
 import Link from "next/link";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
-import type { Locale } from "@/lib/i18n";
 import type { DisclaimerCopy } from "@/lib/disclaimer-copy";
 
 export function DisclaimerPage({
   copy,
   homeHref,
-  languageLabel,
-  locale,
 }: {
   copy: DisclaimerCopy;
   homeHref: string;
-  languageLabel: string;
-  locale: Locale;
 }) {
   return (
     <div className="relative isolate overflow-hidden">
@@ -26,13 +20,12 @@ export function DisclaimerPage({
             <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
               {copy.title}
             </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
               {copy.intro}
             </p>
           </div>
 
           <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher label={languageLabel} locale={locale} />
             <Link
               className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
               href={homeHref}

@@ -23,7 +23,6 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   ContentPostMutationResponse,
   ContentPostRecord,
@@ -497,7 +496,7 @@ export function CreatorStudioPostsPage({
               <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                 {contentCopy.actions.managePosts}
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="hidden text-sm text-slate-600 sm:block">
                 {contentCopy.page.postsDescription}
               </p>
             </div>
@@ -505,10 +504,6 @@ export function CreatorStudioPostsPage({
         </div>
 
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <LanguageSwitcher
-            label={dictionary.common.languageLabel}
-            locale={locale}
-          />
           <Link
             className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
             href={newPostHref}

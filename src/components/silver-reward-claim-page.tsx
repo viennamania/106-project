@@ -20,7 +20,6 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildPathWithReferral,
@@ -387,7 +386,7 @@ export function SilverRewardClaimPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.rewardsPage.silverClaim.title}
                 </h1>
-                <p className="text-sm text-slate-600">
+                <p className="hidden text-sm text-slate-600 sm:block">
                   {dictionary.rewardsPage.silverClaim.description}
                 </p>
               </div>
@@ -395,10 +394,6 @@ export function SilverRewardClaimPage({
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
               status === "connected" ? (

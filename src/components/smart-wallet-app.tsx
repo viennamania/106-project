@@ -41,7 +41,6 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
@@ -1354,10 +1353,6 @@ export function SmartWalletApp({
                   {dictionary.referralsPage.actions.backHome}
                 </Link>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-                  <LanguageSwitcher
-                    label={dictionary.common.languageLabel}
-                    locale={locale}
-                  />
                   <StatusChip
                     labels={dictionary.common.status}
                     status={status}

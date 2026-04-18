@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import {
   CONTENT_FEED_PAGE_SIZE,
   CONTENT_NETWORK_LEVEL_LIMIT,
+  normalizeContentLocale,
   serializeContentPost,
   serializeCreatorProfile,
   type ContentDetailResponse,
@@ -20,6 +21,7 @@ import {
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
+import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
   getContentPostsCollection,
   getContentPostSourceAttributionsCollection,
@@ -346,10 +348,12 @@ function buildFeedItem({
 
 export async function getNetworkFeedForMember(
   email: string,
+  locale: Locale,
 ): Promise<ContentFeedResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const ancestors = await resolveNetworkAncestors(member);
   const levelByReferralCode = new Map<string, number>();
+  const contentLocale = normalizeContentLocale(locale);
 
   for (const ancestor of ancestors) {
     levelByReferralCode.set(ancestor.referralCode, ancestor.level);
@@ -366,8 +370,17 @@ export async function getNetworkFeedForMember(
   const postsCollection = await getContentPostsCollection();
   const creatorProfilesCollection = await getCreatorProfilesCollection();
   const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
+  const localeFilter =
+    contentLocale === defaultLocale
+      ? [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ]
+      : [{ locale: contentLocale }];
   const posts = await postsCollection
     .find({
+      $or: localeFilter,
       authorReferralCode: { $in: referralCodes },
       priceType: "free",
       status: "published",
@@ -550,6 +563,7 @@ export async function createContentPostForMember(
     contentId: randomUUID(),
     coverImageUrl: normalizeOptionalText(input.coverImageUrl, 500),
     createdAt: now,
+    locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
     previewText: normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT),
     priceType: "free",
@@ -626,6 +640,10 @@ export async function updateContentPostForMember(
           input.coverImageUrl !== undefined
             ? normalizeOptionalText(input.coverImageUrl, 500)
             : post.coverImageUrl ?? null,
+        locale:
+          input.locale !== undefined
+            ? normalizeContentLocale(input.locale)
+            : normalizeContentLocale(post.locale),
         previewAssetIds:
           input.previewAssetIds !== undefined
             ? input.previewAssetIds.slice(0, 4)

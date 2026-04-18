@@ -22,7 +22,6 @@ import {
 } from "thirdweb/react";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
@@ -283,7 +282,7 @@ export function BnbWalletPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.bnbPage.title}
                 </h1>
-                <p className="text-sm text-slate-600">
+                <p className="hidden text-sm text-slate-600 sm:block">
                   {dictionary.bnbPage.description}
                 </p>
               </div>
@@ -291,10 +290,6 @@ export function BnbWalletPage({
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
               status === "connected" ? (

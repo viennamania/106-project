@@ -19,7 +19,6 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { getContentCopy } from "@/lib/content-copy";
 import type { ContentFeedItemRecord, ContentFeedResponse } from "@/lib/content";
 import {
@@ -226,7 +225,7 @@ export function NetworkFeedPage({
       }
 
       const response = await fetch(
-        `/api/content/feed?email=${encodeURIComponent(email)}`,
+        `/api/content/feed?email=${encodeURIComponent(email)}&locale=${encodeURIComponent(locale)}`,
       );
       const data = (await response.json()) as ContentFeedResponse | {
         error?: string;
@@ -308,7 +307,7 @@ export function NetworkFeedPage({
               <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                 {contentCopy.page.feedTitle}
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="hidden text-sm text-slate-600 sm:block">
                 {contentCopy.page.feedDescription}
               </p>
             </div>
@@ -316,10 +315,6 @@ export function NetworkFeedPage({
         </div>
 
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <LanguageSwitcher
-            label={dictionary.common.languageLabel}
-            locale={locale}
-          />
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
             onClick={() => {

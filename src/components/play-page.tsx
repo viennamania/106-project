@@ -32,7 +32,6 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
@@ -530,10 +529,6 @@ export function PlayPage({
                   <ArrowLeft className="size-4" />
                   {dictionary.playPage.actions.backHome}
                 </Link>
-                <LanguageSwitcher
-                  label={dictionary.common.languageLabel}
-                  locale={locale}
-                />
                 {status === "connected" && accountAddress ? (
                   <>
                     <a

@@ -101,17 +101,20 @@ export default async function LocalizedHome({
 
   return (
     <LandingPage
+      activateHref={buildPathWithReferral(`/${locale}/activate`, activeReferralCode)}
       bnbWalletHref={buildPathWithReferral(`/${locale}/wallet/bnb`, activeReferralCode)}
       bnbWalletLabel={dictionary.bnbPage.title}
       branding={experience.branding}
       copy={copy}
       disclaimerHref={buildPathWithReferral(`/${locale}/disclaimer`, activeReferralCode)}
+      feedHref={buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)}
       disclaimerLabel={disclaimerCopy.navLabel}
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
       rewardsHref={buildPathWithReferral(`/${locale}/rewards`, activeReferralCode)}
       rewardsLabel={dictionary.rewardsPage.title}
+      studioHref={buildPathWithReferral(`/${locale}/creator/studio`, activeReferralCode)}
       walletHref={buildPathWithReferral(`/${locale}/wallet`, activeReferralCode)}
       walletLabel={dictionary.walletPage.title}
     />

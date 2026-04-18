@@ -26,7 +26,6 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import type {
   MemberAnnouncementRecipientFilter,
@@ -439,16 +438,14 @@ export function AnnouncementsPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {copy.title}
                 </h1>
-                <p className="text-sm text-slate-600">{copy.description}</p>
+                <p className="hidden text-sm text-slate-600 sm:block">
+                  {copy.description}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
             {accountLabel ? (
               <a
                 className="inline-flex h-10 items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"

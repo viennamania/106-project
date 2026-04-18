@@ -15,6 +15,7 @@ import {
 import type { CSSProperties, ReactNode } from "react";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
+import { LandingMemberContentEntry } from "@/components/landing/landing-member-content-entry";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ReferralAwareCta } from "@/components/landing/referral-aware-cta";
@@ -32,31 +33,37 @@ const REWARD_BIKE_IMAGE =
   `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
 
 export function LandingPage({
+  activateHref,
   bnbWalletHref,
   bnbWalletLabel,
   branding,
   copy,
   disclaimerHref,
+  feedHref,
   disclaimerLabel,
   languageLabel,
   locale,
   projectWallet,
   rewardsHref,
   rewardsLabel,
+  studioHref,
   walletHref,
   walletLabel,
 }: {
+  activateHref: string;
   bnbWalletHref: string;
   bnbWalletLabel: string;
   branding?: LandingPageBranding | null;
   copy: LandingCopy;
   disclaimerHref: string;
+  feedHref: string;
   disclaimerLabel: string;
   languageLabel: string;
   locale: Locale;
   projectWallet: string | null;
   rewardsHref: string;
   rewardsLabel: string;
+  studioHref: string;
   walletHref: string;
   walletLabel: string;
 }) {
@@ -165,6 +172,15 @@ export function LandingPage({
               </ReferralAwareCta>
             </div>
           </header>
+        </LandingReveal>
+
+        <LandingReveal delay={30} variant="soft">
+          <LandingMemberContentEntry
+            activateHref={activateHref}
+            feedHref={feedHref}
+            locale={locale}
+            studioHref={studioHref}
+          />
         </LandingReveal>
 
         <section

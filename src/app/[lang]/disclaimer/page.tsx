@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { DisclaimerPage } from "@/components/disclaimer-page";
 import { getDisclaimerCopy } from "@/lib/disclaimer-copy";
 import { buildReferralLandingPath } from "@/lib/landing-branding";
-import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
 export async function generateMetadata({
@@ -38,7 +38,6 @@ export default async function LocalizedDisclaimerPage({
 
   const locale = lang as Locale;
   const copy = getDisclaimerCopy(locale);
-  const dictionary = getDictionary(locale);
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
@@ -47,8 +46,6 @@ export default async function LocalizedDisclaimerPage({
     <DisclaimerPage
       copy={copy}
       homeHref={buildReferralLandingPath(locale, referralCode)}
-      languageLabel={dictionary.common.languageLabel}
-      locale={locale}
     />
   );
 }

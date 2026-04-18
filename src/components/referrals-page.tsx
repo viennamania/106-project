@@ -21,7 +21,6 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
@@ -343,7 +342,7 @@ export function ReferralsPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.referralsPage.title}
                 </h1>
-                <p className="text-sm text-slate-600">
+                <p className="hidden text-sm text-slate-600 sm:block">
                   {dictionary.referralsPage.description}
                 </p>
               </div>
@@ -351,11 +350,7 @@ export function ReferralsPage({
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
-            <StatusChip
+                  <StatusChip
               labels={dictionary.common.status}
               status={status}
             />

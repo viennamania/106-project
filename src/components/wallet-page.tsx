@@ -42,7 +42,6 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
@@ -756,7 +755,7 @@ export function WalletPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.walletPage.title}
                 </h1>
-                <p className="text-sm text-slate-600">
+                <p className="hidden text-sm text-slate-600 sm:block">
                   {dictionary.walletPage.description}
                 </p>
               </div>
@@ -764,10 +763,6 @@ export function WalletPage({
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
             <Link
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
               href={bnbWalletHref}

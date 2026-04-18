@@ -36,7 +36,6 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
@@ -860,7 +859,7 @@ export function ActivateNetworkPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.activateNetworkPage.title}
                 </h1>
-                <p className="text-sm text-slate-600">
+                <p className="hidden text-sm text-slate-600 sm:block">
                   {dictionary.activateNetworkPage.description}
                 </p>
               </div>
@@ -868,10 +867,6 @@ export function ActivateNetworkPage({
           </div>
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <LanguageSwitcher
-              label={dictionary.common.languageLabel}
-              locale={locale}
-            />
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
               status === "connected" ? (

@@ -23,7 +23,6 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
@@ -595,7 +594,7 @@ export function NotificationsPage({
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {notificationCopy.title}
                 </h1>
-                <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                <p className="hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
                   {notificationCopy.pageDescription}
                 </p>
               </div>
@@ -610,12 +609,6 @@ export function NotificationsPage({
                   <ArrowLeft className="size-4" />
                   {notificationCopy.dismiss}
                 </Link>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-                  <LanguageSwitcher
-                    label={dictionary.common.languageLabel}
-                    locale={locale}
-                  />
-                </div>
               </div>
 
               {status === "connected" && accountAddress ? (
