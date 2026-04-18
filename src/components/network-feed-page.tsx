@@ -373,7 +373,7 @@ export function NetworkFeedPage({
                     {formatDate(item.publishedAt ?? item.createdAt, locale)}
                   </p>
                   <Link
-                    className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
                     href={buildPathWithReferral(
                       `/${locale}/content/${item.contentId}`,
                       referralCode,
