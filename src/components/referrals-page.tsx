@@ -28,6 +28,7 @@ import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getContentCopy } from "@/lib/content-copy";
 import {
@@ -95,9 +96,15 @@ export function ReferralsPage({
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const brandingStudioHref = buildPathWithReferral(
-    `/${locale}/branding-studio`,
+  const currentReferralsHref = buildPathWithReferral(
+    `/${locale}/referrals`,
     referralCode,
+  );
+  const brandingStudioHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
+    {
+      returnTo: currentReferralsHref,
+    },
   );
   const creatorStudioHref = buildPathWithReferral(
     `/${locale}/creator/studio`,

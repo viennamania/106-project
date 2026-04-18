@@ -47,6 +47,7 @@ import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import {
   MEMBER_SIGNUP_USDT_DECIMALS,
@@ -212,9 +213,11 @@ export function WalletPage({
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const bnbWalletHref = buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode);
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
-  const brandingStudioHref = buildPathWithReferral(
-    `/${locale}/branding-studio`,
-    referralCode,
+  const brandingStudioHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
+    {
+      returnTo: buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    },
   );
 
   const persistWalletTransfer = useCallback(

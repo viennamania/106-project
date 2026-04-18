@@ -248,9 +248,15 @@ export function SmartWalletApp({
     `/${locale}/notifications`,
     preferredReferralCode,
   );
-  const brandingStudioHref = buildPathWithReferral(
-    `/${locale}/branding-studio`,
+  const activatePageHref = buildPathWithReferral(
+    `/${locale}/activate`,
     preferredReferralCode,
+  );
+  const brandingStudioHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/branding-studio`, preferredReferralCode),
+    {
+      returnTo: activatePageHref,
+    },
   );
   const creatorStudioHref = buildPathWithReferral(
     `/${locale}/creator/studio`,
