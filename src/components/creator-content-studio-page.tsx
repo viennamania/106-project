@@ -9,6 +9,7 @@ import {
   ImagePlus,
   PenSquare,
   RefreshCcw,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 import {
@@ -24,6 +25,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
+  ContentPostGenerateCoverResponse,
   ContentPostMutationResponse,
   ContentPostRecord,
   ContentPostUploadResponse,
@@ -123,6 +125,7 @@ export function CreatorContentStudioPage({
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
+  const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
@@ -151,6 +154,9 @@ export function CreatorContentStudioPage({
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
+  const canGeneratePostCover = Boolean(
+    postForm.title.trim() || postForm.summary.trim() || postForm.body.trim(),
+  );
 
   const loadStudio = useCallback(async () => {
     if (!accountAddress) {
@@ -572,6 +578,57 @@ export function CreatorContentStudioPage({
     }
   }
 
+  async function generatePostCoverImage() {
+    try {
+      setIsGeneratingPostImage(true);
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/posts/generate-cover", {
+        body: JSON.stringify({
+          body: postForm.body,
+          email,
+          summary: postForm.summary,
+          title: postForm.title,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as ContentPostGenerateCoverResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.uploadFailed,
+        );
+      }
+
+      setPostForm((current) => ({
+        ...current,
+        coverImageUrl: data.url,
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.imageGenerated,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsGeneratingPostImage(false);
+    }
+  }
+
   function renderBlockedState() {
     if (isDisconnected) {
       return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
@@ -833,7 +890,7 @@ export function CreatorContentStudioPage({
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingPostImage}
+                  disabled={isUploadingPostImage || isGeneratingPostImage}
                   onClick={() => {
                     postImageInputRef.current?.click();
                   }}
@@ -843,6 +900,23 @@ export function CreatorContentStudioPage({
                   {isUploadingPostImage
                     ? contentCopy.actions.uploadingImage
                     : contentCopy.actions.uploadImage}
+                </button>
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={
+                    isUploadingPostImage ||
+                    isGeneratingPostImage ||
+                    !canGeneratePostCover
+                  }
+                  onClick={() => {
+                    void generatePostCoverImage();
+                  }}
+                  type="button"
+                >
+                  <Sparkles className="size-4" />
+                  {isGeneratingPostImage
+                    ? contentCopy.actions.generatingAiCover
+                    : contentCopy.actions.generateAiCover}
                 </button>
                 {postForm.coverImageUrl ? (
                   <button
@@ -885,7 +959,12 @@ export function CreatorContentStudioPage({
             <div className="flex flex-wrap gap-2">
               <button
                 className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                disabled={isSavingPost || isDisconnected || isUploadingPostImage}
+                disabled={
+                  isSavingPost ||
+                  isDisconnected ||
+                  isUploadingPostImage ||
+                  isGeneratingPostImage
+                }
                 onClick={() => {
                   void createPost("draft");
                 }}
@@ -895,7 +974,12 @@ export function CreatorContentStudioPage({
               </button>
               <button
                 className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                disabled={isSavingPost || isDisconnected || isUploadingPostImage}
+                disabled={
+                  isSavingPost ||
+                  isDisconnected ||
+                  isUploadingPostImage ||
+                  isGeneratingPostImage
+                }
                 onClick={() => {
                   void createPost("published");
                 }}

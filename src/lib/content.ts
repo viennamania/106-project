@@ -195,6 +195,13 @@ export type ContentPostUploadResponse = {
   url: string;
 };
 
+export type ContentPostGenerateCoverResponse = {
+  contentType: string;
+  pathname: string;
+  revisedPrompt: string | null;
+  url: string;
+};
+
 export type CreatorStudioPostsResponse = {
   member: MemberRecord;
   posts: ContentPostRecord[];

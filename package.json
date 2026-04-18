@@ -15,6 +15,7 @@
     "reconcile:completed": "node scripts/trigger-reconcile-completed-members.mjs",
     "notifications:backfill": "node scripts/trigger-backfill-notifications.mjs",
     "notifications:test-push": "node scripts/trigger-test-web-push.mjs",
+    "content-automation:run": "node scripts/run-content-automation.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
     "reconcile:worker": "node scripts/run-reconcile-worker.mjs",
     "rewards:nft:backfill-legacy": "node scripts/backfill-legacy-reward-nft.mjs",

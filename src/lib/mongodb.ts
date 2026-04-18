@@ -36,6 +36,12 @@ import type {
   ContentPostDocument,
   CreatorProfileDocument,
 } from "@/lib/content";
+import type {
+  ContentAutomationJobDocument,
+  ContentPostSourceAttributionDocument,
+  ContentSourceItemDocument,
+  CreatorAutomationProfileDocument,
+} from "@/lib/content-automation";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -99,6 +105,18 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoContentPostsCollectionPromise?: Promise<
     Collection<ContentPostDocument>
+  >;
+  mongoCreatorAutomationProfilesCollectionPromise?: Promise<
+    Collection<CreatorAutomationProfileDocument>
+  >;
+  mongoContentAutomationJobsCollectionPromise?: Promise<
+    Collection<ContentAutomationJobDocument>
+  >;
+  mongoContentSourceItemsCollectionPromise?: Promise<
+    Collection<ContentSourceItemDocument>
+  >;
+  mongoContentPostSourceAttributionsCollectionPromise?: Promise<
+    Collection<ContentPostSourceAttributionDocument>
   >;
 };
 
@@ -770,4 +788,102 @@ export async function getContentPostsCollection() {
   }
 
   return globalForMongo.mongoContentPostsCollectionPromise;
+}
+
+export async function getCreatorAutomationProfilesCollection() {
+  if (!globalForMongo.mongoCreatorAutomationProfilesCollectionPromise) {
+    globalForMongo.mongoCreatorAutomationProfilesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CREATOR_AUTOMATION_PROFILES_COLLECTION ??
+        "creatorAutomationProfiles";
+      const collection = client
+        .db(dbName)
+        .collection<CreatorAutomationProfileDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ memberEmail: 1 }, { unique: true }),
+        collection.createIndex({ enabled: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoCreatorAutomationProfilesCollectionPromise;
+}
+
+export async function getContentAutomationJobsCollection() {
+  if (!globalForMongo.mongoContentAutomationJobsCollectionPromise) {
+    globalForMongo.mongoContentAutomationJobsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_AUTOMATION_JOBS_COLLECTION ??
+        "contentAutomationJobs";
+      const collection = client
+        .db(dbName)
+        .collection<ContentAutomationJobDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ jobId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, status: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentAutomationJobsCollectionPromise;
+}
+
+export async function getContentSourceItemsCollection() {
+  if (!globalForMongo.mongoContentSourceItemsCollectionPromise) {
+    globalForMongo.mongoContentSourceItemsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_SOURCE_ITEMS_COLLECTION ??
+        "contentSourceItems";
+      const collection = client
+        .db(dbName)
+        .collection<ContentSourceItemDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ sourceItemId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, fetchedAt: -1 }),
+        collection.createIndex({ memberEmail: 1, fingerprint: 1 }, { unique: true }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentSourceItemsCollectionPromise;
+}
+
+export async function getContentPostSourceAttributionsCollection() {
+  if (!globalForMongo.mongoContentPostSourceAttributionsCollectionPromise) {
+    globalForMongo.mongoContentPostSourceAttributionsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_POST_SOURCE_ATTRIBUTIONS_COLLECTION ??
+        "contentPostSourceAttributions";
+      const collection = client
+        .db(dbName)
+        .collection<ContentPostSourceAttributionDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ contentId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentPostSourceAttributionsCollectionPromise;
 }

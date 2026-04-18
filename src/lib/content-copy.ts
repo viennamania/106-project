@@ -7,6 +7,8 @@ export type ContentCopy = {
     connectWallet: string;
     createPost: string;
     disconnect: string;
+    generateAiCover: string;
+    generatingAiCover: string;
     openFeed: string;
     openStudio: string;
     publish: string;
@@ -63,6 +65,7 @@ export type ContentCopy = {
     connectRequired: string;
     detailLoadFailed: string;
     feedLoadFailed: string;
+    imageGenerated: string;
     memberMissing: string;
     paymentRequired: string;
     profileSaved: string;
@@ -99,6 +102,8 @@ const englishCopy: ContentCopy = {
     connectWallet: "Sign in with email",
     createPost: "Create post",
     disconnect: "Disconnect",
+    generateAiCover: "Generate AI cover",
+    generatingAiCover: "Generating cover...",
     openFeed: "Open network feed",
     openStudio: "Open creator studio",
     publish: "Publish now",
@@ -160,6 +165,7 @@ const englishCopy: ContentCopy = {
       "Sign in with the same member email you use for your referral network.",
     detailLoadFailed: "Failed to load the content detail.",
     feedLoadFailed: "Failed to load the network feed.",
+    imageGenerated: "AI cover generated. You can publish or save it now.",
     memberMissing: "Member not found.",
     paymentRequired: "Completed signup is required to use network content.",
     profileSaved: "Creator profile saved.",
@@ -201,6 +207,8 @@ const koreanCopy: ContentCopy = {
     connectWallet: "이메일로 로그인",
     createPost: "콘텐츠 만들기",
     disconnect: "연결 해제",
+    generateAiCover: "AI 커버 생성",
+    generatingAiCover: "커버 생성 중...",
     openFeed: "네트워크 피드 열기",
     openStudio: "크리에이터 스튜디오 열기",
     publish: "바로 게시하기",
@@ -263,6 +271,7 @@ const koreanCopy: ContentCopy = {
       "레퍼럴 네트워크에 사용하는 같은 회원 이메일로 로그인해야 합니다.",
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",
     feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
+    imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
     memberMissing: "회원을 찾을 수 없습니다.",
     paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
