@@ -25,6 +25,12 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
+  ContentAutomationJobRecord,
+  ContentAutomationJobsResponse,
+  ContentAutomationRunResponse,
+  CreatorAutomationProfileResponse,
+} from "@/lib/content-automation";
+import type {
   ContentPostGenerateCoverResponse,
   ContentPostMutationResponse,
   ContentPostRecord,
@@ -63,6 +69,24 @@ type StudioState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
+type AutomationState = {
+  available: boolean;
+  error: string | null;
+  form: {
+    allowedDomains: string;
+    autoPublish: boolean;
+    enabled: boolean;
+    maxPostsPerDay: string;
+    minIntervalMinutes: string;
+    personaName: string;
+    personaPrompt: string;
+    publishScoreThreshold: string;
+    topics: string;
+  };
+  jobs: ContentAutomationJobRecord[];
+  status: "idle" | "loading" | "ready";
+};
+
 type StudioView = "hub" | "new" | "profile";
 
 const EMPTY_PROFILE = {
@@ -78,6 +102,36 @@ const EMPTY_POST_FORM = {
   summary: "",
   title: "",
 };
+
+const EMPTY_AUTOMATION_FORM = {
+  allowedDomains: "",
+  autoPublish: false,
+  enabled: false,
+  maxPostsPerDay: "1",
+  minIntervalMinutes: "360",
+  personaName: "",
+  personaPrompt: "",
+  publishScoreThreshold: "86",
+  topics: "",
+};
+
+const AUTOMATION_RESTRICTED_MESSAGE =
+  "Content automation is not enabled for this member.";
+
+function parseDelimitedValues(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(/[\n,]/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function stringifyDelimitedValues(values: string[]) {
+  return values.join(", ");
+}
 
 export function CreatorContentStudioPage({
   dictionary,
@@ -128,8 +182,17 @@ export function CreatorContentStudioPage({
     status: "idle",
   });
   const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
+  const [automation, setAutomation] = useState<AutomationState>({
+    available: false,
+    error: null,
+    form: EMPTY_AUTOMATION_FORM,
+    jobs: [],
+    status: "idle",
+  });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
+  const [isSavingAutomation, setIsSavingAutomation] = useState(false);
+  const [isRunningAutomation, setIsRunningAutomation] = useState(false);
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
@@ -170,12 +233,18 @@ export function CreatorContentStudioPage({
       return;
     }
 
-    setState((current) => ({
-      ...current,
-      error: null,
-      notice: null,
-      status: "loading",
-    }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: null,
+        status: "loading",
+      }));
+      setAutomation((current) => ({
+        ...current,
+        error: null,
+        jobs: [],
+        status: "loading",
+      }));
 
     try {
       const email = await getUserEmail({ client: thirdwebClient });
@@ -225,6 +294,13 @@ export function CreatorContentStudioPage({
           profile: EMPTY_PROFILE,
           status: "ready",
         });
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
         return;
       }
 
@@ -237,18 +313,34 @@ export function CreatorContentStudioPage({
           profile: EMPTY_PROFILE,
           status: "ready",
         });
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
         return;
       }
 
-      const [profileResponse, postsResponse] = await Promise.all([
+      const [profileResponse, postsResponse, automationProfileResponse, automationJobsResponse] =
+        await Promise.all([
         fetch(`/api/content/profile?email=${encodeURIComponent(email)}`),
         fetch(`/api/content/posts?email=${encodeURIComponent(email)}`),
+        fetch(`/api/content/automation/profile?email=${encodeURIComponent(email)}`),
+        fetch(`/api/content/automation/jobs?email=${encodeURIComponent(email)}`),
       ]);
       const profileData = (await profileResponse.json()) as
         | CreatorProfileResponse
         | { error?: string };
       const postsData = (await postsResponse.json()) as
         | CreatorStudioPostsResponse
+        | { error?: string };
+      const automationProfileData = (await automationProfileResponse.json()) as
+        | CreatorAutomationProfileResponse
+        | { error?: string };
+      const automationJobsData = (await automationJobsResponse.json()) as
+        | ContentAutomationJobsResponse
         | { error?: string };
 
       if (
@@ -279,6 +371,62 @@ export function CreatorContentStudioPage({
         },
         status: "ready",
       });
+
+      if (
+        automationProfileResponse.ok &&
+        "profile" in automationProfileData &&
+        automationJobsResponse.ok &&
+        "items" in automationJobsData
+      ) {
+        setAutomation({
+          available: true,
+          error: null,
+          form: {
+            allowedDomains: stringifyDelimitedValues(
+              automationProfileData.profile.allowedDomains,
+            ),
+            autoPublish: automationProfileData.profile.autoPublish,
+            enabled: automationProfileData.profile.enabled,
+            maxPostsPerDay: String(automationProfileData.profile.maxPostsPerDay),
+            minIntervalMinutes: String(
+              automationProfileData.profile.minIntervalMinutes,
+            ),
+            personaName: automationProfileData.profile.personaName,
+            personaPrompt: automationProfileData.profile.personaPrompt,
+            publishScoreThreshold: String(
+              automationProfileData.profile.publishScoreThreshold,
+            ),
+            topics: stringifyDelimitedValues(automationProfileData.profile.topics),
+          },
+          jobs: automationJobsData.items,
+          status: "ready",
+        });
+      } else if (
+        automationProfileResponse.status === 403 &&
+        "error" in automationProfileData &&
+        automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
+      ) {
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
+      } else {
+        setAutomation({
+          available: false,
+          error:
+            "error" in automationJobsData && automationJobsData.error
+              ? automationJobsData.error
+              : "error" in automationProfileData && automationProfileData.error
+                ? automationProfileData.error
+                : contentCopy.messages.automationLoadFailed,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
+      }
     } catch (error) {
       setState({
         error:
@@ -291,12 +439,23 @@ export function CreatorContentStudioPage({
         profile: EMPTY_PROFILE,
         status: "error",
       });
+      setAutomation({
+        available: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.automationLoadFailed,
+        form: EMPTY_AUTOMATION_FORM,
+        jobs: [],
+        status: "ready",
+      });
     }
   }, [
     accountAddress,
     chain.id,
     chain.name,
     contentCopy.messages.memberMissing,
+    contentCopy.messages.automationLoadFailed,
     contentCopy.messages.paymentRequired,
     contentCopy.messages.studioLoadFailed,
     dictionary.member.errors.missingEmail,
@@ -311,6 +470,13 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: [],
         profile: EMPTY_PROFILE,
+        status: "idle",
+      });
+      setAutomation({
+        available: false,
+        error: null,
+        form: EMPTY_AUTOMATION_FORM,
+        jobs: [],
         status: "idle",
       });
       return;
@@ -636,6 +802,142 @@ export function CreatorContentStudioPage({
     }
   }
 
+  async function saveAutomation() {
+    try {
+      setIsSavingAutomation(true);
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/automation/profile", {
+        body: JSON.stringify({
+          allowedDomains: parseDelimitedValues(automation.form.allowedDomains),
+          autoPublish: automation.form.autoPublish,
+          enabled: automation.form.enabled,
+          maxPostsPerDay: Number(automation.form.maxPostsPerDay),
+          memberEmail: email,
+          minIntervalMinutes: Number(automation.form.minIntervalMinutes),
+          personaName: automation.form.personaName,
+          personaPrompt: automation.form.personaPrompt,
+          publishScoreThreshold: Number(automation.form.publishScoreThreshold),
+          topics: parseDelimitedValues(automation.form.topics),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorAutomationProfileResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("profile" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.automationLoadFailed,
+        );
+      }
+
+      setAutomation((current) => ({
+        ...current,
+        available: true,
+        error: null,
+        form: {
+          allowedDomains: stringifyDelimitedValues(data.profile.allowedDomains),
+          autoPublish: data.profile.autoPublish,
+          enabled: data.profile.enabled,
+          maxPostsPerDay: String(data.profile.maxPostsPerDay),
+          minIntervalMinutes: String(data.profile.minIntervalMinutes),
+          personaName: data.profile.personaName,
+          personaPrompt: data.profile.personaPrompt,
+          publishScoreThreshold: String(data.profile.publishScoreThreshold),
+          topics: stringifyDelimitedValues(data.profile.topics),
+        },
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.automationSaved,
+      }));
+    } catch (error) {
+      setAutomation((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.automationLoadFailed,
+      }));
+      setState((current) => ({
+        ...current,
+        notice: null,
+      }));
+    } finally {
+      setIsSavingAutomation(false);
+    }
+  }
+
+  async function runAutomation() {
+    try {
+      setIsRunningAutomation(true);
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/automation/run", {
+        body: JSON.stringify({
+          memberEmail: email,
+          mode: "discover_and_draft",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as ContentAutomationRunResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("job" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.automationLoadFailed,
+        );
+      }
+
+      setAutomation((current) => ({
+        ...current,
+        error: null,
+        jobs: [data.job, ...current.jobs].slice(0, 20),
+      }));
+      const createdContent = data.content;
+
+      if (createdContent) {
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: contentCopy.messages.automationRunSuccess,
+          posts: [createdContent, ...current.posts],
+        }));
+      } else {
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: contentCopy.messages.automationRunSuccess,
+        }));
+      }
+    } catch (error) {
+      setAutomation((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.automationLoadFailed,
+      }));
+      setState((current) => ({
+        ...current,
+        notice: null,
+      }));
+    } finally {
+      setIsRunningAutomation(false);
+    }
+  }
+
   function renderBlockedState() {
     if (isDisconnected) {
       return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
@@ -815,6 +1117,250 @@ export function CreatorContentStudioPage({
                 ? `${contentCopy.actions.saveProfile}...`
                 : contentCopy.actions.saveProfile}
             </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderAutomationPanel() {
+    const blockedState = renderBlockedState();
+
+    return (
+      <div className="glass-card rounded-[30px] p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="eyebrow">{contentCopy.labels.automationBetaOnly}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {contentCopy.labels.automation}
+            </h2>
+          </div>
+          <StatusBadge
+            status={automation.form.enabled ? "published" : "draft"}
+          />
+        </div>
+
+        {blockedState ? (
+          blockedState
+        ) : !automation.available ? (
+          <MessageCard>
+            {automation.error || contentCopy.labels.automationRestricted}
+          </MessageCard>
+        ) : (
+          <div className="mt-5 space-y-4">
+            {automation.error ? (
+              <MessageCard tone="error">{automation.error}</MessageCard>
+            ) : null}
+            <ToggleField
+              checked={automation.form.enabled}
+              description={contentCopy.labels.automationEnabled}
+              label={contentCopy.labels.automation}
+              onChange={(checked) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    enabled: checked,
+                  },
+                }));
+              }}
+            />
+            <ToggleField
+              checked={automation.form.autoPublish}
+              description={contentCopy.labels.automationAutoPublish}
+              label={contentCopy.actions.publish}
+              onChange={(checked) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    autoPublish: checked,
+                  },
+                }));
+              }}
+            />
+            <InputField
+              hint={contentCopy.hints.automationPersonaName}
+              label={contentCopy.fields.automationPersonaName}
+              onChange={(value) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    personaName: value,
+                  },
+                }));
+              }}
+              value={automation.form.personaName}
+            />
+            <TextAreaField
+              hint={contentCopy.hints.automationPersonaPrompt}
+              label={contentCopy.fields.automationPersonaPrompt}
+              onChange={(value) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    personaPrompt: value,
+                  },
+                }));
+              }}
+              rows={5}
+              value={automation.form.personaPrompt}
+            />
+            <TextAreaField
+              hint={contentCopy.hints.automationTopics}
+              label={contentCopy.fields.automationTopics}
+              onChange={(value) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    topics: value,
+                  },
+                }));
+              }}
+              rows={3}
+              value={automation.form.topics}
+            />
+            <TextAreaField
+              hint={contentCopy.hints.automationAllowedDomains}
+              label={contentCopy.fields.automationAllowedDomains}
+              onChange={(value) => {
+                setAutomation((current) => ({
+                  ...current,
+                  form: {
+                    ...current.form,
+                    allowedDomains: value,
+                  },
+                }));
+              }}
+              rows={3}
+              value={automation.form.allowedDomains}
+            />
+            <div className="grid gap-4 sm:grid-cols-3">
+              <InputField
+                hint={contentCopy.hints.automationMaxPostsPerDay}
+                label={contentCopy.fields.automationMaxPostsPerDay}
+                onChange={(value) => {
+                  setAutomation((current) => ({
+                    ...current,
+                    form: {
+                      ...current.form,
+                      maxPostsPerDay: value,
+                    },
+                  }));
+                }}
+                value={automation.form.maxPostsPerDay}
+              />
+              <InputField
+                hint={contentCopy.hints.automationMinIntervalMinutes}
+                label={contentCopy.fields.automationMinIntervalMinutes}
+                onChange={(value) => {
+                  setAutomation((current) => ({
+                    ...current,
+                    form: {
+                      ...current.form,
+                      minIntervalMinutes: value,
+                    },
+                  }));
+                }}
+                value={automation.form.minIntervalMinutes}
+              />
+              <InputField
+                hint={contentCopy.hints.automationPublishScoreThreshold}
+                label={contentCopy.fields.automationPublishScoreThreshold}
+                onChange={(value) => {
+                  setAutomation((current) => ({
+                    ...current,
+                    form: {
+                      ...current.form,
+                      publishScoreThreshold: value,
+                    },
+                  }));
+                }}
+                value={automation.form.publishScoreThreshold}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                disabled={isSavingAutomation || isRunningAutomation}
+                onClick={() => {
+                  void saveAutomation();
+                }}
+                type="button"
+              >
+                {isSavingAutomation
+                  ? `${contentCopy.actions.saveAutomation}...`
+                  : contentCopy.actions.saveAutomation}
+              </button>
+              <button
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                disabled={isSavingAutomation || isRunningAutomation || !automation.form.enabled}
+                onClick={() => {
+                  void runAutomation();
+                }}
+                type="button"
+              >
+                <Sparkles className="size-4" />
+                {isRunningAutomation
+                  ? contentCopy.actions.runningAutomation
+                  : contentCopy.actions.runAutomation}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderAutomationJobsPanel() {
+    if (!automation.available) {
+      return null;
+    }
+
+    return (
+      <div className="glass-card rounded-[30px] p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="eyebrow">{contentCopy.labels.automationBetaOnly}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {contentCopy.labels.automationJobs}
+            </h2>
+          </div>
+        </div>
+
+        {automation.jobs.length === 0 ? (
+          <MessageCard>{contentCopy.labels.automationDisabled}</MessageCard>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {automation.jobs.slice(0, 6).map((job) => (
+              <article
+                className="rounded-[22px] border border-white/80 bg-white/90 p-4"
+                key={job.jobId}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge
+                    status={job.status === "completed" ? "published" : "draft"}
+                  />
+                  {job.score !== null ? (
+                    <StatusBadge status={`score ${job.score}`} />
+                  ) : null}
+                </div>
+                <h3 className="mt-3 text-base font-semibold tracking-tight text-slate-950">
+                  {job.title ?? job.topic ?? job.mode}
+                </h3>
+                {job.summary ? (
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {job.summary}
+                  </p>
+                ) : null}
+                {job.error ? (
+                  <p className="mt-2 text-sm leading-6 text-rose-700">{job.error}</p>
+                ) : null}
+              </article>
+            ))}
           </div>
         )}
       </div>
@@ -1311,8 +1857,14 @@ export function CreatorContentStudioPage({
         </>
       ) : view === "profile" ? (
         <section className="grid gap-5 xl:grid-cols-[0.96fr_1.04fr]">
-          {renderProfileCard()}
-          {renderSideRail("new")}
+          <div className="space-y-5">
+            {renderProfileCard()}
+            {renderAutomationPanel()}
+          </div>
+          <div className="space-y-5">
+            {renderSideRail("new")}
+            {renderAutomationJobsPanel()}
+          </div>
         </section>
       ) : (
         <section className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
@@ -1399,6 +1951,35 @@ function WorkspaceMetric({
         {value}
       </p>
     </div>
+  );
+}
+
+function ToggleField({
+  checked,
+  description,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  description: string;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start justify-between gap-4 rounded-[18px] border border-slate-200 bg-white px-4 py-4">
+      <div>
+        <p className="text-sm font-medium text-slate-900">{label}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
+      </div>
+      <input
+        checked={checked}
+        className="mt-1 size-4 rounded border-slate-300 text-slate-950"
+        onChange={(event) => {
+          onChange(event.target.checked);
+        }}
+        type="checkbox"
+      />
+    </label>
   );
 }
 

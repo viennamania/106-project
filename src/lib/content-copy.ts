@@ -14,6 +14,9 @@ export type ContentCopy = {
     publish: string;
     refresh: string;
     removeImage: string;
+    runAutomation: string;
+    runningAutomation: string;
+    saveAutomation: string;
     saveProfile: string;
     saveDraft: string;
     uploadImage: string;
@@ -29,6 +32,13 @@ export type ContentCopy = {
     viewerTitle: string;
   };
   fields: {
+    automationAllowedDomains: string;
+    automationMaxPostsPerDay: string;
+    automationMinIntervalMinutes: string;
+    automationPersonaName: string;
+    automationPersonaPrompt: string;
+    automationPublishScoreThreshold: string;
+    automationTopics: string;
     body: string;
     coverImage: string;
     displayName: string;
@@ -39,6 +49,13 @@ export type ContentCopy = {
     title: string;
   };
   hints: {
+    automationAllowedDomains: string;
+    automationMaxPostsPerDay: string;
+    automationMinIntervalMinutes: string;
+    automationPersonaName: string;
+    automationPersonaPrompt: string;
+    automationPublishScoreThreshold: string;
+    automationTopics: string;
     body: string;
     coverImage: string;
     displayName: string;
@@ -49,6 +66,13 @@ export type ContentCopy = {
     title: string;
   };
   labels: {
+    automation: string;
+    automationAutoPublish: string;
+    automationBetaOnly: string;
+    automationDisabled: string;
+    automationEnabled: string;
+    automationJobs: string;
+    automationRestricted: string;
     author: string;
     creatorProfile: string;
     draft: string;
@@ -62,6 +86,9 @@ export type ContentCopy = {
     studioNotice: string;
   };
   messages: {
+    automationLoadFailed: string;
+    automationRunSuccess: string;
+    automationSaved: string;
     connectRequired: string;
     detailLoadFailed: string;
     feedLoadFailed: string;
@@ -109,6 +136,9 @@ const englishCopy: ContentCopy = {
     publish: "Publish now",
     refresh: "Refresh",
     removeImage: "Remove image",
+    runAutomation: "Generate draft now",
+    runningAutomation: "Generating draft...",
+    saveAutomation: "Save automation",
     saveProfile: "Save profile",
     saveDraft: "Save as draft",
     uploadImage: "Upload image",
@@ -127,6 +157,13 @@ const englishCopy: ContentCopy = {
     viewerTitle: "Browse feed",
   },
   fields: {
+    automationAllowedDomains: "Allowed domains",
+    automationMaxPostsPerDay: "Daily post limit",
+    automationMinIntervalMinutes: "Minimum interval (minutes)",
+    automationPersonaName: "Automation persona name",
+    automationPersonaPrompt: "Automation persona prompt",
+    automationPublishScoreThreshold: "Auto publish score",
+    automationTopics: "Automation topics",
     body: "Content body",
     coverImage: "Cover image",
     displayName: "Display name",
@@ -137,6 +174,13 @@ const englishCopy: ContentCopy = {
     title: "Title",
   },
   hints: {
+    automationAllowedDomains: "Comma-separated domains. Leave empty to let web search choose public sources broadly.",
+    automationMaxPostsPerDay: "Keep this low while testing.",
+    automationMinIntervalMinutes: "Minimum time between successful automated posts.",
+    automationPersonaName: "Used as the visible AI editor persona for this creator.",
+    automationPersonaPrompt: "Rules for tone, audience, and what the AI editor should avoid.",
+    automationPublishScoreThreshold: "Only applies when auto publish is enabled.",
+    automationTopics: "Comma-separated topics the AI editor should focus on.",
     body: "Write the main text your network members will read. You can add a cover image below for the feed card and detail header.",
     coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
     displayName: "This name appears across the network feed and content detail pages.",
@@ -147,6 +191,13 @@ const englishCopy: ContentCopy = {
     title: "Keep it specific and easy to scan.",
   },
   labels: {
+    automation: "Content automation",
+    automationAutoPublish: "Auto publish when score is high enough",
+    automationBetaOnly: "Beta test",
+    automationDisabled: "Disabled",
+    automationEnabled: "Enabled",
+    automationJobs: "Recent automation jobs",
+    automationRestricted: "Automation is currently limited to test creators.",
     author: "Author",
     creatorProfile: "Creator profile",
     draft: "Draft",
@@ -161,6 +212,9 @@ const englishCopy: ContentCopy = {
       "This release supports free posts with cover images for your network feed.",
   },
   messages: {
+    automationLoadFailed: "Failed to load content automation settings.",
+    automationRunSuccess: "Automation draft run started successfully.",
+    automationSaved: "Content automation settings saved.",
     connectRequired:
       "Sign in with the same member email you use for your referral network.",
     detailLoadFailed: "Failed to load the content detail.",
@@ -214,6 +268,9 @@ const koreanCopy: ContentCopy = {
     publish: "바로 게시하기",
     refresh: "새로고침",
     removeImage: "이미지 제거",
+    runAutomation: "초안 생성 실행",
+    runningAutomation: "초안 생성 중...",
+    saveAutomation: "자동화 저장",
     saveProfile: "프로필 저장",
     saveDraft: "임시 저장",
     uploadImage: "이미지 업로드",
@@ -232,6 +289,13 @@ const koreanCopy: ContentCopy = {
     viewerTitle: "피드 보기",
   },
   fields: {
+    automationAllowedDomains: "허용 도메인",
+    automationMaxPostsPerDay: "하루 최대 발행 수",
+    automationMinIntervalMinutes: "최소 간격(분)",
+    automationPersonaName: "자동화 페르소나 이름",
+    automationPersonaPrompt: "자동화 페르소나 프롬프트",
+    automationPublishScoreThreshold: "자동 게시 점수 기준",
+    automationTopics: "자동화 주제",
     body: "본문",
     coverImage: "커버 이미지",
     displayName: "표시 이름",
@@ -242,6 +306,13 @@ const koreanCopy: ContentCopy = {
     title: "제목",
   },
   hints: {
+    automationAllowedDomains: "쉼표로 구분해서 입력하세요. 비워두면 공개 웹 소스를 넓게 탐색합니다.",
+    automationMaxPostsPerDay: "테스트 단계에서는 낮게 유지하는 편이 좋습니다.",
+    automationMinIntervalMinutes: "자동 생성이 성공한 뒤 다음 자동 생성까지 최소 간격입니다.",
+    automationPersonaName: "이 크리에이터를 대신 운영하는 AI 에디터 이름입니다.",
+    automationPersonaPrompt: "톤, 금지 표현, 대상 독자, 다뤄야 할 방식 등을 적어주세요.",
+    automationPublishScoreThreshold: "자동 게시를 켰을 때만 적용됩니다.",
+    automationTopics: "쉼표로 구분해서 AI 에디터가 집중할 주제를 입력하세요.",
     body: "네트워크 회원이 읽게 될 본문을 작성하세요. 커버 이미지는 아래에서 함께 올릴 수 있습니다.",
     coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
@@ -253,6 +324,13 @@ const koreanCopy: ContentCopy = {
     title: "한눈에 이해되게 짧고 구체적으로 적는 편이 좋습니다.",
   },
   labels: {
+    automation: "콘텐츠 자동화",
+    automationAutoPublish: "점수가 충분하면 자동 게시",
+    automationBetaOnly: "베타 테스트",
+    automationDisabled: "비활성",
+    automationEnabled: "활성",
+    automationJobs: "최근 자동화 작업",
+    automationRestricted: "콘텐츠 자동화는 현재 테스트 크리에이터에게만 열려 있습니다.",
     author: "작성자",
     creatorProfile: "크리에이터 프로필",
     draft: "임시저장",
@@ -267,6 +345,9 @@ const koreanCopy: ContentCopy = {
       "현재 버전은 네트워크 피드용 무료 콘텐츠와 커버 이미지 업로드를 지원합니다.",
   },
   messages: {
+    automationLoadFailed: "콘텐츠 자동화 설정을 불러오지 못했습니다.",
+    automationRunSuccess: "자동 초안 생성을 실행했습니다.",
+    automationSaved: "콘텐츠 자동화 설정을 저장했습니다.",
     connectRequired:
       "레퍼럴 네트워크에 사용하는 같은 회원 이메일로 로그인해야 합니다.",
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",

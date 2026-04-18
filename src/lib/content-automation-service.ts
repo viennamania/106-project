@@ -39,6 +39,7 @@ const DEFAULT_PUBLISH_SCORE_THRESHOLD = 86;
 const DEFAULT_MAX_POSTS_PER_DAY = 1;
 const DEFAULT_MIN_INTERVAL_MINUTES = 360;
 const DEFAULT_LANGUAGE = "ko";
+const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
 
 type DiscoverySource = {
   domain: string;
@@ -136,6 +137,47 @@ function normalizeSourceModes(
   );
 
   return normalized.length ? normalized : ["web_search"];
+}
+
+function getAllowedAutomationMemberEmails() {
+  const configured = process.env.CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS?.trim();
+
+  if (!configured) {
+    return DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS;
+  }
+
+  if (configured === "*") {
+    return ["*"];
+  }
+
+  const emails = configured
+    .split(",")
+    .map((value) => normalizeEmail(value))
+    .filter((value): value is string => Boolean(value));
+
+  return emails.length > 0 ? emails : DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS;
+}
+
+export function isMemberAllowedForContentAutomation(email: string) {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    return false;
+  }
+
+  const allowedEmails = getAllowedAutomationMemberEmails();
+
+  if (allowedEmails.includes("*")) {
+    return true;
+  }
+
+  return allowedEmails.includes(normalizedEmail);
+}
+
+function assertContentAutomationAccess(email: string) {
+  if (!isMemberAllowedForContentAutomation(email)) {
+    throw new Error("Content automation is not enabled for this member.");
+  }
 }
 
 function buildDefaultPersonaPrompt(displayName: string, intro: string) {
@@ -625,6 +667,7 @@ export async function getCreatorAutomationProfileForMember(
   email: string,
 ): Promise<{ member: MemberDocument; profile: CreatorAutomationProfileRecord }> {
   const member = await getCompletedMemberOrThrow(email);
+  assertContentAutomationAccess(member.email);
   const stored = await readStoredAutomationProfile(member.email);
 
   if (!stored) {
@@ -652,6 +695,7 @@ export async function upsertCreatorAutomationProfileForMember(
   }
 
   const member = await getCompletedMemberOrThrow(normalizedEmail);
+  assertContentAutomationAccess(member.email);
   const collection = await getCreatorAutomationProfilesCollection();
   const existing = await readStoredAutomationProfile(member.email);
   const fallback = existing ?? (await buildDefaultAutomationProfile(member));
@@ -758,6 +802,7 @@ export async function runContentAutomationForMember(
   }
 
   const member = await getCompletedMemberOrThrow(normalizedEmail);
+  assertContentAutomationAccess(member.email);
   const storedProfile =
     (await readStoredAutomationProfile(member.email)) ??
     (await buildDefaultAutomationProfile(member));
