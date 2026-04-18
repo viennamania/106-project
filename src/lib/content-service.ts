@@ -62,6 +62,29 @@ function normalizeTags(tags?: string[]) {
     .slice(0, CONTENT_TAG_LIMIT);
 }
 
+function buildSummaryFromContent(options: {
+  body: string;
+  summary?: string | null;
+  title?: string | null;
+}) {
+  const explicitSummary = trimToLength(options.summary, CONTENT_SUMMARY_LIMIT);
+
+  if (explicitSummary) {
+    return explicitSummary;
+  }
+
+  const bodySummary = options.body
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, CONTENT_SUMMARY_LIMIT);
+
+  if (bodySummary) {
+    return bodySummary;
+  }
+
+  return trimToLength(options.title, CONTENT_SUMMARY_LIMIT);
+}
+
 function getSponsorReferralCode(member: MemberDocument) {
   return normalizeReferralCode(
     member.sponsorReferralCode ?? member.referredByCode ?? null,
@@ -368,15 +391,15 @@ export async function createContentPostForMember(
   }
 
   const title = trimToLength(input.title, CONTENT_TITLE_LIMIT);
-  const summary = trimToLength(input.summary, CONTENT_SUMMARY_LIMIT);
   const body = trimToLength(input.body, CONTENT_BODY_LIMIT);
+  const summary = buildSummaryFromContent({
+    body,
+    summary: input.summary,
+    title: input.title,
+  });
 
   if (!title) {
     throw new Error("title is required.");
-  }
-
-  if (!summary) {
-    throw new Error("summary is required.");
   }
 
   if (!body) {
@@ -442,15 +465,28 @@ export async function updateContentPostForMember(
   const now = new Date();
   const nextPublishedAt =
     nextStatus === "published" ? post.publishedAt ?? now : post.publishedAt ?? null;
+  const nextBody =
+    input.body !== undefined
+      ? trimToLength(input.body, CONTENT_BODY_LIMIT)
+      : post.body;
+  const nextTitle =
+    input.title !== undefined
+      ? trimToLength(input.title, CONTENT_TITLE_LIMIT)
+      : post.title;
+  const nextSummary =
+    input.summary !== undefined
+      ? buildSummaryFromContent({
+          body: nextBody,
+          summary: input.summary,
+          title: nextTitle,
+        })
+      : post.summary;
 
   await postsCollection.updateOne(
     { contentId: post.contentId },
     {
       $set: {
-        body:
-          input.body !== undefined
-            ? trimToLength(input.body, CONTENT_BODY_LIMIT)
-            : post.body,
+        body: nextBody,
         coverImageUrl:
           input.coverImageUrl !== undefined
             ? normalizeOptionalText(input.coverImageUrl, 500)
@@ -465,15 +501,9 @@ export async function updateContentPostForMember(
             : post.previewText ?? null,
         publishedAt: nextPublishedAt,
         status: nextStatus,
-        summary:
-          input.summary !== undefined
-            ? trimToLength(input.summary, CONTENT_SUMMARY_LIMIT)
-            : post.summary,
+        summary: nextSummary,
         tags: input.tags !== undefined ? normalizeTags(input.tags) : post.tags,
-        title:
-          input.title !== undefined
-            ? trimToLength(input.title, CONTENT_TITLE_LIMIT)
-            : post.title,
+        title: nextTitle,
         updatedAt: now,
       },
     },

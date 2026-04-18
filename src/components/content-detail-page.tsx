@@ -43,11 +43,13 @@ export function ContentDetailPage({
   dictionary,
   locale,
   referralCode = null,
+  returnToHref = null,
 }: {
   contentId: string;
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnToHref?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
@@ -59,6 +61,7 @@ export function ContentDetailPage({
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
+  const backHref = returnToHref ?? feedHref;
   const studioHref = buildPathWithReferral(`/${locale}/creator/studio`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const [state, setState] = useState<DetailState>({
@@ -213,7 +216,7 @@ export function ContentDetailPage({
         <div className="flex items-start gap-3">
           <Link
             className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-            href={feedHref}
+            href={backHref}
           >
             <ArrowLeft className="size-5" />
           </Link>
@@ -318,11 +321,12 @@ export function ContentDetailPage({
 
           {state.content.coverImageUrl ? (
             <div className="mt-8 overflow-hidden rounded-[28px] border border-white/80 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-              <div
-                className="h-48 w-full bg-cover bg-center sm:h-72"
-                style={{
-                  backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${state.content.coverImageUrl})`,
-                }}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={state.content.title}
+                className="block h-auto w-full"
+                loading="eager"
+                src={state.content.coverImageUrl}
               />
             </div>
           ) : null}

@@ -143,7 +143,7 @@ const englishCopy: ContentCopy = {
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
     intro: "Explain what people in your network should expect from your channel.",
     payoutWalletAddress: "Optional for now. This will be used when paid USDT unlocks are added.",
-    summary: "Short preview shown in the network feed card.",
+    summary: "Short preview shown in the network feed card. If left blank, the first part of the body will be used automatically.",
     title: "Keep it specific and easy to scan.",
   },
   labels: {
@@ -249,7 +249,7 @@ const koreanCopy: ContentCopy = {
     intro: "내 하위 네트워크가 이 채널에서 무엇을 기대하면 되는지 적어주세요.",
     payoutWalletAddress:
       "지금은 선택 사항입니다. 이후 USDT 유료 잠금해제 정산 지갑으로 사용됩니다.",
-    summary: "네트워크 피드 카드에 보여줄 짧은 미리보기 문구입니다.",
+    summary: "네트워크 피드 카드에 보여줄 짧은 미리보기 문구입니다. 비워두면 본문 앞부분이 자동으로 사용됩니다.",
     title: "한눈에 이해되게 짧고 구체적으로 적는 편이 좋습니다.",
   },
   labels: {

@@ -226,7 +226,7 @@ export type ContentPostCreateRequest = {
   priceType: ContentPriceType;
   priceUsdt?: string | null;
   status?: ContentPostStatus;
-  summary: string;
+  summary?: string;
   tags?: string[];
   title: string;
 };

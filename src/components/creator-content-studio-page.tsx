@@ -36,6 +36,7 @@ import type {
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
@@ -112,6 +113,12 @@ export function CreatorContentStudioPage({
   );
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const currentStudioHref =
+    view === "profile"
+      ? profileHref
+      : view === "new"
+        ? newPostHref
+        : studioHomeHref;
   const [state, setState] = useState<StudioState>({
     error: null,
     member: null,
@@ -1057,9 +1064,14 @@ export function CreatorContentStudioPage({
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                    href={buildPathWithReferral(
-                      `/${locale}/content/${post.contentId}`,
-                      referralCode,
+                    href={setPathSearchParams(
+                      buildPathWithReferral(
+                        `/${locale}/content/${post.contentId}`,
+                        referralCode,
+                      ),
+                      {
+                        returnTo: currentStudioHref,
+                      },
                     )}
                   >
                     {contentCopy.actions.viewDetail}

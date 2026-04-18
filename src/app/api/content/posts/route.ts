@@ -55,10 +55,6 @@ export async function POST(request: Request) {
     return jsonError("title is required.", 400);
   }
 
-  if (!body.summary?.trim()) {
-    return jsonError("summary is required.", 400);
-  }
-
   if (!body.body?.trim()) {
     return jsonError("body is required.", 400);
   }
