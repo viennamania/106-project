@@ -5,6 +5,7 @@ import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
+  LogOut,
   PenSquare,
   Rss,
   WalletMinimal,
@@ -335,18 +336,18 @@ export function ReferralsPage({
       ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
+        <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2.5 sm:gap-3">
             <Link
-              className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
               href={homeHref}
             >
-              <ArrowLeft className="size-5" />
+              <ArrowLeft className="size-4 sm:size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
+              <p className="eyebrow hidden sm:block">{dictionary.referralsPage.eyebrow}</p>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+                <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
                   {dictionary.referralsPage.title}
                 </h1>
                 <p className="hidden text-sm text-slate-600 sm:block">
@@ -356,28 +357,28 @@ export function ReferralsPage({
             </div>
           </div>
 
-          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-                  <StatusChip
+          <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+            <StatusChip
               labels={dictionary.common.status}
               status={status}
             />
             {hasThirdwebClientId ? (
               status === "connected" ? (
-                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+                <div className="flex flex-wrap items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                   {accountAddress ? (
                     <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                      className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:justify-start sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
                       href={accountUrl}
                       rel="noreferrer"
                       target="_blank"
                     >
-                      {accountLabel ?? accountAddress}
-                      <ArrowUpRight className="size-4" />
+                      <ArrowUpRight className="size-4 shrink-0" />
+                      <span className="sr-only sm:not-sr-only">{accountLabel ?? accountAddress}</span>
                     </a>
                   ) : null}
 
                   <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
                     disabled={!wallet}
                     onClick={() => {
                       if (!wallet) {
@@ -388,7 +389,8 @@ export function ReferralsPage({
                     }}
                     type="button"
                   >
-                    {dictionary.common.disconnectWallet}
+                    <LogOut className="size-4 sm:hidden" />
+                    <span className="sr-only sm:not-sr-only">{dictionary.common.disconnectWallet}</span>
                   </button>
                 </div>
               ) : (

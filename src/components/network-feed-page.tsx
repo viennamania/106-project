@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
+  LogOut,
   RefreshCcw,
   Rss,
   UserRound,
@@ -293,18 +294,18 @@ export function NetworkFeedPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
+      <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2.5 sm:gap-3">
           <Link
-            className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
             href={homeHref}
           >
-            <ArrowLeft className="size-5" />
+            <ArrowLeft className="size-4 sm:size-5" />
           </Link>
           <div className="space-y-1">
-            <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
+            <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+              <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
                 {contentCopy.page.feedTitle}
               </h1>
               <p className="hidden text-sm text-slate-600 sm:block">
@@ -314,20 +315,20 @@ export function NetworkFeedPage({
           </div>
         </div>
 
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
           <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
             onClick={() => {
               void loadFeed();
             }}
             type="button"
           >
             <RefreshCcw className="size-4" />
-            {contentCopy.actions.refresh}
+            <span className="sr-only sm:not-sr-only">{contentCopy.actions.refresh}</span>
           </button>
           {status === "connected" && accountAddress ? (
             <button
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
               onClick={() => {
                 if (wallet) {
                   disconnect(wallet);
@@ -335,7 +336,8 @@ export function NetworkFeedPage({
               }}
               type="button"
             >
-              {contentCopy.actions.disconnect}
+              <LogOut className="size-4 sm:hidden" />
+              <span className="sr-only sm:not-sr-only">{contentCopy.actions.disconnect}</span>
             </button>
           ) : null}
         </div>
