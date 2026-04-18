@@ -9,8 +9,11 @@ export type ContentCopy = {
     disconnect: string;
     generateAiCover: string;
     generatingAiCover: string;
+    managePosts: string;
+    nextPage: string;
     openFeed: string;
     openStudio: string;
+    previousPage: string;
     publish: string;
     refresh: string;
     removeImage: string;
@@ -47,6 +50,7 @@ export type ContentCopy = {
     heroImage: string;
     intro: string;
     payoutWalletAddress: string;
+    searchPosts: string;
     summary: string;
     title: string;
   };
@@ -64,6 +68,7 @@ export type ContentCopy = {
     heroImage: string;
     intro: string;
     payoutWalletAddress: string;
+    searchPosts: string;
     summary: string;
     title: string;
   };
@@ -106,6 +111,7 @@ export type ContentCopy = {
     profileSaved: string;
     publishSuccess: string;
     saveDraftSuccess: string;
+    searchPlaceholder: string;
     studioLoadFailed: string;
     noMatchingPosts: string;
     uploadFailed: string;
@@ -126,6 +132,7 @@ export type ContentCopy = {
     feedEyebrow: string;
     feedTitle: string;
     newDescription: string;
+    postsDescription: string;
     profileDescription: string;
     studioDescription: string;
     studioEyebrow: string;
@@ -142,8 +149,11 @@ const englishCopy: ContentCopy = {
     disconnect: "Disconnect",
     generateAiCover: "Generate AI cover",
     generatingAiCover: "Generating cover...",
+    managePosts: "Manage posts",
+    nextPage: "Next page",
     openFeed: "Open network feed",
     openStudio: "Open creator studio",
+    previousPage: "Previous page",
     publish: "Publish now",
     refresh: "Refresh",
     removeImage: "Remove image",
@@ -183,6 +193,7 @@ const englishCopy: ContentCopy = {
     heroImage: "Hero image",
     intro: "Channel intro",
     payoutWalletAddress: "Payout wallet",
+    searchPosts: "Search posts",
     summary: "Summary",
     title: "Title",
   },
@@ -200,6 +211,7 @@ const englishCopy: ContentCopy = {
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
     intro: "Explain what people in your network should expect from your channel.",
     payoutWalletAddress: "Optional for now. This will be used when paid USDT unlocks are added.",
+    searchPosts: "Search by title, summary, or body.",
     summary: "Short preview shown in the network feed card. If left blank, the first part of the body will be used automatically.",
     title: "Keep it specific and easy to scan.",
   },
@@ -244,6 +256,7 @@ const englishCopy: ContentCopy = {
     profileSaved: "Creator profile saved.",
     publishSuccess: "Free post published to your network feed.",
     saveDraftSuccess: "Draft saved.",
+    searchPlaceholder: "Search your posts",
     studioLoadFailed: "Failed to load the creator studio.",
     noMatchingPosts: "No posts match this filter yet.",
     uploadFailed: "Failed to upload image.",
@@ -269,6 +282,8 @@ const englishCopy: ContentCopy = {
     feedTitle: "Network Feed",
     newDescription:
       "Write and publish a free post for your downstream network.",
+    postsDescription:
+      "Search, filter, and paginate through the posts you have already created.",
     profileDescription:
       "Update your creator identity and automation settings for this channel.",
     studioDescription:
@@ -287,8 +302,11 @@ const koreanCopy: ContentCopy = {
     disconnect: "연결 해제",
     generateAiCover: "AI 커버 생성",
     generatingAiCover: "커버 생성 중...",
+    managePosts: "콘텐츠 관리",
+    nextPage: "다음 페이지",
     openFeed: "네트워크 피드 열기",
     openStudio: "크리에이터 스튜디오 열기",
+    previousPage: "이전 페이지",
     publish: "바로 게시하기",
     refresh: "새로고침",
     removeImage: "이미지 제거",
@@ -328,6 +346,7 @@ const koreanCopy: ContentCopy = {
     heroImage: "히어로 이미지",
     intro: "채널 소개",
     payoutWalletAddress: "정산 지갑",
+    searchPosts: "콘텐츠 검색",
     summary: "요약",
     title: "제목",
   },
@@ -346,6 +365,7 @@ const koreanCopy: ContentCopy = {
     intro: "내 하위 네트워크가 이 채널에서 무엇을 기대하면 되는지 적어주세요.",
     payoutWalletAddress:
       "지금은 선택 사항입니다. 이후 USDT 유료 잠금해제 정산 지갑으로 사용됩니다.",
+    searchPosts: "제목, 요약, 본문으로 검색합니다.",
     summary: "네트워크 피드 카드에 보여줄 짧은 미리보기 문구입니다. 비워두면 본문 앞부분이 자동으로 사용됩니다.",
     title: "한눈에 이해되게 짧고 구체적으로 적는 편이 좋습니다.",
   },
@@ -390,6 +410,7 @@ const koreanCopy: ContentCopy = {
     profileSaved: "크리에이터 프로필을 저장했습니다.",
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
+    searchPlaceholder: "내 콘텐츠 검색",
     studioLoadFailed: "크리에이터 스튜디오를 불러오지 못했습니다.",
     noMatchingPosts: "선택한 상태의 콘텐츠가 아직 없습니다.",
     uploadFailed: "이미지 업로드에 실패했습니다.",
@@ -415,6 +436,8 @@ const koreanCopy: ContentCopy = {
     feedTitle: "네트워크 피드",
     newDescription:
       "내 하위 네트워크에 공개할 무료 콘텐츠를 작성하고 게시해보세요.",
+    postsDescription:
+      "이미 만든 콘텐츠를 검색하고 상태별로 나눠서 관리할 수 있습니다.",
     profileDescription:
       "이 채널의 크리에이터 정보와 자동화 설정을 관리합니다.",
     studioDescription:

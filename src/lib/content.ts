@@ -210,8 +210,22 @@ export type ContentPostGenerateCoverResponse = {
 
 export type CreatorStudioPostsResponse = {
   member: MemberRecord;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
   posts: ContentPostRecord[];
   profile: CreatorProfileRecord;
+  summary: {
+    all: number;
+    archived: number;
+    draft: number;
+    published: number;
+  };
 };
 
 export type CreatorProfileUpsertRequest = {

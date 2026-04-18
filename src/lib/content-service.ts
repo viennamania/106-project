@@ -46,6 +46,15 @@ const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
 const CONTENT_TAG_LIMIT = 6;
 const CONTENT_TAG_LENGTH_LIMIT = 24;
+const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
+const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
+
+type CreatorStudioPostsQueryOptions = {
+  page?: number;
+  pageSize?: number;
+  query?: string | null;
+  status?: "all" | "archived" | "draft" | "published" | null;
+};
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
@@ -84,6 +93,56 @@ function buildSummaryFromContent(options: {
   }
 
   return trimToLength(options.title, CONTENT_SUMMARY_LIMIT);
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function clampPageNumber(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return 1;
+  }
+
+  return Math.max(1, Math.round(value));
+}
+
+function clampPageSize(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return CREATOR_STUDIO_DEFAULT_PAGE_SIZE;
+  }
+
+  return Math.min(CREATOR_STUDIO_MAX_PAGE_SIZE, Math.max(1, Math.round(value)));
+}
+
+function buildCreatorStudioPostsFilter(
+  memberEmail: string,
+  options?: CreatorStudioPostsQueryOptions,
+) {
+  const filter: Record<string, unknown> = {
+    authorEmail: memberEmail,
+  };
+  const normalizedStatus = options?.status?.trim().toLowerCase();
+  const query = options?.query?.trim();
+
+  if (
+    normalizedStatus &&
+    normalizedStatus !== "all" &&
+    ["archived", "draft", "published"].includes(normalizedStatus)
+  ) {
+    filter.status = normalizedStatus;
+  }
+
+  if (query) {
+    const safePattern = escapeRegex(query);
+    filter.$or = [
+      { title: { $regex: safePattern, $options: "i" } },
+      { summary: { $regex: safePattern, $options: "i" } },
+      { body: { $regex: safePattern, $options: "i" } },
+    ];
+  }
+
+  return filter;
 }
 
 function inferSourceTitle(title: string | undefined, url: string) {
@@ -371,18 +430,79 @@ export async function getNetworkFeedForMember(
 
 export async function getCreatorStudioPostsForMember(
   email: string,
+  options?: CreatorStudioPostsQueryOptions,
 ): Promise<CreatorStudioPostsResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const postsCollection = await getContentPostsCollection();
-  const posts = await postsCollection
-    .find({ authorEmail: member.email })
-    .sort({ updatedAt: -1, createdAt: -1 })
+  const summaryCounts = await postsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: {
+          authorEmail: member.email,
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ])
     .toArray();
+  const summary = {
+    all: 0,
+    archived: 0,
+    draft: 0,
+    published: 0,
+  };
+
+  for (const item of summaryCounts) {
+    if (item._id === "archived") {
+      summary.archived = item.count;
+    } else if (item._id === "draft") {
+      summary.draft = item.count;
+    } else if (item._id === "published") {
+      summary.published = item.count;
+    }
+
+    summary.all += item.count;
+  }
+
+  const usingPagination = Boolean(
+    options &&
+      (options.page !== undefined ||
+        options.pageSize !== undefined ||
+        options.query?.trim() ||
+        (options.status && options.status !== "all")),
+  );
+  const filter = buildCreatorStudioPostsFilter(member.email, options);
+  const page = clampPageNumber(options?.page);
+  const pageSize = clampPageSize(options?.pageSize);
+  const totalCount = usingPagination
+    ? await postsCollection.countDocuments(filter)
+    : summary.all;
+  const cursor = usingPagination ? (page - 1) * pageSize : 0;
+  const posts = await postsCollection
+    .find(filter)
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .skip(cursor)
+    .limit(usingPagination ? pageSize : Math.max(summary.all, 1))
+    .toArray();
+  const totalPages = usingPagination ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
 
   return {
     member: serializeMember(member),
+    pageInfo: {
+      hasNextPage: usingPagination ? page < totalPages : false,
+      hasPreviousPage: usingPagination ? page > 1 : false,
+      page,
+      pageSize: usingPagination ? pageSize : posts.length,
+      totalCount,
+      totalPages,
+    },
     posts: posts.map((post) => serializeContentPost(post)),
     profile: await getCreatorProfileForMember(member.email),
+    summary,
   };
 }
 

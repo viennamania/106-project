@@ -165,6 +165,10 @@ export function CreatorContentStudioPage({
     `/${locale}/creator/studio/profile`,
     referralCode,
   );
+  const postsManagerHref = buildPathWithReferral(
+    `/${locale}/creator/studio/posts`,
+    referralCode,
+  );
   const newPostHref = buildPathWithReferral(
     `/${locale}/creator/studio/new`,
     referralCode,
@@ -1604,6 +1608,11 @@ export function CreatorContentStudioPage({
         isActive: view === "new",
         label: contentCopy.actions.createPost,
       },
+      {
+        href: postsManagerHref,
+        isActive: false,
+        label: contentCopy.actions.managePosts,
+      },
     ];
 
     return (
@@ -1711,7 +1720,7 @@ export function CreatorContentStudioPage({
             {contentCopy.labels.quickActions}
           </h2>
         </div>
-        <div className={mobile ? "grid gap-3" : "grid gap-4 xl:grid-cols-2"}>
+        <div className={mobile ? "grid gap-3" : "grid gap-4 xl:grid-cols-3"}>
           <WorkspaceLaunchCard
             description={contentCopy.page.profileDescription}
             disabled={!canUseWorkspace}
@@ -1726,7 +1735,14 @@ export function CreatorContentStudioPage({
             icon={<PenSquare className="size-5" />}
             title={contentCopy.actions.createPost}
           />
-          <div className={mobile ? undefined : "xl:col-span-2"}>
+          <WorkspaceLaunchCard
+            description={contentCopy.page.postsDescription}
+            disabled={!canUseWorkspace}
+            href={postsManagerHref}
+            icon={<LayoutGrid className="size-5" />}
+            title={contentCopy.actions.managePosts}
+          />
+          <div className={mobile ? undefined : "xl:col-span-3"}>
             <WorkspaceLaunchCard
               description={contentCopy.page.feedDescription}
               disabled={!canUseWorkspace}
@@ -1784,14 +1800,24 @@ export function CreatorContentStudioPage({
               {contentCopy.labels.recentPosts}
             </h2>
           </div>
-          {state.notice ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">
-              <Check className="size-4" />
-              <span className="max-w-[11rem] truncate sm:max-w-none">
-                {state.notice}
-              </span>
-            </div>
-          ) : null}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {canUseWorkspace ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                href={postsManagerHref}
+              >
+                {contentCopy.actions.managePosts}
+              </Link>
+            ) : null}
+            {state.notice ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">
+                <Check className="size-4" />
+                <span className="max-w-[11rem] truncate sm:max-w-none">
+                  {state.notice}
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {!compact ? (
@@ -1886,16 +1912,16 @@ export function CreatorContentStudioPage({
                     </button>
                   ) : null}
                   {!compact && post.status !== "archived" ? (
-                    <button
-                      className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                      onClick={() => {
-                        void updatePostStatus(post, "archived");
-                      }}
-                      type="button"
-                    >
-                      Archive
-                    </button>
-                  ) : null}
+                  <button
+                    className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                    onClick={() => {
+                      void updatePostStatus(post, "archived");
+                    }}
+                    type="button"
+                  >
+                    {contentCopy.labels.archived}
+                  </button>
+                ) : null}
                 </div>
               </article>
             ))}

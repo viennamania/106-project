@@ -15,14 +15,33 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawPage = url.searchParams.get("page");
+  const rawPageSize = url.searchParams.get("pageSize");
+  const rawQuery = url.searchParams.get("q");
+  const rawStatus = url.searchParams.get("status");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
   try {
-    const response: CreatorStudioPostsResponse =
-      await getCreatorStudioPostsForMember(rawEmail);
+    const response: CreatorStudioPostsResponse = await getCreatorStudioPostsForMember(
+      rawEmail,
+      rawPage || rawPageSize || rawQuery || rawStatus
+        ? {
+            page: rawPage ? Number(rawPage) : undefined,
+            pageSize: rawPageSize ? Number(rawPageSize) : undefined,
+            query: rawQuery,
+            status:
+              rawStatus === "all" ||
+              rawStatus === "archived" ||
+              rawStatus === "draft" ||
+              rawStatus === "published"
+                ? rawStatus
+                : null,
+          }
+        : undefined,
+    );
     return Response.json(response);
   } catch (error) {
     const message =
