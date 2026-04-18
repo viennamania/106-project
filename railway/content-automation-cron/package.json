@@ -1,0 +1,12 @@
+{
+  "name": "content-automation-cron",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node run-content-automation.mjs"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
