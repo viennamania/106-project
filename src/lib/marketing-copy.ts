@@ -24,6 +24,13 @@ type LandingGenerationRow = {
   remark: string;
 };
 
+type LandingGenerationBaseRow = {
+  code: string;
+  level: number;
+  people: string;
+  points: string;
+};
+
 export type LandingCopy = {
   cta: {
     primary: string;
@@ -86,18 +93,44 @@ export type LandingCopy = {
   };
 };
 
-const baseGenerationRows = [
-  { generation: "G1", people: "6", points: "1,200P" },
-  { generation: "G2", people: "36", points: "2,880P" },
-  { generation: "G3", people: "216", points: "17,280P" },
-  { generation: "G4", people: "1,296", points: "103,680P" },
-  { generation: "G5", people: "7,776", points: "622,080P" },
-  { generation: "G6", people: "46,656", points: "3,732,480P" },
+const baseGenerationRows: readonly LandingGenerationBaseRow[] = [
+  { code: "G1", level: 1, people: "6", points: "1,200P" },
+  { code: "G2", level: 2, people: "36", points: "2,880P" },
+  { code: "G3", level: 3, people: "216", points: "17,280P" },
+  { code: "G4", level: 4, people: "1,296", points: "103,680P" },
+  { code: "G5", level: 5, people: "7,776", points: "622,080P" },
+  { code: "G6", level: 6, people: "46,656", points: "3,732,480P" },
 ] as const;
 
-function withGenerationRemarks(remarks: string[]): LandingGenerationRow[] {
+function formatGenerationLabel(
+  locale: Locale,
+  level: number,
+  code: string,
+) {
+  switch (locale) {
+    case "ko":
+      return `${level}세대 (${code})`;
+    case "ja":
+      return `${level}世代 (${code})`;
+    case "zh":
+      return `第${level}代 (${code})`;
+    case "vi":
+      return `Thế hệ ${level} (${code})`;
+    case "en":
+    case "id":
+    default:
+      return `Generation ${level} (${code})`;
+  }
+}
+
+function withGenerationRemarks(
+  locale: Locale,
+  remarks: string[],
+): LandingGenerationRow[] {
   return baseGenerationRows.map((row, index) => ({
-    ...row,
+    generation: formatGenerationLabel(locale, row.level, row.code),
+    people: row.people,
+    points: row.points,
     remark: remarks[index] ?? "",
   }));
 }
@@ -158,7 +191,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
       insight:
         "6세대 구조가 완성되면 총 56,186명의 글로벌 파트너가 당신의 수익 엔진을 움직입니다. 누계 포인트는 약 4,479,600P이며, 구조는 더 큰 규모의 흐름으로 축적됩니다.",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("ko", [
         "직접 네트워크의 시작점",
         "오토 매칭 활성화 구간",
         "네트워크 성장 가속",
@@ -342,7 +375,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
       insight:
         "Once all 6 generations are complete, a network of 56,186 global partners powers your profit engine. Total accumulated points reach approximately 4,479,600P as the structure compounds.",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("en", [
         "Foundation of the direct network",
         "Auto-matching activation zone",
         "Acceleration of network growth",
@@ -526,7 +559,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
       insight:
         "6 世代構造が完成すると、56,186 人のグローバルパートナーがあなたの収益エンジンを動かします。累積ポイントは約 4,479,600P に達します。",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("ja", [
         "直接ネットワークの基盤",
         "自動マッチング活性区間",
         "ネットワーク成長の加速",
@@ -710,7 +743,7 @@ const landingCopy: Record<BuiltInLandingLocale, LandingCopy> = {
       insight:
         "当 6 代结构全部完成时，共有 56,186 位全球伙伴共同驱动你的收益引擎。总积分约为 4,479,600P，网络流量会继续累积。",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("zh", [
         "直接网络的起始基础",
         "自动匹配启动区",
         "网络增长加速",
@@ -898,7 +931,7 @@ function createVietnameseLandingCopy(base: LandingCopy): LandingCopy {
       insight:
         "Khi đủ 6 thế hệ, 56,186 đối tác toàn cầu sẽ cùng vận hành profit engine của bạn. Tổng điểm tích lũy đạt khoảng 4,479,600P khi cấu trúc hoàn thiện.",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("vi", [
         "Nền tảng của mạng lưới trực tiếp",
         "Khu vực auto-matching bắt đầu hoạt động",
         "Tăng tốc mở rộng mạng lưới",
@@ -1086,7 +1119,7 @@ function createIndonesianLandingCopy(base: LandingCopy): LandingCopy {
       insight:
         "Saat seluruh 6 generasi lengkap, 56,186 partner global akan menggerakkan profit engine Anda. Total poin terakumulasi mencapai sekitar 4,479,600P ketika struktur selesai.",
       insightLabel: "Insight",
-      rows: withGenerationRemarks([
+      rows: withGenerationRemarks("id", [
         "Fondasi jaringan langsung",
         "Zona aktivasi auto-matching",
         "Akselerasi pertumbuhan jaringan",

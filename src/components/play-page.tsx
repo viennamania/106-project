@@ -669,7 +669,7 @@ export function PlayPage({
                       </p>
                     </div>
                     <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white/70">
-                      G1-G2
+                      {getTeamBonusScopeLabel(locale)}
                     </div>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-white/68">
@@ -1122,6 +1122,24 @@ function formatDateTime(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getTeamBonusScopeLabel(locale: Locale) {
+  switch (locale) {
+    case "ko":
+      return "1~2단계";
+    case "ja":
+      return "1〜2段階";
+    case "zh":
+      return "1~2层";
+    case "vi":
+      return "Tầng 1-2";
+    case "id":
+      return "Level 1-2";
+    case "en":
+    default:
+      return "Levels 1-2";
+  }
 }
 
 function formatPlayCoins(

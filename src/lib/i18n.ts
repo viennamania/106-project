@@ -1013,7 +1013,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "보상 포인트",
         description:
-          "하위 회원 1명 가입 완료당 상위 G1은 200포인트, G2부터 G6까지는 각 80포인트씩 적립됩니다.",
+          "하위 회원 1명 가입 완료당 상위 1단계(G1)는 200포인트, 2~6단계(G2~G6)는 각 80포인트씩 적립됩니다.",
         empty: "아직 적립된 보상 내역이 없습니다.",
         recentTitle: "최근 지급 내역",
         perSignup: "보상 기준",
@@ -1478,7 +1478,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "오늘 출석하고, 30초 탭 챌린지에 도전하고, 팀 활동 보너스까지 한 번에 챙기세요. 내가 움직일수록 쌓이고, 내 네트워크가 함께 움직일수록 더 커집니다.",
         sideTitle: "오늘의 미션 3개",
         teamHint:
-          "내 하위 회원이 활동하면 G1, G2 상위 네트워크에도 플레이 코인이 적립됩니다.",
+          "내 하위 회원이 활동하면 상위 1~2단계에도 플레이 코인이 적립됩니다.",
       },
       currency: {
         valueSingle: "{count}코인",
@@ -2320,7 +2320,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "Check in, clear a 30-second tap challenge, and collect team bonuses from one compact screen. The more you play, the more play coins stack up for you and your network.",
         sideTitle: "3 missions today",
         teamHint:
-          "When your downline stays active, G1 and G2 uplines also collect play coins.",
+          "When your downline stays active, your level 1 and level 2 uplines also collect play coins.",
       },
       currency: {
         valueSingle: "{count} coin",
@@ -2691,7 +2691,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "報酬ポイント",
         description:
-          "下位メンバー 1 人の登録完了ごとに、上位 G1 には 200 ポイント、G2 から G6 までは各 80 ポイントずつ積み上がります。",
+          "下位メンバー 1 人の登録完了ごとに、上位 1 段階(G1) には 200 ポイント、2〜6 段階(G2〜G6) には各 80 ポイントずつ積み上がります。",
         empty: "まだ付与された報酬履歴はありません。",
         recentTitle: "最近の付与履歴",
         perSignup: "報酬基準",
@@ -3167,7 +3167,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "出席、30秒タップチャレンジ、チームボーナスを 1 画面で素早く確認してすぐ参加できます。参加するほどプレイコインが増え、ネットワークが動くほどさらに広がります。",
         sideTitle: "今日のミッション 3つ",
         teamHint:
-          "下位メンバーが活動すると、G1 と G2 の上位ネットワークにもプレイコインが入ります。",
+          "下位メンバーが活動すると、上位 1〜2 段階にもプレイコインが入ります。",
       },
       currency: {
         valueSingle: "{count}コイン",
@@ -3537,7 +3537,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       rewards: {
         title: "奖励积分",
         description:
-          "每完成 1 名下级会员注册，G1 上级可获得 200 积分，G2 到 G6 各层有效上级各获得 80 积分。",
+          "每完成 1 名下级会员注册，上方第 1 层(G1)可获得 200 积分，第 2 到第 6 层(G2~G6)各获得 80 积分。",
         empty: "目前还没有已发放的奖励记录。",
         recentTitle: "最近发放记录",
         perSignup: "奖励规则",
@@ -3993,7 +3993,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "把签到、30秒点击挑战和团队奖励整合到一个紧凑页面里，打开后即可参与。你越活跃，玩法币累积得越快；你的网络越活跃，增长也会越明显。",
         sideTitle: "今日 3 个任务",
         teamHint:
-          "当你的下级网络保持活跃时，G1 与 G2 上级也会获得玩法币。",
+          "当你的下级网络保持活跃时，你的上方 1 至 2 层也会获得玩法币。",
       },
       currency: {
         valueSingle: "{count}币",
@@ -4376,7 +4376,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       rewards: {
         title: "Điểm thưởng",
         description:
-          "Mỗi khi 1 thành viên tuyến dưới hoàn tất đăng ký, tầng G1 phía trên nhận 200 điểm, còn mỗi tầng hợp lệ từ G2 đến G6 nhận 80 điểm.",
+          "Mỗi khi 1 thành viên tuyến dưới hoàn tất đăng ký, tầng 1 (G1) phía trên nhận 200 điểm, còn các tầng 2-6 (G2-G6) hợp lệ mỗi tầng nhận 80 điểm.",
         empty: "Hiện chưa có lịch sử thưởng nào được ghi nhận.",
         recentTitle: "Lịch sử chi trả gần đây",
         perSignup: "Quy tắc thưởng",
@@ -4700,7 +4700,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       rewards: {
         title: "Poin hadiah",
         description:
-          "Setiap 1 anggota bawah menyelesaikan pendaftaran, upline G1 menerima 200 poin, sedangkan tiap level upline yang valid dari G2 hingga G6 menerima 80 poin.",
+          "Setiap 1 anggota bawah menyelesaikan pendaftaran, level 1 (G1) upline menerima 200 poin, sedangkan tiap level valid 2-6 (G2-G6) menerima 80 poin.",
         empty: "Belum ada riwayat hadiah yang tercatat.",
         recentTitle: "Riwayat pembayaran terbaru",
         perSignup: "Aturan hadiah",

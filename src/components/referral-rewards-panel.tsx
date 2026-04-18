@@ -138,12 +138,12 @@ function RewardRuleCard({
       </p>
       <div className="mt-4 space-y-2.5 sm:mt-5">
         <RewardRuleRow
-          level="G1"
+          level={getRewardScopeLabel(locale, "level_1")}
           locale={locale}
           points={levelOnePoints}
         />
         <RewardRuleRow
-          level="G2-G6"
+          level={getRewardScopeLabel(locale, "levels_2_to_6")}
           locale={locale}
           points={downstreamPoints}
         />
@@ -209,6 +209,35 @@ function RewardRuleRow({
       />
     </div>
   );
+}
+
+function getRewardScopeLabel(
+  locale: Locale,
+  scope: "level_1" | "levels_2_to_6",
+) {
+  switch (locale) {
+    case "ko":
+      return scope === "level_1" ? "1단계 (G1)" : "2~6단계 (G2~G6)";
+    case "ja":
+      return scope === "level_1"
+        ? "1段階 (G1)"
+        : "2〜6段階 (G2〜G6)";
+    case "zh":
+      return scope === "level_1" ? "第1层 (G1)" : "第2~6层 (G2~G6)";
+    case "vi":
+      return scope === "level_1"
+        ? "Tầng 1 (G1)"
+        : "Tầng 2-6 (G2-G6)";
+    case "id":
+      return scope === "level_1"
+        ? "Level 1 (G1)"
+        : "Level 2-6 (G2-G6)";
+    case "en":
+    default:
+      return scope === "level_1"
+        ? "Level 1 (G1)"
+        : "Levels 2-6 (G2-G6)";
+  }
 }
 
 function RewardLevelCard({
