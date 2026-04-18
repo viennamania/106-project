@@ -1436,6 +1436,11 @@ export function CreatorContentStudioPage({
                 {job.error ? (
                   <p className="mt-2 text-sm leading-6 text-rose-700">{job.error}</p>
                 ) : null}
+                {job.warning ? (
+                  <p className="mt-2 text-sm leading-6 text-amber-700">
+                    {job.warning}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

@@ -134,7 +134,8 @@ pnpm thirdweb:webhooks:register
 - `pnpm reconcile:completed` 는 완료 회원 네트워크 재조정을 1회 실행합니다.
 - `pnpm reconcile:pending` 는 1회 재조정을 실행합니다.
 - `pnpm reconcile:worker` 는 pending signup 재조정과 completed-member 네트워크 재조정을 순차로 반복합니다.
-- `pnpm content-automation:run` 는 설정된 크리에이터 이메일로 콘텐츠 자동화 1회를 실행합니다.
+- `pnpm content-automation:run` 는 기본적으로 활성화된 자동화 프로필 전체를 1회 순회 실행합니다.
+- `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL` 을 주면 특정 크리에이터 1명만 실행할 수 있습니다.
 - `RECONCILE_EMAIL` 을 주면 특정 이메일만 재조정할 수 있습니다.
 - `RECONCILE_COMPLETED_LIMIT=1` 로 두면 Railway에서 완료 회원 네트워크 정리를 안전하게 조금씩 돌릴 수 있습니다.
 - 초기 자동화 베타는 `CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS=genie1647@gmail.com` 으로 유지하는 쪽이 안전합니다.

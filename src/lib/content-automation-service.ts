@@ -535,6 +535,7 @@ async function upsertSourceItems(
       .update(`${memberEmail}::${source.url}::${source.title}`)
       .digest("hex");
     const now = new Date();
+    const existing = await collection.findOne({ memberEmail, fingerprint });
     const nextItem: ContentSourceItemDocument = {
       domain: source.domain,
       fetchedAt: now,
@@ -544,11 +545,10 @@ async function upsertSourceItems(
       memberEmail,
       snippet: trimToLength(discoverySummary, SOURCE_SNIPPET_LIMIT),
       sourceItemId: randomUUID(),
-      status: "new",
+      status: existing?.status ?? "new",
       title: source.title,
       url: source.url,
     };
-    const existing = await collection.findOne({ memberEmail, fingerprint });
 
     await collection.updateOne(
       { memberEmail, fingerprint },
@@ -737,6 +737,31 @@ async function maybeGenerateAutomationCover(options: {
   }
 }
 
+export async function getEnabledContentAutomationMemberEmails() {
+  const collection = await getCreatorAutomationProfilesCollection();
+  const profiles = await collection
+    .find(
+      { enabled: true },
+      {
+        projection: {
+          _id: 0,
+          memberEmail: 1,
+        },
+      },
+    )
+    .sort({ updatedAt: -1 })
+    .toArray();
+
+  return Array.from(
+    new Set(
+      profiles
+        .map((profile) => normalizeEmail(profile.memberEmail))
+        .filter((email): email is string => Boolean(email))
+        .filter((email) => isMemberAllowedForContentAutomation(email)),
+    ),
+  );
+}
+
 export async function getCreatorAutomationProfileForMember(
   email: string,
 ): Promise<{ member: MemberDocument; profile: CreatorAutomationProfileRecord }> {
@@ -897,11 +922,29 @@ export async function runContentAutomationForMember(
       discovery.discoveryText,
       discovery.sources,
     );
-    const draft = await generateDraftForProfile(storedProfile, discovery);
-    const selectedSources = sourceItems.filter((item) =>
+    const availableSourceItems = sourceItems.filter((item) => item.status !== "used");
+    const availableSourceUrlSet = new Set(
+      availableSourceItems.map((item) => item.url),
+    );
+    const availableDiscovery = {
+      ...discovery,
+      sources: discovery.sources.filter((source) =>
+        availableSourceUrlSet.has(source.url),
+      ),
+    };
+
+    if (availableDiscovery.sources.length === 0) {
+      throw new Error("No fresh public sources were found for automation.");
+    }
+
+    const draft = await generateDraftForProfile(storedProfile, availableDiscovery);
+    const selectedSources = availableSourceItems.filter((item) =>
       draft.sourceUrls.includes(item.url),
     );
-    const effectiveSources = selectedSources.length > 0 ? selectedSources : sourceItems;
+    const effectiveSources =
+      selectedSources.length > 0
+        ? selectedSources
+        : availableSourceItems.slice(0, CONTENT_AUTOMATION_MAX_SOURCE_COUNT);
     const { coverImageError, coverImageUrl } = await maybeGenerateAutomationCover({
       body: draft.body,
       member,
@@ -959,7 +1002,6 @@ export async function runContentAutomationForMember(
 
     const completedJob = await completeJob(queuedJob.jobId, {
       body: draft.body,
-      error: coverImageError,
       outputContentId: content.contentId,
       outputStatus: nextStatus,
       score: draft.score,
@@ -970,6 +1012,7 @@ export async function runContentAutomationForMember(
       tags: draft.tags,
       title: draft.title,
       topic: draft.topic,
+      warning: coverImageError,
     });
 
     return {
@@ -993,6 +1036,54 @@ export async function runContentAutomationForMember(
       sources: [],
     };
   }
+}
+
+export async function runContentAutomationForEnabledMembers(
+  mode: ContentAutomationJobMode = "discover_and_draft",
+) {
+  const memberEmails = await getEnabledContentAutomationMemberEmails();
+  const items: Array<{
+    error: string | null;
+    memberEmail: string;
+    result: Awaited<ReturnType<typeof runContentAutomationForMember>> | null;
+  }> = [];
+
+  for (const memberEmail of memberEmails) {
+    try {
+      const result = await runContentAutomationForMember({
+        memberEmail,
+        mode,
+      });
+      items.push({
+        error: null,
+        memberEmail,
+        result,
+      });
+    } catch (error) {
+      items.push({
+        error:
+          error instanceof Error ? error.message : "Failed to run content automation.",
+        memberEmail,
+        result: null,
+      });
+    }
+  }
+
+  const failed = items.filter(
+    (item) => item.error || item.result?.job.status === "failed",
+  ).length;
+  const completed = items.filter(
+    (item) => item.result && item.result.job.status !== "failed",
+  ).length;
+
+  return {
+    items,
+    summary: {
+      completed,
+      failed,
+      total: items.length,
+    },
+  };
 }
 
 export function serializeAutomationMember(member: MemberDocument) {

@@ -88,6 +88,7 @@ export type ContentAutomationJobDocument = {
   tags: string[];
   title?: string | null;
   topic?: string | null;
+  warning?: string | null;
 };
 
 export type ContentPostSourceAttributionDocument = {
@@ -147,6 +148,7 @@ export type ContentAutomationJobRecord = {
   tags: string[];
   title: string | null;
   topic: string | null;
+  warning: string | null;
 };
 
 export type CreatorAutomationProfileResponse = {
@@ -250,5 +252,6 @@ export function serializeContentAutomationJob(
     tags: job.tags,
     title: job.title ?? null,
     topic: job.topic ?? null,
+    warning: job.warning ?? null,
   };
 }

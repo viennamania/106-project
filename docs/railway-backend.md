@@ -70,9 +70,9 @@ Railway-only additions:
 - `CONTENT_AUTOMATION_RUN_URL`
   - Full internal or public URL for `POST /api/internal/content-automation/run`.
   - Recommended Railway value: `http://api.railway.internal:8080/api/internal/content-automation/run`
-- `CONTENT_AUTOMATION_DEFAULT_MEMBER_EMAIL`
-  - Member email used by `pnpm content-automation:run`.
-  - Current beta default: `genie1647@gmail.com`
+- `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL`
+  - Optional override used by `pnpm content-automation:run` when you want to run a single creator.
+  - Leave empty to run every enabled automation profile.
 - `CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS`
   - Beta allowlist for the creator automation UI and member-scoped API.
   - Keep this as `genie1647@gmail.com` during initial testing.
@@ -153,16 +153,15 @@ Use the worker when you want tighter recovery than cron alone.
 - Required env vars:
   - `CONTENT_AUTOMATION_INTERNAL_KEY`
   - `CONTENT_AUTOMATION_RUN_URL`
-  - `CONTENT_AUTOMATION_DEFAULT_MEMBER_EMAIL`
   - `CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS`
   - `OPENAI_API_KEY`
   - `BLOB_READ_WRITE_TOKEN`
   - `MONGODB_URI`
   - `MONGODB_DB_NAME`
 - Recommended Railway values during beta:
-  - `CONTENT_AUTOMATION_DEFAULT_MEMBER_EMAIL=genie1647@gmail.com`
   - `CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS=genie1647@gmail.com`
   - `CONTENT_AUTOMATION_RUN_URL=http://api.railway.internal:8080/api/internal/content-automation/run`
+  - optional targeted test run: `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL=genie1647@gmail.com`
 
 Use this as a conservative beta flow:
 
@@ -178,7 +177,7 @@ Use this as a conservative beta flow:
 3. Point `THIRDWEB_WEBHOOK_BASE_URL` at the Railway API domain and re-register thirdweb webhooks.
 4. Deploy the worker with an internal `RECONCILE_BASE_URL`.
 5. Set `RECONCILE_COMPLETED_LIMIT=1` on the worker or completed-network cron.
-6. Add the content automation cron with `CONTENT_AUTOMATION_DEFAULT_MEMBER_EMAIL=genie1647@gmail.com`.
+6. Add the content automation cron and leave `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL` empty for “all enabled creators”, or set it only for one-off creator-specific tests.
 7. Confirm draft generation, AI cover uploads, and source attribution all succeed before widening the allowlist.
 
 ## Scripts
@@ -190,4 +189,6 @@ Use this as a conservative beta flow:
 - `pnpm reconcile:worker`
   - Repeats pending signup plus completed-member reconciliation in a loop.
 - `pnpm content-automation:run`
-  - Sends one authenticated content automation request for the configured creator email.
+  - Sends one authenticated content automation request.
+  - Without `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL`, it runs every enabled creator automation profile.
+  - With `CONTENT_AUTOMATION_TARGET_MEMBER_EMAIL`, it runs only that creator.

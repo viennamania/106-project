@@ -3,7 +3,9 @@ import type {
   ContentAutomationRunResponse,
 } from "@/lib/content-automation";
 import {
+  getEnabledContentAutomationMemberEmails,
   runContentAutomationForMember,
+  runContentAutomationForEnabledMembers,
   serializeAutomationMember,
 } from "@/lib/content-automation-service";
 import {
@@ -59,7 +61,11 @@ export async function POST(request: Request) {
     return jsonAutomationError(message, resolveStatus(message));
   }
 
-  let body: ContentAutomationRunRequest | null = null;
+  let body:
+    | (Partial<ContentAutomationRunRequest> & {
+        mode?: ContentAutomationRunRequest["mode"];
+      })
+    | null = null;
 
   try {
     body = (await request.json()) as ContentAutomationRunRequest;
@@ -67,22 +73,45 @@ export async function POST(request: Request) {
     return jsonAutomationError("Invalid JSON body.", 400);
   }
 
-  if (!body?.memberEmail) {
-    return jsonAutomationError("memberEmail is required.", 400);
-  }
-
   try {
-    const result = await runContentAutomationForMember(body);
-    const response: ContentAutomationRunResponse = {
-      content: result.content,
-      job: result.job,
-      member: serializeAutomationMember(result.member),
-      profile: result.profile,
-      sources: result.sources,
-    };
+    const mode = body?.mode ?? "discover_and_draft";
 
-    return Response.json(response, {
-      status: result.job.status === "failed" ? 500 : 200,
+    if (body?.memberEmail) {
+      const result = await runContentAutomationForMember({
+        memberEmail: body.memberEmail,
+        mode,
+      });
+      const response: ContentAutomationRunResponse = {
+        content: result.content,
+        job: result.job,
+        member: serializeAutomationMember(result.member),
+        profile: result.profile,
+        sources: result.sources,
+      };
+
+      return Response.json(response);
+    }
+
+    const enabledMemberEmails = await getEnabledContentAutomationMemberEmails();
+    const batch = await runContentAutomationForEnabledMembers(mode);
+
+    return Response.json({
+      items: batch.items.map((item) => ({
+        error: item.error,
+        memberEmail: item.memberEmail,
+        response: item.result
+          ? {
+              content: item.result.content,
+              job: item.result.job,
+              member: serializeAutomationMember(item.result.member),
+              profile: item.result.profile,
+              sources: item.result.sources,
+            }
+          : null,
+      })),
+      mode: "batch",
+      summary: batch.summary,
+      targetMemberEmails: enabledMemberEmails,
     });
   } catch (error) {
     const message =
