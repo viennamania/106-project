@@ -73,6 +73,7 @@ export type ContentCopy = {
     title: string;
   };
   labels: {
+    allLevels: string;
     automation: string;
     automationAutoPublish: string;
     automationBetaOnly: string;
@@ -83,12 +84,16 @@ export type ContentCopy = {
     allPosts: string;
     archived: string;
     author: string;
+    creators: string;
     creatorProfile: string;
     creatorSettings: string;
     draft: string;
+    extendedLevels: string;
     feedEmpty: string;
+    featured: string;
     free: string;
     level: string;
+    nearbyLevels: string;
     networkAccess: string;
     posts: string;
     published: string;
@@ -107,6 +112,7 @@ export type ContentCopy = {
     feedLoadFailed: string;
     imageGenerated: string;
     memberMissing: string;
+    noFilteredFeed: string;
     paymentRequired: string;
     profileSaved: string;
     publishSuccess: string;
@@ -216,6 +222,7 @@ const englishCopy: ContentCopy = {
     title: "Keep it specific and easy to scan.",
   },
   labels: {
+    allLevels: "All levels",
     automation: "Content automation",
     automationAutoPublish: "Auto publish when score is high enough",
     automationBetaOnly: "Beta test",
@@ -226,12 +233,16 @@ const englishCopy: ContentCopy = {
     allPosts: "All posts",
     archived: "Archived",
     author: "Author",
+    creators: "Creators",
     creatorProfile: "Creator profile",
     creatorSettings: "Creator settings",
     draft: "Draft",
+    extendedLevels: "Level 3-6",
     feedEmpty: "No free content from your upstream network yet.",
+    featured: "Featured",
     free: "Free",
     level: "Level",
+    nearbyLevels: "Level 1-2",
     networkAccess: "Network access",
     posts: "Posts",
     published: "Published",
@@ -252,6 +263,7 @@ const englishCopy: ContentCopy = {
     feedLoadFailed: "Failed to load the network feed.",
     imageGenerated: "AI cover generated. You can publish or save it now.",
     memberMissing: "Member not found.",
+    noFilteredFeed: "No posts match this network range yet.",
     paymentRequired: "Completed signup is required to use network content.",
     profileSaved: "Creator profile saved.",
     publishSuccess: "Free post published to your network feed.",
@@ -370,6 +382,7 @@ const koreanCopy: ContentCopy = {
     title: "한눈에 이해되게 짧고 구체적으로 적는 편이 좋습니다.",
   },
   labels: {
+    allLevels: "전체 단계",
     automation: "콘텐츠 자동화",
     automationAutoPublish: "점수가 충분하면 자동 게시",
     automationBetaOnly: "베타 테스트",
@@ -380,12 +393,16 @@ const koreanCopy: ContentCopy = {
     allPosts: "전체",
     archived: "보관됨",
     author: "작성자",
+    creators: "크리에이터",
     creatorProfile: "크리에이터 프로필",
     creatorSettings: "크리에이터 설정",
     draft: "임시저장",
+    extendedLevels: "3~6단계",
     feedEmpty: "현재 내 상위 네트워크에서 공개된 무료 콘텐츠가 없습니다.",
+    featured: "추천 콘텐츠",
     free: "무료",
     level: "레벨",
+    nearbyLevels: "1~2단계",
     networkAccess: "네트워크 접근",
     posts: "콘텐츠",
     published: "게시됨",
@@ -406,6 +423,7 @@ const koreanCopy: ContentCopy = {
     feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
     imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
     memberMissing: "회원을 찾을 수 없습니다.",
+    noFilteredFeed: "선택한 단계 범위에 해당하는 콘텐츠가 아직 없습니다.",
     paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",

@@ -1984,23 +1984,31 @@ export function CreatorContentStudioPage({
       );
 
     return (
-      <div className="space-y-5">
-        <WorkspaceLaunchCard
-          compact
-          description={description}
-          disabled={!canUseWorkspace}
-          href={href}
-          icon={icon}
-          title={title}
-        />
-        <WorkspaceLaunchCard
-          compact
-          description={contentCopy.page.feedDescription}
-          disabled={!canUseWorkspace}
-          href={feedHref}
-          icon={<Sparkles className="size-5" />}
-          title={contentCopy.entry.viewerTitle}
-        />
+      <div className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+        <div className="glass-card rounded-[28px] p-5">
+          <div>
+            <p className="eyebrow">{contentCopy.labels.quickActions}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {contentCopy.labels.quickActions}
+            </h2>
+          </div>
+          <div className="mt-4 space-y-3">
+            <WorkspaceSupportLink
+              description={description}
+              disabled={!canUseWorkspace}
+              href={href}
+              icon={icon}
+              title={title}
+            />
+            <WorkspaceSupportLink
+              description={contentCopy.page.feedDescription}
+              disabled={!canUseWorkspace}
+              href={feedHref}
+              icon={<Sparkles className="size-5" />}
+              title={contentCopy.entry.viewerTitle}
+            />
+          </div>
+        </div>
         {renderRecentPostsPanel({ compact: true })}
       </div>
     );
@@ -2279,6 +2287,58 @@ function WorkspaceLaunchCard({
 
   return (
     <Link className="block h-full" href={href}>
+      {body}
+    </Link>
+  );
+}
+
+function WorkspaceSupportLink({
+  description,
+  disabled = false,
+  href,
+  icon,
+  title,
+}: {
+  description: string;
+  disabled?: boolean;
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+}) {
+  const body = (
+    <div
+      className={
+        "rounded-[24px] border border-white/80 bg-white/90 p-4 transition " +
+        (disabled
+          ? "cursor-not-allowed opacity-70"
+          : "hover:border-slate-200 hover:bg-white")
+      }
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            {icon}
+          </div>
+          <div className="min-w-0 pt-1">
+            <h3 className="text-base font-semibold tracking-tight text-slate-950">
+              {title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+          </div>
+        </div>
+        <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950">
+          <ArrowRight className="size-4" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (disabled) {
+    return <div>{body}</div>;
+  }
+
+  return (
+    <Link className="block" href={href}>
       {body}
     </Link>
   );
