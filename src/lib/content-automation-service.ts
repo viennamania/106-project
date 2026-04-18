@@ -21,6 +21,7 @@ import {
   type CreatorAutomationProfileRecord,
   type CreatorAutomationProfileUpsertRequest,
 } from "@/lib/content-automation";
+import { generateAndUploadContentCover } from "@/lib/content-cover-service";
 import { createContentPostForMember, getCreatorProfileForMember } from "@/lib/content-service";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import {
@@ -663,6 +664,52 @@ async function enforceAutomationCadence(
   }
 }
 
+async function maybeGenerateAutomationCover(options: {
+  body: string;
+  member: MemberDocument;
+  profile: CreatorAutomationProfileDocument;
+  suggestedCoverPrompt: string;
+  summary: string;
+  title: string;
+}) {
+  if (options.profile.coverImageMode !== "generated") {
+    return {
+      coverImageError: null,
+      coverImageUrl: null,
+    };
+  }
+
+  if (!options.member.referralCode) {
+    return {
+      coverImageError: "Completed member is missing referral code.",
+      coverImageUrl: null,
+    };
+  }
+
+  try {
+    const generatedCover = await generateAndUploadContentCover({
+      body: options.body,
+      referralCode: options.member.referralCode,
+      summary: options.summary,
+      title: options.title,
+      visualBrief: options.suggestedCoverPrompt,
+    });
+
+    return {
+      coverImageError: null,
+      coverImageUrl: generatedCover.url,
+    };
+  } catch (error) {
+    return {
+      coverImageError:
+        error instanceof Error
+          ? `AI cover generation failed: ${error.message}`
+          : "AI cover generation failed.",
+      coverImageUrl: null,
+    };
+  }
+}
+
 export async function getCreatorAutomationProfileForMember(
   email: string,
 ): Promise<{ member: MemberDocument; profile: CreatorAutomationProfileRecord }> {
@@ -828,6 +875,14 @@ export async function runContentAutomationForMember(
       draft.sourceUrls.includes(item.url),
     );
     const effectiveSources = selectedSources.length > 0 ? selectedSources : sourceItems;
+    const { coverImageError, coverImageUrl } = await maybeGenerateAutomationCover({
+      body: draft.body,
+      member,
+      profile: storedProfile,
+      suggestedCoverPrompt: draft.suggestedCoverPrompt,
+      summary: draft.summary,
+      title: draft.title,
+    });
     const nextStatus =
       storedProfile.autoPublish &&
       draft.score >= storedProfile.publishScoreThreshold
@@ -835,6 +890,7 @@ export async function runContentAutomationForMember(
         : "draft";
     const content = await createContentPostForMember({
       body: draft.body,
+      coverImageUrl,
       email: member.email,
       priceType: "free",
       status: nextStatus,
@@ -876,6 +932,7 @@ export async function runContentAutomationForMember(
 
     const completedJob = await completeJob(queuedJob.jobId, {
       body: draft.body,
+      error: coverImageError,
       outputContentId: content.contentId,
       score: draft.score,
       sourceItemIds: effectiveSources.map((source) => source.sourceItemId),
