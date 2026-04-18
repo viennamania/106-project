@@ -121,10 +121,10 @@ export function LandingPage({
         <LandingReveal delay={10} variant="soft">
           <header className="glass-card flex flex-col gap-4 rounded-[28px] border border-white/70 bg-white/82 px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-950">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-950">
                 <WalletMinimal className="size-5" />
               </div>
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <p className="eyebrow">{copy.hero.eyebrow}</p>
                 <div>
                   <p className="text-lg font-semibold tracking-tight text-slate-950">

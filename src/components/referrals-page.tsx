@@ -332,7 +332,7 @@ export function ReferralsPage({
         <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <Link
-              className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               href={homeHref}
             >
               <ArrowLeft className="size-5" />
@@ -474,10 +474,10 @@ export function ReferralsPage({
               <div className="space-y-4">
                 <div className="rounded-[24px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
                       <WalletMinimal className="size-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm leading-6 text-slate-600">
                         {dictionary.referralsPage.memberReady}
                       </p>

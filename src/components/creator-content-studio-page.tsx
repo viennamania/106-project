@@ -1054,11 +1054,11 @@ export function CreatorContentStudioPage({
 
     return (
       <div className="glass-card rounded-[30px] p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+        <div className="flex items-start gap-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
             <UserRound className="size-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
             <h2 className="text-xl font-semibold tracking-tight text-slate-950">
               {contentCopy.labels.creatorProfile}

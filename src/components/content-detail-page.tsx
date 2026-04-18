@@ -201,7 +201,7 @@ export function ContentDetailPage({
   }, [accountAddress, loadDetail, status]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -212,10 +212,10 @@ export function ContentDetailPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="glass-card flex flex-col gap-4 rounded-[24px] px-4 py-4 sm:rounded-[28px] sm:px-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <Link
-            className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
             href={backHref}
           >
             <ArrowLeft className="size-5" />
@@ -233,7 +233,7 @@ export function ContentDetailPage({
           </div>
         </div>
 
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <LanguageSwitcher
             label={dictionary.common.languageLabel}
             locale={locale}
@@ -292,14 +292,14 @@ export function ContentDetailPage({
           ) : null}
         </MessageCard>
       ) : state.content ? (
-        <article className="glass-card rounded-[32px] p-6 sm:p-7">
-          <div className="flex items-center gap-3">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+        <article className="glass-card rounded-[28px] px-4 py-5 sm:rounded-[32px] sm:p-7">
+          <div className="flex items-start gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-[20px] bg-slate-950 text-white sm:size-12 sm:rounded-2xl">
               <FileText className="size-5" />
             </div>
             <div>
               <p className="eyebrow">{contentCopy.labels.free}</p>
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+              <h2 className="text-[1.75rem] font-semibold leading-tight tracking-tight text-slate-950 sm:text-3xl">
                 {state.content.title}
               </h2>
             </div>
@@ -315,12 +315,12 @@ export function ContentDetailPage({
             ) : null}
           </div>
 
-          <p className="mt-6 text-base leading-7 text-slate-600">
+          <p className="mt-5 text-[1rem] leading-7 text-slate-600 sm:mt-6">
             {state.content.summary}
           </p>
 
           {state.content.coverImageUrl ? (
-            <div className="mt-8 overflow-hidden rounded-[28px] border border-white/80 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="mt-7 overflow-hidden rounded-[24px] border border-white/80 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:mt-8 sm:rounded-[28px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt={state.content.title}
@@ -331,29 +331,29 @@ export function ContentDetailPage({
             </div>
           ) : null}
 
-          <div className="mt-8 rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <p className="whitespace-pre-wrap text-[0.98rem] leading-8 text-slate-800">
+          <div className="mt-6 rounded-[24px] border border-white/80 bg-white/85 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5">
+            <p className="whitespace-pre-wrap text-[1rem] leading-7 text-slate-800 sm:text-[0.98rem] sm:leading-8">
               {state.content.body}
             </p>
           </div>
 
           {state.content.sources.length > 0 ? (
-            <section className="mt-6 rounded-[28px] border border-slate-200 bg-slate-50/90 p-5">
+            <section className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/90 p-4 sm:mt-6 sm:rounded-[28px] sm:p-5">
               <p className="eyebrow">{contentCopy.labels.references}</p>
               <div className="mt-3 grid gap-3">
                 {state.content.sources.map((source) => (
                   <a
                     key={source.url}
-                    className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                    className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-[20px] border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:rounded-2xl sm:px-4"
                     href={source.url}
                     rel="noreferrer"
                     target="_blank"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate font-semibold text-slate-950">
+                      <span className="block break-words font-semibold text-slate-950 sm:truncate">
                         {source.title}
                       </span>
-                      <span className="mt-1 block truncate text-xs text-slate-500">
+                      <span className="mt-1 block break-all text-xs leading-5 text-slate-500 sm:truncate">
                         {source.url}
                       </span>
                     </span>

@@ -511,10 +511,10 @@ export function PlayPage({
           <header className="glass-card rounded-[28px] px-4 py-3.5 sm:px-5 sm:py-4">
             <div className="grid gap-3 sm:flex sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#172554)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#172554)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
                   <Sparkles className="size-5" />
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <p className="eyebrow">{dictionary.playPage.eyebrow}</p>
                   <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                     {dictionary.playPage.title}

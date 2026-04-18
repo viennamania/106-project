@@ -299,7 +299,7 @@ export function NetworkFeedPage({
       <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <Link
-            className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
             href={homeHref}
           >
             <ArrowLeft className="size-5" />
@@ -529,11 +529,11 @@ export function NetworkFeedPage({
 
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           <div className="glass-card rounded-[30px] p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex items-start gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
                 <Rss className="size-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                   {contentCopy.page.feedTitle}
