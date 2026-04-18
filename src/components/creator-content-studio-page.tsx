@@ -1621,7 +1621,7 @@ export function CreatorContentStudioPage({
           <Link
             className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
               tab.isActive
-                ? "bg-slate-950 text-white"
+                ? "border border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.22)] [text-shadow:0_1px_12px_rgba(255,255,255,0.12)]"
                 : "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
             }`}
             href={tab.href}
@@ -1720,7 +1720,7 @@ export function CreatorContentStudioPage({
             {contentCopy.labels.quickActions}
           </h2>
         </div>
-        <div className={mobile ? "grid gap-3" : "grid gap-4 xl:grid-cols-3"}>
+        <div className={mobile ? "grid gap-3" : "grid gap-4 md:grid-cols-2"}>
           <WorkspaceLaunchCard
             description={contentCopy.page.profileDescription}
             disabled={!canUseWorkspace}
@@ -1742,15 +1742,13 @@ export function CreatorContentStudioPage({
             icon={<LayoutGrid className="size-5" />}
             title={contentCopy.actions.managePosts}
           />
-          <div className={mobile ? undefined : "xl:col-span-3"}>
-            <WorkspaceLaunchCard
-              description={contentCopy.page.feedDescription}
-              disabled={!canUseWorkspace}
-              href={feedHref}
-              icon={<Sparkles className="size-5" />}
-              title={contentCopy.entry.viewerTitle}
-            />
-          </div>
+          <WorkspaceLaunchCard
+            description={contentCopy.page.feedDescription}
+            disabled={!canUseWorkspace}
+            href={feedHref}
+            icon={<Sparkles className="size-5" />}
+            title={contentCopy.entry.viewerTitle}
+          />
         </div>
       </section>
     );
@@ -1988,6 +1986,7 @@ export function CreatorContentStudioPage({
     return (
       <div className="space-y-5">
         <WorkspaceLaunchCard
+          compact
           description={description}
           disabled={!canUseWorkspace}
           href={href}
@@ -1995,6 +1994,7 @@ export function CreatorContentStudioPage({
           title={title}
         />
         <WorkspaceLaunchCard
+          compact
           description={contentCopy.page.feedDescription}
           disabled={!canUseWorkspace}
           href={feedHref}
@@ -2223,49 +2223,62 @@ function ToggleField({
 }
 
 function WorkspaceLaunchCard({
+  compact = false,
   description,
   disabled = false,
   href,
   icon,
   title,
 }: {
+  compact?: boolean;
   description: string;
   disabled?: boolean;
   href: string;
   icon: React.ReactNode;
   title: string;
 }) {
-  const className =
-    "glass-card rounded-[30px] p-5 transition " +
-    (disabled
-      ? "cursor-not-allowed opacity-70"
-      : "hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)]");
-
   const body = (
-    <>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
-          {icon}
+    <div
+      className={
+        "glass-card rounded-[30px] p-5 transition " +
+        (disabled
+          ? "cursor-not-allowed opacity-70"
+          : "hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)]")
+      }
+    >
+      <div
+        className={
+          compact
+            ? "flex items-start justify-between gap-4"
+            : "flex min-h-[190px] flex-col justify-between"
+        }
+      >
+        <div className={compact ? "flex min-w-0 items-start gap-4" : undefined}>
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            {icon}
+          </div>
+          <div className={compact ? "min-w-0 pt-1" : "mt-5"}>
+            <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+              {title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {description}
+            </p>
+          </div>
         </div>
-        <div className="inline-flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950">
+        <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950">
           <ArrowRight className="size-4" />
         </div>
       </div>
-      <div className="mt-5">
-        <h3 className="text-lg font-semibold tracking-tight text-slate-950">
-          {title}
-        </h3>
-        <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-      </div>
-    </>
+    </div>
   );
 
   if (disabled) {
-    return <div className={className}>{body}</div>;
+    return <div>{body}</div>;
   }
 
   return (
-    <Link className={className} href={href}>
+    <Link className="block h-full" href={href}>
       {body}
     </Link>
   );

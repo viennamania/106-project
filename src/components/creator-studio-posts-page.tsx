@@ -569,7 +569,7 @@ export function CreatorStudioPostsPage({
           <Link
             className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
               tab.isActive
-                ? "bg-slate-950 text-white"
+                ? "border border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.22)] [text-shadow:0_1px_12px_rgba(255,255,255,0.12)]"
                 : "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
             }`}
             href={tab.href}
