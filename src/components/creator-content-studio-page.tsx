@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
   ImagePlus,
   LayoutGrid,
+  LoaderCircle,
   PenSquare,
   RefreshCcw,
+  Save,
+  Search,
   Sparkles,
+  WandSparkles,
   UserRound,
 } from "lucide-react";
 import {
@@ -100,6 +105,12 @@ type AutomationProgressState = {
   message: string | null;
   progress: number;
   steps: Record<ContentAutomationRunProgressStep, AutomationProgressStepState>;
+};
+
+type AutomationCelebrationState = {
+  contentId: string | null;
+  title: string | null;
+  tone: "draft" | "published";
 };
 
 type StudioView = "hub" | "new" | "profile";
@@ -340,6 +351,8 @@ export function CreatorContentStudioPage({
   const [automationProgress, setAutomationProgress] = useState<AutomationProgressState>(
     createEmptyAutomationProgress(),
   );
+  const [automationCelebration, setAutomationCelebration] =
+    useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
@@ -350,27 +363,144 @@ export function CreatorContentStudioPage({
   const automationProgressLabels =
     locale === "ko"
       ? {
-          authorizing: "회원 확인",
-          collecting_sources: "출처 정리",
-          discovering: "공개 출처 탐색",
-          drafting: "초안 작성",
-          finalizing: "마무리 저장",
-          generating_cover: "AI 커버 생성",
-          queueing: "작업 준비",
-          saving_content: "콘텐츠 저장",
+          authorizing: {
+            description: "지갑 연결과 회원 권한을 먼저 확인합니다.",
+            label: "회원 확인",
+          },
+          collecting_sources: {
+            description: "가져온 출처를 정리하고 중복을 걸러냅니다.",
+            label: "출처 정리",
+          },
+          completed: "완료",
+          currentStage: "현재 단계",
+          discovering: {
+            description: "공개 웹에서 사용할 수 있는 최신 출처를 찾습니다.",
+            label: "공개 출처 탐색",
+          },
+          drafting: {
+            description: "선별한 출처를 바탕으로 초안과 태그를 작성합니다.",
+            label: "초안 작성",
+          },
+          error: "오류",
+          finalizing: {
+            description: "작업 기록과 상태를 마무리로 저장합니다.",
+            label: "마무리 저장",
+          },
+          generating_cover: {
+            description: "초안 분위기에 맞는 AI 커버 이미지를 준비합니다.",
+            label: "AI 커버 생성",
+          },
+          pending: "대기",
+          progress: "진행률",
+          queueing: {
+            description: "이번 실행의 작업 컨텍스트를 준비합니다.",
+            label: "작업 준비",
+          },
+          running: "진행 중",
+          saving_content: {
+            description: "생성한 초안을 콘텐츠로 저장합니다.",
+            label: "콘텐츠 저장",
+          },
+          stepCount: "완료 단계",
           title: "실행 중인 자동화",
         }
       : {
-          authorizing: "Member check",
-          collecting_sources: "Source preparation",
-          discovering: "Source discovery",
-          drafting: "Draft writing",
-          finalizing: "Finalizing",
-          generating_cover: "Cover generation",
-          queueing: "Queue setup",
-          saving_content: "Content save",
+          authorizing: {
+            description: "Checking wallet ownership and member authorization.",
+            label: "Member check",
+          },
+          collecting_sources: {
+            description: "Cleaning up discovered sources and removing duplicates.",
+            label: "Source preparation",
+          },
+          completed: "Completed",
+          currentStage: "Current stage",
+          discovering: {
+            description: "Searching public web sources that fit this run.",
+            label: "Source discovery",
+          },
+          drafting: {
+            description: "Writing the draft body, summary, and tags.",
+            label: "Draft writing",
+          },
+          error: "Error",
+          finalizing: {
+            description: "Saving the final run status and audit trail.",
+            label: "Finalizing",
+          },
+          generating_cover: {
+            description: "Preparing an AI cover image for the draft.",
+            label: "Cover generation",
+          },
+          pending: "Pending",
+          progress: "Progress",
+          queueing: {
+            description: "Preparing the automation job and runtime context.",
+            label: "Queue setup",
+          },
+          running: "Running",
+          saving_content: {
+            description: "Persisting the generated draft as content.",
+            label: "Content save",
+          },
+          stepCount: "Completed steps",
           title: "Automation in progress",
         };
+  const automationProgressStepMeta: Record<
+    ContentAutomationRunProgressStep,
+    {
+      icon: typeof UserRound;
+      label: string;
+      description: string;
+    }
+  > = {
+    authorizing: {
+      description: automationProgressLabels.authorizing.description,
+      icon: UserRound,
+      label: automationProgressLabels.authorizing.label,
+    },
+    collecting_sources: {
+      description: automationProgressLabels.collecting_sources.description,
+      icon: LayoutGrid,
+      label: automationProgressLabels.collecting_sources.label,
+    },
+    discovering: {
+      description: automationProgressLabels.discovering.description,
+      icon: Search,
+      label: automationProgressLabels.discovering.label,
+    },
+    drafting: {
+      description: automationProgressLabels.drafting.description,
+      icon: PenSquare,
+      label: automationProgressLabels.drafting.label,
+    },
+    finalizing: {
+      description: automationProgressLabels.finalizing.description,
+      icon: Check,
+      label: automationProgressLabels.finalizing.label,
+    },
+    generating_cover: {
+      description: automationProgressLabels.generating_cover.description,
+      icon: WandSparkles,
+      label: automationProgressLabels.generating_cover.label,
+    },
+    queueing: {
+      description: automationProgressLabels.queueing.description,
+      icon: RefreshCcw,
+      label: automationProgressLabels.queueing.label,
+    },
+    saving_content: {
+      description: automationProgressLabels.saving_content.description,
+      icon: Save,
+      label: automationProgressLabels.saving_content.label,
+    },
+  };
+  const completedAutomationStepCount = contentAutomationRunProgressSteps.filter(
+    (step) => automationProgress.steps[step] === "done",
+  ).length;
+  const currentAutomationStepMeta = automationProgress.currentStep
+    ? automationProgressStepMeta[automationProgress.currentStep]
+    : null;
   const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -1095,6 +1225,7 @@ export function CreatorContentStudioPage({
   async function runAutomation() {
     try {
       setIsRunningAutomation(true);
+      setAutomationCelebration(null);
       setAutomationProgress({
         ...createEmptyAutomationProgress(),
         active: true,
@@ -1161,6 +1292,21 @@ export function CreatorContentStudioPage({
             error: null,
             jobs: upsertAutomationJob(current.jobs, event.response.job),
           }));
+          setAutomationCelebration({
+            contentId:
+              event.response.content?.contentId ??
+              event.response.job.outputContentId ??
+              null,
+            title:
+              event.response.content?.title ??
+              event.response.job.title ??
+              event.response.job.topic ??
+              null,
+            tone:
+              event.response.job.outputStatus === "published"
+                ? "published"
+                : "draft",
+          });
 
           const streamedContent = event.response.content;
 
@@ -1231,6 +1377,11 @@ export function CreatorContentStudioPage({
         error: null,
         jobs: upsertAutomationJob(current.jobs, data.job),
       }));
+      setAutomationCelebration({
+        contentId: data.content?.contentId ?? data.job.outputContentId ?? null,
+        title: data.content?.title ?? data.job.title ?? data.job.topic ?? null,
+        tone: data.job.outputStatus === "published" ? "published" : "draft",
+      });
       const createdContent = data.content;
 
       if (createdContent) {
@@ -1675,60 +1826,180 @@ export function CreatorContentStudioPage({
         </div>
 
         {showAutomationProgress ? (
-          <div className="mt-4 rounded-[22px] border border-slate-200 bg-slate-50/90 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-950">
-                  {automationProgressLabels.title}
-                </p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  {automationProgress.message ??
-                    (automationProgress.currentStep
-                      ? automationProgressLabels[automationProgress.currentStep]
-                      : contentCopy.actions.runningAutomation)}
-                </p>
-              </div>
-              <StatusBadge
-                status={
-                  automationProgress.error
-                    ? "failed"
-                    : isRunningAutomation
-                      ? "running"
-                      : "completed"
-                }
-              />
-            </div>
-
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
-              <div
-                className={`h-full rounded-full transition-[width] duration-300 ${
-                  automationProgress.error ? "bg-rose-500" : "bg-slate-950"
-                }`}
-                style={{ width: `${Math.max(4, automationProgress.progress)}%` }}
-              />
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {contentAutomationRunProgressSteps.map((step) => {
-                const status = automationProgress.steps[step];
-
-                return (
-                  <div
-                    className={`rounded-[18px] border px-3 py-2 text-sm transition ${
-                      status === "done"
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                        : status === "active"
-                          ? "border-slate-950 bg-white text-slate-950"
-                          : status === "error"
-                            ? "border-rose-200 bg-rose-50 text-rose-700"
-                            : "border-slate-200 bg-white/80 text-slate-500"
-                    }`}
-                    key={step}
-                  >
-                    {automationProgressLabels[step]}
+          <div className="relative mt-4 overflow-hidden rounded-[26px] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.96))] p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-5">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_62%)]" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-40 bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.12),transparent_65%)]" />
+            <div className="relative">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm">
+                    <Sparkles className="size-3.5" />
+                    {automationProgressLabels.title}
                   </div>
-                );
-              })}
+                  <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    {automationProgressLabels.currentStage}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+                    {automationProgress.currentStep
+                      ? automationProgressStepMeta[automationProgress.currentStep].label
+                      : automationProgress.error
+                        ? automationProgressLabels.error
+                        : automationProgressLabels.completed}
+                  </p>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
+                    {automationProgress.message ??
+                      (currentAutomationStepMeta
+                        ? currentAutomationStepMeta.description
+                        : contentCopy.actions.runningAutomation)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                  <StatusBadge
+                    status={
+                      automationProgress.error
+                        ? "failed"
+                        : isRunningAutomation
+                          ? "running"
+                          : "completed"
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-2 sm:w-[220px]">
+                    <div className="rounded-[18px] border border-slate-200/80 bg-white/85 px-3 py-3 shadow-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        {automationProgressLabels.stepCount}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-slate-950">
+                        {completedAutomationStepCount}/
+                        {contentAutomationRunProgressSteps.length}
+                      </p>
+                    </div>
+                    <div className="rounded-[18px] border border-slate-200/80 bg-white/85 px-3 py-3 shadow-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        {automationProgressLabels.progress}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-slate-950">
+                        {Math.round(automationProgress.progress)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-full border border-slate-200/80 bg-white/80 p-1 shadow-[inset_0_1px_3px_rgba(15,23,42,0.08)]">
+                <div
+                  className={`relative h-3 overflow-hidden rounded-full transition-[width] duration-500 ${
+                    automationProgress.error
+                      ? "bg-gradient-to-r from-rose-500 via-orange-400 to-amber-300"
+                      : "bg-gradient-to-r from-slate-950 via-sky-600 to-cyan-400"
+                  }`}
+                  style={{ width: `${Math.max(8, automationProgress.progress)}%` }}
+                >
+                  {!automationProgress.error && isRunningAutomation ? (
+                    <div className="absolute inset-y-0 right-0 w-16 animate-pulse rounded-full bg-white/40 blur-md" />
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="relative mt-5 space-y-3 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-px before:bg-slate-200/90 sm:before:left-6">
+                {contentAutomationRunProgressSteps.map((step, index) => {
+                  const status = automationProgress.steps[step];
+                  const meta = automationProgressStepMeta[step];
+                  const Icon = meta.icon;
+                  const statusLabel =
+                    status === "done"
+                      ? automationProgressLabels.completed
+                      : status === "active"
+                        ? automationProgressLabels.running
+                        : status === "error"
+                          ? automationProgressLabels.error
+                          : automationProgressLabels.pending;
+
+                  return (
+                    <div className="relative pl-14 sm:pl-16" key={step}>
+                      <div
+                        className={`absolute left-0 top-2 flex size-10 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition sm:size-11 ${
+                          status === "done"
+                            ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+                            : status === "active"
+                              ? "border-sky-200 bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)]"
+                              : status === "error"
+                                ? "border-rose-200 bg-rose-100 text-rose-700"
+                                : "border-slate-200 bg-white text-slate-400"
+                        }`}
+                      >
+                        {status === "done" ? (
+                          <Check className="size-5" />
+                        ) : status === "active" ? (
+                          <LoaderCircle className="size-5 animate-spin" />
+                        ) : status === "error" ? (
+                          <AlertTriangle className="size-5" />
+                        ) : (
+                          <Icon className="size-5" />
+                        )}
+                      </div>
+
+                      <div
+                        className={`rounded-[22px] border px-4 py-4 shadow-sm transition sm:px-5 ${
+                          status === "done"
+                            ? "border-emerald-200/80 bg-emerald-50/90"
+                            : status === "active"
+                              ? "border-slate-950 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)]"
+                              : status === "error"
+                                ? "border-rose-200/80 bg-rose-50/90"
+                                : "border-slate-200/80 bg-white/85"
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-base font-semibold tracking-tight text-slate-950">
+                                {meta.label}
+                              </p>
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                            </div>
+                            <p
+                              className={`mt-2 text-sm leading-6 ${
+                                status === "done"
+                                  ? "text-emerald-900/80"
+                                  : status === "active"
+                                    ? "text-slate-600"
+                                    : status === "error"
+                                      ? "text-rose-700"
+                                      : "text-slate-500"
+                              }`}
+                            >
+                              {meta.description}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                              status === "done"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : status === "active"
+                                  ? "bg-slate-950 text-white"
+                                  : status === "error"
+                                    ? "bg-rose-100 text-rose-700"
+                                    : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        {status === "active" &&
+                        automationProgress.currentStep === step &&
+                        automationProgress.message ? (
+                          <div className="mt-3 rounded-[16px] border border-sky-200/80 bg-sky-50/80 px-3 py-2 text-xs font-medium leading-5 text-sky-800">
+                            {automationProgress.message}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : null}
@@ -2379,12 +2650,23 @@ export function CreatorContentStudioPage({
     );
   }
 
+  const celebrationDetailHref = automationCelebration?.contentId
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/content/${automationCelebration.contentId}`,
+          referralCode,
+        ),
+        { returnTo: profileHref },
+      )
+    : null;
+
   return (
-    <main
-      className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ${
-        view === "hub" ? "max-w-6xl" : "max-w-5xl"
-      }`}
-    >
+    <>
+      <main
+        className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ${
+          view === "hub" ? "max-w-6xl" : "max-w-5xl"
+        }`}
+      >
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -2484,7 +2766,20 @@ export function CreatorContentStudioPage({
           {renderSideRail("profile")}
         </section>
       )}
-    </main>
+      </main>
+
+      {automationCelebration ? (
+        <AutomationCelebrationOverlay
+          contentHref={celebrationDetailHref}
+          locale={locale}
+          onClose={() => {
+            setAutomationCelebration(null);
+          }}
+          title={automationCelebration.title}
+          tone={automationCelebration.tone}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -2706,6 +3001,180 @@ function WorkspaceSupportLink({
     <Link className="block" href={href}>
       {body}
     </Link>
+  );
+}
+
+function AutomationCelebrationOverlay({
+  contentHref,
+  locale,
+  onClose,
+  title,
+  tone,
+}: {
+  contentHref: string | null;
+  locale: Locale;
+  onClose: () => void;
+  title: string | null;
+  tone: "draft" | "published";
+}) {
+  const copy =
+    locale === "ko"
+      ? {
+          body:
+            tone === "published"
+              ? "자동화가 새 콘텐츠를 게시했고, 지금 바로 상세 화면에서 확인할 수 있습니다."
+              : "자동화가 새 초안을 저장했습니다. 바로 열어 보고 다듬을 수 있습니다.",
+          close: "닫기",
+          eyebrow: tone === "published" ? "게시 완료" : "초안 생성 완료",
+          primary: tone === "published" ? "게시된 콘텐츠 보기" : "초안 보기",
+          secondary: "계속 설정하기",
+          title:
+            tone === "published"
+              ? "콘텐츠 게시가 완료됐습니다"
+              : "새 초안이 생성됐습니다",
+        }
+      : {
+          body:
+            tone === "published"
+              ? "Automation published a new piece of content. You can open it right away."
+              : "Automation saved a fresh draft. Open it now and refine it further.",
+          close: "Close",
+          eyebrow: tone === "published" ? "Published" : "Draft ready",
+          primary: tone === "published" ? "Open published content" : "Open draft",
+          secondary: "Keep editing",
+          title:
+            tone === "published"
+              ? "Your content is now live"
+              : "Your new draft is ready",
+        };
+
+  const confetti = [
+    { color: "bg-sky-300", delay: "0ms", left: "8%", top: "16%", rotate: "-12deg" },
+    { color: "bg-emerald-300", delay: "120ms", left: "18%", top: "10%", rotate: "18deg" },
+    { color: "bg-amber-300", delay: "240ms", left: "80%", top: "14%", rotate: "-20deg" },
+    { color: "bg-rose-300", delay: "180ms", left: "88%", top: "26%", rotate: "12deg" },
+    { color: "bg-cyan-300", delay: "320ms", left: "12%", top: "78%", rotate: "10deg" },
+    { color: "bg-violet-300", delay: "90ms", left: "84%", top: "76%", rotate: "-18deg" },
+    { color: "bg-lime-300", delay: "210ms", left: "74%", top: "86%", rotate: "14deg" },
+    { color: "bg-orange-300", delay: "260ms", left: "24%", top: "84%", rotate: "-14deg" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[120] overflow-hidden">
+      <div
+        className="absolute inset-0 bg-slate-950/38 backdrop-blur-[6px] motion-safe:animate-in motion-safe:fade-in-0"
+        onClick={onClose}
+      />
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className={`absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl ${
+            tone === "published"
+              ? "bg-[radial-gradient(circle,rgba(250,204,21,0.30),transparent_62%)]"
+              : "bg-[radial-gradient(circle,rgba(34,211,238,0.24),transparent_62%)]"
+          } motion-safe:animate-pulse`}
+        />
+        {confetti.map((piece, index) => (
+          <span
+            className={`absolute block h-8 w-2 rounded-full ${piece.color} opacity-80 shadow-[0_10px_30px_rgba(15,23,42,0.14)] motion-safe:animate-bounce motion-reduce:animate-none`}
+            key={`${piece.left}-${piece.top}-${index}`}
+            style={{
+              animationDelay: piece.delay,
+              animationDuration: "1.4s",
+              left: piece.left,
+              rotate: piece.rotate,
+              top: piece.top,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-[1] flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.94))] p-6 shadow-[0_38px_120px_rgba(15,23,42,0.24)] sm:p-8">
+          <div
+            className={`pointer-events-none absolute inset-x-10 top-0 h-40 blur-3xl ${
+              tone === "published"
+                ? "bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.26),transparent_70%)]"
+                : "bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.22),transparent_70%)]"
+            }`}
+          />
+          <div className="relative">
+            <div className="flex items-start justify-between gap-4">
+              <div
+                className={`flex size-16 shrink-0 items-center justify-center rounded-[24px] text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] ${
+                  tone === "published"
+                    ? "bg-[linear-gradient(135deg,#f59e0b,#facc15)]"
+                    : "bg-[linear-gradient(135deg,#0f172a,#06b6d4)]"
+                }`}
+              >
+                <Sparkles className="size-7 motion-safe:animate-pulse" />
+              </div>
+              <button
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                onClick={onClose}
+                type="button"
+              >
+                <ArrowRight className="size-4 rotate-45" />
+              </button>
+            </div>
+
+            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+              {copy.eyebrow}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-[2rem]">
+              {copy.title}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-[15px]">
+              {copy.body}
+            </p>
+
+            {title ? (
+              <div className="mt-5 rounded-[24px] border border-white/80 bg-white/85 px-4 py-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  {locale === "ko" ? "생성된 콘텐츠" : "Generated content"}
+                </p>
+                <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
+                  {title}
+                </p>
+              </div>
+            ) : null}
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {contentHref ? (
+                <Link
+                  className={`inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:translate-y-[-1px] ${
+                    tone === "published"
+                      ? "bg-[linear-gradient(135deg,#f59e0b,#facc15)]"
+                      : "bg-[linear-gradient(135deg,#0f172a,#06b6d4)]"
+                  }`}
+                  href={contentHref}
+                >
+                  {copy.primary}
+                </Link>
+              ) : (
+                <button
+                  className={`inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] ${
+                    tone === "published"
+                      ? "bg-[linear-gradient(135deg,#f59e0b,#facc15)]"
+                      : "bg-[linear-gradient(135deg,#0f172a,#06b6d4)]"
+                  }`}
+                  onClick={onClose}
+                  type="button"
+                >
+                  {copy.close}
+                </button>
+              )}
+              <button
+                className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white/92 px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={onClose}
+                type="button"
+              >
+                {copy.secondary}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
