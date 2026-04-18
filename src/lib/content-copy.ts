@@ -19,6 +19,8 @@ export type ContentCopy = {
     saveAutomation: string;
     saveProfile: string;
     saveDraft: string;
+    showLess: string;
+    showMore: string;
     uploadImage: string;
     uploadingImage: string;
     viewDetail: string;
@@ -73,8 +75,11 @@ export type ContentCopy = {
     automationEnabled: string;
     automationJobs: string;
     automationRestricted: string;
+    allPosts: string;
+    archived: string;
     author: string;
     creatorProfile: string;
+    creatorSettings: string;
     draft: string;
     feedEmpty: string;
     free: string;
@@ -82,8 +87,10 @@ export type ContentCopy = {
     networkAccess: string;
     posts: string;
     published: string;
+    quickActions: string;
     recentPosts: string;
     references: string;
+    studioHome: string;
     studioNotice: string;
   };
   messages: {
@@ -100,6 +107,7 @@ export type ContentCopy = {
     publishSuccess: string;
     saveDraftSuccess: string;
     studioLoadFailed: string;
+    noMatchingPosts: string;
     uploadFailed: string;
     uploadSuccess: string;
   };
@@ -144,6 +152,8 @@ const englishCopy: ContentCopy = {
     saveAutomation: "Save automation",
     saveProfile: "Save profile",
     saveDraft: "Save as draft",
+    showLess: "Show less",
+    showMore: "Show more",
     uploadImage: "Upload image",
     uploadingImage: "Uploading...",
     viewDetail: "View detail",
@@ -201,8 +211,11 @@ const englishCopy: ContentCopy = {
     automationEnabled: "Enabled",
     automationJobs: "Recent automation jobs",
     automationRestricted: "Automation is currently limited to test creators.",
+    allPosts: "All posts",
+    archived: "Archived",
     author: "Author",
     creatorProfile: "Creator profile",
+    creatorSettings: "Creator settings",
     draft: "Draft",
     feedEmpty: "No free content from your upstream network yet.",
     free: "Free",
@@ -210,8 +223,10 @@ const englishCopy: ContentCopy = {
     networkAccess: "Network access",
     posts: "Posts",
     published: "Published",
+    quickActions: "Quick actions",
     recentPosts: "Recent posts",
     references: "Sources",
+    studioHome: "Studio home",
     studioNotice:
       "This release supports free posts with cover images for your network feed.",
   },
@@ -230,6 +245,7 @@ const englishCopy: ContentCopy = {
     publishSuccess: "Free post published to your network feed.",
     saveDraftSuccess: "Draft saved.",
     studioLoadFailed: "Failed to load the creator studio.",
+    noMatchingPosts: "No posts match this filter yet.",
     uploadFailed: "Failed to upload image.",
     uploadSuccess: "Image uploaded. Save your profile to publish it.",
   },
@@ -281,6 +297,8 @@ const koreanCopy: ContentCopy = {
     saveAutomation: "자동화 저장",
     saveProfile: "프로필 저장",
     saveDraft: "임시 저장",
+    showLess: "접기",
+    showMore: "더 보기",
     uploadImage: "이미지 업로드",
     uploadingImage: "업로드 중...",
     viewDetail: "상세 보기",
@@ -339,8 +357,11 @@ const koreanCopy: ContentCopy = {
     automationEnabled: "활성",
     automationJobs: "최근 자동화 작업",
     automationRestricted: "콘텐츠 자동화는 현재 테스트 크리에이터에게만 열려 있습니다.",
+    allPosts: "전체",
+    archived: "보관됨",
     author: "작성자",
     creatorProfile: "크리에이터 프로필",
+    creatorSettings: "크리에이터 설정",
     draft: "임시저장",
     feedEmpty: "현재 내 상위 네트워크에서 공개된 무료 콘텐츠가 없습니다.",
     free: "무료",
@@ -348,8 +369,10 @@ const koreanCopy: ContentCopy = {
     networkAccess: "네트워크 접근",
     posts: "콘텐츠",
     published: "게시됨",
+    quickActions: "바로가기",
     recentPosts: "최근 콘텐츠",
     references: "참고 출처",
+    studioHome: "스튜디오 홈",
     studioNotice:
       "현재 버전은 네트워크 피드용 무료 콘텐츠와 커버 이미지 업로드를 지원합니다.",
   },
@@ -368,6 +391,7 @@ const koreanCopy: ContentCopy = {
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
     studioLoadFailed: "크리에이터 스튜디오를 불러오지 못했습니다.",
+    noMatchingPosts: "선택한 상태의 콘텐츠가 아직 없습니다.",
     uploadFailed: "이미지 업로드에 실패했습니다.",
     uploadSuccess: "이미지를 업로드했습니다. 프로필 저장 후 반영됩니다.",
   },

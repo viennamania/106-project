@@ -16,7 +16,7 @@ export async function generateMetadata({
   const copy = getContentCopy(locale);
 
   return {
-    title: `${copy.labels.creatorProfile} | ${copy.meta.studioTitle} | 1066friend+`,
+    title: `${copy.labels.creatorSettings} | ${copy.meta.studioTitle} | 1066friend+`,
     description: copy.page.profileDescription,
   };
 }

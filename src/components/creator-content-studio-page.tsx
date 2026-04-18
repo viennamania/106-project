@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Check,
   ImagePlus,
+  LayoutGrid,
   PenSquare,
   RefreshCcw,
   Sparkles,
@@ -88,6 +89,7 @@ type AutomationState = {
 };
 
 type StudioView = "hub" | "new" | "profile";
+type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
 const EMPTY_PROFILE = {
   displayName: "",
@@ -117,6 +119,8 @@ const EMPTY_AUTOMATION_FORM = {
 
 const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
+const HUB_FULL_POST_PAGE_SIZE = 6;
+const HUB_COMPACT_POST_PAGE_SIZE = 4;
 
 function parseDelimitedValues(value: string) {
   return Array.from(
@@ -196,13 +200,15 @@ export function CreatorContentStudioPage({
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
+  const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
+  const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
   const backHref = view === "hub" ? homeHref : studioHomeHref;
   const pageTitle =
     view === "profile"
-      ? contentCopy.labels.creatorProfile
+      ? contentCopy.labels.creatorSettings
       : view === "new"
         ? contentCopy.actions.createPost
         : contentCopy.page.studioTitle;
@@ -222,7 +228,7 @@ export function CreatorContentStudioPage({
     view === "profile"
       ? contentCopy.actions.createPost
       : view === "new"
-        ? contentCopy.labels.creatorProfile
+        ? contentCopy.labels.creatorSettings
         : null;
 
   const publishedCount = useMemo(() => {
@@ -233,12 +239,36 @@ export function CreatorContentStudioPage({
     return state.posts.filter((post) => post.status === "draft").length;
   }, [state.posts]);
 
+  const archivedCount = useMemo(() => {
+    return state.posts.filter((post) => post.status === "archived").length;
+  }, [state.posts]);
+
+  const sortedPosts = useMemo(() => {
+    return [...state.posts].sort((left, right) => {
+      const leftTime = new Date(left.updatedAt || left.createdAt).getTime();
+      const rightTime = new Date(right.updatedAt || right.createdAt).getTime();
+      return rightTime - leftTime;
+    });
+  }, [state.posts]);
+
+  const filteredPosts = useMemo(() => {
+    if (postFilter === "all") {
+      return sortedPosts;
+    }
+
+    return sortedPosts.filter((post) => post.status === postFilter);
+  }, [postFilter, sortedPosts]);
+
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
   const canGeneratePostCover = Boolean(
     postForm.title.trim() || postForm.summary.trim() || postForm.body.trim(),
   );
+
+  useEffect(() => {
+    setVisiblePostCount(HUB_FULL_POST_PAGE_SIZE);
+  }, [postFilter, state.posts.length]);
 
   const loadStudio = useCallback(async () => {
     if (!accountAddress) {
@@ -1557,11 +1587,193 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderStudioTabs() {
+    const tabs = [
+      {
+        href: studioHomeHref,
+        isActive: view === "hub",
+        label: contentCopy.labels.studioHome,
+      },
+      {
+        href: profileHref,
+        isActive: view === "profile",
+        label: contentCopy.labels.creatorSettings,
+      },
+      {
+        href: newPostHref,
+        isActive: view === "new",
+        label: contentCopy.actions.createPost,
+      },
+    ];
+
+    return (
+      <nav className="flex gap-2 overflow-x-auto pb-1">
+        {tabs.map((tab) => (
+          <Link
+            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
+              tab.isActive
+                ? "bg-slate-950 text-white"
+                : "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+            href={tab.href}
+            key={tab.href}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </nav>
+    );
+  }
+
+  function renderWorkspaceOverviewCard() {
+    const workspaceMessage = isDisconnected
+      ? contentCopy.messages.connectRequired
+      : state.status === "loading"
+        ? `${contentCopy.actions.refresh}...`
+        : state.error && state.member?.status !== "completed"
+          ? state.error
+          : contentCopy.page.studioDescription;
+
+    return (
+      <div className="glass-card rounded-[30px] p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {contentCopy.page.studioTitle}
+            </h2>
+          </div>
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <LayoutGrid className="size-5" />
+          </div>
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-slate-600">{workspaceMessage}</p>
+
+        {state.error && state.member?.status !== "completed" ? (
+          <div className="mt-3">
+            <Link
+              className="inline-flex text-sm font-semibold text-slate-950 underline"
+              href={activateHref}
+            >
+              {dictionary.referralsPage.actions.completeSignup}
+            </Link>
+          </div>
+        ) : null}
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <WorkspaceMetric
+            label={contentCopy.labels.posts}
+            value={String(state.posts.length)}
+          />
+          <WorkspaceMetric
+            label={contentCopy.labels.published}
+            value={String(publishedCount)}
+          />
+          <WorkspaceMetric
+            label={contentCopy.labels.draft}
+            value={String(draftCount)}
+          />
+          <WorkspaceMetric
+            label={contentCopy.labels.author}
+            value={state.profile.displayName || "-"}
+          />
+        </div>
+
+        {automation.available ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <StatusBadge
+              status={
+                automation.form.enabled
+                  ? contentCopy.labels.automationEnabled
+                  : contentCopy.labels.automationDisabled
+              }
+            />
+            {automation.jobs[0]?.status ? (
+              <StatusBadge status={automation.jobs[0].status} />
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  function renderHubActionCards(options?: {
+    mobile?: boolean;
+  }) {
+    const mobile = options?.mobile ?? false;
+
+    return (
+      <section className="space-y-3">
+        <div>
+          <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+          <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+            {contentCopy.labels.quickActions}
+          </h2>
+        </div>
+        <div className={mobile ? "grid gap-3" : "grid gap-4 xl:grid-cols-2"}>
+          <WorkspaceLaunchCard
+            description={contentCopy.page.profileDescription}
+            disabled={!canUseWorkspace}
+            href={profileHref}
+            icon={<UserRound className="size-5" />}
+            title={contentCopy.labels.creatorSettings}
+          />
+          <WorkspaceLaunchCard
+            description={contentCopy.page.newDescription}
+            disabled={!canUseWorkspace}
+            href={newPostHref}
+            icon={<PenSquare className="size-5" />}
+            title={contentCopy.actions.createPost}
+          />
+          <div className={mobile ? undefined : "xl:col-span-2"}>
+            <WorkspaceLaunchCard
+              description={contentCopy.page.feedDescription}
+              disabled={!canUseWorkspace}
+              href={feedHref}
+              icon={<Sparkles className="size-5" />}
+              title={contentCopy.entry.viewerTitle}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   function renderRecentPostsPanel(options?: {
     compact?: boolean;
   }) {
     const compact = options?.compact ?? false;
-    const posts = compact ? state.posts.slice(0, 4) : state.posts;
+    const posts = compact
+      ? sortedPosts.slice(0, HUB_COMPACT_POST_PAGE_SIZE)
+      : filteredPosts.slice(0, visiblePostCount);
+    const filterItems = [
+      {
+        key: "all" as const,
+        count: sortedPosts.length,
+        label: contentCopy.labels.allPosts,
+      },
+      {
+        key: "published" as const,
+        count: publishedCount,
+        label: contentCopy.labels.published,
+      },
+      {
+        key: "draft" as const,
+        count: draftCount,
+        label: contentCopy.labels.draft,
+      },
+      {
+        key: "archived" as const,
+        count: archivedCount,
+        label: contentCopy.labels.archived,
+      },
+    ];
+    const canShowMore = !compact && filteredPosts.length > visiblePostCount;
+    const canShowLess =
+      !compact &&
+      filteredPosts.length > HUB_FULL_POST_PAGE_SIZE &&
+      visiblePostCount >= filteredPosts.length;
 
     return (
       <div className="glass-card rounded-[30px] p-5">
@@ -1582,12 +1794,42 @@ export function CreatorContentStudioPage({
           ) : null}
         </div>
 
+        {!compact ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {filterItems.map((item) => (
+              <button
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
+                  postFilter === item.key
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+                key={item.key}
+                onClick={() => {
+                  setPostFilter(item.key);
+                }}
+                type="button"
+              >
+                <span>{item.label}</span>
+                <span
+                  className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
+                    postFilter === item.key ? "bg-white/15" : "bg-slate-100"
+                  }`}
+                >
+                  {item.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {isDisconnected ? (
           <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
         ) : state.status === "loading" ? (
           <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
         ) : state.error && state.posts.length === 0 ? (
           <MessageCard tone="error">{state.error}</MessageCard>
+        ) : !compact && filteredPosts.length === 0 ? (
+          <MessageCard>{contentCopy.messages.noMatchingPosts}</MessageCard>
         ) : posts.length === 0 ? (
           <MessageCard>{contentCopy.labels.feedEmpty}</MessageCard>
         ) : (
@@ -1632,7 +1874,7 @@ export function CreatorContentStudioPage({
                   >
                     {contentCopy.actions.viewDetail}
                   </Link>
-                  {post.status !== "published" ? (
+                  {!compact && post.status !== "published" ? (
                     <button
                       className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
                       onClick={() => {
@@ -1643,7 +1885,7 @@ export function CreatorContentStudioPage({
                       {contentCopy.actions.publish}
                     </button>
                   ) : null}
-                  {post.status !== "archived" ? (
+                  {!compact && post.status !== "archived" ? (
                     <button
                       className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                       onClick={() => {
@@ -1657,6 +1899,33 @@ export function CreatorContentStudioPage({
                 </div>
               </article>
             ))}
+
+            {!compact && (canShowMore || canShowLess) ? (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {canShowMore ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                    onClick={() => {
+                      setVisiblePostCount((current) => current + HUB_FULL_POST_PAGE_SIZE);
+                    }}
+                    type="button"
+                  >
+                    {contentCopy.actions.showMore}
+                  </button>
+                ) : null}
+                {canShowLess ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                    onClick={() => {
+                      setVisiblePostCount(HUB_FULL_POST_PAGE_SIZE);
+                    }}
+                    type="button"
+                  >
+                    {contentCopy.actions.showLess}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
@@ -1664,84 +1933,10 @@ export function CreatorContentStudioPage({
   }
 
   function renderMobileHub() {
-    const workspaceMessage = isDisconnected
-      ? contentCopy.messages.connectRequired
-      : state.status === "loading"
-        ? `${contentCopy.actions.refresh}...`
-        : state.error && state.member?.status !== "completed"
-          ? state.error
-          : contentCopy.page.studioDescription;
-
     return (
       <section className="grid gap-5 lg:hidden">
-        <div className="glass-card rounded-[30px] p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                {contentCopy.page.studioTitle}
-              </h2>
-            </div>
-            {state.notice ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
-                <Check className="size-4" />
-                <span className="max-w-[9rem] truncate">{state.notice}</span>
-              </div>
-            ) : null}
-          </div>
-
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            {workspaceMessage}
-          </p>
-
-          {state.error && state.member?.status !== "completed" ? (
-            <div className="mt-3">
-              <Link
-                className="inline-flex text-sm font-semibold text-slate-950 underline"
-                href={activateHref}
-              >
-                {dictionary.referralsPage.actions.completeSignup}
-              </Link>
-            </div>
-          ) : null}
-
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <WorkspaceMetric
-              label={contentCopy.labels.published}
-              value={String(publishedCount)}
-            />
-            <WorkspaceMetric
-              label={contentCopy.labels.posts}
-              value={String(state.posts.length)}
-            />
-            <WorkspaceMetric
-              label={contentCopy.labels.draft}
-              value={String(draftCount)}
-            />
-            <WorkspaceMetric
-              label={contentCopy.labels.author}
-              value={state.profile.displayName || "-"}
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-4">
-          <WorkspaceLaunchCard
-            description={contentCopy.hints.intro}
-            disabled={!canUseWorkspace}
-            href={profileHref}
-            icon={<UserRound className="size-5" />}
-            title={contentCopy.labels.creatorProfile}
-          />
-          <WorkspaceLaunchCard
-            description={contentCopy.labels.studioNotice}
-            disabled={!canUseWorkspace}
-            href={newPostHref}
-            icon={<PenSquare className="size-5" />}
-            title={contentCopy.actions.createPost}
-          />
-        </div>
-
+        {renderWorkspaceOverviewCard()}
+        {renderHubActionCards({ mobile: true })}
         {renderRecentPostsPanel({ compact: true })}
       </section>
     );
@@ -1751,12 +1946,12 @@ export function CreatorContentStudioPage({
     const href = targetView === "profile" ? profileHref : newPostHref;
     const title =
       targetView === "profile"
-        ? contentCopy.labels.creatorProfile
+        ? contentCopy.labels.creatorSettings
         : contentCopy.actions.createPost;
     const description =
       targetView === "profile"
-        ? contentCopy.hints.intro
-        : contentCopy.labels.studioNotice;
+        ? contentCopy.page.profileDescription
+        : contentCopy.page.newDescription;
     const icon =
       targetView === "profile" ? (
         <UserRound className="size-5" />
@@ -1772,6 +1967,13 @@ export function CreatorContentStudioPage({
           href={href}
           icon={icon}
           title={title}
+        />
+        <WorkspaceLaunchCard
+          description={contentCopy.page.feedDescription}
+          disabled={!canUseWorkspace}
+          href={feedHref}
+          icon={<Sparkles className="size-5" />}
+          title={contentCopy.entry.viewerTitle}
         />
         {renderRecentPostsPanel({ compact: true })}
       </div>
@@ -1858,13 +2060,15 @@ export function CreatorContentStudioPage({
         </div>
       </header>
 
+      {renderStudioTabs()}
+
       {view === "hub" ? (
         <>
           {renderMobileHub()}
-          <section className="hidden gap-5 lg:grid lg:grid-cols-[0.9fr_1.1fr]">
+          <section className="hidden gap-5 lg:grid lg:grid-cols-[0.88fr_1.12fr]">
             <div className="space-y-5">
-              {renderProfileCard()}
-              {renderComposerCard()}
+              {renderWorkspaceOverviewCard()}
+              {renderHubActionCards()}
             </div>
             {renderRecentPostsPanel()}
           </section>
