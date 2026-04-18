@@ -130,11 +130,14 @@ pnpm thirdweb:webhooks:register
 - `GET /api/health` 는 필수 환경변수와 MongoDB 연결 상태를 확인합니다.
 - `POST /api/internal/reconcile-completed-members` 는 Bearer 토큰으로 보호된 완료 회원 네트워크 재조정 엔드포인트입니다.
 - `POST /api/internal/reconcile-signups` 는 Bearer 토큰으로 보호된 재조정 엔드포인트입니다.
+- `POST /api/internal/content-automation/run` 는 `x-automation-key` 로 보호된 콘텐츠 자동화 실행 엔드포인트입니다.
 - `pnpm reconcile:completed` 는 완료 회원 네트워크 재조정을 1회 실행합니다.
 - `pnpm reconcile:pending` 는 1회 재조정을 실행합니다.
 - `pnpm reconcile:worker` 는 pending signup 재조정과 completed-member 네트워크 재조정을 순차로 반복합니다.
+- `pnpm content-automation:run` 는 설정된 크리에이터 이메일로 콘텐츠 자동화 1회를 실행합니다.
 - `RECONCILE_EMAIL` 을 주면 특정 이메일만 재조정할 수 있습니다.
 - `RECONCILE_COMPLETED_LIMIT=1` 로 두면 Railway에서 완료 회원 네트워크 정리를 안전하게 조금씩 돌릴 수 있습니다.
+- 초기 자동화 베타는 `CONTENT_AUTOMATION_ALLOWED_MEMBER_EMAILS=genie1647@gmail.com` 으로 유지하는 쪽이 안전합니다.
 
 ## Signup flow
 
