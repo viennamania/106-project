@@ -26,6 +26,16 @@ export const contentAutomationJobModes = [
   "discover_and_draft",
   "publish",
 ] as const;
+export const contentAutomationRunProgressSteps = [
+  "authorizing",
+  "queueing",
+  "discovering",
+  "collecting_sources",
+  "drafting",
+  "generating_cover",
+  "saving_content",
+  "finalizing",
+] as const;
 
 export type ContentAutomationSourceMode =
   (typeof contentAutomationSourceModes)[number];
@@ -35,6 +45,8 @@ export type ContentAutomationJobStatus =
   (typeof contentAutomationJobStatuses)[number];
 export type ContentAutomationJobMode =
   (typeof contentAutomationJobModes)[number];
+export type ContentAutomationRunProgressStep =
+  (typeof contentAutomationRunProgressSteps)[number];
 
 export type CreatorAutomationProfileDocument = {
   allowedDomains: string[];
@@ -169,6 +181,27 @@ export type ContentAutomationRunResponse = {
   profile: CreatorAutomationProfileRecord;
   sources: ContentSourceItemRecord[];
 };
+
+export type ContentAutomationRunProgressEvent = {
+  message: string | null;
+  progress: number;
+  status: "completed" | "failed" | "running";
+  step: ContentAutomationRunProgressStep;
+};
+
+export type ContentAutomationRunStreamEvent =
+  | {
+      progress: ContentAutomationRunProgressEvent;
+      type: "progress";
+    }
+  | {
+      response: ContentAutomationRunResponse;
+      type: "result";
+    }
+  | {
+      error: string;
+      type: "error";
+    };
 
 export type CreatorAutomationProfileUpsertRequest = {
   allowedDomains?: string[];

@@ -14,6 +14,8 @@ import {
   type ContentAutomationJobDocument,
   type ContentAutomationJobMode,
   type ContentAutomationJobRecord,
+  type ContentAutomationRunProgressEvent,
+  type ContentAutomationRunProgressStep,
   type ContentAutomationRunRequest,
   type ContentSourceItemDocument,
   type ContentSourceItemRecord,
@@ -980,6 +982,9 @@ export async function getContentAutomationJobsForMember(
 
 export async function runContentAutomationForMember(
   input: ContentAutomationRunRequest,
+  options?: {
+    onProgress?: (event: ContentAutomationRunProgressEvent) => Promise<void> | void;
+  },
 ): Promise<{
   content: ContentPostRecord | null;
   job: ContentAutomationJobRecord;
@@ -1004,18 +1009,48 @@ export async function runContentAutomationForMember(
   const storedProfile =
     (await readStoredAutomationProfile(member.email)) ??
     (await buildDefaultAutomationProfile(member));
+  let currentStep: ContentAutomationRunProgressStep = "queueing";
+
+  async function reportProgress(
+    step: ContentAutomationRunProgressStep,
+    status: ContentAutomationRunProgressEvent["status"],
+    progress: number,
+    message: string | null = null,
+  ) {
+    if (status === "running") {
+      currentStep = step;
+    }
+
+    if (!options?.onProgress) {
+      return;
+    }
+
+    await options.onProgress({
+      message,
+      progress,
+      status,
+      step,
+    });
+  }
 
   if (!storedProfile.enabled) {
     throw new Error("Automation is disabled for this creator.");
   }
 
+  await reportProgress("queueing", "running", 10);
   await enforceAutomationCadence(member.email, storedProfile);
 
   const queuedJob = await createQueuedJob(member.email, mode);
 
   try {
     await markJobRunning(queuedJob.jobId);
+    await reportProgress("queueing", "completed", 18);
+
+    await reportProgress("discovering", "running", 28);
     const discovery = await discoverSourcesForProfile(storedProfile);
+    await reportProgress("discovering", "completed", 38);
+
+    await reportProgress("collecting_sources", "running", 46);
     const sourceItems = await upsertSourceItems(
       member.email,
       discovery.discoveryText,
@@ -1036,7 +1071,12 @@ export async function runContentAutomationForMember(
       throw new Error("No fresh public sources were found for automation.");
     }
 
+    await reportProgress("collecting_sources", "completed", 54);
+    await reportProgress("drafting", "running", 64);
     const draft = await generateDraftForProfile(storedProfile, availableDiscovery);
+    await reportProgress("drafting", "completed", 74);
+
+    await reportProgress("generating_cover", "running", 82);
     const selectedSources = availableSourceItems.filter((item) =>
       draft.sourceUrls.includes(item.url),
     );
@@ -1052,6 +1092,14 @@ export async function runContentAutomationForMember(
       summary: draft.summary,
       title: draft.title,
     });
+    await reportProgress(
+      "generating_cover",
+      "completed",
+      88,
+      coverImageError,
+    );
+
+    await reportProgress("saving_content", "running", 92);
     const nextStatus =
       storedProfile.autoPublish &&
       draft.score >= storedProfile.publishScoreThreshold
@@ -1067,6 +1115,7 @@ export async function runContentAutomationForMember(
       tags: draft.tags,
       title: draft.title,
     });
+    await reportProgress("saving_content", "completed", 96);
 
     const attributionsCollection = await getContentPostSourceAttributionsCollection();
     await attributionsCollection.updateOne(
@@ -1099,6 +1148,7 @@ export async function runContentAutomationForMember(
       },
     );
 
+    await reportProgress("finalizing", "running", 98);
     const completedJob = await completeJob(queuedJob.jobId, {
       body: draft.body,
       outputContentId: content.contentId,
@@ -1113,6 +1163,7 @@ export async function runContentAutomationForMember(
       topic: draft.topic,
       warning: coverImageError,
     });
+    await reportProgress("finalizing", "completed", 100);
 
     return {
       content,
@@ -1125,6 +1176,12 @@ export async function runContentAutomationForMember(
     const failedJob = await failJob(
       queuedJob.jobId,
       error instanceof Error ? error.message : "Automation job failed.",
+    );
+    await reportProgress(
+      currentStep,
+      "failed",
+      100,
+      failedJob.error ?? "Automation job failed.",
     );
 
     return {

@@ -25,10 +25,13 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { getContentCopy } from "@/lib/content-copy";
+import { contentAutomationRunProgressSteps } from "@/lib/content-automation";
 import type {
   ContentAutomationJobRecord,
   ContentAutomationJobsResponse,
+  ContentAutomationRunProgressStep,
   ContentAutomationRunResponse,
+  ContentAutomationRunStreamEvent,
   CreatorAutomationProfileResponse,
 } from "@/lib/content-automation";
 import type {
@@ -88,6 +91,17 @@ type AutomationState = {
   status: "idle" | "loading" | "ready";
 };
 
+type AutomationProgressStepState = "active" | "done" | "error" | "pending";
+
+type AutomationProgressState = {
+  active: boolean;
+  currentStep: ContentAutomationRunProgressStep | null;
+  error: string | null;
+  message: string | null;
+  progress: number;
+  steps: Record<ContentAutomationRunProgressStep, AutomationProgressStepState>;
+};
+
 type StudioView = "hub" | "new" | "profile";
 type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
@@ -122,6 +136,19 @@ const AUTOMATION_RESTRICTED_MESSAGE =
 const HUB_FULL_POST_PAGE_SIZE = 6;
 const HUB_COMPACT_POST_PAGE_SIZE = 4;
 
+function createEmptyAutomationProgress(): AutomationProgressState {
+  return {
+    active: false,
+    currentStep: null,
+    error: null,
+    message: null,
+    progress: 0,
+    steps: Object.fromEntries(
+      contentAutomationRunProgressSteps.map((step) => [step, "pending"]),
+    ) as Record<ContentAutomationRunProgressStep, AutomationProgressStepState>,
+  };
+}
+
 function upsertAutomationJob(
   jobs: ContentAutomationJobRecord[],
   nextJob: ContentAutomationJobRecord,
@@ -149,6 +176,105 @@ function parseDelimitedValues(value: string) {
 
 function stringifyDelimitedValues(values: string[]) {
   return values.join(", ");
+}
+
+function applyAutomationProgressEvent(
+  current: AutomationProgressState,
+  event: ContentAutomationRunStreamEvent,
+): AutomationProgressState {
+  if (event.type === "error") {
+    return {
+      ...current,
+      active: false,
+      error: event.error,
+      message: event.error,
+    };
+  }
+
+  if (event.type === "result") {
+    return {
+      ...current,
+      active: false,
+      currentStep:
+        event.response.job.status === "failed" ? current.currentStep : "finalizing",
+      error: event.response.job.status === "failed" ? event.response.job.error : null,
+      message:
+        event.response.job.warning ??
+        event.response.job.error ??
+        event.response.job.summary ??
+        current.message,
+      progress: event.response.job.status === "failed" ? current.progress : 100,
+      steps:
+        event.response.job.status === "failed"
+          ? current.steps
+          : {
+              ...current.steps,
+              finalizing: "done",
+            },
+    };
+  }
+
+  const nextSteps = {
+    ...current.steps,
+    [event.progress.step]:
+      event.progress.status === "running"
+        ? "active"
+        : event.progress.status === "completed"
+          ? "done"
+          : "error",
+  };
+
+  return {
+    ...current,
+    active: event.progress.status === "running",
+    currentStep: event.progress.step,
+    error: event.progress.status === "failed" ? event.progress.message : null,
+    message: event.progress.message,
+    progress: Math.max(current.progress, event.progress.progress),
+    steps: nextSteps,
+  };
+}
+
+async function readAutomationRunStream(
+  response: Response,
+  onEvent: (event: ContentAutomationRunStreamEvent) => void,
+) {
+  const reader = response.body?.getReader();
+
+  if (!reader) {
+    throw new Error("Streaming response body is missing.");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        continue;
+      }
+
+      onEvent(JSON.parse(trimmed) as ContentAutomationRunStreamEvent);
+    }
+  }
+
+  const trailing = buffer.trim();
+
+  if (trailing) {
+    onEvent(JSON.parse(trailing) as ContentAutomationRunStreamEvent);
+  }
 }
 
 export function CreatorContentStudioPage({
@@ -211,6 +337,9 @@ export function CreatorContentStudioPage({
     jobs: [],
     status: "idle",
   });
+  const [automationProgress, setAutomationProgress] = useState<AutomationProgressState>(
+    createEmptyAutomationProgress(),
+  );
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
@@ -218,6 +347,30 @@ export function CreatorContentStudioPage({
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
+  const automationProgressLabels =
+    locale === "ko"
+      ? {
+          authorizing: "회원 확인",
+          collecting_sources: "출처 정리",
+          discovering: "공개 출처 탐색",
+          drafting: "초안 작성",
+          finalizing: "마무리 저장",
+          generating_cover: "AI 커버 생성",
+          queueing: "작업 준비",
+          saving_content: "콘텐츠 저장",
+          title: "실행 중인 자동화",
+        }
+      : {
+          authorizing: "Member check",
+          collecting_sources: "Source preparation",
+          discovering: "Source discovery",
+          drafting: "Draft writing",
+          finalizing: "Finalizing",
+          generating_cover: "Cover generation",
+          queueing: "Queue setup",
+          saving_content: "Content save",
+          title: "Automation in progress",
+        };
   const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -942,6 +1095,16 @@ export function CreatorContentStudioPage({
   async function runAutomation() {
     try {
       setIsRunningAutomation(true);
+      setAutomationProgress({
+        ...createEmptyAutomationProgress(),
+        active: true,
+        currentStep: "authorizing",
+        progress: 2,
+        steps: {
+          ...createEmptyAutomationProgress().steps,
+          authorizing: "active",
+        },
+      });
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/automation/run", {
         body: JSON.stringify({
@@ -950,10 +1113,77 @@ export function CreatorContentStudioPage({
           walletAddress: accountAddress,
         }),
         headers: {
+          Accept: "application/x-ndjson",
           "Content-Type": "application/json",
         },
         method: "POST",
       });
+      const contentType = response.headers.get("content-type") ?? "";
+
+      if (response.body && contentType.includes("application/x-ndjson")) {
+        await readAutomationRunStream(response, (event) => {
+          setAutomationProgress((current) =>
+            applyAutomationProgressEvent(current, event),
+          );
+
+          if (event.type === "error") {
+            setAutomation((current) => ({
+              ...current,
+              error: event.error,
+            }));
+            setState((current) => ({
+              ...current,
+              notice: null,
+            }));
+            return;
+          }
+
+          if (event.type !== "result") {
+            return;
+          }
+
+          if (event.response.job.status === "failed") {
+            setAutomation((current) => ({
+              ...current,
+              error:
+                event.response.job.error ?? contentCopy.messages.automationLoadFailed,
+              jobs: upsertAutomationJob(current.jobs, event.response.job),
+            }));
+            setState((current) => ({
+              ...current,
+              notice: null,
+            }));
+            return;
+          }
+
+          setAutomation((current) => ({
+            ...current,
+            error: null,
+            jobs: upsertAutomationJob(current.jobs, event.response.job),
+          }));
+
+          const streamedContent = event.response.content;
+
+          if (streamedContent) {
+            setState((current) => ({
+              ...current,
+              error: null,
+              notice: contentCopy.messages.automationRunSuccess,
+              posts: upsertContentPost(current.posts, streamedContent),
+            }));
+            return;
+          }
+
+          setState((current) => ({
+            ...current,
+            error: null,
+            notice: contentCopy.messages.automationRunSuccess,
+          }));
+        });
+
+        return;
+      }
+
       const data = (await response.json()) as ContentAutomationRunResponse | {
         error?: string;
       };
@@ -965,6 +1195,23 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.automationLoadFailed,
         );
       }
+
+      setAutomationProgress((current) => ({
+        ...current,
+        active: false,
+        currentStep:
+          data.job.status === "failed" ? current.currentStep : "finalizing",
+        error: data.job.status === "failed" ? data.job.error : null,
+        message: data.job.warning ?? data.job.error ?? current.message,
+        progress: data.job.status === "failed" ? current.progress : 100,
+        steps:
+          data.job.status === "failed"
+            ? current.steps
+            : {
+                ...current.steps,
+                finalizing: "done",
+              },
+      }));
 
       if (data.job.status === "failed") {
         setAutomation((current) => ({
@@ -1001,6 +1248,18 @@ export function CreatorContentStudioPage({
         }));
       }
     } catch (error) {
+      setAutomationProgress((current) => ({
+        ...current,
+        active: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.automationLoadFailed,
+        message:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.automationLoadFailed,
+      }));
       setAutomation((current) => ({
         ...current,
         error:
@@ -1399,6 +1658,11 @@ export function CreatorContentStudioPage({
       return null;
     }
 
+    const showAutomationProgress =
+      isRunningAutomation ||
+      automationProgress.currentStep !== null ||
+      automationProgress.error !== null;
+
     return (
       <div className="glass-card rounded-[30px] p-5">
         <div className="flex items-center justify-between gap-3">
@@ -1410,8 +1674,71 @@ export function CreatorContentStudioPage({
           </div>
         </div>
 
+        {showAutomationProgress ? (
+          <div className="mt-4 rounded-[22px] border border-slate-200 bg-slate-50/90 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">
+                  {automationProgressLabels.title}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  {automationProgress.message ??
+                    (automationProgress.currentStep
+                      ? automationProgressLabels[automationProgress.currentStep]
+                      : contentCopy.actions.runningAutomation)}
+                </p>
+              </div>
+              <StatusBadge
+                status={
+                  automationProgress.error
+                    ? "failed"
+                    : isRunningAutomation
+                      ? "running"
+                      : "completed"
+                }
+              />
+            </div>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+              <div
+                className={`h-full rounded-full transition-[width] duration-300 ${
+                  automationProgress.error ? "bg-rose-500" : "bg-slate-950"
+                }`}
+                style={{ width: `${Math.max(4, automationProgress.progress)}%` }}
+              />
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {contentAutomationRunProgressSteps.map((step) => {
+                const status = automationProgress.steps[step];
+
+                return (
+                  <div
+                    className={`rounded-[18px] border px-3 py-2 text-sm transition ${
+                      status === "done"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                        : status === "active"
+                          ? "border-slate-950 bg-white text-slate-950"
+                          : status === "error"
+                            ? "border-rose-200 bg-rose-50 text-rose-700"
+                            : "border-slate-200 bg-white/80 text-slate-500"
+                    }`}
+                    key={step}
+                  >
+                    {automationProgressLabels[step]}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
         {automation.jobs.length === 0 ? (
-          <MessageCard>{contentCopy.labels.automationDisabled}</MessageCard>
+          <MessageCard>
+            {showAutomationProgress
+              ? contentCopy.actions.runningAutomation
+              : contentCopy.labels.automationDisabled}
+          </MessageCard>
         ) : (
           <div className="mt-4 space-y-3">
             {automation.jobs.slice(0, 6).map((job) => (
@@ -2388,8 +2715,10 @@ function StatusBadge({
   status: string;
 }) {
   const label =
-    status === "published" || status === "completed"
+    status === "published"
       ? "Published"
+      : status === "completed"
+        ? "Completed"
       : status === "draft"
         ? "Draft"
         : status === "failed"
