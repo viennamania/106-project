@@ -250,13 +250,10 @@ function getDraftModel() {
   return process.env.OPENAI_CONTENT_DRAFT_MODEL ?? "gpt-4o-mini";
 }
 
-async function createOpenAiResponse(payload: Record<string, unknown>) {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured.");
-  }
-
+async function requestOpenAiResponse(
+  apiKey: string,
+  payload: Record<string, unknown>,
+) {
   const response = await fetch("https://api.openai.com/v1/responses", {
     body: JSON.stringify(payload),
     headers: {
@@ -270,7 +267,45 @@ async function createOpenAiResponse(payload: Record<string, unknown>) {
     | OpenAiResponsesApiResponse
     | null;
 
+  return { json, response };
+}
+
+function isUnsupportedReasoningError(message: string | undefined) {
+  const normalizedMessage = message?.toLowerCase() ?? "";
+
+  return (
+    normalizedMessage.includes("reasoning.effort") &&
+    normalizedMessage.includes("not supported with this model")
+  );
+}
+
+async function createOpenAiResponse(payload: Record<string, unknown>) {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured.");
+  }
+
+  const { json, response } = await requestOpenAiResponse(apiKey, payload);
+
   if (!response.ok) {
+    if ("reasoning" in payload && isUnsupportedReasoningError(json?.error?.message)) {
+      const fallbackPayload = { ...payload };
+      delete fallbackPayload.reasoning;
+
+      const fallbackResponse = await requestOpenAiResponse(apiKey, fallbackPayload);
+
+      if (!fallbackResponse.response.ok) {
+        throw new Error(
+          fallbackResponse.json?.error?.message
+            ? `OpenAI request failed: ${fallbackResponse.json.error.message}`
+            : `OpenAI request failed with status ${fallbackResponse.response.status}.`,
+        );
+      }
+
+      return fallbackResponse.json ?? {};
+    }
+
     throw new Error(
       json?.error?.message
         ? `OpenAI request failed: ${json.error.message}`
