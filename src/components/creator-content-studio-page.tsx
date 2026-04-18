@@ -1780,21 +1780,6 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderProfileCompanionPanel() {
-    return (
-      <div className="space-y-5">
-        <WorkspaceLaunchCard
-          description={contentCopy.page.newDescription}
-          disabled={!canUseWorkspace}
-          href={newPostHref}
-          icon={<PenSquare className="size-5" />}
-          title={contentCopy.actions.createPost}
-        />
-        {renderAutomationJobsPanel()}
-      </div>
-    );
-  }
-
   return (
     <main
       className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ${
@@ -1887,12 +1872,10 @@ export function CreatorContentStudioPage({
           </section>
         </>
       ) : view === "profile" ? (
-        <section className="grid gap-5 xl:grid-cols-[1.04fr_0.96fr]">
-          <div className="space-y-5">
-            {renderProfileCard()}
-            {renderAutomationPanel()}
-          </div>
-          {renderProfileCompanionPanel()}
+        <section className="mx-auto w-full max-w-4xl space-y-5">
+          {renderProfileCard()}
+          {renderAutomationPanel()}
+          {renderAutomationJobsPanel()}
         </section>
       ) : (
         <section className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
