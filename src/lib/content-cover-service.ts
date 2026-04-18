@@ -81,7 +81,7 @@ async function generateImageBase64(prompt: string) {
       model: process.env.OPENAI_CONTENT_IMAGE_MODEL?.trim() || "gpt-image-1.5",
       output_format: "png",
       prompt,
-      quality: process.env.OPENAI_CONTENT_IMAGE_QUALITY?.trim() || "medium",
+      quality: process.env.OPENAI_CONTENT_IMAGE_QUALITY?.trim() || "high",
       size: process.env.OPENAI_CONTENT_IMAGE_SIZE?.trim() || "1536x1024",
     }),
     headers: {

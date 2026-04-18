@@ -80,13 +80,17 @@ Railway-only additions:
 - `OPENAI_API_KEY`
   - Required for automation source discovery, draft generation, and AI cover generation.
 - `OPENAI_CONTENT_DISCOVERY_MODEL`
-  - Optional, defaults to `gpt-5`.
+  - Optional, defaults to `gpt-5.4`.
+- `OPENAI_CONTENT_DISCOVERY_REASONING`
+  - Optional, defaults to `medium`.
 - `OPENAI_CONTENT_DRAFT_MODEL`
-  - Optional, defaults to `gpt-4o-mini`.
+  - Optional, defaults to `gpt-5.4`.
+- `OPENAI_CONTENT_DRAFT_REASONING`
+  - Optional, defaults to `high`.
 - `OPENAI_CONTENT_IMAGE_MODEL`
   - Optional, defaults to `gpt-image-1.5`.
 - `OPENAI_CONTENT_IMAGE_QUALITY`
-  - Optional, defaults to `medium`.
+  - Optional, defaults to `high`.
 - `OPENAI_CONTENT_IMAGE_SIZE`
   - Optional, defaults to `1536x1024`.
 - `BLOB_READ_WRITE_TOKEN`

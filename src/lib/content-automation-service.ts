@@ -243,11 +243,31 @@ async function readStoredAutomationProfile(email: string) {
 }
 
 function getDiscoveryModel() {
-  return process.env.OPENAI_CONTENT_DISCOVERY_MODEL ?? "gpt-5";
+  return process.env.OPENAI_CONTENT_DISCOVERY_MODEL ?? "gpt-5.4";
 }
 
 function getDraftModel() {
-  return process.env.OPENAI_CONTENT_DRAFT_MODEL ?? "gpt-4o-mini";
+  return process.env.OPENAI_CONTENT_DRAFT_MODEL ?? "gpt-5.4";
+}
+
+type ReasoningEffort = "low" | "medium" | "high" | "xhigh";
+
+function getReasoningEffort(
+  envKey: "OPENAI_CONTENT_DISCOVERY_REASONING" | "OPENAI_CONTENT_DRAFT_REASONING",
+  fallback: ReasoningEffort,
+) {
+  const value = process.env[envKey]?.trim().toLowerCase();
+
+  if (
+    value === "low" ||
+    value === "medium" ||
+    value === "high" ||
+    value === "xhigh"
+  ) {
+    return value;
+  }
+
+  return fallback;
 }
 
 async function requestOpenAiResponse(
@@ -385,7 +405,9 @@ async function discoverSourcesForProfile(
   const today = new Date().toISOString().slice(0, 10);
   const response = await createOpenAiResponse({
     model: getDiscoveryModel(),
-    reasoning: { effort: "low" },
+    reasoning: {
+      effort: getReasoningEffort("OPENAI_CONTENT_DISCOVERY_REASONING", "medium"),
+    },
     tools: [
       profile.allowedDomains.length > 0
         ? {
@@ -513,7 +535,9 @@ async function generateDraftForProfile(
         ),
       },
     ],
-    reasoning: { effort: "low" },
+    reasoning: {
+      effort: getReasoningEffort("OPENAI_CONTENT_DRAFT_REASONING", "high"),
+    },
     text: {
       format: {
         type: "json_schema",
