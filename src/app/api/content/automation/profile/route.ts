@@ -2,6 +2,7 @@ import type {
   CreatorAutomationProfileResponse,
   CreatorAutomationProfileUpsertRequest,
 } from "@/lib/content-automation";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getCreatorAutomationProfileForMember,
   serializeAutomationMember,
@@ -34,13 +35,29 @@ function resolveStatus(message: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
-    const { member, profile } = await getCreatorAutomationProfileForMember(rawEmail);
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const { member, profile } = await getCreatorAutomationProfileForMember(
+      authorization.normalizedEmail,
+    );
     const response: CreatorAutomationProfileResponse = {
       member: serializeAutomationMember(member),
       profile,
@@ -68,8 +85,24 @@ export async function POST(request: Request) {
     return jsonError("memberEmail is required.", 400);
   }
 
+  if (!body.walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
   try {
-    const { member, profile } = await upsertCreatorAutomationProfileForMember(body);
+    const authorization = await validateMemberWalletOwner({
+      email: body.memberEmail,
+      walletAddress: body.walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const { member, profile } = await upsertCreatorAutomationProfileForMember({
+      ...body,
+      memberEmail: authorization.normalizedEmail,
+    });
     const response: CreatorAutomationProfileResponse = {
       member: serializeAutomationMember(member),
       profile,

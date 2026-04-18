@@ -77,6 +77,7 @@ export type ContentAutomationJobDocument = {
   memberEmail: string;
   mode: ContentAutomationJobMode;
   outputContentId?: string | null;
+  outputStatus?: "draft" | "published" | null;
   score?: number | null;
   sourceItemIds: string[];
   sourceUrls: string[];
@@ -136,6 +137,7 @@ export type ContentAutomationJobRecord = {
   memberEmail: string;
   mode: ContentAutomationJobMode;
   outputContentId: string | null;
+  outputStatus: "draft" | "published" | null;
   score: number | null;
   sourceUrls: string[];
   startedAt: string | null;
@@ -180,11 +182,13 @@ export type CreatorAutomationProfileUpsertRequest = {
   publishScoreThreshold?: number;
   sourceModes?: ContentAutomationSourceMode[];
   topics?: string[];
+  walletAddress?: string;
 };
 
 export type ContentAutomationRunRequest = {
   memberEmail: string;
   mode?: ContentAutomationJobMode;
+  walletAddress?: string;
 };
 
 export function serializeCreatorAutomationProfile(
@@ -236,6 +240,7 @@ export function serializeContentAutomationJob(
     memberEmail: job.memberEmail,
     mode: job.mode,
     outputContentId: job.outputContentId ?? null,
+    outputStatus: job.outputStatus ?? null,
     score: job.score ?? null,
     sourceUrls: job.sourceUrls,
     startedAt: job.startedAt?.toISOString() ?? null,

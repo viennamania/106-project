@@ -2,6 +2,7 @@ import type {
   ContentAutomationRunRequest,
   ContentAutomationRunResponse,
 } from "@/lib/content-automation";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   runContentAutomationForMember,
   serializeAutomationMember,
@@ -55,8 +56,24 @@ export async function POST(request: Request) {
     return jsonError("memberEmail is required.", 400);
   }
 
+  if (!body.walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
   try {
-    const result = await runContentAutomationForMember(body);
+    const authorization = await validateMemberWalletOwner({
+      email: body.memberEmail,
+      walletAddress: body.walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const result = await runContentAutomationForMember({
+      ...body,
+      memberEmail: authorization.normalizedEmail,
+    });
     const response: ContentAutomationRunResponse = {
       content: result.content,
       job: result.job,
@@ -65,9 +82,7 @@ export async function POST(request: Request) {
       sources: result.sources,
     };
 
-    return Response.json(response, {
-      status: result.job.status === "failed" ? 500 : 200,
-    });
+    return Response.json(response);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to run content automation.";

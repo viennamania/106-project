@@ -1,4 +1,5 @@
 import type { ContentAutomationJobsResponse } from "@/lib/content-automation";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getContentAutomationJobsForMember,
   serializeAutomationMember,
@@ -30,14 +31,28 @@ function resolveStatus(message: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const { items, member, profile } = await getContentAutomationJobsForMember(
-      rawEmail,
+      authorization.normalizedEmail,
     );
     const response: ContentAutomationJobsResponse = {
       items,

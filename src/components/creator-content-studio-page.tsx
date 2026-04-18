@@ -122,6 +122,20 @@ const AUTOMATION_RESTRICTED_MESSAGE =
 const HUB_FULL_POST_PAGE_SIZE = 6;
 const HUB_COMPACT_POST_PAGE_SIZE = 4;
 
+function upsertAutomationJob(
+  jobs: ContentAutomationJobRecord[],
+  nextJob: ContentAutomationJobRecord,
+) {
+  return [nextJob, ...jobs.filter((job) => job.jobId !== nextJob.jobId)].slice(0, 20);
+}
+
+function upsertContentPost(
+  posts: ContentPostRecord[],
+  nextPost: ContentPostRecord,
+) {
+  return [nextPost, ...posts.filter((post) => post.contentId !== nextPost.contentId)];
+}
+
 function parseDelimitedValues(value: string) {
   return Array.from(
     new Set(
@@ -373,8 +387,12 @@ export function CreatorContentStudioPage({
         await Promise.all([
         fetch(`/api/content/profile?email=${encodeURIComponent(email)}`),
         fetch(`/api/content/posts?email=${encodeURIComponent(email)}`),
-        fetch(`/api/content/automation/profile?email=${encodeURIComponent(email)}`),
-        fetch(`/api/content/automation/jobs?email=${encodeURIComponent(email)}`),
+        fetch(
+          `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        ),
+        fetch(
+          `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        ),
       ]);
       const profileData = (await profileResponse.json()) as
         | CreatorProfileResponse
@@ -864,6 +882,7 @@ export function CreatorContentStudioPage({
           personaPrompt: automation.form.personaPrompt,
           publishScoreThreshold: Number(automation.form.publishScoreThreshold),
           topics: parseDelimitedValues(automation.form.topics),
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -928,6 +947,7 @@ export function CreatorContentStudioPage({
         body: JSON.stringify({
           memberEmail: email,
           mode: "discover_and_draft",
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -938,7 +958,7 @@ export function CreatorContentStudioPage({
         error?: string;
       };
 
-      if (!response.ok || !("job" in data)) {
+      if (!("job" in data)) {
         throw new Error(
           "error" in data && data.error
             ? data.error
@@ -946,10 +966,23 @@ export function CreatorContentStudioPage({
         );
       }
 
+      if (data.job.status === "failed") {
+        setAutomation((current) => ({
+          ...current,
+          error: data.job.error ?? contentCopy.messages.automationLoadFailed,
+          jobs: upsertAutomationJob(current.jobs, data.job),
+        }));
+        setState((current) => ({
+          ...current,
+          notice: null,
+        }));
+        return;
+      }
+
       setAutomation((current) => ({
         ...current,
         error: null,
-        jobs: [data.job, ...current.jobs].slice(0, 20),
+        jobs: upsertAutomationJob(current.jobs, data.job),
       }));
       const createdContent = data.content;
 
@@ -958,7 +991,7 @@ export function CreatorContentStudioPage({
           ...current,
           error: null,
           notice: contentCopy.messages.automationRunSuccess,
-          posts: [createdContent, ...current.posts],
+          posts: upsertContentPost(current.posts, createdContent),
         }));
       } else {
         setState((current) => ({

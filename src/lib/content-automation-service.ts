@@ -662,7 +662,7 @@ async function enforceAutomationCadence(
   const publishedToday = await jobsCollection.countDocuments({
     createdAt: { $gte: since },
     memberEmail,
-    outputContentId: { $type: "string" },
+    outputStatus: "published",
     status: "completed",
   });
 
@@ -673,7 +673,7 @@ async function enforceAutomationCadence(
   const latestJob = await jobsCollection.findOne(
     {
       memberEmail,
-      outputContentId: { $type: "string" },
+      outputStatus: "published",
       status: "completed",
     },
     { sort: { finishedAt: -1, createdAt: -1 } },
@@ -961,6 +961,7 @@ export async function runContentAutomationForMember(
       body: draft.body,
       error: coverImageError,
       outputContentId: content.contentId,
+      outputStatus: nextStatus,
       score: draft.score,
       sourceItemIds: effectiveSources.map((source) => source.sourceItemId),
       sourceUrls: effectiveSources.map((source) => source.url),
