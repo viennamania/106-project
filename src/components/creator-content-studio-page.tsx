@@ -208,10 +208,22 @@ export function CreatorContentStudioPage({
         : contentCopy.page.studioTitle;
   const pageDescription =
     view === "profile"
-      ? contentCopy.hints.intro
+      ? contentCopy.page.profileDescription
       : view === "new"
-        ? contentCopy.labels.studioNotice
+        ? contentCopy.page.newDescription
         : contentCopy.page.studioDescription;
+  const headerShortcutHref =
+    view === "profile"
+      ? newPostHref
+      : view === "new"
+        ? profileHref
+        : null;
+  const headerShortcutLabel =
+    view === "profile"
+      ? contentCopy.actions.createPost
+      : view === "new"
+        ? contentCopy.labels.creatorProfile
+        : null;
 
   const publishedCount = useMemo(() => {
     return state.posts.filter((post) => post.status === "published").length;
@@ -1768,8 +1780,27 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderProfileCompanionPanel() {
+    return (
+      <div className="space-y-5">
+        <WorkspaceLaunchCard
+          description={contentCopy.page.newDescription}
+          disabled={!canUseWorkspace}
+          href={newPostHref}
+          icon={<PenSquare className="size-5" />}
+          title={contentCopy.actions.createPost}
+        />
+        {renderAutomationJobsPanel()}
+      </div>
+    );
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+    <main
+      className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ${
+        view === "hub" ? "max-w-6xl" : "max-w-5xl"
+      }`}
+    >
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -1804,12 +1835,12 @@ export function CreatorContentStudioPage({
             label={dictionary.common.languageLabel}
             locale={locale}
           />
-          {view !== "hub" ? (
+          {headerShortcutHref && headerShortcutLabel ? (
             <Link
               className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-              href={studioHomeHref}
+              href={headerShortcutHref}
             >
-              {contentCopy.page.studioTitle}
+              {headerShortcutLabel}
             </Link>
           ) : null}
           <Link
@@ -1856,15 +1887,12 @@ export function CreatorContentStudioPage({
           </section>
         </>
       ) : view === "profile" ? (
-        <section className="grid gap-5 xl:grid-cols-[0.96fr_1.04fr]">
+        <section className="grid gap-5 xl:grid-cols-[1.04fr_0.96fr]">
           <div className="space-y-5">
             {renderProfileCard()}
             {renderAutomationPanel()}
           </div>
-          <div className="space-y-5">
-            {renderSideRail("new")}
-            {renderAutomationJobsPanel()}
-          </div>
+          {renderProfileCompanionPanel()}
         </section>
       ) : (
         <section className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">

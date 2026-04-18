@@ -83,6 +83,7 @@ export type ContentCopy = {
     posts: string;
     published: string;
     recentPosts: string;
+    references: string;
     studioNotice: string;
   };
   messages: {
@@ -116,6 +117,8 @@ export type ContentCopy = {
     feedDescription: string;
     feedEyebrow: string;
     feedTitle: string;
+    newDescription: string;
+    profileDescription: string;
     studioDescription: string;
     studioEyebrow: string;
     studioTitle: string;
@@ -208,6 +211,7 @@ const englishCopy: ContentCopy = {
     posts: "Posts",
     published: "Published",
     recentPosts: "Recent posts",
+    references: "Sources",
     studioNotice:
       "This release supports free posts with cover images for your network feed.",
   },
@@ -247,6 +251,10 @@ const englishCopy: ContentCopy = {
       "This feed is built from creators in your upstream 6-level network.",
     feedEyebrow: "network content",
     feedTitle: "Network Feed",
+    newDescription:
+      "Write and publish a free post for your downstream network.",
+    profileDescription:
+      "Update your creator identity and automation settings for this channel.",
     studioDescription:
       "Create your profile and publish free posts that your downstream network can discover.",
     studioEyebrow: "creator tools",
@@ -341,6 +349,7 @@ const koreanCopy: ContentCopy = {
     posts: "콘텐츠",
     published: "게시됨",
     recentPosts: "최근 콘텐츠",
+    references: "참고 출처",
     studioNotice:
       "현재 버전은 네트워크 피드용 무료 콘텐츠와 커버 이미지 업로드를 지원합니다.",
   },
@@ -380,6 +389,10 @@ const koreanCopy: ContentCopy = {
       "이 피드는 내 상위 6단계 네트워크 크리에이터의 콘텐츠로 구성됩니다.",
     feedEyebrow: "network content",
     feedTitle: "네트워크 피드",
+    newDescription:
+      "내 하위 네트워크에 공개할 무료 콘텐츠를 작성하고 게시해보세요.",
+    profileDescription:
+      "이 채널의 크리에이터 정보와 자동화 설정을 관리합니다.",
     studioDescription:
       "내 프로필을 설정하고 하위 네트워크가 발견할 수 있는 무료 콘텐츠를 발행해보세요.",
     studioEyebrow: "creator tools",

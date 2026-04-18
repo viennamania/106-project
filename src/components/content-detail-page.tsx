@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, FileText, RefreshCcw } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, RefreshCcw } from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -336,6 +336,33 @@ export function ContentDetailPage({
               {state.content.body}
             </p>
           </div>
+
+          {state.content.sources.length > 0 ? (
+            <section className="mt-6 rounded-[28px] border border-slate-200 bg-slate-50/90 p-5">
+              <p className="eyebrow">{contentCopy.labels.references}</p>
+              <div className="mt-3 grid gap-3">
+                {state.content.sources.map((source) => (
+                  <a
+                    key={source.url}
+                    className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                    href={source.url}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold text-slate-950">
+                        {source.title}
+                      </span>
+                      <span className="mt-1 block truncate text-xs text-slate-500">
+                        {source.url}
+                      </span>
+                    </span>
+                    <ExternalLink className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </article>
       ) : null}
     </main>

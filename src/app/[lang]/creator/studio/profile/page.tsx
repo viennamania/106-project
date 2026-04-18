@@ -17,7 +17,7 @@ export async function generateMetadata({
 
   return {
     title: `${copy.labels.creatorProfile} | ${copy.meta.studioTitle} | 1066friend+`,
-    description: copy.hints.intro,
+    description: copy.page.profileDescription,
   };
 }
 

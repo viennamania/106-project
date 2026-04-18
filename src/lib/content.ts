@@ -146,12 +146,18 @@ export type ContentFeedItemRecord = ContentPostRecord & {
   previewAssets: ContentAssetRecord[];
 };
 
+export type ContentSourceAttributionRecord = {
+  title: string;
+  url: string;
+};
+
 export type ContentDetailRecord = ContentPostRecord & {
   assets: ContentAssetRecord[];
   authorProfile: CreatorProfileRecord | null;
   body: string;
   canAccess: boolean;
   entitlementSource: ContentEntitlementSource | null;
+  sources: ContentSourceAttributionRecord[];
 };
 
 export type ContentOrderRecord = {

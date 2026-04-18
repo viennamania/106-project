@@ -22,6 +22,7 @@ import {
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import {
   getContentPostsCollection,
+  getContentPostSourceAttributionsCollection,
   getCreatorProfilesCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
@@ -83,6 +84,20 @@ function buildSummaryFromContent(options: {
   }
 
   return trimToLength(options.title, CONTENT_SUMMARY_LIMIT);
+}
+
+function inferSourceTitle(title: string | undefined, url: string) {
+  const trimmedTitle = title?.trim();
+
+  if (trimmedTitle) {
+    return trimmedTitle;
+  }
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 }
 
 function getSponsorReferralCode(member: MemberDocument) {
@@ -552,6 +567,9 @@ export async function getContentDetailForMember(
   }
 
   const storedProfile = await readStoredCreatorProfile(post.authorEmail);
+  const sourceAttributionsCollection =
+    await getContentPostSourceAttributionsCollection();
+  const attribution = await sourceAttributionsCollection.findOne({ contentId });
   const authorMember = isAuthor
     ? member
     : await (async () => {
@@ -563,6 +581,16 @@ export async function getContentDetailForMember(
     : authorMember
       ? createDefaultCreatorProfile(authorMember)
       : null;
+  const sources = (attribution?.sourceUrls ?? [])
+    .map((url, index) => ({
+      title: attribution?.sourceTitles?.[index],
+      url: url.trim(),
+    }))
+    .filter((source) => Boolean(source.url))
+    .map((source) => ({
+      title: inferSourceTitle(source.title, source.url),
+      url: source.url,
+    }));
 
   return {
     content: {
@@ -572,6 +600,7 @@ export async function getContentDetailForMember(
       body: post.body,
       canAccess: true,
       entitlementSource: "free",
+      sources,
     },
     member: serializeMember(member),
   };
