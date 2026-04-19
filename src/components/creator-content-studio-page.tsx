@@ -144,6 +144,7 @@ const EMPTY_POST_FORM = {
   body: "",
   contentImageUrls: [] as string[],
   coverImageUrl: "",
+  generatedContentImageUrls: [] as string[],
   summary: "",
   title: "",
 };
@@ -485,6 +486,10 @@ export function CreatorContentStudioPage({
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
   const [isCoverGenerationDialogOpen, setIsCoverGenerationDialogOpen] =
     useState(false);
+  const [contentImageGenerationProgress, setContentImageGenerationProgress] =
+    useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
+  const [isContentImageGenerationDialogOpen, setIsContentImageGenerationDialogOpen] =
+    useState(false);
   const [automationCelebration, setAutomationCelebration] =
     useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -737,6 +742,80 @@ export function CreatorContentStudioPage({
       label: coverGenerationLabels.uploading_cover.label,
     },
   };
+  const contentImageGenerationLabels =
+    locale === "ko"
+      ? {
+          authorizing: {
+            description: "같은 회원 이메일과 지갑 권한을 먼저 확인합니다.",
+            label: "회원 확인",
+          },
+          completed: "완료",
+          confirmBody:
+            "현재 입력한 제목, 요약, 본문을 바탕으로 상세 갤러리용 AI 이미지를 생성합니다.",
+          confirmHint:
+            "갤러리용 AI 이미지는 최대 2장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.",
+          confirmPrimary: "이미지 생성",
+          confirmSecondary: "나중에",
+          error: "오류",
+          finalizing: {
+            description: "생성된 이미지를 콘텐츠 갤러리에 추가합니다.",
+            label: "갤러리 반영",
+          },
+          generating_image: {
+            description: "상세 페이지에서 크게 보일 화보형 이미지를 생성합니다.",
+            label: "이미지 생성",
+          },
+          preparing_prompt: {
+            description: "콘텐츠 분위기에 맞는 갤러리 이미지 브리프를 정리합니다.",
+            label: "비주얼 브리프",
+          },
+          progress: "진행률",
+          running: "진행 중",
+          successPrimary: "갤러리에 추가 완료",
+          successSecondary: "계속 편집하기",
+          successTitle: "AI 콘텐츠 이미지가 준비되었습니다.",
+          title: "AI 콘텐츠 이미지 생성",
+          uploading_cover: {
+            description: "생성한 이미지를 스튜디오 자산으로 업로드합니다.",
+            label: "자산 업로드",
+          },
+        }
+      : {
+          authorizing: {
+            description: "Verifying wallet ownership and member access.",
+            label: "Authorization",
+          },
+          completed: "Completed",
+          confirmBody:
+            "The AI will generate a gallery image from your current title, summary, and body.",
+          confirmHint:
+            "AI gallery images are limited to 2 and will be added directly into your content image list.",
+          confirmPrimary: "Generate image",
+          confirmSecondary: "Later",
+          error: "Error",
+          finalizing: {
+            description: "Adding the generated result into the content gallery.",
+            label: "Gallery update",
+          },
+          generating_image: {
+            description: "Creating an editorial gallery visual for the detail page.",
+            label: "Image generation",
+          },
+          preparing_prompt: {
+            description: "Preparing the visual brief for the gallery image.",
+            label: "Visual brief",
+          },
+          progress: "Progress",
+          running: "Running",
+          successPrimary: "Added to gallery",
+          successSecondary: "Keep editing",
+          successTitle: "Your AI content image is ready.",
+          title: "AI gallery image",
+          uploading_cover: {
+            description: "Uploading the generated image to studio assets.",
+            label: "Asset upload",
+          },
+        };
   const completedAutomationStepCount = contentAutomationRunProgressSteps.filter(
     (step) => automationProgress.steps[step] === "done",
   ).length;
@@ -746,6 +825,10 @@ export function CreatorContentStudioPage({
   const completedCoverGenerationStepCount = contentCoverGenerationProgressSteps.filter(
     (step) => coverGenerationProgress.steps[step] === "done",
   ).length;
+  const completedContentImageGenerationStepCount =
+    contentCoverGenerationProgressSteps.filter(
+      (step) => contentImageGenerationProgress.steps[step] === "done",
+    ).length;
   const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -1587,6 +1670,20 @@ export function CreatorContentStudioPage({
     setCoverGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
+  function openContentImageGenerationDialog() {
+    setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
+    setIsContentImageGenerationDialogOpen(true);
+  }
+
+  function closeContentImageGenerationDialog() {
+    if (isGeneratingPostImage) {
+      return;
+    }
+
+    setIsContentImageGenerationDialogOpen(false);
+    setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
+  }
+
   async function generatePostCoverImage() {
     try {
       setIsGeneratingPostImage(true);
@@ -1700,6 +1797,158 @@ export function CreatorContentStudioPage({
         notice: null,
       }));
       setCoverGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        message:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+      }));
+    } finally {
+      setIsGeneratingPostImage(false);
+    }
+  }
+
+  async function generatePostContentImage() {
+    try {
+      if (postForm.generatedContentImageUrls.length >= 2) {
+        throw new Error(
+          locale === "ko"
+            ? "AI로 생성한 콘텐츠 이미지는 최대 2장까지 추가할 수 있습니다."
+            : "You can generate up to 2 AI content images.",
+        );
+      }
+
+      if (postForm.contentImageUrls.length >= 10) {
+        throw new Error(
+          locale === "ko"
+            ? "콘텐츠 이미지는 최대 10장까지 업로드할 수 있습니다."
+            : "You can upload up to 10 content images.",
+        );
+      }
+
+      setIsGeneratingPostImage(true);
+      setContentImageGenerationProgress({
+        ...createEmptyCoverGenerationProgress(),
+        active: true,
+        currentStep: "authorizing",
+        message: contentImageGenerationLabels.authorizing.description,
+        progress: 4,
+        steps: {
+          ...createEmptyCoverGenerationProgress().steps,
+          authorizing: "active",
+        },
+      });
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/posts/generate-cover", {
+        body: JSON.stringify({
+          body: postForm.body,
+          email,
+          locale,
+          summary: postForm.summary,
+          title: postForm.title,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          Accept: "application/x-ndjson",
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      let data: ContentPostGenerateCoverResponse | null = null;
+      let streamError: string | null = null;
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+
+        throw new Error(payload?.error || contentCopy.messages.uploadFailed);
+      }
+
+      if (
+        response.headers
+          .get("content-type")
+          ?.includes("application/x-ndjson")
+      ) {
+        await readCoverGenerationStream(response, (event) => {
+          setContentImageGenerationProgress((current) =>
+            applyCoverGenerationProgressEvent(current, event),
+          );
+
+          if (event.type === "result") {
+            data = event.response;
+            return;
+          }
+
+          if (event.type === "error") {
+            streamError = event.error;
+          }
+        });
+      } else {
+        const payload = (await response.json()) as
+          | ContentPostGenerateCoverResponse
+          | { error?: string };
+
+        if (!("url" in payload)) {
+          throw new Error(payload.error || contentCopy.messages.uploadFailed);
+        }
+
+        data = payload;
+      }
+
+      if (!data) {
+        throw new Error(streamError || contentCopy.messages.uploadFailed);
+      }
+
+      const generatedImage = data;
+
+      setPostForm((current) => ({
+        ...current,
+        contentImageUrls: [...current.contentImageUrls, generatedImage.url].slice(0, 10),
+        generatedContentImageUrls: [
+          ...current.generatedContentImageUrls,
+          generatedImage.url,
+        ].slice(0, 2),
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "AI 콘텐츠 이미지를 생성해 갤러리에 추가했습니다."
+            : "Generated an AI content image and added it to the gallery.",
+      }));
+      setContentImageGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        currentStep: "finalizing",
+        error: null,
+        message:
+          locale === "ko"
+            ? "콘텐츠 이미지 갤러리에 AI 이미지를 추가했습니다."
+            : "The AI image has been added to the content gallery.",
+        progress: 100,
+        response: generatedImage,
+        steps: {
+          ...current.steps,
+          finalizing: "done",
+        },
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+      setContentImageGenerationProgress((current) => ({
         ...current,
         active: false,
         error:
@@ -2620,6 +2869,8 @@ export function CreatorContentStudioPage({
       locale === "ko" ? "커버 업로드" : "Upload cover";
     const contentImagesUploadLabel =
       locale === "ko" ? "콘텐츠 이미지 추가" : "Add gallery images";
+    const aiContentImageLabel =
+      locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI gallery image";
 
     return (
       <div className="glass-card rounded-[30px] p-5">
@@ -2781,9 +3032,14 @@ export function CreatorContentStudioPage({
                     {contentCopy.hints.contentImages}
                   </p>
                 </div>
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
-                  {postForm.contentImageUrls.length}/10
-                </span>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                    {postForm.contentImageUrls.length}/10
+                  </span>
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+                    {locale === "ko" ? "AI" : "AI"} {postForm.generatedContentImageUrls.length}/2
+                  </span>
+                </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
@@ -2799,6 +3055,29 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : contentImagesUploadLabel}
                 </button>
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={
+                    isUploadingPostImage ||
+                    isGeneratingPostImage ||
+                    !canGeneratePostCover ||
+                    postForm.generatedContentImageUrls.length >= 2 ||
+                    postForm.contentImageUrls.length >= 10
+                  }
+                  onClick={() => {
+                    openContentImageGenerationDialog();
+                  }}
+                  type="button"
+                >
+                  <Sparkles className="size-4" />
+                  {isGeneratingPostImage &&
+                  isContentImageGenerationDialogOpen &&
+                  contentImageGenerationProgress.active
+                    ? locale === "ko"
+                      ? "AI 이미지 생성 중..."
+                      : "Generating AI image..."
+                    : aiContentImageLabel}
+                </button>
               </div>
               {postForm.contentImageUrls.length > 0 ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -2813,6 +3092,11 @@ export function CreatorContentStudioPage({
                           backgroundImage: `url(${imageUrl})`,
                         }}
                       />
+                      {postForm.generatedContentImageUrls.includes(imageUrl) ? (
+                        <span className="absolute left-2 top-2 inline-flex h-8 items-center justify-center rounded-full bg-amber-100/95 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-sm">
+                          AI
+                        </span>
+                      ) : null}
                       <button
                         className="absolute right-2 top-2 inline-flex h-8 items-center justify-center rounded-full bg-white/92 px-3 text-xs font-semibold text-slate-900 shadow-sm transition hover:bg-white"
                         onClick={() => {
@@ -2821,6 +3105,10 @@ export function CreatorContentStudioPage({
                             contentImageUrls: current.contentImageUrls.filter(
                               (_, currentIndex) => currentIndex !== index,
                             ),
+                            generatedContentImageUrls:
+                              current.generatedContentImageUrls.filter(
+                                (currentUrl) => currentUrl !== imageUrl,
+                              ),
                           }));
                         }}
                         type="button"
@@ -2833,8 +3121,8 @@ export function CreatorContentStudioPage({
               ) : (
                 <div className="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
                   {locale === "ko"
-                    ? "상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요."
-                    : "Add gallery images that members can swipe through on the detail page."}
+                    ? "상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 2장까지 생성할 수 있습니다."
+                    : "Add gallery images for the swipeable detail page. You can upload your own or generate up to 2 with AI."}
                 </div>
               )}
             </div>
@@ -3443,6 +3731,22 @@ export function CreatorContentStudioPage({
           stepMeta={coverGenerationStepMeta}
           stepOrder={contentCoverGenerationProgressSteps}
           stepCount={completedCoverGenerationStepCount}
+          summary={postForm.summary}
+          title={postForm.title}
+        />
+      ) : null}
+      {isContentImageGenerationDialogOpen ? (
+        <CoverGenerationDialog
+          canClose={!isGeneratingPostImage}
+          labels={contentImageGenerationLabels}
+          onClose={closeContentImageGenerationDialog}
+          onConfirm={() => {
+            void generatePostContentImage();
+          }}
+          progress={contentImageGenerationProgress}
+          stepCount={completedContentImageGenerationStepCount}
+          stepMeta={coverGenerationStepMeta}
+          stepOrder={contentCoverGenerationProgressSteps}
           summary={postForm.summary}
           title={postForm.title}
         />
