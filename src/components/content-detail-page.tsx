@@ -612,38 +612,38 @@ export function ContentDetailPage({
                 {contentCopy.messages.shareFailed}
               </p>
             ) : null}
-          </section>
 
-          {isPreviewLocked ? (
-            <section className="rounded-[28px] border border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.98),rgba(255,247,237,0.94))] p-4 shadow-[0_18px_46px_rgba(245,158,11,0.12)] sm:rounded-[30px] sm:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-1.5">
-                  <p className="text-sm leading-6 text-slate-700">
-                    {contentCopy.messages.previewLocked}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {shouldEncourageSignup ? (
+            {isPreviewLocked ? (
+              <div className="mt-4 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,237,0.92))] px-4 py-3 shadow-[0_14px_34px_rgba(245,158,11,0.10)]">
+                <p className="text-sm leading-6 text-slate-700">
+                  {contentCopy.messages.previewLocked}
+                </p>
+                {shouldEncourageSignup ? (
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Link
-                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
+                      className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
                       href={activateHref}
                     >
-                      {dictionary.referralsPage.actions.completeSignup}
+                      <span className="sm:hidden">가입 완료하기</span>
+                      <span className="hidden sm:inline">
+                        {dictionary.referralsPage.actions.completeSignup}
+                      </span>
                     </Link>
-                  ) : null}
-                  <ActionChip
-                    icon={Share2}
-                    label={contentCopy.actions.share}
-                    onClick={() => {
-                      void handleShare();
-                    }}
-                  />
-                </div>
+                    <span className="text-xs leading-5 text-slate-500">
+                      {contentCopy.messages.paymentRequired}
+                    </span>
+                  </div>
+                ) : null}
               </div>
-            </section>
-          ) : null}
+            ) : null}
+          </section>
 
-          <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-7">
+          <section
+            className={cn(
+              "relative overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-7",
+              isPreviewLocked ? "min-h-[320px] sm:min-h-[360px]" : "",
+            )}
+          >
             <div
               className={cn(
                 "transition duration-300",
@@ -656,8 +656,8 @@ export function ContentDetailPage({
             </div>
 
             {isPreviewLocked ? (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.22)_24%,rgba(255,255,255,0.88)_58%,rgba(255,255,255,0.98)_100%)] px-4 pb-6 pt-24 sm:px-8 sm:pb-8">
-                <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-white/90 bg-white/92 p-4 text-center shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:p-5">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.18)_20%,rgba(255,255,255,0.84)_52%,rgba(255,255,255,0.98)_100%)] px-4 pb-5 pt-20 sm:px-8 sm:pb-8">
+                <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-white/90 bg-white/94 p-4 text-center shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:p-5">
                   <p className="text-base font-semibold tracking-tight text-slate-950">
                     {contentCopy.messages.previewLocked}
                   </p>
@@ -672,11 +672,14 @@ export function ContentDetailPage({
                         className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
                         href={activateHref}
                       >
-                        {dictionary.referralsPage.actions.completeSignup}
+                        <span className="sm:hidden">가입 완료하기</span>
+                        <span className="hidden sm:inline">
+                          {dictionary.referralsPage.actions.completeSignup}
+                        </span>
                       </Link>
                     ) : null}
                     <button
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
                       onClick={() => {
                         void handleShare();
                       }}
@@ -750,10 +753,10 @@ function ActionChip({
   return (
     <button
       className={cn(
-        "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition",
+        "inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-semibold transition",
         tone === "primary"
-          ? "border-slate-950 bg-slate-950 text-white shadow-[0_16px_34px_rgba(15,23,42,0.22)] hover:bg-slate-900"
-          : "border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50",
+          ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_34px_rgba(15,23,42,0.22)] hover:bg-slate-900"
+          : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
       )}
       onClick={onClick}
       type="button"
@@ -775,7 +778,7 @@ function SocialShareChip({
 }) {
   return (
     <a
-      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+      className="inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
       href={href}
       rel="noreferrer"
       target="_blank"
