@@ -561,7 +561,7 @@ export function NetworkFeedPage({
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start xl:space-y-5">
-          <div className="rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[30px] sm:p-5">
+          <div className="hidden rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[30px] sm:p-5 xl:block">
             <div className="flex items-start gap-2.5 sm:gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-slate-950 text-white sm:size-12 sm:rounded-2xl">
                 <Rss className="size-4 sm:size-5" />
