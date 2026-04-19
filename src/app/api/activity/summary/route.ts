@@ -1,5 +1,5 @@
 import { getActivitySummaryForMember } from "@/lib/activity-service";
-import { getMemberRegistrationStatus } from "@/lib/member-service";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -8,24 +8,28 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
-    const member = await getMemberRegistrationStatus(rawEmail);
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
 
-    if (!member) {
-      return jsonError("Member not found.", 404);
-    }
-
-    if (member.status !== "completed") {
-      return jsonError("Completed signup is required.", 403);
+    if (authorization.error) {
+      return authorization.error;
     }
 
     return Response.json({
-      summary: await getActivitySummaryForMember(member),
+      summary: await getActivitySummaryForMember(authorization.member),
     });
   } catch (error) {
     const message =

@@ -3,6 +3,7 @@ import type {
   ContentPostMutationResponse,
   ContentPostUpdateRequest,
 } from "@/lib/content";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getContentDetailForMember,
   updateContentPostForMember,
@@ -19,15 +20,29 @@ export async function GET(
   const { contentId } = await context.params;
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const response: ContentDetailResponse = await getContentDetailForMember(
       contentId,
-      rawEmail,
+      authorization.normalizedEmail,
     );
 
     return Response.json(response);
@@ -67,11 +82,25 @@ export async function PATCH(
     return jsonError("email is required.", 400);
   }
 
+  if (!body.walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: body.email,
+      walletAddress: body.walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const response: ContentPostMutationResponse = {
       content: await updateContentPostForMember({
         ...body,
         contentId,
+        email: authorization.normalizedEmail,
       }),
     };
 

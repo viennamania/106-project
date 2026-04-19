@@ -1,7 +1,7 @@
 import type { ContentPostGenerateCoverResponse } from "@/lib/content";
 import { generateAndUploadContentCover } from "@/lib/content-cover-service";
-import { getMembersCollection } from "@/lib/mongodb";
 import { normalizeEmail } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 export const runtime = "nodejs";
 
@@ -14,6 +14,7 @@ type GenerateCoverRequest = {
   email?: string | null;
   summary?: string | null;
   title?: string | null;
+  walletAddress?: string | null;
 };
 
 function jsonError(message: string, status: number) {
@@ -38,9 +39,14 @@ export async function POST(request: Request) {
   }
 
   const email = normalizeEmail(body?.email ?? "");
+  const walletAddress = body?.walletAddress?.trim() ?? "";
 
   if (!email) {
     return jsonError("email is required.", 400);
+  }
+
+  if (!walletAddress) {
+    return jsonError("walletAddress is required.", 400);
   }
 
   const title = trimToLength(body?.title, TITLE_LIMIT);
@@ -51,14 +57,18 @@ export async function POST(request: Request) {
     return jsonError("Provide title, summary, or body to generate a cover.", 400);
   }
 
-  const membersCollection = await getMembersCollection();
-  const member = await membersCollection.findOne({ email });
+  const authorization = await validateMemberWalletOwner({
+    email,
+    walletAddress,
+  });
 
-  if (!member) {
-    return jsonError("Member not found.", 404);
+  if (authorization.error) {
+    return authorization.error;
   }
 
-  if (member.status !== "completed" || !member.referralCode) {
+  const member = authorization.member;
+
+  if (!member?.referralCode) {
     return jsonError("Creator Studio is only available to completed members.", 403);
   }
 

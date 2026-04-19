@@ -226,7 +226,7 @@ export function NetworkFeedPage({
       }
 
       const response = await fetch(
-        `/api/content/feed?email=${encodeURIComponent(email)}&locale=${encodeURIComponent(locale)}`,
+        `/api/content/feed?email=${encodeURIComponent(email)}&locale=${encodeURIComponent(locale)}&walletAddress=${encodeURIComponent(accountAddress)}`,
       );
       const data = (await response.json()) as ContentFeedResponse | {
         error?: string;

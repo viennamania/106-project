@@ -3,6 +3,7 @@ import type {
   ContentPostMutationResponse,
   CreatorStudioPostsResponse,
 } from "@/lib/content";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   createContentPostForMember,
   getCreatorStudioPostsForMember,
@@ -15,6 +16,7 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
   const rawPage = url.searchParams.get("page");
   const rawPageSize = url.searchParams.get("pageSize");
   const rawQuery = url.searchParams.get("q");
@@ -24,9 +26,22 @@ export async function GET(request: Request) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const response: CreatorStudioPostsResponse = await getCreatorStudioPostsForMember(
-      rawEmail,
+      authorization.normalizedEmail,
       rawPage || rawPageSize || rawQuery || rawStatus
         ? {
             page: rawPage ? Number(rawPage) : undefined,
@@ -70,6 +85,10 @@ export async function POST(request: Request) {
     return jsonError("email is required.", 400);
   }
 
+  if (!body.walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
   if (!body.title?.trim()) {
     return jsonError("title is required.", 400);
   }
@@ -79,8 +98,20 @@ export async function POST(request: Request) {
   }
 
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: body.email,
+      walletAddress: body.walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const response: ContentPostMutationResponse = {
-      content: await createContentPostForMember(body),
+      content: await createContentPostForMember({
+        ...body,
+        email: authorization.normalizedEmail,
+      }),
     };
 
     return Response.json(response, { status: 201 });

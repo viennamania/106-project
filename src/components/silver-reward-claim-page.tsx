@@ -159,7 +159,7 @@ export function SilverRewardClaimPage({
         }
 
         const response = await fetch(
-          `/api/rewards/silver-claim?email=${encodeURIComponent(email)}`,
+          `/api/rewards/silver-claim?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
         );
         const data = (await response.json()) as
           | SilverRewardClaimSummaryResponse
@@ -273,6 +273,7 @@ export function SilverRewardClaimPage({
       const response = await fetch("/api/rewards/silver-claim", {
         body: JSON.stringify({
           email: state.email,
+          walletAddress: accountAddress ?? "",
         } satisfies SilverRewardClaimRequest),
         headers: {
           "Content-Type": "application/json",

@@ -667,8 +667,12 @@ export function CreatorContentStudioPage({
 
       const [profileResponse, postsResponse, automationProfileResponse, automationJobsResponse] =
         await Promise.all([
-        fetch(`/api/content/profile?email=${encodeURIComponent(email)}`),
-        fetch(`/api/content/posts?email=${encodeURIComponent(email)}`),
+        fetch(
+          `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        ),
+        fetch(
+          `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        ),
         fetch(
           `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
         ),
@@ -852,6 +856,7 @@ export function CreatorContentStudioPage({
           heroImageUrl: state.profile.heroImageUrl || null,
           intro: state.profile.intro,
           payoutWalletAddress: state.profile.payoutWalletAddress || null,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -909,6 +914,7 @@ export function CreatorContentStudioPage({
           status: statusToSave,
           summary: postForm.summary,
           title: postForm.title,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -961,6 +967,7 @@ export function CreatorContentStudioPage({
         body: JSON.stringify({
           email,
           status: nextStatus,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -1011,6 +1018,7 @@ export function CreatorContentStudioPage({
       const body = new FormData();
       body.set("email", email);
       body.set("file", file);
+      body.set("walletAddress", accountAddress ?? "");
 
       const response = await fetch("/api/content/profile/upload", {
         body,
@@ -1058,6 +1066,7 @@ export function CreatorContentStudioPage({
       const body = new FormData();
       body.set("email", email);
       body.set("file", file);
+      body.set("walletAddress", accountAddress ?? "");
 
       const response = await fetch("/api/content/posts/upload", {
         body,
@@ -1108,6 +1117,7 @@ export function CreatorContentStudioPage({
           email,
           summary: postForm.summary,
           title: postForm.title,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",

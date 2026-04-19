@@ -218,7 +218,7 @@ export function BrandingStudioPage({
       }
 
       const response = await fetch(
-        `/api/members/landing-branding?email=${encodeURIComponent(email)}&lang=${locale}`,
+        `/api/members/landing-branding?email=${encodeURIComponent(email)}&lang=${locale}&walletAddress=${encodeURIComponent(accountAddress)}`,
       );
       const data = (await response.json()) as
         | BrandingStudioResponse
@@ -302,6 +302,7 @@ export function BrandingStudioPage({
           branding: form,
           email: state.member.email,
           locale,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -355,6 +356,7 @@ export function BrandingStudioPage({
       const body = new FormData();
       body.set("email", state.member.email);
       body.set("file", file);
+      body.set("walletAddress", accountAddress ?? "");
 
       const response = await fetch("/api/members/landing-branding/upload", {
         body,

@@ -1,8 +1,8 @@
 import { put } from "@vercel/blob";
 
 import { BRANDING_IMAGE_MAX_BYTES } from "@/lib/landing-branding";
-import { getMembersCollection } from "@/lib/mongodb";
 import { normalizeEmail } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 export const runtime = "nodejs";
 
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
 
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const file = formData.get("file");
+  const walletAddress = String(formData.get("walletAddress") ?? "").trim();
 
   if (!email) {
     return jsonError("email is required.", 400);
@@ -76,6 +77,10 @@ export async function POST(request: Request) {
 
   if (!(file instanceof File)) {
     return jsonError("file is required.", 400);
+  }
+
+  if (!walletAddress) {
+    return jsonError("walletAddress is required.", 400);
   }
 
   if (!allowedImageTypes.has(file.type)) {
@@ -86,16 +91,16 @@ export async function POST(request: Request) {
     return jsonError("Image must be 4MB or smaller.", 400);
   }
 
-  const collection = await getMembersCollection();
-  const member = await collection.findOne({ email });
+  const authorization = await validateMemberWalletOwner({
+    email,
+    walletAddress,
+  });
 
-  if (!member) {
-    return jsonError("Member not found.", 404);
+  if (authorization.error) {
+    return authorization.error;
   }
 
-  if (member.status !== "completed" || !member.referralCode) {
-    return jsonError("Branding Studio is only available to completed members.", 403);
-  }
+  const member = authorization.member;
 
   const pathname = [
     "landing-branding",

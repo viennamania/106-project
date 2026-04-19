@@ -1,5 +1,4 @@
-import { getMembersCollection } from "@/lib/mongodb";
-import { normalizeEmail } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import type {
   SilverRewardClaimRequest,
   SilverRewardClaimResponse,
@@ -48,21 +47,28 @@ function getErrorStatus(message: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
-  try {
-    const collection = await getMembersCollection();
-    const member = await collection.findOne({ email: normalizeEmail(rawEmail) });
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
 
-    if (!member) {
-      return jsonError("Member not found.", 404);
+  try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
     }
 
     const response: SilverRewardClaimSummaryResponse =
-      await getSilverRewardClaimSummary(member);
+      await getSilverRewardClaimSummary(authorization.member);
 
     return Response.json(response);
   } catch (error) {
@@ -91,15 +97,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    const collection = await getMembersCollection();
-    const member = await collection.findOne({ email: normalizeEmail(rawEmail) });
+    const walletAddress = body?.walletAddress?.trim();
 
-    if (!member) {
-      return jsonError("Member not found.", 404);
+    if (!walletAddress) {
+      return jsonError("walletAddress is required.", 400);
+    }
+
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
     }
 
     const response: SilverRewardClaimResponse = await submitSilverRewardClaim(
-      member,
+      authorization.member,
     );
 
     return Response.json(response, { status: 201 });

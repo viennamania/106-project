@@ -192,6 +192,7 @@ export type RewardRedemptionsResponse = {
 export type RewardRedeemRequest = {
   email: string;
   rewardId: RewardCatalogId;
+  walletAddress: string;
 };
 
 export type RewardRedeemResponse = {

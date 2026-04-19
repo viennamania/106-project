@@ -219,7 +219,7 @@ export function RewardsPage({
         const summaryTask = member.status === "completed"
           ? (async () => {
               const response = await fetch(
-                `/api/points/summary?email=${encodeURIComponent(email)}`,
+                `/api/points/summary?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
               );
               const data = (await response.json()) as
                 | PointsSummaryResponse
@@ -242,7 +242,7 @@ export function RewardsPage({
         const redemptionsTask = member.status === "completed"
           ? (async () => {
               const response = await fetch(
-                `/api/rewards/redemptions?email=${encodeURIComponent(email)}`,
+                `/api/rewards/redemptions?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
               );
               const data = (await response.json()) as
                 | RewardRedemptionsResponse
@@ -273,7 +273,7 @@ export function RewardsPage({
         const silverClaimTask = member.status === "completed"
           ? (async () => {
               const response = await fetch(
-                `/api/rewards/silver-claim?email=${encodeURIComponent(email)}`,
+                `/api/rewards/silver-claim?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
               );
               const data = (await response.json()) as
                 | SilverRewardClaimSummaryResponse
@@ -437,6 +437,7 @@ export function RewardsPage({
         body: JSON.stringify({
           email: state.email,
           rewardId,
+          walletAddress: accountAddress ?? "",
         } satisfies RewardRedeemRequest),
         headers: {
           "Content-Type": "application/json",

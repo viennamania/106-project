@@ -141,7 +141,7 @@ export function ContentDetailPage({
       }
 
       const response = await fetch(
-        `/api/content/posts/${encodeURIComponent(contentId)}?email=${encodeURIComponent(email)}`,
+        `/api/content/posts/${encodeURIComponent(contentId)}?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
       );
       const data = (await response.json()) as ContentDetailResponse | {
         error?: string;

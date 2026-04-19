@@ -75,6 +75,7 @@ export type SilverRewardClaimSummaryResponse = {
 
 export type SilverRewardClaimRequest = {
   email: string;
+  walletAddress: string;
 };
 
 export type SilverRewardClaimResponse = SilverRewardClaimSummaryResponse;

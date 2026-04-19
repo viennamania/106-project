@@ -3,6 +3,7 @@ import {
   saveBrandingStudioState,
 } from "@/lib/landing-branding-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -11,6 +12,7 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const email = url.searchParams.get("email") ?? "";
+  const walletAddress = url.searchParams.get("walletAddress") ?? "";
   const localeInput = url.searchParams.get("lang") ?? "ko";
   const locale = (hasLocale(localeInput) ? localeInput : "ko") as Locale;
 
@@ -18,8 +20,24 @@ export async function GET(request: Request) {
     return jsonError("email query parameter is required.", 400);
   }
 
+  if (!walletAddress.trim()) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
+
   try {
-    const state = await getBrandingStudioState(email, locale);
+    const authorization = await validateMemberWalletOwner({
+      email,
+      walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const state = await getBrandingStudioState(
+      authorization.normalizedEmail,
+      locale,
+    );
 
     if (!state) {
       return jsonError("Member not found.", 404);
@@ -46,6 +64,7 @@ export async function PUT(request: Request) {
         branding?: Record<string, unknown> | null;
         email?: string;
         locale?: string;
+        walletAddress?: string;
       }
     | undefined;
 
@@ -59,10 +78,23 @@ export async function PUT(request: Request) {
     return jsonError("email is required.", 400);
   }
 
+  if (!payload.walletAddress?.trim()) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
   try {
+    const authorization = await validateMemberWalletOwner({
+      email: payload.email,
+      walletAddress: payload.walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
     const state = await saveBrandingStudioState({
       branding: payload.branding ?? null,
-      email: payload.email,
+      email: authorization.normalizedEmail,
       locale: payload.locale ?? "ko",
     });
 

@@ -1,5 +1,5 @@
-import { getMembersCollection } from "@/lib/mongodb";
-import { normalizeEmail, serializeMember } from "@/lib/member";
+import { serializeMember } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { getPointsSummaryForMember } from "@/lib/points-service";
 import type { PointsSummaryResponse } from "@/lib/points";
 
@@ -10,18 +10,27 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const rawWalletAddress = url.searchParams.get("walletAddress");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
   }
 
-  try {
-    const collection = await getMembersCollection();
-    const member = await collection.findOne({ email: normalizeEmail(rawEmail) });
+  if (!rawWalletAddress) {
+    return jsonError("walletAddress query parameter is required.", 400);
+  }
 
-    if (!member) {
-      return jsonError("Member not found.", 404);
+  try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress: rawWalletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
     }
+
+    const member = authorization.member;
 
     const response: PointsSummaryResponse = {
       member: serializeMember(member),

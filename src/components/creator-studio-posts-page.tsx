@@ -259,6 +259,7 @@ export function CreatorStudioPostsPage({
         email,
         page: String(appliedPage),
         pageSize: String(POSTS_PAGE_SIZE),
+        walletAddress: accountAddress,
       });
 
       if (appliedQuery) {
@@ -375,6 +376,7 @@ export function CreatorStudioPostsPage({
         body: JSON.stringify({
           email,
           status: nextStatus,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",

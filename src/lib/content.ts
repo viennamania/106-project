@@ -238,6 +238,7 @@ export type CreatorProfileUpsertRequest = {
   heroImageUrl?: string | null;
   intro: string;
   payoutWalletAddress?: string | null;
+  walletAddress?: string;
 };
 
 export type ContentPostCreateRequest = {
@@ -253,6 +254,7 @@ export type ContentPostCreateRequest = {
   summary?: string;
   tags?: string[];
   title: string;
+  walletAddress?: string;
 };
 
 export type ContentPostUpdateRequest = Partial<ContentPostCreateRequest> & {
