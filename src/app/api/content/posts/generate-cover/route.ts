@@ -1,5 +1,9 @@
-import type { ContentPostGenerateCoverResponse } from "@/lib/content";
+import type {
+  ContentPostGenerateCoverResponse,
+  ContentPostGenerateCoverStreamEvent,
+} from "@/lib/content";
 import { generateAndUploadContentCover } from "@/lib/content-cover-service";
+import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
@@ -12,6 +16,7 @@ const BODY_LIMIT = 480;
 type GenerateCoverRequest = {
   body?: string | null;
   email?: string | null;
+  locale?: string | null;
   summary?: string | null;
   title?: string | null;
   walletAddress?: string | null;
@@ -23,6 +28,65 @@ function jsonError(message: string, status: number) {
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
+}
+
+function wantsStream(request: Request) {
+  return request.headers.get("accept")?.includes("application/x-ndjson") ?? false;
+}
+
+function createProgressCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        authorizingCompleted: "회원 권한 확인이 완료되었습니다.",
+        authorizingRunning: "회원 권한과 지갑 연결을 확인하고 있습니다.",
+        finalizingCompleted: "AI 커버 생성이 완료되었습니다.",
+        finalizingRunning: "생성 결과를 정리하고 있습니다.",
+      }
+    : {
+        authorizingCompleted: "Member authorization has been confirmed.",
+        authorizingRunning: "Checking wallet ownership and member access.",
+        finalizingCompleted: "AI cover generation is complete.",
+        finalizingRunning: "Finalizing the generated cover result.",
+      };
+}
+
+function createStreamResponse(
+  run: (
+    emit: (event: ContentPostGenerateCoverStreamEvent) => void,
+  ) => Promise<void>,
+) {
+  const encoder = new TextEncoder();
+
+  return new Response(
+    new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const emit = (event: ContentPostGenerateCoverStreamEvent) => {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        };
+
+        try {
+          await run(emit);
+        } catch (error) {
+          emit({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to generate AI cover.",
+            type: "error",
+          });
+        } finally {
+          controller.close();
+        }
+      },
+    }),
+    {
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+      },
+      status: 200,
+    },
+  );
 }
 
 export async function POST(request: Request) {
@@ -40,6 +104,8 @@ export async function POST(request: Request) {
 
   const email = normalizeEmail(body?.email ?? "");
   const walletAddress = body?.walletAddress?.trim() ?? "";
+  const locale = hasLocale(body?.locale ?? "") ? (body?.locale as Locale) : "ko";
+  const progressCopy = createProgressCopy(locale);
 
   if (!email) {
     return jsonError("email is required.", 400);
@@ -55,6 +121,103 @@ export async function POST(request: Request) {
 
   if (!title && !summary && !contentBody) {
     return jsonError("Provide title, summary, or body to generate a cover.", 400);
+  }
+
+  const stream = wantsStream(request);
+
+  if (stream) {
+    return createStreamResponse(async (emit) => {
+      emit({
+        progress: {
+          message: progressCopy.authorizingRunning,
+          progress: 6,
+          status: "running",
+          step: "authorizing",
+        },
+        type: "progress",
+      });
+
+      const authorization = await validateMemberWalletOwner({
+        email,
+        walletAddress,
+      });
+
+      if (authorization.error) {
+        const payload = (await authorization.error
+          .json()
+          .catch(() => null)) as { error?: string } | null;
+
+        emit({
+          error: payload?.error ?? "This wallet is not authorized for the requested member.",
+          type: "error",
+        });
+        return;
+      }
+
+      const member = authorization.member;
+
+      if (!member?.referralCode) {
+        emit({
+          error: "Creator Studio is only available to completed members.",
+          type: "error",
+        });
+        return;
+      }
+
+      emit({
+        progress: {
+          message: progressCopy.authorizingCompleted,
+          progress: 14,
+          status: "completed",
+          step: "authorizing",
+        },
+        type: "progress",
+      });
+
+      const generatedCover = await generateAndUploadContentCover({
+        body: contentBody,
+        onProgress(progress) {
+          emit({
+            progress,
+            type: "progress",
+          });
+        },
+        referralCode: member.referralCode,
+        summary,
+        title,
+      });
+
+      emit({
+        progress: {
+          message: progressCopy.finalizingRunning,
+          progress: 97,
+          status: "running",
+          step: "finalizing",
+        },
+        type: "progress",
+      });
+
+      const response: ContentPostGenerateCoverResponse = {
+        contentType: generatedCover.contentType,
+        pathname: generatedCover.pathname,
+        revisedPrompt: generatedCover.revisedPrompt,
+        url: generatedCover.url,
+      };
+
+      emit({
+        progress: {
+          message: progressCopy.finalizingCompleted,
+          progress: 100,
+          status: "completed",
+          step: "finalizing",
+        },
+        type: "progress",
+      });
+      emit({
+        response,
+        type: "result",
+      });
+    });
   }
 
   const authorization = await validateMemberWalletOwner({

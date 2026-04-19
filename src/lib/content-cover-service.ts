@@ -2,6 +2,11 @@ import "server-only";
 
 import { put } from "@vercel/blob";
 
+import type {
+  ContentCoverGenerationProgressStep,
+  ContentPostGenerateCoverProgressEvent,
+} from "@/lib/content";
+
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 480;
@@ -19,6 +24,9 @@ type OpenAiImageGenerationResponse = {
 
 export type GenerateContentCoverInput = {
   body?: string | null;
+  onProgress?: (
+    event: ContentPostGenerateCoverProgressEvent,
+  ) => Promise<void> | void;
   referralCode: string;
   summary?: string | null;
   title?: string | null;
@@ -115,6 +123,22 @@ async function generateImageBase64(prompt: string) {
   };
 }
 
+async function reportProgress(
+  onProgress:
+    | ((
+        event: ContentPostGenerateCoverProgressEvent,
+      ) => Promise<void> | void)
+    | undefined,
+  event: {
+    message: string;
+    progress: number;
+    status: "completed" | "failed" | "running";
+    step: ContentCoverGenerationProgressStep;
+  },
+) {
+  await onProgress?.(event);
+}
+
 export async function generateAndUploadContentCover(
   input: GenerateContentCoverInput,
 ): Promise<GeneratedContentCover> {
@@ -133,13 +157,37 @@ export async function generateAndUploadContentCover(
     );
   }
 
+  await reportProgress(input.onProgress, {
+    message: "Preparing the visual direction for the cover.",
+    progress: 18,
+    status: "running",
+    step: "preparing_prompt",
+  });
   const prompt = buildImagePrompt({
     body,
     summary,
     title,
     visualBrief,
   });
+  await reportProgress(input.onProgress, {
+    message: "Creative brief is ready. Starting image generation.",
+    progress: 28,
+    status: "completed",
+    step: "preparing_prompt",
+  });
+  await reportProgress(input.onProgress, {
+    message: "Generating the AI cover image.",
+    progress: 42,
+    status: "running",
+    step: "generating_image",
+  });
   const { imageBase64, revisedPrompt } = await generateImageBase64(prompt);
+  await reportProgress(input.onProgress, {
+    message: "AI image created. Preparing upload.",
+    progress: 74,
+    status: "completed",
+    step: "generating_image",
+  });
   const imageBytes = Buffer.from(imageBase64, "base64");
   const pathname = [
     "content-posts",
@@ -150,6 +198,12 @@ export async function generateAndUploadContentCover(
     )}.png`,
   ].join("/");
 
+  await reportProgress(input.onProgress, {
+    message: "Uploading the cover to your studio assets.",
+    progress: 84,
+    status: "running",
+    step: "uploading_cover",
+  });
   const uploaded = await put(
     pathname,
     new Blob([imageBytes], { type: "image/png" }),
@@ -160,6 +214,12 @@ export async function generateAndUploadContentCover(
       contentType: "image/png",
     },
   );
+  await reportProgress(input.onProgress, {
+    message: "Cover uploaded. Finalizing the result.",
+    progress: 94,
+    status: "completed",
+    step: "uploading_cover",
+  });
 
   return {
     contentType: uploaded.contentType,

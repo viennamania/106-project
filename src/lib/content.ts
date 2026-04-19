@@ -4,6 +4,13 @@ import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 export const CONTENT_FEED_PAGE_SIZE = 20;
 export const CONTENT_LIBRARY_PAGE_SIZE = 24;
 export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
+export const contentCoverGenerationProgressSteps = [
+  "authorizing",
+  "preparing_prompt",
+  "generating_image",
+  "uploading_cover",
+  "finalizing",
+] as const;
 
 export const creatorProfileStatuses = ["active", "restricted"] as const;
 export const contentPostStatuses = ["draft", "published", "archived"] as const;
@@ -39,6 +46,8 @@ export type ContentAccessGateReason =
   | "network"
   | "paid"
   | "signup";
+export type ContentCoverGenerationProgressStep =
+  (typeof contentCoverGenerationProgressSteps)[number];
 
 export type CreatorProfileDocument = {
   avatarImageUrl?: string | null;
@@ -231,6 +240,27 @@ export type ContentPostGenerateCoverResponse = {
   revisedPrompt: string | null;
   url: string;
 };
+
+export type ContentPostGenerateCoverProgressEvent = {
+  message: string;
+  progress: number;
+  status: "completed" | "failed" | "running";
+  step: ContentCoverGenerationProgressStep;
+};
+
+export type ContentPostGenerateCoverStreamEvent =
+  | {
+      progress: ContentPostGenerateCoverProgressEvent;
+      type: "progress";
+    }
+  | {
+      response: ContentPostGenerateCoverResponse;
+      type: "result";
+    }
+  | {
+      error: string;
+      type: "error";
+    };
 
 export type CreatorStudioPostsResponse = {
   member: MemberRecord;

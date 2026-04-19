@@ -38,8 +38,11 @@ import type {
   ContentAutomationRunStreamEvent,
   CreatorAutomationProfileResponse,
 } from "@/lib/content-automation";
+import { contentCoverGenerationProgressSteps } from "@/lib/content";
 import type {
+  ContentCoverGenerationProgressStep,
   ContentPostGenerateCoverResponse,
+  ContentPostGenerateCoverStreamEvent,
   ContentPostMutationResponse,
   ContentPostRecord,
   ContentPostUploadResponse,
@@ -112,6 +115,21 @@ type AutomationCelebrationState = {
   tone: "draft" | "published";
 };
 
+type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
+
+type CoverGenerationProgressState = {
+  active: boolean;
+  currentStep: ContentCoverGenerationProgressStep | null;
+  error: string | null;
+  message: string | null;
+  progress: number;
+  response: ContentPostGenerateCoverResponse | null;
+  steps: Record<
+    ContentCoverGenerationProgressStep,
+    CoverGenerationProgressStepState
+  >;
+};
+
 type StudioView = "hub" | "new" | "profile";
 type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
@@ -163,6 +181,23 @@ function createEmptyAutomationProgress(): AutomationProgressState {
     steps: Object.fromEntries(
       contentAutomationRunProgressSteps.map((step) => [step, "pending"]),
     ) as Record<ContentAutomationRunProgressStep, AutomationProgressStepState>,
+  };
+}
+
+function createEmptyCoverGenerationProgress(): CoverGenerationProgressState {
+  return {
+    active: false,
+    currentStep: null,
+    error: null,
+    message: null,
+    progress: 0,
+    response: null,
+    steps: Object.fromEntries(
+      contentCoverGenerationProgressSteps.map((step) => [step, "pending"]),
+    ) as Record<
+      ContentCoverGenerationProgressStep,
+      CoverGenerationProgressStepState
+    >,
   };
 }
 
@@ -252,6 +287,54 @@ function applyAutomationProgressEvent(
   };
 }
 
+function applyCoverGenerationProgressEvent(
+  current: CoverGenerationProgressState,
+  event: ContentPostGenerateCoverStreamEvent,
+): CoverGenerationProgressState {
+  if (event.type === "error") {
+    return {
+      ...current,
+      active: false,
+      error: event.error,
+      message: event.error,
+    };
+  }
+
+  if (event.type === "result") {
+    return {
+      ...current,
+      active: false,
+      currentStep: "finalizing",
+      error: null,
+      message: event.response.revisedPrompt ?? current.message,
+      progress: 100,
+      response: event.response,
+      steps: {
+        ...current.steps,
+        finalizing: "done",
+      },
+    };
+  }
+
+  return {
+    ...current,
+    active: event.progress.status === "running",
+    currentStep: event.progress.step,
+    error: event.progress.status === "failed" ? event.progress.message : null,
+    message: event.progress.message,
+    progress: Math.max(current.progress, event.progress.progress),
+    steps: {
+      ...current.steps,
+      [event.progress.step]:
+        event.progress.status === "running"
+          ? "active"
+          : event.progress.status === "completed"
+            ? "done"
+            : "error",
+    },
+  };
+}
+
 async function readAutomationRunStream(
   response: Response,
   onEvent: (event: ContentAutomationRunStreamEvent) => void,
@@ -291,6 +374,48 @@ async function readAutomationRunStream(
 
   if (trailing) {
     onEvent(JSON.parse(trailing) as ContentAutomationRunStreamEvent);
+  }
+}
+
+async function readCoverGenerationStream(
+  response: Response,
+  onEvent: (event: ContentPostGenerateCoverStreamEvent) => void,
+) {
+  const reader = response.body?.getReader();
+
+  if (!reader) {
+    throw new Error("Streaming response body is missing.");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        continue;
+      }
+
+      onEvent(JSON.parse(trimmed) as ContentPostGenerateCoverStreamEvent);
+    }
+  }
+
+  const trailing = buffer.trim();
+
+  if (trailing) {
+    onEvent(JSON.parse(trailing) as ContentPostGenerateCoverStreamEvent);
   }
 }
 
@@ -356,6 +481,10 @@ export function CreatorContentStudioPage({
   const [automationProgress, setAutomationProgress] = useState<AutomationProgressState>(
     createEmptyAutomationProgress(),
   );
+  const [coverGenerationProgress, setCoverGenerationProgress] =
+    useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
+  const [isCoverGenerationDialogOpen, setIsCoverGenerationDialogOpen] =
+    useState(false);
   const [automationCelebration, setAutomationCelebration] =
     useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -500,12 +629,123 @@ export function CreatorContentStudioPage({
       label: automationProgressLabels.saving_content.label,
     },
   };
+  const coverGenerationLabels =
+    locale === "ko"
+      ? {
+          authorizing: {
+            description: "같은 회원 이메일과 지갑 권한을 먼저 확인합니다.",
+            label: "회원 확인",
+          },
+          completed: "완료",
+          confirmBody:
+            "현재 입력한 제목, 요약, 본문을 바탕으로 AI가 커버 이미지를 생성합니다.",
+          confirmHint:
+            "텍스트가 없는 이미지로 생성되며, 완료되면 커버 영역에 바로 반영됩니다.",
+          confirmPrimary: "생성 시작",
+          confirmSecondary: "나중에",
+          error: "오류",
+          finalizing: {
+            description: "생성 결과를 스튜디오 폼에 연결합니다.",
+            label: "적용 마무리",
+          },
+          generating_image: {
+            description: "시네마틱한 화보형 커버 이미지를 생성합니다.",
+            label: "이미지 생성",
+          },
+          preparing_prompt: {
+            description: "제목과 요약을 바탕으로 비주얼 브리프를 정리합니다.",
+            label: "비주얼 브리프",
+          },
+          progress: "진행률",
+          running: "진행 중",
+          successPrimary: "커버 적용 완료",
+          successSecondary: "계속 편집하기",
+          successTitle: "AI 커버가 준비되었습니다.",
+          title: "AI 커버 생성",
+          uploading_cover: {
+            description: "생성한 이미지를 스튜디오 자산으로 업로드합니다.",
+            label: "자산 업로드",
+          },
+        }
+      : {
+          authorizing: {
+            description: "Verifying wallet ownership and member access.",
+            label: "Authorization",
+          },
+          completed: "Completed",
+          confirmBody:
+            "The AI will generate a cover image from your current title, summary, and body.",
+          confirmHint:
+            "The result is text-free and will be applied to the cover field as soon as it is ready.",
+          confirmPrimary: "Start generation",
+          confirmSecondary: "Later",
+          error: "Error",
+          finalizing: {
+            description: "Applying the generated result back into the studio form.",
+            label: "Finalizing",
+          },
+          generating_image: {
+            description: "Creating a cinematic editorial cover image.",
+            label: "Image generation",
+          },
+          preparing_prompt: {
+            description: "Preparing the visual brief from your draft.",
+            label: "Visual brief",
+          },
+          progress: "Progress",
+          running: "Running",
+          successPrimary: "Use this cover",
+          successSecondary: "Keep editing",
+          successTitle: "Your AI cover is ready.",
+          title: "AI cover generation",
+          uploading_cover: {
+            description: "Uploading the generated image to studio assets.",
+            label: "Asset upload",
+          },
+        };
+  const coverGenerationStepMeta: Record<
+    ContentCoverGenerationProgressStep,
+    {
+      description: string;
+      icon: typeof UserRound;
+      label: string;
+    }
+  > = {
+    authorizing: {
+      description: coverGenerationLabels.authorizing.description,
+      icon: UserRound,
+      label: coverGenerationLabels.authorizing.label,
+    },
+    finalizing: {
+      description: coverGenerationLabels.finalizing.description,
+      icon: Check,
+      label: coverGenerationLabels.finalizing.label,
+    },
+    generating_image: {
+      description: coverGenerationLabels.generating_image.description,
+      icon: WandSparkles,
+      label: coverGenerationLabels.generating_image.label,
+    },
+    preparing_prompt: {
+      description: coverGenerationLabels.preparing_prompt.description,
+      icon: PenSquare,
+      label: coverGenerationLabels.preparing_prompt.label,
+    },
+    uploading_cover: {
+      description: coverGenerationLabels.uploading_cover.description,
+      icon: ImagePlus,
+      label: coverGenerationLabels.uploading_cover.label,
+    },
+  };
   const completedAutomationStepCount = contentAutomationRunProgressSteps.filter(
     (step) => automationProgress.steps[step] === "done",
   ).length;
   const currentAutomationStepMeta = automationProgress.currentStep
     ? automationProgressStepMeta[automationProgress.currentStep]
     : null;
+  const completedCoverGenerationStepCount = contentCoverGenerationProgressSteps.filter(
+    (step) => coverGenerationProgress.steps[step] === "done",
+  ).length;
   const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -1333,43 +1573,122 @@ export function CreatorContentStudioPage({
     }
   }
 
+  function openCoverGenerationDialog() {
+    setCoverGenerationProgress(createEmptyCoverGenerationProgress());
+    setIsCoverGenerationDialogOpen(true);
+  }
+
+  function closeCoverGenerationDialog() {
+    if (isGeneratingPostImage) {
+      return;
+    }
+
+    setIsCoverGenerationDialogOpen(false);
+    setCoverGenerationProgress(createEmptyCoverGenerationProgress());
+  }
+
   async function generatePostCoverImage() {
     try {
       setIsGeneratingPostImage(true);
+      setCoverGenerationProgress({
+        ...createEmptyCoverGenerationProgress(),
+        active: true,
+        currentStep: "authorizing",
+        message: coverGenerationLabels.authorizing.description,
+        progress: 4,
+        steps: {
+          ...createEmptyCoverGenerationProgress().steps,
+          authorizing: "active",
+        },
+      });
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/posts/generate-cover", {
         body: JSON.stringify({
           body: postForm.body,
           email,
+          locale,
           summary: postForm.summary,
           title: postForm.title,
           walletAddress: accountAddress,
         }),
         headers: {
+          Accept: "application/x-ndjson",
           "Content-Type": "application/json",
         },
         method: "POST",
       });
-      const data = (await response.json()) as ContentPostGenerateCoverResponse | {
-        error?: string;
-      };
+      let data: ContentPostGenerateCoverResponse | null = null;
+      let streamError: string | null = null;
 
-      if (!response.ok || !("url" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.uploadFailed,
-        );
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+
+        throw new Error(payload?.error || contentCopy.messages.uploadFailed);
       }
+
+      if (
+        response.headers
+          .get("content-type")
+          ?.includes("application/x-ndjson")
+      ) {
+        await readCoverGenerationStream(response, (event) => {
+          setCoverGenerationProgress((current) =>
+            applyCoverGenerationProgressEvent(current, event),
+          );
+
+          if (event.type === "result") {
+            data = event.response;
+            return;
+          }
+
+          if (event.type === "error") {
+            streamError = event.error;
+          }
+        });
+      } else {
+        const payload = (await response.json()) as
+          | ContentPostGenerateCoverResponse
+          | { error?: string };
+
+        if (!("url" in payload)) {
+          throw new Error(payload.error || contentCopy.messages.uploadFailed);
+        }
+
+        data = payload;
+      }
+
+      if (!data) {
+        throw new Error(streamError || contentCopy.messages.uploadFailed);
+      }
+
+      const generatedCover = data;
 
       setPostForm((current) => ({
         ...current,
-        coverImageUrl: data.url,
+        coverImageUrl: generatedCover.url,
       }));
       setState((current) => ({
         ...current,
         error: null,
         notice: contentCopy.messages.imageGenerated,
+      }));
+      setCoverGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        currentStep: "finalizing",
+        error: null,
+        message:
+          locale === "ko"
+            ? "커버 이미지가 초안에 적용되었습니다."
+            : "The cover has been applied to your draft.",
+        progress: 100,
+        response: generatedCover,
+        steps: {
+          ...current.steps,
+          finalizing: "done",
+        },
       }));
     } catch (error) {
       setState((current) => ({
@@ -1379,6 +1698,18 @@ export function CreatorContentStudioPage({
             ? error.message
             : contentCopy.messages.uploadFailed,
         notice: null,
+      }));
+      setCoverGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        message:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
       }));
     } finally {
       setIsGeneratingPostImage(false);
@@ -2285,6 +2616,10 @@ export function CreatorContentStudioPage({
 
   function renderComposerCard() {
     const blockedState = renderBlockedState();
+    const coverUploadLabel =
+      locale === "ko" ? "커버 업로드" : "Upload cover";
+    const contentImagesUploadLabel =
+      locale === "ko" ? "콘텐츠 이미지 추가" : "Add gallery images";
 
     return (
       <div className="glass-card rounded-[30px] p-5">
@@ -2335,12 +2670,19 @@ export function CreatorContentStudioPage({
               value={postForm.summary}
             />
             <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
-              <p className="text-sm font-medium text-slate-900">
-                {contentCopy.fields.coverImage}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                {contentCopy.hints.coverImage}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {contentCopy.fields.coverImage}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {contentCopy.hints.coverImage}
+                  </p>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                  {locale === "ko" ? "대표 1장" : "One hero image"}
+                </span>
+              </div>
               <input
                 accept="image/png,image/jpeg,image/webp"
                 className="sr-only"
@@ -2384,20 +2726,7 @@ export function CreatorContentStudioPage({
                   <ImagePlus className="size-4" />
                   {isUploadingPostImage
                     ? contentCopy.actions.uploadingImage
-                    : contentCopy.actions.uploadImage}
-                </button>
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingPostImage || isGeneratingPostImage}
-                  onClick={() => {
-                    postGalleryInputRef.current?.click();
-                  }}
-                  type="button"
-                >
-                  <LayoutGrid className="size-4" />
-                  {isUploadingPostImage
-                    ? contentCopy.actions.uploadingImage
-                    : contentCopy.actions.uploadContentImages}
+                    : coverUploadLabel}
                 </button>
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
@@ -2407,7 +2736,7 @@ export function CreatorContentStudioPage({
                     !canGeneratePostCover
                   }
                   onClick={() => {
-                    void generatePostCoverImage();
+                    openCoverGenerationDialog();
                   }}
                   type="button"
                 >
@@ -2455,6 +2784,21 @@ export function CreatorContentStudioPage({
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
                   {postForm.contentImageUrls.length}/10
                 </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  onClick={() => {
+                    postGalleryInputRef.current?.click();
+                  }}
+                  type="button"
+                >
+                  <LayoutGrid className="size-4" />
+                  {isUploadingPostImage
+                    ? contentCopy.actions.uploadingImage
+                    : contentImagesUploadLabel}
+                </button>
               </div>
               {postForm.contentImageUrls.length > 0 ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -3087,6 +3431,22 @@ export function CreatorContentStudioPage({
           tone={automationCelebration.tone}
         />
       ) : null}
+      {isCoverGenerationDialogOpen ? (
+        <CoverGenerationDialog
+          canClose={!isGeneratingPostImage}
+          labels={coverGenerationLabels}
+          onClose={closeCoverGenerationDialog}
+          onConfirm={() => {
+            void generatePostCoverImage();
+          }}
+          progress={coverGenerationProgress}
+          stepMeta={coverGenerationStepMeta}
+          stepOrder={contentCoverGenerationProgressSteps}
+          stepCount={completedCoverGenerationStepCount}
+          summary={postForm.summary}
+          title={postForm.title}
+        />
+      ) : null}
     </>
   );
 }
@@ -3309,6 +3669,305 @@ function WorkspaceSupportLink({
     <Link className="block" href={href}>
       {body}
     </Link>
+  );
+}
+
+function CoverGenerationDialog({
+  canClose,
+  labels,
+  onClose,
+  onConfirm,
+  progress,
+  stepCount,
+  stepMeta,
+  stepOrder,
+  summary,
+  title,
+}: {
+  canClose: boolean;
+  labels: {
+    authorizing: { description: string; label: string };
+    completed: string;
+    confirmBody: string;
+    confirmHint: string;
+    confirmPrimary: string;
+    confirmSecondary: string;
+    error: string;
+    finalizing: { description: string; label: string };
+    generating_image: { description: string; label: string };
+    preparing_prompt: { description: string; label: string };
+    progress: string;
+    running: string;
+    successPrimary: string;
+    successSecondary: string;
+    successTitle: string;
+    title: string;
+    uploading_cover: { description: string; label: string };
+  };
+  onClose: () => void;
+  onConfirm: () => void;
+  progress: CoverGenerationProgressState;
+  stepCount: number;
+  stepMeta: Record<
+    ContentCoverGenerationProgressStep,
+    {
+      description: string;
+      icon: typeof UserRound;
+      label: string;
+    }
+  >;
+  stepOrder: readonly ContentCoverGenerationProgressStep[];
+  summary: string;
+  title: string;
+}) {
+  const isSuccess = Boolean(progress.response) && !progress.error;
+  const isRunning = progress.active;
+  const showProgress =
+    isRunning || progress.currentStep !== null || progress.error !== null;
+  const currentStepMeta = progress.currentStep ? stepMeta[progress.currentStep] : null;
+  const shouldShowConfirm = !showProgress && !isSuccess;
+
+  return (
+    <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.18),transparent_54%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_46%)]" />
+        <div className="relative p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 shadow-sm">
+                <Sparkles className="size-3.5" />
+                {labels.title}
+              </div>
+              <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                {isSuccess ? labels.successTitle : labels.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {isSuccess
+                  ? progress.message ?? labels.confirmHint
+                  : shouldShowConfirm
+                    ? labels.confirmBody
+                    : progress.error
+                      ? progress.message ?? labels.error
+                      : currentStepMeta?.description ?? labels.confirmHint}
+              </p>
+            </div>
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white/92 text-slate-600 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canClose}
+              onClick={onClose}
+              type="button"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+          </div>
+
+          {shouldShowConfirm ? (
+            <div className="mt-5 space-y-4">
+              <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                  {labels.preparing_prompt.label}
+                </p>
+                <p className="mt-3 line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">
+                  {title.trim() || summary.trim() || labels.title}
+                </p>
+                {summary.trim() ? (
+                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                    {summary.trim()}
+                  </p>
+                ) : null}
+              </div>
+              <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-600">
+                {labels.confirmHint}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                  onClick={onClose}
+                  type="button"
+                >
+                  {labels.confirmSecondary}
+                </button>
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                  onClick={onConfirm}
+                  type="button"
+                >
+                  <WandSparkles className="mr-2 size-4" />
+                  {labels.confirmPrimary}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {!shouldShowConfirm ? (
+            <div className="mt-5">
+              {isSuccess && progress.response?.url ? (
+                <div className="overflow-hidden rounded-[26px] border border-slate-200/90 bg-slate-950 shadow-[0_22px_60px_rgba(15,23,42,0.16)]">
+                  <div
+                    className="h-48 w-full bg-cover bg-center sm:h-64"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.26)), url(${progress.response.url})`,
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
+                  <div className="grid grid-cols-[auto_auto] justify-between gap-3">
+                    <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/90 px-4 py-3 shadow-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        {labels.progress}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-slate-950">
+                        {Math.round(progress.progress)}%
+                      </p>
+                    </div>
+                    <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/90 px-4 py-3 shadow-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        {labels.completed}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-slate-950">
+                        {stepCount}/{stepOrder.length}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-full border border-slate-200/90 bg-slate-100/90 p-1">
+                    <div
+                      className={`relative h-3 overflow-hidden rounded-full transition-[width] duration-500 ${
+                        progress.error
+                          ? "bg-gradient-to-r from-rose-500 via-orange-400 to-amber-300"
+                          : "bg-gradient-to-r from-slate-950 via-sky-600 to-cyan-400"
+                      }`}
+                      style={{ width: `${Math.max(8, progress.progress)}%` }}
+                    >
+                      {isRunning ? (
+                        <div className="absolute inset-y-0 right-0 w-16 animate-pulse rounded-full bg-white/40 blur-md" />
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 space-y-3">
+                {stepOrder.map((step) => {
+                  const status = progress.steps[step];
+                  const meta = stepMeta[step];
+                  const Icon = meta.icon;
+                  const badgeStatus =
+                    status === "done"
+                      ? "completed"
+                      : status === "active"
+                        ? "running"
+                        : status === "error"
+                          ? "failed"
+                          : null;
+
+                  return (
+                    <div
+                      className={`rounded-[22px] border px-4 py-4 shadow-sm transition ${
+                        status === "done"
+                          ? "border-emerald-200/80 bg-emerald-50/90"
+                          : status === "active"
+                            ? "border-slate-950 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)]"
+                            : status === "error"
+                              ? "border-rose-200/80 bg-rose-50/90"
+                              : "border-slate-200/80 bg-white/85"
+                      }`}
+                      key={step}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`flex size-11 shrink-0 items-center justify-center rounded-2xl border ${
+                            status === "done"
+                              ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+                              : status === "active"
+                                ? "border-sky-200 bg-slate-950 text-white"
+                                : status === "error"
+                                  ? "border-rose-200 bg-rose-100 text-rose-700"
+                                  : "border-slate-200 bg-white text-slate-400"
+                          }`}
+                        >
+                          {status === "done" ? (
+                            <Check className="size-5" />
+                          ) : status === "active" ? (
+                            <LoaderCircle className="size-5 animate-spin" />
+                          ) : status === "error" ? (
+                            <AlertTriangle className="size-5" />
+                          ) : (
+                            <Icon className="size-5" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-950">
+                              {meta.label}
+                            </p>
+                            {badgeStatus ? <StatusBadge status={badgeStatus} /> : null}
+                          </div>
+                          <p className="mt-1 text-sm leading-6 text-slate-600">
+                            {progress.currentStep === step && progress.error
+                              ? progress.message
+                              : meta.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {isSuccess ? (
+                  <>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                      onClick={onClose}
+                      type="button"
+                    >
+                      {labels.successPrimary}
+                    </button>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={onClose}
+                      type="button"
+                    >
+                      {labels.successSecondary}
+                    </button>
+                  </>
+                ) : progress.error ? (
+                  <>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                      onClick={onConfirm}
+                      type="button"
+                    >
+                      {labels.confirmPrimary}
+                    </button>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={onClose}
+                      type="button"
+                    >
+                      {labels.confirmSecondary}
+                    </button>
+                  </>
+                ) : (
+                  <div className="sm:col-span-2">
+                    <button
+                      className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-400"
+                      disabled
+                      type="button"
+                    >
+                      <LoaderCircle className="mr-2 size-4 animate-spin" />
+                      {labels.running}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
