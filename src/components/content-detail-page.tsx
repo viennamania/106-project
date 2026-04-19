@@ -647,9 +647,9 @@ export function ContentDetailPage({
               </button>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="mt-4 grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
               <ActionChip
-                className="w-full justify-center sm:w-auto"
+                className="w-full justify-center lg:w-auto"
                 icon={Share2}
                 label={
                   shareState === "sharing"
@@ -662,7 +662,7 @@ export function ContentDetailPage({
                 tone="primary"
               />
               <ActionChip
-                className="w-full justify-center sm:w-auto"
+                className="w-full justify-center lg:w-auto"
                 icon={Copy}
                 label={
                   shareState === "copied"
@@ -675,14 +675,14 @@ export function ContentDetailPage({
               />
               {twitterShareHref ? (
                 <SocialShareChip
-                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
+                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
                   href={twitterShareHref}
                   label="X"
                 />
               ) : null}
               {telegramShareHref ? (
                 <SocialShareChip
-                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
+                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
                   href={telegramShareHref}
                   icon={Send}
                   label="Telegram"
@@ -690,7 +690,7 @@ export function ContentDetailPage({
               ) : null}
               {facebookShareHref ? (
                 <SocialShareChip
-                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
+                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
                   href={facebookShareHref}
                   label="Facebook"
                 />
