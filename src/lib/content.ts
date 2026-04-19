@@ -179,6 +179,13 @@ export type ContentFeedResponse = {
   nextCursor: string | null;
 };
 
+export type ContentFeedLoadResponse = {
+  items: ContentFeedItemRecord[];
+  member: MemberRecord | null;
+  nextCursor: string | null;
+  validationError: string | null;
+};
+
 export type ContentDetailResponse = {
   content: ContentDetailRecord;
   member: MemberRecord;

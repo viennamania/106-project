@@ -21,12 +21,15 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { getContentCopy } from "@/lib/content-copy";
-import type { ContentFeedItemRecord, ContentFeedResponse } from "@/lib/content";
+import type {
+  ContentFeedItemRecord,
+  ContentFeedLoadResponse,
+} from "@/lib/content";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
 import {
   BSC_EXPLORER,
   getAppMetadata,
@@ -173,7 +176,7 @@ export function NetworkFeedPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const syncResponse = await fetch("/api/members", {
+      const response = await fetch("/api/content/feed", {
         body: JSON.stringify({
           chainId: chain.id,
           chainName: chain.name ?? "BSC",
@@ -187,27 +190,27 @@ export function NetworkFeedPage({
         },
         method: "POST",
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
+      const data = (await response.json()) as
+        | ContentFeedLoadResponse
         | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!response.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
+          "error" in data && data.error
+            ? data.error
             : contentCopy.messages.feedLoadFailed,
         );
       }
 
-      const member = "member" in syncData ? syncData.member : null;
+      const member = "member" in data ? data.member : null;
 
       if (!member) {
         throw new Error(contentCopy.messages.memberMissing);
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if ("validationError" in data && data.validationError) {
         setState({
-          error: syncData.validationError,
+          error: data.validationError,
           items: [],
           member,
           status: "ready",
@@ -225,25 +228,10 @@ export function NetworkFeedPage({
         return;
       }
 
-      const response = await fetch(
-        `/api/content/feed?email=${encodeURIComponent(email)}&locale=${encodeURIComponent(locale)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-      );
-      const data = (await response.json()) as ContentFeedResponse | {
-        error?: string;
-      };
-
-      if (!response.ok || !("items" in data) || !("member" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.feedLoadFailed,
-        );
-      }
-
       setState({
         error: null,
-        items: data.items,
-        member: data.member,
+        items: "items" in data ? data.items : [],
+        member,
         status: "ready",
       });
     } catch (error) {
