@@ -698,7 +698,7 @@ export function ContentDetailPage({
                   <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
                     {shouldEncourageSignup ? (
                       <Link
-                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
+                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
                         href={activateHref}
                       >
                         <span className="sm:hidden">가입 완료하기</span>
@@ -707,15 +707,6 @@ export function ContentDetailPage({
                         </span>
                       </Link>
                     ) : null}
-                    <button
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-                      onClick={() => {
-                        void handleShare();
-                      }}
-                      type="button"
-                    >
-                      {contentCopy.actions.share}
-                    </button>
                   </div>
                 </div>
               </div>
