@@ -20,6 +20,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentFeedItemRecord,
@@ -31,7 +32,6 @@ import {
 } from "@/lib/landing-branding";
 import type { MemberRecord } from "@/lib/member";
 import {
-  BSC_EXPLORER,
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -82,6 +82,7 @@ export function NetworkFeedPage({
   const [visibleItemCount, setVisibleItemCount] = useState(
     INITIAL_VISIBLE_ITEM_COUNT,
   );
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const isDisconnected = status !== "connected" || !accountAddress;
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
@@ -270,8 +271,30 @@ export function NetworkFeedPage({
     void loadFeed();
   }, [accountAddress, loadFeed, status]);
 
+  function confirmLogout() {
+    if (!wallet) {
+      setIsLogoutDialogOpen(false);
+      return;
+    }
+
+    setIsLogoutDialogOpen(false);
+    disconnect(wallet);
+  }
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+      <LogoutConfirmDialog
+        cancelLabel={dictionary.common.logoutDialog.cancel}
+        confirmLabel={dictionary.common.logoutDialog.confirm}
+        description={dictionary.common.logoutDialog.description}
+        onCancel={() => {
+          setIsLogoutDialogOpen(false);
+        }}
+        onConfirm={confirmLogout}
+        open={isLogoutDialogOpen}
+        title={dictionary.common.logoutDialog.title}
+      />
+
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -318,9 +341,7 @@ export function NetworkFeedPage({
             <button
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
               onClick={() => {
-                if (wallet) {
-                  disconnect(wallet);
-                }
+                setIsLogoutDialogOpen(true);
               }}
               type="button"
             >
@@ -504,20 +525,20 @@ export function NetworkFeedPage({
           )}
         </div>
 
-        <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
-          <div className="glass-card rounded-[30px] p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                <Rss className="size-5" />
+        <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start xl:space-y-5">
+          <div className="glass-card rounded-[24px] p-4 sm:rounded-[30px] sm:p-5">
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-slate-950 text-white sm:size-12 sm:rounded-2xl">
+                <Rss className="size-4 sm:size-5" />
               </div>
               <div className="min-w-0">
-                <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
-                <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                   {contentCopy.page.feedTitle}
                 </h2>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
+            <p className="mt-3 text-[0.92rem] leading-6 text-slate-600 sm:mt-4 sm:text-sm">
               {isDisconnected
                 ? contentCopy.messages.connectRequired
                 : state.member?.status === "completed"
@@ -525,7 +546,7 @@ export function NetworkFeedPage({
                   : contentCopy.messages.paymentRequired}
             </p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
               <MetricCard
                 label={contentCopy.labels.networkAccess}
                 value={closestLevel}
@@ -543,31 +564,19 @@ export function NetworkFeedPage({
                 value={String(nearbyCount)}
               />
             </div>
-
-            {accountAddress ? (
-              <a
-                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-700 transition hover:text-slate-950"
-                href={`${BSC_EXPLORER}/address/${accountAddress}`}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {accountAddress.slice(0, 6)}...{accountAddress.slice(-4)}
-                <ArrowUpRight className="size-4" />
-              </a>
-            ) : null}
           </div>
 
-          <div className="glass-card rounded-[30px] p-5">
+          <div className="glass-card rounded-[24px] p-4 sm:rounded-[30px] sm:p-5">
             <div>
-              <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
+              <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                 {contentCopy.entry.viewerTitle}
               </h2>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
+            <p className="mt-3 text-[0.92rem] leading-6 text-slate-600 sm:mt-4 sm:text-sm">
               {contentCopy.entry.viewerDescription}
             </p>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-3 grid gap-2.5 sm:mt-4 sm:gap-3">
               <FeedActionCard
                 description={contentCopy.actions.backHome}
                 href={homeHref}
@@ -590,11 +599,11 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4">
-      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <div className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 sm:rounded-[22px] sm:px-4 sm:py-4">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-[0.68rem] sm:tracking-[0.18em]">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+      <p className="mt-1.5 text-[1.65rem] font-semibold tracking-tight text-slate-950 sm:mt-2 sm:text-2xl">
         {value}
       </p>
     </div>
@@ -665,21 +674,23 @@ function FeedActionCard({
 }) {
   return (
     <Link
-      className="glass-card flex items-start justify-between gap-4 rounded-[26px] p-5 transition hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)]"
+      className="glass-card flex items-start justify-between gap-3 rounded-[22px] p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)] sm:gap-4 sm:rounded-[26px] sm:p-5"
       href={href}
     >
-      <div className="flex min-w-0 items-start gap-4">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+      <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-slate-950 text-white sm:size-12 sm:rounded-2xl">
           {icon}
         </div>
-        <div className="min-w-0 pt-1">
-          <h3 className="text-base font-semibold tracking-tight text-slate-950">
+        <div className="min-w-0 pt-0.5 sm:pt-1">
+          <h3 className="text-[0.97rem] font-semibold tracking-tight text-slate-950 sm:text-base">
             {title}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+          <p className="mt-1 text-[0.86rem] leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-6">
+            {description}
+          </p>
         </div>
       </div>
-      <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950">
+      <div className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 sm:size-10">
         <ArrowUpRight className="size-4" />
       </div>
     </Link>
