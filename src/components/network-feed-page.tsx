@@ -81,6 +81,12 @@ export function NetworkFeedPage({
     INITIAL_VISIBLE_ITEM_COUNT,
   );
   const isDisconnected = status !== "connected" || !accountAddress;
+  const isPublicReferralFeed = Boolean(referralCode);
+  const isInitialLoading =
+    state.status === "loading" &&
+    !state.error &&
+    !state.member &&
+    state.items.length === 0;
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
       const level = item.networkLevel ?? 6;
@@ -158,10 +164,6 @@ export function NetworkFeedPage({
   }, [levelFilter, state.items.length]);
 
   const loadFeed = useCallback(async () => {
-    if (!accountAddress) {
-      return;
-    }
-
     setState((current) => ({
       ...current,
       error: null,
@@ -169,26 +171,48 @@ export function NetworkFeedPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const response = isPublicReferralFeed
+        ? await fetch(
+            `/api/content/feed?${new URLSearchParams({
+              locale,
+              referralCode: referralCode ?? "",
+            }).toString()}`,
+          )
+        : accountAddress
+          ? await (async () => {
+              const email = await getUserEmail({ client: thirdwebClient });
 
-      if (!email) {
-        throw new Error(dictionary.member.errors.missingEmail);
+              if (!email) {
+                throw new Error(dictionary.member.errors.missingEmail);
+              }
+
+              return fetch("/api/content/feed", {
+                body: JSON.stringify({
+                  chainId: chain.id,
+                  chainName: chain.name ?? "BSC",
+                  email,
+                  locale,
+                  syncMode: "light",
+                  walletAddress: accountAddress,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
+              });
+            })()
+          : null;
+
+      if (!response) {
+        setState({
+          error: null,
+          items: [],
+          member: null,
+          status: "ready",
+        });
+        return;
       }
 
-      const response = await fetch("/api/content/feed", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
       const data = (await response.json()) as
         | ContentFeedLoadResponse
         | { error?: string };
@@ -203,11 +227,11 @@ export function NetworkFeedPage({
 
       const member = "member" in data ? data.member : null;
 
-      if (!member) {
+      if (!member && !isPublicReferralFeed) {
         throw new Error(contentCopy.messages.memberMissing);
       }
 
-      if ("validationError" in data && data.validationError) {
+      if (!isPublicReferralFeed && "validationError" in data && data.validationError) {
         setState({
           error: data.validationError,
           items: [],
@@ -217,7 +241,7 @@ export function NetworkFeedPage({
         return;
       }
 
-      if (member.status !== "completed") {
+      if (!isPublicReferralFeed && member?.status !== "completed") {
         setState({
           error: contentCopy.messages.paymentRequired,
           items: [],
@@ -252,10 +276,17 @@ export function NetworkFeedPage({
     contentCopy.messages.memberMissing,
     contentCopy.messages.paymentRequired,
     dictionary.member.errors.missingEmail,
+    isPublicReferralFeed,
     locale,
+    referralCode,
   ]);
 
   useEffect(() => {
+    if (isPublicReferralFeed) {
+      void loadFeed();
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -267,7 +298,7 @@ export function NetworkFeedPage({
     }
 
     void loadFeed();
-  }, [accountAddress, loadFeed, status]);
+  }, [accountAddress, isPublicReferralFeed, loadFeed, status]);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -304,11 +335,15 @@ export function NetworkFeedPage({
                       {contentCopy.page.feedTitle}
                     </h1>
                     <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm sm:leading-6">
-                      {isDisconnected
-                        ? contentCopy.messages.connectRequired
-                        : state.member?.status === "completed"
+                      {isInitialLoading
+                        ? contentCopy.messages.feedLoadingDescription
+                        : isPublicReferralFeed
                           ? contentCopy.page.feedDescription
-                          : contentCopy.messages.paymentRequired}
+                          : isDisconnected
+                            ? contentCopy.messages.connectRequired
+                            : state.member?.status === "completed"
+                              ? contentCopy.page.feedDescription
+                              : contentCopy.messages.paymentRequired}
                     </p>
                   </div>
                 </div>
@@ -330,18 +365,22 @@ export function NetworkFeedPage({
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <HeaderStatChip
               label={contentCopy.labels.networkAccess}
+              loading={isInitialLoading}
               value={closestLevel}
             />
             <HeaderStatChip
               label={contentCopy.labels.posts}
+              loading={isInitialLoading}
               value={String(state.items.length)}
             />
             <HeaderStatChip
               label={contentCopy.labels.creators}
+              loading={isInitialLoading}
               value={String(uniqueCreatorCount)}
             />
             <HeaderStatChip
               label={contentCopy.labels.nearbyLevels}
+              loading={isInitialLoading}
               value={String(nearbyCount)}
             />
           </div>
@@ -350,14 +389,14 @@ export function NetworkFeedPage({
 
       <section className="grid gap-5 xl:grid-cols-[1.16fr_0.84fr]">
         <div className="space-y-5">
-          {isDisconnected ? (
+          {!isPublicReferralFeed && isDisconnected ? (
             <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
-          ) : state.status === "loading" ? (
-            <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
+          ) : isInitialLoading ? (
+            <FeedLoadingSkeleton copy={contentCopy} />
           ) : state.error ? (
             <MessageCard tone="error">
               {state.error}
-              {state.member?.status !== "completed" ? (
+              {!isPublicReferralFeed && state.member?.status !== "completed" ? (
                 <span className="mt-3 block">
                   <Link className="font-semibold text-slate-950 underline" href={activateHref}>
                     {dictionary.referralsPage.actions.completeSignup}
@@ -535,24 +574,30 @@ export function NetworkFeedPage({
               </div>
             </div>
             <p className="mt-3 text-[0.92rem] leading-6 text-slate-600 sm:mt-4 sm:text-sm">
-              {contentCopy.page.feedDescription}
+              {isInitialLoading
+                ? contentCopy.messages.feedLoadingDescription
+                : contentCopy.page.feedDescription}
             </p>
 
             <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
               <MetricCard
                 label={contentCopy.labels.networkAccess}
+                loading={isInitialLoading}
                 value={closestLevel}
               />
               <MetricCard
                 label={contentCopy.labels.posts}
+                loading={isInitialLoading}
                 value={String(state.items.length)}
               />
               <MetricCard
                 label={contentCopy.labels.creators}
+                loading={isInitialLoading}
                 value={String(uniqueCreatorCount)}
               />
               <MetricCard
                 label={contentCopy.labels.nearbyLevels}
+                loading={isInitialLoading}
                 value={String(nearbyCount)}
               />
             </div>
@@ -585,9 +630,11 @@ export function NetworkFeedPage({
 
 function MetricCard({
   label,
+  loading = false,
   value,
 }: {
   label: string;
+  loading?: boolean;
   value: string;
 }) {
   return (
@@ -595,18 +642,24 @@ function MetricCard({
       <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-[0.68rem] sm:tracking-[0.18em]">
         {label}
       </p>
-      <p className="mt-1.5 text-[1.65rem] font-semibold tracking-tight text-slate-950 sm:mt-2 sm:text-2xl">
-        {value}
-      </p>
+      {loading ? (
+        <div className="mt-2 h-8 w-16 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+      ) : (
+        <p className="mt-1.5 text-[1.65rem] font-semibold tracking-tight text-slate-950 sm:mt-2 sm:text-2xl">
+          {value}
+        </p>
+      )}
     </div>
   );
 }
 
 function HeaderStatChip({
   label,
+  loading = false,
   value,
 }: {
   label: string;
+  loading?: boolean;
   value: string;
 }) {
   return (
@@ -614,9 +667,89 @@ function HeaderStatChip({
       <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
         {label}
       </p>
-      <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-        {value}
-      </p>
+      {loading ? (
+        <div className="mt-2 h-7 w-16 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+      ) : (
+        <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FeedLoadingSkeleton({
+  copy,
+}: {
+  copy: ReturnType<typeof getContentCopy>;
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(241,245,249,0.94))] shadow-[0_28px_80px_rgba(15,23,42,0.12)]">
+        <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="space-y-4 p-5 sm:p-6">
+            <div className="flex flex-wrap gap-2">
+              <div className="h-8 w-24 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+              <div className="h-8 w-20 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-8 w-24 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="h-10 w-4/5 rounded-[20px] bg-slate-200/80 motion-safe:animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-4 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-4 w-3/4 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <div className="h-4 w-32 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-11 w-28 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+            </div>
+          </div>
+          <div className="min-h-[260px] bg-slate-200/80 motion-safe:animate-pulse" />
+        </div>
+      </div>
+
+      <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <div className="h-4 w-28 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            <div className="h-8 w-44 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+          </div>
+          <div className="h-10 w-28 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              className="h-10 w-28 rounded-full bg-slate-200/80 motion-safe:animate-pulse"
+              key={index}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            className="rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_20px_48px_rgba(15,23,42,0.08)]"
+            key={index}
+          >
+            <div className="mb-4 h-40 rounded-[22px] bg-slate-200/80 motion-safe:animate-pulse sm:h-48" />
+            <div className="flex gap-2">
+              <div className="h-7 w-16 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+              <div className="h-7 w-20 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="mt-4 h-8 w-4/5 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+            <div className="mt-3 space-y-2">
+              <div className="h-4 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-4 w-2/3 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="h-4 w-24 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-11 w-24 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <MessageCard>{copy.messages.feedLoadingTitle}</MessageCard>
     </div>
   );
 }

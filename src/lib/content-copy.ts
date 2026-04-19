@@ -124,6 +124,8 @@ export type ContentCopy = {
     detailLoadingTitle: string;
     detailLoadFailed: string;
     feedLoadFailed: string;
+    feedLoadingDescription: string;
+    feedLoadingTitle: string;
     imageGenerated: string;
     likeHint: string;
     memberMissing: string;
@@ -296,6 +298,9 @@ const englishCopy: ContentCopy = {
     detailLoadingTitle: "Preparing content",
     detailLoadFailed: "Failed to load the content detail.",
     feedLoadFailed: "Failed to load the network feed.",
+    feedLoadingDescription:
+      "Preparing featured content, nearby levels, and creator cards now.",
+    feedLoadingTitle: "Preparing network feed",
     imageGenerated: "AI cover generated. You can publish or save it now.",
     likeHint: "Double-tap the cover to leave a like.",
     memberMissing: "Member not found.",
@@ -478,6 +483,9 @@ const koreanCopy: ContentCopy = {
     detailLoadingTitle: "콘텐츠 준비 중",
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",
     feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
+    feedLoadingDescription:
+      "추천 콘텐츠와 단계별 카드, 크리에이터 정보를 불러오는 중입니다.",
+    feedLoadingTitle: "네트워크 피드 준비 중",
     imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
     likeHint: "커버 이미지를 두 번 터치하면 좋아요 연출이 실행됩니다.",
     memberMissing: "회원을 찾을 수 없습니다.",

@@ -2,7 +2,10 @@ import type {
   ContentFeedLoadResponse,
   ContentFeedResponse,
 } from "@/lib/content";
-import { getNetworkFeedForMember } from "@/lib/content-service";
+import {
+  getNetworkFeedForMember,
+  getPublicNetworkFeedForReferralCode,
+} from "@/lib/content-service";
 import { defaultLocale, hasLocale } from "@/lib/i18n";
 import {
   getMemberRegistrationStatus,
@@ -19,7 +22,28 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
   const rawLocale = url.searchParams.get("locale");
+  const rawReferralCode = url.searchParams.get("referralCode");
   const rawWalletAddress = url.searchParams.get("walletAddress");
+
+  if (rawReferralCode) {
+    try {
+      const response = await getPublicNetworkFeedForReferralCode(
+        rawReferralCode,
+        rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,
+      );
+      return Response.json({
+        items: response.items,
+        member: null,
+        nextCursor: response.nextCursor,
+        validationError: null,
+      } satisfies ContentFeedLoadResponse);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load network feed.";
+
+      return jsonError(message, 500);
+    }
+  }
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);

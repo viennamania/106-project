@@ -266,6 +266,131 @@ async function resolveNetworkAncestors(member: MemberDocument) {
   return ancestors;
 }
 
+async function resolveNetworkAncestorsFromReferralCode(referralCode: string) {
+  const membersCollection = await getMembersCollection();
+  const normalizedReferralCode = normalizeReferralCode(referralCode);
+
+  if (!normalizedReferralCode) {
+    return [];
+  }
+
+  const visited = new Set<string>();
+  const ancestors: NetworkAncestor[] = [];
+  let currentSponsorCode: string | null = normalizedReferralCode;
+
+  while (
+    currentSponsorCode &&
+    ancestors.length < CONTENT_NETWORK_LEVEL_LIMIT &&
+    !visited.has(currentSponsorCode)
+  ) {
+    visited.add(currentSponsorCode);
+
+    const ancestor = await membersCollection.findOne({
+      referralCode: currentSponsorCode,
+      status: "completed",
+    });
+
+    if (!ancestor) {
+      break;
+    }
+
+    ancestors.push({
+      level: ancestors.length + 1,
+      member: ancestor,
+      referralCode: currentSponsorCode,
+    });
+
+    currentSponsorCode = getSponsorReferralCode(ancestor);
+  }
+
+  return ancestors;
+}
+
+async function loadNetworkFeedItemsFromAncestors(
+  ancestors: NetworkAncestor[],
+  locale: Locale,
+) {
+  const levelByReferralCode = new Map<string, number>();
+  const contentLocale = normalizeContentLocale(locale);
+
+  for (const ancestor of ancestors) {
+    levelByReferralCode.set(ancestor.referralCode, ancestor.level);
+  }
+
+  if (ancestors.length === 0) {
+    return [];
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const creatorProfilesCollection = await getCreatorProfilesCollection();
+  const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
+  const localeFilter =
+    contentLocale === defaultLocale
+      ? [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ]
+      : [{ locale: contentLocale }];
+  const posts = await postsCollection
+    .find({
+      $or: localeFilter,
+      authorReferralCode: { $in: referralCodes },
+      priceType: "free",
+      status: "published",
+    })
+    .sort({
+      publishedAt: -1,
+      createdAt: -1,
+    })
+    .limit(CONTENT_FEED_PAGE_SIZE)
+    .toArray();
+
+  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
+  const storedProfiles = authorEmails.length
+    ? await creatorProfilesCollection
+        .find({
+          email: { $in: authorEmails },
+        })
+        .toArray()
+    : [];
+  const storedProfileByEmail = new Map(
+    storedProfiles.map((profile) => [profile.email, profile]),
+  );
+  const ancestorByEmail = new Map(
+    ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
+  );
+
+  return posts
+    .map((post) => {
+      const storedProfile = storedProfileByEmail.get(post.authorEmail);
+      const authorProfile = storedProfile
+        ? serializeCreatorProfile(storedProfile)
+        : ancestorByEmail.has(post.authorEmail)
+          ? createDefaultCreatorProfile(ancestorByEmail.get(post.authorEmail)!)
+          : null;
+
+      return buildFeedItem({
+        authorProfile,
+        content: post,
+        networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
+      });
+    })
+    .sort((left, right) => {
+      const leftLevel = left.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
+      const rightLevel = right.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
+
+      if (leftLevel !== rightLevel) {
+        return leftLevel - rightLevel;
+      }
+
+      return (
+        new Date(right.publishedAt ?? right.createdAt).getTime() -
+        new Date(left.publishedAt ?? left.createdAt).getTime()
+      );
+    });
+}
+
 async function readStoredCreatorProfile(email: string) {
   const collection = await getCreatorProfilesCollection();
   return collection.findOne({ email: normalizeEmail(email) });
@@ -474,91 +599,23 @@ export async function getNetworkFeedForMember(
 ): Promise<ContentFeedResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const ancestors = await resolveNetworkAncestors(member);
-  const levelByReferralCode = new Map<string, number>();
-  const contentLocale = normalizeContentLocale(locale);
-
-  for (const ancestor of ancestors) {
-    levelByReferralCode.set(ancestor.referralCode, ancestor.level);
-  }
-
-  if (ancestors.length === 0) {
-    return {
-      items: [],
-      member: serializeMember(member),
-      nextCursor: null,
-    };
-  }
-
-  const postsCollection = await getContentPostsCollection();
-  const creatorProfilesCollection = await getCreatorProfilesCollection();
-  const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
-  const localeFilter =
-    contentLocale === defaultLocale
-      ? [
-          { locale: contentLocale },
-          { locale: { $exists: false } },
-          { locale: null },
-        ]
-      : [{ locale: contentLocale }];
-  const posts = await postsCollection
-    .find({
-      $or: localeFilter,
-      authorReferralCode: { $in: referralCodes },
-      priceType: "free",
-      status: "published",
-    })
-    .sort({
-      publishedAt: -1,
-      createdAt: -1,
-    })
-    .limit(CONTENT_FEED_PAGE_SIZE)
-    .toArray();
-
-  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
-  const storedProfiles = authorEmails.length
-    ? await creatorProfilesCollection.find({
-        email: { $in: authorEmails },
-      }).toArray()
-    : [];
-  const storedProfileByEmail = new Map(
-    storedProfiles.map((profile) => [profile.email, profile]),
-  );
-  const ancestorByEmail = new Map(
-    ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
-  );
-
-  const items = posts
-    .map((post) => {
-      const storedProfile = storedProfileByEmail.get(post.authorEmail);
-      const authorProfile = storedProfile
-        ? serializeCreatorProfile(storedProfile)
-        : ancestorByEmail.has(post.authorEmail)
-          ? createDefaultCreatorProfile(ancestorByEmail.get(post.authorEmail)!)
-          : null;
-
-      return buildFeedItem({
-        authorProfile,
-        content: post,
-        networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
-      });
-    })
-    .sort((left, right) => {
-      const leftLevel = left.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
-      const rightLevel = right.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
-
-      if (leftLevel !== rightLevel) {
-        return leftLevel - rightLevel;
-      }
-
-      return (
-        new Date(right.publishedAt ?? right.createdAt).getTime() -
-        new Date(left.publishedAt ?? left.createdAt).getTime()
-      );
-    });
+  const items = await loadNetworkFeedItemsFromAncestors(ancestors, locale);
 
   return {
     items,
     member: serializeMember(member),
+    nextCursor: null,
+  };
+}
+
+export async function getPublicNetworkFeedForReferralCode(
+  referralCode: string,
+  locale: Locale,
+) {
+  const ancestors = await resolveNetworkAncestorsFromReferralCode(referralCode);
+
+  return {
+    items: await loadNetworkFeedItemsFromAncestors(ancestors, locale),
     nextCursor: null,
   };
 }
