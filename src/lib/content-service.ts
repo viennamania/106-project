@@ -49,6 +49,7 @@ const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
 const CONTENT_TAG_LIMIT = 6;
 const CONTENT_TAG_LENGTH_LIMIT = 24;
+const CONTENT_IMAGE_LIMIT = 10;
 const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
 
@@ -73,6 +74,20 @@ function normalizeTags(tags?: string[]) {
     .map((tag) => trimToLength(tag, CONTENT_TAG_LENGTH_LIMIT).toLowerCase())
     .filter(Boolean)
     .slice(0, CONTENT_TAG_LIMIT);
+}
+
+function normalizeContentImageUrls(urls?: string[]) {
+  return Array.from(
+    new Set(
+      (urls ?? [])
+        .map((url) => normalizeOptionalText(url, 500))
+        .filter((url): url is string => Boolean(url)),
+    ),
+  ).slice(0, CONTENT_IMAGE_LIMIT);
+}
+
+function resolvePrimaryContentImageUrl(post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">) {
+  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
 }
 
 function buildSummaryFromContent(options: {
@@ -281,7 +296,7 @@ export async function getPublishedContentShareMetadata(contentId: string) {
   return {
     authorDisplayName,
     contentId: post.contentId,
-    coverImageUrl: post.coverImageUrl ?? null,
+    coverImageUrl: resolvePrimaryContentImageUrl(post),
     locale: normalizeContentLocale(post.locale),
     publishedAt: post.publishedAt ?? null,
     summary: post.summary,
@@ -668,6 +683,7 @@ export async function createContentPostForMember(
     authorReferralCode: member.referralCode,
     body,
     contentId: randomUUID(),
+    contentImageUrls: normalizeContentImageUrls(input.contentImageUrls),
     coverImageUrl: normalizeOptionalText(input.coverImageUrl, 500),
     createdAt: now,
     locale: normalizeContentLocale(input.locale),
@@ -753,6 +769,10 @@ export async function updateContentPostForMember(
     {
       $set: {
         body: nextBody,
+        contentImageUrls:
+          input.contentImageUrls !== undefined
+            ? normalizeContentImageUrls(input.contentImageUrls)
+            : post.contentImageUrls ?? [],
         coverImageUrl:
           input.coverImageUrl !== undefined
             ? normalizeOptionalText(input.coverImageUrl, 500)

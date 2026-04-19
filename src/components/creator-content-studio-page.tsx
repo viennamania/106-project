@@ -125,6 +125,7 @@ const EMPTY_PROFILE = {
 
 const EMPTY_POST_FORM = {
   body: "",
+  contentImageUrls: [] as string[],
   coverImageUrl: "",
   summary: "",
   title: "",
@@ -146,6 +147,12 @@ const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
 const HUB_FULL_POST_PAGE_SIZE = 6;
 const HUB_COMPACT_POST_PAGE_SIZE = 4;
+
+function resolveStudioPostPreviewImage(
+  post: Pick<ContentPostRecord, "coverImageUrl" | "contentImageUrls">,
+) {
+  return post.coverImageUrl ?? post.contentImageUrls[0] ?? null;
+}
 
 function createEmptyAutomationProgress(): AutomationProgressState {
   return {
@@ -504,6 +511,7 @@ export function CreatorContentStudioPage({
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
+  const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
   const backHref = view === "hub" ? homeHref : studioHomeHref;
   const pageTitle =
@@ -1055,6 +1063,7 @@ export function CreatorContentStudioPage({
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body: postForm.body,
+          contentImageUrls: postForm.contentImageUrls,
           coverImageUrl: postForm.coverImageUrl || null,
           email,
           locale,
@@ -1235,6 +1244,76 @@ export function CreatorContentStudioPage({
       setPostForm((current) => ({
         ...current,
         coverImageUrl: data.url,
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.uploadSuccess,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsUploadingPostImage(false);
+    }
+  }
+
+  async function uploadPostContentImages(files: File[]) {
+    try {
+      const remainingSlots = Math.max(0, 10 - postForm.contentImageUrls.length);
+
+      if (remainingSlots <= 0) {
+        throw new Error(
+          locale === "ko"
+            ? "콘텐츠 이미지는 최대 10장까지 업로드할 수 있습니다."
+            : "You can upload up to 10 content images.",
+        );
+      }
+
+      const uploadQueue = files.slice(0, remainingSlots);
+
+      if (uploadQueue.length === 0) {
+        return;
+      }
+
+      setIsUploadingPostImage(true);
+      const email = await resolveMemberEmail();
+      const uploadedUrls: string[] = [];
+
+      for (const file of uploadQueue) {
+        const body = new FormData();
+        body.set("email", email);
+        body.set("file", file);
+        body.set("walletAddress", accountAddress ?? "");
+
+        const response = await fetch("/api/content/posts/upload", {
+          body,
+          method: "POST",
+        });
+        const data = (await response.json()) as ContentPostUploadResponse | {
+          error?: string;
+        };
+
+        if (!response.ok || !("url" in data)) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : contentCopy.messages.uploadFailed,
+          );
+        }
+
+        uploadedUrls.push(data.url);
+      }
+
+      setPostForm((current) => ({
+        ...current,
+        contentImageUrls: [...current.contentImageUrls, ...uploadedUrls].slice(0, 10),
       }));
       setState((current) => ({
         ...current,
@@ -2278,6 +2357,22 @@ export function CreatorContentStudioPage({
                 ref={postImageInputRef}
                 type="file"
               />
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                multiple
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+
+                  if (files.length > 0) {
+                    void uploadPostContentImages(files);
+                  }
+
+                  event.target.value = "";
+                }}
+                ref={postGalleryInputRef}
+                type="file"
+              />
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
@@ -2291,6 +2386,19 @@ export function CreatorContentStudioPage({
                   {isUploadingPostImage
                     ? contentCopy.actions.uploadingImage
                     : contentCopy.actions.uploadImage}
+                </button>
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  onClick={() => {
+                    postGalleryInputRef.current?.click();
+                  }}
+                  type="button"
+                >
+                  <LayoutGrid className="size-4" />
+                  {isUploadingPostImage
+                    ? contentCopy.actions.uploadingImage
+                    : contentCopy.actions.uploadContentImages}
                 </button>
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
@@ -2334,6 +2442,58 @@ export function CreatorContentStudioPage({
                   />
                 </div>
               ) : null}
+            </div>
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {contentCopy.fields.contentImages}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {contentCopy.hints.contentImages}
+                  </p>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                  {postForm.contentImageUrls.length}/10
+                </span>
+              </div>
+              {postForm.contentImageUrls.length > 0 ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {postForm.contentImageUrls.map((imageUrl, index) => (
+                    <div
+                      className="group relative overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90"
+                      key={`${imageUrl}-${index}`}
+                    >
+                      <div
+                        className="aspect-[4/5] w-full bg-cover bg-center"
+                        style={{
+                          backgroundImage: `url(${imageUrl})`,
+                        }}
+                      />
+                      <button
+                        className="absolute right-2 top-2 inline-flex h-8 items-center justify-center rounded-full bg-white/92 px-3 text-xs font-semibold text-slate-900 shadow-sm transition hover:bg-white"
+                        onClick={() => {
+                          setPostForm((current) => ({
+                            ...current,
+                            contentImageUrls: current.contentImageUrls.filter(
+                              (_, currentIndex) => currentIndex !== index,
+                            ),
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {contentCopy.actions.removeImage}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
+                  {locale === "ko"
+                    ? "상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요."
+                    : "Add gallery images that members can swipe through on the detail page."}
+                </div>
+              )}
             </div>
             <TextAreaField
               hint={contentCopy.hints.body}
@@ -2650,12 +2810,12 @@ export function CreatorContentStudioPage({
                 className="rounded-[24px] border border-white/80 bg-white/90 p-4"
                 key={post.contentId}
               >
-                {post.coverImageUrl ? (
+                {resolveStudioPostPreviewImage(post) ? (
                   <div className="mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
                     <div
                       className="h-36 w-full bg-cover bg-center"
                       style={{
-                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${post.coverImageUrl})`,
+                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${resolveStudioPostPreviewImage(post)})`,
                       }}
                     />
                   </div>

@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Copy,
   ExternalLink,
   Heart,
@@ -421,6 +422,7 @@ export function ContentDetailPage({
     state.gateReason === "connect" ||
     state.gateReason === "signup" ||
     state.member?.status !== "completed";
+  const heroImageUrl = state.content?.coverImageUrl ?? state.content?.contentImageUrls[0] ?? null;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
@@ -491,13 +493,13 @@ export function ContentDetailPage({
             onPointerUp={handleHeroPointerUp}
             ref={heroRef}
           >
-            {state.content.coverImageUrl ? (
+            {heroImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={state.content.title}
                 className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
                 loading="eager"
-                src={state.content.coverImageUrl}
+                src={heroImageUrl}
               />
             ) : (
               <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
@@ -626,6 +628,29 @@ export function ContentDetailPage({
 
           </section>
 
+          {state.content.contentImageUrls.length > 0 ? (
+            <section className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="eyebrow">{contentCopy.labels.imageGallery}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {locale === "ko"
+                      ? "모바일에서 좌우로 넘기며 이미지 중심으로 콘텐츠를 볼 수 있습니다."
+                      : "Swipe through the visual gallery on mobile."}
+                  </p>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                  {state.content.contentImageUrls.length}
+                </span>
+              </div>
+              <ContentImageCarousel
+                images={state.content.contentImageUrls}
+                isPreviewLocked={isPreviewLocked}
+                title={state.content.title}
+              />
+            </section>
+          ) : null}
+
           <section
             className={cn(
               "relative overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-7",
@@ -724,6 +749,145 @@ function HeroBadge({
     <span className="inline-flex items-center rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-md">
       {children}
     </span>
+  );
+}
+
+function ContentImageCarousel({
+  images,
+  isPreviewLocked,
+  title,
+}: {
+  images: string[];
+  isPreviewLocked: boolean;
+  title: string;
+}) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const animationFrameId =
+      typeof window !== "undefined"
+        ? window.requestAnimationFrame(() => {
+            setActiveIndex(0);
+          })
+        : null;
+
+    if (trackRef.current) {
+      trackRef.current.scrollTo({ left: 0 });
+    }
+
+    return () => {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [images]);
+
+  const scrollToIndex = useCallback(
+    (nextIndex: number) => {
+      const track = trackRef.current;
+
+      if (!track) {
+        return;
+      }
+
+      const clampedIndex = Math.max(0, Math.min(images.length - 1, nextIndex));
+      track.scrollTo({
+        behavior: "smooth",
+        left: track.clientWidth * clampedIndex,
+      });
+      setActiveIndex(clampedIndex);
+    },
+    [images.length],
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="relative overflow-hidden rounded-[26px] border border-slate-200 bg-slate-950/95 shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+        <div
+          className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          onScroll={(event) => {
+            const target = event.currentTarget;
+
+            if (!target.clientWidth) {
+              return;
+            }
+
+            const nextIndex = Math.round(target.scrollLeft / target.clientWidth);
+            setActiveIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
+          }}
+          ref={trackRef}
+        >
+          {images.map((imageUrl, index) => (
+            <div className="w-full shrink-0 snap-center" key={`${imageUrl}-${index}`}>
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`${title} ${index + 1}`}
+                  className={cn(
+                    "block aspect-[4/5] w-full object-cover sm:aspect-[16/10]",
+                    isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
+                  )}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  src={imageUrl}
+                />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(15,23,42,0.16)_42%,rgba(15,23,42,0.4))]" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {images.length > 1 ? (
+          <>
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-4 py-4">
+              <span className="rounded-full bg-white/14 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/86 backdrop-blur-md">
+                {activeIndex + 1} / {images.length}
+              </span>
+            </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
+              <button
+                className="pointer-events-auto inline-flex size-10 items-center justify-center rounded-full border border-white/18 bg-slate-950/55 text-white backdrop-blur-md transition hover:bg-slate-950/72"
+                onClick={() => {
+                  scrollToIndex(activeIndex - 1);
+                }}
+                type="button"
+              >
+                <ArrowLeft className="size-4" />
+              </button>
+              <button
+                className="pointer-events-auto inline-flex size-10 items-center justify-center rounded-full border border-white/18 bg-slate-950/55 text-white backdrop-blur-md transition hover:bg-slate-950/72"
+                onClick={() => {
+                  scrollToIndex(activeIndex + 1);
+                }}
+                type="button"
+              >
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {images.length > 1 ? (
+        <div className="flex items-center justify-center gap-2">
+          {images.map((imageUrl, index) => (
+            <button
+              className={cn(
+                "h-2.5 rounded-full transition",
+                index === activeIndex
+                  ? "w-8 bg-slate-950"
+                  : "w-2.5 bg-slate-300 hover:bg-slate-400",
+              )}
+              key={`${imageUrl}-dot-${index}`}
+              onClick={() => {
+                scrollToIndex(index);
+              }}
+              type="button"
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

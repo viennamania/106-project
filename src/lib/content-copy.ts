@@ -31,6 +31,7 @@ export type ContentCopy = {
     showLess: string;
     showMore: string;
     uploadImage: string;
+    uploadContentImages: string;
     uploadingImage: string;
     viewDetail: string;
   };
@@ -51,6 +52,7 @@ export type ContentCopy = {
     automationPublishScoreThreshold: string;
     automationTopics: string;
     body: string;
+    contentImages: string;
     coverImage: string;
     displayName: string;
     heroImage: string;
@@ -69,6 +71,7 @@ export type ContentCopy = {
     automationPublishScoreThreshold: string;
     automationTopics: string;
     body: string;
+    contentImages: string;
     coverImage: string;
     displayName: string;
     heroImage: string;
@@ -98,6 +101,7 @@ export type ContentCopy = {
     feedEmpty: string;
     featured: string;
     free: string;
+    imageGallery: string;
     level: string;
     nearbyLevels: string;
     networkAccess: string;
@@ -186,6 +190,7 @@ const englishCopy: ContentCopy = {
     showLess: "Show less",
     showMore: "Show more",
     uploadImage: "Upload image",
+    uploadContentImages: "Upload content images",
     uploadingImage: "Uploading...",
     viewDetail: "View detail",
   },
@@ -209,6 +214,7 @@ const englishCopy: ContentCopy = {
     automationPublishScoreThreshold: "Auto publish score",
     automationTopics: "Automation topics",
     body: "Content body",
+    contentImages: "Content images",
     coverImage: "Cover image",
     displayName: "Display name",
     heroImage: "Hero image",
@@ -227,6 +233,8 @@ const englishCopy: ContentCopy = {
     automationPublishScoreThreshold: "Only applies when auto publish is enabled.",
     automationTopics: "Comma-separated topics the AI editor should focus on.",
     body: "Write the main text your network members will read. You can add a cover image below for the feed card and detail header.",
+    contentImages:
+      "Optional gallery shown in the content detail page. Upload up to 10 PNG, JPG, or WEBP images.",
     coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
     displayName: "This name appears across the network feed and content detail pages.",
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
@@ -256,6 +264,7 @@ const englishCopy: ContentCopy = {
     feedEmpty: "No free content from your upstream network yet.",
     featured: "Featured",
     free: "Free",
+    imageGallery: "Image gallery",
     level: "Level",
     nearbyLevels: "Level 1-2",
     networkAccess: "Network access",
@@ -355,6 +364,7 @@ const koreanCopy: ContentCopy = {
     showLess: "접기",
     showMore: "더 보기",
     uploadImage: "이미지 업로드",
+    uploadContentImages: "콘텐츠 이미지 업로드",
     uploadingImage: "업로드 중...",
     viewDetail: "상세 보기",
   },
@@ -378,6 +388,7 @@ const koreanCopy: ContentCopy = {
     automationPublishScoreThreshold: "자동 게시 점수 기준",
     automationTopics: "자동화 주제",
     body: "본문",
+    contentImages: "콘텐츠 이미지",
     coverImage: "커버 이미지",
     displayName: "표시 이름",
     heroImage: "히어로 이미지",
@@ -396,6 +407,8 @@ const koreanCopy: ContentCopy = {
     automationPublishScoreThreshold: "자동 게시를 켰을 때만 적용됩니다.",
     automationTopics: "쉼표로 구분해서 AI 에디터가 집중할 주제를 입력하세요.",
     body: "네트워크 회원이 읽게 될 본문을 작성하세요. 커버 이미지는 아래에서 함께 올릴 수 있습니다.",
+    contentImages:
+      "상세 페이지에서 스와이프로 보여줄 이미지입니다. PNG, JPG, WEBP 형식 최대 10장까지 업로드할 수 있습니다.",
     coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
     heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",
@@ -426,6 +439,7 @@ const koreanCopy: ContentCopy = {
     feedEmpty: "현재 내 상위 네트워크에서 공개된 무료 콘텐츠가 없습니다.",
     featured: "추천 콘텐츠",
     free: "무료",
+    imageGallery: "이미지 갤러리",
     level: "레벨",
     nearbyLevels: "1~2단계",
     networkAccess: "네트워크 접근",

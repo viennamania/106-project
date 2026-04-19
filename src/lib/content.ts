@@ -70,6 +70,7 @@ export type ContentPostDocument = {
   authorReferralCode: string;
   body: string;
   contentId: string;
+  contentImageUrls?: string[];
   coverImageUrl: string | null;
   createdAt: Date;
   locale?: Locale | null;
@@ -133,6 +134,7 @@ export type ContentPostRecord = {
   authorEmail: string;
   authorReferralCode: string;
   contentId: string;
+  contentImageUrls: string[];
   coverImageUrl: string | null;
   createdAt: string;
   locale: Locale;
@@ -262,6 +264,7 @@ export type CreatorProfileUpsertRequest = {
 
 export type ContentPostCreateRequest = {
   body: string;
+  contentImageUrls?: string[];
   coverImageUrl?: string | null;
   email: string;
   locale?: Locale | null;
@@ -340,6 +343,7 @@ export function serializeContentPost(
     authorEmail: content.authorEmail,
     authorReferralCode: content.authorReferralCode,
     contentId: content.contentId,
+    contentImageUrls: content.contentImageUrls ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
     locale: normalizeContentLocale(content.locale),

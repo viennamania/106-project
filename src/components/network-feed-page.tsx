@@ -53,6 +53,10 @@ type FeedLevelFilter = "all" | "extended" | "nearby";
 const INITIAL_VISIBLE_ITEM_COUNT = 6;
 const VISIBLE_ITEM_INCREMENT = 6;
 
+function resolveFeedPreviewImage(item: Pick<ContentFeedItemRecord, "coverImageUrl" | "contentImageUrls">) {
+  return item.coverImageUrl ?? item.contentImageUrls[0] ?? null;
+}
+
 export function NetworkFeedPage({
   dictionary,
   locale,
@@ -100,6 +104,7 @@ export function NetworkFeedPage({
     });
   }, [levelFilter, state.items]);
   const featuredItem = filteredItems[0] ?? null;
+  const featuredImageUrl = featuredItem ? resolveFeedPreviewImage(featuredItem) : null;
   const listItems = featuredItem
     ? filteredItems.slice(1, visibleItemCount + 1)
     : filteredItems.slice(0, visibleItemCount);
@@ -411,12 +416,12 @@ export function NetworkFeedPage({
                         </Link>
                       </div>
                     </div>
-                    {featuredItem.coverImageUrl ? (
+                    {featuredImageUrl ? (
                       <div className="min-h-[240px] border-t border-white/50 lg:min-h-full lg:border-l lg:border-t-0">
                         <div
                           className="h-full min-h-[240px] w-full bg-cover bg-center"
                           style={{
-                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${featuredItem.coverImageUrl})`,
+                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${featuredImageUrl})`,
                           }}
                         />
                       </div>
@@ -625,14 +630,16 @@ function FeedPostCard({
   referralCode: string | null;
   viewDetailLabel: string;
 }) {
+  const previewImageUrl = resolveFeedPreviewImage(item);
+
   return (
     <article className="glass-card rounded-[28px] p-5">
-      {item.coverImageUrl ? (
+      {previewImageUrl ? (
         <div className="mb-4 overflow-hidden rounded-[22px] border border-slate-200 bg-slate-900/90">
           <div
             className="h-40 w-full bg-cover bg-center sm:h-48"
             style={{
-              backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${item.coverImageUrl})`,
+              backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${previewImageUrl})`,
             }}
           />
         </div>

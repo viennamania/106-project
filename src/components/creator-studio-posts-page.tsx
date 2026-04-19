@@ -67,6 +67,12 @@ const EMPTY_SUMMARY = {
   published: 0,
 };
 
+function resolveManagerPostPreviewImage(
+  post: Pick<ContentPostRecord, "coverImageUrl" | "contentImageUrls">,
+) {
+  return post.coverImageUrl ?? post.contentImageUrls[0] ?? null;
+}
+
 function isPostVisibilityFilter(value: string | null): value is PostVisibilityFilter {
   return value === "all" || value === "archived" || value === "draft" || value === "published";
 }
@@ -763,12 +769,12 @@ export function CreatorStudioPostsPage({
                   className="rounded-[24px] border border-white/80 bg-white/90 p-4"
                   key={post.contentId}
                 >
-                  {post.coverImageUrl ? (
+                  {resolveManagerPostPreviewImage(post) ? (
                     <div className="mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
                       <div
                         className="h-40 w-full bg-cover bg-center"
                         style={{
-                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${post.coverImageUrl})`,
+                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${resolveManagerPostPreviewImage(post)})`,
                         }}
                       />
                     </div>
