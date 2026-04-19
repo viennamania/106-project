@@ -16,6 +16,7 @@ import {
   Copy,
   ExternalLink,
   Heart,
+  LoaderCircle,
   LockKeyhole,
   Share2,
   Send,
@@ -460,7 +461,22 @@ export function ContentDetailPage({
       ) : null}
 
       {state.status === "loading" && !state.content ? (
-        <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
+        <ContentDetailLoadingState
+          backHref={backHref}
+          locale={locale}
+          subtitle={contentCopy.page.detailEyebrow}
+          teaser={heroTitle
+            ? {
+                authorDisplayName: heroAuthorDisplayName,
+                coverImageUrl: heroImageUrl,
+                publishedAt: heroPublishedLabel,
+                summary: heroSummary,
+                title: heroTitle,
+              }
+            : null}
+          loadingDescription={contentCopy.messages.detailLoadingDescription}
+          loadingTitle={contentCopy.messages.detailLoadingTitle}
+        />
       ) : requiresMembershipGate ? (
         <div className="space-y-4 sm:space-y-6">
           {heroTitle ? (
@@ -863,6 +879,121 @@ function HeroTopBar({
         <Share2 className="size-4" />
         <span className="sr-only">{shareLabel}</span>
       </button>
+    </div>
+  );
+}
+
+function ContentDetailLoadingState({
+  backHref,
+  loadingDescription,
+  loadingTitle,
+  locale,
+  subtitle,
+  teaser,
+}: {
+  backHref: string;
+  loadingDescription: string;
+  loadingTitle: string;
+  locale: Locale;
+  subtitle: string;
+  teaser: {
+    authorDisplayName: string | null;
+    coverImageUrl: string | null;
+    publishedAt: string | null;
+    summary: string | null;
+    title: string;
+  } | null;
+}) {
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {teaser ? (
+        <section className="relative mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.20)] sm:mx-0 sm:rounded-[36px]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
+            <Link
+              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/40 text-white backdrop-blur-md transition hover:bg-slate-950/58 sm:size-12"
+              href={backHref}
+            >
+              <ArrowLeft className="size-4 sm:size-5" />
+            </Link>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/38 px-3 py-2 text-[0.72rem] font-semibold text-white backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+              <LoaderCircle className="size-3.5 animate-spin" />
+              <span>{loadingTitle}</span>
+            </div>
+          </div>
+
+          {teaser.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt={teaser.title}
+              className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
+              loading="eager"
+              src={teaser.coverImageUrl}
+            />
+          ) : (
+            <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
+          )}
+
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.12)_0%,rgba(2,6,23,0.4)_38%,rgba(2,6,23,0.9)_100%)]" />
+
+          <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-wrap gap-2">
+              <HeroBadge>{locale === "ko" ? "미리보기" : "Preview"}</HeroBadge>
+              {teaser.authorDisplayName ? (
+                <HeroBadge>{teaser.authorDisplayName}</HeroBadge>
+              ) : null}
+              {teaser.publishedAt ? <HeroBadge>{teaser.publishedAt}</HeroBadge> : null}
+            </div>
+
+            <h2 className="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.06] tracking-tight text-white sm:mt-5 sm:text-[2.8rem]">
+              {teaser.title}
+            </h2>
+            {teaser.summary ? (
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/82 sm:mt-4 sm:text-base sm:leading-7">
+                {teaser.summary}
+              </p>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:rounded-[32px] sm:p-7">
+        <div className="flex items-start gap-4">
+          <div className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+            <LoaderCircle className="size-5 animate-spin" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-slate-400">
+              {subtitle}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+              {loadingTitle}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {loadingDescription}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full w-1/3 rounded-full bg-[linear-gradient(90deg,#0f172a_0%,#334155_100%)] [animation:pulse_1.4s_ease-in-out_infinite]" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-[22px] border border-slate-200 bg-white/90 p-4">
+              <div className="h-2.5 w-20 rounded-full bg-slate-200" />
+              <div className="mt-3 h-4 w-24 rounded-full bg-slate-900/85" />
+            </div>
+            <div className="rounded-[22px] border border-slate-200 bg-white/90 p-4">
+              <div className="h-2.5 w-16 rounded-full bg-slate-200" />
+              <div className="mt-3 h-4 w-28 rounded-full bg-slate-200" />
+            </div>
+            <div className="rounded-[22px] border border-slate-200 bg-white/90 p-4">
+              <div className="h-2.5 w-24 rounded-full bg-slate-200" />
+              <div className="mt-3 h-4 w-20 rounded-full bg-slate-200" />
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -120,6 +120,8 @@ export type ContentCopy = {
     automationRunSuccess: string;
     automationSaved: string;
     connectRequired: string;
+    detailLoadingDescription: string;
+    detailLoadingTitle: string;
     detailLoadFailed: string;
     feedLoadFailed: string;
     imageGenerated: string;
@@ -288,6 +290,9 @@ const englishCopy: ContentCopy = {
     automationSaved: "Content automation settings saved.",
     connectRequired:
       "Sign in with the same member email you use for your referral network.",
+    detailLoadingDescription:
+      "Checking member access and loading the full content experience.",
+    detailLoadingTitle: "Preparing content",
     detailLoadFailed: "Failed to load the content detail.",
     feedLoadFailed: "Failed to load the network feed.",
     imageGenerated: "AI cover generated. You can publish or save it now.",
@@ -466,6 +471,9 @@ const koreanCopy: ContentCopy = {
     automationSaved: "콘텐츠 자동화 설정을 저장했습니다.",
     connectRequired:
       "레퍼럴 네트워크에 사용하는 같은 회원 이메일로 로그인해야 합니다.",
+    detailLoadingDescription:
+      "회원 상태와 열람 권한을 확인한 뒤 전체 콘텐츠를 불러오고 있습니다.",
+    detailLoadingTitle: "콘텐츠 준비 중",
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",
     feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
     imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
