@@ -120,23 +120,22 @@ export async function POST(
       ...body,
       syncMode: "light",
     });
-    const preview = await getPublicContentPreview(contentId);
 
     if (!sync.member) {
       const response: ContentDetailLoadResponse = {
-        content: preview,
-        gateReason: preview ? "signup" : null,
+        content: null,
+        gateReason: "signup",
         member: null,
         validationError: null,
       };
 
-      return preview ? Response.json(response) : jsonError("Member not found.", 404);
+      return Response.json(response);
     }
 
     if (sync.validationError) {
       const response: ContentDetailLoadResponse = {
-        content: preview,
-        gateReason: preview ? "signup" : null,
+        content: null,
+        gateReason: "signup",
         member: sync.member,
         validationError: sync.validationError,
       };
@@ -146,8 +145,8 @@ export async function POST(
 
     if (sync.member.status !== "completed") {
       const response: ContentDetailLoadResponse = {
-        content: preview,
-        gateReason: preview ? "signup" : null,
+        content: null,
+        gateReason: "signup",
         member: sync.member,
         validationError: null,
       };
@@ -164,10 +163,15 @@ export async function POST(
         error instanceof Error ? error.message : "Failed to load content.";
 
       if (
-        preview &&
         (message === "Content is not available in your network." ||
           message === "This content requires a paid unlock.")
       ) {
+        const preview = await getPublicContentPreview(contentId);
+
+        if (!preview) {
+          throw error;
+        }
+
         const response: ContentDetailLoadResponse = {
           content: preview,
           gateReason:

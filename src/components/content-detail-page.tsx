@@ -16,6 +16,7 @@ import {
   Copy,
   ExternalLink,
   Heart,
+  LockKeyhole,
   Share2,
   Send,
 } from "lucide-react";
@@ -103,7 +104,7 @@ export function ContentDetailPage({
   const [state, setState] = useState<DetailState>({
     content: initialPreview,
     error: null,
-    gateReason: initialPreview ? "connect" : null,
+    gateReason: "connect",
     member: null,
     status: initialPreview ? "ready" : "idle",
   });
@@ -211,7 +212,7 @@ export function ContentDetailPage({
           : error instanceof Error
             ? error.message
             : contentCopy.messages.detailLoadFailed,
-        gateReason: initialPreview ? "connect" : null,
+        gateReason: "connect",
         member: null,
         status: initialPreview ? "ready" : "error",
       });
@@ -232,7 +233,7 @@ export function ContentDetailPage({
       setState({
         content: initialPreview,
         error: null,
-        gateReason: initialPreview ? "connect" : null,
+        gateReason: "connect",
         member: null,
         status: initialPreview ? "ready" : "idle",
       });
@@ -422,6 +423,12 @@ export function ContentDetailPage({
     state.gateReason === "connect" ||
     state.gateReason === "signup" ||
     state.member?.status !== "completed";
+  const requiresMembershipGate =
+    !state.content &&
+    (isDisconnected ||
+      state.gateReason === "connect" ||
+      state.gateReason === "signup" ||
+      state.member?.status !== "completed");
   const heroImageUrl = state.content?.coverImageUrl ?? state.content?.contentImageUrls[0] ?? null;
 
   return (
@@ -469,6 +476,14 @@ export function ContentDetailPage({
 
       {state.status === "loading" && !state.content ? (
         <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
+      ) : requiresMembershipGate ? (
+        <LockedContentGate
+          activateHref={activateHref}
+          homeHref={homeHref}
+          locale={locale}
+          primaryMessage={contentCopy.messages.paymentRequired}
+          secondaryMessage={contentCopy.messages.connectRequired}
+        />
       ) : state.error && !state.content ? (
         <MessageCard tone="error">
           {state.error}
@@ -629,8 +644,8 @@ export function ContentDetailPage({
           </section>
 
           {state.content.contentImageUrls.length > 0 ? (
-            <section className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
+            <section className="mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.18)] sm:mx-0 sm:rounded-[32px] sm:border sm:border-white/70 sm:bg-white/92 sm:p-5">
+              <div className="mb-4 hidden items-center justify-between gap-3 sm:flex">
                 <div>
                   <p className="eyebrow">{contentCopy.labels.imageGallery}</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
@@ -646,6 +661,7 @@ export function ContentDetailPage({
               <ContentImageCarousel
                 images={state.content.contentImageUrls}
                 isPreviewLocked={isPreviewLocked}
+                locale={locale}
                 title={state.content.title}
               />
             </section>
@@ -752,13 +768,63 @@ function HeroBadge({
   );
 }
 
+function LockedContentGate({
+  activateHref,
+  homeHref,
+  locale,
+  primaryMessage,
+  secondaryMessage,
+}: {
+  activateHref: string;
+  homeHref: string;
+  locale: Locale;
+  primaryMessage: string;
+  secondaryMessage: string;
+}) {
+  return (
+    <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.2),transparent_28%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_24%),linear-gradient(180deg,#0f172a_0%,#111827_58%,#1e293b_100%)] px-5 py-10 text-white shadow-[0_28px_70px_rgba(15,23,42,0.2)] sm:px-8 sm:py-14">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0)_28%,rgba(255,255,255,0.05)_100%)]" />
+      <div className="relative mx-auto max-w-2xl text-center">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-white/14 bg-white/10 backdrop-blur-md">
+          <LockKeyhole className="size-7" />
+        </div>
+        <p className="mt-6 text-[0.72rem] font-semibold uppercase tracking-[0.3em] text-white/58">
+          Members Only
+        </p>
+        <h2 className="mt-3 text-[1.8rem] font-semibold leading-[1.08] tracking-tight sm:text-[2.4rem]">
+          {primaryMessage}
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/76 sm:text-base">
+          {secondaryMessage}
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(255,255,255,0.18)] transition hover:bg-slate-100"
+            href={activateHref}
+          >
+            {locale === "ko" ? "가입 완료하기" : "Complete signup"}
+          </Link>
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/14"
+            href={homeHref}
+          >
+            {locale === "ko" ? "홈으로 돌아가기" : "Back home"}
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ContentImageCarousel({
   images,
   isPreviewLocked,
+  locale,
   title,
 }: {
   images: string[];
   isPreviewLocked: boolean;
+  locale: Locale;
   title: string;
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -802,10 +868,10 @@ function ContentImageCarousel({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-[26px] border border-slate-200 bg-slate-950/95 shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="relative overflow-hidden bg-slate-950/95 sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
         <div
-          className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth touch-pan-y [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           onScroll={(event) => {
             const target = event.currentTarget;
 
@@ -825,13 +891,13 @@ function ContentImageCarousel({
                 <img
                   alt={`${title} ${index + 1}`}
                   className={cn(
-                    "block aspect-[4/5] w-full object-cover sm:aspect-[16/10]",
+                    "block h-[74svh] w-full object-cover sm:h-auto sm:aspect-[16/10]",
                     isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
                   )}
                   loading={index === 0 ? "eager" : "lazy"}
                   src={imageUrl}
                 />
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(15,23,42,0.16)_42%,rgba(15,23,42,0.4))]" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.18)_0%,rgba(15,23,42,0.06)_22%,rgba(15,23,42,0.1)_48%,rgba(15,23,42,0.42)_100%)]" />
               </div>
             </div>
           ))}
@@ -839,9 +905,12 @@ function ContentImageCarousel({
 
         {images.length > 1 ? (
           <>
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-4 py-4">
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-4 py-4 sm:px-5">
               <span className="rounded-full bg-white/14 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/86 backdrop-blur-md">
                 {activeIndex + 1} / {images.length}
+              </span>
+              <span className="rounded-full bg-slate-950/42 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.22em] text-white/80 backdrop-blur-md sm:hidden">
+                {locale === "ko" ? "스와이프" : "Swipe"}
               </span>
             </div>
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
@@ -865,6 +934,22 @@ function ContentImageCarousel({
               </button>
             </div>
           </>
+        ) : null}
+
+        {images.length > 1 ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-4 pb-4 sm:hidden">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/50 px-3 py-2 backdrop-blur-md">
+              {images.map((imageUrl, index) => (
+                <span
+                  className={cn(
+                    "h-1.5 rounded-full transition",
+                    index === activeIndex ? "w-6 bg-white" : "w-1.5 bg-white/45",
+                  )}
+                  key={`${imageUrl}-mobile-dot-${index}`}
+                />
+              ))}
+            </div>
+          </div>
         ) : null}
       </div>
 
