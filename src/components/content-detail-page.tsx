@@ -19,7 +19,6 @@ import {
   LoaderCircle,
   LockKeyhole,
   Share2,
-  Send,
 } from "lucide-react";
 import {
   AutoConnect,
@@ -436,18 +435,6 @@ export function ContentDetailPage({
     [triggerLike],
   );
 
-  const twitterShareHref =
-    shareUrl && state.content
-      ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(state.content.title)}&url=${encodeURIComponent(shareUrl)}`
-      : null;
-  const telegramShareHref =
-    shareUrl && state.content
-      ? `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(state.content.title)}`
-      : null;
-  const facebookShareHref = shareUrl
-    ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
-    : null;
-
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
       {hasThirdwebClientId ? (
@@ -563,7 +550,7 @@ export function ContentDetailPage({
               authorAvatarUrl={state.content.authorProfile?.avatarImageUrl}
               authorLabel={heroAuthorDisplayName}
               backHref={backHref}
-              metaLabel={state.content.authorProfile?.referralCode ?? heroPublishedLabel}
+              metaLabel={heroPublishedLabel}
               onShare={() => {
                 void handleShare();
               }}
@@ -590,9 +577,6 @@ export function ContentDetailPage({
                 <HeroBadge>{contentCopy.labels.free}</HeroBadge>
                 {heroAuthorDisplayName ? (
                   <HeroBadge>{heroAuthorDisplayName}</HeroBadge>
-                ) : null}
-                {state.content.authorProfile?.referralCode ? (
-                  <HeroBadge>{state.content.authorProfile.referralCode}</HeroBadge>
                 ) : null}
                 {heroPublishedLabel ? <HeroBadge>{heroPublishedLabel}</HeroBadge> : null}
               </div>
@@ -647,9 +631,9 @@ export function ContentDetailPage({
               </button>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
+            <div className="mt-4 grid grid-cols-2 gap-2">
               <ActionChip
-                className="w-full justify-center lg:w-auto"
+                className="w-full justify-center"
                 icon={Share2}
                 label={
                   shareState === "sharing"
@@ -662,7 +646,7 @@ export function ContentDetailPage({
                 tone="primary"
               />
               <ActionChip
-                className="w-full justify-center lg:w-auto"
+                className="w-full justify-center"
                 icon={Copy}
                 label={
                   shareState === "copied"
@@ -673,28 +657,6 @@ export function ContentDetailPage({
                   void copyShareLink();
                 }}
               />
-              {twitterShareHref ? (
-                <SocialShareChip
-                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
-                  href={twitterShareHref}
-                  label="X"
-                />
-              ) : null}
-              {telegramShareHref ? (
-                <SocialShareChip
-                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
-                  href={telegramShareHref}
-                  icon={Send}
-                  label="Telegram"
-                />
-              ) : null}
-              {facebookShareHref ? (
-                <SocialShareChip
-                  className="hidden w-full justify-center lg:inline-flex lg:w-auto"
-                  href={facebookShareHref}
-                  label="Facebook"
-                />
-              ) : null}
             </div>
 
             {shareState === "error" ? (
@@ -1244,33 +1206,6 @@ function ActionChip({
       <Icon className="size-4" />
       <span>{label}</span>
     </button>
-  );
-}
-
-function SocialShareChip({
-  className,
-  href,
-  icon: Icon,
-  label,
-}: {
-  className?: string;
-  href: string;
-  icon?: ComponentType<{ className?: string }>;
-  label: string;
-}) {
-  return (
-    <a
-      className={cn(
-        "inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50",
-        className,
-      )}
-      href={href}
-      rel="noreferrer"
-      target="_blank"
-    >
-      {Icon ? <Icon className="size-4" /> : null}
-      <span>{label}</span>
-    </a>
   );
 }
 
