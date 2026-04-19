@@ -72,6 +72,7 @@ type StudioState = {
   notice: string | null;
   posts: ContentPostRecord[];
   profile: {
+    avatarImageUrl: string;
     displayName: string;
     heroImageUrl: string;
     intro: string;
@@ -134,6 +135,7 @@ type StudioView = "hub" | "new" | "profile";
 type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
 const EMPTY_PROFILE = {
+  avatarImageUrl: "",
   displayName: "",
   heroImageUrl: "",
   intro: "",
@@ -496,7 +498,8 @@ export function CreatorContentStudioPage({
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
-  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
+  const [isUploadingProfileAvatar, setIsUploadingProfileAvatar] = useState(false);
+  const [isUploadingProfileHeroImage, setIsUploadingProfileHeroImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
   const automationProgressLabels =
@@ -831,7 +834,8 @@ export function CreatorContentStudioPage({
     ).length;
   const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
   const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
-  const profileImageInputRef = useRef<HTMLInputElement | null>(null);
+  const profileAvatarInputRef = useRef<HTMLInputElement | null>(null);
+  const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
@@ -1037,6 +1041,7 @@ export function CreatorContentStudioPage({
           notice: null,
           posts: [],
           profile: {
+            avatarImageUrl: profileData.profile.avatarImageUrl ?? "",
             displayName: profileData.profile.displayName,
             heroImageUrl: profileData.profile.heroImageUrl ?? "",
             intro: profileData.profile.intro,
@@ -1173,6 +1178,7 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: postsData.posts,
         profile: {
+          avatarImageUrl: postsData.profile.avatarImageUrl ?? "",
           displayName: postsData.profile.displayName,
           heroImageUrl: postsData.profile.heroImageUrl ?? "",
           intro: postsData.profile.intro,
@@ -1329,6 +1335,7 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile", {
         body: JSON.stringify({
+          avatarImageUrl: state.profile.avatarImageUrl || null,
           displayName: state.profile.displayName,
           email,
           heroImageUrl: state.profile.heroImageUrl || null,
@@ -1358,6 +1365,7 @@ export function CreatorContentStudioPage({
         error: null,
         notice: contentCopy.messages.profileSaved,
         profile: {
+          avatarImageUrl: data.profile.avatarImageUrl ?? "",
           displayName: data.profile.displayName,
           heroImageUrl: data.profile.heroImageUrl ?? "",
           intro: data.profile.intro,
@@ -1490,9 +1498,57 @@ export function CreatorContentStudioPage({
     }
   }
 
+  async function uploadProfileAvatarImage(file: File) {
+    try {
+      setIsUploadingProfileAvatar(true);
+      const email = await resolveMemberEmail();
+      const body = new FormData();
+      body.set("email", email);
+      body.set("file", file);
+      body.set("walletAddress", accountAddress ?? "");
+
+      const response = await fetch("/api/content/profile/upload", {
+        body,
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorProfileUploadResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.uploadFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: contentCopy.messages.uploadSuccess,
+        profile: {
+          ...current.profile,
+          avatarImageUrl: data.url,
+        },
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsUploadingProfileAvatar(false);
+    }
+  }
+
   async function uploadProfileHeroImage(file: File) {
     try {
-      setIsUploadingProfileImage(true);
+      setIsUploadingProfileHeroImage(true);
       const email = await resolveMemberEmail();
       const body = new FormData();
       body.set("email", email);
@@ -1534,7 +1590,7 @@ export function CreatorContentStudioPage({
         notice: null,
       }));
     } finally {
-      setIsUploadingProfileImage(false);
+      setIsUploadingProfileHeroImage(false);
     }
   }
 
@@ -2344,6 +2400,81 @@ export function CreatorContentStudioPage({
             />
             <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="text-sm font-medium text-slate-900">
+                {contentCopy.fields.avatarImage}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                {contentCopy.hints.avatarImage}
+              </p>
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+
+                  if (file) {
+                    void uploadProfileAvatarImage(file);
+                  }
+
+                  event.target.value = "";
+                }}
+                ref={profileAvatarInputRef}
+                type="file"
+              />
+              <div className="mt-4 flex items-center gap-4">
+                <div className="relative shrink-0">
+                  <div className="flex size-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+                    {state.profile.avatarImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        alt={state.profile.displayName || contentCopy.fields.displayName}
+                        className="h-full w-full object-cover"
+                        src={state.profile.avatarImageUrl}
+                      />
+                    ) : (
+                      <UserRound className="size-8 text-slate-300" />
+                    )}
+                  </div>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-white bg-slate-950 px-2 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_18px_rgba(15,23,42,0.18)]">
+                    avatar
+                  </span>
+                </div>
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={isUploadingProfileAvatar}
+                    onClick={() => {
+                      profileAvatarInputRef.current?.click();
+                    }}
+                    type="button"
+                  >
+                    <ImagePlus className="size-4" />
+                    {isUploadingProfileAvatar
+                      ? contentCopy.actions.uploadingImage
+                      : contentCopy.actions.uploadImage}
+                  </button>
+                  {state.profile.avatarImageUrl ? (
+                    <button
+                      className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                      onClick={() => {
+                        setState((current) => ({
+                          ...current,
+                          notice: null,
+                          profile: {
+                            ...current.profile,
+                            avatarImageUrl: "",
+                          },
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {contentCopy.actions.removeImage}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <p className="text-sm font-medium text-slate-900">
                 {contentCopy.fields.heroImage}
               </p>
               <p className="mt-2 text-xs leading-5 text-slate-500">
@@ -2361,20 +2492,20 @@ export function CreatorContentStudioPage({
 
                   event.target.value = "";
                 }}
-                ref={profileImageInputRef}
+                ref={profileHeroImageInputRef}
                 type="file"
               />
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingProfileImage}
+                  disabled={isUploadingProfileHeroImage}
                   onClick={() => {
-                    profileImageInputRef.current?.click();
+                    profileHeroImageInputRef.current?.click();
                   }}
                   type="button"
                 >
                   <ImagePlus className="size-4" />
-                  {isUploadingProfileImage
+                  {isUploadingProfileHeroImage
                     ? contentCopy.actions.uploadingImage
                     : contentCopy.actions.uploadImage}
                 </button>
@@ -2411,7 +2542,10 @@ export function CreatorContentStudioPage({
             <button
               className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               disabled={
-                isSavingProfile || isDisconnected || isUploadingProfileImage
+                isSavingProfile ||
+                isDisconnected ||
+                isUploadingProfileAvatar ||
+                isUploadingProfileHeroImage
               }
               onClick={() => {
                 void saveProfile();
