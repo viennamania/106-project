@@ -933,9 +933,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       selfReferralNotice:
         "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
-        "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
+        "이 가입에는 추천 링크 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
-        "현재 네트워크 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
+        "실제 네트워크 배치는 상위 코드 {code} 아래의 빈 슬롯으로 배정되었습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -949,9 +949,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         lastConnectedAt: "최근 연결",
         paymentReceivedAt: "입금 확인 시각",
         paymentTransaction: "거래 기록",
-        placementReferralCode: "배치된 네트워크 코드",
+        placementReferralCode: "실제 배치 상위 코드",
         referralCode: "내 레퍼럴 코드",
-        referredByCode: "적용된 추천인 코드",
+        referredByCode: "추천 링크 코드",
         referralLink: "레퍼럴 가입 링크",
         requiredDeposit: "가입 금액",
         signupStatus: "가입 상태",
@@ -1773,9 +1773,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       selfReferralNotice:
         "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
-        "Referral code {code} is applied to this signup.",
+        "Referral link code {code} is applied to this signup.",
       autoPlacementDescription:
-        "This signup was assigned to an open slot under network code {code} by the current network placement rules.",
+        "The actual network placement was assigned to an open slot under upline code {code}.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -1789,9 +1789,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         lastConnectedAt: "Last connected",
         paymentReceivedAt: "Payment confirmed at",
         paymentTransaction: "Transaction record",
-        placementReferralCode: "Assigned network code",
+        placementReferralCode: "Actual placement upline code",
         referralCode: "My referral code",
-        referredByCode: "Applied referral code",
+        referredByCode: "Referral link code",
         referralLink: "Referral signup link",
         requiredDeposit: "Signup amount",
         signupStatus: "Signup status",
