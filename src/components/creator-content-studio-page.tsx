@@ -21,10 +21,8 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
@@ -77,6 +75,12 @@ type StudioState = {
     heroImageUrl: string;
     intro: string;
     payoutWalletAddress: string;
+  };
+  summary: {
+    all: number;
+    archived: number;
+    draft: number;
+    published: number;
   };
   status: "idle" | "loading" | "ready" | "error";
 };
@@ -132,7 +136,6 @@ type CoverGenerationProgressState = {
 };
 
 type StudioView = "hub" | "new" | "profile";
-type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
 const EMPTY_PROFILE = {
   avatarImageUrl: "",
@@ -161,6 +164,12 @@ const EMPTY_AUTOMATION_FORM = {
   personaPrompt: "",
   publishScoreThreshold: "86",
   topics: "",
+};
+const EMPTY_STUDIO_SUMMARY = {
+  all: 0,
+  archived: 0,
+  draft: 0,
+  published: 0,
 };
 
 const AUTOMATION_RESTRICTED_MESSAGE =
@@ -435,8 +444,6 @@ export function CreatorContentStudioPage({
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -471,6 +478,7 @@ export function CreatorContentStudioPage({
     notice: null,
     posts: [],
     profile: EMPTY_PROFILE,
+    summary: EMPTY_STUDIO_SUMMARY,
     status: "idle",
   });
   const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
@@ -832,8 +840,6 @@ export function CreatorContentStudioPage({
     contentCoverGenerationProgressSteps.filter(
       (step) => contentImageGenerationProgress.steps[step] === "done",
     ).length;
-  const [postFilter, setPostFilter] = useState<PostVisibilityFilter>("all");
-  const [visiblePostCount, setVisiblePostCount] = useState(HUB_FULL_POST_PAGE_SIZE);
   const profileAvatarInputRef = useRef<HTMLInputElement | null>(null);
   const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -865,17 +871,8 @@ export function CreatorContentStudioPage({
         ? contentCopy.labels.creatorSettings
         : null;
 
-  const publishedCount = useMemo(() => {
-    return state.posts.filter((post) => post.status === "published").length;
-  }, [state.posts]);
-
-  const draftCount = useMemo(() => {
-    return state.posts.filter((post) => post.status === "draft").length;
-  }, [state.posts]);
-
-  const archivedCount = useMemo(() => {
-    return state.posts.filter((post) => post.status === "archived").length;
-  }, [state.posts]);
+  const publishedCount = state.summary.published;
+  const draftCount = state.summary.draft;
 
   const sortedPosts = useMemo(() => {
     return [...state.posts].sort((left, right) => {
@@ -885,14 +882,6 @@ export function CreatorContentStudioPage({
     });
   }, [state.posts]);
 
-  const filteredPosts = useMemo(() => {
-    if (postFilter === "all") {
-      return sortedPosts;
-    }
-
-    return sortedPosts.filter((post) => post.status === postFilter);
-  }, [postFilter, sortedPosts]);
-
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
@@ -900,18 +889,16 @@ export function CreatorContentStudioPage({
     postForm.title.trim() || postForm.summary.trim() || postForm.body.trim(),
   );
 
-  useEffect(() => {
-    setVisiblePostCount(HUB_FULL_POST_PAGE_SIZE);
-  }, [postFilter, state.posts.length]);
-
   const loadStudio = useCallback(async () => {
     if (!accountAddress) {
       return;
     }
 
     const shouldLoadProfileView = view === "profile";
-    const shouldLoadAutomation = view !== "new";
-    const shouldUseCompactPostsBootstrap = view === "new";
+    const shouldLoadAutomation = view === "profile";
+    const shouldUseCompactPostsBootstrap = view !== "profile";
+    const compactPageSize =
+      view === "new" ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE;
 
     setState((current) => ({
       ...current,
@@ -972,6 +959,7 @@ export function CreatorContentStudioPage({
           notice: null,
           posts: [],
           profile: EMPTY_PROFILE,
+          summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
         setAutomation({
@@ -991,6 +979,7 @@ export function CreatorContentStudioPage({
           notice: null,
           posts: [],
           profile: EMPTY_PROFILE,
+          summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
         setAutomation({
@@ -1047,6 +1036,7 @@ export function CreatorContentStudioPage({
             intro: profileData.profile.intro,
             payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
           },
+          summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
 
@@ -1110,7 +1100,7 @@ export function CreatorContentStudioPage({
       }
 
       const postsRequestUrl = shouldUseCompactPostsBootstrap
-        ? `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}&page=1&pageSize=${HUB_COMPACT_POST_PAGE_SIZE}`
+        ? `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}&page=1&pageSize=${compactPageSize}`
         : `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`;
 
       const requests = [
@@ -1184,6 +1174,7 @@ export function CreatorContentStudioPage({
           intro: postsData.profile.intro,
           payoutWalletAddress: postsData.profile.payoutWalletAddress ?? "",
         },
+        summary: postsData.summary,
         status: "ready",
       });
 
@@ -1270,6 +1261,7 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: [],
         profile: EMPTY_PROFILE,
+        summary: EMPTY_STUDIO_SUMMARY,
         status: "error",
       });
       setAutomation({
@@ -1304,6 +1296,7 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: [],
         profile: EMPTY_PROFILE,
+        summary: EMPTY_STUDIO_SUMMARY,
         status: "idle",
       });
       setAutomation({
@@ -3335,7 +3328,7 @@ export function CreatorContentStudioPage({
     ];
 
     return (
-      <nav className="flex gap-2 overflow-x-auto pb-1">
+      <nav className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1">
         {tabs.map((tab) => (
           <Link
             className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
@@ -3357,13 +3350,13 @@ export function CreatorContentStudioPage({
     const workspaceMessage = isDisconnected
       ? contentCopy.messages.connectRequired
       : state.status === "loading"
-        ? `${contentCopy.actions.refresh}...`
+        ? contentCopy.messages.detailLoadingDescription
         : state.error && state.member?.status !== "completed"
           ? state.error
           : contentCopy.page.studioDescription;
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
@@ -3389,10 +3382,10 @@ export function CreatorContentStudioPage({
           </div>
         ) : null}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid grid-cols-2 gap-3">
           <WorkspaceMetric
             label={contentCopy.labels.posts}
-            value={String(state.posts.length)}
+            value={String(state.summary.all)}
           />
           <WorkspaceMetric
             label={contentCopy.labels.published}
@@ -3408,20 +3401,10 @@ export function CreatorContentStudioPage({
           />
         </div>
 
-        {automation.available ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <StatusBadge
-              status={
-                automation.form.enabled
-                  ? contentCopy.labels.automationEnabled
-                  : contentCopy.labels.automationDisabled
-              }
-            />
-            {automation.jobs[0]?.status ? (
-              <StatusBadge status={automation.jobs[0].status} />
-            ) : null}
-          </div>
-        ) : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <StatusBadge status={contentCopy.labels.studioHome} />
+          <StatusBadge status={`${state.summary.all} ${contentCopy.labels.posts}`} />
+        </div>
       </div>
     );
   }
@@ -3470,39 +3453,13 @@ export function CreatorContentStudioPage({
     compact?: boolean;
   }) {
     const compact = options?.compact ?? false;
-    const posts = compact
-      ? sortedPosts.slice(0, HUB_COMPACT_POST_PAGE_SIZE)
-      : filteredPosts.slice(0, visiblePostCount);
-    const filterItems = [
-      {
-        key: "all" as const,
-        count: sortedPosts.length,
-        label: contentCopy.labels.allPosts,
-      },
-      {
-        key: "published" as const,
-        count: publishedCount,
-        label: contentCopy.labels.published,
-      },
-      {
-        key: "draft" as const,
-        count: draftCount,
-        label: contentCopy.labels.draft,
-      },
-      {
-        key: "archived" as const,
-        count: archivedCount,
-        label: contentCopy.labels.archived,
-      },
-    ];
-    const canShowMore = !compact && filteredPosts.length > visiblePostCount;
-    const canShowLess =
-      !compact &&
-      filteredPosts.length > HUB_FULL_POST_PAGE_SIZE &&
-      visiblePostCount >= filteredPosts.length;
+    const posts = sortedPosts.slice(
+      0,
+      compact ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE,
+    );
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
@@ -3530,42 +3487,12 @@ export function CreatorContentStudioPage({
           </div>
         </div>
 
-        {!compact ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {filterItems.map((item) => (
-              <button
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
-                  postFilter === item.key
-                    ? "border-slate-950 bg-slate-950 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                }`}
-                key={item.key}
-                onClick={() => {
-                  setPostFilter(item.key);
-                }}
-                type="button"
-              >
-                <span>{item.label}</span>
-                <span
-                  className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
-                    postFilter === item.key ? "bg-white/15" : "bg-slate-100"
-                  }`}
-                >
-                  {item.count}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
         {isDisconnected ? (
           <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
         ) : state.status === "loading" ? (
-          <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
+          <StudioLoadingCard />
         ) : state.error && state.posts.length === 0 ? (
           <MessageCard tone="error">{state.error}</MessageCard>
-        ) : !compact && filteredPosts.length === 0 ? (
-          <MessageCard>{contentCopy.messages.noMatchingPosts}</MessageCard>
         ) : posts.length === 0 ? (
           <MessageCard>{contentCopy.labels.feedEmpty}</MessageCard>
         ) : (
@@ -3636,30 +3563,14 @@ export function CreatorContentStudioPage({
               </article>
             ))}
 
-            {!compact && (canShowMore || canShowLess) ? (
+            {!compact && state.summary.all > HUB_FULL_POST_PAGE_SIZE ? (
               <div className="flex flex-wrap gap-2 pt-2">
-                {canShowMore ? (
-                  <button
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-                    onClick={() => {
-                      setVisiblePostCount((current) => current + HUB_FULL_POST_PAGE_SIZE);
-                    }}
-                    type="button"
-                  >
-                    {contentCopy.actions.showMore}
-                  </button>
-                ) : null}
-                {canShowLess ? (
-                  <button
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-                    onClick={() => {
-                      setVisiblePostCount(HUB_FULL_POST_PAGE_SIZE);
-                    }}
-                    type="button"
-                  >
-                    {contentCopy.actions.showLess}
-                  </button>
-                ) : null}
+                <Link
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                  href={postsManagerHref}
+                >
+                  {contentCopy.actions.managePosts}
+                </Link>
               </div>
             ) : null}
           </div>
@@ -3671,9 +3582,9 @@ export function CreatorContentStudioPage({
   function renderMobileHub() {
     return (
       <section className="grid gap-5 lg:hidden">
-        {renderWorkspaceOverviewCard()}
-        {renderHubActionCards({ mobile: true })}
         {renderRecentPostsPanel({ compact: true })}
+        {renderHubActionCards({ mobile: true })}
+        {renderWorkspaceOverviewCard()}
       </section>
     );
   }
@@ -3753,58 +3664,73 @@ export function CreatorContentStudioPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-2.5 sm:gap-3">
-          <Link
-            className="inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
-            href={backHref}
-          >
-            <ArrowLeft className="size-4 sm:size-5" />
-          </Link>
-          <div className="space-y-1">
-            <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
-            <div>
-              <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
-                {pageTitle}
-              </h1>
-              <p className="hidden text-sm text-slate-600 sm:block">
-                {pageDescription}
-              </p>
+      <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <Link
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                href={backHref}
+              >
+                <ArrowLeft className="size-4 sm:size-5" />
+              </Link>
+              <div className="min-w-0">
+                <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
+                <h1 className="text-[1.12rem] font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
+                  {pageTitle}
+                </h1>
+                <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm">
+                  {isDisconnected
+                    ? contentCopy.messages.connectRequired
+                    : state.status === "loading"
+                      ? contentCopy.messages.detailLoadingDescription
+                      : pageDescription}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {headerShortcutHref && headerShortcutLabel ? (
+                <Link
+                  className="hidden h-11 items-center justify-center rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:inline-flex"
+                  href={headerShortcutHref}
+                >
+                  {headerShortcutLabel}
+                </Link>
+              ) : null}
+              <button
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
+                onClick={() => {
+                  void loadStudio();
+                }}
+                type="button"
+              >
+                <RefreshCcw className="size-4" />
+                <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-          {headerShortcutHref && headerShortcutLabel ? (
-            <Link
-              className="hidden h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
-              href={headerShortcutHref}
-            >
-              {headerShortcutLabel}
-            </Link>
-          ) : null}
-          <button
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
-            onClick={() => {
-              void loadStudio();
-            }}
-            type="button"
-          >
-            <RefreshCcw className="size-4" />
-            <span className="sr-only sm:not-sr-only">{contentCopy.actions.refresh}</span>
-          </button>
-          {view === "hub" && status === "connected" && accountAddress ? (
-            <button
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
-              onClick={() => {
-                if (wallet) {
-                  disconnect(wallet);
-                }
-              }}
-              type="button"
-            >
-              {contentCopy.actions.disconnect}
-            </button>
+          {view === "hub" ? (
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <HeaderStatChip
+                label={contentCopy.labels.posts}
+                value={String(state.summary.all)}
+              />
+              <HeaderStatChip
+                label={contentCopy.labels.published}
+                value={String(publishedCount)}
+              />
+              <HeaderStatChip
+                label={contentCopy.labels.draft}
+                value={String(draftCount)}
+              />
+              <HeaderStatChip
+                label={contentCopy.labels.author}
+                value={state.profile.displayName || "-"}
+              />
+            </div>
           ) : null}
         </div>
       </header>
@@ -3819,7 +3745,7 @@ export function CreatorContentStudioPage({
               {renderWorkspaceOverviewCard()}
               {renderHubActionCards()}
             </div>
-            {renderRecentPostsPanel()}
+            {renderRecentPostsPanel({ compact: true })}
           </section>
         </>
       ) : view === "profile" ? (
@@ -3956,11 +3882,30 @@ function WorkspaceMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4">
+    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
         {label}
       </p>
       <p className="mt-2 truncate text-lg font-semibold tracking-tight text-slate-950">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function HeaderStatChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/80 bg-white/88 px-3 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:min-w-[128px] sm:px-4">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
         {value}
       </p>
     </div>
@@ -4014,10 +3959,10 @@ function WorkspaceLaunchCard({
   const body = (
     <div
       className={
-        "glass-card rounded-[30px] p-5 transition " +
+        "rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition " +
         (disabled
           ? "cursor-not-allowed opacity-70"
-          : "hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)]")
+          : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
       }
     >
       <div
@@ -4633,11 +4578,27 @@ function MessageCard({
     <div
       className={
         tone === "error"
-          ? "mt-4 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-900"
-          : "mt-4 rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 text-sm leading-6 text-slate-600"
+          ? "mt-4 rounded-[24px] border border-rose-200 bg-[linear-gradient(180deg,#fff1f2,#ffe4e6)] px-4 py-4 text-sm leading-6 text-rose-900 shadow-[0_18px_44px_rgba(244,63,94,0.08)]"
+          : "mt-4 rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] px-4 py-4 text-sm leading-6 text-slate-600 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
       }
     >
       {children}
+    </div>
+  );
+}
+
+function StudioLoadingCard() {
+  return (
+    <div className="mt-4 rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      <div className="animate-pulse space-y-3">
+        <div className="h-4 w-28 rounded-full bg-slate-200" />
+        <div className="h-4 w-full rounded-full bg-slate-200" />
+        <div className="h-4 w-5/6 rounded-full bg-slate-200" />
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <div className="h-10 rounded-full bg-slate-200" />
+          <div className="h-10 rounded-full bg-slate-200" />
+        </div>
+      </div>
     </div>
   );
 }
