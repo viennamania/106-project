@@ -575,18 +575,21 @@ export function CreatorContentStudioPage({
       return;
     }
 
-      setState((current) => ({
-        ...current,
-        error: null,
-        notice: null,
-        status: "loading",
-      }));
-      setAutomation((current) => ({
-        ...current,
-        error: null,
-        jobs: [],
-        status: "loading",
-      }));
+    const shouldLoadAutomation = view !== "new";
+    const shouldUseCompactPostsBootstrap = view === "new";
+
+    setState((current) => ({
+      ...current,
+      error: null,
+      notice: null,
+      status: "loading",
+    }));
+    setAutomation((current) => ({
+      ...current,
+      error: null,
+      jobs: shouldLoadAutomation ? [] : current.jobs,
+      status: shouldLoadAutomation ? "loading" : current.status,
+    }));
 
     try {
       const email = await getUserEmail({ client: thirdwebClient });
@@ -665,46 +668,66 @@ export function CreatorContentStudioPage({
         return;
       }
 
-      const [profileResponse, postsResponse, automationProfileResponse, automationJobsResponse] =
-        await Promise.all([
-        fetch(
-          `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        ),
-        fetch(
-          `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        ),
-        fetch(
-          `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        ),
-        fetch(
-          `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        ),
+      const postsRequestUrl = shouldUseCompactPostsBootstrap
+        ? `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}&page=1&pageSize=${HUB_COMPACT_POST_PAGE_SIZE}`
+        : `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`;
+
+      const requests = [
+        fetch(postsRequestUrl),
+      ] as const;
+
+      const automationRequests = shouldLoadAutomation
+        ? ([
+            fetch(
+              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+            fetch(
+              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+          ] as const)
+        : null;
+
+      const [postsResponse, ...automationResponses] = await Promise.all([
+        ...requests,
+        ...(automationRequests ?? []),
       ]);
-      const profileData = (await profileResponse.json()) as
-        | CreatorProfileResponse
-        | { error?: string };
+
       const postsData = (await postsResponse.json()) as
         | CreatorStudioPostsResponse
         | { error?: string };
-      const automationProfileData = (await automationProfileResponse.json()) as
+
+      let automationProfileResponse: Response | null = null;
+      let automationJobsResponse: Response | null = null;
+      let automationProfileData:
         | CreatorAutomationProfileResponse
-        | { error?: string };
-      const automationJobsData = (await automationJobsResponse.json()) as
+        | { error?: string }
+        | null = null;
+      let automationJobsData:
         | ContentAutomationJobsResponse
-        | { error?: string };
+        | { error?: string }
+        | null = null;
+
+      if (shouldLoadAutomation) {
+        [automationProfileResponse, automationJobsResponse] = automationResponses as [
+          Response,
+          Response,
+        ];
+        automationProfileData = (await automationProfileResponse.json()) as
+          | CreatorAutomationProfileResponse
+          | { error?: string };
+        automationJobsData = (await automationJobsResponse.json()) as
+          | ContentAutomationJobsResponse
+          | { error?: string };
+      }
 
       if (
-        !profileResponse.ok ||
-        !("profile" in profileData) ||
         !postsResponse.ok ||
         !("posts" in postsData)
       ) {
         throw new Error(
           "error" in postsData && postsData.error
             ? postsData.error
-            : "error" in profileData && profileData.error
-              ? profileData.error
-              : contentCopy.messages.studioLoadFailed,
+            : contentCopy.messages.studioLoadFailed,
         );
       }
 
@@ -714,15 +737,20 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: postsData.posts,
         profile: {
-          displayName: profileData.profile.displayName,
-          heroImageUrl: profileData.profile.heroImageUrl ?? "",
-          intro: profileData.profile.intro,
-          payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
+          displayName: postsData.profile.displayName,
+          heroImageUrl: postsData.profile.heroImageUrl ?? "",
+          intro: postsData.profile.intro,
+          payoutWalletAddress: postsData.profile.payoutWalletAddress ?? "",
         },
         status: "ready",
       });
 
       if (
+        shouldLoadAutomation &&
+        automationProfileResponse &&
+        automationJobsResponse &&
+        automationProfileData &&
+        automationJobsData &&
         automationProfileResponse.ok &&
         "profile" in automationProfileData &&
         automationJobsResponse.ok &&
@@ -752,6 +780,9 @@ export function CreatorContentStudioPage({
           status: "ready",
         });
       } else if (
+        shouldLoadAutomation &&
+        automationProfileResponse &&
+        automationProfileData &&
         automationProfileResponse.status === 403 &&
         "error" in automationProfileData &&
         automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
@@ -763,13 +794,23 @@ export function CreatorContentStudioPage({
           jobs: [],
           status: "ready",
         });
+      } else if (!shouldLoadAutomation) {
+        setAutomation((current) => ({
+          ...current,
+          error: null,
+          status: "idle",
+        }));
       } else {
         setAutomation({
           available: false,
           error:
-            "error" in automationJobsData && automationJobsData.error
+            automationJobsData &&
+            "error" in automationJobsData &&
+            automationJobsData.error
               ? automationJobsData.error
-              : "error" in automationProfileData && automationProfileData.error
+              : automationProfileData &&
+                  "error" in automationProfileData &&
+                  automationProfileData.error
                 ? automationProfileData.error
                 : contentCopy.messages.automationLoadFailed,
           form: EMPTY_AUTOMATION_FORM,
@@ -810,6 +851,7 @@ export function CreatorContentStudioPage({
     contentCopy.messages.studioLoadFailed,
     dictionary.member.errors.missingEmail,
     locale,
+    view,
   ]);
 
   useEffect(() => {
