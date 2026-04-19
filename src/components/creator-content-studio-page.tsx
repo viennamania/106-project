@@ -4033,9 +4033,9 @@ function CoverGenerationDialog({
 
   return (
     <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)]">
+      <div className="relative flex max-h-[calc(100svh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)] sm:max-h-[calc(100svh-3rem)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.18),transparent_54%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_46%)]" />
-        <div className="relative p-5 sm:p-6">
+        <div className="relative overflow-y-auto overscroll-y-contain p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 shadow-sm">
