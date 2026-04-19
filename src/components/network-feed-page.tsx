@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
-  LogOut,
   RefreshCcw,
   Rss,
   UserRound,
@@ -13,14 +12,11 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentFeedItemRecord,
@@ -68,8 +64,6 @@ export function NetworkFeedPage({
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -86,7 +80,6 @@ export function NetworkFeedPage({
   const [visibleItemCount, setVisibleItemCount] = useState(
     INITIAL_VISIBLE_ITEM_COUNT,
   );
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const isDisconnected = status !== "connected" || !accountAddress;
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
@@ -276,30 +269,8 @@ export function NetworkFeedPage({
     void loadFeed();
   }, [accountAddress, loadFeed, status]);
 
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
-
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
-
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -310,54 +281,74 @@ export function NetworkFeedPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-2.5 sm:gap-3">
-          <Link
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
-            href={homeHref}
-          >
-            <ArrowLeft className="size-4 sm:size-5" />
-          </Link>
-          <div className="space-y-1">
-            <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
-            <div>
-              <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
-                {contentCopy.page.feedTitle}
-              </h1>
-              <p className="hidden text-sm text-slate-600 sm:block">
-                {contentCopy.page.feedDescription}
-              </p>
-            </div>
-          </div>
-        </div>
+      <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_36%),radial-gradient(circle_at_right,rgba(254,240,138,0.36),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <Link
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                href={homeHref}
+              >
+                <ArrowLeft className="size-4 sm:size-5" />
+              </Link>
 
-        <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <button
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
-            onClick={() => {
-              void loadFeed();
-            }}
-            type="button"
-          >
-            <RefreshCcw className="size-4" />
-            <span className="sr-only sm:not-sr-only">{contentCopy.actions.refresh}</span>
-          </button>
-          {status === "connected" && accountAddress ? (
+              <div className="min-w-0">
+                <div className="flex items-start gap-3">
+                  <div className="hidden size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_30px_rgba(15,23,42,0.18)] sm:inline-flex">
+                    <Rss className="size-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
+                    <h1 className="text-[1.15rem] font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
+                      {contentCopy.page.feedTitle}
+                    </h1>
+                    <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm sm:leading-6">
+                      {isDisconnected
+                        ? contentCopy.messages.connectRequired
+                        : state.member?.status === "completed"
+                          ? contentCopy.page.feedDescription
+                          : contentCopy.messages.paymentRequired}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
               onClick={() => {
-                setIsLogoutDialogOpen(true);
+                void loadFeed();
               }}
               type="button"
             >
-              <LogOut className="size-4 sm:hidden" />
-              <span className="sr-only sm:not-sr-only">{contentCopy.actions.disconnect}</span>
+              <RefreshCcw className="size-4" />
+              <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
             </button>
-          ) : null}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <HeaderStatChip
+              label={contentCopy.labels.networkAccess}
+              value={closestLevel}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.posts}
+              value={String(state.items.length)}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.creators}
+              value={String(uniqueCreatorCount)}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.nearbyLevels}
+              value={String(nearbyCount)}
+            />
+          </div>
         </div>
       </header>
 
-      <section className="grid gap-5 xl:grid-cols-[1.14fr_0.86fr]">
+      <section className="grid gap-5 xl:grid-cols-[1.16fr_0.84fr]">
         <div className="space-y-5">
           {isDisconnected ? (
             <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
@@ -379,7 +370,7 @@ export function NetworkFeedPage({
           ) : (
             <>
               {featuredItem ? (
-                <article className="glass-card overflow-hidden rounded-[32px]">
+                <article className="overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(241,245,249,0.94))] shadow-[0_28px_80px_rgba(15,23,42,0.12)]">
                   <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
                     <div className="p-5 sm:p-6">
                       <div className="flex flex-wrap items-center gap-2">
@@ -417,16 +408,16 @@ export function NetworkFeedPage({
                       </div>
                     </div>
                     {featuredImageUrl ? (
-                      <div className="min-h-[240px] border-t border-white/50 lg:min-h-full lg:border-l lg:border-t-0">
+                      <div className="min-h-[260px] border-t border-white/60 lg:min-h-full lg:border-l lg:border-t-0">
                         <div
-                          className="h-full min-h-[240px] w-full bg-cover bg-center"
+                          className="h-full min-h-[260px] w-full bg-cover bg-center"
                           style={{
-                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${featuredImageUrl})`,
+                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.04), rgba(15,23,42,0.28)), url(${featuredImageUrl})`,
                           }}
                         />
                       </div>
                     ) : (
-                      <div className="flex min-h-[240px] items-end border-t border-white/50 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_45%),linear-gradient(135deg,#dbeafe_0%,#eff6ff_52%,#fde68a_100%)] p-6 lg:border-l lg:border-t-0">
+                      <div className="flex min-h-[260px] items-end border-t border-white/60 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_45%),linear-gradient(135deg,#dbeafe_0%,#eff6ff_52%,#fde68a_100%)] p-6 lg:border-l lg:border-t-0">
                         <div className="max-w-sm">
                           <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
                           <p className="mt-3 text-base font-medium text-slate-700">
@@ -439,7 +430,7 @@ export function NetworkFeedPage({
                 </article>
               ) : null}
 
-              <div className="glass-card rounded-[30px] p-5">
+              <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
@@ -531,7 +522,7 @@ export function NetworkFeedPage({
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start xl:space-y-5">
-          <div className="glass-card rounded-[24px] p-4 sm:rounded-[30px] sm:p-5">
+          <div className="rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[30px] sm:p-5">
             <div className="flex items-start gap-2.5 sm:gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-slate-950 text-white sm:size-12 sm:rounded-2xl">
                 <Rss className="size-4 sm:size-5" />
@@ -544,11 +535,7 @@ export function NetworkFeedPage({
               </div>
             </div>
             <p className="mt-3 text-[0.92rem] leading-6 text-slate-600 sm:mt-4 sm:text-sm">
-              {isDisconnected
-                ? contentCopy.messages.connectRequired
-                : state.member?.status === "completed"
-                  ? contentCopy.page.feedDescription
-                  : contentCopy.messages.paymentRequired}
+              {contentCopy.page.feedDescription}
             </p>
 
             <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
@@ -571,7 +558,7 @@ export function NetworkFeedPage({
             </div>
           </div>
 
-          <div className="glass-card rounded-[24px] p-4 sm:rounded-[30px] sm:p-5">
+          <div className="rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[30px] sm:p-5">
             <div>
               <p className="eyebrow hidden sm:block">{contentCopy.page.feedEyebrow}</p>
               <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
@@ -615,6 +602,25 @@ function MetricCard({
   );
 }
 
+function HeaderStatChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/80 bg-white/88 px-3 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:min-w-[128px] sm:px-4">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function FeedPostCard({
   freeLabel,
   item,
@@ -633,7 +639,7 @@ function FeedPostCard({
   const previewImageUrl = resolveFeedPreviewImage(item);
 
   return (
-    <article className="glass-card rounded-[28px] p-5">
+    <article className="rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_20px_48px_rgba(15,23,42,0.08)]">
       {previewImageUrl ? (
         <div className="mb-4 overflow-hidden rounded-[22px] border border-slate-200 bg-slate-900/90">
           <div
@@ -681,7 +687,7 @@ function FeedActionCard({
 }) {
   return (
     <Link
-      className="glass-card flex items-start justify-between gap-3 rounded-[22px] p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)] sm:gap-4 sm:rounded-[26px] sm:p-5"
+      className="flex items-start justify-between gap-3 rounded-[22px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(15,23,42,0.12)] sm:gap-4 sm:rounded-[26px] sm:p-5"
       href={href}
     >
       <div className="flex min-w-0 items-start gap-3 sm:gap-4">
@@ -727,8 +733,8 @@ function MessageCard({
     <div
       className={
         tone === "error"
-          ? "rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-900"
-          : "rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 text-sm leading-6 text-slate-600"
+          ? "rounded-[24px] border border-rose-200 bg-[linear-gradient(180deg,#fff1f2,#ffe4e6)] px-4 py-4 text-sm leading-6 text-rose-900 shadow-[0_18px_44px_rgba(244,63,94,0.08)]"
+          : "rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] px-4 py-4 text-sm leading-6 text-slate-600 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
       }
     >
       {children}
