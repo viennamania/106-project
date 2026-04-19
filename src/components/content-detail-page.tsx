@@ -64,6 +64,14 @@ type LikeBurst = {
   y: number;
 };
 
+type ContentLockedTeaser = {
+  authorDisplayName: string | null;
+  coverImageUrl: string | null;
+  publishedAt: string | null;
+  summary: string;
+  title: string;
+};
+
 function formatDateTime(value: string | null, locale: Locale) {
   if (!value) {
     return null;
@@ -84,6 +92,7 @@ export function ContentDetailPage({
   contentId,
   dictionary,
   initialPreview = null,
+  initialTeaser = null,
   locale,
   referralCode = null,
   returnToHref = null,
@@ -91,6 +100,7 @@ export function ContentDetailPage({
   contentId: string;
   dictionary: Dictionary;
   initialPreview?: ContentDetailRecord | null;
+  initialTeaser?: ContentLockedTeaser | null;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
@@ -127,8 +137,6 @@ export function ContentDetailPage({
   const heroRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const isDisconnected = status !== "connected" || !accountAddress;
-  const publishedLabel = formatDateTime(state.content?.publishedAt ?? null, locale);
-
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
       return;
@@ -331,6 +339,30 @@ export function ContentDetailPage({
     },
     [spawnLikeBurst],
   );
+  const isPreviewLocked = Boolean(state.content && !state.content.canAccess);
+  const shouldEncourageSignup =
+    state.gateReason === "connect" ||
+    state.gateReason === "signup" ||
+    state.member?.status !== "completed";
+  const requiresMembershipGate =
+    !state.content &&
+    (isDisconnected ||
+      state.gateReason === "connect" ||
+      state.gateReason === "signup" ||
+      state.member?.status !== "completed");
+  const heroImageUrl =
+    state.content?.coverImageUrl ??
+    state.content?.contentImageUrls[0] ??
+    initialTeaser?.coverImageUrl ??
+    null;
+  const heroAuthorDisplayName =
+    state.content?.authorProfile?.displayName ?? initialTeaser?.authorDisplayName ?? null;
+  const heroPublishedLabel = formatDateTime(
+    state.content?.publishedAt ?? initialTeaser?.publishedAt ?? null,
+    locale,
+  );
+  const heroTitle = state.content?.title ?? initialTeaser?.title ?? null;
+  const heroSummary = state.content?.summary ?? initialTeaser?.summary ?? null;
 
   const copyShareLink = useCallback(async () => {
     if (!shareUrl) {
@@ -349,11 +381,7 @@ export function ContentDetailPage({
   }, [shareUrl]);
 
   const handleShare = useCallback(async () => {
-    if (!state.content) {
-      return;
-    }
-
-    if (!shareUrl) {
+    if (!shareUrl || !heroTitle) {
       setShareState("error");
       return;
     }
@@ -363,8 +391,8 @@ export function ContentDetailPage({
 
       try {
         await navigator.share({
-          text: state.content.summary,
-          title: state.content.title,
+          text: heroSummary ?? "",
+          title: heroTitle,
           url: shareUrl,
         });
         setShareState("idle");
@@ -383,7 +411,7 @@ export function ContentDetailPage({
     }
 
     await copyShareLink();
-  }, [copyShareLink, shareUrl, state.content]);
+  }, [copyShareLink, heroSummary, heroTitle, shareUrl]);
 
   const handleHeroPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -418,18 +446,6 @@ export function ContentDetailPage({
   const facebookShareHref = shareUrl
     ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
     : null;
-  const isPreviewLocked = Boolean(state.content && !state.content.canAccess);
-  const shouldEncourageSignup =
-    state.gateReason === "connect" ||
-    state.gateReason === "signup" ||
-    state.member?.status !== "completed";
-  const requiresMembershipGate =
-    !state.content &&
-    (isDisconnected ||
-      state.gateReason === "connect" ||
-      state.gateReason === "signup" ||
-      state.member?.status !== "completed");
-  const heroImageUrl = state.content?.coverImageUrl ?? state.content?.contentImageUrls[0] ?? null;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
@@ -443,47 +459,65 @@ export function ContentDetailPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-2.5 sm:gap-3">
-          <Link
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
-            href={backHref}
-          >
-            <ArrowLeft className="size-4 sm:size-5" />
-          </Link>
-          <div className="space-y-1">
-            <p className="eyebrow hidden sm:block">{contentCopy.page.detailEyebrow}</p>
-            <div>
-              <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
-                {contentCopy.meta.detailTitle}
-              </h1>
-              <p className="hidden text-sm text-slate-600 sm:block">
-                {contentCopy.page.detailDescription}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <Link
-            className="hidden h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
-            href={homeHref}
-          >
-            {contentCopy.actions.backHome}
-          </Link>
-        </div>
-      </header>
-
       {state.status === "loading" && !state.content ? (
         <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
       ) : requiresMembershipGate ? (
-        <LockedContentGate
-          activateHref={activateHref}
-          homeHref={homeHref}
-          locale={locale}
-          primaryMessage={contentCopy.messages.paymentRequired}
-          secondaryMessage={contentCopy.messages.connectRequired}
-        />
+        <div className="space-y-4 sm:space-y-6">
+          {heroTitle ? (
+            <section className="relative mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.20)] sm:mx-0 sm:rounded-[36px]">
+              <HeroTopBar
+                authorLabel={heroAuthorDisplayName}
+                backHref={backHref}
+                metaLabel={heroPublishedLabel}
+                onShare={() => {
+                  void handleShare();
+                }}
+                shareLabel={contentCopy.actions.share}
+                subtitle={contentCopy.page.detailEyebrow}
+              />
+              {heroImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={heroTitle}
+                  className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
+                  loading="eager"
+                  src={heroImageUrl}
+                />
+              ) : (
+                <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
+              )}
+
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.34)_38%,rgba(2,6,23,0.88)_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_34%)]" />
+
+              <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-wrap gap-2">
+                  <HeroBadge>{contentCopy.labels.free}</HeroBadge>
+                  {heroAuthorDisplayName ? (
+                    <HeroBadge>{heroAuthorDisplayName}</HeroBadge>
+                  ) : null}
+                  {heroPublishedLabel ? <HeroBadge>{heroPublishedLabel}</HeroBadge> : null}
+                </div>
+
+                <h2 className="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.06] tracking-tight text-white sm:mt-5 sm:text-[2.8rem]">
+                  {heroTitle}
+                </h2>
+                {heroSummary ? (
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-white/82 sm:mt-4 sm:text-base sm:leading-7">
+                    {heroSummary}
+                  </p>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+          <LockedContentGate
+            activateHref={activateHref}
+            homeHref={homeHref}
+            locale={locale}
+            primaryMessage={contentCopy.messages.paymentRequired}
+            secondaryMessage={contentCopy.messages.connectRequired}
+          />
+        </div>
       ) : state.error && !state.content ? (
         <MessageCard tone="error">
           {state.error}
@@ -508,6 +542,16 @@ export function ContentDetailPage({
             onPointerUp={handleHeroPointerUp}
             ref={heroRef}
           >
+            <HeroTopBar
+              authorLabel={heroAuthorDisplayName}
+              backHref={backHref}
+              metaLabel={state.content.authorProfile?.referralCode ?? heroPublishedLabel}
+              onShare={() => {
+                void handleShare();
+              }}
+              shareLabel={contentCopy.actions.share}
+              subtitle={contentCopy.page.detailEyebrow}
+            />
             {heroImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -526,13 +570,13 @@ export function ContentDetailPage({
             <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 lg:p-8">
               <div className="flex flex-wrap gap-2">
                 <HeroBadge>{contentCopy.labels.free}</HeroBadge>
-                {state.content.authorProfile?.displayName ? (
-                  <HeroBadge>{state.content.authorProfile.displayName}</HeroBadge>
+                {heroAuthorDisplayName ? (
+                  <HeroBadge>{heroAuthorDisplayName}</HeroBadge>
                 ) : null}
                 {state.content.authorProfile?.referralCode ? (
                   <HeroBadge>{state.content.authorProfile.referralCode}</HeroBadge>
                 ) : null}
-                {publishedLabel ? <HeroBadge>{publishedLabel}</HeroBadge> : null}
+                {heroPublishedLabel ? <HeroBadge>{heroPublishedLabel}</HeroBadge> : null}
               </div>
 
               <h2 className="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.06] tracking-tight text-white sm:mt-5 sm:text-[2.8rem]">
@@ -698,9 +742,10 @@ export function ContentDetailPage({
                   <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
                     {shouldEncourageSignup ? (
                       <Link
-                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
+                        className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03]"
                         href={activateHref}
                       >
+                        <LockKeyhole className="mr-2 size-4" />
                         <span className="sm:hidden">가입 완료하기</span>
                         <span className="hidden sm:inline">
                           {dictionary.referralsPage.actions.completeSignup}
@@ -759,6 +804,54 @@ function HeroBadge({
   );
 }
 
+function HeroTopBar({
+  authorLabel,
+  backHref,
+  metaLabel,
+  onShare,
+  shareLabel,
+  subtitle,
+}: {
+  authorLabel?: string | null;
+  backHref: string;
+  metaLabel?: string | null;
+  onShare: () => void;
+  shareLabel: string;
+  subtitle: string;
+}) {
+  const centerPrimary = authorLabel?.trim() || subtitle;
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
+      <Link
+        className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/40 text-white backdrop-blur-md transition hover:bg-slate-950/58 sm:size-12"
+        href={backHref}
+      >
+        <ArrowLeft className="size-4 sm:size-5" />
+      </Link>
+      <div className="flex max-w-[calc(100%-7rem)] items-center gap-2 rounded-full border border-white/12 bg-slate-950/34 px-3 py-2 text-white backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.16)] sm:max-w-none sm:px-4">
+        <span className="inline-flex size-2 shrink-0 rounded-full bg-emerald-300 shadow-[0_0_0_4px_rgba(16,185,129,0.14)]" />
+        <div className="min-w-0 leading-none">
+          <p className="truncate text-[0.76rem] font-semibold tracking-[0.01em] text-white sm:text-[0.82rem]">
+            {centerPrimary}
+          </p>
+          <p className="mt-1 truncate text-[0.58rem] font-semibold uppercase tracking-[0.24em] text-white/58 sm:text-[0.62rem]">
+            {metaLabel ? `${subtitle} • ${metaLabel}` : subtitle}
+          </p>
+        </div>
+      </div>
+      <button
+        className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/40 text-white backdrop-blur-md transition hover:bg-slate-950/58 sm:size-12"
+        onClick={onShare}
+        type="button"
+      >
+        <Share2 className="size-4" />
+        <span className="sr-only">{shareLabel}</span>
+      </button>
+    </div>
+  );
+}
+
 function LockedContentGate({
   activateHref,
   homeHref,
@@ -773,34 +866,43 @@ function LockedContentGate({
   secondaryMessage: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.2),transparent_28%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_24%),linear-gradient(180deg,#0f172a_0%,#111827_58%,#1e293b_100%)] px-5 py-10 text-white shadow-[0_28px_70px_rgba(15,23,42,0.2)] sm:px-8 sm:py-14">
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0)_28%,rgba(255,255,255,0.05)_100%)]" />
+    <section className="relative overflow-hidden rounded-[34px] border border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_22%),linear-gradient(160deg,#0b1120_0%,#0f172a_42%,#1e293b_100%)] px-5 py-10 text-white shadow-[0_30px_80px_rgba(15,23,42,0.24)] sm:px-8 sm:py-14">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0)_28%,rgba(255,255,255,0.06)_100%)]" />
+      <div className="absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.46),transparent)]" />
       <div className="relative mx-auto max-w-2xl text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-white/14 bg-white/10 backdrop-blur-md">
-          <LockKeyhole className="size-7" />
+        <div className="mx-auto flex size-[4.5rem] items-center justify-center rounded-full border border-white/16 bg-white/10 shadow-[0_18px_40px_rgba(15,23,42,0.2)] backdrop-blur-md">
+          <LockKeyhole className="size-7 text-white" />
         </div>
-        <p className="mt-6 text-[0.72rem] font-semibold uppercase tracking-[0.3em] text-white/58">
+        <p className="mt-6 text-[0.72rem] font-semibold uppercase tracking-[0.34em] text-white/58">
           Members Only
         </p>
-        <h2 className="mt-3 text-[1.8rem] font-semibold leading-[1.08] tracking-tight sm:text-[2.4rem]">
+        <h2 className="mt-3 text-[1.9rem] font-semibold leading-[1.04] tracking-tight sm:text-[2.6rem]">
           {primaryMessage}
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/76 sm:text-base">
           {secondaryMessage}
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mt-8 rounded-[28px] border border-white/10 bg-white/6 p-3 backdrop-blur-xl sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
           <Link
-            className="inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(255,255,255,0.18)] transition hover:bg-slate-100"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-5 text-sm font-semibold !text-slate-950 shadow-[0_20px_45px_rgba(251,191,36,0.28)] transition hover:brightness-[1.03]"
             href={activateHref}
           >
+            <LockKeyhole className="mr-2 size-4" />
             {locale === "ko" ? "가입 완료하기" : "Complete signup"}
           </Link>
           <Link
-            className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/14"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-slate-950/28 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:bg-slate-950/40"
             href={homeHref}
           >
             {locale === "ko" ? "홈으로 돌아가기" : "Back home"}
           </Link>
+          </div>
+          <p className="mt-3 text-xs leading-6 text-white/58">
+            {locale === "ko"
+              ? "가입 완료 후 전체 본문과 이미지 갤러리를 바로 확인할 수 있습니다."
+              : "Complete signup to unlock the full post and image gallery."}
+          </p>
         </div>
       </div>
     </section>

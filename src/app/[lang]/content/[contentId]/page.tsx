@@ -84,11 +84,23 @@ export default async function LocalizedContentDetailPage({
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
   const returnToHref = normalizeReturnToPath(query.returnTo, locale);
+  const initialTeaser = await getPublishedContentShareMetadata(contentId);
 
   return (
     <ContentDetailPage
       contentId={contentId}
       dictionary={dictionary}
+      initialTeaser={
+        initialTeaser
+          ? {
+              authorDisplayName: initialTeaser.authorDisplayName,
+              coverImageUrl: initialTeaser.coverImageUrl,
+              publishedAt: initialTeaser.publishedAt?.toISOString() ?? null,
+              summary: initialTeaser.summary,
+              title: initialTeaser.title,
+            }
+          : null
+      }
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}
