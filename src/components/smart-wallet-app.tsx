@@ -219,9 +219,6 @@ export function SmartWalletApp({
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const accountAddress = account?.address;
   const accountLabel = formatAddressLabel(accountAddress);
-  const accountUrl = accountAddress
-    ? `${BSC_EXPLORER}/address/${accountAddress}`
-    : BSC_EXPLORER;
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
     : BSC_EXPLORER;
@@ -1406,22 +1403,6 @@ export function SmartWalletApp({
                         ) : null}
                       </button>
                     ) : null}
-                    {accountAddress ? (
-                      <a
-                        className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
-                        href={accountUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {accountLabel ?? accountAddress}
-                        <ArrowUpRight className="size-4" />
-                      </a>
-                    ) : (
-                      <div className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
-                        {dictionary.common.status.connected}
-                      </div>
-                    )}
-
                     <button
                       className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                       disabled={!wallet}
