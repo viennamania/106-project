@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, FileText, RefreshCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  FileText,
+  LogOut,
+  RefreshCcw,
+} from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -13,6 +19,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentDetailLoadResponse,
@@ -71,6 +78,7 @@ export function ContentDetailPage({
     member: null,
     status: "idle",
   });
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const isDisconnected = status !== "connected" || !accountAddress;
 
   const loadDetail = useCallback(async () => {
@@ -186,8 +194,30 @@ export function ContentDetailPage({
     void loadDetail();
   }, [accountAddress, loadDetail, status]);
 
+  function confirmLogout() {
+    if (!wallet) {
+      setIsLogoutDialogOpen(false);
+      return;
+    }
+
+    setIsLogoutDialogOpen(false);
+    disconnect(wallet);
+  }
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
+      <LogoutConfirmDialog
+        cancelLabel={dictionary.common.logoutDialog.cancel}
+        confirmLabel={dictionary.common.logoutDialog.confirm}
+        description={dictionary.common.logoutDialog.description}
+        onCancel={() => {
+          setIsLogoutDialogOpen(false);
+        }}
+        onConfirm={confirmLogout}
+        open={isLogoutDialogOpen}
+        title={dictionary.common.logoutDialog.title}
+      />
+
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -198,18 +228,18 @@ export function ContentDetailPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-4 rounded-[24px] px-4 py-4 sm:rounded-[28px] sm:px-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
+      <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2.5 sm:gap-3">
           <Link
-            className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
             href={backHref}
           >
-            <ArrowLeft className="size-5" />
+            <ArrowLeft className="size-4 sm:size-5" />
           </Link>
           <div className="space-y-1">
-            <p className="eyebrow">{contentCopy.page.detailEyebrow}</p>
+            <p className="eyebrow hidden sm:block">{contentCopy.page.detailEyebrow}</p>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+              <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
                 {contentCopy.meta.detailTitle}
               </h1>
               <p className="hidden text-sm text-slate-600 sm:block">
@@ -219,34 +249,33 @@ export function ContentDetailPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
           <Link
-            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+            className="hidden h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
             href={homeHref}
           >
             {contentCopy.actions.backHome}
           </Link>
           <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
             onClick={() => {
               void loadDetail();
             }}
             type="button"
           >
             <RefreshCcw className="size-4" />
-            {contentCopy.actions.refresh}
+            <span className="sr-only sm:not-sr-only">{contentCopy.actions.refresh}</span>
           </button>
           {status === "connected" && accountAddress ? (
             <button
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
               onClick={() => {
-                if (wallet) {
-                  disconnect(wallet);
-                }
+                setIsLogoutDialogOpen(true);
               }}
               type="button"
             >
-              {contentCopy.actions.disconnect}
+              <LogOut className="size-4 sm:hidden" />
+              <span className="sr-only sm:not-sr-only">{contentCopy.actions.disconnect}</span>
             </button>
           ) : null}
         </div>
