@@ -184,6 +184,12 @@ export type ContentDetailResponse = {
   member: MemberRecord;
 };
 
+export type ContentDetailLoadResponse = {
+  content: ContentDetailRecord | null;
+  member: MemberRecord | null;
+  validationError: string | null;
+};
+
 export type ContentLibraryResponse = {
   items: ContentFeedItemRecord[];
 };

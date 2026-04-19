@@ -14,12 +14,15 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { getContentCopy } from "@/lib/content-copy";
-import type { ContentDetailResponse } from "@/lib/content";
+import type {
+  ContentDetailLoadResponse,
+  ContentDetailResponse,
+} from "@/lib/content";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
   hasThirdwebClientId,
@@ -88,7 +91,7 @@ export function ContentDetailPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const syncResponse = await fetch("/api/members", {
+      const response = await fetch(`/api/content/posts/${encodeURIComponent(contentId)}`, {
         body: JSON.stringify({
           chainId: chain.id,
           chainName: chain.name ?? "BSC",
@@ -102,28 +105,28 @@ export function ContentDetailPage({
         },
         method: "POST",
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
+      const data = (await response.json()) as
+        | ContentDetailLoadResponse
         | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!response.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
+          "error" in data && data.error
+            ? data.error
             : contentCopy.messages.detailLoadFailed,
         );
       }
 
-      const member = "member" in syncData ? syncData.member : null;
+      const member = "member" in data ? data.member : null;
 
       if (!member) {
         throw new Error(contentCopy.messages.memberMissing);
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if ("validationError" in data && data.validationError) {
         setState({
           content: null,
-          error: syncData.validationError,
+          error: data.validationError,
           member,
           status: "ready",
         });
@@ -140,25 +143,10 @@ export function ContentDetailPage({
         return;
       }
 
-      const response = await fetch(
-        `/api/content/posts/${encodeURIComponent(contentId)}?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-      );
-      const data = (await response.json()) as ContentDetailResponse | {
-        error?: string;
-      };
-
-      if (!response.ok || !("content" in data) || !("member" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.detailLoadFailed,
-        );
-      }
-
       setState({
-        content: data.content,
+        content: "content" in data ? data.content : null,
         error: null,
-        member: data.member,
+        member,
         status: "ready",
       });
     } catch (error) {

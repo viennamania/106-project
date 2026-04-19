@@ -1,8 +1,14 @@
 import type {
+  ContentDetailLoadResponse,
   ContentDetailResponse,
   ContentPostMutationResponse,
   ContentPostUpdateRequest,
 } from "@/lib/content";
+import {
+  getMemberRegistrationStatus,
+  syncMemberRegistration,
+} from "@/lib/member-service";
+import type { SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getContentDetailForMember,
@@ -53,6 +59,107 @@ export async function GET(
       message === "Member not found."
         ? 404
         : message === "Completed signup is required."
+          ? 403
+          : message === "Content not found."
+            ? 404
+            : message === "Content is not available in your network." ||
+                message === "This content requires a paid unlock."
+              ? 403
+              : 500;
+
+    return jsonError(message, status);
+  }
+}
+
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ contentId: string }> },
+) {
+  const { contentId } = await context.params;
+  let body: SyncMemberRequest | null = null;
+
+  try {
+    body = (await request.json()) as SyncMemberRequest;
+  } catch {
+    return jsonError("Invalid JSON body.", 400);
+  }
+
+  if (!body?.email) {
+    return jsonError("email is required.", 400);
+  }
+
+  if (!body.walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
+  if (!body.chainName?.trim()) {
+    return jsonError("chainName is required.", 400);
+  }
+
+  if (!body.locale?.trim()) {
+    return jsonError("locale is required.", 400);
+  }
+
+  try {
+    const existingMember = await getMemberRegistrationStatus(body.email);
+
+    if (existingMember) {
+      const authorization = await validateMemberWalletOwner({
+        allowedStatuses: ["completed", "pending_payment"],
+        email: body.email,
+        walletAddress: body.walletAddress,
+      });
+
+      if (authorization.error) {
+        return authorization.error;
+      }
+    }
+
+    const sync = await syncMemberRegistration({
+      ...body,
+      syncMode: "light",
+    });
+
+    if (!sync.member) {
+      return jsonError("Member not found.", 404);
+    }
+
+    if (sync.validationError) {
+      const response: ContentDetailLoadResponse = {
+        content: null,
+        member: sync.member,
+        validationError: sync.validationError,
+      };
+
+      return Response.json(response);
+    }
+
+    if (sync.member.status !== "completed") {
+      const response: ContentDetailLoadResponse = {
+        content: null,
+        member: sync.member,
+        validationError: null,
+      };
+
+      return Response.json(response);
+    }
+
+    const detail = await getContentDetailForMember(contentId, sync.member.email);
+    const response: ContentDetailLoadResponse = {
+      content: detail.content,
+      member: sync.member,
+      validationError: null,
+    };
+
+    return Response.json(response);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to load content.";
+    const status =
+      message === "Member not found."
+        ? 404
+        : message === "Completed signup is required." ||
+            message === "This wallet is not authorized for the requested member."
           ? 403
           : message === "Content not found."
             ? 404
