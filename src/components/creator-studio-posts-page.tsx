@@ -22,6 +22,7 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import type {
+  CreatorStudioPostsLoadResponse,
   ContentPostMutationResponse,
   ContentPostRecord,
   CreatorProfileRecord,
@@ -34,7 +35,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
   hasThirdwebClientId,
@@ -197,12 +198,16 @@ export function CreatorStudioPostsPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const syncResponse = await fetch("/api/members", {
+      const response = await fetch("/api/content/posts/load", {
         body: JSON.stringify({
           chainId: chain.id,
           chainName: chain.name ?? "BSC",
           email,
           locale,
+          page: appliedPage,
+          pageSize: POSTS_PAGE_SIZE,
+          q: appliedQuery || null,
+          status: appliedStatus !== "all" ? appliedStatus : null,
           syncMode: "light",
           walletAddress: accountAddress,
         }),
@@ -211,27 +216,27 @@ export function CreatorStudioPostsPage({
         },
         method: "POST",
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
-        | { error?: string };
+      const data = (await response.json()) as CreatorStudioPostsLoadResponse | {
+        error?: string;
+      };
 
-      if (!syncResponse.ok) {
+      if (!response.ok || !("posts" in data)) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
+          "error" in data && data.error
+            ? data.error
             : contentCopy.messages.studioLoadFailed,
         );
       }
 
-      const member = "member" in syncData ? syncData.member : null;
+      const member = data.member;
 
       if (!member) {
         throw new Error(contentCopy.messages.memberMissing);
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (data.validationError) {
         setState({
-          error: syncData.validationError,
+          error: data.validationError,
           member,
           notice: null,
           pageInfo: null,
@@ -257,35 +262,8 @@ export function CreatorStudioPostsPage({
         return;
       }
 
-      const params = new URLSearchParams({
-        email,
-        page: String(appliedPage),
-        pageSize: String(POSTS_PAGE_SIZE),
-        walletAddress: accountAddress,
-      });
-
-      if (appliedQuery) {
-        params.set("q", appliedQuery);
-      }
-
-      if (appliedStatus !== "all") {
-        params.set("status", appliedStatus);
-      }
-
-      const response = await fetch(`/api/content/posts?${params.toString()}`);
-      const data = (await response.json()) as CreatorStudioPostsResponse | {
-        error?: string;
-      };
-
-      if (!response.ok || !("posts" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.studioLoadFailed,
-        );
-      }
-
       if (
+        data.pageInfo &&
         data.pageInfo.totalCount > 0 &&
         data.pageInfo.totalPages < appliedPage &&
         pathname
@@ -300,7 +278,7 @@ export function CreatorStudioPostsPage({
 
       setState({
         error: null,
-        member: data.member,
+        member,
         notice: null,
         pageInfo: data.pageInfo,
         posts: data.posts,
@@ -423,10 +401,6 @@ export function CreatorStudioPostsPage({
       return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
     }
 
-    if (state.status === "loading" && !state.member) {
-      return <MessageCard>{contentCopy.actions.refresh}...</MessageCard>;
-    }
-
     if (state.error && state.member?.status !== "completed") {
       return (
         <MessageCard tone="error">
@@ -451,6 +425,11 @@ export function CreatorStudioPostsPage({
   }
 
   const blockedState = renderBlockedState();
+  const isInitialLoading =
+    state.status === "loading" &&
+    !state.error &&
+    !state.pageInfo &&
+    state.posts.length === 0;
   const filterItems = [
     {
       count: state.summary.all,
@@ -486,48 +465,78 @@ export function CreatorStudioPostsPage({
         />
       ) : null}
 
-      <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <Link
-            className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-            href={studioHomeHref}
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="space-y-1">
-            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                {contentCopy.actions.managePosts}
-              </h1>
-              <p className="hidden text-sm text-slate-600 sm:block">
-                {contentCopy.page.postsDescription}
-              </p>
+      <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <Link
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                href={studioHomeHref}
+              >
+                <ArrowLeft className="size-4 sm:size-5" />
+              </Link>
+              <div className="min-w-0">
+                <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
+                <h1 className="text-[1.12rem] font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
+                  {contentCopy.actions.managePosts}
+                </h1>
+                <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm">
+                  {isDisconnected
+                    ? contentCopy.messages.connectRequired
+                    : isInitialLoading
+                      ? contentCopy.messages.postsLoading
+                      : contentCopy.page.postsDescription}
+                </p>
+              </div>
             </div>
+            <button
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
+              onClick={() => {
+                void loadPosts();
+              }}
+              type="button"
+            >
+              <RefreshCcw className="size-4" />
+              <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
+            </button>
           </div>
-        </div>
 
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-            href={newPostHref}
-          >
-            {contentCopy.actions.createPost}
-          </Link>
-          <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-            onClick={() => {
-              void loadPosts();
-            }}
-            type="button"
-          >
-            <RefreshCcw className="size-4" />
-            {contentCopy.actions.refresh}
-          </button>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <HeaderStatChip
+              label={contentCopy.labels.posts}
+              loading={isInitialLoading}
+              value={String(state.summary.all)}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.published}
+              loading={isInitialLoading}
+              value={String(state.summary.published)}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.draft}
+              loading={isInitialLoading}
+              value={String(state.summary.draft)}
+            />
+            <HeaderStatChip
+              label={contentCopy.labels.author}
+              loading={isInitialLoading}
+              value={state.profile?.displayName || "-"}
+            />
+          </div>
+
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <Link
+              className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+              href={newPostHref}
+            >
+              {contentCopy.actions.createPost}
+            </Link>
+          </div>
         </div>
       </header>
 
-      <nav className="flex gap-2 overflow-x-auto pb-1">
+      <nav className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1">
         {[
           {
             href: studioHomeHref,
@@ -565,8 +574,8 @@ export function CreatorStudioPostsPage({
       </nav>
 
       <section className="grid gap-5 xl:grid-cols-[0.82fr_1.18fr]">
-        <div className="space-y-5">
-          <div className="glass-card rounded-[30px] p-5">
+        <div className="order-2 space-y-5 xl:order-1">
+          <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
@@ -582,26 +591,30 @@ export function CreatorStudioPostsPage({
             <p className="mt-3 text-sm leading-6 text-slate-600">
               {isDisconnected
                 ? contentCopy.messages.connectRequired
-                : state.status === "loading"
-                  ? `${contentCopy.actions.refresh}...`
+                : isInitialLoading
+                  ? contentCopy.messages.postsLoading
                   : contentCopy.page.postsDescription}
             </p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid grid-cols-2 gap-3">
               <WorkspaceMetric
                 label={contentCopy.labels.posts}
+                loading={isInitialLoading}
                 value={String(state.summary.all)}
               />
               <WorkspaceMetric
                 label={contentCopy.labels.published}
+                loading={isInitialLoading}
                 value={String(state.summary.published)}
               />
               <WorkspaceMetric
                 label={contentCopy.labels.draft}
+                loading={isInitialLoading}
                 value={String(state.summary.draft)}
               />
               <WorkspaceMetric
                 label={contentCopy.labels.author}
+                loading={isInitialLoading}
                 value={state.profile?.displayName || "-"}
               />
             </div>
@@ -616,14 +629,14 @@ export function CreatorStudioPostsPage({
             ) : null}
           </div>
 
-          <div className="glass-card rounded-[30px] p-5">
+          <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
             <div>
               <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
               <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                 {contentCopy.labels.quickActions}
               </h2>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
               <WorkspaceLaunchCard
                 description={contentCopy.page.newDescription}
                 disabled={!canUseWorkspace}
@@ -656,7 +669,7 @@ export function CreatorStudioPostsPage({
           </div>
         </div>
 
-        <div className="glass-card rounded-[30px] p-5">
+        <div className="order-1 rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)] xl:order-2">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -687,7 +700,7 @@ export function CreatorStudioPostsPage({
             >
               <label className="flex-1">
                 <span className="sr-only">{contentCopy.fields.searchPosts}</span>
-                <div className="flex h-12 items-center gap-3 rounded-full border border-slate-200 bg-white px-4">
+                <div className="flex h-12 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
                   <Search className="size-4 text-slate-400" />
                   <input
                     className="w-full border-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
@@ -700,7 +713,7 @@ export function CreatorStudioPostsPage({
                 </div>
               </label>
               <button
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
                 type="submit"
               >
                 <Search className="size-4" />
@@ -708,14 +721,14 @@ export function CreatorStudioPostsPage({
               </button>
             </form>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {filterItems.map((item) => (
-                    <Link
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
-                        appliedStatus === item.key
-                          ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.2)]"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                      }`}
+                <Link
+                  className={`inline-flex items-center justify-between gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
+                    appliedStatus === item.key
+                      ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.2)]"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
                   href={buildPostsHref({
                     page: 1,
                     status: item.key,
@@ -723,13 +736,13 @@ export function CreatorStudioPostsPage({
                   key={item.key}
                 >
                   <span>{item.label}</span>
-                      <span
-                        className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
-                          appliedStatus === item.key
-                            ? "bg-white text-slate-950"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
+                  <span
+                    className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.7rem] ${
+                      appliedStatus === item.key
+                        ? "bg-white text-slate-950"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {item.count}
                   </span>
                 </Link>
@@ -739,8 +752,8 @@ export function CreatorStudioPostsPage({
 
           {blockedState ? (
             blockedState
-          ) : state.status === "loading" ? (
-            <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
+          ) : isInitialLoading ? (
+            <PostsLoadingSkeleton copy={contentCopy} />
           ) : state.error ? (
             <MessageCard tone="error">{state.error}</MessageCard>
           ) : state.posts.length === 0 ? (
@@ -749,69 +762,71 @@ export function CreatorStudioPostsPage({
             <div className="mt-5 space-y-3">
               {state.posts.map((post) => (
                 <article
-                  className="rounded-[24px] border border-white/80 bg-white/90 p-4"
+                  className="overflow-hidden rounded-[26px] border border-white/80 bg-white/94 shadow-[0_18px_42px_rgba(15,23,42,0.06)]"
                   key={post.contentId}
                 >
                   {resolveManagerPostPreviewImage(post) ? (
-                    <div className="mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
+                    <div className="overflow-hidden border-b border-slate-200/80 bg-slate-900/90">
                       <div
-                        className="h-40 w-full bg-cover bg-center"
+                        className="h-44 w-full bg-cover bg-center sm:h-40"
                         style={{
                           backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${resolveManagerPostPreviewImage(post)})`,
                         }}
                       />
                     </div>
                   ) : null}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={post.status} />
-                    <StatusBadge status={post.priceType} />
-                  </div>
-                  <h3 className="mt-3 text-lg font-semibold tracking-tight text-slate-950">
-                    {post.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {post.summary}
-                  </p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-slate-400">
-                    {formatDateLabel(locale, post.updatedAt || post.createdAt)}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                      href={setPathSearchParams(
-                        buildPathWithReferral(
-                          `/${locale}/content/${post.contentId}`,
-                          referralCode,
-                        ),
-                        {
-                          returnTo: currentManagerHref,
-                        },
-                      )}
-                    >
-                      {contentCopy.actions.viewDetail}
-                    </Link>
-                    {post.status !== "published" ? (
-                      <button
-                        className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
-                        onClick={() => {
-                          void updatePostStatus(post, "published");
-                        }}
-                        type="button"
+                  <div className="p-4 sm:p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge status={post.status} />
+                      <StatusBadge status={post.priceType} />
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold tracking-tight text-slate-950">
+                      {post.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {post.summary}
+                    </p>
+                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-400">
+                      {formatDateLabel(locale, post.updatedAt || post.createdAt)}
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Link
+                        className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                        href={setPathSearchParams(
+                          buildPathWithReferral(
+                            `/${locale}/content/${post.contentId}`,
+                            referralCode,
+                          ),
+                          {
+                            returnTo: currentManagerHref,
+                          },
+                        )}
                       >
-                        {contentCopy.actions.publish}
-                      </button>
-                    ) : null}
-                    {post.status !== "archived" ? (
-                      <button
-                        className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                        onClick={() => {
-                          void updatePostStatus(post, "archived");
-                        }}
-                        type="button"
-                      >
-                        {contentCopy.labels.archived}
-                      </button>
-                    ) : null}
+                        {contentCopy.actions.viewDetail}
+                      </Link>
+                      {post.status !== "published" ? (
+                        <button
+                          className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                          onClick={() => {
+                            void updatePostStatus(post, "published");
+                          }}
+                          type="button"
+                        >
+                          {contentCopy.actions.publish}
+                        </button>
+                      ) : null}
+                      {post.status !== "archived" ? (
+                        <button
+                          className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                          onClick={() => {
+                            void updatePostStatus(post, "archived");
+                          }}
+                          type="button"
+                        >
+                          {contentCopy.labels.archived}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </article>
               ))}
@@ -856,6 +871,31 @@ export function CreatorStudioPostsPage({
   );
 }
 
+function HeaderStatChip({
+  label,
+  loading = false,
+  value,
+}: {
+  label: string;
+  loading?: boolean;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/80 bg-white/88 px-3 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:min-w-[128px] sm:px-4">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </p>
+      {loading ? (
+        <div className="mt-2 h-7 w-16 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+      ) : (
+        <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function WorkspaceLaunchCard({
   description,
   disabled,
@@ -870,7 +910,7 @@ function WorkspaceLaunchCard({
   title: string;
 }) {
   const body = (
-    <div className="glass-card flex min-h-[150px] flex-col justify-between rounded-[28px] p-5 transition hover:translate-y-[-1px] hover:border-white/85 hover:shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+    <div className="flex min-h-[138px] flex-col justify-between rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex size-14 items-center justify-center rounded-[20px] bg-slate-950 text-white shadow-[0_20px_40px_rgba(15,23,42,0.18)]">
           {icon}
@@ -901,19 +941,63 @@ function WorkspaceLaunchCard({
 
 function WorkspaceMetric({
   label,
+  loading = false,
   value,
 }: {
   label: string;
+  loading?: boolean;
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4">
+    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
       <p className="text-xs uppercase tracking-[0.16em] text-slate-400">
         {label}
       </p>
-      <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        {value}
-      </p>
+      {loading ? (
+        <div className="mt-4 h-9 w-20 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+      ) : (
+        <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PostsLoadingSkeleton({
+  copy,
+}: {
+  copy: ReturnType<typeof getContentCopy>;
+}) {
+  return (
+    <div className="mt-5 space-y-3">
+      <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-4 text-sm leading-6 text-slate-500">
+        {copy.messages.postsLoading}
+      </div>
+      {Array.from({ length: 3 }, (_, index) => (
+        <div
+          className="overflow-hidden rounded-[26px] border border-white/80 bg-white/94 shadow-[0_18px_42px_rgba(15,23,42,0.06)]"
+          key={index}
+        >
+          <div className="h-40 w-full bg-slate-200/80 motion-safe:animate-pulse" />
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="flex gap-2">
+              <div className="h-7 w-24 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+              <div className="h-7 w-16 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="h-7 w-4/5 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-4 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+              <div className="h-4 w-2/3 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            </div>
+            <div className="h-4 w-32 rounded-full bg-slate-200/70 motion-safe:animate-pulse" />
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="h-10 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+              <div className="h-10 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -968,8 +1052,8 @@ function MessageCard({
     <div
       className={
         tone === "error"
-          ? "mt-4 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-900"
-          : "mt-4 rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 text-sm leading-6 text-slate-600"
+          ? "mt-4 rounded-[24px] border border-rose-200 bg-[linear-gradient(180deg,#fff1f2,#ffe4e6)] px-4 py-4 text-sm leading-6 text-rose-900 shadow-[0_18px_44px_rgba(244,63,94,0.08)]"
+          : "mt-4 rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] px-4 py-4 text-sm leading-6 text-slate-600 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
       }
     >
       {children}

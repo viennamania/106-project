@@ -282,6 +282,15 @@ export type CreatorStudioPostsResponse = {
   };
 };
 
+export type CreatorStudioPostsLoadResponse = {
+  member: MemberRecord | null;
+  pageInfo: CreatorStudioPostsResponse["pageInfo"] | null;
+  posts: ContentPostRecord[];
+  profile: CreatorProfileRecord | null;
+  summary: CreatorStudioPostsResponse["summary"];
+  validationError: string | null;
+};
+
 export type CreatorProfileUpsertRequest = {
   avatarImageUrl?: string | null;
   displayName: string;
