@@ -256,22 +256,16 @@ export function ContentDetailPage({
       return;
     }
 
-    const nextUrl = new URL(window.location.href);
-
-    if (shareReferralCode) {
-      nextUrl.searchParams.set("ref", shareReferralCode);
-    } else {
-      nextUrl.searchParams.delete("ref");
-    }
-
-    nextUrl.searchParams.delete("returnTo");
-
-    setShareUrl(nextUrl.toString());
+    const bridgePath = buildPathWithReferral(
+      `/${locale}/content/bridge/${contentId}`,
+      shareReferralCode,
+    );
+    setShareUrl(new URL(bridgePath, window.location.origin).toString());
 
     try {
       setIsLiked(window.localStorage.getItem(`content-like:${contentId}`) === "1");
     } catch {}
-  }, [contentId, shareReferralCode]);
+  }, [contentId, locale, shareReferralCode]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
