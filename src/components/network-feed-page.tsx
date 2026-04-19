@@ -45,6 +45,14 @@ type FeedState = {
 };
 
 type FeedLevelFilter = "all" | "extended" | "nearby";
+type FeedCreatorSummary = {
+  avatarImageUrl: string | null;
+  closestLevel: number | null;
+  contentCount: number;
+  displayName: string;
+  intro: string | null;
+  key: string;
+};
 
 const INITIAL_VISIBLE_ITEM_COUNT = 6;
 const VISIBLE_ITEM_INCREMENT = 6;
@@ -131,6 +139,58 @@ export function NetworkFeedPage({
   }, [state.items]);
   const canShowMore = filteredItems.length > (featuredItem ? listItems.length + 1 : listItems.length);
   const canShowLess = visibleItemCount > INITIAL_VISIBLE_ITEM_COUNT;
+  const creatorSummaries = useMemo<FeedCreatorSummary[]>(() => {
+    const map = new Map<string, FeedCreatorSummary>();
+
+    for (const item of filteredItems) {
+      const key = item.authorEmail;
+      const current = map.get(key);
+      const nextLevel = item.networkLevel ?? null;
+      const nextDisplayName =
+        item.authorProfile?.displayName?.trim() || item.authorEmail;
+      const nextIntro = item.authorProfile?.intro?.trim() || null;
+      const nextAvatarImageUrl = item.authorProfile?.avatarImageUrl ?? null;
+
+      if (!current) {
+        map.set(key, {
+          avatarImageUrl: nextAvatarImageUrl,
+          closestLevel: nextLevel,
+          contentCount: 1,
+          displayName: nextDisplayName,
+          intro: nextIntro,
+          key,
+        });
+        continue;
+      }
+
+      current.contentCount += 1;
+      if (
+        nextLevel !== null &&
+        (current.closestLevel === null || nextLevel < current.closestLevel)
+      ) {
+        current.closestLevel = nextLevel;
+      }
+      if (!current.intro && nextIntro) {
+        current.intro = nextIntro;
+      }
+      if (!current.avatarImageUrl && nextAvatarImageUrl) {
+        current.avatarImageUrl = nextAvatarImageUrl;
+      }
+    }
+
+    return [...map.values()]
+      .sort((left, right) => {
+        const leftLevel = left.closestLevel ?? 999;
+        const rightLevel = right.closestLevel ?? 999;
+
+        if (leftLevel !== rightLevel) {
+          return leftLevel - rightLevel;
+        }
+
+        return right.contentCount - left.contentCount;
+      })
+      .slice(0, 4);
+  }, [filteredItems]);
   const filterItems = useMemo(
     () => [
       {
@@ -510,6 +570,32 @@ export function NetworkFeedPage({
                 </div>
               </div>
 
+              {creatorSummaries.length > 0 ? (
+                <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="eyebrow">{contentCopy.labels.creators}</p>
+                      <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                        {contentCopy.labels.creators}
+                      </h2>
+                    </div>
+                    <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+                      {creatorSummaries.length} {contentCopy.labels.creators}
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {creatorSummaries.map((creator) => (
+                      <CreatorSpotlightCard
+                        creator={creator}
+                        key={creator.key}
+                        levelLabel={contentCopy.labels.level}
+                        postsLabel={contentCopy.labels.posts}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {filteredItems.length === 0 ? (
                 <MessageCard>{contentCopy.messages.noFilteredFeed}</MessageCard>
               ) : listItems.length === 0 ? null : (
@@ -840,6 +926,52 @@ function FeedActionCard({
         <ArrowUpRight className="size-4" />
       </div>
     </Link>
+  );
+}
+
+function CreatorSpotlightCard({
+  creator,
+  levelLabel,
+  postsLabel,
+}: {
+  creator: FeedCreatorSummary;
+  levelLabel: string;
+  postsLabel: string;
+}) {
+  return (
+    <article className="rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+      <div className="flex items-start gap-3">
+        <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-slate-200 bg-slate-950/95 text-white shadow-[0_16px_32px_rgba(15,23,42,0.14)]">
+          {creator.avatarImageUrl ? (
+            <div
+              className="h-full w-full bg-cover bg-center"
+              style={{ backgroundImage: `url(${creator.avatarImageUrl})` }}
+            />
+          ) : (
+            <UserRound className="size-6" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-semibold tracking-tight text-slate-950">
+            {creator.displayName}
+          </h3>
+          {creator.intro ? (
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
+              {creator.intro}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              {levelLabel} {creator.closestLevel ?? "-"} · {postsLabel}{" "}
+              {creator.contentCount}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Badge>{`${postsLabel} ${creator.contentCount}`}</Badge>
+        <Badge>{`${levelLabel} ${creator.closestLevel ?? "-"}`}</Badge>
+      </div>
+    </article>
   );
 }
 
