@@ -935,7 +935,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       appliedReferralDescription:
         "이 가입에는 추천인 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
-        "직접 추천 슬롯이 가득 차 있어, 현재 자동 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
+        "현재 네트워크 배정 규칙에 따라 네트워크 코드 {code} 아래의 빈 슬롯에 배정되었습니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
@@ -1775,7 +1775,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       appliedReferralDescription:
         "Referral code {code} is applied to this signup.",
       autoPlacementDescription:
-        "The direct referral slots were already full, so this signup was assigned to an open slot under network code {code} by the current auto-placement rules.",
+        "This signup was assigned to an open slot under network code {code} by the current network placement rules.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
@@ -2623,7 +2623,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       appliedReferralDescription:
         "この登録には紹介コード {code} が適用されています。",
       autoPlacementDescription:
-        "直接紹介枠が埋まっていたため、現在の自動配置ルールに従ってネットワークコード {code} の空きスロットへ配置されました。",
+        "現在のネットワーク配置ルールに従って、ネットワークコード {code} の空きスロットへ配置されました。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
@@ -3474,7 +3474,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       appliedReferralDescription:
         "此注册已应用推荐码 {code}。",
       autoPlacementDescription:
-        "由于直属推荐位已满，系统已按当前自动分配规则将其放入网络代码 {code} 下的空槽位。",
+        "系统已按当前网络分配规则将其放入网络代码 {code} 下的空槽位。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
@@ -4315,7 +4315,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       appliedReferralDescription:
         "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
       autoPlacementDescription:
-        "Các vị trí giới thiệu trực tiếp đã đầy, vì vậy hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc auto-placement hiện tại.",
+        "Hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc phân bổ mạng hiện tại.",
       shareHint:
         "Chia sẻ liên kết này để mở trang đăng ký với mã referral của bạn đã được gắn sẵn.",
       noReferralApplied: "Chưa áp dụng",
@@ -4638,7 +4638,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       appliedReferralDescription:
         "Kode referral {code} diterapkan pada pendaftaran ini.",
       autoPlacementDescription:
-        "Slot referral langsung sudah penuh, jadi sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan auto-placement saat ini.",
+        "Sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan penempatan jaringan saat ini.",
       shareHint:
         "Bagikan tautan ini untuk membuka halaman pendaftaran dengan kode referral Anda yang sudah terpasang.",
       noReferralApplied: "Belum diterapkan",

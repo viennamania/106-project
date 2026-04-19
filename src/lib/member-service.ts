@@ -351,32 +351,20 @@ async function claimPlacementSlot({
   return collection.findOne({ claimedByEmail: email });
 }
 
-async function claimManualPlacementSlot({
-  email,
-  sponsor,
-}: {
-  email: string;
-  sponsor: MemberDocument;
-}) {
-  if (!sponsor.referralCode) {
-    return null;
+function shufflePlacementSlotCandidates<T>(items: T[]) {
+  const nextItems = [...items];
+
+  for (let index = nextItems.length - 1; index > 0; index -= 1) {
+    const randomIndex = randomInt(index + 1);
+    const currentItem = nextItems[index];
+    nextItems[index] = nextItems[randomIndex];
+    nextItems[randomIndex] = currentItem;
   }
 
-  await ensurePlacementSlotsForCompletedMember(sponsor);
-
-  return claimPlacementSlot({
-    email,
-    filter: {
-      ownerReferralCode: sponsor.referralCode,
-    },
-    sort: {
-      slotIndex: 1,
-    },
-    source: "manual",
-  });
+  return nextItems;
 }
 
-async function claimSponsoredOverflowPlacementSlot({
+async function claimSponsoredNetworkPlacementSlot({
   collection,
   email,
   sponsor,
@@ -391,6 +379,17 @@ async function claimSponsoredOverflowPlacementSlot({
     return null;
   }
 
+  await ensurePlacementSlotsForCompletedMember(sponsor);
+  const placementSlotsCollection = await getReferralPlacementSlotsCollection();
+  const existingClaim = await placementSlotsCollection.findOne({
+    claimedByEmail: email,
+  });
+
+  if (existingClaim) {
+    return existingClaim;
+  }
+
+  const ownerReferralCodes = new Set<string>([sponsorReferralCode]);
   const visitedReferralCodes = new Set<string>([sponsorReferralCode]);
   let currentParentCodes = [sponsorReferralCode];
 
@@ -431,33 +430,60 @@ async function claimSponsoredOverflowPlacementSlot({
       }
 
       visitedReferralCodes.add(levelReferralCode);
+      ownerReferralCodes.add(levelReferralCode);
       nextParentCodes.push(levelReferralCode);
     }
 
-    if (nextParentCodes.length === 0) {
-      break;
-    }
+    currentParentCodes = nextParentCodes;
+  }
 
-    const overflowSlot = await claimPlacementSlot({
-      email,
-      filter: {
-        ownerReferralCode: {
-          $in: nextParentCodes,
-        },
+  const candidateSlots = await placementSlotsCollection
+    .find({
+      claimedByEmail: null,
+      ownerReferralCode: {
+        $in: [...ownerReferralCodes],
       },
-      sort: {
-        ownerRegistrationCompletedAt: 1,
+    })
+    .project<Pick<ReferralPlacementSlotDocument, "ownerReferralCode" | "slotIndex">>(
+      {
         ownerReferralCode: 1,
         slotIndex: 1,
       },
-      source: "auto",
-    });
+    )
+    .toArray();
 
-    if (overflowSlot) {
-      return overflowSlot;
+  if (candidateSlots.length === 0) {
+    return null;
+  }
+
+  const randomizedCandidates = shufflePlacementSlotCandidates(candidateSlots);
+
+  for (const candidateSlot of randomizedCandidates) {
+    const claimSource: PlacementSource =
+      candidateSlot.ownerReferralCode === sponsorReferralCode ? "manual" : "auto";
+    const claimedAt = new Date();
+    const claimResult = await placementSlotsCollection.findOneAndUpdate(
+      {
+        ownerReferralCode: candidateSlot.ownerReferralCode,
+        slotIndex: candidateSlot.slotIndex,
+        claimedByEmail: null,
+      },
+      {
+        $set: {
+          claimSource,
+          claimedAt,
+          claimedByEmail: email,
+          updatedAt: claimedAt,
+        },
+      },
+      {
+        returnDocument: "after",
+      },
+    );
+
+    if (claimResult) {
+      return claimResult;
     }
-
-    currentParentCodes = nextParentCodes;
   }
 
   return null;
@@ -578,41 +604,28 @@ async function ensurePlacementAssigned({
     });
 
     if (sponsor) {
-      const manualSlot = await claimManualPlacementSlot({
-        email: member.email,
-        sponsor,
-      });
-
-      if (manualSlot) {
-        return applyPlacementFromSlot({
-          collection,
-          member,
-          slot: manualSlot,
-        });
-      }
-
-      const overflowSlot = await claimSponsoredOverflowPlacementSlot({
+      const sponsoredNetworkSlot = await claimSponsoredNetworkPlacementSlot({
         collection,
         email: member.email,
         sponsor,
       });
 
-      if (overflowSlot) {
+      if (sponsoredNetworkSlot) {
         if (
           await placementWouldCreateCycle({
             collection,
             member,
-            slot: overflowSlot,
+            slot: sponsoredNetworkSlot,
           })
         ) {
-          if (overflowSlot.claimSource === "auto") {
-            await releaseClaimedPlacementSlot(overflowSlot);
+          if (sponsoredNetworkSlot.claimSource === "auto") {
+            await releaseClaimedPlacementSlot(sponsoredNetworkSlot);
           }
         } else {
           return applyPlacementFromSlot({
             collection,
             member,
-            slot: overflowSlot,
+            slot: sponsoredNetworkSlot,
           });
         }
       }
