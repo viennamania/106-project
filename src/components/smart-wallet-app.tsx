@@ -17,6 +17,7 @@ import {
   Bell,
   Check,
   Copy,
+  LogOut,
   Mail,
   Megaphone,
   PenSquare,
@@ -1331,31 +1332,31 @@ export function SmartWalletApp({
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-32 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
         <LandingReveal delay={10} variant="soft">
-          <header className="glass-card flex flex-col gap-3 rounded-[26px] px-4 py-3.5 sm:px-5 sm:py-4">
-            <div className="flex items-start gap-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
-                <WalletMinimal className="size-5" />
+          <header className="glass-card flex flex-col gap-2.5 rounded-[24px] px-4 py-3 sm:gap-3 sm:rounded-[26px] sm:px-5 sm:py-4">
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)] sm:size-11 sm:rounded-2xl">
+                <WalletMinimal className="size-4 sm:size-5" />
               </div>
               <div className="min-w-0 space-y-1">
-                <p className="eyebrow">{dictionary.common.headerEyebrow}</p>
+                <p className="eyebrow hidden sm:block">{dictionary.common.headerEyebrow}</p>
                 <div>
-                  <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+                  <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
                     {dictionary.common.appName}
                   </h1>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
-              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <Link
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:h-10 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
                   href={homeHref}
                 >
                   <ArrowLeft className="size-4" />
-                  {dictionary.referralsPage.actions.backHome}
+                  <span className="sr-only sm:not-sr-only">{dictionary.referralsPage.actions.backHome}</span>
                 </Link>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
                   <StatusChip
                     labels={dictionary.common.status}
                     status={status}
@@ -1368,11 +1369,10 @@ export function SmartWalletApp({
                     {isSignupCompleted && memberSync.member?.email ? (
                       <button
                         className={cn(
-                          "group inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-full border px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
+                          "group relative inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2 sm:h-10 sm:w-auto sm:justify-between sm:gap-2 sm:px-4 sm:text-sm sm:font-medium",
                           notificationsState.open
                             ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
                             : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
-                          "sm:w-auto sm:justify-start",
                         )}
                         onClick={() => {
                           if (
@@ -1392,10 +1392,10 @@ export function SmartWalletApp({
                       >
                         <span className="inline-flex items-center gap-2 transition group-hover:text-sky-900">
                           <Bell className="size-4 transition group-hover:scale-105 group-hover:text-sky-700" />
-                          {notificationCopy.title}
+                          <span className="sr-only sm:not-sr-only">{notificationCopy.title}</span>
                         </span>
                         {notificationsState.unreadCount > 0 ? (
-                          <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[0.68rem] font-semibold leading-none text-white transition group-hover:bg-sky-900 group-hover:shadow-[0_10px_20px_rgba(14,165,233,0.18)]">
+                          <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-1 text-[0.64rem] font-semibold leading-none text-white transition group-hover:bg-sky-900 group-hover:shadow-[0_10px_20px_rgba(14,165,233,0.18)] sm:static sm:min-w-6 sm:px-2 sm:text-[0.68rem]">
                             {new Intl.NumberFormat(locale).format(
                               notificationsState.unreadCount,
                             )}
@@ -1404,7 +1404,7 @@ export function SmartWalletApp({
                       </button>
                     ) : null}
                     <button
-                      className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                      className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
                       disabled={!wallet}
                       onClick={() => {
                         if (!wallet) {
@@ -1415,7 +1415,8 @@ export function SmartWalletApp({
                       }}
                       type="button"
                     >
-                      {dictionary.common.disconnectWallet}
+                      <LogOut className="size-4 sm:hidden" />
+                      <span className="sr-only sm:not-sr-only">{dictionary.common.disconnectWallet}</span>
                     </button>
                   </div>
                 ) : (
@@ -1695,6 +1696,7 @@ export function SmartWalletApp({
 
             {showMemberRegistryPanel ? (
               <Panel
+                compactMobileHeader
                 contentClassName="gap-4"
                 eyebrow={dictionary.member.eyebrow}
                 revealDelay={120}
@@ -1719,19 +1721,19 @@ export function SmartWalletApp({
 
                 {memberSync.member ? (
                   <>
-                    <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                      <p className="text-sm leading-6 text-slate-600">
+                    <div className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-4">
+                      <p className="text-[0.92rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
                         {memberSync.member.status === "completed"
                           ? dictionary.member.synced
                           : dictionary.member.pending}
                       </p>
                       {memberSync.justCompleted ? (
-                        <p className="mt-2 text-sm font-semibold text-emerald-700">
+                        <p className="mt-1.5 text-[0.92rem] font-semibold text-emerald-700 sm:mt-2 sm:text-sm">
                           {dictionary.member.newMember}
                         </p>
                       ) : null}
                       {memberSync.member.referredByCode ? (
-                        <p className="mt-2 text-sm font-medium text-slate-700">
+                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-slate-700 sm:mt-2 sm:text-sm sm:leading-6">
                           {formatTemplate(
                             dictionary.member.appliedReferralDescription,
                             {
@@ -1742,7 +1744,7 @@ export function SmartWalletApp({
                       ) : null}
                       {memberSync.member.placementSource === "auto" &&
                       memberSync.member.placementReferralCode ? (
-                        <p className="mt-2 text-sm font-medium text-sky-700">
+                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-sky-700 sm:mt-2 sm:text-sm sm:leading-6">
                           {formatTemplate(
                             dictionary.member.autoPlacementDescription,
                             {
@@ -1763,12 +1765,14 @@ export function SmartWalletApp({
                       />
                     ) : null}
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
                       <InfoRow
+                        compactMobile
                         label={dictionary.member.labels.emailKey}
                         value={memberSync.member.email}
                       />
                       <InfoRow
+                        compactMobile
                         label={dictionary.member.labels.signupStatus}
                         value={
                           memberSync.member.status === "completed"
@@ -1777,6 +1781,7 @@ export function SmartWalletApp({
                         }
                       />
                       <InfoRow
+                        compactMobile
                         label={dictionary.member.labels.referredByCode}
                         value={
                           memberSync.member.referredByCode ??
@@ -1785,6 +1790,7 @@ export function SmartWalletApp({
                       />
                       {shouldShowPlacementReferralCode(memberSync.member) ? (
                         <InfoRow
+                          compactMobile
                           label={dictionary.member.labels.placementReferralCode}
                           value={
                             memberSync.member.placementReferralCode ??
@@ -1794,9 +1800,9 @@ export function SmartWalletApp({
                       ) : null}
                     </div>
 
-                    <div className="grid gap-3 sm:flex sm:flex-wrap">
+                    <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
                       <button
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                        className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto"
                         disabled={memberSync.status === "syncing"}
                         onClick={() => {
                           void runMemberSync();
@@ -1807,7 +1813,7 @@ export function SmartWalletApp({
                       </button>
 
                       <a
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
+                        className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:h-11 sm:w-auto"
                         href={projectWalletUrl}
                         rel="noreferrer"
                         target="_blank"
@@ -1915,6 +1921,7 @@ function Panel({
   title,
   eyebrow,
   description,
+  compactMobileHeader = false,
   children,
   contentClassName,
   id,
@@ -1924,6 +1931,7 @@ function Panel({
   title: string;
   eyebrow: string;
   description?: string;
+  compactMobileHeader?: boolean;
   children: ReactNode;
   contentClassName?: string;
   id?: string;
@@ -1933,19 +1941,38 @@ function Panel({
     <LandingReveal delay={revealDelay} variant="soft">
       <section
         className={cn(
-          "glass-card rounded-[26px] p-4 sm:rounded-[30px] sm:p-5",
+          compactMobileHeader
+            ? "glass-card rounded-[22px] p-3.5 sm:rounded-[30px] sm:p-5"
+            : "glass-card rounded-[26px] p-4 sm:rounded-[30px] sm:p-5",
           id && "scroll-mt-24 sm:scroll-mt-28",
           className,
         )}
         id={id}
       >
-        <div className="mb-4 space-y-1">
-          <p className="eyebrow">{eyebrow}</p>
-          <h3 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+        <div
+          className={cn(
+            "mb-4 space-y-1",
+            compactMobileHeader && "mb-3 sm:mb-4 sm:space-y-1",
+          )}
+        >
+          <p className={cn("eyebrow", compactMobileHeader && "hidden sm:block")}>
+            {eyebrow}
+          </p>
+          <h3
+            className={cn(
+              "text-lg font-semibold tracking-tight text-slate-950 sm:text-xl",
+              compactMobileHeader && "text-[1.02rem] sm:text-xl",
+            )}
+          >
             {title}
           </h3>
           {description ? (
-            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+            <p
+              className={cn(
+                "max-w-2xl text-sm leading-6 text-slate-600",
+                compactMobileHeader && "hidden sm:block",
+              )}
+            >
               {description}
             </p>
           ) : null}
@@ -2348,30 +2375,34 @@ function CompletedHomeDashboard({
       </LandingReveal>
 
       <Panel
+        compactMobileHeader
         contentClassName="gap-4"
         eyebrow={dictionary.member.eyebrow}
         revealDelay={120}
         title={dictionary.member.title}
       >
-        <div className="rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <p className="text-sm leading-6 text-slate-600">
+        <div className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-4">
+          <p className="text-[0.92rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
             {dictionary.referralsPage.memberReady}
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.emailKey}
             value={member.email}
           />
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.signupStatus}
             value={dictionary.member.completedValue}
           />
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.completionAt}
             value={
               member.registrationCompletedAt
@@ -2381,6 +2412,7 @@ function CompletedHomeDashboard({
           />
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.paymentReceivedAt}
             value={
               member.paymentReceivedAt
@@ -2390,17 +2422,20 @@ function CompletedHomeDashboard({
           />
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.lastConnectedAt}
             value={formatDateTime(member.lastConnectedAt, locale)}
           />
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.referredByCode}
             value={member.referredByCode ?? dictionary.member.noReferralApplied}
           />
           {shouldShowPlacementReferralCode(member) ? (
             <InfoRow
               alignValueRight
+              compactMobile
               label={dictionary.member.labels.placementReferralCode}
               value={
                 member.placementReferralCode ?? dictionary.common.notAvailable
@@ -2409,6 +2444,7 @@ function CompletedHomeDashboard({
           ) : null}
           <InfoRow
             alignValueRight
+            compactMobile
             label={dictionary.member.labels.requiredDeposit}
             valueContent={
               <AnimatedNumberText
@@ -2581,26 +2617,50 @@ function MetricCard({
 
 function InfoRow({
   alignValueRight = false,
+  compactMobile = false,
   label,
   value,
   valueContent,
 }: {
   alignValueRight?: boolean;
+  compactMobile?: boolean;
   label: string;
   value: string;
   valueContent?: ReactNode;
 }) {
   return (
-    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3.5 py-3">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-        {label}
-      </p>
-      <p className={cn(
-        "mt-2 break-words text-sm font-medium text-slate-900 sm:text-base",
-        alignValueRight && "text-right tabular-nums",
-      )}>
-        {valueContent ?? value}
-      </p>
+    <div
+      className={cn(
+        "rounded-[18px] border border-slate-200 bg-slate-50 px-3.5 py-3",
+        compactMobile &&
+          "rounded-[16px] px-3 py-2.5 sm:rounded-[18px] sm:px-3.5 sm:py-3",
+      )}
+    >
+      <div
+        className={cn(
+          compactMobile && "flex items-start justify-between gap-3 sm:block",
+        )}
+      >
+        <p
+          className={cn(
+            "text-xs uppercase tracking-[0.22em] text-slate-500",
+            compactMobile &&
+              "text-[0.64rem] tracking-[0.16em] sm:text-xs sm:tracking-[0.22em]",
+          )}
+        >
+          {label}
+        </p>
+        <p
+          className={cn(
+            "mt-2 break-words text-sm font-medium text-slate-900 sm:text-base",
+            (alignValueRight || compactMobile) && "text-right tabular-nums",
+            compactMobile &&
+              "mt-0 min-w-0 max-w-[56%] text-[0.92rem] leading-5 sm:mt-2 sm:max-w-none sm:text-base",
+          )}
+        >
+          {valueContent ?? value}
+        </p>
+      </div>
     </div>
   );
 }
