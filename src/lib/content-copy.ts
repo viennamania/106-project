@@ -5,7 +5,11 @@ export type ContentCopy = {
     backHome: string;
     browseFeed: string;
     connectWallet: string;
+    copiedLink: string;
+    copyLink: string;
     createPost: string;
+    liked: string;
+    like: string;
     disconnect: string;
     generateAiCover: string;
     generatingAiCover: string;
@@ -22,6 +26,8 @@ export type ContentCopy = {
     saveAutomation: string;
     saveProfile: string;
     saveDraft: string;
+    share: string;
+    sharing: string;
     showLess: string;
     showMore: string;
     uploadImage: string;
@@ -111,6 +117,7 @@ export type ContentCopy = {
     detailLoadFailed: string;
     feedLoadFailed: string;
     imageGenerated: string;
+    likeHint: string;
     memberMissing: string;
     noFilteredFeed: string;
     paymentRequired: string;
@@ -118,6 +125,7 @@ export type ContentCopy = {
     publishSuccess: string;
     saveDraftSuccess: string;
     searchPlaceholder: string;
+    shareFailed: string;
     studioLoadFailed: string;
     noMatchingPosts: string;
     uploadFailed: string;
@@ -151,7 +159,11 @@ const englishCopy: ContentCopy = {
     backHome: "Back home",
     browseFeed: "Browse feed",
     connectWallet: "Sign in with email",
+    copiedLink: "Link copied",
+    copyLink: "Copy link",
     createPost: "Create post",
+    liked: "Liked",
+    like: "Like",
     disconnect: "Disconnect",
     generateAiCover: "Generate AI cover",
     generatingAiCover: "Generating cover...",
@@ -168,6 +180,8 @@ const englishCopy: ContentCopy = {
     saveAutomation: "Save automation",
     saveProfile: "Save profile",
     saveDraft: "Save as draft",
+    share: "Share",
+    sharing: "Sharing...",
     showLess: "Show less",
     showMore: "Show more",
     uploadImage: "Upload image",
@@ -262,6 +276,7 @@ const englishCopy: ContentCopy = {
     detailLoadFailed: "Failed to load the content detail.",
     feedLoadFailed: "Failed to load the network feed.",
     imageGenerated: "AI cover generated. You can publish or save it now.",
+    likeHint: "Double-tap the cover to leave a like.",
     memberMissing: "Member not found.",
     noFilteredFeed: "No posts match this network range yet.",
     paymentRequired: "Completed signup is required to use network content.",
@@ -269,6 +284,7 @@ const englishCopy: ContentCopy = {
     publishSuccess: "Free post published to your network feed.",
     saveDraftSuccess: "Draft saved.",
     searchPlaceholder: "Search your posts",
+    shareFailed: "Sharing is not available right now.",
     studioLoadFailed: "Failed to load the creator studio.",
     noMatchingPosts: "No posts match this filter yet.",
     uploadFailed: "Failed to upload image.",
@@ -310,7 +326,11 @@ const koreanCopy: ContentCopy = {
     backHome: "홈으로 돌아가기",
     browseFeed: "피드 보기",
     connectWallet: "이메일로 로그인",
+    copiedLink: "링크 복사됨",
+    copyLink: "링크 복사",
     createPost: "콘텐츠 만들기",
+    liked: "좋아요 완료",
+    like: "좋아요",
     disconnect: "연결 해제",
     generateAiCover: "AI 커버 생성",
     generatingAiCover: "커버 생성 중...",
@@ -327,6 +347,8 @@ const koreanCopy: ContentCopy = {
     saveAutomation: "자동화 저장",
     saveProfile: "프로필 저장",
     saveDraft: "임시 저장",
+    share: "공유하기",
+    sharing: "공유 준비 중...",
     showLess: "접기",
     showMore: "더 보기",
     uploadImage: "이미지 업로드",
@@ -422,6 +444,7 @@ const koreanCopy: ContentCopy = {
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",
     feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
     imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
+    likeHint: "커버 이미지를 두 번 터치하면 좋아요 연출이 실행됩니다.",
     memberMissing: "회원을 찾을 수 없습니다.",
     noFilteredFeed: "선택한 단계 범위에 해당하는 콘텐츠가 아직 없습니다.",
     paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
@@ -429,6 +452,7 @@ const koreanCopy: ContentCopy = {
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
     searchPlaceholder: "내 콘텐츠 검색",
+    shareFailed: "지금은 공유 기능을 사용할 수 없습니다.",
     studioLoadFailed: "크리에이터 스튜디오를 불러오지 못했습니다.",
     noMatchingPosts: "선택한 상태의 콘텐츠가 아직 없습니다.",
     uploadFailed: "이미지 업로드에 실패했습니다.",
