@@ -568,8 +568,9 @@ export function ContentDetailPage({
               </button>
             </div>
 
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <ActionChip
+                className="w-full justify-center sm:w-auto"
                 icon={Share2}
                 label={
                   shareState === "sharing"
@@ -582,6 +583,7 @@ export function ContentDetailPage({
                 tone="primary"
               />
               <ActionChip
+                className="w-full justify-center sm:w-auto"
                 icon={Copy}
                 label={
                   shareState === "copied"
@@ -593,17 +595,26 @@ export function ContentDetailPage({
                 }}
               />
               {twitterShareHref ? (
-                <SocialShareChip href={twitterShareHref} label="X" />
+                <SocialShareChip
+                  className="w-full justify-center sm:w-auto"
+                  href={twitterShareHref}
+                  label="X"
+                />
               ) : null}
               {telegramShareHref ? (
                 <SocialShareChip
+                  className="w-full justify-center sm:w-auto"
                   href={telegramShareHref}
                   icon={Send}
                   label="Telegram"
                 />
               ) : null}
               {facebookShareHref ? (
-                <SocialShareChip href={facebookShareHref} label="Facebook" />
+                <SocialShareChip
+                  className="w-full justify-center sm:w-auto"
+                  href={facebookShareHref}
+                  label="Facebook"
+                />
               ) : null}
             </div>
 
@@ -613,29 +624,6 @@ export function ContentDetailPage({
               </p>
             ) : null}
 
-            {isPreviewLocked ? (
-              <div className="mt-4 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,237,0.92))] px-4 py-3 shadow-[0_14px_34px_rgba(245,158,11,0.10)]">
-                <p className="text-sm leading-6 text-slate-700">
-                  {contentCopy.messages.previewLocked}
-                </p>
-                {shouldEncourageSignup ? (
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <Link
-                      className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
-                      href={activateHref}
-                    >
-                      <span className="sm:hidden">가입 완료하기</span>
-                      <span className="hidden sm:inline">
-                        {dictionary.referralsPage.actions.completeSignup}
-                      </span>
-                    </Link>
-                    <span className="text-xs leading-5 text-slate-500">
-                      {contentCopy.messages.paymentRequired}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
           </section>
 
           <section
@@ -740,11 +728,13 @@ function HeroBadge({
 }
 
 function ActionChip({
+  className,
   icon: Icon,
   label,
   onClick,
   tone = "neutral",
 }: {
+  className?: string;
   icon: ComponentType<{ className?: string }>;
   label: string;
   onClick?: () => void;
@@ -757,6 +747,7 @@ function ActionChip({
         tone === "primary"
           ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_34px_rgba(15,23,42,0.22)] hover:bg-slate-900"
           : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
+        className,
       )}
       onClick={onClick}
       type="button"
@@ -768,17 +759,22 @@ function ActionChip({
 }
 
 function SocialShareChip({
+  className,
   href,
   icon: Icon,
   label,
 }: {
+  className?: string;
   href: string;
   icon?: ComponentType<{ className?: string }>;
   label: string;
 }) {
   return (
     <a
-      className="inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+      className={cn(
+        "inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50",
+        className,
+      )}
       href={href}
       rel="noreferrer"
       target="_blank"
