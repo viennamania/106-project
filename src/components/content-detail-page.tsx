@@ -844,10 +844,10 @@ function HeroTopBar({
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
       <Link
-        className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/40 text-white backdrop-blur-md transition hover:bg-slate-950/58 sm:size-12"
+        className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/28 bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.12))] text-white shadow-[0_14px_32px_rgba(2,6,23,0.24)] backdrop-blur-xl transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.3),rgba(255,255,255,0.16))] sm:size-12"
         href={backHref}
       >
-        <ArrowLeft className="size-4 sm:size-5" />
+        <ArrowLeft className="size-4 stroke-[2.5] drop-shadow-[0_2px_6px_rgba(15,23,42,0.35)] sm:size-5" />
       </Link>
       <div className="flex max-w-[calc(100%-7rem)] items-center gap-2 rounded-full border border-white/12 bg-slate-950/34 px-3 py-2 text-white backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.16)] sm:max-w-none sm:px-4">
         <span className="inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/12 shadow-[0_0_0_4px_rgba(255,255,255,0.06)]">
@@ -910,10 +910,10 @@ function ContentDetailLoadingState({
         <section className="relative mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.20)] sm:mx-0 sm:rounded-[36px]">
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
             <Link
-              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/40 text-white backdrop-blur-md transition hover:bg-slate-950/58 sm:size-12"
+              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/28 bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.12))] text-white shadow-[0_14px_32px_rgba(2,6,23,0.24)] backdrop-blur-xl transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.3),rgba(255,255,255,0.16))] sm:size-12"
               href={backHref}
             >
-              <ArrowLeft className="size-4 sm:size-5" />
+              <ArrowLeft className="size-4 stroke-[2.5] drop-shadow-[0_2px_6px_rgba(15,23,42,0.35)] sm:size-5" />
             </Link>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/38 px-3 py-2 text-[0.72rem] font-semibold text-white backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
               <LoaderCircle className="size-3.5 animate-spin" />
