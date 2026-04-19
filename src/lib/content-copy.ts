@@ -121,6 +121,7 @@ export type ContentCopy = {
     memberMissing: string;
     noFilteredFeed: string;
     paymentRequired: string;
+    previewLocked: string;
     profileSaved: string;
     publishSuccess: string;
     saveDraftSuccess: string;
@@ -280,6 +281,8 @@ const englishCopy: ContentCopy = {
     memberMissing: "Member not found.",
     noFilteredFeed: "No posts match this network range yet.",
     paymentRequired: "Completed signup is required to use network content.",
+    previewLocked:
+      "Unlock the full story after completing signup on the activation screen.",
     profileSaved: "Creator profile saved.",
     publishSuccess: "Free post published to your network feed.",
     saveDraftSuccess: "Draft saved.",
@@ -448,6 +451,8 @@ const koreanCopy: ContentCopy = {
     memberMissing: "회원을 찾을 수 없습니다.",
     noFilteredFeed: "선택한 단계 범위에 해당하는 콘텐츠가 아직 없습니다.",
     paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
+    previewLocked:
+      "활성화 화면에서 가입을 완료하면 이 콘텐츠 전체를 열람할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
     publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",

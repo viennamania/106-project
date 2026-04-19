@@ -11,6 +11,7 @@ import {
 import type { SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
+  getPublicContentPreview,
   getContentDetailForMember,
   updateContentPostForMember,
 } from "@/lib/content-service";
@@ -119,14 +120,23 @@ export async function POST(
       ...body,
       syncMode: "light",
     });
+    const preview = await getPublicContentPreview(contentId);
 
     if (!sync.member) {
-      return jsonError("Member not found.", 404);
+      const response: ContentDetailLoadResponse = {
+        content: preview,
+        gateReason: preview ? "signup" : null,
+        member: null,
+        validationError: null,
+      };
+
+      return preview ? Response.json(response) : jsonError("Member not found.", 404);
     }
 
     if (sync.validationError) {
       const response: ContentDetailLoadResponse = {
-        content: null,
+        content: preview,
+        gateReason: preview ? "signup" : null,
         member: sync.member,
         validationError: sync.validationError,
       };
@@ -136,7 +146,8 @@ export async function POST(
 
     if (sync.member.status !== "completed") {
       const response: ContentDetailLoadResponse = {
-        content: null,
+        content: preview,
+        gateReason: preview ? "signup" : null,
         member: sync.member,
         validationError: null,
       };
@@ -144,9 +155,36 @@ export async function POST(
       return Response.json(response);
     }
 
-    const detail = await getContentDetailForMember(contentId, sync.member.email);
+    let detail;
+
+    try {
+      detail = await getContentDetailForMember(contentId, sync.member.email);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load content.";
+
+      if (
+        preview &&
+        (message === "Content is not available in your network." ||
+          message === "This content requires a paid unlock.")
+      ) {
+        const response: ContentDetailLoadResponse = {
+          content: preview,
+          gateReason:
+            message === "This content requires a paid unlock." ? "paid" : "network",
+          member: sync.member,
+          validationError: null,
+        };
+
+        return Response.json(response);
+      }
+
+      throw error;
+    }
+
     const response: ContentDetailLoadResponse = {
       content: detail.content,
+      gateReason: null,
       member: sync.member,
       validationError: null,
     };

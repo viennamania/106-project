@@ -34,6 +34,11 @@ export type ContentAssetKind = (typeof contentAssetKinds)[number];
 export type ContentOrderStatus = (typeof contentOrderStatuses)[number];
 export type ContentEntitlementSource =
   (typeof contentEntitlementSources)[number];
+export type ContentAccessGateReason =
+  | "connect"
+  | "network"
+  | "paid"
+  | "signup";
 
 export type CreatorProfileDocument = {
   avatarImageUrl?: string | null;
@@ -193,6 +198,7 @@ export type ContentDetailResponse = {
 
 export type ContentDetailLoadResponse = {
   content: ContentDetailRecord | null;
+  gateReason: ContentAccessGateReason | null;
   member: MemberRecord | null;
   validationError: string | null;
 };

@@ -290,6 +290,51 @@ export async function getPublishedContentShareMetadata(contentId: string) {
   };
 }
 
+export async function getPublicContentPreview(contentId: string) {
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId,
+    status: "published",
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  const storedProfile = await readStoredCreatorProfile(post.authorEmail);
+  const sourceAttributionsCollection =
+    await getContentPostSourceAttributionsCollection();
+  const attribution = await sourceAttributionsCollection.findOne({ contentId });
+  const membersCollection = await getMembersCollection();
+  const authorMember = await membersCollection.findOne({ email: post.authorEmail });
+  const authorProfile = storedProfile
+    ? serializeCreatorProfile(storedProfile)
+    : authorMember
+      ? createDefaultCreatorProfile(authorMember)
+      : null;
+  const sources = (attribution?.sourceUrls ?? [])
+    .map((url, index) => ({
+      title: attribution?.sourceTitles?.[index],
+      url: url.trim(),
+    }))
+    .filter((source) => Boolean(source.url))
+    .map((source) => ({
+      title: inferSourceTitle(source.title, source.url),
+      url: source.url,
+    }));
+  const previewBody = `${post.body.slice(0, 1600).trim()}${post.body.length > 1600 ? "\n\n..." : ""}`;
+
+  return {
+    ...serializeContentPost(post),
+    assets: [],
+    authorProfile,
+    body: previewBody,
+    canAccess: false,
+    entitlementSource: null,
+    sources,
+  };
+}
+
 async function emitPublishedContentNotifications(options: {
   author: MemberDocument;
   contentId: string;

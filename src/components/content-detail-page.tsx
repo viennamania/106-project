@@ -28,6 +28,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { getContentCopy } from "@/lib/content-copy";
 import type {
+  ContentDetailRecord,
   ContentDetailLoadResponse,
   ContentDetailResponse,
 } from "@/lib/content";
@@ -50,6 +51,7 @@ import { cn } from "@/lib/utils";
 type DetailState = {
   content: ContentDetailResponse["content"] | null;
   error: string | null;
+  gateReason: ContentDetailLoadResponse["gateReason"];
   member: MemberRecord | null;
   status: "idle" | "loading" | "ready" | "error";
 };
@@ -79,12 +81,14 @@ function formatDateTime(value: string | null, locale: Locale) {
 export function ContentDetailPage({
   contentId,
   dictionary,
+  initialPreview = null,
   locale,
   referralCode = null,
   returnToHref = null,
 }: {
   contentId: string;
   dictionary: Dictionary;
+  initialPreview?: ContentDetailRecord | null;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
@@ -95,16 +99,23 @@ export function ContentDetailPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const homeHref = buildReferralLandingPath(locale, referralCode);
-  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
-  const backHref = returnToHref ?? feedHref;
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const [state, setState] = useState<DetailState>({
-    content: null,
+    content: initialPreview,
     error: null,
+    gateReason: initialPreview ? "connect" : null,
     member: null,
-    status: "idle",
+    status: initialPreview ? "ready" : "idle",
   });
+  const shareReferralCode =
+    state.member?.referralCode ??
+    referralCode ??
+    state.content?.authorProfile?.referralCode ??
+    initialPreview?.authorProfile?.referralCode ??
+    null;
+  const homeHref = buildReferralLandingPath(locale, shareReferralCode);
+  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, shareReferralCode);
+  const backHref = returnToHref ?? feedHref;
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, shareReferralCode);
   const [shareState, setShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
   >("idle");
@@ -162,24 +173,22 @@ export function ContentDetailPage({
 
       const member = "member" in data ? data.member : null;
 
-      if (!member) {
-        throw new Error(contentCopy.messages.memberMissing);
-      }
-
       if ("validationError" in data && data.validationError) {
         setState({
-          content: null,
-          error: data.validationError,
+          content: "content" in data ? data.content : initialPreview,
+          error: null,
+          gateReason: "gateReason" in data ? data.gateReason : "signup",
           member,
           status: "ready",
         });
         return;
       }
 
-      if (member.status !== "completed") {
+      if (!member) {
         setState({
-          content: null,
-          error: contentCopy.messages.paymentRequired,
+          content: "content" in data ? data.content : initialPreview,
+          error: null,
+          gateReason: "gateReason" in data ? data.gateReason : "signup",
           member,
           status: "ready",
         });
@@ -189,18 +198,21 @@ export function ContentDetailPage({
       setState({
         content: "content" in data ? data.content : null,
         error: null,
+        gateReason: "gateReason" in data ? data.gateReason : null,
         member,
         status: "ready",
       });
     } catch (error) {
       setState({
-        content: null,
-        error:
-          error instanceof Error
+        content: initialPreview,
+        error: initialPreview
+          ? null
+          : error instanceof Error
             ? error.message
             : contentCopy.messages.detailLoadFailed,
+        gateReason: initialPreview ? "connect" : null,
         member: null,
-        status: "error",
+        status: initialPreview ? "ready" : "error",
       });
     }
   }, [
@@ -208,38 +220,48 @@ export function ContentDetailPage({
     chain.id,
     chain.name,
     contentCopy.messages.detailLoadFailed,
-    contentCopy.messages.memberMissing,
-    contentCopy.messages.paymentRequired,
     contentId,
     dictionary.member.errors.missingEmail,
+    initialPreview,
     locale,
   ]);
 
   useEffect(() => {
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
-        content: null,
+        content: initialPreview,
         error: null,
+        gateReason: initialPreview ? "connect" : null,
         member: null,
-        status: "idle",
+        status: initialPreview ? "ready" : "idle",
       });
       return;
     }
 
     void loadDetail();
-  }, [accountAddress, loadDetail, status]);
+  }, [accountAddress, initialPreview, loadDetail, status]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    setShareUrl(window.location.href);
+    const nextUrl = new URL(window.location.href);
+
+    if (shareReferralCode) {
+      nextUrl.searchParams.set("ref", shareReferralCode);
+    } else {
+      nextUrl.searchParams.delete("ref");
+    }
+
+    nextUrl.searchParams.delete("returnTo");
+
+    setShareUrl(nextUrl.toString());
 
     try {
       setIsLiked(window.localStorage.getItem(`content-like:${contentId}`) === "1");
     } catch {}
-  }, [contentId]);
+  }, [contentId, shareReferralCode]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -394,6 +416,11 @@ export function ContentDetailPage({
   const facebookShareHref = shareUrl
     ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
     : null;
+  const isPreviewLocked = Boolean(state.content && !state.content.canAccess);
+  const shouldEncourageSignup =
+    state.gateReason === "connect" ||
+    state.gateReason === "signup" ||
+    state.member?.status !== "completed";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
@@ -438,11 +465,9 @@ export function ContentDetailPage({
         </div>
       </header>
 
-      {isDisconnected ? (
-        <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
-      ) : state.status === "loading" ? (
+      {state.status === "loading" && !state.content ? (
         <MessageCard>{contentCopy.actions.refresh}...</MessageCard>
-      ) : state.error ? (
+      ) : state.error && !state.content ? (
         <MessageCard tone="error">
           {state.error}
           {state.member?.status !== "completed" ? (
@@ -589,10 +614,80 @@ export function ContentDetailPage({
             ) : null}
           </section>
 
-          <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-7">
-            <p className="whitespace-pre-wrap text-[1.04rem] leading-8 text-slate-800 sm:text-[1.02rem] sm:leading-8">
-              {state.content.body}
-            </p>
+          {isPreviewLocked ? (
+            <section className="rounded-[28px] border border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.98),rgba(255,247,237,0.94))] p-4 shadow-[0_18px_46px_rgba(245,158,11,0.12)] sm:rounded-[30px] sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1.5">
+                  <p className="text-sm leading-6 text-slate-700">
+                    {contentCopy.messages.previewLocked}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {shouldEncourageSignup ? (
+                    <Link
+                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
+                      href={activateHref}
+                    >
+                      {dictionary.referralsPage.actions.completeSignup}
+                    </Link>
+                  ) : null}
+                  <ActionChip
+                    icon={Share2}
+                    label={contentCopy.actions.share}
+                    onClick={() => {
+                      void handleShare();
+                    }}
+                  />
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-7">
+            <div
+              className={cn(
+                "transition duration-300",
+                isPreviewLocked ? "pointer-events-none select-none blur-md saturate-75" : "",
+              )}
+            >
+              <p className="whitespace-pre-wrap text-[1.04rem] leading-8 text-slate-800 sm:text-[1.02rem] sm:leading-8">
+                {state.content.body}
+              </p>
+            </div>
+
+            {isPreviewLocked ? (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.22)_24%,rgba(255,255,255,0.88)_58%,rgba(255,255,255,0.98)_100%)] px-4 pb-6 pt-24 sm:px-8 sm:pb-8">
+                <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-white/90 bg-white/92 p-4 text-center shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:p-5">
+                  <p className="text-base font-semibold tracking-tight text-slate-950">
+                    {contentCopy.messages.previewLocked}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {shouldEncourageSignup
+                      ? contentCopy.messages.paymentRequired
+                      : contentCopy.messages.likeHint}
+                  </p>
+                  <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
+                    {shouldEncourageSignup ? (
+                      <Link
+                        className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-slate-900"
+                        href={activateHref}
+                      >
+                        {dictionary.referralsPage.actions.completeSignup}
+                      </Link>
+                    ) : null}
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={() => {
+                        void handleShare();
+                      }}
+                      type="button"
+                    >
+                      {contentCopy.actions.share}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           {state.content.sources.length > 0 ? (
@@ -622,6 +717,8 @@ export function ContentDetailPage({
             </section>
           ) : null}
         </article>
+      ) : isDisconnected ? (
+        <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
       ) : null}
     </main>
   );

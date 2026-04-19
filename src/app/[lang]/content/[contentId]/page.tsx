@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 
 import { ContentDetailPage } from "@/components/content-detail-page";
 import { getContentCopy } from "@/lib/content-copy";
-import { getPublishedContentShareMetadata } from "@/lib/content-service";
+import {
+  getPublicContentPreview,
+  getPublishedContentShareMetadata,
+} from "@/lib/content-service";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -82,11 +85,13 @@ export default async function LocalizedContentDetailPage({
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
   const returnToHref = normalizeReturnToPath(query.returnTo, locale);
+  const initialPreview = await getPublicContentPreview(contentId);
 
   return (
     <ContentDetailPage
       contentId={contentId}
       dictionary={dictionary}
+      initialPreview={initialPreview}
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}
