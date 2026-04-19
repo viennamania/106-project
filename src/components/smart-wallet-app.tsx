@@ -1826,23 +1826,13 @@ export function SmartWalletApp({
                           {dictionary.member.newMember}
                         </p>
                       ) : null}
-                      {memberSync.member.referredByCode ? (
-                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-slate-700 sm:mt-2 sm:text-sm sm:leading-6">
-                          {formatTemplate(
-                            dictionary.member.appliedReferralDescription,
-                            {
-                              code: memberSync.member.referredByCode,
-                            },
-                          )}
-                        </p>
-                      ) : null}
-                      {memberSync.member.placementSource === "auto" &&
-                      memberSync.member.placementReferralCode ? (
+                      {getDisplayedPlacementReferralCode(memberSync.member) ? (
                         <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-sky-700 sm:mt-2 sm:text-sm sm:leading-6">
                           {formatTemplate(
                             dictionary.member.autoPlacementDescription,
                             {
-                              code: memberSync.member.placementReferralCode,
+                              code:
+                                getDisplayedPlacementReferralCode(memberSync.member) ?? "",
                             },
                           )}
                         </p>
@@ -1876,22 +1866,12 @@ export function SmartWalletApp({
                       />
                       <InfoRow
                         compactMobile
-                        label={dictionary.member.labels.referredByCode}
+                        label={dictionary.member.labels.placementReferralCode}
                         value={
-                          memberSync.member.referredByCode ??
-                          dictionary.member.noReferralApplied
+                          getDisplayedPlacementReferralCode(memberSync.member) ??
+                          dictionary.common.notAvailable
                         }
                       />
-                      {shouldShowPlacementReferralCode(memberSync.member) ? (
-                        <InfoRow
-                          compactMobile
-                          label={dictionary.member.labels.placementReferralCode}
-                          value={
-                            memberSync.member.placementReferralCode ??
-                            dictionary.common.notAvailable
-                          }
-                        />
-                      ) : null}
                     </div>
 
                     <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
@@ -2393,18 +2373,10 @@ function CompletedHomeDashboard({
             <MessageCard>{dictionary.member.selfReferralNotice}</MessageCard>
           ) : null}
 
-          {member.referredByCode ? (
+          {getDisplayedPlacementReferralCode(member) ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
-              {formatTemplate(dictionary.member.appliedReferralDescription, {
-                code: member.referredByCode,
-              })}
-            </div>
-          ) : null}
-
-          {member.placementSource === "auto" && member.placementReferralCode ? (
-            <div className="rounded-[24px] border border-sky-200 bg-sky-50/90 p-4 text-sm leading-6 text-sky-950">
               {formatTemplate(dictionary.member.autoPlacementDescription, {
-                code: member.placementReferralCode,
+                code: getDisplayedPlacementReferralCode(member) ?? "",
               })}
             </div>
           ) : null}
@@ -2627,19 +2599,12 @@ function CompletedHomeDashboard({
           <InfoRow
             alignValueRight
             compactMobile
-            label={dictionary.member.labels.referredByCode}
-            value={member.referredByCode ?? dictionary.member.noReferralApplied}
+            label={dictionary.member.labels.placementReferralCode}
+            value={
+              getDisplayedPlacementReferralCode(member) ??
+              dictionary.common.notAvailable
+            }
           />
-          {shouldShowPlacementReferralCode(member) ? (
-            <InfoRow
-              alignValueRight
-              compactMobile
-              label={dictionary.member.labels.placementReferralCode}
-              value={
-                member.placementReferralCode ?? dictionary.common.notAvailable
-              }
-            />
-          ) : null}
           <InfoRow
             alignValueRight
             compactMobile
@@ -2863,14 +2828,10 @@ function InfoRow({
   );
 }
 
-function shouldShowPlacementReferralCode(
+function getDisplayedPlacementReferralCode(
   member: Pick<MemberRecord, "placementReferralCode" | "referredByCode">,
 ) {
-  if (!member.placementReferralCode) {
-    return false;
-  }
-
-  return member.placementReferralCode !== member.referredByCode;
+  return member.placementReferralCode ?? member.referredByCode ?? null;
 }
 
 function getPrioritySponsorReferralCode(member: MemberRecord | null) {
