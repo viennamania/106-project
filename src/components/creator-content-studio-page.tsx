@@ -10,7 +10,6 @@ import {
   ImagePlus,
   LayoutGrid,
   LoaderCircle,
-  LogOut,
   PenSquare,
   RefreshCcw,
   Save,
@@ -3028,7 +3027,7 @@ export function CreatorContentStudioPage({
             <RefreshCcw className="size-4" />
             <span className="sr-only sm:not-sr-only">{contentCopy.actions.refresh}</span>
           </button>
-          {status === "connected" && accountAddress ? (
+          {view === "hub" && status === "connected" && accountAddress ? (
             <button
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
               onClick={() => {
@@ -3038,8 +3037,7 @@ export function CreatorContentStudioPage({
               }}
               type="button"
             >
-              <LogOut className="size-4 sm:hidden" />
-              <span className="sr-only sm:not-sr-only">{contentCopy.actions.disconnect}</span>
+              {contentCopy.actions.disconnect}
             </button>
           ) : null}
         </div>

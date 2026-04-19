@@ -16,10 +16,8 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
@@ -112,8 +110,6 @@ export function CreatorStudioPostsPage({
   const router = useRouter();
   const pathname = usePathname();
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -528,19 +524,6 @@ export function CreatorStudioPostsPage({
             <RefreshCcw className="size-4" />
             {contentCopy.actions.refresh}
           </button>
-          {connectionStatus === "connected" && accountAddress ? (
-            <button
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
-              onClick={() => {
-                if (wallet) {
-                  disconnect(wallet);
-                }
-              }}
-              type="button"
-            >
-              {contentCopy.actions.disconnect}
-            </button>
-          ) : null}
         </div>
       </header>
 
