@@ -3584,7 +3584,6 @@ export function CreatorContentStudioPage({
       <section className="grid gap-5 lg:hidden">
         {renderRecentPostsPanel({ compact: true })}
         {renderHubActionCards({ mobile: true })}
-        {renderWorkspaceOverviewCard()}
       </section>
     );
   }
