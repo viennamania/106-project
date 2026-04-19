@@ -964,7 +964,7 @@ function ContentImageCarousel({
     <div className="space-y-3 sm:space-y-4">
       <div className="relative overflow-hidden bg-slate-950/95 sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
         <div
-          className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth touch-pan-y [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth touch-pan-x [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
           onScroll={(event) => {
             const target = event.currentTarget;
 
@@ -984,9 +984,10 @@ function ContentImageCarousel({
                 <img
                   alt={`${title} ${index + 1}`}
                   className={cn(
-                    "block h-[74svh] w-full object-cover sm:h-auto sm:aspect-[16/10]",
+                    "block h-[74svh] w-full select-none object-cover sm:h-auto sm:aspect-[16/10]",
                     isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
                   )}
+                  draggable={false}
                   loading={index === 0 ? "eager" : "lazy"}
                   src={imageUrl}
                 />
