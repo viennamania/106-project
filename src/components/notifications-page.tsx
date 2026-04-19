@@ -10,7 +10,6 @@ import {
 } from "react";
 import {
   ArrowLeft,
-  ArrowUpRight,
   Bell,
   RefreshCcw,
 } from "lucide-react";
@@ -37,7 +36,6 @@ import type {
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
-  BSC_EXPLORER,
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -111,9 +109,6 @@ export function NotificationsPage({
   const accountAddress = account?.address;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const accountUrl = accountAddress
-    ? `${BSC_EXPLORER}/address/${accountAddress}`
-    : BSC_EXPLORER;
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
     error: null,
@@ -584,58 +579,39 @@ export function NotificationsPage({
 
       <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <LandingReveal delay={10} variant="soft">
-          <header className="glass-card flex flex-col gap-3 rounded-[26px] px-4 py-3.5 sm:px-5 sm:py-4">
-            <div className="flex items-start gap-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
-                <Bell className="size-5" />
-              </div>
-              <div className="min-w-0 space-y-1">
-                <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                  {notificationCopy.title}
-                </h1>
-                <p className="hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
-                  {notificationCopy.pageDescription}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
-              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-                <Link
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                  href={returnToHref}
-                >
-                  <ArrowLeft className="size-4" />
-                  {notificationCopy.dismiss}
-                </Link>
+          <header className="glass-card flex flex-col gap-3 rounded-[22px] px-4 py-3 sm:rounded-[26px] sm:px-5 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5 sm:items-start sm:gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)] sm:size-11 sm:rounded-2xl">
+                  <Bell className="size-4 sm:size-5" />
+                </div>
+                <div className="min-w-0 space-y-1">
+                  <p className="eyebrow hidden sm:block">{dictionary.activateNetworkPage.eyebrow}</p>
+                  <h1 className="text-[1.02rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
+                    {notificationCopy.title}
+                  </h1>
+                  <p className="hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
+                    {notificationCopy.pageDescription}
+                  </p>
+                </div>
               </div>
 
               {status === "connected" && accountAddress ? (
-                <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
-                  <button
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    onClick={() => {
-                      void runMemberSync();
-                    }}
-                    type="button"
-                  >
-                    <RefreshCcw className="size-4" />
+                <button
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:h-10 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
+                  onClick={() => {
+                    void runMemberSync();
+                  }}
+                  type="button"
+                >
+                  <RefreshCcw className="size-4" />
+                  <span className="sr-only sm:not-sr-only">
                     {dictionary.activateNetworkPage.actions.refresh}
-                  </button>
-                  <a
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={accountUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {accountAddress.slice(0, 6)}...{accountAddress.slice(-4)}
-                    <ArrowUpRight className="size-4" />
-                  </a>
-                </div>
+                  </span>
+                </button>
               ) : hasThirdwebClientId ? (
                 <button
-                  className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                  className="hidden h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:inline-flex"
                   onClick={() => {
                     setIsLoginDialogOpen(true);
                   }}
@@ -643,11 +619,35 @@ export function NotificationsPage({
                 >
                   {dictionary.common.connectWallet}
                 </button>
-              ) : (
-                <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900">
-                  {dictionary.common.clientIdRequired}
-                </div>
-              )}
+              ) : null}
+            </div>
+
+            <div className="flex items-center justify-between gap-2 sm:flex-wrap sm:items-center sm:justify-between">
+              <Link
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:px-4"
+                href={returnToHref}
+              >
+                <ArrowLeft className="size-4" />
+                <span className="sr-only sm:not-sr-only">{notificationCopy.dismiss}</span>
+              </Link>
+
+              {status !== "connected" || !accountAddress ? (
+                hasThirdwebClientId ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:hidden"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
+                ) : (
+                  <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900">
+                    {dictionary.common.clientIdRequired}
+                  </div>
+                )
+              ) : null}
             </div>
           </header>
         </LandingReveal>
