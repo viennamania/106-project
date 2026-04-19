@@ -130,6 +130,8 @@ export function NotificationCard({
                   ? "bg-violet-100 text-violet-900"
                   : notification.type === "member_announcement"
                     ? "bg-amber-100 text-amber-900"
+                  : notification.type === "network_content_published"
+                    ? "bg-indigo-100 text-indigo-900"
                   : notification.type === "network_member_completed"
                     ? "bg-sky-100 text-sky-900"
                     : "bg-emerald-100 text-emerald-900",
@@ -139,6 +141,8 @@ export function NotificationCard({
                 ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
                 : notification.type === "member_announcement"
                   ? dictionary.activateNetworkPage.notifications.announcementBadge
+                : notification.type === "network_content_published"
+                  ? dictionary.activateNetworkPage.notifications.contentBadge
                 : notification.type === "network_member_completed"
                   ? `${dictionary.activateNetworkPage.labels.level} ${notification.targetLevel ?? ""}`.trim()
                   : dictionary.activateNetworkPage.labels.currentMember}
@@ -196,6 +200,7 @@ export function NotificationCenterContent({
   onUpdatePreference: (
     key:
       | "directMemberCompletedEnabled"
+      | "networkContentPublishedEnabled"
       | "networkMemberCompletedEnabled"
       | "networkLevelCompletedEnabled",
     value: boolean,
@@ -215,12 +220,19 @@ export function NotificationCenterContent({
           memberEmail={memberEmail}
           walletAddress={walletAddress}
         />
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <NotificationPreferenceCard
             checked={preferences?.directMemberCompletedEnabled ?? true}
             label={notificationCopy.preferenceDirect}
             onChange={(checked) => {
               onUpdatePreference("directMemberCompletedEnabled", checked);
+            }}
+          />
+          <NotificationPreferenceCard
+            checked={preferences?.networkContentPublishedEnabled ?? true}
+            label={notificationCopy.preferenceContentPublished}
+            onChange={(checked) => {
+              onUpdatePreference("networkContentPublishedEnabled", checked);
             }}
           />
           <NotificationPreferenceCard

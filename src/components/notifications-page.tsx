@@ -425,6 +425,7 @@ export function NotificationsPage({
     async (
       key:
         | "directMemberCompletedEnabled"
+        | "networkContentPublishedEnabled"
         | "networkMemberCompletedEnabled"
         | "networkLevelCompletedEnabled",
       value: boolean,

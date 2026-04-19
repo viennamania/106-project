@@ -6,6 +6,7 @@ import {
   hasLocale,
   type Locale,
 } from "@/lib/i18n";
+import { CONTENT_NETWORK_LEVEL_LIMIT, normalizeContentLocale } from "@/lib/content";
 import {
   getAppNotificationPreferencesCollection,
   getAppNotificationsCollection,
@@ -98,6 +99,12 @@ async function getOrCreateNotificationPreferences(
     ...(typeof preferences.directMemberCompletedEnabled !== "boolean"
       ? {
           directMemberCompletedEnabled: defaults.directMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof preferences.networkContentPublishedEnabled !== "boolean"
+      ? {
+          networkContentPublishedEnabled:
+            defaults.networkContentPublishedEnabled,
         }
       : {}),
     ...(typeof preferences.networkMemberCompletedEnabled !== "boolean"
@@ -208,6 +215,75 @@ export async function createAppNotification(options: {
   sendPush?: boolean;
 }) {
   await createNotification(options);
+}
+
+async function getNetworkContentRecipients(options: {
+  authorEmail: string;
+  authorReferralCode: string;
+  contentLocale: Locale;
+}) {
+  const collection = await getMembersCollection();
+  const visitedReferralCodes = new Set<string>([options.authorReferralCode]);
+  const seenMemberEmails = new Set<string>([normalizeEmail(options.authorEmail)]);
+  const recipients: Array<{
+    level: number;
+    member: MemberDocument;
+  }> = [];
+  let currentParentCodes = [options.authorReferralCode];
+
+  for (
+    let level = 1;
+    level <= CONTENT_NETWORK_LEVEL_LIMIT && currentParentCodes.length > 0;
+    level += 1
+  ) {
+    const levelMembers = await collection
+      .find({
+        status: "completed",
+        $or: [
+          { sponsorReferralCode: { $in: currentParentCodes } },
+          { referredByCode: { $in: currentParentCodes } },
+        ],
+      })
+      .toArray();
+
+    if (levelMembers.length === 0) {
+      break;
+    }
+
+    const nextParentCodes: string[] = [];
+
+    for (const levelMember of levelMembers) {
+      const normalizedMemberEmail = normalizeEmail(levelMember.email);
+      const referralCode =
+        typeof levelMember.referralCode === "string"
+          ? levelMember.referralCode.trim().toUpperCase()
+          : null;
+
+      if (referralCode && !visitedReferralCodes.has(referralCode)) {
+        visitedReferralCodes.add(referralCode);
+        nextParentCodes.push(referralCode);
+      }
+
+      if (seenMemberEmails.has(normalizedMemberEmail)) {
+        continue;
+      }
+
+      seenMemberEmails.add(normalizedMemberEmail);
+
+      if (normalizeContentLocale(levelMember.locale) !== options.contentLocale) {
+        continue;
+      }
+
+      recipients.push({
+        level,
+        member: levelMember,
+      });
+    }
+
+    currentParentCodes = nextParentCodes;
+  }
+
+  return recipients;
 }
 
 async function sendPushNotificationToMember({
@@ -699,6 +775,56 @@ export async function sendTestNotificationToMember(options: {
   };
 }
 
+export async function emitNetworkContentPublishedNotifications(options: {
+  authorDisplayName?: string | null;
+  authorEmail: string;
+  authorReferralCode: string;
+  contentId: string;
+  contentLocale: string | null | undefined;
+  contentTitle: string;
+  publishedAt?: Date | null;
+  sendPush?: boolean;
+}) {
+  const normalizedAuthorEmail = normalizeEmail(options.authorEmail);
+  const authorLabel =
+    options.authorDisplayName?.trim() || normalizedAuthorEmail;
+  const contentLocale = normalizeContentLocale(options.contentLocale);
+  const createdAt = options.publishedAt ?? new Date();
+  const recipients = await getNetworkContentRecipients({
+    authorEmail: normalizedAuthorEmail,
+    authorReferralCode: options.authorReferralCode,
+    contentLocale,
+  });
+
+  for (const recipient of recipients) {
+    const preferences = await getOrCreateNotificationPreferences(recipient.member.email);
+
+    if (!preferences.networkContentPublishedEnabled) {
+      continue;
+    }
+
+    const locale = resolveLocale(recipient.member.locale);
+    const copy = getDictionary(locale).activateNetworkPage.notifications;
+
+    await createNotification({
+      body: formatTemplate(copy.messages.networkContentPublishedBody, {
+        author: authorLabel,
+        level: recipient.level,
+        title: options.contentTitle,
+      }),
+      createdAt,
+      eventKey: `network_content_published:${recipient.member.email}:${options.contentId}`,
+      href: `/${locale}/content/${options.contentId}`,
+      memberEmail: recipient.member.email,
+      targetLevel: recipient.level,
+      targetMemberEmail: normalizedAuthorEmail,
+      title: copy.messages.networkContentPublishedTitle,
+      type: "network_content_published",
+      sendPush: options.sendPush,
+    });
+  }
+}
+
 export async function getNotificationCenterForMember(
   memberEmail: string,
   options?: {
@@ -818,11 +944,13 @@ export async function markNotificationsRead(
 export async function updateNotificationPreferences({
   directMemberCompletedEnabled,
   memberEmail,
+  networkContentPublishedEnabled,
   networkMemberCompletedEnabled,
   networkLevelCompletedEnabled,
 }: {
   directMemberCompletedEnabled?: boolean;
   memberEmail: string;
+  networkContentPublishedEnabled?: boolean;
   networkMemberCompletedEnabled?: boolean;
   networkLevelCompletedEnabled?: boolean;
 }) {
@@ -836,6 +964,12 @@ export async function updateNotificationPreferences({
     ...(typeof directMemberCompletedEnabled !== "boolean"
       ? {
           directMemberCompletedEnabled: defaults.directMemberCompletedEnabled,
+        }
+      : {}),
+    ...(typeof networkContentPublishedEnabled !== "boolean"
+      ? {
+          networkContentPublishedEnabled:
+            defaults.networkContentPublishedEnabled,
         }
       : {}),
     ...(typeof networkMemberCompletedEnabled !== "boolean"
@@ -857,6 +991,9 @@ export async function updateNotificationPreferences({
       $set: {
         ...(typeof directMemberCompletedEnabled === "boolean"
           ? { directMemberCompletedEnabled }
+          : {}),
+        ...(typeof networkContentPublishedEnabled === "boolean"
+          ? { networkContentPublishedEnabled }
           : {}),
         ...(typeof networkMemberCompletedEnabled === "boolean"
           ? { networkMemberCompletedEnabled }

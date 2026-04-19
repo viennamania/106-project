@@ -867,6 +867,7 @@ export function SmartWalletApp({
     async (
       key:
         | "directMemberCompletedEnabled"
+        | "networkContentPublishedEnabled"
         | "networkMemberCompletedEnabled"
         | "networkLevelCompletedEnabled",
       value: boolean,

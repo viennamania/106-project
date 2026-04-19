@@ -34,6 +34,7 @@ import {
   serializeMember,
   type MemberDocument,
 } from "@/lib/member";
+import { emitNetworkContentPublishedNotifications } from "@/lib/notifications-service";
 
 type NetworkAncestor = {
   level: number;
@@ -253,6 +254,33 @@ async function resolveNetworkAncestors(member: MemberDocument) {
 async function readStoredCreatorProfile(email: string) {
   const collection = await getCreatorProfilesCollection();
   return collection.findOne({ email: normalizeEmail(email) });
+}
+
+async function emitPublishedContentNotifications(options: {
+  author: MemberDocument;
+  contentId: string;
+  contentLocale: Locale | null | undefined;
+  contentTitle: string;
+  publishedAt?: Date | null;
+}) {
+  try {
+    const storedProfile = await readStoredCreatorProfile(options.author.email);
+    const authorDisplayName =
+      storedProfile?.displayName?.trim() ||
+      createDefaultCreatorProfile(options.author).displayName;
+
+    await emitNetworkContentPublishedNotifications({
+      authorDisplayName,
+      authorEmail: options.author.email,
+      authorReferralCode: options.author.referralCode ?? "",
+      contentId: options.contentId,
+      contentLocale: options.contentLocale,
+      contentTitle: options.contentTitle,
+      publishedAt: options.publishedAt,
+    });
+  } catch (error) {
+    console.error("Failed to emit content published notifications.", error);
+  }
 }
 
 export async function getCreatorProfileForMember(
@@ -579,6 +607,16 @@ export async function createContentPostForMember(
   const postsCollection = await getContentPostsCollection();
   await postsCollection.insertOne(post);
 
+  if (post.status === "published") {
+    await emitPublishedContentNotifications({
+      author: member,
+      contentId: post.contentId,
+      contentLocale: post.locale,
+      contentTitle: post.title,
+      publishedAt: post.publishedAt,
+    });
+  }
+
   return serializeContentPost(post);
 }
 
@@ -666,6 +704,16 @@ export async function updateContentPostForMember(
 
   if (!nextPost) {
     throw new Error("Content not found.");
+  }
+
+  if (post.status !== "published" && nextPost.status === "published") {
+    await emitPublishedContentNotifications({
+      author: member,
+      contentId: nextPost.contentId,
+      contentLocale: nextPost.locale,
+      contentTitle: nextPost.title,
+      publishedAt: nextPost.publishedAt,
+    });
   }
 
   return serializeContentPost(nextPost);

@@ -622,6 +622,7 @@ export function ActivateNetworkPage({
     async (
       key:
         | "directMemberCompletedEnabled"
+        | "networkContentPublishedEnabled"
         | "networkMemberCompletedEnabled"
         | "networkLevelCompletedEnabled",
       value: boolean,

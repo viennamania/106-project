@@ -289,6 +289,7 @@ export type Dictionary = {
       dismiss: string;
       availableAfterSignup: string;
       announcementBadge: string;
+      contentBadge: string;
       empty: string;
       loadMore: string;
       loadingMore: string;
@@ -309,11 +310,14 @@ export type Dictionary = {
         notConfigured: string;
       };
       preferenceDirect: string;
+      preferenceContentPublished: string;
       preferenceNetworkMembers: string;
       preferenceLevel: string;
       messages: {
         directMemberCompletedTitle: string;
         directMemberCompletedBody: string;
+        networkContentPublishedTitle: string;
+        networkContentPublishedBody: string;
         networkMemberCompletedTitle: string;
         networkMemberCompletedBody: string;
         networkLevelCompletedTitle: string;
@@ -1084,6 +1088,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableAfterSignup:
           "알림 목록은 회원 활성화 완료 후 자동으로 채워집니다.",
         announcementBadge: "회원 공지",
+        contentBadge: "새 콘텐츠",
         empty: "아직 확인할 알림이 없습니다.",
         loadMore: "알림 더 보기",
         loadingMore: "알림 불러오는 중...",
@@ -1106,12 +1111,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           notConfigured: "서버의 웹 푸시 설정이 아직 완료되지 않았습니다.",
         },
         preferenceDirect: "새 회원 활성화 알림",
+        preferenceContentPublished: "피드 콘텐츠 게시 알림",
         preferenceNetworkMembers: "하위 네트워크 활성화 알림",
         preferenceLevel: "단계 달성 알림",
         messages: {
           directMemberCompletedTitle: "새 회원 활성화 완료",
           directMemberCompletedBody:
             "{email} 님이 회원 활성화를 완료했습니다.",
+          networkContentPublishedTitle: "새 콘텐츠 게시",
+          networkContentPublishedBody:
+            "{author} 님이 단계 {level} 피드에 새 콘텐츠를 게시했습니다: {title}",
           networkMemberCompletedTitle: "하위 네트워크 활성화 완료",
           networkMemberCompletedBody:
             "{email} 님이 내 네트워크 단계 {level}에서 회원 활성화를 완료했습니다.",
@@ -1919,6 +1928,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableAfterSignup:
           "The alert list will start filling in automatically after member activation is complete.",
         announcementBadge: "Member announcement",
+        contentBadge: "New content",
         empty: "There are no alerts to review yet.",
         loadMore: "Load more alerts",
         loadingMore: "Loading more alerts...",
@@ -1942,12 +1952,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           notConfigured: "Web push is not configured on the server yet.",
         },
         preferenceDirect: "New member activation alerts",
+        preferenceContentPublished: "Feed content publish alerts",
         preferenceNetworkMembers: "Downline activation alerts",
         preferenceLevel: "Level milestone alerts",
         messages: {
           directMemberCompletedTitle: "New member activated",
           directMemberCompletedBody:
             "{email} completed member activation.",
+          networkContentPublishedTitle: "New content published",
+          networkContentPublishedBody:
+            "{author} published new content for level {level}: {title}",
           networkMemberCompletedTitle: "Downline member activated",
           networkMemberCompletedBody:
             "{email} completed activation in level {level} of your network.",
@@ -2762,6 +2776,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableAfterSignup:
           "通知一覧は会員有効化が完了すると自動的に表示されます。",
         announcementBadge: "会員告知",
+        contentBadge: "新着コンテンツ",
         empty: "確認できる通知はまだありません。",
         loadMore: "通知をさらに表示",
         loadingMore: "通知を読み込み中...",
@@ -2785,12 +2800,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           notConfigured: "サーバー側の Web プッシュ設定がまだ完了していません。",
         },
         preferenceDirect: "新規会員の有効化通知",
+        preferenceContentPublished: "フィード投稿通知",
         preferenceNetworkMembers: "下位ネットワークの有効化通知",
         preferenceLevel: "段階達成通知",
         messages: {
           directMemberCompletedTitle: "新規会員の有効化完了",
           directMemberCompletedBody:
             "{email} さんの会員有効化が完了しました。",
+          networkContentPublishedTitle: "新しいコンテンツが公開されました",
+          networkContentPublishedBody:
+            "{author} さんが段階 {level} のフィードに新しいコンテンツを公開しました: {title}",
           networkMemberCompletedTitle: "下位ネットワークの有効化完了",
           networkMemberCompletedBody:
             "{email} さんがあなたのネットワークの段階 {level} で会員有効化を完了しました。",
@@ -3606,6 +3625,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         availableAfterSignup:
           "完成会员激活后，通知列表会自动开始显示相关提醒。",
         announcementBadge: "会员公告",
+        contentBadge: "新内容",
         empty: "暂时没有需要查看的通知。",
         loadMore: "查看更多通知",
         loadingMore: "正在加载更多通知...",
@@ -3628,12 +3648,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           notConfigured: "服务器端的 Web 推送配置尚未完成。",
         },
         preferenceDirect: "新会员激活提醒",
+        preferenceContentPublished: "内容发布提醒",
         preferenceNetworkMembers: "下级网络激活提醒",
         preferenceLevel: "层级达成提醒",
         messages: {
           directMemberCompletedTitle: "新会员已完成激活",
           directMemberCompletedBody:
             "{email} 已完成会员激活。",
+          networkContentPublishedTitle: "新内容已发布",
+          networkContentPublishedBody:
+            "{author} 已向第 {level} 层信息流发布新内容：{title}",
           networkMemberCompletedTitle: "下级网络成员已完成激活",
           networkMemberCompletedBody:
             "{email} 已在你的网络第 {level} 层完成会员激活。",
