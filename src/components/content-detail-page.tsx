@@ -675,14 +675,14 @@ export function ContentDetailPage({
               />
               {twitterShareHref ? (
                 <SocialShareChip
-                  className="w-full justify-center sm:w-auto"
+                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
                   href={twitterShareHref}
                   label="X"
                 />
               ) : null}
               {telegramShareHref ? (
                 <SocialShareChip
-                  className="w-full justify-center sm:w-auto"
+                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
                   href={telegramShareHref}
                   icon={Send}
                   label="Telegram"
@@ -690,7 +690,7 @@ export function ContentDetailPage({
               ) : null}
               {facebookShareHref ? (
                 <SocialShareChip
-                  className="w-full justify-center sm:w-auto"
+                  className="hidden w-full justify-center sm:inline-flex sm:w-auto"
                   href={facebookShareHref}
                   label="Facebook"
                 />
@@ -1110,7 +1110,7 @@ function ContentImageCarousel({
     <div className="space-y-3 sm:space-y-4">
       <div className="relative overflow-hidden bg-slate-950/95 sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
         <div
-          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth touch-pan-x [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [touch-action:pan-x_pan-y] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
           onScroll={(event) => {
             const target = event.currentTarget;
 
