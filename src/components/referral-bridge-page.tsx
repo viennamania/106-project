@@ -9,37 +9,37 @@ import {
   ExternalLink,
   LoaderCircle,
   MessageCircleMore,
+  Ticket,
 } from "lucide-react";
 
+import { buildChromeIntentUrl, type BridgePlatformHint } from "@/lib/in-app-browser";
 import type { Locale } from "@/lib/i18n";
-import type { BridgePlatformHint } from "@/lib/in-app-browser";
-import { buildChromeIntentUrl } from "@/lib/in-app-browser";
 
-type ContentBridgePageProps = {
-  authorDisplayName: string | null;
+type ReferralBridgePageProps = {
   autoRedirect: boolean;
+  brandName: string | null;
   coverImageUrl: string | null;
-  homeHref: string;
+  description: string;
+  eyebrow: string;
   locale: Locale;
   platformHint: BridgePlatformHint;
-  publishedAt: string | null;
-  summary: string;
+  referralCode: string | null;
   targetHref: string;
   title: string;
 };
 
-export function ContentBridgePage({
-  authorDisplayName,
+export function ReferralBridgePage({
   autoRedirect,
+  brandName,
   coverImageUrl,
-  homeHref,
+  description,
+  eyebrow,
   locale,
   platformHint,
-  publishedAt,
-  summary,
+  referralCode,
   targetHref,
   title,
-}: ContentBridgePageProps) {
+}: ReferralBridgePageProps) {
   const router = useRouter();
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
   const [launchState, setLaunchState] = useState<"idle" | "opening">("idle");
@@ -48,51 +48,49 @@ export function ContentBridgePage({
       locale === "ko"
         ? {
             autoDescription:
-              "일반 브라우저에서는 바로 콘텐츠로 이동합니다. 잠시만 기다려주세요.",
-            autoTitle: "콘텐츠로 이동 중",
-            backHome: "홈으로 돌아가기",
+              "일반 브라우저에서는 레퍼럴이 포함된 랜딩으로 바로 이동합니다. 잠시만 기다려주세요.",
+            autoTitle: "추천 링크로 이동 중",
             browserCta: "브라우저에서 계속 보기",
             browserHint:
               platformHint === "android"
                 ? "안드로이드에서는 Chrome 실행을 먼저 시도합니다. 열리지 않으면 카카오톡 메뉴의 다른 브라우저로 열기를 사용하세요."
                 : platformHint === "ios"
-                  ? "iPhone에서는 카카오톡 우측 메뉴의 다른 브라우저로 열기를 사용하면 더 안정적으로 볼 수 있습니다."
+                  ? "iPhone에서는 카카오톡 우측 메뉴의 다른 브라우저로 열기를 사용하면 더 안정적으로 가입 흐름을 진행할 수 있습니다."
                   : "카카오톡에서는 우측 메뉴의 다른 브라우저로 열기를 사용할 수 있습니다.",
-            browserReady: "브라우저에서 보기 좋은 화면",
+            browserReady: "가입 흐름은 브라우저에서 더 안정적입니다",
+            copyFailed: "링크 복사에 실패했습니다.",
             copyLink: "링크 복사",
             copiedLink: "링크 복사됨",
-            copyFailed: "링크 복사에 실패했습니다.",
-            eyebrow: "KAKAO OPEN BRIDGE",
+            eyebrow: "KAKAO REFERRAL BRIDGE",
             inAppCta: "카카오톡 안에서 바로 보기",
             intro:
-              "카카오톡 안에서는 화면 비율과 로그인 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 여는 것을 권장합니다.",
+              "카카오톡 안에서는 이메일 로그인과 결제 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 이어가는 것을 권장합니다.",
             opening: "브라우저를 여는 중...",
-            shareProtected: "레퍼럴이 유지된 공유 링크입니다.",
-            title: "더 시원한 브라우저 화면으로 열어보세요",
+            protectedHint: "이 링크에는 추천 코드가 그대로 유지됩니다.",
+            title: "레퍼럴 링크를 더 안정적인 브라우저에서 열어보세요",
           }
         : {
             autoDescription:
-              "Opening the content directly in your browser. Please wait a moment.",
-            autoTitle: "Opening content",
-            backHome: "Back home",
+              "Opening the referral landing directly in your browser. Please wait a moment.",
+            autoTitle: "Opening referral link",
             browserCta: "Continue in browser",
             browserHint:
               platformHint === "android"
                 ? "On Android we try Chrome first. If it does not open, use KakaoTalk's Open in Browser menu."
                 : platformHint === "ios"
-                  ? "On iPhone, using KakaoTalk's Open in Browser menu is the most reliable option."
+                  ? "On iPhone, using KakaoTalk's Open in Browser menu is the most reliable option for the signup flow."
                   : "You can also use KakaoTalk's Open in Browser menu.",
-            browserReady: "Best viewed in a browser",
+            browserReady: "The signup flow works better in a browser",
+            copyFailed: "Unable to copy the link.",
             copyLink: "Copy link",
             copiedLink: "Link copied",
-            copyFailed: "Unable to copy the link.",
-            eyebrow: "KAKAO OPEN BRIDGE",
+            eyebrow: "KAKAO REFERRAL BRIDGE",
             inAppCta: "Continue inside KakaoTalk",
             intro:
-              "KakaoTalk's in-app browser can limit screen space and login flow. We recommend opening this in a full browser.",
+              "KakaoTalk's in-app browser can limit login and payment steps. We recommend opening this in a full browser.",
             opening: "Opening browser...",
-            shareProtected: "This shared link keeps the referral attached.",
-            title: "Open it in a better browser view",
+            protectedHint: "This link preserves the referral code.",
+            title: "Open your referral link in a more reliable browser",
           },
     [locale, platformHint],
   );
@@ -132,21 +130,6 @@ export function ContentBridgePage({
 
     return new URL(targetHref, window.location.origin).toString();
   }, [targetHref]);
-  const publishedLabel = useMemo(() => {
-    if (!publishedAt) {
-      return null;
-    }
-
-    const nextDate = new Date(publishedAt);
-
-    if (Number.isNaN(nextDate.getTime())) {
-      return null;
-    }
-
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: "medium",
-    }).format(nextDate);
-  }, [locale, publishedAt]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -246,17 +229,17 @@ export function ContentBridgePage({
               {title}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/74 sm:text-base">
-              {summary}
+              {description}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-white/64">
-              {authorDisplayName ? (
+              {brandName ? (
                 <span className="rounded-full border border-white/14 bg-white/10 px-3 py-1.5 backdrop-blur-md">
-                  {authorDisplayName}
+                  {brandName}
                 </span>
               ) : null}
-              {publishedLabel ? (
-                <span className="rounded-full border border-white/14 bg-white/10 px-3 py-1.5 backdrop-blur-md">
-                  {publishedLabel}
+              {referralCode ? (
+                <span className="rounded-full border border-white/14 bg-white/10 px-3 py-1.5 font-mono backdrop-blur-md">
+                  {referralCode}
                 </span>
               ) : null}
             </div>
@@ -310,7 +293,7 @@ export function ContentBridgePage({
               {copy.browserHint}
             </p>
             <p className="mt-2 text-xs leading-6 text-white/42">
-              {copy.shareProtected}
+              {copy.protectedHint}
             </p>
             {copyState === "error" ? (
               <p className="mt-2 text-xs font-medium text-rose-300">{copy.copyFailed}</p>
@@ -318,12 +301,10 @@ export function ContentBridgePage({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-white/10 bg-slate-950/26 px-4 py-3 backdrop-blur-md">
-            <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white/84 transition hover:bg-white/14"
-              href={homeHref}
-            >
-              {copy.backHome}
-            </Link>
+            <div className="inline-flex items-center gap-2 text-sm text-white/68">
+              <Ticket className="size-4" />
+              <span>{eyebrow}</span>
+            </div>
             <Link
               className="inline-flex items-center text-sm font-semibold text-white/68 transition hover:text-white"
               href={targetHref}

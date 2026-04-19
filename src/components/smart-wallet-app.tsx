@@ -22,6 +22,7 @@ import {
   Megaphone,
   PenSquare,
   Rss,
+  Share2,
   Sparkles,
   Users,
   WalletMinimal,
@@ -2277,12 +2278,91 @@ function CompletedHomeDashboard({
   const totalReferralCount = referralDashboard.totalReferrals;
   const brandingCopy = getLandingBrandingCopy(locale);
   const contentCopy = getContentCopy(locale);
+  const referralSharePath = buildPathWithReferral(
+    `/${locale}/referral/bridge`,
+    member.referralCode,
+  );
+  const referralShareUrl =
+    typeof window === "undefined"
+      ? referralSharePath
+      : new URL(referralSharePath, window.location.origin).toString();
+  const [shareState, setShareState] = useState<
+    "copied" | "error" | "idle" | "sharing"
+  >("idle");
   const firstLevelLimitHint = formatTemplate(
     dictionary.referralsPage.firstLevelLimitHint,
     {
       limit: REFERRAL_SIGNUP_LIMIT,
     },
   );
+
+  useEffect(() => {
+    if (shareState !== "copied" && shareState !== "error") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setShareState("idle");
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [shareState]);
+
+  const copyReferralLink = useCallback(async () => {
+    if (!referralShareUrl) {
+      setShareState("error");
+      return false;
+    }
+
+    try {
+      await navigator.clipboard.writeText(referralShareUrl);
+      setShareState("copied");
+      return true;
+    } catch {
+      setShareState("error");
+      return false;
+    }
+  }, [referralShareUrl]);
+
+  const handleShareReferralLink = useCallback(async () => {
+    if (!referralShareUrl) {
+      setShareState("error");
+      return;
+    }
+
+    if (typeof navigator.share === "function") {
+      setShareState("sharing");
+
+      try {
+        await navigator.share({
+          text: dictionary.member.shareHint,
+          title: dictionary.referralsPage.shareTitle,
+          url: referralShareUrl,
+        });
+        setShareState("idle");
+        return;
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
+          setShareState("idle");
+          return;
+        }
+      }
+    }
+
+    await copyReferralLink();
+  }, [
+    copyReferralLink,
+    dictionary.member.shareHint,
+    dictionary.referralsPage.shareTitle,
+    referralShareUrl,
+  ]);
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
@@ -2379,12 +2459,32 @@ function CompletedHomeDashboard({
                     </a>
 
                     <div className="grid gap-2.5 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-stretch">
-                      <CopyTextButton
-                        className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100 xl:min-w-[7.75rem]"
-                        copiedLabel={dictionary.common.copied}
-                        copyLabel={dictionary.common.copyLink}
-                        text={referralLink}
-                      />
+                      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-2">
+                        <button
+                          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-slate-100"
+                          onClick={() => {
+                            void handleShareReferralLink();
+                          }}
+                          type="button"
+                        >
+                          <Share2 className="size-4 shrink-0" />
+                          <span className="whitespace-nowrap">
+                            {shareState === "sharing"
+                              ? contentCopy.actions.sharing
+                              : contentCopy.actions.share}
+                          </span>
+                        </button>
+                        <CopyTextButton
+                          className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
+                          copiedLabel={
+                            shareState === "copied"
+                              ? contentCopy.actions.copiedLink
+                              : dictionary.common.copied
+                          }
+                          copyLabel={dictionary.common.copyLink}
+                          text={referralShareUrl}
+                        />
+                      </div>
                       <Link
                         className="group inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#f7d97e_0%,#f5c34d_52%,#ecab1f_100%)] px-4 !text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)]"
                         href={brandingStudioHref}
@@ -2394,6 +2494,11 @@ function CompletedHomeDashboard({
                         <ArrowUpRight className="hidden size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5 2xl:block" />
                       </Link>
                     </div>
+                    {shareState === "error" ? (
+                      <p className="text-sm font-medium text-rose-200">
+                        {contentCopy.messages.shareFailed}
+                      </p>
+                    ) : null}
                   </>
                 ) : null}
               </div>

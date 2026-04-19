@@ -5,36 +5,17 @@ import { notFound } from "next/navigation";
 import { ContentBridgePage } from "@/components/content-bridge-page";
 import { getContentCopy } from "@/lib/content-copy";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
+import {
+  inferBridgePlatform,
+  isBridgeCrawler,
+  isKakaoInAppBrowser,
+} from "@/lib/in-app-browser";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
-
-function inferPlatform(
-  userAgent: string,
-): "android" | "ios" | "other" {
-  if (/android/i.test(userAgent)) {
-    return "android";
-  }
-
-  if (/(iphone|ipad|ipod)/i.test(userAgent)) {
-    return "ios";
-  }
-
-  return "other";
-}
-
-function isKakaoInApp(userAgent: string) {
-  return /KAKAOTALK/i.test(userAgent);
-}
-
-function isCrawler(userAgent: string) {
-  return /(bot|crawler|spider|facebookexternalhit|slackbot|twitterbot|linkedinbot|whatsapp|discordbot|kakaotalk-scrap)/i.test(
-    userAgent,
-  );
-}
 
 export async function generateMetadata({
   params,
@@ -103,7 +84,8 @@ export default async function LocalizedContentBridgePage({
 
   const headerStore = await headers();
   const userAgent = headerStore.get("user-agent") ?? "";
-  const autoRedirect = !isKakaoInApp(userAgent) && !isCrawler(userAgent);
+  const autoRedirect =
+    !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
   const targetHref = buildPathWithReferral(
     `/${locale}/content/${contentId}`,
     referralCode,
@@ -117,7 +99,7 @@ export default async function LocalizedContentBridgePage({
       coverImageUrl={teaser.coverImageUrl}
       homeHref={homeHref}
       locale={locale}
-      platformHint={inferPlatform(userAgent)}
+      platformHint={inferBridgePlatform(userAgent)}
       publishedAt={teaser.publishedAt?.toISOString() ?? null}
       summary={teaser.summary}
       targetHref={targetHref}
