@@ -575,6 +575,7 @@ export function CreatorContentStudioPage({
       return;
     }
 
+    const shouldLoadProfileView = view === "profile";
     const shouldLoadAutomation = view !== "new";
     const shouldUseCompactPostsBootstrap = view === "new";
 
@@ -665,6 +666,111 @@ export function CreatorContentStudioPage({
           jobs: [],
           status: "ready",
         });
+        return;
+      }
+
+      if (shouldLoadProfileView) {
+        const [profileResponse, automationProfileResponse, automationJobsResponse] =
+          await Promise.all([
+            fetch(
+              `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+            fetch(
+              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+            fetch(
+              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+          ]);
+
+        const profileData = (await profileResponse.json()) as
+          | CreatorProfileResponse
+          | { error?: string };
+        const automationProfileData = (await automationProfileResponse.json()) as
+          | CreatorAutomationProfileResponse
+          | { error?: string };
+        const automationJobsData = (await automationJobsResponse.json()) as
+          | ContentAutomationJobsResponse
+          | { error?: string };
+
+        if (!profileResponse.ok || !("profile" in profileData)) {
+          throw new Error(
+            "error" in profileData && profileData.error
+              ? profileData.error
+              : contentCopy.messages.studioLoadFailed,
+          );
+        }
+
+        setState({
+          error: null,
+          member,
+          notice: null,
+          posts: [],
+          profile: {
+            displayName: profileData.profile.displayName,
+            heroImageUrl: profileData.profile.heroImageUrl ?? "",
+            intro: profileData.profile.intro,
+            payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
+          },
+          status: "ready",
+        });
+
+        if (
+          automationProfileResponse.ok &&
+          "profile" in automationProfileData &&
+          automationJobsResponse.ok &&
+          "items" in automationJobsData
+        ) {
+          setAutomation({
+            available: true,
+            error: null,
+            form: {
+              allowedDomains: stringifyDelimitedValues(
+                automationProfileData.profile.allowedDomains,
+              ),
+              autoPublish: automationProfileData.profile.autoPublish,
+              enabled: automationProfileData.profile.enabled,
+              maxPostsPerDay: String(automationProfileData.profile.maxPostsPerDay),
+              minIntervalMinutes: String(
+                automationProfileData.profile.minIntervalMinutes,
+              ),
+              personaName: automationProfileData.profile.personaName,
+              personaPrompt: automationProfileData.profile.personaPrompt,
+              publishScoreThreshold: String(
+                automationProfileData.profile.publishScoreThreshold,
+              ),
+              topics: stringifyDelimitedValues(automationProfileData.profile.topics),
+            },
+            jobs: automationJobsData.items,
+            status: "ready",
+          });
+        } else if (
+          automationProfileResponse.status === 403 &&
+          "error" in automationProfileData &&
+          automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
+        ) {
+          setAutomation({
+            available: false,
+            error: null,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+        } else {
+          setAutomation({
+            available: false,
+            error:
+              "error" in automationJobsData && automationJobsData.error
+                ? automationJobsData.error
+                : "error" in automationProfileData && automationProfileData.error
+                  ? automationProfileData.error
+                  : contentCopy.messages.automationLoadFailed,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+        }
+
         return;
       }
 
@@ -2793,10 +2899,16 @@ export function CreatorContentStudioPage({
           </section>
         </>
       ) : view === "profile" ? (
-        <section className="mx-auto w-full max-w-4xl space-y-5">
-          {renderProfileCard()}
-          {renderAutomationPanel()}
-          {renderAutomationJobsPanel()}
+        <section className="mx-auto w-full max-w-6xl">
+          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+              {renderProfileCard()}
+            </div>
+            <div className="space-y-5">
+              {renderAutomationPanel()}
+              {renderAutomationJobsPanel()}
+            </div>
+          </div>
         </section>
       ) : (
         <section className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
