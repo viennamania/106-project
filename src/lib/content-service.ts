@@ -256,6 +256,40 @@ async function readStoredCreatorProfile(email: string) {
   return collection.findOne({ email: normalizeEmail(email) });
 }
 
+export async function getPublishedContentShareMetadata(contentId: string) {
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId,
+    status: "published",
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  const storedProfile = await readStoredCreatorProfile(post.authorEmail);
+  const membersCollection = await getMembersCollection();
+  const authorMember = await membersCollection.findOne({
+    email: post.authorEmail,
+  });
+  const authorDisplayName = storedProfile?.displayName?.trim()
+    ? storedProfile.displayName.trim()
+    : authorMember
+      ? createDefaultCreatorProfile(authorMember).displayName
+      : null;
+
+  return {
+    authorDisplayName,
+    contentId: post.contentId,
+    coverImageUrl: post.coverImageUrl ?? null,
+    locale: normalizeContentLocale(post.locale),
+    publishedAt: post.publishedAt ?? null,
+    summary: post.summary,
+    title: post.title,
+    updatedAt: post.updatedAt,
+  };
+}
+
 async function emitPublishedContentNotifications(options: {
   author: MemberDocument;
   contentId: string;

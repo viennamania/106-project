@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ContentDetailPage } from "@/components/content-detail-page";
 import { getContentCopy } from "@/lib/content-copy";
+import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -25,13 +26,39 @@ export async function generateMetadata({
 }: {
   params: Promise<{ contentId: string; lang: string }>;
 }): Promise<Metadata> {
-  const { lang } = await params;
+  const { contentId, lang } = await params;
   const locale = hasLocale(lang) ? lang : "ko";
   const copy = getContentCopy(locale);
+  const content = await getPublishedContentShareMetadata(contentId);
+  const title = content
+    ? `${content.title} | ${copy.meta.detailTitle} | 1066friend+`
+    : `${copy.meta.detailTitle} | 1066friend+`;
+  const description = content?.summary ?? copy.meta.detailDescription;
+  const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
+  const url = `/${locale}/content/${contentId}`;
 
   return {
-    title: `${copy.meta.detailTitle} | 1066friend+`,
-    description: copy.meta.detailDescription,
+    title,
+    description,
+    openGraph: {
+      description,
+      images: [
+        {
+          alt: content?.title ?? copy.meta.detailTitle,
+          height: 630,
+          url: ogImagePath,
+          width: 1200,
+        },
+      ],
+      title,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      description,
+      images: [ogImagePath],
+      title,
+    },
   };
 }
 
