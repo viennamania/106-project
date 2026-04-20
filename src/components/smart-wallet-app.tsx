@@ -2443,8 +2443,8 @@ function CompletedHomeDashboard({
                       </p>
                     </a>
 
-                    <div className="grid gap-2.5 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-stretch">
-                      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-2">
+                    <div className="grid gap-2.5">
+                      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
                         <button
                           className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-slate-100"
                           onClick={() => {
