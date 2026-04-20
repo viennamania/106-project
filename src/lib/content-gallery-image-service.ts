@@ -12,8 +12,10 @@ const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 480;
 const VISUAL_BRIEF_LIMIT = 320;
-const DEFAULT_MODEL = "xai/grok-imagine-image";
+const DEFAULT_MODEL = "black-forest-labs/flux-2-pro";
 const DEFAULT_ASPECT_RATIO = "4:5";
+const DEFAULT_OUTPUT_FORMAT = "webp";
+const DEFAULT_OUTPUT_QUALITY = 90;
 
 export type GenerateContentGalleryImageInput = {
   body?: string | null;
@@ -230,6 +232,9 @@ export async function generateAndUploadContentGalleryImage(
   const rawOutput = await replicate.run(DEFAULT_MODEL, {
     input: {
       aspect_ratio: DEFAULT_ASPECT_RATIO,
+      output_format: DEFAULT_OUTPUT_FORMAT,
+      output_quality: DEFAULT_OUTPUT_QUALITY,
+      safety_tolerance: 5,
       prompt,
     },
   });
