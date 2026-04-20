@@ -18,16 +18,13 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -83,14 +80,14 @@ export function RewardsPage({
   dictionary,
   locale,
   referralCode = null,
+  returnTo = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnTo?: string | null;
 }) {
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -109,7 +106,6 @@ export function RewardsPage({
     summary: createEmptyPointsSummary(),
   });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [redeemingRewardId, setRedeemingRewardId] =
     useState<RewardCatalogId | null>(null);
@@ -117,16 +113,14 @@ export function RewardsPage({
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const activateHref =
+    returnTo ?? buildPathWithReferral(`/${locale}/activate`, referralCode);
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
   const silverClaimHref = buildPathWithReferral(
     `/${locale}/rewards/silver-claim`,
     referralCode,
   );
   const isDisconnected = status !== "connected" || !accountAddress;
-  const connectedAccountUrl = accountAddress
-    ? `${BSC_EXPLORER}/address/${accountAddress}`
-    : BSC_EXPLORER;
   const historyPageCount = Math.max(
     1,
     Math.ceil(state.summary.history.length / HISTORY_PAGE_SIZE),
@@ -340,7 +334,6 @@ export function RewardsPage({
 
   useEffect(() => {
     if (status !== "connected") {
-      setIsLogoutDialogOpen(false);
       setIsRefreshing(false);
       setRedeemingRewardId(null);
       setActionError(null);
@@ -397,16 +390,6 @@ export function RewardsPage({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [accountAddress, loadRewards, status]);
-
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
 
   const activeMember = state.member;
   const canBrowseRewards =
@@ -479,17 +462,6 @@ export function RewardsPage({
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(16,185,129,0.15),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.12),transparent_24%)]" />
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -514,7 +486,7 @@ export function RewardsPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={homeHref}
+              href={activateHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -534,35 +506,7 @@ export function RewardsPage({
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-                  {accountAddress ? (
-                    <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
-                      href={connectedAccountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {formatAddressLabel(accountAddress)}
-                      <ArrowUpRight className="size-4" />
-                    </a>
-                  ) : null}
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.disconnectWallet}
-                  </button>
-                </div>
-              ) : (
+              status !== "connected" ? (
                 <button
                   className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                   onClick={() => {
@@ -572,7 +516,7 @@ export function RewardsPage({
                 >
                   {dictionary.common.connectWallet}
                 </button>
-              )
+              ) : null
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
@@ -1908,14 +1852,6 @@ function getMembershipCardLabel(
   }
 
   return dictionary.common.notAvailable;
-}
-
-function formatAddressLabel(address: string) {
-  if (!address) {
-    return "-";
-  }
-
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatDateTime(value: string, locale: string) {

@@ -363,6 +363,7 @@ export type Dictionary = {
       sendLink: string;
       title: string;
       totalRecipients: string;
+      viewAnnouncement: string;
     };
     filters: {
       all: string;
@@ -1179,6 +1180,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         sendLink: "이동 링크",
         title: "공지 제목",
         totalRecipients: "전체 수신자",
+        viewAnnouncement: "공지 보기",
       },
       filters: {
         all: "전체",
@@ -2030,6 +2032,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         sendLink: "Target link",
         title: "Announcement title",
         totalRecipients: "Total recipients",
+        viewAnnouncement: "View announcement",
       },
       filters: {
         all: "All",
@@ -2887,6 +2890,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         sendLink: "移動リンク",
         title: "告知タイトル",
         totalRecipients: "受信者合計",
+        viewAnnouncement: "告知を見る",
       },
       filters: {
         all: "全体",
@@ -3743,6 +3747,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         sendLink: "跳转链接",
         title: "公告标题",
         totalRecipients: "接收者总数",
+        viewAnnouncement: "查看公告",
       },
       filters: {
         all: "全部",

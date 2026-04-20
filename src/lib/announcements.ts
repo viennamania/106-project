@@ -33,6 +33,7 @@ export type MemberAnnouncementRecipientSummary = {
 };
 
 export type MemberAnnouncementDocument = {
+  actionHref?: string | null;
   announcementId: string;
   body: string;
   completedRecipientCount: number;
@@ -50,6 +51,7 @@ export type MemberAnnouncementDocument = {
 };
 
 export type MemberAnnouncementRecord = {
+  actionHref: string | null;
   announcementId: string;
   body: string;
   completedRecipientCount: number;
@@ -64,9 +66,23 @@ export type MemberAnnouncementRecord = {
   title: string;
 };
 
+export type MemberAnnouncementDetailRecord = {
+  actionHref: string | null;
+  announcementId: string;
+  body: string;
+  createdAt: string;
+  href: string | null;
+  senderEmail: string;
+  title: string;
+};
+
 export type MemberAnnouncementsResponse = {
   history: MemberAnnouncementRecord[];
   recipients: MemberAnnouncementRecipientSummary;
+};
+
+export type MemberAnnouncementDetailResponse = {
+  announcement: MemberAnnouncementDetailRecord;
 };
 
 export function isMemberAnnouncementRecipientFilter(
@@ -89,6 +105,7 @@ export function serializeMemberAnnouncement(
   announcement: MemberAnnouncementDocument,
 ): MemberAnnouncementRecord {
   return {
+    actionHref: announcement.actionHref ?? null,
     announcementId: announcement.announcementId,
     body: announcement.body,
     completedRecipientCount: announcement.completedRecipientCount,
@@ -102,6 +119,20 @@ export function serializeMemberAnnouncement(
       ...recipient,
       pushSubscribed: Boolean(recipient.pushSubscribed),
     })),
+    senderEmail: announcement.senderEmail,
+    title: announcement.title,
+  };
+}
+
+export function serializeMemberAnnouncementDetail(
+  announcement: MemberAnnouncementDocument,
+): MemberAnnouncementDetailRecord {
+  return {
+    actionHref: announcement.actionHref ?? null,
+    announcementId: announcement.announcementId,
+    body: announcement.body,
+    createdAt: announcement.createdAt.toISOString(),
+    href: announcement.href ?? null,
     senderEmail: announcement.senderEmail,
     title: announcement.title,
   };

@@ -27,6 +27,7 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { setPathSearchParams } from "@/lib/landing-branding";
 import type {
   MemberAnnouncementRecipientFilter,
   MemberAnnouncementRecipientScope,
@@ -357,6 +358,7 @@ export function AnnouncementsPage({
           body,
           email: memberSync.member.email,
           href,
+          locale,
           recipientFilter: selectedRecipientFilter,
           recipientScope: selectedRecipientScope,
           title,
@@ -766,7 +768,18 @@ export function AnnouncementsPage({
                   ) : announcementsState.history.length === 0 ? (
                     <MessageCard>{copy.emptyHistory}</MessageCard>
                   ) : (
-                    announcementsState.history.map((announcement) => (
+                    announcementsState.history.map((announcement) => {
+                      const currentPath =
+                        typeof window !== "undefined"
+                          ? `${window.location.pathname}${window.location.search}`
+                          : returnToHref;
+                      const detailHref = announcement.href
+                        ? setPathSearchParams(announcement.href, {
+                            returnTo: currentPath,
+                          })
+                        : null;
+
+                      return (
                       <article
                         className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)]"
                         key={announcement.announcementId}
@@ -834,19 +847,20 @@ export function AnnouncementsPage({
                             <p className="text-xs font-medium text-slate-500">
                               {formatDateTime(announcement.createdAt, locale)}
                             </p>
-                            {announcement.href ? (
+                            {detailHref ? (
                               <Link
                                 className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                href={announcement.href}
+                                href={detailHref}
                               >
-                                {copy.labels.sendLink}
+                                {copy.labels.viewAnnouncement}
                                 <ArrowUpRight className="size-3.5" />
                               </Link>
                             ) : null}
                           </div>
                         </div>
                       </article>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </section>

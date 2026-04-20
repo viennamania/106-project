@@ -267,9 +267,11 @@ export function SmartWalletApp({
     `/${locale}/network-feed`,
     preferredReferralCode,
   );
-  const rewardsHref = buildPathWithReferral(
-    `/${locale}/rewards`,
-    preferredReferralCode,
+  const rewardsHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/rewards`, preferredReferralCode),
+    {
+      returnTo: activatePageHref,
+    },
   );
   const announcementsPageHref = buildPathWithReferral(
     `/${locale}/announcements`,

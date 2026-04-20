@@ -18,6 +18,7 @@ type SendAnnouncementRequest = {
   body: string;
   email: string;
   href?: string | null;
+  locale?: string | null;
   recipientFilter?: MemberAnnouncementRecipientFilter;
   recipientScope?: MemberAnnouncementRecipientScope;
   title: string;
@@ -132,6 +133,7 @@ export async function POST(request: Request) {
       await sendAnnouncement({
         body: body.body,
         href: body.href,
+        locale: body.locale,
         memberEmail: authorization.normalizedEmail,
         recipientFilter: body.recipientFilter ?? "all",
         recipientScope: body.recipientScope ?? "level_1",

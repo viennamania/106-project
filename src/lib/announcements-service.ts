@@ -3,11 +3,17 @@ import "server-only";
 import {
   REFERRAL_TREE_DEPTH_LIMIT,
   normalizeEmail,
-  type MemberDocument,
   type MemberStatus,
 } from "@/lib/member";
 import {
+  defaultLocale,
+  hasLocale,
+  type Locale,
+} from "@/lib/i18n";
+import {
   serializeMemberAnnouncement,
+  serializeMemberAnnouncementDetail,
+  type MemberAnnouncementDetailResponse,
   type MemberAnnouncementRecipientFilter,
   type MemberAnnouncementRecipientPreview,
   type MemberAnnouncementRecipientScope,
@@ -15,6 +21,7 @@ import {
   type MemberAnnouncementRecipientSummary,
 } from "@/lib/announcements";
 import {
+  getAppNotificationsCollection,
   getAppPushSubscriptionsCollection,
   getMemberAnnouncementsCollection,
   getMembersCollection,
@@ -36,21 +43,6 @@ type AnnouncementRecipientCandidate = {
 };
 
 type AnnouncementRecipient = MemberAnnouncementRecipientPreview;
-
-function projectAnnouncementRecipientCandidate(
-  member: Pick<
-    MemberDocument,
-    "createdAt" | "email" | "referralCode" | "registrationCompletedAt" | "status"
-  >,
-): AnnouncementRecipientCandidate {
-  return {
-    createdAt: member.createdAt,
-    email: member.email,
-    referralCode: member.referralCode ?? null,
-    registrationCompletedAt: member.registrationCompletedAt ?? null,
-    status: member.status,
-  };
-}
 
 function compareAnnouncementRecipients(
   left: AnnouncementRecipientCandidate,
@@ -283,6 +275,10 @@ function sanitizeAnnouncementHref(href?: string | null) {
   return normalized;
 }
 
+function resolveAnnouncementLocale(input?: string | null): Locale {
+  return input && hasLocale(input) ? input : defaultLocale;
+}
+
 async function getAnnouncementRecipientSummary(
   senderEmail: string,
   recipientScope: MemberAnnouncementRecipientScope,
@@ -340,6 +336,7 @@ export async function getAnnouncementCenterForMember(
 export async function sendAnnouncement({
   body,
   href,
+  locale,
   memberEmail,
   recipientFilter = "all",
   recipientScope = "level_1",
@@ -348,6 +345,7 @@ export async function sendAnnouncement({
 }: {
   body: string;
   href?: string | null;
+  locale?: Locale | string | null;
   memberEmail: string;
   recipientFilter?: MemberAnnouncementRecipientFilter;
   recipientScope?: MemberAnnouncementRecipientScope;
@@ -357,7 +355,7 @@ export async function sendAnnouncement({
   const normalizedEmail = normalizeEmail(memberEmail);
   const normalizedTitle = sanitizeAnnouncementTitle(title);
   const normalizedBody = sanitizeAnnouncementBody(body);
-  const normalizedHref = sanitizeAnnouncementHref(href);
+  const normalizedActionHref = sanitizeAnnouncementHref(href);
   const recipients = applyRecipientFilter(
     await getAnnouncementRecipientsForScope(normalizedEmail, recipientScope),
     recipientFilter,
@@ -369,6 +367,7 @@ export async function sendAnnouncement({
 
   const announcementId = crypto.randomUUID();
   const createdAt = new Date();
+  const announcementHref = `/${resolveAnnouncementLocale(locale)}/announcements/${announcementId}`;
   const recipientPreview = recipients.slice(0, ANNOUNCEMENT_PREVIEW_LIMIT);
   const completedRecipientCount = recipients.filter((recipient) => {
     return recipient.status === "completed";
@@ -377,11 +376,12 @@ export async function sendAnnouncement({
   const historyCollection = await getMemberAnnouncementsCollection();
 
   await historyCollection.insertOne({
+    actionHref: normalizedActionHref,
     announcementId,
     body: normalizedBody,
     completedRecipientCount,
     createdAt,
-    href: normalizedHref,
+    href: announcementHref,
     pendingRecipientCount,
     recipientFilter,
     recipientScope,
@@ -399,7 +399,7 @@ export async function sendAnnouncement({
         body: normalizedBody,
         createdAt,
         eventKey: `member_announcement:${announcementId}:${recipient.email}`,
-        href: normalizedHref,
+        href: announcementHref,
         memberEmail: recipient.email,
         title: normalizedTitle,
         type: "member_announcement",
@@ -412,4 +412,39 @@ export async function sendAnnouncement({
     recipientScope,
     recipientFilter,
   );
+}
+
+export async function getAnnouncementDetailForMember({
+  announcementId,
+  memberEmail,
+}: {
+  announcementId: string;
+  memberEmail: string;
+}): Promise<MemberAnnouncementDetailResponse> {
+  const normalizedEmail = normalizeEmail(memberEmail);
+  const [historyCollection, notificationsCollection] = await Promise.all([
+    getMemberAnnouncementsCollection(),
+    getAppNotificationsCollection(),
+  ]);
+  const announcement = await historyCollection.findOne({ announcementId });
+
+  if (!announcement) {
+    throw new Error("Announcement not found.");
+  }
+
+  if (announcement.senderEmail !== normalizedEmail) {
+    const notification = await notificationsCollection.findOne({
+      eventKey: `member_announcement:${announcementId}:${normalizedEmail}`,
+      memberEmail: normalizedEmail,
+      type: "member_announcement",
+    });
+
+    if (!notification) {
+      throw new Error("Announcement not found.");
+    }
+  }
+
+  return {
+    announcement: serializeMemberAnnouncementDetail(announcement),
+  };
 }
