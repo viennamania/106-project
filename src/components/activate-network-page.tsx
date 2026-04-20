@@ -1386,6 +1386,16 @@ function SelectedMemberCard({
           value={member.referralCode ?? dictionary.common.notAvailable}
         />
         <InfoCard
+          label={dictionary.activateNetworkPage.labels.referredByCode}
+          value={member.referredByCode ?? dictionary.common.notAvailable}
+        />
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.placementReferralCode}
+          value={
+            member.placementReferralCode ?? dictionary.common.notAvailable
+          }
+        />
+        <InfoCard
           label={dictionary.activateNetworkPage.labels.pointTier}
           value={getTierLabel(dictionary, member.tier)}
         />

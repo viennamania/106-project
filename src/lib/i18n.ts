@@ -273,7 +273,9 @@ export type Dictionary = {
       membershipCard: string;
       memberStatus: string;
       pointTier: string;
+      placementReferralCode: string;
       referralCode: string;
+      referredByCode: string;
       searchResults: string;
       spendablePoints: string;
       tier: string;
@@ -1077,7 +1079,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         membershipCard: "멤버 카드",
         memberStatus: "회원 상태",
         pointTier: "포인트 등급",
+        placementReferralCode: "실제 배치 상위 코드",
         referralCode: "레퍼럴 코드",
+        referredByCode: "추천 링크 코드",
         searchResults: "회원 목록",
         spendablePoints: "사용 가능 포인트",
         tier: "회원 등급",
@@ -1923,7 +1927,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         membershipCard: "Member card",
         memberStatus: "Member status",
         pointTier: "Point tier",
+        placementReferralCode: "Actual placement upline code",
         referralCode: "Referral code",
+        referredByCode: "Referral link code",
         searchResults: "Member list",
         spendablePoints: "Spendable points",
         tier: "Tier",
@@ -2777,7 +2783,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         membershipCard: "メンバーカード",
         memberStatus: "会員状態",
         pointTier: "ポイント等級",
+        placementReferralCode: "実際の配置上位コード",
         referralCode: "紹介コード",
+        referredByCode: "紹介リンクコード",
         searchResults: "会員一覧",
         spendablePoints: "利用可能ポイント",
         tier: "等級",
@@ -3632,7 +3640,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         membershipCard: "会员卡",
         memberStatus: "会员状态",
         pointTier: "积分等级",
+        placementReferralCode: "实际配置上级代码",
         referralCode: "推荐码",
+        referredByCode: "推荐链接代码",
         searchResults: "会员列表",
         spendablePoints: "可用积分",
         tier: "会员等级",
