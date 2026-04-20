@@ -308,9 +308,6 @@ export function SmartWalletApp({
     memberSync.status !== "ready" &&
     memberSync.status !== "blocked" &&
     memberSync.status !== "error";
-  const referralLink = memberSync.member?.referralCode
-    ? getReferralLink(memberSync.member.referralCode, locale)
-    : null;
   const showMemberRegistryPanel =
     memberSync.status === "syncing" ||
     memberSync.status === "blocked" ||
@@ -1581,7 +1578,6 @@ export function SmartWalletApp({
               void runMemberSync();
             }}
             referralDashboard={referralDashboard}
-            referralLink={referralLink}
             rewardsHref={rewardsHref}
             walletHref={walletHref}
             bnbWalletHref={bnbWalletHref}
@@ -2278,7 +2274,6 @@ function CompletedHomeDashboard({
   networkFeedHref,
   onRefresh,
   referralDashboard,
-  referralLink,
   rewardsHref,
   walletHref,
   bnbWalletHref,
@@ -2296,7 +2291,6 @@ function CompletedHomeDashboard({
   networkFeedHref: string;
   onRefresh: () => void;
   referralDashboard: ReferralDashboardState;
-  referralLink: string | null;
   rewardsHref: string;
   walletHref: string;
 }) {
@@ -2459,11 +2453,11 @@ function CompletedHomeDashboard({
                   </p>
                 </div>
 
-                {referralLink ? (
+                {referralShareUrl ? (
                   <>
                     <a
                       className="group block rounded-[22px] border border-white/10 bg-black/10 p-3.5 transition hover:border-white/16 hover:bg-black/14"
-                      href={referralLink}
+                      href={referralShareUrl}
                       rel="noreferrer"
                       target="_blank"
                     >
@@ -2474,7 +2468,7 @@ function CompletedHomeDashboard({
                         <ArrowUpRight className="size-4 shrink-0 text-white/45 transition group-hover:text-white/72" />
                       </div>
                       <p className="mt-2 break-all text-sm font-medium leading-6 text-white/92">
-                        {referralLink}
+                        {referralShareUrl}
                       </p>
                     </a>
 
@@ -3339,24 +3333,6 @@ function formatTemplate(
   return Object.entries(replacements).reduce((message, [key, value]) => {
     return message.replaceAll(`{${key}}`, String(value));
   }, template);
-}
-
-function getReferralLink(referralCode: string, locale: Locale) {
-  const path = `/${locale}?ref=${encodeURIComponent(referralCode)}`;
-  const appUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_APP_URL?.trim();
-
-  if (!appUrl) {
-    return path;
-  }
-
-  try {
-    return new URL(path, appUrl).toString();
-  } catch {
-    return path;
-  }
 }
 
 function formatDateTime(value: string, locale: Locale) {

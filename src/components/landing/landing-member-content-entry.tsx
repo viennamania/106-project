@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, CheckCircle2, Images, Rss, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Rss } from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -129,18 +129,6 @@ export function LandingMemberContentEntry({
 
   const member = state.member;
   const isKorean = locale === "ko";
-  const homeFeedTitle = isKorean ? "내 네트워크 피드" : "My network feed";
-  const homeFeedDescription =
-    member?.status === "completed"
-      ? isKorean
-        ? "내 네트워크에서 공유된 글과 이미지를 읽고 둘러볼 수 있어요."
-        : "Browse posts and images shared inside your network."
-      : isKorean
-        ? "가입을 완료하면 홈에서 네트워크 피드를 바로 열 수 있어요."
-        : "Complete signup to open your network feed directly from home.";
-  const homeFeedHint = isKorean
-    ? "상위 1~6단계에서 공유된 콘텐츠만 피드에 표시됩니다."
-    : "Only content shared from upstream levels 1 to 6 appears in this feed.";
   const homeActionTitle = isKorean ? "피드 열기" : "Open feed";
   const homeActionDescription = isKorean
     ? "지금 바로 네트워크에서 공유된 콘텐츠를 확인해보세요."
@@ -149,13 +137,6 @@ export function LandingMemberContentEntry({
     ? "결제를 완료하면 홈에서 네트워크 피드로 바로 이동할 수 있습니다."
     : "Once payment is complete, the network feed will be available from home.";
   const homePendingCta = isKorean ? "가입 완료하러 가기" : "Complete signup";
-  const homeStatusLabel =
-    member?.status === "completed"
-      ? contentCopy.labels.published
-      : isKorean
-        ? "가입 진행 중"
-        : "Signup pending";
-  const homeReferralCodeLabel = isKorean ? "기준 코드" : "Reference code";
 
   if (!accountAddress || !member) {
     return (
@@ -185,62 +166,7 @@ export function LandingMemberContentEntry({
         />
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="glass-card relative overflow-hidden rounded-[30px] border border-white/75 bg-white/88 px-5 py-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:px-6 sm:py-6">
-          <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(191,219,254,0.42),transparent_70%)] blur-3xl" />
-          <div className="pointer-events-none absolute -left-12 bottom-0 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(254,240,138,0.3),transparent_72%)] blur-3xl" />
-
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]">
-                  <Rss className="size-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="eyebrow">{isKorean ? "피드 이용 안내" : "feed guide"}</p>
-                  <h2 className="mt-2 text-[1.22rem] font-semibold tracking-tight text-slate-950 sm:text-[1.55rem]">
-                    {homeFeedTitle}
-                  </h2>
-                </div>
-              </div>
-              <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                {homeStatusLabel}
-              </span>
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-slate-700 sm:text-[0.95rem]">
-              {homeFeedDescription}
-            </p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <GuideMiniCard
-                icon={<ShieldCheck className="size-4" />}
-                label={isKorean ? "노출 범위" : "visibility"}
-                value={isKorean ? "상위 1~6단계 콘텐츠" : "levels 1 to 6"}
-              />
-              <GuideMiniCard
-                icon={<Images className="size-4" />}
-                label={isKorean ? "콘텐츠 형식" : "format"}
-                value={isKorean ? "글과 이미지를 함께 탐색" : "posts and images"}
-              />
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {member.referralCode ? (
-                <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-medium text-slate-600 shadow-[0_12px_24px_rgba(15,23,42,0.05)]">
-                  {homeReferralCodeLabel}
-                  <span className="ml-2 font-semibold uppercase tracking-[0.18em] text-slate-800">
-                    {member.referralCode}
-                  </span>
-                </span>
-              ) : null}
-              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.72rem] font-medium text-slate-500 shadow-[0_12px_24px_rgba(15,23,42,0.05)]">
-                {homeFeedHint}
-              </span>
-            </div>
-          </div>
-        </div>
-
+      <section>
         {member.status === "completed" ? (
           <LandingAccessCard
             description={homeActionDescription}
@@ -270,30 +196,6 @@ export function LandingMemberContentEntry({
         )}
       </section>
     </>
-  );
-}
-
-function GuideMiniCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-white/80 bg-white/88 px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
-      <div className="flex items-center gap-2 text-slate-500">
-        <span className="inline-flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-700">
-          {icon}
-        </span>
-        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em]">
-          {label}
-        </span>
-      </div>
-      <p className="mt-3 text-sm font-medium leading-6 text-slate-900">{value}</p>
-    </div>
   );
 }
 
