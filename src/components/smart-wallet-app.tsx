@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   Bell,
   Check,
+  Coins,
   Copy,
   LogOut,
   Mail,
@@ -260,6 +261,14 @@ export function SmartWalletApp({
   );
   const creatorStudioHref = buildPathWithReferral(
     `/${locale}/creator/studio`,
+    preferredReferralCode,
+  );
+  const walletHref = buildPathWithReferral(
+    `/${locale}/wallet`,
+    preferredReferralCode,
+  );
+  const bnbWalletHref = buildPathWithReferral(
+    `/${locale}/wallet/bnb`,
     preferredReferralCode,
   );
   const networkFeedHref = buildPathWithReferral(
@@ -1559,6 +1568,8 @@ export function SmartWalletApp({
             referralDashboard={referralDashboard}
             referralLink={referralLink}
             rewardsHref={rewardsHref}
+            walletHref={walletHref}
+            bnbWalletHref={bnbWalletHref}
           />
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
@@ -2254,9 +2265,12 @@ function CompletedHomeDashboard({
   referralDashboard,
   referralLink,
   rewardsHref,
+  walletHref,
+  bnbWalletHref,
 }: {
   activateNetworkHref: string;
   announcementsPageHref: string;
+  bnbWalletHref: string;
   brandingStudioHref: string;
   creatorStudioHref: string;
   dictionary: Dictionary;
@@ -2269,6 +2283,7 @@ function CompletedHomeDashboard({
   referralDashboard: ReferralDashboardState;
   referralLink: string | null;
   rewardsHref: string;
+  walletHref: string;
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
@@ -2536,6 +2551,50 @@ function CompletedHomeDashboard({
                   {contentCopy.entry.creatorDescription}
                 </p>
               </Link>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <Link
+                  className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
+                  href={walletHref}
+                >
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                    {dictionary.walletPage.eyebrow}
+                  </p>
+                  <div className="mt-3 flex items-start justify-between gap-4">
+                    <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                      <WalletMinimal className="size-4" />
+                    </div>
+                    <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                  </div>
+                  <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
+                    {dictionary.walletPage.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {dictionary.walletPage.description}
+                  </p>
+                </Link>
+
+                <Link
+                  className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
+                  href={bnbWalletHref}
+                >
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                    {dictionary.bnbPage.eyebrow}
+                  </p>
+                  <div className="mt-3 flex items-start justify-between gap-4">
+                    <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                      <Coins className="size-4" />
+                    </div>
+                    <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                  </div>
+                  <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
+                    {dictionary.bnbPage.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {dictionary.bnbPage.description}
+                  </p>
+                </Link>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <MetricCard

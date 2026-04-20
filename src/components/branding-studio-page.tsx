@@ -98,10 +98,12 @@ export function BrandingStudioPage({
   dictionary,
   locale,
   referralCode = null,
+  returnTo = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnTo?: string | null;
 }) {
   const studioCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
@@ -129,6 +131,7 @@ export function BrandingStudioPage({
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const backHref = returnTo ?? referralsHref;
   const referralSharePath = state.member?.referralCode
     ? buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode)
     : null;
@@ -461,7 +464,7 @@ export function BrandingStudioPage({
               <div className="flex min-w-0 items-start gap-3">
                 <Link
                   className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
-                  href={referralsHref}
+                  href={backHref}
                 >
                   <ArrowLeft className="size-4 sm:size-5" />
                 </Link>

@@ -34,8 +34,6 @@ const REWARD_BIKE_IMAGE =
 
 export function LandingPage({
   activateHref,
-  bnbWalletHref,
-  bnbWalletLabel,
   branding,
   copy,
   disclaimerHref,
@@ -46,12 +44,8 @@ export function LandingPage({
   projectWallet,
   rewardsHref,
   rewardsLabel,
-  walletHref,
-  walletLabel,
 }: {
   activateHref: string;
-  bnbWalletHref: string;
-  bnbWalletLabel: string;
   branding?: LandingPageBranding | null;
   copy: LandingCopy;
   disclaimerHref: string;
@@ -62,8 +56,6 @@ export function LandingPage({
   projectWallet: string | null;
   rewardsHref: string;
   rewardsLabel: string;
-  walletHref: string;
-  walletLabel: string;
 }) {
   const activeBranding = branding ?? null;
   const heroBadges = activeBranding
@@ -149,12 +141,6 @@ export function LandingPage({
                   </HeaderUtilityLink>
                   <HeaderUtilityLink href={rewardsHref} icon={<Crown className="size-4" />}>
                     {rewardsLabel}
-                  </HeaderUtilityLink>
-                  <HeaderUtilityLink
-                    href={walletHref}
-                    icon={<WalletMinimal className="size-4" />}
-                  >
-                    {walletLabel}
                   </HeaderUtilityLink>
                 </div>
               </div>
@@ -323,20 +309,6 @@ export function LandingPage({
                   >
                     {copy.cta.secondary}
                   </a>
-                  <Link
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/6 px-5 text-sm font-medium text-white/72 transition hover:bg-white/10 hover:text-white sm:w-auto"
-                    href={walletHref}
-                  >
-                    <WalletMinimal className="size-4" />
-                    {walletLabel}
-                  </Link>
-                  <Link
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#f5c34d]/24 bg-[#f5c34d]/10 px-5 text-sm font-medium text-[#ffe9b0] transition hover:bg-[#f5c34d]/16 hover:text-white sm:w-auto"
-                    href={bnbWalletHref}
-                  >
-                    <Coins className="size-4" />
-                    {bnbWalletLabel}
-                  </Link>
                 </div>
               </div>
             </div>
