@@ -5,6 +5,25 @@ import { ActivateNetworkPage } from "@/components/activate-network-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
+function normalizeReturnToPath(
+  value: string | string[] | undefined,
+  locale: Locale,
+  referralCode: string | null,
+) {
+  const fallback = `/${locale}/activate${referralCode ? `?ref=${referralCode}` : ""}`;
+  const candidate = Array.isArray(value) ? value[0] : value;
+
+  if (!candidate || !candidate.startsWith(`/${locale}/`)) {
+    return fallback;
+  }
+
+  if (candidate.startsWith("//")) {
+    return fallback;
+  }
+
+  return candidate;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -25,7 +44,11 @@ export default async function LocalizedActivateNetworkPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ member?: string | string[]; ref?: string | string[] }>;
+  searchParams: Promise<{
+    member?: string | string[];
+    ref?: string | string[];
+    returnTo?: string | string[];
+  }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -42,6 +65,7 @@ export default async function LocalizedActivateNetworkPage({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const returnToHref = normalizeReturnToPath(query.returnTo, locale, referralCode);
 
   return (
     <ActivateNetworkPage
@@ -49,6 +73,7 @@ export default async function LocalizedActivateNetworkPage({
       locale={locale}
       referralCode={referralCode}
       requestedMemberEmail={requestedMemberEmail}
+      returnToHref={returnToHref}
     />
   );
 }

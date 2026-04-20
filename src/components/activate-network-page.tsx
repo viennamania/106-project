@@ -97,11 +97,13 @@ export function ActivateNetworkPage({
   locale,
   referralCode = null,
   requestedMemberEmail = null,
+  returnToHref,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
   requestedMemberEmail?: string | null;
+  returnToHref: string;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -148,7 +150,6 @@ export function ActivateNetworkPage({
     : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const notificationsPageHref = buildPathWithReferral(
     `/${locale}/notifications`,
     referralCode,
@@ -850,7 +851,7 @@ export function ActivateNetworkPage({
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={activateHref}
+              href={returnToHref}
             >
               <ArrowLeft className="size-5" />
             </Link>

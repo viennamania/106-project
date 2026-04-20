@@ -25,6 +25,7 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
+import { setPathSearchParams } from "@/lib/landing-branding";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -500,10 +501,19 @@ export function NotificationsPage({
       }
 
       if (notification.href) {
-        router.push(notification.href);
+        const currentPath =
+          typeof window !== "undefined"
+            ? `${window.location.pathname}${window.location.search}`
+            : returnToHref;
+
+        router.push(
+          setPathSearchParams(notification.href, {
+            returnTo: currentPath,
+          }),
+        );
       }
     },
-    [markNotificationAsRead, router],
+    [markNotificationAsRead, returnToHref, router],
   );
 
   useEffect(() => {
