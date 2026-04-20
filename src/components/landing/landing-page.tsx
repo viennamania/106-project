@@ -2,13 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Bike,
   Coins,
   Crown,
   Globe2,
   Network,
   ShieldCheck,
-  Smartphone,
   Sparkles,
   WalletMinimal,
 } from "lucide-react";
@@ -27,10 +25,6 @@ const LANDING_IMAGE_VERSION = "20260415";
 
 const HERO_WORLD_IMAGE =
   `/landing/global-network-map.png?v=${LANDING_IMAGE_VERSION}`;
-const REWARD_PHONE_IMAGE =
-  `/landing/premium-phone.png?v=${LANDING_IMAGE_VERSION}`;
-const REWARD_BIKE_IMAGE =
-  `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
 
 export function LandingPage({
   activateHref,
@@ -351,69 +345,6 @@ export function LandingPage({
             </div>
           </LandingReveal>
         </section>
-
-        <SalesSection>
-          <SectionIntro
-            description={copy.rewards.description}
-            eyebrow={copy.rewards.eyebrow}
-            title={copy.rewards.title}
-          />
-
-          <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
-            <div className="grid gap-4 md:grid-cols-2">
-              {copy.rewards.cards.map((card, index) => (
-                <LandingReveal delay={index * 90} key={card.title}>
-                  <RewardVisualCard
-                    description={card.description}
-                    icon={
-                      index === 0 ? (
-                        <Smartphone className="size-5" />
-                      ) : (
-                        <Bike className="size-5" />
-                      )
-                    }
-                    imageAlt={card.title}
-                    imageSrc={index === 0 ? REWARD_PHONE_IMAGE : REWARD_BIKE_IMAGE}
-                    title={card.title}
-                  />
-                </LandingReveal>
-              ))}
-            </div>
-
-            <LandingReveal delay={120} variant="soft">
-              <div className="rounded-[30px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#0f172a,#172554)] p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
-                <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd89]">
-                  {copy.rewards.liquidityTitle}
-                </p>
-                <div className="mt-5 space-y-3">
-                  {copy.rewards.liquiditySteps.map((step, index) => (
-                    <LandingReveal delay={180 + index * 60} key={step.title} variant="soft">
-                      <div className="grid grid-cols-[auto_1fr] gap-3 rounded-[22px] border border-white/10 bg-white/7 p-4">
-                        <div className="flex size-9 items-center justify-center rounded-full border border-[#d4b680]/30 bg-white/10 text-sm font-semibold text-[#f7dfb1]">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold tracking-tight text-white">
-                            {step.title}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-white/68">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    </LandingReveal>
-                  ))}
-                </div>
-
-                <div className="mt-5 rounded-[22px] border border-white/10 bg-black/12 px-4 py-5">
-                  <p className="text-sm leading-7 text-white/72">
-                    {copy.finalCta.note}
-                  </p>
-                </div>
-              </div>
-            </LandingReveal>
-          </div>
-        </SalesSection>
 
         <SalesSection>
           <SectionIntro
@@ -825,42 +756,6 @@ function NumberedCard({
         {title}
       </h3>
       <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
-function RewardVisualCard({
-  description,
-  icon,
-  imageAlt,
-  imageSrc,
-  title,
-}: {
-  description: string;
-  icon: ReactNode;
-  imageAlt: string;
-  imageSrc: string;
-  title: string;
-}) {
-  return (
-    <div className="overflow-hidden rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdfa,#fff7ea)] shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <Image
-        alt={imageAlt}
-        className="h-52 w-full object-cover object-center"
-        height={imageSrc === REWARD_PHONE_IMAGE ? 1088 : 1088}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        src={imageSrc}
-        width={imageSrc === REWARD_PHONE_IMAGE ? 1920 : 1920}
-      />
-      <div className="p-5 sm:p-6">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#2b3548)] text-[#f5ddb0]">
-          {icon}
-        </div>
-        <h3 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-          {title}
-        </h3>
-        <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
-      </div>
     </div>
   );
 }
