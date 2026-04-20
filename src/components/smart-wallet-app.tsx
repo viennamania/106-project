@@ -1348,20 +1348,49 @@ export function SmartWalletApp({
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-32 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
         <LandingReveal delay={10} variant="soft">
-          <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 flex flex-col gap-2.5 rounded-[24px] border-white/80 bg-white/84 px-4 py-3 shadow-[0_18px_44px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:gap-3 sm:rounded-[26px] sm:px-5 sm:py-4 lg:static lg:bg-white/82 lg:shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-            <div className="sm:hidden">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)]">
-                    <WalletMinimal className="size-4" />
-                  </div>
+          <div className="sticky top-0 z-30 -mx-4 border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,255,255,0.84))] px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.7rem)] shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:hidden">
+            <div className="flex items-center gap-2.5">
+              <Link
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-white"
+                href={homeHref}
+              >
+                <ArrowLeft className="size-4" />
+                <span className="sr-only">{dictionary.referralsPage.actions.backHome}</span>
+              </Link>
+
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_36px_rgba(15,23,42,0.18)]">
+                  <WalletMinimal className="size-4" />
+                </div>
+                <div className="min-w-0">
                   <h1 className="truncate text-[1.02rem] font-semibold tracking-tight text-slate-950">
                     {dictionary.common.appName}
                   </h1>
+                  <div className="mt-1 flex min-h-6 items-center">
+                    {hasThirdwebClientId ? (
+                      status === "connected" ? (
+                        <StatusChip
+                          compact
+                          labels={dictionary.common.status}
+                          status={status}
+                        />
+                      ) : (
+                        <span className="text-[0.72rem] font-medium text-slate-500">
+                          {dictionary.common.connectWallet}
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-[0.72rem] font-medium text-amber-800">
+                        {dictionary.common.clientIdRequired}
+                      </span>
+                    )}
+                  </div>
                 </div>
+              </div>
 
+              <div className="flex shrink-0 items-center gap-2">
                 {hasThirdwebClientId && status === "connected" ? (
-                  <div className="flex shrink-0 items-center gap-2">
+                  <>
                     {isSignupCompleted && memberSync.member?.email ? (
                       <button
                         className={cn(
@@ -1401,45 +1430,24 @@ export function SmartWalletApp({
                       <LogOut className="size-4" />
                       <span className="sr-only">{dictionary.common.disconnectWallet}</span>
                     </button>
-                  </div>
+                  </>
+                ) : hasThirdwebClientId ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
                 ) : null}
               </div>
-
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <Link
-                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                  href={homeHref}
-                >
-                  <ArrowLeft className="size-4" />
-                  <span className="sr-only">{dictionary.referralsPage.actions.backHome}</span>
-                </Link>
-
-                {hasThirdwebClientId ? (
-                  status === "connected" ? (
-                    <StatusChip
-                      labels={dictionary.common.status}
-                      status={status}
-                    />
-                  ) : (
-                    <button
-                      className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                      onClick={() => {
-                        setIsLoginDialogOpen(true);
-                      }}
-                      type="button"
-                    >
-                      {dictionary.common.connectWallet}
-                    </button>
-                  )
-                ) : (
-                  <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900">
-                    {dictionary.common.clientIdRequired}
-                  </div>
-                )}
-              </div>
             </div>
+          </div>
 
-            <div className="hidden sm:flex sm:flex-col sm:gap-3">
+          <header className="glass-card hidden flex-col gap-3 rounded-[26px] px-5 py-4 lg:static sm:flex">
+            <div className="sm:flex sm:flex-col sm:gap-3">
               <div className="flex items-start gap-2.5 sm:gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_40px_rgba(15,23,42,0.2)] sm:size-11 sm:rounded-2xl">
                   <WalletMinimal className="size-4 sm:size-5" />
@@ -3119,9 +3127,11 @@ function OnboardingGuideCard({
 }
 
 function StatusChip({
+  compact = false,
   labels,
   status,
 }: {
+  compact?: boolean;
   labels: Dictionary["common"]["status"];
   status: "connected" | "disconnected" | "connecting" | "unknown";
 }) {
@@ -3137,7 +3147,9 @@ function StatusChip({
   return (
     <div
       className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
+        compact
+          ? "inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold"
+          : "inline-flex h-11 items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
         status === "connected" &&
           "border-emerald-200 bg-emerald-50 text-emerald-900",
         status === "connecting" &&
@@ -3150,7 +3162,7 @@ function StatusChip({
     >
       <span
         className={cn(
-          "size-2 rounded-full",
+          compact ? "size-1.5 rounded-full" : "size-2 rounded-full",
           status === "connected" && "bg-emerald-500",
           status === "connecting" && "bg-blue-500",
           status === "unknown" && "bg-slate-400",
