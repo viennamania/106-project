@@ -46,7 +46,6 @@ export function LandingPage({
   projectWallet,
   rewardsHref,
   rewardsLabel,
-  studioHref,
   walletHref,
   walletLabel,
 }: {
@@ -63,7 +62,6 @@ export function LandingPage({
   projectWallet: string | null;
   rewardsHref: string;
   rewardsLabel: string;
-  studioHref: string;
   walletHref: string;
   walletLabel: string;
 }) {
@@ -179,7 +177,6 @@ export function LandingPage({
             activateHref={activateHref}
             feedHref={feedHref}
             locale={locale}
-            studioHref={studioHref}
           />
         </LandingReveal>
 

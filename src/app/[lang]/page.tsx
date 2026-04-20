@@ -114,7 +114,6 @@ export default async function LocalizedHome({
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
       rewardsHref={buildPathWithReferral(`/${locale}/rewards`, activeReferralCode)}
       rewardsLabel={dictionary.rewardsPage.title}
-      studioHref={buildPathWithReferral(`/${locale}/creator/studio`, activeReferralCode)}
       walletHref={buildPathWithReferral(`/${locale}/wallet`, activeReferralCode)}
       walletLabel={dictionary.walletPage.title}
     />

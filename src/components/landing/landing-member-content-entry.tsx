@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, PenSquare, Rss } from "lucide-react";
+import { ArrowRight, Rss } from "lucide-react";
 import {
   AutoConnect,
   useActiveAccount,
@@ -33,12 +33,10 @@ export function LandingMemberContentEntry({
   activateHref,
   feedHref,
   locale,
-  studioHref,
 }: {
   activateHref: string;
   feedHref: string;
   locale: Locale;
-  studioHref: string;
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
@@ -178,15 +176,15 @@ export function LandingMemberContentEntry({
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-600">
             {member.status === "completed"
-              ? contentCopy.entry.description
+              ? contentCopy.entry.viewerDescription
               : locale === "ko"
-                ? "가입 완료 후 피드와 스튜디오를 홈에서 바로 열 수 있습니다."
-                : "Complete signup to open feed and studio directly from home."}
+                ? "가입 완료 후 홈에서 네트워크 피드를 바로 열 수 있습니다."
+                : "Complete signup to open the network feed directly from home."}
           </p>
         </div>
 
         {member.status === "completed" ? (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4">
             <LandingAccessCard
               description={contentCopy.entry.viewerDescription}
               href={feedHref}
@@ -194,21 +192,14 @@ export function LandingMemberContentEntry({
               label={contentCopy.page.feedEyebrow}
               title={contentCopy.entry.viewerTitle}
             />
-            <LandingAccessCard
-              description={contentCopy.entry.creatorDescription}
-              href={studioHref}
-              icon={<PenSquare className="size-5" />}
-              label={contentCopy.page.studioEyebrow}
-              title={contentCopy.entry.creatorTitle}
-            />
           </div>
         ) : (
           <div className="glass-card rounded-[28px] border border-white/75 bg-white/86 px-5 py-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <p className="text-sm leading-6 text-slate-600">
               {state.error ??
                 (locale === "ko"
-                  ? "결제 완료 후 홈에서 콘텐츠 영역으로 바로 이동할 수 있습니다."
-                  : "Once payment is complete, feed and studio will be available from home.")}
+                  ? "결제 완료 후 홈에서 네트워크 피드로 바로 이동할 수 있습니다."
+                  : "Once payment is complete, the network feed will be available from home.")}
             </p>
             <Link
               className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"

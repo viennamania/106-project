@@ -151,8 +151,10 @@ export type Dictionary = {
     selfReferralNotice: string;
     appliedReferralDescription: string;
     autoPlacementDescription: string;
+    topLevelPlacementDescription: string;
     shareHint: string;
     noReferralApplied: string;
+    topLevelPlacementValue: string;
     labels: {
       awaitingPaymentSince: string;
       completionAt: string;
@@ -936,9 +938,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "이 가입에는 추천 링크 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
         "실제 네트워크 배치는 상위 코드 {code} 아래의 빈 슬롯으로 배정되었습니다.",
+      topLevelPlacementDescription:
+        "실제 배치 상위 코드가 없는 최상위 회원입니다.",
       shareHint:
         "이 링크를 공유하면 추천 코드가 포함된 가입 화면으로 바로 열립니다.",
       noReferralApplied: "적용 안 됨",
+      topLevelPlacementValue: "최상위 회원",
       labels: {
         awaitingPaymentSince: "결제 대기 시작",
         completionAt: "가입 완료 시각",
@@ -1776,9 +1781,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "Referral link code {code} is applied to this signup.",
       autoPlacementDescription:
         "The actual network placement was assigned to an open slot under upline code {code}.",
+      topLevelPlacementDescription:
+        "This member is the top-level member with no actual placement upline code.",
       shareHint:
         "Share this link to open signup with your referral code already included.",
       noReferralApplied: "Not applied",
+      topLevelPlacementValue: "Top-level member",
       labels: {
         awaitingPaymentSince: "Awaiting payment since",
         completionAt: "Signup completed at",
@@ -2624,9 +2632,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "この登録には紹介コード {code} が適用されています。",
       autoPlacementDescription:
         "現在のネットワーク配置ルールに従って、ネットワークコード {code} の空きスロットへ配置されました。",
+      topLevelPlacementDescription:
+        "実際の配置先コードを持たない最上位メンバーです。",
       shareHint:
         "このリンクを共有すると、あなたの紹介コードが入った登録画面をそのまま開けます。",
       noReferralApplied: "未適用",
+      topLevelPlacementValue: "最上位メンバー",
       labels: {
         awaitingPaymentSince: "支払い待ち開始",
         completionAt: "登録完了時刻",
@@ -3475,9 +3486,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "此注册已应用推荐码 {code}。",
       autoPlacementDescription:
         "系统已按当前网络分配规则将其放入网络代码 {code} 下的空槽位。",
+      topLevelPlacementDescription:
+        "该会员没有实际分配上级代码，属于最上层会员。",
       shareHint:
         "分享此链接后，会直接打开已带上你的推荐码的注册页面。",
       noReferralApplied: "未应用",
+      topLevelPlacementValue: "最上层会员",
       labels: {
         awaitingPaymentSince: "开始等待支付时间",
         completionAt: "注册完成时间",
@@ -4316,9 +4330,12 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
         "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
       autoPlacementDescription:
         "Hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc phân bổ mạng hiện tại.",
+      topLevelPlacementDescription:
+        "Đây là thành viên cấp cao nhất, không có mã tuyến trên thực tế.",
       shareHint:
         "Chia sẻ liên kết này để mở trang đăng ký với mã referral của bạn đã được gắn sẵn.",
       noReferralApplied: "Chưa áp dụng",
+      topLevelPlacementValue: "Thành viên cấp cao nhất",
       labels: {
         awaitingPaymentSince: "Chờ thanh toán từ",
         completionAt: "Hoàn tất đăng ký lúc",
@@ -4639,9 +4656,12 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
         "Kode referral {code} diterapkan pada pendaftaran ini.",
       autoPlacementDescription:
         "Sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan penempatan jaringan saat ini.",
+      topLevelPlacementDescription:
+        "Anggota ini adalah anggota tingkat teratas tanpa kode upline penempatan aktual.",
       shareHint:
         "Bagikan tautan ini untuk membuka halaman pendaftaran dengan kode referral Anda yang sudah terpasang.",
       noReferralApplied: "Belum diterapkan",
+      topLevelPlacementValue: "Anggota tingkat teratas",
       labels: {
         awaitingPaymentSince: "Menunggu pembayaran sejak",
         completionAt: "Pendaftaran selesai pada",

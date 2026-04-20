@@ -4,16 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
   Copy,
   ExternalLink,
   LoaderCircle,
   MessageCircleMore,
+  Smartphone,
 } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
 import type { BridgePlatformHint } from "@/lib/in-app-browser";
 import { buildChromeIntentUrl } from "@/lib/in-app-browser";
+import { detectInstalledPwa } from "@/lib/pwa-install";
 
 type ContentBridgePageProps = {
   authorDisplayName: string | null;
@@ -42,7 +43,11 @@ export function ContentBridgePage({
 }: ContentBridgePageProps) {
   const router = useRouter();
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
+  const [installState, setInstallState] = useState<
+    "checking" | "installed" | "not-installed"
+  >("checking");
   const [launchState, setLaunchState] = useState<"idle" | "opening">("idle");
+  const isInstalled = installState === "installed";
   const copy = useMemo(
     () =>
       locale === "ko"
@@ -58,17 +63,39 @@ export function ContentBridgePage({
                 : platformHint === "ios"
                   ? "iPhone에서는 카카오톡 우측 메뉴의 다른 브라우저로 열기를 사용하면 더 안정적으로 볼 수 있습니다."
                   : "카카오톡에서는 우측 메뉴의 다른 브라우저로 열기를 사용할 수 있습니다.",
-            browserReady: "브라우저에서 보기 좋은 화면",
+            browserReady: isInstalled
+              ? "설치된 앱이 감지되었습니다"
+              : "브라우저에서 보기 좋은 화면",
             copyLink: "링크 복사",
             copiedLink: "링크 복사됨",
             copyFailed: "링크 복사에 실패했습니다.",
             eyebrow: "KAKAO OPEN BRIDGE",
-            inAppCta: "카카오톡 안에서 바로 보기",
             intro:
-              "카카오톡 안에서는 화면 비율과 로그인 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 여는 것을 권장합니다.",
+              isInstalled
+                ? "이 기기에 Pocket Smart Wallet PWA가 설치된 것으로 감지되었습니다. 홈 화면 앱으로 열면 가장 안정적인 화면과 로그인 흐름을 사용할 수 있습니다."
+                : "카카오톡 안에서는 화면 비율과 로그인 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 여는 것을 권장합니다.",
+            installTitle: isInstalled
+              ? "홈 화면의 Pocket 앱에서 여는 것을 권장합니다"
+              : "브라우저에서 연 뒤 홈 화면에 추가해 보세요",
+            installSteps: isInstalled
+              ? [
+                  "홈 화면에서 Pocket Smart Wallet 아이콘을 직접 열어보세요.",
+                  "브라우저에서 계속 보기를 눌렀을 때 브라우저가 설치된 앱으로 넘겨줄 수도 있습니다.",
+                ]
+              : platformHint === "ios"
+                ? [
+                    "Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하세요.",
+                    "설치 후에는 다음부터 앱처럼 바로 실행할 수 있습니다.",
+                  ]
+                : [
+                    "Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.",
+                    "설치 후에는 다음부터 앱처럼 바로 실행할 수 있습니다.",
+                  ],
             opening: "브라우저를 여는 중...",
             shareProtected: "레퍼럴이 유지된 공유 링크입니다.",
-            title: "더 시원한 브라우저 화면으로 열어보세요",
+            title: isInstalled
+              ? "설치된 앱이나 외부 브라우저에서 여는 것이 가장 좋습니다"
+              : "더 시원한 브라우저 화면으로 열어보세요",
           }
         : {
             autoDescription:
@@ -82,20 +109,58 @@ export function ContentBridgePage({
                 : platformHint === "ios"
                   ? "On iPhone, using KakaoTalk's Open in Browser menu is the most reliable option."
                   : "You can also use KakaoTalk's Open in Browser menu.",
-            browserReady: "Best viewed in a browser",
+            browserReady: isInstalled
+              ? "Installed app detected"
+              : "Best viewed in a browser",
             copyLink: "Copy link",
             copiedLink: "Link copied",
             copyFailed: "Unable to copy the link.",
             eyebrow: "KAKAO OPEN BRIDGE",
-            inAppCta: "Continue inside KakaoTalk",
             intro:
-              "KakaoTalk's in-app browser can limit screen space and login flow. We recommend opening this in a full browser.",
+              isInstalled
+                ? "Pocket Smart Wallet appears to already be installed on this device. Opening from the home screen app is the most reliable path."
+                : "KakaoTalk's in-app browser can limit screen space and login flow. We recommend opening this in a full browser.",
+            installTitle: isInstalled
+              ? "Open the Pocket app from your home screen"
+              : "After opening in a browser, install it like an app",
+            installSteps: isInstalled
+              ? [
+                  "Open Pocket Smart Wallet directly from your home screen.",
+                  "Using Continue in browser may also allow the browser to hand this link off to the installed app.",
+                ]
+              : platformHint === "ios"
+                ? [
+                    "Open in Safari, then use Share > Add to Home Screen.",
+                    "Once installed, you can launch it like a regular app.",
+                  ]
+                : [
+                    "Open in Chrome, then use Install app or Add to Home screen from the browser menu.",
+                    "Once installed, you can launch it like a regular app.",
+                  ],
             opening: "Opening browser...",
             shareProtected: "This shared link keeps the referral attached.",
-            title: "Open it in a better browser view",
+            title: isInstalled
+              ? "The installed app or an external browser will work best"
+              : "Open it in a better browser view",
           },
-    [locale, platformHint],
+    [isInstalled, locale, platformHint],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void detectInstalledPwa().then((installed) => {
+      if (cancelled) {
+        return;
+      }
+
+      setInstallState(installed ? "installed" : "not-installed");
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!autoRedirect) {
@@ -156,10 +221,6 @@ export function ContentBridgePage({
       setCopyState("error");
     }
   }, [absoluteTargetUrl]);
-
-  const handleOpenInside = useCallback(() => {
-    window.location.assign(targetHref);
-  }, [targetHref]);
 
   const handleOpenBrowser = useCallback(() => {
     setLaunchState("opening");
@@ -285,15 +346,7 @@ export function ContentBridgePage({
                 ) : (
                   <ExternalLink className="mr-2 size-4" />
                 )}
-                {launchState === "opening" ? copy.opening : copy.browserCta}
-              </button>
-              <button
-                className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-slate-950/28 px-5 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-slate-950/42"
-                onClick={handleOpenInside}
-                type="button"
-              >
-                <ArrowRight className="mr-2 size-4" />
-                {copy.inAppCta}
+              {launchState === "opening" ? copy.opening : copy.browserCta}
               </button>
               <button
                 className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/10 px-5 text-sm font-semibold text-white/84 transition hover:bg-white/16"
@@ -312,6 +365,21 @@ export function ContentBridgePage({
             <p className="mt-2 text-xs leading-6 text-white/42">
               {copy.shareProtected}
             </p>
+            <div className="mt-5 rounded-[22px] border border-white/12 bg-white/6 p-4">
+              <div className="flex items-start gap-3">
+                <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/10 text-white">
+                  <Smartphone className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">{copy.installTitle}</p>
+                  <ul className="mt-2 space-y-1.5 text-xs leading-6 text-white/62">
+                    {copy.installSteps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
             {copyState === "error" ? (
               <p className="mt-2 text-xs font-medium text-rose-300">{copy.copyFailed}</p>
             ) : null}
@@ -324,13 +392,7 @@ export function ContentBridgePage({
             >
               {copy.backHome}
             </Link>
-            <Link
-              className="inline-flex items-center text-sm font-semibold text-white/68 transition hover:text-white"
-              href={targetHref}
-            >
-              {copy.inAppCta}
-              <ArrowRight className="ml-2 size-4" />
-            </Link>
+            <span className="text-xs leading-6 text-white/52">{copy.browserHint}</span>
           </div>
         </div>
       </section>

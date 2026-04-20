@@ -1826,7 +1826,11 @@ export function SmartWalletApp({
                           {dictionary.member.newMember}
                         </p>
                       ) : null}
-                      {getDisplayedPlacementReferralCode(memberSync.member) ? (
+                      {isTopLevelPlacementMember(memberSync.member) ? (
+                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-amber-700 sm:mt-2 sm:text-sm sm:leading-6">
+                          {dictionary.member.topLevelPlacementDescription}
+                        </p>
+                      ) : getDisplayedPlacementReferralCode(memberSync.member) ? (
                         <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-sky-700 sm:mt-2 sm:text-sm sm:leading-6">
                           {formatTemplate(
                             dictionary.member.autoPlacementDescription,
@@ -1869,7 +1873,9 @@ export function SmartWalletApp({
                         label={dictionary.member.labels.placementReferralCode}
                         value={
                           getDisplayedPlacementReferralCode(memberSync.member) ??
-                          dictionary.common.notAvailable
+                          (isTopLevelPlacementMember(memberSync.member)
+                            ? dictionary.member.topLevelPlacementValue
+                            : dictionary.common.notAvailable)
                         }
                       />
                     </div>
@@ -2373,7 +2379,11 @@ function CompletedHomeDashboard({
             <MessageCard>{dictionary.member.selfReferralNotice}</MessageCard>
           ) : null}
 
-          {getDisplayedPlacementReferralCode(member) ? (
+          {isTopLevelPlacementMember(member) ? (
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50/90 p-4 text-sm leading-6 text-amber-950">
+              {dictionary.member.topLevelPlacementDescription}
+            </div>
+          ) : getDisplayedPlacementReferralCode(member) ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
               {formatTemplate(dictionary.member.autoPlacementDescription, {
                 code: getDisplayedPlacementReferralCode(member) ?? "",
@@ -2602,7 +2612,9 @@ function CompletedHomeDashboard({
             label={dictionary.member.labels.placementReferralCode}
             value={
               getDisplayedPlacementReferralCode(member) ??
-              dictionary.common.notAvailable
+              (isTopLevelPlacementMember(member)
+                ? dictionary.member.topLevelPlacementValue
+                : dictionary.common.notAvailable)
             }
           />
           <InfoRow
@@ -2832,6 +2844,12 @@ function getDisplayedPlacementReferralCode(
   member: Pick<MemberRecord, "placementReferralCode" | "referredByCode">,
 ) {
   return member.placementReferralCode ?? member.referredByCode ?? null;
+}
+
+function isTopLevelPlacementMember(
+  member: Pick<MemberRecord, "status" | "placementReferralCode">,
+) {
+  return member.status === "completed" && !member.placementReferralCode;
 }
 
 function getPrioritySponsorReferralCode(member: MemberRecord | null) {
