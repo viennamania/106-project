@@ -42,8 +42,6 @@ export function LandingPage({
   languageLabel,
   locale,
   projectWallet,
-  rewardsHref,
-  rewardsLabel,
 }: {
   activateHref: string;
   branding?: LandingPageBranding | null;
@@ -54,8 +52,6 @@ export function LandingPage({
   languageLabel: string;
   locale: Locale;
   projectWallet: string | null;
-  rewardsHref: string;
-  rewardsLabel: string;
 }) {
   const activeBranding = branding ?? null;
   const heroBadges = activeBranding
@@ -138,9 +134,6 @@ export function LandingPage({
                 <div className="flex flex-wrap items-center gap-2 rounded-[24px] border border-slate-200/90 bg-slate-50/90 p-2 shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
                   <HeaderUtilityLink href={disclaimerHref}>
                     {disclaimerLabel}
-                  </HeaderUtilityLink>
-                  <HeaderUtilityLink href={rewardsHref} icon={<Crown className="size-4" />}>
-                    {rewardsLabel}
                   </HeaderUtilityLink>
                 </div>
               </div>

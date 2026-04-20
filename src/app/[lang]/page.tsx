@@ -110,8 +110,6 @@ export default async function LocalizedHome({
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
-      rewardsHref={buildPathWithReferral(`/${locale}/rewards`, activeReferralCode)}
-      rewardsLabel={dictionary.rewardsPage.title}
     />
   );
 }
