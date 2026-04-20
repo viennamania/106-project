@@ -150,6 +150,7 @@ export function ActivateNetworkPage({
     : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
+  const isCompletedMember = state.member?.status === "completed";
   const notificationsPageHref = buildPathWithReferral(
     `/${locale}/notifications`,
     referralCode,
@@ -847,49 +848,67 @@ export function ActivateNetworkPage({
       ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
+        <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 -mx-4 flex flex-col gap-3 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-[28px] lg:border-x lg:px-5 lg:py-4">
+          <div className="flex items-center gap-3">
             <Link
-              className="inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12"
               href={returnToHref}
             >
-              <ArrowLeft className="size-5" />
+              <ArrowLeft className="size-4 sm:size-5" />
             </Link>
-            <div className="space-y-1">
-              <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                  {dictionary.activateNetworkPage.title}
-                </h1>
-                <p className="hidden text-sm text-slate-600 sm:block">
-                  {dictionary.activateNetworkPage.description}
-                </p>
+            <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.16)] sm:size-12">
+              <GitBranch className="size-4 sm:size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="eyebrow hidden sm:block">
+                {dictionary.activateNetworkPage.eyebrow}
+              </p>
+              <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
+                {dictionary.activateNetworkPage.title}
+              </h1>
+              <p className="hidden text-sm text-slate-600 lg:block">
+                {dictionary.activateNetworkPage.description}
+              </p>
+              <div className="mt-1 sm:hidden">
+                <StatusChip labels={dictionary.common.status} status={status} />
               </div>
             </div>
+
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:size-11"
+              disabled={state.status === "loading"}
+              onClick={() => {
+                void loadNetwork();
+              }}
+              type="button"
+            >
+              <RefreshCcw
+                className={cn("size-4", state.status === "loading" && "animate-spin")}
+              />
+            </button>
           </div>
 
-          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+          <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
             <StatusChip labels={dictionary.common.status} status={status} />
             {hasThirdwebClientId ? (
               status === "connected" ? (
-                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-                  {state.member?.status === "completed" ? (
+                <>
+                  {isCompletedMember ? (
                     <Link
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2] sm:w-auto"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2]"
                       href={announcementsPageHref}
                     >
                       <Megaphone className="size-4" />
                       {dictionary.announcementsPage.title}
                     </Link>
                   ) : null}
-                  {state.member?.status === "completed" ? (
+                  {isCompletedMember ? (
                     <button
                       className={cn(
-                        "group inline-flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-full border px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
+                        "group inline-flex h-11 cursor-pointer items-center justify-between gap-2 rounded-full border px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
                         notificationsState.open
                           ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
                           : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
-                        "sm:w-auto sm:justify-start",
                       )}
                       onClick={() => {
                         if (
@@ -920,7 +939,7 @@ export function ActivateNetworkPage({
                   ) : null}
                   {accountLabel ? (
                     <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
+                      className="inline-flex h-11 items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
                       href={accountUrl}
                       rel="noreferrer"
                       target="_blank"
@@ -930,7 +949,7 @@ export function ActivateNetworkPage({
                     </a>
                   ) : null}
                   <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={!wallet}
                     onClick={() => {
                       if (!wallet) {
@@ -943,10 +962,10 @@ export function ActivateNetworkPage({
                   >
                     {dictionary.common.disconnectWallet}
                   </button>
-                </div>
+                </>
               ) : (
                 <button
-                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
                   onClick={() => {
                     setIsLoginDialogOpen(true);
                   }}
@@ -960,6 +979,74 @@ export function ActivateNetworkPage({
                 {dictionary.common.clientIdRequired}
               </div>
             )}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:hidden">
+            {isCompletedMember ? (
+              <button
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70"
+                onClick={() => {
+                  openNotificationsPage();
+                }}
+                type="button"
+              >
+                <Bell className="size-4" />
+                <span>{notificationCopy.title}</span>
+                {notificationsState.unreadCount > 0 ? (
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-0.5 text-[0.64rem] font-semibold leading-none text-white">
+                    {formatInteger(notificationsState.unreadCount, locale)}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
+            {isCompletedMember ? (
+              <Link
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-3 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+                href={announcementsPageHref}
+              >
+                <Megaphone className="size-4" />
+                {dictionary.announcementsPage.title}
+              </Link>
+            ) : null}
+            {accountLabel ? (
+              <a
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+                href={accountUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span>{accountLabel}</span>
+                <ArrowUpRight className="size-4" />
+              </a>
+            ) : null}
+            {hasThirdwebClientId ? (
+              status === "connected" ? (
+                <button
+                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
+                  disabled={!wallet}
+                  onClick={() => {
+                    if (!wallet) {
+                      return;
+                    }
+
+                    setIsLogoutDialogOpen(true);
+                  }}
+                  type="button"
+                >
+                  {dictionary.common.disconnectWallet}
+                </button>
+              ) : (
+                <button
+                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
+                  onClick={() => {
+                    setIsLoginDialogOpen(true);
+                  }}
+                  type="button"
+                >
+                  {dictionary.common.connectWallet}
+                </button>
+              )
+            ) : null}
           </div>
         </header>
 
@@ -1056,7 +1143,7 @@ export function ActivateNetworkPage({
                 </section>
 
                 <section className="glass-card rounded-[28px] p-4 sm:p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="space-y-1">
                     <div className="space-y-1">
                       <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
                       <h3 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -1066,22 +1153,6 @@ export function ActivateNetworkPage({
                         {dictionary.activateNetworkPage.leaderboardDescription}
                       </p>
                     </div>
-                    <button
-                      className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-                      disabled={state.status === "loading"}
-                      onClick={() => {
-                        void loadNetwork();
-                      }}
-                      type="button"
-                    >
-                      <RefreshCcw
-                        className={cn(
-                          "size-4 shrink-0",
-                          state.status === "loading" && "animate-spin",
-                        )}
-                      />
-                      {dictionary.activateNetworkPage.actions.refresh}
-                    </button>
                   </div>
 
                   <label className="mt-5 block">
