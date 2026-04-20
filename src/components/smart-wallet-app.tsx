@@ -1309,7 +1309,7 @@ export function SmartWalletApp({
   }
 
   return (
-    <div className="relative isolate overflow-hidden">
+    <div className="relative isolate">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(234,179,8,0.14),transparent_22%),radial-gradient(circle_at_0%_10%,rgba(255,255,255,0.62),transparent_20%),radial-gradient(circle_at_100%_20%,rgba(30,41,59,0.12),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#fbf7ef_44%,#f6f2eb_100%)]" />
       <LogoutConfirmDialog
         cancelLabel={dictionary.common.logoutDialog.cancel}
