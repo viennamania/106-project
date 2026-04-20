@@ -76,6 +76,35 @@ function buildImagePrompt(input: {
     .join(" ");
 }
 
+function buildSafeRetryPrompt(input: {
+  summary: string;
+  title: string;
+  visualBrief: string;
+}) {
+  return [
+    "Create a premium editorial cover image for a network content feed.",
+    "Safe-for-work only. Avoid nudity, lingerie, exposed cleavage, erotic framing, fetish styling, suggestive poses, or any sexualized presentation.",
+    "Depict subjects as fully clothed adults in a tasteful magazine-style composition.",
+    "Do not include any text, letters, numbers, logos, watermarks, or UI chrome.",
+    "Use a clean, modern, trustworthy composition with one clear focal subject and cinematic lighting.",
+    "Landscape aspect ratio, suitable for a feed card and article header.",
+    input.title ? `Core topic: ${input.title}.` : null,
+    input.summary ? `Summary context: ${input.summary}.` : null,
+    input.visualBrief ? `Visual direction: ${input.visualBrief}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function isSafetyRejection(error: unknown) {
+  return (
+    error instanceof Error &&
+    /safety|rejected by the safety system|safety_violations/i.test(
+      error.message,
+    )
+  );
+}
+
 async function generateImageBase64(prompt: string) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
@@ -181,7 +210,36 @@ export async function generateAndUploadContentCover(
     status: "running",
     step: "generating_image",
   });
-  const { imageBase64, revisedPrompt } = await generateImageBase64(prompt);
+  let generatedImage: {
+    imageBase64: string;
+    revisedPrompt: string | null;
+  };
+
+  try {
+    generatedImage = await generateImageBase64(prompt);
+  } catch (error) {
+    if (!isSafetyRejection(error)) {
+      throw error;
+    }
+
+    await reportProgress(input.onProgress, {
+      message:
+        "The first cover prompt was blocked by image safety filters. Retrying with a safer editorial direction.",
+      progress: 58,
+      status: "running",
+      step: "generating_image",
+    });
+
+    generatedImage = await generateImageBase64(
+      buildSafeRetryPrompt({
+        summary,
+        title,
+        visualBrief,
+      }),
+    );
+  }
+
+  const { imageBase64, revisedPrompt } = generatedImage;
   await reportProgress(input.onProgress, {
     message: "AI image created. Preparing upload.",
     progress: 74,
