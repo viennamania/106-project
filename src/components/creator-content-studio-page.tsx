@@ -505,6 +505,7 @@ export function CreatorContentStudioPage({
   const [automationProgress, setAutomationProgress] = useState<AutomationProgressState>(
     createEmptyAutomationProgress(),
   );
+  const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
   const [isCoverGenerationDialogOpen, setIsCoverGenerationDialogOpen] =
@@ -658,6 +659,52 @@ export function CreatorContentStudioPage({
       label: automationProgressLabels.saving_content.label,
     },
   };
+  const automationRunDialogLabels =
+    locale === "ko"
+      ? {
+          close: "닫기",
+          completed: "완료",
+          confirmBody:
+            "현재 자동화 설정을 기준으로 공개 출처 탐색부터 초안 저장까지 한 번 실행합니다.",
+          confirmHint:
+            "설정한 페르소나, 주제, 허용 도메인을 기준으로 새 초안을 생성합니다.",
+          confirmPrimary: "실행 시작",
+          confirmSecondary: "취소",
+          error: "오류",
+          persona: "페르소나",
+          progress: "진행률",
+          publishMode: "저장 방식",
+          publishModeAuto: "조건 충족 시 게시",
+          publishModeDraft: "초안 저장",
+          running: "실행 중",
+          stepCount: "완료 단계",
+          successSecondary: "닫기",
+          successTitle: "초안 생성 완료",
+          title: "초안 생성 실행",
+          topics: "주제",
+        }
+      : {
+          close: "Close",
+          completed: "Completed",
+          confirmBody:
+            "Run the current automation once to discover sources and save a fresh draft.",
+          confirmHint:
+            "This uses the current persona, topics, and allowed domains to generate a new draft.",
+          confirmPrimary: "Start run",
+          confirmSecondary: "Cancel",
+          error: "Error",
+          persona: "Persona",
+          progress: "Progress",
+          publishMode: "Save mode",
+          publishModeAuto: "Publish when score threshold passes",
+          publishModeDraft: "Save as draft",
+          running: "Running",
+          stepCount: "Completed steps",
+          successSecondary: "Close",
+          successTitle: "Draft generated",
+          title: "Run automation",
+          topics: "Topics",
+        };
   const coverGenerationLabels =
     locale === "ko"
       ? {
@@ -1736,6 +1783,20 @@ export function CreatorContentStudioPage({
     setIsCoverGenerationDialogOpen(true);
   }
 
+  function openAutomationRunDialog() {
+    setAutomationProgress(createEmptyAutomationProgress());
+    setIsAutomationRunDialogOpen(true);
+  }
+
+  function closeAutomationRunDialog() {
+    if (isRunningAutomation) {
+      return;
+    }
+
+    setIsAutomationRunDialogOpen(false);
+    setAutomationProgress(createEmptyAutomationProgress());
+  }
+
   function closeCoverGenerationDialog() {
     if (isGeneratingPostImage) {
       return;
@@ -2183,21 +2244,23 @@ export function CreatorContentStudioPage({
             error: null,
             jobs: upsertAutomationJob(current.jobs, event.response.job),
           }));
-          setAutomationCelebration({
-            contentId:
-              event.response.content?.contentId ??
-              event.response.job.outputContentId ??
-              null,
-            title:
-              event.response.content?.title ??
-              event.response.job.title ??
-              event.response.job.topic ??
-              null,
-            tone:
-              event.response.job.outputStatus === "published"
-                ? "published"
-                : "draft",
-          });
+          if (!isAutomationRunDialogOpen) {
+            setAutomationCelebration({
+              contentId:
+                event.response.content?.contentId ??
+                event.response.job.outputContentId ??
+                null,
+              title:
+                event.response.content?.title ??
+                event.response.job.title ??
+                event.response.job.topic ??
+                null,
+              tone:
+                event.response.job.outputStatus === "published"
+                  ? "published"
+                  : "draft",
+            });
+          }
 
           const streamedContent = event.response.content;
 
@@ -2757,7 +2820,7 @@ export function CreatorContentStudioPage({
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 disabled={isSavingAutomation || isRunningAutomation || !automation.form.enabled}
                 onClick={() => {
-                  void runAutomation();
+                  openAutomationRunDialog();
                 }}
                 type="button"
               >
@@ -3804,6 +3867,27 @@ export function CreatorContentStudioPage({
           tone={automationCelebration.tone}
         />
       ) : null}
+      {isAutomationRunDialogOpen ? (
+        <AutomationRunDialog
+          canClose={!isRunningAutomation}
+          labels={automationRunDialogLabels}
+          onClose={closeAutomationRunDialog}
+          onConfirm={() => {
+            void runAutomation();
+          }}
+          personaName={automation.form.personaName}
+          progress={automationProgress}
+          publishModeLabel={
+            automation.form.autoPublish
+              ? automationRunDialogLabels.publishModeAuto
+              : automationRunDialogLabels.publishModeDraft
+          }
+          stepCount={completedAutomationStepCount}
+          stepMeta={automationProgressStepMeta}
+          stepOrder={contentAutomationRunProgressSteps}
+          topics={automation.form.topics}
+        />
+      ) : null}
       {isCoverGenerationDialogOpen ? (
         <CoverGenerationDialog
           canClose={!isGeneratingPostImage}
@@ -4356,6 +4440,312 @@ function CoverGenerationDialog({
                       type="button"
                     >
                       {labels.confirmSecondary}
+                    </button>
+                  </>
+                ) : (
+                  <div className="sm:col-span-2">
+                    <button
+                      className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-400"
+                      disabled
+                      type="button"
+                    >
+                      <LoaderCircle className="mr-2 size-4 animate-spin" />
+                      {labels.running}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AutomationRunDialog({
+  canClose,
+  labels,
+  onClose,
+  onConfirm,
+  personaName,
+  progress,
+  publishModeLabel,
+  stepCount,
+  stepMeta,
+  stepOrder,
+  topics,
+}: {
+  canClose: boolean;
+  labels: {
+    close: string;
+    completed: string;
+    confirmBody: string;
+    confirmHint: string;
+    confirmPrimary: string;
+    confirmSecondary: string;
+    error: string;
+    persona: string;
+    progress: string;
+    publishMode: string;
+    running: string;
+    stepCount: string;
+    successSecondary: string;
+    successTitle: string;
+    title: string;
+    topics: string;
+  };
+  onClose: () => void;
+  onConfirm: () => void;
+  personaName: string;
+  progress: AutomationProgressState;
+  publishModeLabel: string;
+  stepCount: number;
+  stepMeta: Record<
+    ContentAutomationRunProgressStep,
+    {
+      description: string;
+      icon: typeof UserRound;
+      label: string;
+    }
+  >;
+  stepOrder: readonly ContentAutomationRunProgressStep[];
+  topics: string;
+}) {
+  const isRunning = progress.active;
+  const isSuccess =
+    !progress.active &&
+    !progress.error &&
+    progress.progress >= 100 &&
+    progress.steps.finalizing === "done";
+  const showProgress =
+    isRunning || progress.currentStep !== null || progress.error !== null;
+  const shouldShowConfirm = !showProgress && !isSuccess;
+  const currentStepMeta = progress.currentStep ? stepMeta[progress.currentStep] : null;
+  const topicSummary =
+    topics.trim() ||
+    (labels.topics === "주제"
+      ? "AI, 생산성, 네트워크 콘텐츠"
+      : "AI, productivity, network content");
+
+  return (
+    <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
+      <div className="relative flex max-h-[calc(100svh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)] sm:max-h-[calc(100svh-3rem)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.18),transparent_54%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_46%)]" />
+        <div className="relative overflow-y-auto overscroll-y-contain p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 shadow-sm">
+                <Sparkles className="size-3.5" />
+                {labels.title}
+              </div>
+              <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                {isSuccess ? labels.successTitle : labels.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {isSuccess
+                  ? progress.message ?? labels.confirmHint
+                  : shouldShowConfirm
+                    ? labels.confirmBody
+                    : progress.error
+                      ? progress.message ?? labels.error
+                      : progress.message ??
+                        currentStepMeta?.description ??
+                        labels.confirmHint}
+              </p>
+            </div>
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white/92 text-slate-600 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canClose}
+              onClick={onClose}
+              type="button"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+          </div>
+
+          {shouldShowConfirm ? (
+            <div className="mt-5 space-y-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm sm:col-span-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    {labels.persona}
+                  </p>
+                  <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950">
+                    {personaName.trim() || labels.title}
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm sm:col-span-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    {labels.publishMode}
+                  </p>
+                  <p className="mt-3 text-base font-semibold tracking-tight text-slate-950">
+                    {publishModeLabel}
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm sm:col-span-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    {labels.topics}
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700 sm:text-[15px]">
+                    {topicSummary}
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-600">
+                {labels.confirmHint}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                  onClick={onClose}
+                  type="button"
+                >
+                  {labels.confirmSecondary}
+                </button>
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                  onClick={onConfirm}
+                  type="button"
+                >
+                  <WandSparkles className="mr-2 size-4" />
+                  {labels.confirmPrimary}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {!shouldShowConfirm ? (
+            <div className="mt-5">
+              <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
+                <div className="grid grid-cols-[auto_auto] justify-between gap-3">
+                  <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/90 px-4 py-3 shadow-sm">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                      {labels.progress}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">
+                      {Math.round(progress.progress)}%
+                    </p>
+                  </div>
+                  <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/90 px-4 py-3 shadow-sm">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                      {labels.stepCount}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">
+                      {stepCount}/{stepOrder.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-full border border-slate-200/90 bg-slate-100/90 p-1">
+                  <div
+                    className={`relative h-3 overflow-hidden rounded-full transition-[width] duration-500 ${
+                      progress.error
+                        ? "bg-gradient-to-r from-rose-500 via-orange-400 to-amber-300"
+                        : "bg-gradient-to-r from-slate-950 via-sky-600 to-cyan-400"
+                    }`}
+                    style={{ width: `${Math.max(8, progress.progress)}%` }}
+                  >
+                    {isRunning ? (
+                      <div className="absolute inset-y-0 right-0 w-16 animate-pulse rounded-full bg-white/40 blur-md" />
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {stepOrder.map((step) => {
+                  const status = progress.steps[step];
+                  const meta = stepMeta[step];
+                  const Icon = meta.icon;
+                  const badgeStatus =
+                    status === "done"
+                      ? "completed"
+                      : status === "active"
+                        ? "running"
+                        : status === "error"
+                          ? "failed"
+                          : null;
+
+                  return (
+                    <div
+                      className={`rounded-[22px] border px-4 py-4 shadow-sm transition ${
+                        status === "done"
+                          ? "border-emerald-200/80 bg-emerald-50/90"
+                          : status === "active"
+                            ? "border-slate-950 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)]"
+                            : status === "error"
+                              ? "border-rose-200/80 bg-rose-50/90"
+                              : "border-slate-200/80 bg-white/85"
+                      }`}
+                      key={step}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`flex size-11 shrink-0 items-center justify-center rounded-2xl border ${
+                            status === "done"
+                              ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+                              : status === "active"
+                                ? "border-sky-200 bg-slate-950 text-white"
+                                : status === "error"
+                                  ? "border-rose-200 bg-rose-100 text-rose-700"
+                                  : "border-slate-200 bg-white text-slate-400"
+                          }`}
+                        >
+                          {status === "done" ? (
+                            <Check className="size-5" />
+                          ) : status === "active" ? (
+                            <LoaderCircle className="size-5 animate-spin" />
+                          ) : status === "error" ? (
+                            <AlertTriangle className="size-5" />
+                          ) : (
+                            <Icon className="size-5" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-950">
+                              {meta.label}
+                            </p>
+                            {badgeStatus ? <StatusBadge status={badgeStatus} /> : null}
+                          </div>
+                          <p className="mt-1 text-sm leading-6 text-slate-600">
+                            {progress.currentStep === step && progress.message
+                              ? progress.message
+                              : meta.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {isSuccess ? (
+                  <div className="sm:col-span-2">
+                    <button
+                      className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                      onClick={onClose}
+                      type="button"
+                    >
+                      {labels.successSecondary}
+                    </button>
+                  </div>
+                ) : progress.error ? (
+                  <>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_50%,#06b6d4_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] transition hover:translate-y-[-1px]"
+                      onClick={onConfirm}
+                      type="button"
+                    >
+                      {labels.confirmPrimary}
+                    </button>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={onClose}
+                      type="button"
+                    >
+                      {labels.close}
                     </button>
                   </>
                 ) : (
