@@ -1346,10 +1346,10 @@ export function SmartWalletApp({
         />
       ) : null}
 
-      <div className="fixed inset-x-0 top-0 z-40 sm:hidden">
-        <div className="mx-auto w-full max-w-6xl px-4 pt-[calc(env(safe-area-inset-top)+0.7rem)]">
-          <div className="border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,255,255,0.84))] px-4 pb-3 shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl">
-            <div className="flex items-center gap-2.5">
+      <div className="fixed inset-x-0 top-0 z-40 border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.86))] shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top_left,rgba(245,195,77,0.18),transparent_58%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.12),transparent_44%)]" />
+        <div className="relative px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.7rem)]">
+          <div className="flex items-center gap-2.5">
               <Link
                 className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-white"
                 href={homeHref}
@@ -1443,7 +1443,6 @@ export function SmartWalletApp({
                   </button>
                 ) : null}
               </div>
-            </div>
           </div>
         </div>
       </div>
