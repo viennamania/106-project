@@ -263,14 +263,6 @@ export function SmartWalletApp({
     `/${locale}/creator/studio`,
     preferredReferralCode,
   );
-  const walletHref = buildPathWithReferral(
-    `/${locale}/wallet`,
-    preferredReferralCode,
-  );
-  const bnbWalletHref = buildPathWithReferral(
-    `/${locale}/wallet/bnb`,
-    preferredReferralCode,
-  );
   const networkFeedHref = buildPathWithReferral(
     `/${locale}/network-feed`,
     preferredReferralCode,
@@ -286,6 +278,18 @@ export function SmartWalletApp({
   const activateNetworkHref = buildPathWithReferral(
     `/${locale}/activate/network`,
     preferredReferralCode,
+  );
+  const walletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/wallet`, preferredReferralCode),
+    {
+      returnTo: activatePageHref,
+    },
+  );
+  const bnbWalletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/wallet/bnb`, preferredReferralCode),
+    {
+      returnTo: activatePageHref,
+    },
   );
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const isSelfIncomingReferral =

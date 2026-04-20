@@ -151,10 +151,12 @@ export function WalletPage({
   dictionary,
   locale,
   referralCode = null,
+  returnTo = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnTo?: string | null;
 }) {
   const brandingCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
@@ -212,12 +214,20 @@ export function WalletPage({
   const currentEmail = dashboard.member?.email ?? dashboard.email;
   const isCompletedMember = dashboard.member?.status === "completed";
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const bnbWalletHref = buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode);
+  const backHref = returnTo ?? homeHref;
+  const currentWalletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    { returnTo },
+  );
+  const bnbWalletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
+    { returnTo: currentWalletHref },
+  );
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
   const brandingStudioHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
     {
-      returnTo: buildPathWithReferral(`/${locale}/wallet`, referralCode),
+      returnTo: currentWalletHref,
     },
   );
 
@@ -749,7 +759,7 @@ export function WalletPage({
           <div className="flex items-start gap-2.5 sm:gap-3">
             <Link
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
-              href={homeHref}
+              href={backHref}
             >
               <ArrowLeft className="size-4 sm:size-5" />
             </Link>
