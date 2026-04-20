@@ -14,7 +14,6 @@ import {
 
 import { buildChromeIntentUrl, type BridgePlatformHint } from "@/lib/in-app-browser";
 import type { Locale } from "@/lib/i18n";
-import { detectInstalledPwa } from "@/lib/pwa-install";
 
 type ReferralBridgePageProps = {
   autoRedirect: boolean;
@@ -43,11 +42,7 @@ export function ReferralBridgePage({
 }: ReferralBridgePageProps) {
   const router = useRouter();
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
-  const [installState, setInstallState] = useState<
-    "checking" | "installed" | "not-installed"
-  >("checking");
   const [launchState, setLaunchState] = useState<"idle" | "opening">("idle");
-  const isInstalled = installState === "installed";
   const copy = useMemo(
     () =>
       locale === "ko"
@@ -62,39 +57,27 @@ export function ReferralBridgePage({
                 : platformHint === "ios"
                   ? "iPhone에서는 카카오톡 우측 메뉴의 다른 브라우저로 열기를 사용하면 더 안정적으로 가입 흐름을 진행할 수 있습니다."
                   : "카카오톡에서는 우측 메뉴의 다른 브라우저로 열기를 사용할 수 있습니다.",
-            browserReady: isInstalled
-              ? "설치된 앱이 감지되었습니다"
-              : "가입 흐름은 브라우저에서 더 안정적입니다",
+            browserReady: "가입 흐름은 브라우저나 홈 화면 앱에서 더 안정적입니다",
             copyFailed: "링크 복사에 실패했습니다.",
             copyLink: "링크 복사",
             copiedLink: "링크 복사됨",
             eyebrow: "KAKAO REFERRAL BRIDGE",
             intro:
-              isInstalled
-                ? "이 기기에 Pocket Smart Wallet PWA가 설치된 것으로 감지되었습니다. 홈 화면 앱으로 여는 것이 가장 안정적인 가입 흐름입니다."
-                : "카카오톡 안에서는 이메일 로그인과 결제 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 이어가는 것을 권장합니다.",
-            installTitle: isInstalled
-              ? "홈 화면의 Pocket 앱에서 여는 것을 권장합니다"
-              : "브라우저에서 연 뒤 홈 화면에 추가해 보세요",
-            installSteps: isInstalled
-              ? [
-                  "홈 화면에서 Pocket Smart Wallet 아이콘을 직접 열어보세요.",
-                  "브라우저에서 계속 보기를 눌렀을 때 브라우저가 설치된 앱으로 넘겨줄 수도 있습니다.",
-                ]
-              : platformHint === "ios"
+              "카카오톡 안에서는 이메일 로그인과 결제 흐름이 제한될 수 있습니다. 이미 설치했다면 홈 화면의 Pocket 앱을 직접 열고, 아니라면 먼저 외부 브라우저에서 이어가는 것을 권장합니다.",
+            installTitle: "브라우저나 홈 화면 앱으로 이어가세요",
+            installSteps:
+              platformHint === "ios"
                 ? [
-                    "Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하세요.",
-                    "설치 후에는 가입 링크를 앱처럼 바로 열 수 있습니다.",
+                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "설치하지 않았다면 Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하세요.",
                   ]
                 : [
-                    "Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.",
-                    "설치 후에는 가입 링크를 앱처럼 바로 열 수 있습니다.",
+                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "설치하지 않았다면 Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.",
                   ],
             opening: "브라우저를 여는 중...",
             protectedHint: "이 링크에는 추천 코드가 그대로 유지됩니다.",
-            title: isInstalled
-              ? "설치된 앱이나 외부 브라우저에서 여는 것이 가장 좋습니다"
-              : "레퍼럴 링크를 더 안정적인 브라우저에서 열어보세요",
+            title: "레퍼럴 링크를 외부 브라우저나 홈 화면 앱에서 열어보세요",
           }
         : {
             autoDescription:
@@ -107,58 +90,30 @@ export function ReferralBridgePage({
                 : platformHint === "ios"
                   ? "On iPhone, using KakaoTalk's Open in Browser menu is the most reliable option for the signup flow."
                   : "You can also use KakaoTalk's Open in Browser menu.",
-            browserReady: isInstalled
-              ? "Installed app detected"
-              : "The signup flow works better in a browser",
+            browserReady: "The signup flow works better in a browser or home screen app",
             copyFailed: "Unable to copy the link.",
             copyLink: "Copy link",
             copiedLink: "Link copied",
             eyebrow: "KAKAO REFERRAL BRIDGE",
             intro:
-              isInstalled
-                ? "Pocket Smart Wallet appears to already be installed on this device. Opening from the home screen app is the most reliable path for signup."
-                : "KakaoTalk's in-app browser can limit login and payment steps. We recommend opening this in a full browser.",
-            installTitle: isInstalled
-              ? "Open the Pocket app from your home screen"
-              : "After opening in a browser, install it like an app",
-            installSteps: isInstalled
-              ? [
-                  "Open Pocket Smart Wallet directly from your home screen.",
-                  "Using Continue in browser may also allow the browser to hand this link off to the installed app.",
-                ]
-              : platformHint === "ios"
+              "KakaoTalk's in-app browser can limit login and payment steps. If Pocket is already installed, open it from your home screen. Otherwise, continue in an external browser first.",
+            installTitle: "Continue in a browser or open the home screen app",
+            installSteps:
+              platformHint === "ios"
                 ? [
-                    "Open in Safari, then use Share > Add to Home Screen.",
-                    "Once installed, you can open referral links like a regular app.",
+                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If not, open this in Safari, then use Share > Add to Home Screen.",
                   ]
                 : [
-                    "Open in Chrome, then use Install app or Add to Home screen from the browser menu.",
-                    "Once installed, you can open referral links like a regular app.",
+                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If not, open this in Chrome, then use Install app or Add to Home screen from the browser menu.",
                   ],
             opening: "Opening browser...",
             protectedHint: "This link preserves the referral code.",
-            title: isInstalled
-              ? "The installed app or an external browser will work best"
-              : "Open your referral link in a more reliable browser",
+            title: "Open your referral link in a more reliable browser or installed app",
           },
-    [isInstalled, locale, platformHint],
+    [locale, platformHint],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void detectInstalledPwa().then((installed) => {
-      if (cancelled) {
-        return;
-      }
-
-      setInstallState(installed ? "installed" : "not-installed");
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!autoRedirect) {

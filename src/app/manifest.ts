@@ -34,13 +34,6 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     name: "Pocket Smart Wallet",
     orientation: "portrait",
-    related_applications: [
-      {
-        id: "/",
-        platform: "webapp",
-        url: "/manifest.webmanifest",
-      },
-    ],
     scope: "/",
     short_name: "Pocket",
     start_url: "/",

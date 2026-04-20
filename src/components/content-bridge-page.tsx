@@ -14,7 +14,6 @@ import {
 import type { Locale } from "@/lib/i18n";
 import type { BridgePlatformHint } from "@/lib/in-app-browser";
 import { buildChromeIntentUrl } from "@/lib/in-app-browser";
-import { detectInstalledPwa } from "@/lib/pwa-install";
 
 type ContentBridgePageProps = {
   authorDisplayName: string | null;
@@ -43,11 +42,7 @@ export function ContentBridgePage({
 }: ContentBridgePageProps) {
   const router = useRouter();
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
-  const [installState, setInstallState] = useState<
-    "checking" | "installed" | "not-installed"
-  >("checking");
   const [launchState, setLaunchState] = useState<"idle" | "opening">("idle");
-  const isInstalled = installState === "installed";
   const copy = useMemo(
     () =>
       locale === "ko"
@@ -63,39 +58,27 @@ export function ContentBridgePage({
                 : platformHint === "ios"
                   ? "iPhone에서는 카카오톡 우측 메뉴의 다른 브라우저로 열기를 사용하면 더 안정적으로 볼 수 있습니다."
                   : "카카오톡에서는 우측 메뉴의 다른 브라우저로 열기를 사용할 수 있습니다.",
-            browserReady: isInstalled
-              ? "설치된 앱이 감지되었습니다"
-              : "브라우저에서 보기 좋은 화면",
+            browserReady: "브라우저나 홈 화면 앱에서 보기 좋은 화면",
             copyLink: "링크 복사",
             copiedLink: "링크 복사됨",
             copyFailed: "링크 복사에 실패했습니다.",
             eyebrow: "KAKAO OPEN BRIDGE",
             intro:
-              isInstalled
-                ? "이 기기에 Pocket Smart Wallet PWA가 설치된 것으로 감지되었습니다. 홈 화면 앱으로 열면 가장 안정적인 화면과 로그인 흐름을 사용할 수 있습니다."
-                : "카카오톡 안에서는 화면 비율과 로그인 흐름이 제한될 수 있습니다. 더 안정적인 브라우저에서 여는 것을 권장합니다.",
-            installTitle: isInstalled
-              ? "홈 화면의 Pocket 앱에서 여는 것을 권장합니다"
-              : "브라우저에서 연 뒤 홈 화면에 추가해 보세요",
-            installSteps: isInstalled
-              ? [
-                  "홈 화면에서 Pocket Smart Wallet 아이콘을 직접 열어보세요.",
-                  "브라우저에서 계속 보기를 눌렀을 때 브라우저가 설치된 앱으로 넘겨줄 수도 있습니다.",
-                ]
-              : platformHint === "ios"
+              "카카오톡 안에서는 화면 비율과 로그인 흐름이 제한될 수 있습니다. 이미 설치했다면 홈 화면의 Pocket 앱을 직접 열고, 아니라면 먼저 외부 브라우저로 여는 것을 권장합니다.",
+            installTitle: "브라우저나 홈 화면 앱으로 이어가세요",
+            installSteps:
+              platformHint === "ios"
                 ? [
-                    "Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하세요.",
-                    "설치 후에는 다음부터 앱처럼 바로 실행할 수 있습니다.",
+                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하면 다음부터 앱처럼 바로 실행할 수 있습니다.",
                   ]
                 : [
-                    "Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.",
-                    "설치 후에는 다음부터 앱처럼 바로 실행할 수 있습니다.",
+                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 다음부터 앱처럼 바로 실행할 수 있습니다.",
                   ],
             opening: "브라우저를 여는 중...",
             shareProtected: "레퍼럴이 유지된 공유 링크입니다.",
-            title: isInstalled
-              ? "설치된 앱이나 외부 브라우저에서 여는 것이 가장 좋습니다"
-              : "더 시원한 브라우저 화면으로 열어보세요",
+            title: "더 시원한 브라우저 화면이나 홈 화면 앱에서 열어보세요",
           }
         : {
             autoDescription:
@@ -109,58 +92,30 @@ export function ContentBridgePage({
                 : platformHint === "ios"
                   ? "On iPhone, using KakaoTalk's Open in Browser menu is the most reliable option."
                   : "You can also use KakaoTalk's Open in Browser menu.",
-            browserReady: isInstalled
-              ? "Installed app detected"
-              : "Best viewed in a browser",
+            browserReady: "Best viewed in a browser or home screen app",
             copyLink: "Copy link",
             copiedLink: "Link copied",
             copyFailed: "Unable to copy the link.",
             eyebrow: "KAKAO OPEN BRIDGE",
             intro:
-              isInstalled
-                ? "Pocket Smart Wallet appears to already be installed on this device. Opening from the home screen app is the most reliable path."
-                : "KakaoTalk's in-app browser can limit screen space and login flow. We recommend opening this in a full browser.",
-            installTitle: isInstalled
-              ? "Open the Pocket app from your home screen"
-              : "After opening in a browser, install it like an app",
-            installSteps: isInstalled
-              ? [
-                  "Open Pocket Smart Wallet directly from your home screen.",
-                  "Using Continue in browser may also allow the browser to hand this link off to the installed app.",
-                ]
-              : platformHint === "ios"
+              "KakaoTalk's in-app browser can limit screen space and login flow. If you already installed Pocket, open it from your home screen. Otherwise, continue in an external browser first.",
+            installTitle: "Continue in a browser or open the home screen app",
+            installSteps:
+              platformHint === "ios"
                 ? [
-                    "Open in Safari, then use Share > Add to Home Screen.",
-                    "Once installed, you can launch it like a regular app.",
+                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If not, open this in Safari, then use Share > Add to Home Screen.",
                   ]
                 : [
-                    "Open in Chrome, then use Install app or Add to Home screen from the browser menu.",
-                    "Once installed, you can launch it like a regular app.",
+                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If not, open this in Chrome, then use Install app or Add to Home screen from the browser menu.",
                   ],
             opening: "Opening browser...",
             shareProtected: "This shared link keeps the referral attached.",
-            title: isInstalled
-              ? "The installed app or an external browser will work best"
-              : "Open it in a better browser view",
+            title: "Open it in a better browser view or your installed app",
           },
-    [isInstalled, locale, platformHint],
+    [locale, platformHint],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void detectInstalledPwa().then((installed) => {
-      if (cancelled) {
-        return;
-      }
-
-      setInstallState(installed ? "installed" : "not-installed");
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!autoRedirect) {
