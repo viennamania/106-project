@@ -85,6 +85,7 @@ export function NetworkFeedPage({
     status: "idle",
   });
   const [levelFilter, setLevelFilter] = useState<FeedLevelFilter>("all");
+  const [selectedCreatorKey, setSelectedCreatorKey] = useState<string | null>(null);
   const [visibleItemCount, setVisibleItemCount] = useState(
     INITIAL_VISIBLE_ITEM_COUNT,
   );
@@ -98,6 +99,12 @@ export function NetworkFeedPage({
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
       const level = item.networkLevel ?? 6;
+      const matchesCreator =
+        !selectedCreatorKey || item.authorEmail === selectedCreatorKey;
+
+      if (!matchesCreator) {
+        return false;
+      }
 
       if (levelFilter === "nearby") {
         return level <= 2;
@@ -109,7 +116,7 @@ export function NetworkFeedPage({
 
       return true;
     });
-  }, [levelFilter, state.items]);
+  }, [levelFilter, selectedCreatorKey, state.items]);
   const featuredItem = filteredItems[0] ?? null;
   const featuredImageUrl = featuredItem ? resolveFeedPreviewImage(featuredItem) : null;
   const listItems = featuredItem
@@ -221,7 +228,7 @@ export function NetworkFeedPage({
 
   useEffect(() => {
     setVisibleItemCount(INITIAL_VISIBLE_ITEM_COUNT);
-  }, [levelFilter, state.items.length]);
+  }, [levelFilter, selectedCreatorKey, state.items.length]);
 
   const loadFeed = useCallback(async () => {
     setState((current) => ({
@@ -485,6 +492,17 @@ export function NetworkFeedPage({
                       <h2 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                         {featuredItem.title}
                       </h2>
+                      <div className="mt-4">
+                        <FeedAuthorInline
+                          authorLabel={contentCopy.labels.author}
+                          authorEmail={featuredItem.authorEmail}
+                          avatarImageUrl={featuredItem.authorProfile?.avatarImageUrl ?? null}
+                          displayName={
+                            featuredItem.authorProfile?.displayName ?? featuredItem.authorEmail
+                          }
+                          intro={featuredItem.authorProfile?.intro ?? null}
+                        />
+                      </div>
                       <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
                         {featuredItem.summary}
                       </p>
@@ -567,6 +585,19 @@ export function NetworkFeedPage({
                       </span>
                     </button>
                   ))}
+                  {selectedCreatorKey ? (
+                    <button
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-950 bg-slate-950 px-3 py-2 text-sm font-medium !text-white shadow-[0_16px_36px_rgba(15,23,42,0.2)] transition hover:bg-slate-800"
+                      onClick={() => {
+                        setSelectedCreatorKey(null);
+                      }}
+                      type="button"
+                    >
+                      <span>
+                        {locale === "ko" ? "크리에이터 필터 해제" : "Clear creator filter"}
+                      </span>
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -586,9 +617,15 @@ export function NetworkFeedPage({
                   <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {creatorSummaries.map((creator) => (
                       <CreatorSpotlightCard
+                        active={selectedCreatorKey === creator.key}
                         creator={creator}
                         key={creator.key}
                         levelLabel={contentCopy.labels.level}
+                        onSelect={() => {
+                          setSelectedCreatorKey((current) =>
+                            current === creator.key ? null : creator.key,
+                          );
+                        }}
                         postsLabel={contentCopy.labels.posts}
                       />
                     ))}
@@ -605,6 +642,7 @@ export function NetworkFeedPage({
                       freeLabel={contentCopy.labels.free}
                       item={item}
                       key={item.contentId}
+                      authorLabel={contentCopy.labels.author}
                       levelLabel={contentCopy.labels.level}
                       locale={locale}
                       referralCode={referralCode}
@@ -841,6 +879,7 @@ function FeedLoadingSkeleton({
 }
 
 function FeedPostCard({
+  authorLabel,
   freeLabel,
   item,
   levelLabel,
@@ -848,6 +887,7 @@ function FeedPostCard({
   referralCode,
   viewDetailLabel,
 }: {
+  authorLabel: string;
   freeLabel: string;
   item: ContentFeedItemRecord;
   levelLabel: string;
@@ -872,7 +912,15 @@ function FeedPostCard({
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{freeLabel}</Badge>
         <Badge>{`${levelLabel} ${item.networkLevel ?? "-"}`}</Badge>
-        <Badge>{item.authorProfile?.displayName ?? item.authorEmail}</Badge>
+      </div>
+      <div className="mt-4">
+        <FeedAuthorInline
+          authorLabel={authorLabel}
+          authorEmail={item.authorEmail}
+          avatarImageUrl={item.authorProfile?.avatarImageUrl ?? null}
+          displayName={item.authorProfile?.displayName ?? item.authorEmail}
+          intro={item.authorProfile?.intro ?? null}
+        />
       </div>
       <h3 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
         {item.title}
@@ -930,18 +978,32 @@ function FeedActionCard({
 }
 
 function CreatorSpotlightCard({
+  active = false,
   creator,
   levelLabel,
+  onSelect,
   postsLabel,
 }: {
+  active?: boolean;
   creator: FeedCreatorSummary;
   levelLabel: string;
+  onSelect: () => void;
   postsLabel: string;
 }) {
   return (
-    <article className="rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.06)]">
+    <button
+      className={`w-full rounded-[24px] border p-4 text-left shadow-[0_18px_42px_rgba(15,23,42,0.06)] transition ${
+        active
+          ? "border-slate-950 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(30,41,59,0.94))] text-white shadow-[0_22px_52px_rgba(15,23,42,0.16)]"
+          : "border-white/80 bg-white/92 text-slate-950 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(15,23,42,0.10)]"
+      }`}
+      onClick={onSelect}
+      type="button"
+    >
       <div className="flex items-start gap-3">
-        <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-slate-200 bg-slate-950/95 text-white shadow-[0_16px_32px_rgba(15,23,42,0.14)]">
+        <div className={`flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border shadow-[0_16px_32px_rgba(15,23,42,0.14)] ${
+          active ? "border-white/20 bg-white/10 text-white" : "border-slate-200 bg-slate-950/95 text-white"
+        }`}>
           {creator.avatarImageUrl ? (
             <div
               className="h-full w-full bg-cover bg-center"
@@ -952,15 +1014,15 @@ function CreatorSpotlightCard({
           )}
         </div>
         <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold tracking-tight text-slate-950">
+          <h3 className={`truncate text-lg font-semibold tracking-tight ${active ? "text-white" : "text-slate-950"}`}>
             {creator.displayName}
           </h3>
           {creator.intro ? (
-            <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
+            <p className={`mt-1 line-clamp-2 text-sm leading-6 ${active ? "text-white/72" : "text-slate-600"}`}>
               {creator.intro}
             </p>
           ) : (
-            <p className="mt-1 text-sm leading-6 text-slate-500">
+            <p className={`mt-1 text-sm leading-6 ${active ? "text-white/68" : "text-slate-500"}`}>
               {levelLabel} {creator.closestLevel ?? "-"} · {postsLabel}{" "}
               {creator.contentCount}
             </p>
@@ -971,7 +1033,47 @@ function CreatorSpotlightCard({
         <Badge>{`${postsLabel} ${creator.contentCount}`}</Badge>
         <Badge>{`${levelLabel} ${creator.closestLevel ?? "-"}`}</Badge>
       </div>
-    </article>
+    </button>
+  );
+}
+
+function FeedAuthorInline({
+  authorLabel,
+  authorEmail,
+  avatarImageUrl,
+  displayName,
+  intro,
+}: {
+  authorLabel: string;
+  authorEmail: string;
+  avatarImageUrl: string | null;
+  displayName: string;
+  intro: string | null;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-[20px] border border-slate-200/90 bg-white/92 px-3.5 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+      <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-[16px] border border-slate-200 bg-slate-950/95 text-white">
+        {avatarImageUrl ? (
+          <div
+            className="h-full w-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${avatarImageUrl})` }}
+          />
+        ) : (
+          <UserRound className="size-5" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          {authorLabel}
+        </p>
+        <p className="mt-1 truncate text-sm font-semibold tracking-tight text-slate-950 sm:text-base">
+          {displayName}
+        </p>
+        <p className="mt-1 line-clamp-1 text-xs leading-5 text-slate-500">
+          {intro?.trim() || authorEmail}
+        </p>
+      </div>
+    </div>
   );
 }
 
