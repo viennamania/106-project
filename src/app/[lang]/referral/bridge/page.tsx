@@ -11,6 +11,7 @@ import {
 import {
   buildReferralLandingPath,
   buildReferralOgImagePath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -101,7 +102,10 @@ export default async function LocalizedReferralBridgePage({
   const userAgent = headerStore.get("user-agent") ?? "";
   const autoRedirect =
     !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
-  const targetHref = buildReferralLandingPath(locale, activeReferralCode);
+  const targetHref = setPathSearchParams(
+    buildReferralLandingPath(locale, activeReferralCode),
+    { fromBridge: "1" },
+  );
 
   return (
     <ReferralBridgePage

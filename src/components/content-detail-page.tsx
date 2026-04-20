@@ -28,6 +28,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentDetailRecord,
@@ -440,6 +441,8 @@ export function ContentDetailPage({
           wallets={supportedWallets}
         />
       ) : null}
+
+      <AndroidInstallBanner locale={locale} />
 
       {state.status === "loading" && !state.content ? (
         <ContentDetailLoadingState

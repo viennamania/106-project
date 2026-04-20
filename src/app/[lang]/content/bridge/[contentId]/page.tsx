@@ -14,6 +14,7 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -86,9 +87,9 @@ export default async function LocalizedContentBridgePage({
   const userAgent = headerStore.get("user-agent") ?? "";
   const autoRedirect =
     !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
-  const targetHref = buildPathWithReferral(
-    `/${locale}/content/${contentId}`,
-    referralCode,
+  const targetHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/content/${contentId}`, referralCode),
+    { fromBridge: "1" },
   );
   const homeHref = buildReferralLandingPath(locale, referralCode);
 

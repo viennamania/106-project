@@ -41,6 +41,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
@@ -1534,6 +1535,8 @@ export function SmartWalletApp({
             </div>
           </header>
         </LandingReveal>
+
+        <AndroidInstallBanner locale={locale} />
 
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
