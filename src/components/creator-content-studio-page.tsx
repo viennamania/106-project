@@ -514,6 +514,7 @@ export function CreatorContentStudioPage({
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
   const [isContentImageGenerationDialogOpen, setIsContentImageGenerationDialogOpen] =
     useState(false);
+  const [contentImagePrompt, setContentImagePrompt] = useState("");
   const [automationCelebration, setAutomationCelebration] =
     useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -825,6 +826,11 @@ export function CreatorContentStudioPage({
             "현재 입력한 제목, 요약, 본문을 바탕으로 상세 갤러리용 AI 이미지를 생성합니다.",
           confirmHint:
             "갤러리용 AI 이미지는 최대 2장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.",
+          promptHint:
+            "원하는 분위기, 구도, 색감, 소품, 배경을 추가로 적으면 생성 프롬프트에 함께 반영됩니다.",
+          promptLabel: "추가 프롬프트",
+          promptPlaceholder:
+            "예: 해변의 황금빛 석양, 역동적인 모래 질감, 하이패션 에디토리얼 무드",
           confirmPrimary: "이미지 생성",
           confirmSecondary: "나중에",
           error: "오류",
@@ -861,6 +867,11 @@ export function CreatorContentStudioPage({
             "The AI will generate a gallery image from your current title, summary, and body.",
           confirmHint:
             "AI gallery images are limited to 2 and will be added directly into your content image list.",
+          promptHint:
+            "Add any extra direction for mood, composition, color, props, or background to blend into the final prompt.",
+          promptLabel: "Extra prompt",
+          promptPlaceholder:
+            "Example: golden sunset on a beach, dynamic sand texture, high-fashion editorial mood",
           confirmPrimary: "Generate image",
           confirmSecondary: "Later",
           error: "Error",
@@ -1808,6 +1819,7 @@ export function CreatorContentStudioPage({
 
   function openContentImageGenerationDialog() {
     setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
+    setContentImagePrompt("");
     setIsContentImageGenerationDialogOpen(true);
   }
 
@@ -1817,6 +1829,7 @@ export function CreatorContentStudioPage({
     }
 
     setIsContentImageGenerationDialogOpen(false);
+    setContentImagePrompt("");
     setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
@@ -1842,6 +1855,7 @@ export function CreatorContentStudioPage({
           locale,
           summary: postForm.summary,
           title: postForm.title,
+          visualBrief: contentImagePrompt,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -3912,12 +3926,17 @@ export function CreatorContentStudioPage({
           onConfirm={() => {
             void generatePostContentImage();
           }}
+          promptHint={contentImageGenerationLabels.promptHint}
+          promptLabel={contentImageGenerationLabels.promptLabel}
+          promptPlaceholder={contentImageGenerationLabels.promptPlaceholder}
+          promptValue={contentImagePrompt}
           progress={contentImageGenerationProgress}
           stepCount={completedContentImageGenerationStepCount}
           stepMeta={coverGenerationStepMeta}
           stepOrder={contentCoverGenerationProgressSteps}
           summary={postForm.summary}
           title={postForm.title}
+          onPromptValueChange={setContentImagePrompt}
         />
       ) : null}
     </>
@@ -4169,7 +4188,12 @@ function CoverGenerationDialog({
   labels,
   onClose,
   onConfirm,
+  onPromptValueChange,
   progress,
+  promptHint,
+  promptLabel,
+  promptPlaceholder,
+  promptValue,
   stepCount,
   stepMeta,
   stepOrder,
@@ -4198,7 +4222,12 @@ function CoverGenerationDialog({
   };
   onClose: () => void;
   onConfirm: () => void;
+  onPromptValueChange?: ((value: string) => void) | undefined;
   progress: CoverGenerationProgressState;
+  promptHint?: string | undefined;
+  promptLabel?: string | undefined;
+  promptPlaceholder?: string | undefined;
+  promptValue?: string | undefined;
   stepCount: number;
   stepMeta: Record<
     ContentCoverGenerationProgressStep,
@@ -4268,6 +4297,31 @@ function CoverGenerationDialog({
                   </p>
                 ) : null}
               </div>
+              {onPromptValueChange ? (
+                <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                      {promptLabel ?? labels.preparing_prompt.label}
+                    </p>
+                    <p className="text-xs font-medium text-slate-400">
+                      {(promptValue ?? "").trim().length}/320
+                    </p>
+                  </div>
+                  <textarea
+                    className="mt-3 min-h-28 w-full rounded-[18px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                    maxLength={320}
+                    onChange={(event) => {
+                      onPromptValueChange(event.target.value);
+                    }}
+                    placeholder={promptPlaceholder}
+                    rows={4}
+                    value={promptValue ?? ""}
+                  />
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {promptHint ?? labels.confirmHint}
+                  </p>
+                </div>
+              ) : null}
               <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-600">
                 {labels.confirmHint}
               </div>
