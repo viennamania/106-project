@@ -34,6 +34,7 @@ export type LandingBrandingCopy = {
     mode: string;
     preview: string;
     referralLink: string;
+    shareLink: string;
     theme: string;
   };
   hints: {
@@ -114,6 +115,7 @@ const englishCopy: LandingBrandingCopy = {
     mode: "Landing mode",
     preview: "Preview",
     referralLink: "Referral link",
+    shareLink: "Share link",
     theme: "Theme",
   },
   hints: {
@@ -232,6 +234,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       mode: "ランディングモード",
       preview: "プレビュー",
       referralLink: "紹介リンク",
+      shareLink: "共有リンク",
       theme: "テーマ",
     },
     hints: {
@@ -334,6 +337,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       mode: "랜딩 모드",
       preview: "미리보기",
       referralLink: "레퍼럴 링크",
+      shareLink: "공유 링크",
       theme: "테마",
     },
     hints: {
@@ -416,6 +420,10 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       eyebrow: "member branding",
       title: "Branding Studio",
     },
+    fields: {
+      ...englishCopy.fields,
+      shareLink: "Liên kết chia sẻ",
+    },
   },
   zh: {
     ...englishCopy,
@@ -451,6 +459,7 @@ const copies: Record<Locale, LandingBrandingCopy> = {
       mode: "落地页模式",
       preview: "预览",
       referralLink: "推荐链接",
+      shareLink: "分享链接",
       theme: "主题",
     },
     hints: {

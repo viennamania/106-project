@@ -127,6 +127,14 @@ export function BrandingStudioPage({
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const referralSharePath = state.member?.referralCode
+    ? buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode)
+    : null;
+  const referralShareUrl = referralSharePath
+    ? typeof window === "undefined"
+      ? referralSharePath
+      : new URL(referralSharePath, window.location.origin).toString()
+    : null;
 
   async function loadStudio() {
     if (!accountAddress) {
@@ -857,35 +865,34 @@ export function BrandingStudioPage({
 
                   <PreviewCard branding={previewBranding} />
 
-                  {state.referralLink ? (
+                  {referralShareUrl || state.referralLink ? (
                     <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                        {studioCopy.fields.referralLink}
+                        {studioCopy.fields.shareLink}
                       </p>
-                      <a
-                        className="mt-3 block break-all text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4"
-                        href={state.referralLink}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {state.referralLink}
-                      </a>
+                      <p className="mt-3 break-all text-sm font-medium text-slate-900">
+                        {referralShareUrl}
+                      </p>
                       <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
-                        <CopyTextButton
-                          className="w-full sm:w-auto"
-                          copiedLabel={dictionary.common.copied}
-                          copyLabel={dictionary.common.copyLink}
-                          text={state.referralLink}
-                        />
-                        <a
-                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                          href={state.referralLink}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {studioCopy.actions.openPreview}
-                          <ArrowUpRight className="size-4" />
-                        </a>
+                        {referralShareUrl ? (
+                          <CopyTextButton
+                            className="w-full sm:w-auto"
+                            copiedLabel={dictionary.common.copied}
+                            copyLabel={dictionary.common.copyLink}
+                            text={referralShareUrl}
+                          />
+                        ) : null}
+                        {state.referralLink ? (
+                          <a
+                            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                            href={state.referralLink}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            {studioCopy.actions.openPreview}
+                            <ArrowUpRight className="size-4" />
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
