@@ -1397,6 +1397,10 @@ function SelectedMemberCard({
           }
         />
         <InfoCard
+          label={dictionary.activateNetworkPage.labels.placementEmail}
+          value={member.placementEmail ?? dictionary.common.notAvailable}
+        />
+        <InfoCard
           label={dictionary.activateNetworkPage.labels.pointTier}
           value={getTierLabel(dictionary, member.tier)}
         />

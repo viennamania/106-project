@@ -77,6 +77,7 @@ export type ReferralMemberRecord = {
   lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
+  placementEmail: string | null;
   placementReferralCode: string | null;
   referralCode: string | null;
   referredByCode: string | null;
@@ -265,6 +266,7 @@ export function serializeReferralMember(
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,
+    placementEmail: member.placementEmail ?? null,
     placementReferralCode: member.placementReferralCode ?? null,
     referralCode: member.referralCode ?? null,
     referredByCode: member.sponsorReferralCode ?? member.referredByCode ?? null,
