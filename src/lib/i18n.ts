@@ -151,6 +151,7 @@ export type Dictionary = {
     selfReferralNotice: string;
     appliedReferralDescription: string;
     autoPlacementDescription: string;
+    autoPlacementDescriptionWithSlot: string;
     topLevelPlacementDescription: string;
     shareHint: string;
     noReferralApplied: string;
@@ -166,6 +167,7 @@ export type Dictionary = {
       paymentReceivedAt: string;
       paymentTransaction: string;
       placementReferralCode: string;
+      placementSlotIndex: string;
       referralCode: string;
       referredByCode: string;
       referralLink: string;
@@ -938,6 +940,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "이 가입에는 추천 링크 코드 {code} 가 적용되어 있습니다.",
       autoPlacementDescription:
         "실제 네트워크 배치는 상위 코드 {code} 아래의 빈 슬롯으로 배정되었습니다.",
+      autoPlacementDescriptionWithSlot:
+        "실제 네트워크 배치는 상위 코드 {code} 아래의 {slot}번 슬롯으로 배정되었습니다.",
       topLevelPlacementDescription:
         "실제 배치 상위 코드가 없는 최상위 회원입니다.",
       shareHint:
@@ -955,6 +959,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         paymentReceivedAt: "입금 확인 시각",
         paymentTransaction: "거래 기록",
         placementReferralCode: "실제 배치 상위 코드",
+        placementSlotIndex: "실제 배치 슬롯",
         referralCode: "내 레퍼럴 코드",
         referredByCode: "추천 링크 코드",
         referralLink: "레퍼럴 가입 링크",
@@ -1781,6 +1786,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "Referral link code {code} is applied to this signup.",
       autoPlacementDescription:
         "The actual network placement was assigned to an open slot under upline code {code}.",
+      autoPlacementDescriptionWithSlot:
+        "The actual network placement was assigned to slot {slot} under upline code {code}.",
       topLevelPlacementDescription:
         "This member is the top-level member with no actual placement upline code.",
       shareHint:
@@ -1798,6 +1805,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         paymentReceivedAt: "Payment confirmed at",
         paymentTransaction: "Transaction record",
         placementReferralCode: "Actual placement upline code",
+        placementSlotIndex: "Actual placement slot",
         referralCode: "My referral code",
         referredByCode: "Referral link code",
         referralLink: "Referral signup link",
@@ -2632,6 +2640,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "この登録には紹介コード {code} が適用されています。",
       autoPlacementDescription:
         "現在のネットワーク配置ルールに従って、ネットワークコード {code} の空きスロットへ配置されました。",
+      autoPlacementDescriptionWithSlot:
+        "実際のネットワーク配置は、上位コード {code} 配下の {slot} 番スロットへ割り当てられました。",
       topLevelPlacementDescription:
         "実際の配置先コードを持たない最上位メンバーです。",
       shareHint:
@@ -2649,6 +2659,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         paymentReceivedAt: "入金確認時刻",
         paymentTransaction: "取引記録",
         placementReferralCode: "配置先ネットワークコード",
+        placementSlotIndex: "配置先スロット",
         referralCode: "自分のレファラルコード",
         referredByCode: "適用された紹介コード",
         referralLink: "レファラル登録リンク",
@@ -3486,6 +3497,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "此注册已应用推荐码 {code}。",
       autoPlacementDescription:
         "系统已按当前网络分配规则将其放入网络代码 {code} 下的空槽位。",
+      autoPlacementDescriptionWithSlot:
+        "系统已将其分配到上级代码 {code} 下的第 {slot} 个槽位。",
       topLevelPlacementDescription:
         "该会员没有实际分配上级代码，属于最上层会员。",
       shareHint:
@@ -3503,6 +3516,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         paymentReceivedAt: "到账确认时间",
         paymentTransaction: "交易记录",
         placementReferralCode: "分配到的网络代码",
+        placementSlotIndex: "实际分配槽位",
         referralCode: "我的推荐码",
         referredByCode: "已应用推荐码",
         referralLink: "推荐注册链接",
@@ -4330,6 +4344,8 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
         "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
       autoPlacementDescription:
         "Hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc phân bổ mạng hiện tại.",
+      autoPlacementDescriptionWithSlot:
+        "Vị trí thực tế đã được gán vào ô số {slot} dưới mã tuyến trên {code}.",
       topLevelPlacementDescription:
         "Đây là thành viên cấp cao nhất, không có mã tuyến trên thực tế.",
       shareHint:
@@ -4347,6 +4363,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
         paymentReceivedAt: "Xác nhận thanh toán lúc",
         paymentTransaction: "Giao dịch",
         placementReferralCode: "Mã mạng được gán",
+        placementSlotIndex: "Ô phân bổ thực tế",
         referralCode: "Mã referral của tôi",
         referredByCode: "Mã giới thiệu đã áp dụng",
         referralLink: "Liên kết referral",
@@ -4656,6 +4673,8 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
         "Kode referral {code} diterapkan pada pendaftaran ini.",
       autoPlacementDescription:
         "Sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan penempatan jaringan saat ini.",
+      autoPlacementDescriptionWithSlot:
+        "Penempatan jaringan aktual diberikan ke slot {slot} di bawah kode upline {code}.",
       topLevelPlacementDescription:
         "Anggota ini adalah anggota tingkat teratas tanpa kode upline penempatan aktual.",
       shareHint:
@@ -4673,6 +4692,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
         paymentReceivedAt: "Pembayaran dikonfirmasi pada",
         paymentTransaction: "Transaksi",
         placementReferralCode: "Kode jaringan penempatan",
+        placementSlotIndex: "Slot penempatan aktual",
         referralCode: "Kode referral saya",
         referredByCode: "Kode referral yang diterapkan",
         referralLink: "Tautan referral",

@@ -31,6 +31,7 @@ export type MemberRecord = {
   placementAssignedAt: string | null;
   placementEmail: string | null;
   placementReferralCode: string | null;
+  placementSlotIndex: number | null;
   placementSource: PlacementSource | null;
   referralRewardsIssuedAt: string | null;
   referralCode: string | null;
@@ -237,6 +238,7 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     placementAssignedAt: member.placementAssignedAt?.toISOString() ?? null,
     placementEmail: member.placementEmail ?? null,
     placementReferralCode: member.placementReferralCode ?? null,
+    placementSlotIndex: null,
     placementSource: member.placementSource ?? null,
     referralRewardsIssuedAt: member.referralRewardsIssuedAt?.toISOString() ?? null,
     referralCode: member.referralCode ?? null,

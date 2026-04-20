@@ -11,6 +11,7 @@ import {
 import type {
   IncomingReferralState,
   MemberDocument,
+  MemberRecord,
   PlacementSource,
   ReferralPlacementSlotDocument,
   SyncMemberRequest,
@@ -195,6 +196,18 @@ async function ensurePlacementSlotsForCompletedMember(
 async function findClaimedPlacementSlotByEmail(email: string) {
   const collection = await getReferralPlacementSlotsCollection();
   return collection.findOne({ claimedByEmail: email });
+}
+
+async function serializeMemberWithPlacementSlot(
+  member: MemberDocument,
+): Promise<MemberRecord> {
+  const serializedMember = serializeMember(member);
+  const placementSlot = await findClaimedPlacementSlotByEmail(member.email);
+
+  return {
+    ...serializedMember,
+    placementSlotIndex: placementSlot?.slotIndex ?? null,
+  };
 }
 
 async function getPlacementDescendantReferralCodes({
@@ -1677,7 +1690,7 @@ export async function syncMemberRegistration(
 
     return {
       justCompleted: false,
-      member: serializeMember(nextMember),
+      member: await serializeMemberWithPlacementSlot(nextMember),
       validationError: null,
     };
   }
@@ -1781,7 +1794,7 @@ export async function syncMemberRegistration(
   if (syncMode === "light") {
     return {
       justCompleted: false,
-      member: serializeMember(member),
+      member: await serializeMemberWithPlacementSlot(member),
       validationError: null,
     };
   }
@@ -1793,7 +1806,7 @@ export async function syncMemberRegistration(
 
   return {
     justCompleted: finalized.justCompleted,
-    member: serializeMember(finalized.member),
+    member: await serializeMemberWithPlacementSlot(finalized.member),
     validationError:
       finalized.member.status === "pending_payment"
         ? balanceValidationError

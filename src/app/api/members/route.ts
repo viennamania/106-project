@@ -3,6 +3,7 @@ import {
   MemberSyncError,
   syncMemberRegistration,
 } from "@/lib/member-service";
+import { getReferralPlacementSlotsCollection } from "@/lib/mongodb";
 import type { SyncMemberRequest } from "@/lib/member";
 import { serializeMember } from "@/lib/member";
 
@@ -25,7 +26,17 @@ export async function GET(request: Request) {
       return jsonError("Member not found.", 404);
     }
 
-    return Response.json({ member: serializeMember(member) });
+    const placementSlotsCollection = await getReferralPlacementSlotsCollection();
+    const placementSlot = await placementSlotsCollection.findOne({
+      claimedByEmail: member.email,
+    });
+
+    return Response.json({
+      member: {
+        ...serializeMember(member),
+        placementSlotIndex: placementSlot?.slotIndex ?? null,
+      },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to read member.";

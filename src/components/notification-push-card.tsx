@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BellRing, Smartphone } from "lucide-react";
 
 import { type Locale } from "@/lib/i18n";
@@ -126,50 +126,53 @@ export function NotificationPushCard({
   const supported = isPushSupported();
   const requiresInstall = supported && isAppleMobileDevice() && !isStandaloneDisplayMode();
 
-  async function syncSubscriptionToServer(subscription: PushSubscription) {
-    if (!memberEmail || !walletAddress || !configured) {
-      return;
-    }
+  const syncSubscriptionToServer = useCallback(
+    async (subscription: PushSubscription) => {
+      if (!memberEmail || !walletAddress || !configured) {
+        return;
+      }
 
-    if (syncedEndpointRef.current === subscription.endpoint) {
-      return;
-    }
+      if (syncedEndpointRef.current === subscription.endpoint) {
+        return;
+      }
 
-    const subscriptionJson = subscription.toJSON();
-    const auth = subscriptionJson.keys?.auth?.trim() ?? "";
-    const p256dh = subscriptionJson.keys?.p256dh?.trim() ?? "";
+      const subscriptionJson = subscription.toJSON();
+      const auth = subscriptionJson.keys?.auth?.trim() ?? "";
+      const p256dh = subscriptionJson.keys?.p256dh?.trim() ?? "";
 
-    if (!auth || !p256dh) {
-      throw new Error(copy.unsupported);
-    }
+      if (!auth || !p256dh) {
+        throw new Error(copy.unsupported);
+      }
 
-    const response = await fetch("/api/notifications/push-subscriptions", {
-      body: JSON.stringify({
-        email: memberEmail,
-        locale,
-        subscription: {
-          endpoint: subscription.endpoint,
-          keys: {
-            auth,
-            p256dh,
+      const response = await fetch("/api/notifications/push-subscriptions", {
+        body: JSON.stringify({
+          email: memberEmail,
+          locale,
+          subscription: {
+            endpoint: subscription.endpoint,
+            keys: {
+              auth,
+              p256dh,
+            },
           },
+          walletAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
         },
-        walletAddress,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    });
+        method: "POST",
+      });
 
-    const data = (await response.json()) as { error?: string };
+      const data = (await response.json()) as { error?: string };
 
-    if (!response.ok) {
-      throw new Error(data.error ?? copy.unsupported);
-    }
+      if (!response.ok) {
+        throw new Error(data.error ?? copy.unsupported);
+      }
 
-    syncedEndpointRef.current = subscription.endpoint;
-  }
+      syncedEndpointRef.current = subscription.endpoint;
+    },
+    [configured, copy.unsupported, locale, memberEmail, walletAddress],
+  );
 
   useEffect(() => {
     if (!active || !supported) {
@@ -220,7 +223,7 @@ export function NotificationPushCard({
     return () => {
       cancelled = true;
     };
-  }, [active, configured, copy.unsupported, locale, memberEmail, supported, walletAddress]);
+  }, [active, copy.unsupported, supported, syncSubscriptionToServer]);
 
   async function handleEnable() {
     if (!supported || !configured || requiresInstall || !memberEmail || !walletAddress) {
@@ -367,25 +370,29 @@ export function NotificationPushCard({
         : copy.enable;
 
   return (
-    <div className="rounded-[24px] border border-sky-200 bg-[linear-gradient(135deg,rgba(239,246,255,0.98),rgba(255,255,255,0.96))] px-4 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex size-10 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-700 shadow-[0_10px_24px_rgba(59,130,246,0.12)]">
+    <div className="rounded-[24px] border border-sky-200 bg-[linear-gradient(135deg,rgba(239,246,255,0.98),rgba(255,255,255,0.96))] px-4 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:px-5 sm:py-5">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-5">
+        <div className="min-w-0 space-y-2.5">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-700 shadow-[0_10px_24px_rgba(59,130,246,0.12)]">
               {state.isSubscribed ? (
                 <BellRing className="size-4" />
               ) : (
                 <Smartphone className="size-4" />
               )}
             </span>
-            <div>
-              <p className="text-sm font-semibold text-slate-950">{copy.title}</p>
-              <p className="text-sm leading-6 text-slate-600">{copy.description}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-950 sm:text-base">
+                {copy.title}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600 sm:text-[0.95rem]">
+                {copy.description}
+              </p>
             </div>
           </div>
           <p
             className={cn(
-              "text-xs font-medium leading-5",
+              "text-xs font-medium leading-5 sm:text-sm",
               state.error
                 ? "text-rose-600"
                 : state.isSubscribed
@@ -399,7 +406,7 @@ export function NotificationPushCard({
 
         <button
           className={cn(
-            "inline-flex h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition",
+            "inline-flex h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition lg:min-w-[192px]",
             state.isSubscribed
               ? "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
               : "bg-slate-950 text-white hover:bg-slate-800",

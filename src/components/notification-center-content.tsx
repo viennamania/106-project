@@ -58,7 +58,7 @@ export function NotificationPreferenceCard({
       aria-checked={checked}
       role="switch"
       className={cn(
-        "group flex items-center justify-between gap-3 rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/14 focus-visible:ring-offset-2 active:translate-y-0",
+        "group flex items-center justify-between gap-3 rounded-[22px] border px-4 py-4 text-left shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/14 focus-visible:ring-offset-2 active:translate-y-0 sm:px-5 sm:py-5",
         checked
           ? "border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))] hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-[0_22px_48px_rgba(16,185,129,0.14)]"
           : "border-slate-200 bg-white/90 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(15,23,42,0.10)]",
@@ -70,7 +70,7 @@ export function NotificationPreferenceCard({
     >
       <span
         className={cn(
-          "pr-4 text-sm font-semibold transition-colors duration-200",
+          "min-w-0 flex-1 pr-4 text-sm font-semibold leading-6 tracking-[-0.01em] transition-colors duration-200 [text-wrap:balance]",
           checked
             ? "text-emerald-950"
             : "text-slate-950 group-hover:text-slate-950",
@@ -220,7 +220,7 @@ export function NotificationCenterContent({
           memberEmail={memberEmail}
           walletAddress={walletAddress}
         />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
           <NotificationPreferenceCard
             checked={preferences?.directMemberCompletedEnabled ?? true}
             label={notificationCopy.preferenceDirect}

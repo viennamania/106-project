@@ -1835,12 +1835,9 @@ export function SmartWalletApp({
                         </p>
                       ) : getDisplayedPlacementReferralCode(memberSync.member) ? (
                         <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-sky-700 sm:mt-2 sm:text-sm sm:leading-6">
-                          {formatTemplate(
-                            dictionary.member.autoPlacementDescription,
-                            {
-                              code:
-                                getDisplayedPlacementReferralCode(memberSync.member) ?? "",
-                            },
+                          {getAutoPlacementDescription(
+                            dictionary,
+                            memberSync.member,
                           )}
                         </p>
                       ) : null}
@@ -1876,6 +1873,16 @@ export function SmartWalletApp({
                         label={dictionary.member.labels.placementReferralCode}
                         value={
                           getDisplayedPlacementReferralCode(memberSync.member) ??
+                          (isTopLevelPlacementMember(memberSync.member)
+                            ? dictionary.member.topLevelPlacementValue
+                            : dictionary.common.notAvailable)
+                        }
+                      />
+                      <InfoRow
+                        compactMobile
+                        label={dictionary.member.labels.placementSlotIndex}
+                        value={
+                          getDisplayedPlacementSlotIndex(memberSync.member) ??
                           (isTopLevelPlacementMember(memberSync.member)
                             ? dictionary.member.topLevelPlacementValue
                             : dictionary.common.notAvailable)
@@ -2388,9 +2395,7 @@ function CompletedHomeDashboard({
             </div>
           ) : getDisplayedPlacementReferralCode(member) ? (
             <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
-              {formatTemplate(dictionary.member.autoPlacementDescription, {
-                code: getDisplayedPlacementReferralCode(member) ?? "",
-              })}
+              {getAutoPlacementDescription(dictionary, member)}
             </div>
           ) : null}
 
@@ -2623,6 +2628,17 @@ function CompletedHomeDashboard({
           <InfoRow
             alignValueRight
             compactMobile
+            label={dictionary.member.labels.placementSlotIndex}
+            value={
+              getDisplayedPlacementSlotIndex(member) ??
+              (isTopLevelPlacementMember(member)
+                ? dictionary.member.topLevelPlacementValue
+                : dictionary.common.notAvailable)
+            }
+          />
+          <InfoRow
+            alignValueRight
+            compactMobile
             label={dictionary.member.labels.requiredDeposit}
             valueContent={
               <AnimatedNumberText
@@ -2844,15 +2860,51 @@ function InfoRow({
 }
 
 function getDisplayedPlacementReferralCode(
-  member: Pick<MemberRecord, "placementReferralCode" | "referredByCode">,
+  member: Pick<
+    MemberRecord,
+    "placementReferralCode" | "referredByCode" | "placementSlotIndex"
+  >,
 ) {
   return member.placementReferralCode ?? member.referredByCode ?? null;
+}
+
+function getDisplayedPlacementSlotIndex(
+  member: Pick<MemberRecord, "placementSlotIndex">,
+) {
+  return typeof member.placementSlotIndex === "number"
+    ? String(member.placementSlotIndex)
+    : null;
 }
 
 function isTopLevelPlacementMember(
   member: Pick<MemberRecord, "status" | "placementReferralCode">,
 ) {
   return member.status === "completed" && !member.placementReferralCode;
+}
+
+function getAutoPlacementDescription(
+  dictionary: Dictionary,
+  member: Pick<
+    MemberRecord,
+    "placementReferralCode" | "referredByCode" | "placementSlotIndex"
+  >,
+) {
+  const code = getDisplayedPlacementReferralCode(member);
+
+  if (!code) {
+    return null;
+  }
+
+  const slot = getDisplayedPlacementSlotIndex(member);
+
+  if (slot) {
+    return formatTemplate(dictionary.member.autoPlacementDescriptionWithSlot, {
+      code,
+      slot,
+    });
+  }
+
+  return formatTemplate(dictionary.member.autoPlacementDescription, { code });
 }
 
 function getPrioritySponsorReferralCode(member: MemberRecord | null) {

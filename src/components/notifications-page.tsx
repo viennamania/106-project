@@ -578,7 +578,7 @@ export function NotificationsPage({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <LandingReveal delay={10} variant="soft">
           <header className="glass-card flex flex-col gap-3 rounded-[22px] px-4 py-3 sm:rounded-[26px] sm:px-5 sm:py-4">
             <div className="flex items-center justify-between gap-3">
