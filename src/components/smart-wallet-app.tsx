@@ -1348,7 +1348,7 @@ export function SmartWalletApp({
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-32 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
         <LandingReveal delay={10} variant="soft">
-          <header className="glass-card flex flex-col gap-2.5 rounded-[24px] px-4 py-3 sm:gap-3 sm:rounded-[26px] sm:px-5 sm:py-4">
+          <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 flex flex-col gap-2.5 rounded-[24px] border-white/80 bg-white/84 px-4 py-3 shadow-[0_18px_44px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:gap-3 sm:rounded-[26px] sm:px-5 sm:py-4 lg:static lg:bg-white/82 lg:shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="sm:hidden">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">

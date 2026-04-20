@@ -372,7 +372,7 @@ export function NetworkFeedPage({
         />
       ) : null}
 
-      <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_36%),radial-gradient(circle_at_right,rgba(254,240,138,0.36),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+      <header className="sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.58),transparent_36%),radial-gradient(circle_at_right,rgba(254,240,138,0.28),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.92))] px-4 py-4 shadow-[0_20px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:px-6 sm:py-5 lg:static lg:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_36%),radial-gradient(circle_at_right,rgba(254,240,138,0.36),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] lg:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
         <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
         <div className="relative flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
