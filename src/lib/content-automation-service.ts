@@ -43,6 +43,7 @@ const DEFAULT_MAX_POSTS_PER_DAY = 1;
 const DEFAULT_MIN_INTERVAL_MINUTES = 360;
 const DEFAULT_LANGUAGE = "ko";
 const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
+const DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS = 90_000;
 
 type DiscoverySource = {
   domain: string;
@@ -281,15 +282,40 @@ function getReasoningEffort(
 async function requestOpenAiResponse(
   apiKey: string,
   payload: Record<string, unknown>,
+  timeoutMessage: string,
 ) {
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    body: JSON.stringify(payload),
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  const configuredTimeoutMs = Number.parseInt(
+    process.env.OPENAI_CONTENT_RESPONSE_TIMEOUT_MS?.trim() ?? "",
+    10,
+  );
+  const timeoutMs =
+    Number.isFinite(configuredTimeoutMs) && configuredTimeoutMs > 0
+      ? configuredTimeoutMs
+      : DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+
+  try {
+    response = await fetch("https://api.openai.com/v1/responses", {
+      body: JSON.stringify(payload),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(timeoutMessage);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const json = (await response.json().catch(() => null)) as
     | OpenAiResponsesApiResponse
@@ -307,21 +333,32 @@ function isUnsupportedReasoningError(message: string | undefined) {
   );
 }
 
-async function createOpenAiResponse(payload: Record<string, unknown>) {
+async function createOpenAiResponse(
+  payload: Record<string, unknown>,
+  timeoutMessage = "OpenAI request timed out while generating automation content.",
+) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not configured.");
   }
 
-  const { json, response } = await requestOpenAiResponse(apiKey, payload);
+  const { json, response } = await requestOpenAiResponse(
+    apiKey,
+    payload,
+    timeoutMessage,
+  );
 
   if (!response.ok) {
     if ("reasoning" in payload && isUnsupportedReasoningError(json?.error?.message)) {
       const fallbackPayload = { ...payload };
       delete fallbackPayload.reasoning;
 
-      const fallbackResponse = await requestOpenAiResponse(apiKey, fallbackPayload);
+      const fallbackResponse = await requestOpenAiResponse(
+        apiKey,
+        fallbackPayload,
+        timeoutMessage,
+      );
 
       if (!fallbackResponse.response.ok) {
         throw new Error(
@@ -445,43 +482,46 @@ async function discoverSourcesForProfile(
   const topics =
     profile.topics.length > 0 ? profile.topics.join(", ") : "AI, productivity, network content";
   const today = new Date().toISOString().slice(0, 10);
-  const response = await createOpenAiResponse({
-    model: getDiscoveryModel(),
-    reasoning: {
-      effort: getReasoningEffort("OPENAI_CONTENT_DISCOVERY_REASONING", "medium"),
-    },
-    tools: [
-      profile.allowedDomains.length > 0
-        ? {
-            type: "web_search",
-            filters: {
-              allowed_domains: profile.allowedDomains,
+  const response = await createOpenAiResponse(
+    {
+      model: getDiscoveryModel(),
+      reasoning: {
+        effort: getReasoningEffort("OPENAI_CONTENT_DISCOVERY_REASONING", "medium"),
+      },
+      tools: [
+        profile.allowedDomains.length > 0
+          ? {
+              type: "web_search",
+              filters: {
+                allowed_domains: profile.allowedDomains,
+              },
+            }
+          : {
+              type: "web_search",
             },
-          }
-        : {
-            type: "web_search",
-          },
-    ],
-    tool_choice: "auto",
-    include: ["web_search_call.action.sources"],
-    input: [
-      {
-        role: "system",
-        content:
-          "You are a source researcher for an AI creator. Find recent, public, factual web sources and summarize why they matter. Avoid gossip, rumors, and low quality listicles.",
-      },
-      {
-        role: "user",
-        content: [
-          `Date: ${today}.`,
-          `Language: ${profile.language}.`,
-          `Persona: ${profile.personaName}.`,
-          `Topics: ${topics}.`,
-          "Find up to 5 timely, practical public sources that could support one feed post. Summarize the common thread in concise Korean.",
-        ].join(" "),
-      },
-    ],
-  });
+      ],
+      tool_choice: "auto",
+      include: ["web_search_call.action.sources"],
+      input: [
+        {
+          role: "system",
+          content:
+            "You are a source researcher for an AI creator. Find recent, public, factual web sources and summarize why they matter. Avoid gossip, rumors, and low quality listicles.",
+        },
+        {
+          role: "user",
+          content: [
+            `Date: ${today}.`,
+            `Language: ${profile.language}.`,
+            `Persona: ${profile.personaName}.`,
+            `Topics: ${topics}.`,
+            "Find up to 5 timely, practical public sources that could support one feed post. Summarize the common thread in concise Korean.",
+          ].join(" "),
+        },
+      ],
+    },
+    "OpenAI request timed out while discovering public sources.",
+  );
 
   const sources = extractWebSearchSources(response);
   const discoveryText =
@@ -542,53 +582,56 @@ async function generateDraftForProfile(
   profile: CreatorAutomationProfileDocument,
   discovery: { discoveryText: string; sources: DiscoverySource[] },
 ): Promise<DraftPayload> {
-  const response = await createOpenAiResponse({
-    model: getDraftModel(),
-    input: [
-      {
-        role: "system",
-        content: [
-          `You are the editorial operator for ${profile.personaName}.`,
-          profile.personaPrompt,
-          "Use only the supplied source list and discovery summary.",
-          "Write original Korean copy. Do not copy source text verbatim.",
-          "Keep the writing concise, practical, and credible.",
-        ].join(" "),
+  const response = await createOpenAiResponse(
+    {
+      model: getDraftModel(),
+      input: [
+        {
+          role: "system",
+          content: [
+            `You are the editorial operator for ${profile.personaName}.`,
+            profile.personaPrompt,
+            "Use only the supplied source list and discovery summary.",
+            "Write original Korean copy. Do not copy source text verbatim.",
+            "Keep the writing concise, practical, and credible.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: JSON.stringify(
+            {
+              allowedDomains: profile.allowedDomains,
+              autoPublish: profile.autoPublish,
+              coverImageMode: profile.coverImageMode,
+              discoverySummary: discovery.discoveryText,
+              personaName: profile.personaName,
+              publishScoreThreshold: profile.publishScoreThreshold,
+              sourcePackets: discovery.sources.map((source) => ({
+                domain: source.domain,
+                title: source.title,
+                url: source.url,
+              })),
+              topics: profile.topics,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+      reasoning: {
+        effort: getReasoningEffort("OPENAI_CONTENT_DRAFT_REASONING", "high"),
       },
-      {
-        role: "user",
-        content: JSON.stringify(
-          {
-            allowedDomains: profile.allowedDomains,
-            autoPublish: profile.autoPublish,
-            coverImageMode: profile.coverImageMode,
-            discoverySummary: discovery.discoveryText,
-            personaName: profile.personaName,
-            publishScoreThreshold: profile.publishScoreThreshold,
-            sourcePackets: discovery.sources.map((source) => ({
-              domain: source.domain,
-              title: source.title,
-              url: source.url,
-            })),
-            topics: profile.topics,
-          },
-          null,
-          2,
-        ),
+      text: {
+        format: {
+          type: "json_schema",
+          name: "content_automation_draft",
+          schema: createDraftSchema(),
+          strict: true,
+        },
       },
-    ],
-    reasoning: {
-      effort: getReasoningEffort("OPENAI_CONTENT_DRAFT_REASONING", "high"),
     },
-    text: {
-      format: {
-        type: "json_schema",
-        name: "content_automation_draft",
-        schema: createDraftSchema(),
-        strict: true,
-      },
-    },
-  });
+    "OpenAI request timed out while drafting automation content. Please try again.",
+  );
 
   const outputText = extractResponseTextContent(response);
 
@@ -1072,7 +1115,14 @@ export async function runContentAutomationForMember(
     }
 
     await reportProgress("collecting_sources", "completed", 54);
-    await reportProgress("drafting", "running", 64);
+    await reportProgress(
+      "drafting",
+      "running",
+      64,
+      storedProfile.language === "ko"
+        ? "선별한 출처를 바탕으로 초안을 작성하고 있습니다. 길면 1분 정도 걸릴 수 있습니다."
+        : "Drafting the post from the selected sources. This can take about a minute.",
+    );
     const draft = await generateDraftForProfile(storedProfile, availableDiscovery);
     await reportProgress("drafting", "completed", 74);
 

@@ -359,6 +359,7 @@ async function readAutomationRunStream(
 
   const decoder = new TextDecoder();
   let buffer = "";
+  let receivedTerminalEvent = false;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -378,14 +379,26 @@ async function readAutomationRunStream(
         continue;
       }
 
-      onEvent(JSON.parse(trimmed) as ContentAutomationRunStreamEvent);
+      const event = JSON.parse(trimmed) as ContentAutomationRunStreamEvent;
+      if (event.type === "error" || event.type === "result") {
+        receivedTerminalEvent = true;
+      }
+      onEvent(event);
     }
   }
 
   const trailing = buffer.trim();
 
   if (trailing) {
-    onEvent(JSON.parse(trailing) as ContentAutomationRunStreamEvent);
+    const event = JSON.parse(trailing) as ContentAutomationRunStreamEvent;
+    if (event.type === "error" || event.type === "result") {
+      receivedTerminalEvent = true;
+    }
+    onEvent(event);
+  }
+
+  if (!receivedTerminalEvent) {
+    throw new Error("Automation stream ended before a final result was returned.");
   }
 }
 
