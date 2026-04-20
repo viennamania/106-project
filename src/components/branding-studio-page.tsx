@@ -12,7 +12,9 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
+  LogOut,
   Palette,
+  RefreshCcw,
   Sparkles,
 } from "lucide-react";
 import {
@@ -452,75 +454,106 @@ export function BrandingStudioPage({
       ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <Link
-              className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              href={referralsHref}
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-            <div className="space-y-1">
-              <p className="eyebrow">{studioCopy.page.eyebrow}</p>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
-                  {studioCopy.page.title}
-                </h1>
-                <p className="hidden text-sm text-slate-600 sm:block">
-                  {studioCopy.page.description}
-                </p>
-              </div>
-            </div>
-          </div>
+        <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(254,240,138,0.30),transparent_28%),radial-gradient(circle_at_right,rgba(191,219,254,0.58),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
+          <div className="relative flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <Link
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                  href={referralsHref}
+                >
+                  <ArrowLeft className="size-4 sm:size-5" />
+                </Link>
 
-          <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <StatusChip labels={dictionary.common.status} status={status} />
-            {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-                  {accountAddress ? (
-                    <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
-                      href={accountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {accountLabel ?? accountAddress}
-                      <ArrowUpRight className="size-4" />
-                    </a>
-                  ) : null}
-
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.disconnectWallet}
-                  </button>
+                <div className="min-w-0">
+                  <div className="flex items-start gap-3">
+                    <div className="hidden size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_30px_rgba(15,23,42,0.18)] sm:inline-flex">
+                      <Palette className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="eyebrow hidden sm:block">{studioCopy.page.eyebrow}</p>
+                      <h1 className="mt-0.5 text-[1.02rem] font-semibold tracking-tight text-slate-950 sm:mt-1 sm:text-[1.35rem]">
+                        {studioCopy.page.title}
+                      </h1>
+                      <p className="mt-2 hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
+                        {studioCopy.page.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ) : (
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <StatusChip labels={dictionary.common.status} status={status} />
                 <button
-                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+                  className="inline-flex size-10 items-center justify-center rounded-full border border-white/80 bg-white/92 text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
                   onClick={() => {
-                    setIsLoginDialogOpen(true);
+                    void loadStudio();
                   }}
                   type="button"
                 >
-                  {studioCopy.actions.connectWallet}
+                  <RefreshCcw className="size-4" />
+                  <span className="sr-only">{studioCopy.actions.refresh}</span>
                 </button>
-              )
-            ) : (
-              <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                {dictionary.common.clientIdRequired}
               </div>
-            )}
+            </div>
+
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              {accountAddress ? (
+                <a
+                  className="inline-flex h-11 min-w-0 items-center justify-between gap-2 rounded-full border border-white/80 bg-white/90 px-4 text-sm font-medium text-slate-950 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:max-w-full sm:justify-start"
+                  href={accountUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span className="truncate">{accountLabel ?? accountAddress}</span>
+                  <ArrowUpRight className="size-4 shrink-0" />
+                </a>
+              ) : (
+                <p className="text-sm leading-6 text-slate-600">
+                  {studioCopy.page.description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                {hasThirdwebClientId ? (
+                  status === "connected" ? (
+                    <button
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={!wallet}
+                      onClick={() => {
+                        if (!wallet) {
+                          return;
+                        }
+
+                        setIsLogoutDialogOpen(true);
+                      }}
+                      type="button"
+                    >
+                      <LogOut className="size-4" />
+                      <span className="hidden sm:inline">
+                        {dictionary.common.disconnectWallet}
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                      onClick={() => {
+                        setIsLoginDialogOpen(true);
+                      }}
+                      type="button"
+                    >
+                      {studioCopy.actions.connectWallet}
+                    </button>
+                  )
+                ) : (
+                  <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                    {dictionary.common.clientIdRequired}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </header>
 
@@ -831,12 +864,6 @@ export function BrandingStudioPage({
                     >
                       {studioCopy.actions.refresh}
                     </button>
-                    <Link
-                      className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                      href={referralsHref}
-                    >
-                      {studioCopy.actions.openReferrals}
-                    </Link>
                   </div>
                 </div>
               ) : null}
