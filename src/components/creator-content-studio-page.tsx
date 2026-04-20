@@ -1906,7 +1906,7 @@ export function CreatorContentStudioPage({
         },
       });
       const email = await resolveMemberEmail();
-      const response = await fetch("/api/content/posts/generate-cover", {
+      const response = await fetch("/api/content/posts/generate-content-image", {
         body: JSON.stringify({
           body: postForm.body,
           email,
