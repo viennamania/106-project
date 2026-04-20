@@ -101,11 +101,9 @@ export default async function LocalizedHome({
 
   return (
     <LandingPage
-      activateHref={buildPathWithReferral(`/${locale}/activate`, activeReferralCode)}
       branding={experience.branding}
       copy={copy}
       disclaimerHref={buildPathWithReferral(`/${locale}/disclaimer`, activeReferralCode)}
-      feedHref={buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)}
       disclaimerLabel={disclaimerCopy.navLabel}
       languageLabel={dictionary.common.languageLabel}
       locale={locale}
