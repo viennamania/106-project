@@ -993,27 +993,12 @@ export function CreatorContentStudioPage({
       }
 
       if (shouldLoadProfileView) {
-        const [profileResponse, automationProfileResponse, automationJobsResponse] =
-          await Promise.all([
-            fetch(
-              `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-            fetch(
-              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-            fetch(
-              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-          ]);
+        const profileResponse = await fetch(
+          `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        );
 
         const profileData = (await profileResponse.json()) as
           | CreatorProfileResponse
-          | { error?: string };
-        const automationProfileData = (await automationProfileResponse.json()) as
-          | CreatorAutomationProfileResponse
-          | { error?: string };
-        const automationJobsData = (await automationJobsResponse.json()) as
-          | ContentAutomationJobsResponse
           | { error?: string };
 
         if (!profileResponse.ok || !("profile" in profileData)) {
@@ -1039,6 +1024,34 @@ export function CreatorContentStudioPage({
           summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
+
+        if (profileData.automationAvailable === false) {
+          setAutomation({
+            available: false,
+            error: null,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+          return;
+        }
+
+        const [automationProfileResponse, automationJobsResponse] =
+          await Promise.all([
+            fetch(
+              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+            fetch(
+              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+            ),
+          ]);
+
+        const automationProfileData = (await automationProfileResponse.json()) as
+          | CreatorAutomationProfileResponse
+          | { error?: string };
+        const automationJobsData = (await automationJobsResponse.json()) as
+          | ContentAutomationJobsResponse
+          | { error?: string };
 
         if (
           automationProfileResponse.ok &&

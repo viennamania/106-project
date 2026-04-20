@@ -219,6 +219,7 @@ export type ContentLibraryResponse = {
 };
 
 export type CreatorProfileResponse = {
+  automationAvailable?: boolean;
   profile: CreatorProfileRecord;
 };
 

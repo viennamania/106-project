@@ -3,6 +3,7 @@ import type {
   CreatorProfileUpsertRequest,
 } from "@/lib/content";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
 import {
   getCreatorProfileForMember,
   upsertCreatorProfileForMember,
@@ -36,6 +37,9 @@ export async function GET(request: Request) {
     }
 
     const response: CreatorProfileResponse = {
+      automationAvailable: isMemberAllowedForContentAutomation(
+        authorization.normalizedEmail,
+      ),
       profile: await getCreatorProfileForMember(authorization.normalizedEmail),
     };
 
@@ -86,6 +90,9 @@ export async function POST(request: Request) {
     }
 
     const response: CreatorProfileResponse = {
+      automationAvailable: isMemberAllowedForContentAutomation(
+        authorization.normalizedEmail,
+      ),
       profile: await upsertCreatorProfileForMember({
         ...body,
         email: authorization.normalizedEmail,
