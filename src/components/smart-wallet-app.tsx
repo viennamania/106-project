@@ -1347,105 +1347,105 @@ export function SmartWalletApp({
       ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-4 py-4 pb-32 sm:gap-4 sm:px-6 sm:py-6 sm:pb-32 lg:px-8 lg:pb-8">
-        <LandingReveal delay={10} variant="soft">
-          <div className="sticky top-0 z-30 -mx-4 border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,255,255,0.84))] px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.7rem)] shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:hidden">
-            <div className="flex items-center gap-2.5">
-              <Link
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-white"
-                href={homeHref}
-              >
-                <ArrowLeft className="size-4" />
-                <span className="sr-only">{dictionary.referralsPage.actions.backHome}</span>
-              </Link>
+        <div className="sticky top-0 z-30 -mx-4 border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,255,255,0.84))] px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.7rem)] shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:hidden">
+          <div className="flex items-center gap-2.5">
+            <Link
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-white"
+              href={homeHref}
+            >
+              <ArrowLeft className="size-4" />
+              <span className="sr-only">{dictionary.referralsPage.actions.backHome}</span>
+            </Link>
 
-              <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_36px_rgba(15,23,42,0.18)]">
-                  <WalletMinimal className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <h1 className="truncate text-[1.02rem] font-semibold tracking-tight text-slate-950">
-                    {dictionary.common.appName}
-                  </h1>
-                  <div className="mt-1 flex min-h-6 items-center">
-                    {hasThirdwebClientId ? (
-                      status === "connected" ? (
-                        <StatusChip
-                          compact
-                          labels={dictionary.common.status}
-                          status={status}
-                        />
-                      ) : (
-                        <span className="text-[0.72rem] font-medium text-slate-500">
-                          {dictionary.common.connectWallet}
-                        </span>
-                      )
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#111827,#1e293b)] text-white shadow-[0_16px_36px_rgba(15,23,42,0.18)]">
+                <WalletMinimal className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-[1.02rem] font-semibold tracking-tight text-slate-950">
+                  {dictionary.common.appName}
+                </h1>
+                <div className="mt-1 flex min-h-6 items-center">
+                  {hasThirdwebClientId ? (
+                    status === "connected" ? (
+                      <StatusChip
+                        compact
+                        labels={dictionary.common.status}
+                        status={status}
+                      />
                     ) : (
-                      <span className="text-[0.72rem] font-medium text-amber-800">
-                        {dictionary.common.clientIdRequired}
+                      <span className="text-[0.72rem] font-medium text-slate-500">
+                        {dictionary.common.connectWallet}
                       </span>
-                    )}
-                  </div>
+                    )
+                  ) : (
+                    <span className="text-[0.72rem] font-medium text-amber-800">
+                      {dictionary.common.clientIdRequired}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                {hasThirdwebClientId && status === "connected" ? (
-                  <>
-                    {isSignupCompleted && memberSync.member?.email ? (
-                      <button
-                        className={cn(
-                          "group relative inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
-                          notificationsState.open
-                            ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
-                            : "border-slate-200 bg-white hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
-                        )}
-                        onClick={() => {
-                          openNotificationsPage();
-                        }}
-                        type="button"
-                      >
-                        <Bell className="size-4 transition group-hover:scale-105 group-hover:text-sky-700" />
-                        <span className="sr-only">{notificationCopy.title}</span>
-                        {notificationsState.unreadCount > 0 ? (
-                          <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-1 text-[0.64rem] font-semibold leading-none text-white">
-                            {new Intl.NumberFormat(locale).format(
-                              notificationsState.unreadCount,
-                            )}
-                          </span>
-                        ) : null}
-                      </button>
-                    ) : null}
+            <div className="flex shrink-0 items-center gap-2">
+              {hasThirdwebClientId && status === "connected" ? (
+                <>
+                  {isSignupCompleted && memberSync.member?.email ? (
                     <button
-                      className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={!wallet}
+                      className={cn(
+                        "group relative inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
+                        notificationsState.open
+                          ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
+                          : "border-slate-200 bg-white hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
+                      )}
                       onClick={() => {
-                        if (!wallet) {
-                          return;
-                        }
-
-                        setIsLogoutDialogOpen(true);
+                        openNotificationsPage();
                       }}
                       type="button"
                     >
-                      <LogOut className="size-4" />
-                      <span className="sr-only">{dictionary.common.disconnectWallet}</span>
+                      <Bell className="size-4 transition group-hover:scale-105 group-hover:text-sky-700" />
+                      <span className="sr-only">{notificationCopy.title}</span>
+                      {notificationsState.unreadCount > 0 ? (
+                        <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-1 text-[0.64rem] font-semibold leading-none text-white">
+                          {new Intl.NumberFormat(locale).format(
+                            notificationsState.unreadCount,
+                          )}
+                        </span>
+                      ) : null}
                     </button>
-                  </>
-                ) : hasThirdwebClientId ? (
+                  ) : null}
                   <button
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!wallet}
                     onClick={() => {
-                      setIsLoginDialogOpen(true);
+                      if (!wallet) {
+                        return;
+                      }
+
+                      setIsLogoutDialogOpen(true);
                     }}
                     type="button"
                   >
-                    {dictionary.common.connectWallet}
+                    <LogOut className="size-4" />
+                    <span className="sr-only">{dictionary.common.disconnectWallet}</span>
                   </button>
-                ) : null}
-              </div>
+                </>
+              ) : hasThirdwebClientId ? (
+                <button
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                  onClick={() => {
+                    setIsLoginDialogOpen(true);
+                  }}
+                  type="button"
+                >
+                  {dictionary.common.connectWallet}
+                </button>
+              ) : null}
             </div>
           </div>
+        </div>
 
+        <LandingReveal delay={10} variant="soft">
           <header className="glass-card hidden flex-col gap-3 rounded-[26px] px-5 py-4 lg:static sm:flex">
             <div className="sm:flex sm:flex-col sm:gap-3">
               <div className="flex items-start gap-2.5 sm:gap-3">
