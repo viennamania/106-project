@@ -391,6 +391,8 @@ export function LandingPage({
           </div>
         </SalesSection>
 
+        <LandingRewardsSection copy={copy} />
+
         <SalesSection id="profit-structure">
           <SectionIntro
             description={copy.generations.description}
@@ -529,65 +531,6 @@ export function LandingPage({
                 <FinalMetricCard {...total} locale={locale} />
               </LandingReveal>
             ))}
-          </div>
-        </SalesSection>
-
-        <SalesSection className="bg-[linear-gradient(180deg,rgba(255,248,232,0.96),rgba(255,255,255,0.98))]">
-          <SectionIntro
-            description={copy.rewards.description}
-            eyebrow={copy.rewards.eyebrow}
-            title={copy.rewards.title}
-          />
-
-          <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="grid gap-4 md:grid-cols-2">
-              {copy.rewards.cards.map((card, index) => (
-                <LandingReveal delay={index * 80} key={card.title}>
-                  <RewardHighlightCard
-                    accent={index === 1}
-                    badgeLabel={copy.rewards.eyebrow}
-                    description={card.description}
-                    icon={
-                      index === 0 ? (
-                        <Smartphone className="size-5" />
-                      ) : (
-                        <Bike className="size-5" />
-                      )
-                    }
-                    title={card.title}
-                  />
-                </LandingReveal>
-              ))}
-            </div>
-
-            <LandingReveal delay={140} variant="soft">
-              <div className="rounded-[28px] border border-[#e9dbc1] bg-[linear-gradient(180deg,#111827,#1b2940)] p-5 text-white shadow-[0_20px_55px_rgba(15,23,42,0.14)] sm:p-6">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#d8bd89]">
-                      {copy.rewards.eyebrow}
-                    </p>
-                    <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-                      {copy.rewards.liquidityTitle}
-                    </h3>
-                  </div>
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-[#ffe3a1]">
-                    <Coins className="size-5" />
-                  </div>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {copy.rewards.liquiditySteps.map((step, index) => (
-                    <LiquidityStepCard
-                      description={step.description}
-                      key={step.title}
-                      number={index + 1}
-                      title={step.title}
-                    />
-                  ))}
-                </div>
-              </div>
-            </LandingReveal>
           </div>
         </SalesSection>
 
@@ -808,15 +751,89 @@ function NumberedCard({
   );
 }
 
+function LandingRewardsSection({ copy }: { copy: LandingCopy }) {
+  const orderedRewardCards =
+    copy.rewards.cards.length > 1
+      ? [copy.rewards.cards[1], copy.rewards.cards[0], ...copy.rewards.cards.slice(2)]
+      : copy.rewards.cards;
+  const featuredRewardLabel = /[가-힣]/.test(copy.rewards.title)
+    ? "대표 보상"
+    : "Featured Reward";
+
+  return (
+    <SalesSection className="bg-[linear-gradient(180deg,rgba(255,248,232,0.96),rgba(255,255,255,0.98))]">
+      <SectionIntro
+        description={copy.rewards.description}
+        eyebrow={copy.rewards.eyebrow}
+        title={copy.rewards.title}
+      />
+
+      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid gap-4">
+          {orderedRewardCards.map((card, index) => (
+            <LandingReveal delay={index * 80} key={card.title}>
+              <RewardHighlightCard
+                accent={index === 0}
+                badgeLabel={index === 0 ? featuredRewardLabel : copy.rewards.eyebrow}
+                className={index === 0 ? "md:min-h-[18rem] xl:min-h-[19rem]" : undefined}
+                description={card.description}
+                icon={
+                  index === 0 ? (
+                    <Bike className="size-5" />
+                  ) : (
+                    <Smartphone className="size-5" />
+                  )
+                }
+                title={card.title}
+              />
+            </LandingReveal>
+          ))}
+        </div>
+
+        <LandingReveal delay={140} variant="soft">
+          <div className="rounded-[28px] border border-[#e9dbc1] bg-[linear-gradient(180deg,#111827,#1b2940)] p-5 text-white shadow-[0_20px_55px_rgba(15,23,42,0.14)] sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#d8bd89]">
+                  {copy.rewards.eyebrow}
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                  {copy.rewards.liquidityTitle}
+                </h3>
+              </div>
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-[#ffe3a1]">
+                <Coins className="size-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {copy.rewards.liquiditySteps.map((step, index) => (
+                <LiquidityStepCard
+                  description={step.description}
+                  key={step.title}
+                  number={index + 1}
+                  title={step.title}
+                />
+              ))}
+            </div>
+          </div>
+        </LandingReveal>
+      </div>
+    </SalesSection>
+  );
+}
+
 function RewardHighlightCard({
   accent = false,
   badgeLabel,
+  className,
   description,
   icon,
   title,
 }: {
   accent?: boolean;
   badgeLabel: string;
+  className?: string;
   description: string;
   icon: ReactNode;
   title: string;
@@ -825,8 +842,8 @@ function RewardHighlightCard({
     <div
       className={
         accent
-          ? "rounded-[28px] border border-[#d8bc87]/40 bg-[linear-gradient(160deg,#fff3cf,#fff9eb_58%,#ffffff)] p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:p-6"
-          : "rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf7,#fff7ea)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6"
+          ? `rounded-[28px] border border-[#d8bc87]/40 bg-[linear-gradient(160deg,#fff3cf,#fff9eb_58%,#ffffff)] p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:p-6 ${className ?? ""}`
+          : `rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf7,#fff7ea)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6 ${className ?? ""}`
       }
     >
       <div className="flex items-start justify-between gap-4">
