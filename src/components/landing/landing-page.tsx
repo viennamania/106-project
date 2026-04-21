@@ -26,6 +26,10 @@ const LANDING_IMAGE_VERSION = "20260415";
 
 const HERO_WORLD_IMAGE =
   `/landing/global-network-map.png?v=${LANDING_IMAGE_VERSION}`;
+const PREMIUM_PHONE_IMAGE =
+  `/landing/premium-phone.png?v=${LANDING_IMAGE_VERSION}`;
+const ELECTRIC_BIKE_IMAGE =
+  `/landing/electric-bike.png?v=${LANDING_IMAGE_VERSION}`;
 
 export function LandingPage({
   branding,
@@ -777,6 +781,8 @@ function LandingRewardsSection({ copy }: { copy: LandingCopy }) {
                 badgeLabel={index === 0 ? featuredRewardLabel : copy.rewards.eyebrow}
                 className={index === 0 ? "md:min-h-[18rem] xl:min-h-[19rem]" : undefined}
                 description={card.description}
+                imageAlt={card.title}
+                imageSrc={index === 0 ? ELECTRIC_BIKE_IMAGE : PREMIUM_PHONE_IMAGE}
                 icon={
                   index === 0 ? (
                     <Bike className="size-5" />
@@ -828,6 +834,8 @@ function RewardHighlightCard({
   badgeLabel,
   className,
   description,
+  imageAlt,
+  imageSrc,
   icon,
   title,
 }: {
@@ -835,6 +843,8 @@ function RewardHighlightCard({
   badgeLabel: string;
   className?: string;
   description: string;
+  imageAlt: string;
+  imageSrc: string;
   icon: ReactNode;
   title: string;
 }) {
@@ -846,6 +856,31 @@ function RewardHighlightCard({
           : `rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf7,#fff7ea)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6 ${className ?? ""}`
       }
     >
+      <div
+        className={
+          accent
+            ? "relative mb-5 overflow-hidden rounded-[24px] border border-[#d8bc87]/45 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,244,214,0.92)_48%,rgba(255,233,182,0.72)_100%)] px-4 pb-2 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+            : "relative mb-5 overflow-hidden rounded-[24px] border border-[#ead7b5] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.94),rgba(255,248,232,0.95)_48%,rgba(255,243,214,0.78)_100%)] px-4 pb-2 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+        }
+      >
+        <div
+          className={
+            accent
+              ? "pointer-events-none absolute inset-x-6 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(250,204,21,0.3),transparent_72%)] blur-2xl"
+              : "pointer-events-none absolute inset-x-6 top-0 h-24 rounded-full bg-[radial-gradient(circle,rgba(148,163,184,0.18),transparent_72%)] blur-2xl"
+          }
+        />
+        <div className="relative flex min-h-[12rem] items-end justify-center sm:min-h-[13rem]">
+          <Image
+            alt={imageAlt}
+            className="h-auto max-h-[12.5rem] w-auto object-contain sm:max-h-[13.5rem]"
+            height={640}
+            sizes="(max-width: 768px) 100vw, 480px"
+            src={imageSrc}
+            width={640}
+          />
+        </div>
+      </div>
       <div className="flex items-start justify-between gap-4">
         <div
           className={
