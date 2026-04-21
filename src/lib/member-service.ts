@@ -364,19 +364,6 @@ async function claimPlacementSlot({
   return collection.findOne({ claimedByEmail: email });
 }
 
-function shufflePlacementSlotCandidates<T>(items: T[]) {
-  const nextItems = [...items];
-
-  for (let index = nextItems.length - 1; index > 0; index -= 1) {
-    const randomIndex = randomInt(index + 1);
-    const currentItem = nextItems[index];
-    nextItems[index] = nextItems[randomIndex];
-    nextItems[randomIndex] = currentItem;
-  }
-
-  return nextItems;
-}
-
 async function claimSponsoredNetworkPlacementSlot({
   collection,
   email,
@@ -402,7 +389,21 @@ async function claimSponsoredNetworkPlacementSlot({
     return existingClaim;
   }
 
-  const ownerReferralCodes = new Set<string>([sponsorReferralCode]);
+  const directSlot = await claimPlacementSlot({
+    email,
+    filter: {
+      ownerReferralCode: sponsorReferralCode,
+    },
+    sort: {
+      slotIndex: 1,
+    },
+    source: "manual",
+  });
+
+  if (directSlot) {
+    return directSlot;
+  }
+
   const visitedReferralCodes = new Set<string>([sponsorReferralCode]);
   let currentParentCodes = [sponsorReferralCode];
 
@@ -443,60 +444,25 @@ async function claimSponsoredNetworkPlacementSlot({
       }
 
       visitedReferralCodes.add(levelReferralCode);
-      ownerReferralCodes.add(levelReferralCode);
       nextParentCodes.push(levelReferralCode);
+
+      const levelSlot = await claimPlacementSlot({
+        email,
+        filter: {
+          ownerReferralCode: levelReferralCode,
+        },
+        sort: {
+          slotIndex: 1,
+        },
+        source: "auto",
+      });
+
+      if (levelSlot) {
+        return levelSlot;
+      }
     }
 
     currentParentCodes = nextParentCodes;
-  }
-
-  const candidateSlots = await placementSlotsCollection
-    .find({
-      claimedByEmail: null,
-      ownerReferralCode: {
-        $in: [...ownerReferralCodes],
-      },
-    })
-    .project<Pick<ReferralPlacementSlotDocument, "ownerReferralCode" | "slotIndex">>(
-      {
-        ownerReferralCode: 1,
-        slotIndex: 1,
-      },
-    )
-    .toArray();
-
-  if (candidateSlots.length === 0) {
-    return null;
-  }
-
-  const randomizedCandidates = shufflePlacementSlotCandidates(candidateSlots);
-
-  for (const candidateSlot of randomizedCandidates) {
-    const claimSource: PlacementSource =
-      candidateSlot.ownerReferralCode === sponsorReferralCode ? "manual" : "auto";
-    const claimedAt = new Date();
-    const claimResult = await placementSlotsCollection.findOneAndUpdate(
-      {
-        ownerReferralCode: candidateSlot.ownerReferralCode,
-        slotIndex: candidateSlot.slotIndex,
-        claimedByEmail: null,
-      },
-      {
-        $set: {
-          claimSource,
-          claimedAt,
-          claimedByEmail: email,
-          updatedAt: claimedAt,
-        },
-      },
-      {
-        returnDocument: "after",
-      },
-    );
-
-    if (claimResult) {
-      return claimResult;
-    }
   }
 
   return null;
