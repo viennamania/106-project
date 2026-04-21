@@ -2,11 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
+  Bike,
   Coins,
   Crown,
   Globe2,
   Network,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   WalletMinimal,
 } from "lucide-react";
@@ -530,6 +532,65 @@ export function LandingPage({
           </div>
         </SalesSection>
 
+        <SalesSection className="bg-[linear-gradient(180deg,rgba(255,248,232,0.96),rgba(255,255,255,0.98))]">
+          <SectionIntro
+            description={copy.rewards.description}
+            eyebrow={copy.rewards.eyebrow}
+            title={copy.rewards.title}
+          />
+
+          <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+            <div className="grid gap-4 md:grid-cols-2">
+              {copy.rewards.cards.map((card, index) => (
+                <LandingReveal delay={index * 80} key={card.title}>
+                  <RewardHighlightCard
+                    accent={index === 1}
+                    badgeLabel={copy.rewards.eyebrow}
+                    description={card.description}
+                    icon={
+                      index === 0 ? (
+                        <Smartphone className="size-5" />
+                      ) : (
+                        <Bike className="size-5" />
+                      )
+                    }
+                    title={card.title}
+                  />
+                </LandingReveal>
+              ))}
+            </div>
+
+            <LandingReveal delay={140} variant="soft">
+              <div className="rounded-[28px] border border-[#e9dbc1] bg-[linear-gradient(180deg,#111827,#1b2940)] p-5 text-white shadow-[0_20px_55px_rgba(15,23,42,0.14)] sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#d8bd89]">
+                      {copy.rewards.eyebrow}
+                    </p>
+                    <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                      {copy.rewards.liquidityTitle}
+                    </h3>
+                  </div>
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-[#ffe3a1]">
+                    <Coins className="size-5" />
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {copy.rewards.liquiditySteps.map((step, index) => (
+                    <LiquidityStepCard
+                      description={step.description}
+                      key={step.title}
+                      number={index + 1}
+                      title={step.title}
+                    />
+                  ))}
+                </div>
+              </div>
+            </LandingReveal>
+          </div>
+        </SalesSection>
+
         <section className="relative overflow-hidden rounded-[34px] border border-[#d4b680]/14 bg-[linear-gradient(180deg,#111827_0%,#172334_55%,#1f2937_100%)] px-5 py-7 text-white shadow-[0_28px_100px_rgba(15,23,42,0.26)] sm:rounded-[38px] sm:px-8 sm:py-10">
           <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.22),transparent_70%)]" />
           <LandingReveal variant="hero">
@@ -743,6 +804,73 @@ function NumberedCard({
         {title}
       </h3>
       <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
+    </div>
+  );
+}
+
+function RewardHighlightCard({
+  accent = false,
+  badgeLabel,
+  description,
+  icon,
+  title,
+}: {
+  accent?: boolean;
+  badgeLabel: string;
+  description: string;
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <div
+      className={
+        accent
+          ? "rounded-[28px] border border-[#d8bc87]/40 bg-[linear-gradient(160deg,#fff3cf,#fff9eb_58%,#ffffff)] p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:p-6"
+          : "rounded-[28px] border border-[#ebddc5] bg-[linear-gradient(180deg,#fffdf7,#fff7ea)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6"
+      }
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div
+          className={
+            accent
+              ? "flex size-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#7c2d12)] text-[#ffe0a2]"
+              : "flex size-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#111827,#2b3548)] text-[#f5ddb0]"
+          }
+        >
+          {icon}
+        </div>
+        <div className="rounded-full border border-[#ead7b5] bg-white/90 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-700">
+          {badgeLabel}
+        </div>
+      </div>
+      <h3 className="mt-5 text-xl font-semibold tracking-tight text-slate-950">
+        {title}
+      </h3>
+      <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
+    </div>
+  );
+}
+
+function LiquidityStepCard({
+  description,
+  number,
+  title,
+}: {
+  description: string;
+  number: number;
+  title: string;
+}) {
+  return (
+    <div className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur">
+      <div className="flex items-start gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[0.72rem] font-semibold text-slate-950">
+          {number}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">{title}</p>
+          <p className="mt-1 text-sm leading-6 text-white/70">{description}</p>
+        </div>
+      </div>
     </div>
   );
 }
