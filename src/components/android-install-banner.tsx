@@ -53,10 +53,10 @@ export function AndroidInstallBanner({
         ? {
             badge: "ANDROID APP INSTALL",
             body:
-              "외부 브라우저로 잘 넘어왔습니다. 앱으로 설치하면 다음부터 더 빠르게 열리고, 홈 화면과 푸시 흐름도 더 안정적입니다.",
+              "외부 브라우저로 잘 넘어왔습니다. 이미 설치했다면 홈 화면의 Pocket 앱에서 여는 것이 가장 좋고, 아직 설치하지 않았다면 지금 설치하면 다음부터 더 빠르게 열리고 푸시 흐름도 안정적입니다.",
             dismiss: "나중에",
             fallback:
-              "Chrome 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 됩니다.",
+              "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요. 설치하지 않았다면 Chrome 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 됩니다.",
             title: "이 흐름은 앱으로 여는 것이 가장 좋습니다",
             trigger: "앱 설치",
             triggering: "설치 화면 여는 중...",
@@ -64,10 +64,10 @@ export function AndroidInstallBanner({
         : {
             badge: "ANDROID APP INSTALL",
             body:
-              "You have reached the external browser. Installing the app makes future opens faster and improves home-screen and push flows.",
+              "You have reached the external browser. If Pocket is already installed, opening it from your home screen is best. If not, installing it now will make future opens faster and improve push flows.",
             dismiss: "Maybe later",
             fallback:
-              "Use the Chrome menu and choose Install app or Add to Home screen.",
+              "If Pocket is already installed, open it from your home screen. Otherwise use the Chrome menu and choose Install app or Add to Home screen.",
             title: "This flow works best as an installed app",
             trigger: "Install app",
             triggering: "Opening install prompt...",

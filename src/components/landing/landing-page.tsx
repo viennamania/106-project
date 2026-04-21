@@ -15,6 +15,7 @@ import {
 import type { CSSProperties, ReactNode } from "react";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
+import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ReferralAwareCta } from "@/components/landing/referral-aware-cta";
@@ -106,6 +107,8 @@ export function LandingPage({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] bg-[linear-gradient(180deg,rgba(15,23,42,0.09),transparent)]" />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:px-8">
+        <AndroidInstallBanner locale={locale} />
+
         <LandingReveal delay={10} variant="soft">
           <header className="glass-card flex flex-col gap-4 rounded-[28px] border border-white/70 bg-white/82 px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
