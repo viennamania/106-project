@@ -171,6 +171,7 @@ const EMPTY_STUDIO_SUMMARY = {
   draft: 0,
   published: 0,
 };
+const GENERATED_CONTENT_IMAGE_LIMIT = 5;
 
 const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
@@ -825,7 +826,7 @@ export function CreatorContentStudioPage({
           confirmBody:
             "현재 입력한 제목, 요약, 본문을 바탕으로 상세 갤러리용 AI 이미지를 생성합니다.",
           confirmHint:
-            "갤러리용 AI 이미지는 최대 2장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.",
+            `갤러리용 AI 이미지는 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.`,
           promptHint:
             "원하는 분위기, 구도, 색감, 소품, 배경을 추가로 적으면 생성 프롬프트에 함께 반영됩니다.",
           promptLabel: "추가 프롬프트",
@@ -866,7 +867,7 @@ export function CreatorContentStudioPage({
           confirmBody:
             "The AI will generate a gallery image from your current title, summary, and body.",
           confirmHint:
-            "AI gallery images are limited to 2 and will be added directly into your content image list.",
+            `AI gallery images are limited to ${GENERATED_CONTENT_IMAGE_LIMIT} and will be added directly into your content image list.`,
           promptHint:
             "Add any extra direction for mood, composition, color, props, or background to blend into the final prompt.",
           promptLabel: "Extra prompt",
@@ -1965,11 +1966,14 @@ export function CreatorContentStudioPage({
 
   async function generatePostContentImage() {
     try {
-      if (postForm.generatedContentImageUrls.length >= 2) {
+      if (
+        postForm.generatedContentImageUrls.length >=
+        GENERATED_CONTENT_IMAGE_LIMIT
+      ) {
         throw new Error(
           locale === "ko"
-            ? "AI로 생성한 콘텐츠 이미지는 최대 2장까지 추가할 수 있습니다."
-            : "You can generate up to 2 AI content images.",
+            ? `AI로 생성한 콘텐츠 이미지는 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지 추가할 수 있습니다.`
+            : `You can generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} AI content images.`,
         );
       }
 
@@ -2063,7 +2067,7 @@ export function CreatorContentStudioPage({
         generatedContentImageUrls: [
           ...current.generatedContentImageUrls,
           generatedImage.url,
-        ].slice(0, 2),
+        ].slice(0, GENERATED_CONTENT_IMAGE_LIMIT),
       }));
       setState((current) => ({
         ...current,
@@ -3267,7 +3271,7 @@ export function CreatorContentStudioPage({
                     {postForm.contentImageUrls.length}/10
                   </span>
                   <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
-                    {locale === "ko" ? "AI" : "AI"} {postForm.generatedContentImageUrls.length}/2
+                    {locale === "ko" ? "AI" : "AI"} {postForm.generatedContentImageUrls.length}/{GENERATED_CONTENT_IMAGE_LIMIT}
                   </span>
                 </div>
               </div>
@@ -3291,7 +3295,8 @@ export function CreatorContentStudioPage({
                     isUploadingPostImage ||
                     isGeneratingPostImage ||
                     !canGeneratePostCover ||
-                    postForm.generatedContentImageUrls.length >= 2 ||
+                    postForm.generatedContentImageUrls.length >=
+                      GENERATED_CONTENT_IMAGE_LIMIT ||
                     postForm.contentImageUrls.length >= 10
                   }
                   onClick={() => {
@@ -3351,8 +3356,8 @@ export function CreatorContentStudioPage({
               ) : (
                 <div className="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
                   {locale === "ko"
-                    ? "상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 2장까지 생성할 수 있습니다."
-                    : "Add gallery images for the swipeable detail page. You can upload your own or generate up to 2 with AI."}
+                    ? `상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지 생성할 수 있습니다.`
+                    : `Add gallery images for the swipeable detail page. You can upload your own or generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} with AI.`}
                 </div>
               )}
             </div>
