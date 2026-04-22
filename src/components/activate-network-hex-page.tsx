@@ -53,12 +53,12 @@ type ActivateNetworkHexState = {
 };
 
 const slotPositions = [
-  "left-1/2 top-[16%] -translate-x-1/2 -translate-y-1/2 sm:top-[1.4rem] sm:translate-y-0 lg:top-[1.75rem]",
-  "left-[74%] top-[33%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
-  "left-[74%] top-[67%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
-  "left-1/2 top-[84%] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-[1.4rem] sm:translate-y-0 lg:bottom-[1.75rem]",
-  "left-[26%] top-[67%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
-  "left-[26%] top-[33%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
+  "left-1/2 top-[13%] -translate-x-1/2 -translate-y-1/2 sm:top-[1.4rem] sm:translate-y-0 lg:top-[1.75rem]",
+  "left-[85%] top-[31%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
+  "left-[85%] top-[69%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
+  "left-1/2 top-[87%] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-[1.4rem] sm:translate-y-0 lg:bottom-[1.75rem]",
+  "left-[15%] top-[69%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
+  "left-[15%] top-[31%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
 ] as const;
 
 const hexClipPath =
@@ -364,7 +364,7 @@ function HexTile({
     <div
       className={cn(
         isMobileCompact
-          ? "absolute w-[6.5rem] sm:w-[9rem] lg:w-[11rem]"
+          ? "absolute w-[5.65rem] sm:w-[9rem] lg:w-[11rem]"
           : "absolute w-[7.1rem] sm:w-[9rem] lg:w-[11rem]",
         className,
       )}
@@ -473,7 +473,7 @@ function HexCenterTile({
     <div
       className={cn(
         "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-        isMobileCompact ? "w-[10.9rem]" : "w-[11.2rem] sm:w-[13rem] lg:w-[16.25rem]",
+        isMobileCompact ? "w-[9.1rem]" : "w-[11.2rem] sm:w-[13rem] lg:w-[16.25rem]",
       )}
     >
       <div
@@ -1030,7 +1030,7 @@ export function ActivateNetworkHexPage({
               className={cn(
                 "relative mx-auto w-full animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)]",
                 isMobileCompact
-                  ? "h-[26.5rem] max-w-[20rem]"
+                  ? "h-[30rem] max-w-[21.5rem]"
                   : "aspect-square max-w-[25.25rem] sm:max-w-[33rem] lg:max-w-[46rem] xl:max-w-[52rem]",
               )}
               key={boardKey}
