@@ -10,13 +10,14 @@ import type {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const BODY_LIMIT = 480;
+const BODY_LIMIT = 220;
 const VISUAL_BRIEF_LIMIT = 320;
-const DEFAULT_MODEL = "black-forest-labs/flux-schnell-lora";
+const DEFAULT_MODEL = "black-forest-labs/flux-dev-lora";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
-const DEFAULT_NUM_INFERENCE_STEPS = 4;
+const DEFAULT_NUM_INFERENCE_STEPS = 28;
+const DEFAULT_GUIDANCE = 3;
 const DEFAULT_MEGAPIXELS = "1";
 
 export type GenerateContentGalleryImageInput = {
@@ -97,16 +98,20 @@ function buildGalleryImagePrompt(input: {
   visualBrief: string;
 }) {
   return [
-    "Create a premium editorial content image for a creator detail gallery.",
-    "Do not include any text, letters, numbers, logos, watermarks, borders, frames, or UI chrome.",
-    "Portrait-first composition, optimized for a mobile swipe gallery and immersive detail view.",
-    "Style: polished, cinematic, high-end photorealistic editorial imagery with refined materials, rich texture detail, premium lighting, and clean luxury art direction.",
-    "Use one clear focal subject, convincing depth, layered foreground and background detail, atmospheric lighting, realistic skin, fabric, metal, and surface texture, and a composition that feels luxurious and modern.",
-    "Prioritize sharp subject detail, natural contrast, elegant color grading, crisp edges, realistic anatomy, and premium magazine-quality finishing.",
-    input.title ? `Core topic: ${input.title}.` : null,
-    input.summary ? `Summary context: ${input.summary}.` : null,
-    input.body ? `Supporting context: ${input.body}.` : null,
-    input.visualBrief ? `Visual direction: ${input.visualBrief}.` : null,
+    "Create one premium editorial gallery image for a creator content detail page.",
+    "This image should feel like a polished magazine still: high-end, cinematic, photoreal, elegant, and visually focused.",
+    "Use a single dominant subject or a very clear focal composition. Avoid cluttered storytelling, collage layouts, split panels, tiny background characters, or trying to visualize every sentence literally.",
+    "Portrait-first composition optimized for a mobile swipe gallery and immersive detail view.",
+    "Lighting should be refined and believable with rich materials, strong texture fidelity, natural skin rendering, crisp facial detail, realistic anatomy, premium depth, and controlled contrast.",
+    "Do not include any text, typography, letters, numbers, logos, watermarks, borders, frames, UI chrome, subtitles, or poster layout elements.",
+    "Avoid low-detail faces, duplicate people, extra limbs, distorted hands, blurry eyes, warped anatomy, muddy lighting, oversaturated colors, cheap CGI feel, or generic stock-photo composition.",
+    "If people appear, keep the styling tasteful, non-explicit, fully clothed, and fashion-editorial rather than provocative.",
+    input.title ? `Primary concept: ${input.title}.` : null,
+    input.summary ? `Tone and scene direction: ${input.summary}.` : null,
+    input.visualBrief ? `Creator visual request: ${input.visualBrief}.` : null,
+    input.body
+      ? `Background thematic context only, not literal scene instructions: ${input.body}.`
+      : null,
   ]
     .filter(Boolean)
     .join(" ");
@@ -237,6 +242,7 @@ export async function generateAndUploadContentGalleryImage(
       aspect_ratio: DEFAULT_ASPECT_RATIO,
       disable_safety_checker: true,
       go_fast: false,
+      guidance: DEFAULT_GUIDANCE,
       megapixels: DEFAULT_MEGAPIXELS,
       num_inference_steps: DEFAULT_NUM_INFERENCE_STEPS,
       output_format: DEFAULT_OUTPUT_FORMAT,

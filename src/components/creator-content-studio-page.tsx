@@ -63,6 +63,7 @@ import {
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { cn } from "@/lib/utils";
 
 type StudioState = {
   error: string | null;
@@ -172,6 +173,7 @@ const EMPTY_STUDIO_SUMMARY = {
   published: 0,
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;
+const SERVER_BODY_REQUIRED_ERROR = "body is required.";
 
 const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
@@ -498,6 +500,7 @@ export function CreatorContentStudioPage({
     status: "idle",
   });
   const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
+  const [postBodyError, setPostBodyError] = useState<string | null>(null);
   const [automation, setAutomation] = useState<AutomationState>({
     available: false,
     error: null,
@@ -959,6 +962,10 @@ export function CreatorContentStudioPage({
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
+  const postBodyRequiredMessage =
+    locale === "ko"
+      ? "본문을 입력한 뒤 저장하거나 게시해주세요."
+      : "Enter the content body before saving or publishing.";
   const canGeneratePostCover = Boolean(
     postForm.title.trim() || postForm.summary.trim() || postForm.body.trim(),
   );
@@ -1467,8 +1474,19 @@ export function CreatorContentStudioPage({
   }
 
   async function createPost(statusToSave: "draft" | "published") {
+    if (!postForm.body.trim()) {
+      setPostBodyError(postBodyRequiredMessage);
+      setState((current) => ({
+        ...current,
+        error: current.error === SERVER_BODY_REQUIRED_ERROR ? null : current.error,
+        notice: null,
+      }));
+      return;
+    }
+
     try {
       setIsSavingPost(true);
+      setPostBodyError(null);
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
@@ -1510,7 +1528,18 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.saveDraftSuccess,
         posts: [data.content, ...current.posts],
       }));
+      setPostBodyError(null);
     } catch (error) {
+      if (error instanceof Error && error.message === SERVER_BODY_REQUIRED_ERROR) {
+        setPostBodyError(postBodyRequiredMessage);
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: null,
+        }));
+        return;
+      }
+
       setState((current) => ({
         ...current,
         error:
@@ -3364,9 +3393,13 @@ export function CreatorContentStudioPage({
               )}
             </div>
             <TextAreaField
+              error={postBodyError}
               hint={contentCopy.hints.body}
               label={contentCopy.fields.body}
               onChange={(value) => {
+                if (postBodyError) {
+                  setPostBodyError(null);
+                }
                 setPostForm((current) => ({
                   ...current,
                   body: value,
@@ -3981,12 +4014,14 @@ function InputField({
 }
 
 function TextAreaField({
+  error,
   hint,
   label,
   onChange,
   rows,
   value,
 }: {
+  error?: string | null;
   hint: string;
   label: string;
   onChange: (value: string) => void;
@@ -3997,13 +4032,23 @@ function TextAreaField({
     <label className="block">
       <span className="text-sm font-medium text-slate-900">{label}</span>
       <textarea
-        className="mt-2 w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+        className={cn(
+          "mt-2 w-full rounded-[18px] border bg-white px-4 py-3 text-sm text-slate-950 outline-none transition",
+          error
+            ? "border-rose-300 bg-rose-50/40 focus:border-rose-400"
+            : "border-slate-200 focus:border-slate-400",
+        )}
         onChange={(event) => {
           onChange(event.target.value);
         }}
         rows={rows}
         value={value}
       />
+      {error ? (
+        <span className="mt-2 block text-xs font-medium leading-5 text-rose-600">
+          {error}
+        </span>
+      ) : null}
       <span className="mt-2 block text-xs leading-5 text-slate-500">{hint}</span>
     </label>
   );

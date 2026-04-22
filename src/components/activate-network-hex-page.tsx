@@ -53,12 +53,12 @@ type ActivateNetworkHexState = {
 };
 
 const slotPositions = [
-  "left-1/2 top-[0.25rem] -translate-x-1/2 sm:top-[1.4rem] lg:top-[1.75rem]",
-  "left-[83%] top-[29%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
-  "left-[83%] top-[71%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
-  "left-1/2 bottom-[0.25rem] -translate-x-1/2 sm:bottom-[1.4rem] lg:bottom-[1.75rem]",
-  "left-[17%] top-[71%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
-  "left-[17%] top-[29%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
+  "left-1/2 top-[16%] -translate-x-1/2 -translate-y-1/2 sm:top-[1.4rem] sm:translate-y-0 lg:top-[1.75rem]",
+  "left-[74%] top-[33%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
+  "left-[74%] top-[67%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
+  "left-1/2 top-[84%] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-[1.4rem] sm:translate-y-0 lg:bottom-[1.75rem]",
+  "left-[26%] top-[67%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
+  "left-[26%] top-[33%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
 ] as const;
 
 const hexClipPath =
@@ -355,17 +355,17 @@ function HexTile({
 }) {
   const accentStyles =
     accent === "center"
-      ? "border-white/25 bg-[linear-gradient(145deg,rgba(15,23,42,0.95),rgba(29,78,216,0.82))] text-white shadow-[0_32px_85px_rgba(15,23,42,0.4)]"
+      ? "border-amber-100/55 bg-[linear-gradient(145deg,rgba(254,240,138,0.98),rgba(245,158,11,0.95)_42%,rgba(146,64,14,0.9)_100%)] text-slate-950 shadow-[0_34px_95px_rgba(120,53,15,0.42)]"
       : accent === "empty"
-        ? "border-dashed border-white/12 bg-[linear-gradient(155deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-white/55 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
-        : "border-white/18 bg-[linear-gradient(155deg,rgba(255,255,255,0.16),rgba(255,255,255,0.05))] text-white shadow-[0_18px_45px_rgba(15,23,42,0.2)]";
+        ? "border-dashed border-amber-200/18 bg-[linear-gradient(155deg,rgba(120,53,15,0.28),rgba(51,25,8,0.18))] text-amber-100/60 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+        : "border-amber-100/28 bg-[linear-gradient(155deg,rgba(251,191,36,0.24),rgba(180,83,9,0.22)_55%,rgba(15,23,42,0.4)_100%)] text-amber-50 shadow-[0_22px_50px_rgba(120,53,15,0.24)]";
 
   return (
     <div
       className={cn(
         isMobileCompact
-          ? "absolute w-[5.7rem] sm:w-[9rem] lg:w-[11rem]"
-          : "absolute w-[6.85rem] sm:w-[9rem] lg:w-[11rem]",
+          ? "absolute w-[6.5rem] sm:w-[9rem] lg:w-[11rem]"
+          : "absolute w-[7.1rem] sm:w-[9rem] lg:w-[11rem]",
         className,
       )}
     >
@@ -381,14 +381,19 @@ function HexTile({
         style={{ clipPath: hexClipPath }}
         type="button"
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_34%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.08),transparent_26%),radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_48%)]" />
-        <div className="relative flex h-full flex-col justify-between">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,251,235,0.26),transparent_36%),radial-gradient(circle_at_bottom,rgba(251,191,36,0.12),transparent_30%),radial-gradient(circle_at_center,rgba(253,230,138,0.12),transparent_54%)]" />
+        <div
+          className={cn(
+            "relative flex h-full flex-col justify-between",
+            isMobileCompact ? "px-[15%] py-[15%]" : "px-[16%] py-[14%]",
+          )}
+        >
           <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
             <div className="flex items-start justify-between gap-2">
               {badge ? (
                 <p
                   className={cn(
-                    "uppercase text-current/62",
+                    "uppercase text-current/72",
                     isMobileCompact
                       ? "text-[0.42rem] tracking-[0.18em]"
                       : "text-[0.5rem] tracking-[0.24em] sm:text-[0.58rem]",
@@ -412,25 +417,32 @@ function HexTile({
             </div>
             <p
               className={cn(
-                "font-semibold tracking-tight",
+                "font-semibold tracking-tight text-center",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.64rem] leading-4"
+                  ? "line-clamp-2 text-[0.68rem] leading-4.5"
                   : "line-clamp-2 text-[0.76rem] leading-4.5 sm:line-clamp-3 sm:text-[0.94rem] sm:leading-5",
               )}
             >
               {title}
             </p>
-            {subtitle && !isMobileCompact ? (
-              <p className="line-clamp-1 text-[0.6rem] leading-4 text-current/58 sm:line-clamp-2 sm:text-[0.72rem]">
+            {subtitle ? (
+              <p
+                className={cn(
+                  "text-current/70 text-center",
+                  isMobileCompact
+                    ? "line-clamp-1 text-[0.48rem] leading-3.5"
+                    : "line-clamp-1 text-[0.6rem] leading-4 sm:line-clamp-2 sm:text-[0.72rem]",
+                )}
+              >
                 {subtitle}
               </p>
             ) : null}
           </div>
           <p
             className={cn(
-              "text-current/76",
+              "text-current/84 text-center",
               isMobileCompact
-                ? "line-clamp-1 text-[0.56rem] leading-4"
+                ? "line-clamp-2 text-[0.58rem] leading-4"
                 : "line-clamp-2 text-[0.64rem] leading-4.5 sm:line-clamp-3 sm:text-[0.78rem] sm:leading-5",
             )}
           >
@@ -461,23 +473,23 @@ function HexCenterTile({
     <div
       className={cn(
         "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-        isMobileCompact ? "w-[8.9rem]" : "w-[9.8rem] sm:w-[13rem] lg:w-[16.25rem]",
+        isMobileCompact ? "w-[10.9rem]" : "w-[11.2rem] sm:w-[13rem] lg:w-[16.25rem]",
       )}
     >
       <div
         className={cn(
-          "relative aspect-[0.92] overflow-hidden border border-white/20 bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(37,99,235,0.84))] text-white shadow-[0_36px_95px_rgba(15,23,42,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]",
-          isMobileCompact ? "px-3 py-3" : "px-4 py-4 sm:px-5 sm:py-5",
+          "relative aspect-[0.92] overflow-hidden border border-amber-50/60 bg-[linear-gradient(145deg,rgba(254,249,195,0.98),rgba(250,204,21,0.95)_36%,rgba(245,158,11,0.96)_70%,rgba(146,64,14,0.94)_100%)] text-slate-950 shadow-[0_36px_95px_rgba(120,53,15,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]",
+          isMobileCompact ? "px-[14%] py-[14%]" : "px-[16%] py-[14%]",
         )}
         style={{ clipPath: hexClipPath }}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_center,rgba(129,140,248,0.16),transparent_42%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.48),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(254,240,138,0.28),transparent_24%),radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_46%)]" />
         <div className="relative flex h-full flex-col justify-between">
           <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
             <div className="flex items-start justify-between gap-2">
               <p
                 className={cn(
-                  "uppercase text-white/60",
+                  "uppercase text-slate-900/58",
                   isMobileCompact
                     ? "text-[0.46rem] tracking-[0.16em]"
                     : "text-[0.54rem] tracking-[0.22em] sm:text-[0.62rem] sm:tracking-[0.3em]",
@@ -487,7 +499,7 @@ function HexCenterTile({
               </p>
               <span
                 className={cn(
-                  "inline-flex shrink-0 rounded-full border border-white/12 bg-white/10 font-semibold uppercase text-white/78",
+                  "inline-flex shrink-0 rounded-full border border-black/8 bg-white/18 font-semibold uppercase text-slate-950/78",
                   isMobileCompact
                     ? "px-1.5 py-0.5 text-[0.42rem] tracking-[0.12em]"
                     : "px-2 py-0.5 text-[0.48rem] tracking-[0.18em] sm:px-2.5 sm:py-1 sm:text-[0.56rem] sm:tracking-[0.22em]",
@@ -498,9 +510,9 @@ function HexCenterTile({
             </div>
             <p
               className={cn(
-                "font-semibold tracking-tight",
+                "font-semibold tracking-tight text-center text-slate-950",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.84rem] leading-4.5"
+                  ? "line-clamp-2 text-[0.95rem] leading-5"
                   : "line-clamp-2 text-[0.95rem] leading-5 sm:line-clamp-3 sm:text-[1.22rem] sm:leading-7",
               )}
             >
@@ -510,17 +522,17 @@ function HexCenterTile({
           <div className={cn("space-y-2 sm:space-y-3", isMobileCompact && "space-y-1.5")}>
             <p
               className={cn(
-                "font-medium text-white/80",
-                isMobileCompact ? "text-[0.66rem]" : "text-[0.75rem] sm:text-[0.92rem]",
+                "font-medium text-slate-950/78 text-center",
+                isMobileCompact ? "text-[0.7rem]" : "text-[0.75rem] sm:text-[0.92rem]",
               )}
             >
               {subtitle}
             </p>
             <p
               className={cn(
-                "text-white/62",
+                "text-slate-950/72 text-center",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.58rem] leading-4"
+                  ? "line-clamp-2 text-[0.64rem] leading-4.5"
                   : "line-clamp-3 text-[0.66rem] leading-4 sm:line-clamp-4 sm:text-[0.84rem] sm:leading-5",
               )}
             >
@@ -876,12 +888,12 @@ export function ActivateNetworkHexPage({
     .map((member) => member?.email ?? "empty")
     .join("|")}`;
   const slotConnectionPoints = [
-    { x: 50, y: 22 },
-    { x: 76, y: 36 },
-    { x: 76, y: 64 },
-    { x: 50, y: 78 },
-    { x: 24, y: 64 },
-    { x: 24, y: 36 },
+    { x: 50, y: 26 },
+    { x: 68, y: 39 },
+    { x: 68, y: 61 },
+    { x: 50, y: 74 },
+    { x: 32, y: 61 },
+    { x: 32, y: 39 },
   ] as const;
 
   return (
@@ -995,10 +1007,10 @@ export function ActivateNetworkHexPage({
         ) : !state.member ? (
           <MessageCard>{dictionary.activateNetworkPage.memberMissing}</MessageCard>
         ) : (
-          <section className="relative flex min-h-[calc(100vh-6.8rem)] flex-1 items-center justify-center overflow-hidden rounded-[34px] border border-slate-900/90 bg-[linear-gradient(160deg,#06101f_0%,#091427_30%,#0d1630_54%,#10234a_100%)] shadow-[0_34px_100px_rgba(15,23,42,0.32)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(96,165,250,0.18),transparent_18%),radial-gradient(circle_at_18%_16%,rgba(250,204,21,0.1),transparent_18%),radial-gradient(circle_at_86%_18%,rgba(56,189,248,0.12),transparent_22%),radial-gradient(circle_at_82%_80%,rgba(129,140,248,0.14),transparent_26%)]" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)]" />
-            <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_center,black,transparent_85%)]" />
+          <section className="relative flex min-h-[calc(100vh-6.8rem)] flex-1 items-center justify-center overflow-hidden rounded-[34px] border border-amber-950/70 bg-[linear-gradient(180deg,#0d0803_0%,#1d1206_26%,#311b08_56%,#47230b_100%)] shadow-[0_34px_100px_rgba(67,20,7,0.42)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(251,191,36,0.18),transparent_22%),radial-gradient(circle_at_18%_16%,rgba(254,240,138,0.12),transparent_16%),radial-gradient(circle_at_86%_18%,rgba(245,158,11,0.12),transparent_20%),radial-gradient(circle_at_82%_80%,rgba(251,191,36,0.15),transparent_24%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,251,235,0.08),transparent)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,244,214,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,244,214,0.05)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_center,black,transparent_85%)]" />
 
             <div className="absolute inset-x-4 top-4 z-10 hidden items-start justify-between gap-3 sm:inset-x-6 sm:top-6 sm:flex">
               <div className="max-w-[14rem] rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 shadow-[0_16px_45px_rgba(15,23,42,0.24)] backdrop-blur">
@@ -1018,20 +1030,23 @@ export function ActivateNetworkHexPage({
               className={cn(
                 "relative mx-auto w-full animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)]",
                 isMobileCompact
-                  ? "h-[28.5rem] max-w-[21rem]"
+                  ? "h-[26.5rem] max-w-[20rem]"
                   : "aspect-square max-w-[25.25rem] sm:max-w-[33rem] lg:max-w-[46rem] xl:max-w-[52rem]",
               )}
               key={boardKey}
             >
               <svg
-                className="pointer-events-none absolute inset-0 h-full w-full"
+                className={cn(
+                  "pointer-events-none absolute inset-0 h-full w-full",
+                  isMobileCompact && "opacity-35",
+                )}
                 viewBox="0 0 100 100"
               >
                 <defs>
                   <linearGradient id="hex-link-gradient" x1="20%" x2="80%" y1="0%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(250,204,21,0.75)" />
-                    <stop offset="50%" stopColor="rgba(96,165,250,0.95)" />
-                    <stop offset="100%" stopColor="rgba(34,211,238,0.7)" />
+                    <stop offset="0%" stopColor="rgba(254,240,138,0.9)" />
+                    <stop offset="50%" stopColor="rgba(251,191,36,0.98)" />
+                    <stop offset="100%" stopColor="rgba(245,158,11,0.84)" />
                   </linearGradient>
                 </defs>
                 {slotConnectionPoints.map((point, index) => {
@@ -1051,8 +1066,8 @@ export function ActivateNetworkHexPage({
                         stroke="url(#hex-link-gradient)"
                         strokeDasharray={occupied ? "2 0" : "2.6 2.6"}
                         strokeLinecap="round"
-                        strokeOpacity={occupied ? 0.9 : 0.22}
-                        strokeWidth={occupied ? 0.72 : 0.4}
+                        strokeOpacity={occupied ? 0.78 : 0.16}
+                        strokeWidth={occupied ? 0.56 : 0.32}
                         x1="50"
                         x2={String(point.x)}
                         y1="50"
@@ -1076,7 +1091,9 @@ export function ActivateNetworkHexPage({
                   }
                   className={cn(
                     slotPositions[slotIndex],
-                    "animate-[hex-node-float_5.2s_ease-in-out_infinite]",
+                    isMobileCompact
+                      ? "animate-[hex-node-float_5.2s_ease-in-out_infinite]"
+                      : "animate-[hex-node-float_5.2s_ease-in-out_infinite]",
                   )}
                   depthLabel={
                     member
