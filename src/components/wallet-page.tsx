@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Coins,
-  LogOut,
   QrCode,
   RefreshCcw,
   Search,
@@ -31,10 +30,8 @@ import {
   AutoConnect,
   TransactionButton,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
   useWalletBalance,
 } from "thirdweb/react";
 import { toUnits } from "thirdweb/utils";
@@ -44,7 +41,6 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -160,8 +156,6 @@ export function WalletPage({
 }) {
   const brandingCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -200,7 +194,6 @@ export function WalletPage({
   const [sendAmount, setSendAmount] = useState("");
   const [notice, setNotice] = useState<WalletNotice | null>(null);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -570,7 +563,6 @@ export function WalletPage({
         window.clearTimeout(historyRetryTimeoutRef.current);
         historyRetryTimeoutRef.current = null;
       }
-      setIsLogoutDialogOpen(false);
       setIsRefreshing(false);
       setDashboard({
         email: null,
@@ -685,16 +677,6 @@ export function WalletPage({
     status,
   ]);
 
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
-
   const formattedBalance = balance?.displayValue
     ? `${formatTokenDisplay(balance.displayValue, locale)} USDT`
     : "0 USDT";
@@ -710,17 +692,6 @@ export function WalletPage({
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_26%),radial-gradient(circle_at_88%_8%,rgba(13,148,136,0.18),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_28%)]" />
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -785,37 +756,19 @@ export function WalletPage({
               <span className="sr-only sm:not-sr-only">{dictionary.bnbPage.title}</span>
             </Link>
             <StatusChip labels={dictionary.common.status} status={status} />
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
+              disabled={isRefreshing}
+              onClick={() => {
+                void runWalletSync({ background: true });
+              }}
+              type="button"
+            >
+              <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
+              <span className="sr-only sm:not-sr-only">{dictionary.walletPage.actions.refresh}</span>
+            </button>
             {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <div className="flex flex-wrap items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-                  {accountAddress ? (
-                    <a
-                      className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:justify-start sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
-                      href={connectedAccountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <ArrowUpRight className="size-4 shrink-0" />
-                      <span className="sr-only sm:not-sr-only">{formatAddressLabel(accountAddress)}</span>
-                    </a>
-                  ) : null}
-                  <button
-                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    <LogOut className="size-4 sm:hidden" />
-                    <span className="sr-only sm:not-sr-only">{dictionary.common.disconnectWallet}</span>
-                  </button>
-                </div>
-              ) : (
+              isDisconnected ? (
                 <button
                   className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-3 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:h-11 sm:px-4"
                   onClick={() => {
@@ -825,7 +778,7 @@ export function WalletPage({
                 >
                   {dictionary.common.connectWallet}
                 </button>
-              )
+              ) : null
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
@@ -923,64 +876,52 @@ export function WalletPage({
 
               <LandingReveal delay={80} variant="soft">
                 <section className="glass-card rounded-[30px] p-5 sm:p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="eyebrow">{dictionary.walletPage.eyebrow}</p>
-                      <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                        {dictionary.walletPage.labels.memberAccount}
-                      </h2>
-                    </div>
-                    <button
-                      className="inline-flex size-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={isRefreshing}
-                      onClick={() => {
-                        void runWalletSync({ background: true });
-                      }}
-                      type="button"
-                    >
-                      <RefreshCcw
-                        className={cn("size-4", isRefreshing && "animate-spin")}
-                      />
-                    </button>
+                  <div className="space-y-1">
+                    <p className="eyebrow">{dictionary.walletPage.eyebrow}</p>
+                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                      {dictionary.walletPage.labels.memberAccount}
+                    </h2>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {dictionary.walletPage.description}
+                    </p>
                   </div>
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <MetricCard
-                      label={dictionary.walletPage.labels.memberAccount}
-                      value={dashboard.member?.email ?? currentEmail ?? "-"}
-                    />
-                    <MetricCard
-                      label={dictionary.walletPage.labels.memberStatus}
-                      value={
-                        dashboard.member
+                  <div className="mt-5 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(255,255,255,0.96))] p-4 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                          {dictionary.walletPage.labels.memberAccount}
+                        </p>
+                        <p className="mt-2 break-all text-lg font-semibold text-slate-950">
+                          {dashboard.member?.email ?? currentEmail ?? "-"}
+                        </p>
+                      </div>
+                      <InfoBadge className="border-slate-200 bg-white text-slate-700">
+                        {dashboard.member
                           ? dashboard.member.status === "completed"
                             ? dictionary.member.completedValue
                             : dictionary.member.pendingValue
-                          : "-"
-                      }
-                    />
-                    <MetricCard
-                      label={dictionary.walletPage.labels.walletAddress}
-                      value={accountAddress ? formatAddressLabel(accountAddress) : "-"}
-                    />
-                    <MetricCard
-                      label={dictionary.walletPage.labels.referralCode}
-                      value={dashboard.member?.referralCode ?? "-"}
-                    />
-                  </div>
-
-                    <div className="mt-4 rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                        {dictionary.walletPage.labels.updatedAt}
-                      </p>
-                      <p className="mt-2 text-sm font-medium text-slate-900">
-                        {dashboard.memberUpdatedAt
-                          ? formatDateTime(dashboard.memberUpdatedAt, locale)
-                          : dashboard.memberStatus === "loading"
-                            ? dictionary.walletPage.loading
-                            : "-"}
-                      </p>
+                          : "-"}
+                      </InfoBadge>
                     </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <MetricCard
+                        label={dictionary.walletPage.labels.referralCode}
+                        value={dashboard.member?.referralCode ?? "-"}
+                      />
+                      <MetricCard
+                        label={dictionary.walletPage.labels.updatedAt}
+                        value={
+                          dashboard.memberUpdatedAt
+                            ? formatDateTime(dashboard.memberUpdatedAt, locale)
+                            : dashboard.memberStatus === "loading"
+                              ? dictionary.walletPage.loading
+                              : "-"
+                        }
+                      />
+                    </div>
+                  </div>
 
                   {isCompletedMember ? (
                     <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
