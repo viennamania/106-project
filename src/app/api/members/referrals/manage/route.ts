@@ -1,6 +1,7 @@
 import {
   getMembersCollection,
   getPointBalancesCollection,
+  getReferralPlacementSlotsCollection,
   getRewardRedemptionsCollection,
 } from "@/lib/mongodb";
 import type {
@@ -27,6 +28,7 @@ function createManagedReferralNode(
   depth: number,
   balance?: PointBalanceDocument | null,
   membershipCardTier: ReferralMembershipCardTier = "none",
+  placementSlotIndex: number | null = null,
 ): ManagedReferralTreeNodeRecord {
   return {
     ...serializeReferralMember(member),
@@ -35,6 +37,7 @@ function createManagedReferralNode(
     directReferralCount: 0,
     lifetimePoints: balance?.lifetimePoints ?? 0,
     membershipCardTier,
+    placementSlotIndex,
     spendablePoints: balance?.spendablePoints ?? 0,
     status: member.status,
     tier: balance?.tier ?? "basic",
@@ -141,11 +144,16 @@ async function buildManagedReferralTree(
   const descendantEmails = [...new Set(collectedMembers.map(({ member: levelMember }) =>
     normalizeEmail(levelMember.email),
   ))];
-  const [pointBalancesCollection, rewardRedemptionsCollection] = await Promise.all([
+  const [
+    pointBalancesCollection,
+    rewardRedemptionsCollection,
+    referralPlacementSlotsCollection,
+  ] = await Promise.all([
     getPointBalancesCollection(),
     getRewardRedemptionsCollection(),
+    getReferralPlacementSlotsCollection(),
   ]);
-  const [pointBalances, tierRewardRedemptions] =
+  const [pointBalances, tierRewardRedemptions, placementSlots] =
     descendantEmails.length > 0
       ? await Promise.all([
           pointBalancesCollection
@@ -162,10 +170,20 @@ async function buildManagedReferralTree(
               rewardId: 1,
             })
             .toArray(),
+          referralPlacementSlotsCollection
+            .find({ claimedByEmail: { $in: descendantEmails } })
+            .project<{ claimedByEmail: string; slotIndex: number }>({
+              claimedByEmail: 1,
+              slotIndex: 1,
+            })
+            .toArray(),
         ])
-      : [[], []];
+      : [[], [], []];
   const balanceByEmail = new Map(
     pointBalances.map((balance) => [normalizeEmail(balance.memberEmail), balance]),
+  );
+  const placementSlotIndexByEmail = new Map(
+    placementSlots.map((slot) => [normalizeEmail(slot.claimedByEmail), slot.slotIndex]),
   );
   const membershipCardTierByEmail = new Map<string, ReferralMembershipCardTier>();
 
@@ -191,6 +209,7 @@ async function buildManagedReferralTree(
       depth,
       balanceByEmail.get(normalizeEmail(levelMember.email)),
       membershipCardTierByEmail.get(normalizeEmail(levelMember.email)) ?? "none",
+      placementSlotIndexByEmail.get(normalizeEmail(levelMember.email)) ?? null,
     );
 
     members.push(node);

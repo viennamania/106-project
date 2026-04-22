@@ -79,6 +79,7 @@ export type ReferralMemberRecord = {
   locale: string;
   placementEmail: string | null;
   placementReferralCode: string | null;
+  placementSlotIndex: number | null;
   referralCode: string | null;
   referredByCode: string | null;
   registrationCompletedAt: string;
@@ -268,6 +269,7 @@ export function serializeReferralMember(
     locale: member.locale,
     placementEmail: member.placementEmail ?? null,
     placementReferralCode: member.placementReferralCode ?? null,
+    placementSlotIndex: null,
     referralCode: member.referralCode ?? null,
     referredByCode: member.sponsorReferralCode ?? member.referredByCode ?? null,
     registrationCompletedAt:

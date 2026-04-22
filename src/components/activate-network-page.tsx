@@ -15,6 +15,7 @@ import {
   Bell,
   ChevronRight,
   GitBranch,
+  Hexagon,
   Layers3,
   Megaphone,
   RefreshCcw,
@@ -145,6 +146,14 @@ export function ActivateNetworkPage({
     `/${locale}/announcements`,
     referralCode,
   );
+  const hexViewLabel = {
+    en: "Hex view",
+    id: "Tampilan heks",
+    ja: "ヘックス表示",
+    ko: "육각형 보기",
+    vi: "Mạng lục giác",
+    zh: "六角视图",
+  } satisfies Record<Locale, string>;
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -168,6 +177,28 @@ export function ActivateNetworkPage({
     state.members.find((member) => member.email === selectedMemberEmail) ??
     filteredMembers[0] ??
     null;
+  const currentPageHref = useMemo(
+    () =>
+      setPathSearchParams(
+        buildPathWithReferral(`/${locale}/activate/network`, referralCode),
+        {
+          member: selectedMemberEmail,
+          returnTo: returnToHref,
+        },
+      ),
+    [locale, referralCode, returnToHref, selectedMemberEmail],
+  );
+  const hexDashboardHref = useMemo(
+    () =>
+      setPathSearchParams(
+        buildPathWithReferral(`/${locale}/activate/network/hex`, referralCode),
+        {
+          member: selectedMemberEmail,
+          returnTo: currentPageHref,
+        },
+      ),
+    [currentPageHref, locale, referralCode, selectedMemberEmail],
+  );
 
   useEffect(() => {
     if (status === "connected") {
@@ -834,6 +865,15 @@ export function ActivateNetworkPage({
 
             <div className="flex items-center gap-2">
               {isCompletedMember ? (
+                <Link
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-indigo-200 hover:bg-indigo-50/70 hover:text-indigo-800 sm:size-11"
+                  href={hexDashboardHref}
+                  title={hexViewLabel[locale]}
+                >
+                  <Hexagon className="size-4" />
+                </Link>
+              ) : null}
+              {isCompletedMember ? (
                 <button
                   className={cn(
                     "inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70 sm:size-11",
@@ -886,6 +926,15 @@ export function ActivateNetworkPage({
               <StatusChip labels={dictionary.common.status} status={status} />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              {isCompletedMember ? (
+                <Link
+                  className="hidden h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-indigo-200 hover:bg-indigo-50/70 hover:text-indigo-800 lg:inline-flex"
+                  href={hexDashboardHref}
+                >
+                  <Hexagon className="size-4" />
+                  {hexViewLabel[locale]}
+                </Link>
+              ) : null}
               {isCompletedMember ? (
                 <button
                   className="hidden h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70 lg:inline-flex"
