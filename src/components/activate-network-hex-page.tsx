@@ -53,12 +53,12 @@ type ActivateNetworkHexState = {
 };
 
 const slotPositions = [
-  "left-1/2 top-[1.75rem] -translate-x-1/2",
-  "right-[0.6rem] top-[6.35rem] sm:right-[1.1rem] sm:top-[7.1rem] lg:right-[1.6rem] lg:top-[7.8rem]",
-  "right-[0.6rem] bottom-[6.35rem] sm:right-[1.1rem] sm:bottom-[7.1rem] lg:right-[1.6rem] lg:bottom-[7.8rem]",
-  "left-1/2 bottom-[1.75rem] -translate-x-1/2",
-  "left-[0.6rem] bottom-[6.35rem] sm:left-[1.1rem] sm:bottom-[7.1rem] lg:left-[1.6rem] lg:bottom-[7.8rem]",
-  "left-[0.6rem] top-[6.35rem] sm:left-[1.1rem] sm:top-[7.1rem] lg:left-[1.6rem] lg:top-[7.8rem]",
+  "left-1/2 top-[0.25rem] -translate-x-1/2 sm:top-[1.4rem] lg:top-[1.75rem]",
+  "left-[83%] top-[29%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
+  "left-[83%] top-[71%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
+  "left-1/2 bottom-[0.25rem] -translate-x-1/2 sm:bottom-[1.4rem] lg:bottom-[1.75rem]",
+  "left-[17%] top-[71%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
+  "left-[17%] top-[29%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
 ] as const;
 
 const hexClipPath =
@@ -182,6 +182,28 @@ function formatEmailLabel(email: string) {
   }
 
   return `${localPart.slice(0, 8)}...@${domain}`;
+}
+
+function formatHexMemberLabel(email: string, isMobileCompact: boolean) {
+  if (!isMobileCompact) {
+    return formatEmailLabel(email);
+  }
+
+  if (!email) {
+    return "-";
+  }
+
+  const [localPart, domain = ""] = email.split("@");
+
+  if (!domain) {
+    return email.length <= 10 ? email : `${email.slice(0, 8)}…`;
+  }
+
+  if (localPart.length <= 8) {
+    return `${localPart}@…`;
+  }
+
+  return `${localPart.slice(0, 7)}…`;
 }
 
 function getMemberStatusLabel(
@@ -315,6 +337,7 @@ function HexTile({
   className,
   depthLabel,
   interactive = false,
+  isMobileCompact = false,
   onClick,
   subtitle,
   title,
@@ -325,6 +348,7 @@ function HexTile({
   className?: string;
   depthLabel?: string | null;
   interactive?: boolean;
+  isMobileCompact?: boolean;
   onClick?: () => void;
   subtitle?: string | null;
   title: string;
@@ -339,13 +363,16 @@ function HexTile({
   return (
     <div
       className={cn(
-        "absolute w-[7.85rem] sm:w-[9.8rem] lg:w-[11rem]",
+        isMobileCompact
+          ? "absolute w-[5.7rem] sm:w-[9rem] lg:w-[11rem]"
+          : "absolute w-[6.85rem] sm:w-[9rem] lg:w-[11rem]",
         className,
       )}
     >
       <button
         className={cn(
-          "group relative aspect-[0.92] w-full overflow-hidden border px-4 py-4 text-left transition duration-500",
+          "group relative aspect-[0.92] w-full overflow-hidden border text-left transition duration-500",
+          isMobileCompact ? "px-2.5 py-2.5" : "px-3.5 py-3.5 sm:px-4 sm:py-4",
           accentStyles,
           interactive &&
             "hover:-translate-y-1.5 hover:scale-[1.02] hover:border-sky-200/70 hover:bg-[linear-gradient(155deg,rgba(96,165,250,0.22),rgba(255,255,255,0.1))]",
@@ -356,29 +383,57 @@ function HexTile({
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_34%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.08),transparent_26%),radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_48%)]" />
         <div className="relative flex h-full flex-col justify-between">
-          <div className="space-y-2">
+          <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
             <div className="flex items-start justify-between gap-2">
               {badge ? (
-                <p className="text-[0.54rem] uppercase tracking-[0.28em] text-current/62 sm:text-[0.58rem]">
+                <p
+                  className={cn(
+                    "uppercase text-current/62",
+                    isMobileCompact
+                      ? "text-[0.42rem] tracking-[0.18em]"
+                      : "text-[0.5rem] tracking-[0.24em] sm:text-[0.58rem]",
+                  )}
+                >
                   {badge}
                 </p>
               ) : <span />}
               {depthLabel ? (
-                <span className="inline-flex shrink-0 rounded-full border border-current/15 bg-white/8 px-2 py-1 text-[0.52rem] font-semibold uppercase tracking-[0.22em] text-current/74">
+                <span
+                  className={cn(
+                    "inline-flex shrink-0 rounded-full border border-current/15 bg-white/8 font-semibold uppercase text-current/74",
+                    isMobileCompact
+                      ? "px-1.5 py-0.5 text-[0.42rem] tracking-[0.14em]"
+                      : "px-1.5 py-0.5 text-[0.48rem] tracking-[0.18em] sm:px-2 sm:py-1 sm:text-[0.52rem]",
+                  )}
+                >
                   {depthLabel}
                 </span>
               ) : null}
             </div>
-            <p className="line-clamp-3 text-[0.84rem] font-semibold leading-5 tracking-tight sm:text-[0.94rem]">
+            <p
+              className={cn(
+                "font-semibold tracking-tight",
+                isMobileCompact
+                  ? "line-clamp-2 text-[0.64rem] leading-4"
+                  : "line-clamp-2 text-[0.76rem] leading-4.5 sm:line-clamp-3 sm:text-[0.94rem] sm:leading-5",
+              )}
+            >
               {title}
             </p>
-            {subtitle ? (
-              <p className="line-clamp-2 text-[0.68rem] leading-4 text-current/60 sm:text-[0.72rem]">
+            {subtitle && !isMobileCompact ? (
+              <p className="line-clamp-1 text-[0.6rem] leading-4 text-current/58 sm:line-clamp-2 sm:text-[0.72rem]">
                 {subtitle}
               </p>
             ) : null}
           </div>
-          <p className="line-clamp-3 text-[0.72rem] leading-5 text-current/78 sm:text-[0.78rem]">
+          <p
+            className={cn(
+              "text-current/76",
+              isMobileCompact
+                ? "line-clamp-1 text-[0.56rem] leading-4"
+                : "line-clamp-2 text-[0.64rem] leading-4.5 sm:line-clamp-3 sm:text-[0.78rem] sm:leading-5",
+            )}
+          >
             {body}
           </p>
         </div>
@@ -390,42 +445,85 @@ function HexTile({
 function HexCenterTile({
   body,
   eyebrow,
+  isMobileCompact = false,
   memberState,
   subtitle,
   title,
 }: {
   body: string;
   eyebrow: string;
+  isMobileCompact?: boolean;
   memberState: string;
   subtitle: string;
   title: string;
 }) {
   return (
-    <div className="absolute left-1/2 top-1/2 w-[11rem] -translate-x-1/2 -translate-y-1/2 sm:w-[14rem] lg:w-[16.25rem]">
+    <div
+      className={cn(
+        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+        isMobileCompact ? "w-[8.9rem]" : "w-[9.8rem] sm:w-[13rem] lg:w-[16.25rem]",
+      )}
+    >
       <div
-        className="relative aspect-[0.92] overflow-hidden border border-white/20 bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(37,99,235,0.84))] px-5 py-5 text-white shadow-[0_36px_95px_rgba(15,23,42,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]"
+        className={cn(
+          "relative aspect-[0.92] overflow-hidden border border-white/20 bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(37,99,235,0.84))] text-white shadow-[0_36px_95px_rgba(15,23,42,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]",
+          isMobileCompact ? "px-3 py-3" : "px-4 py-4 sm:px-5 sm:py-5",
+        )}
         style={{ clipPath: hexClipPath }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_center,rgba(129,140,248,0.16),transparent_42%)]" />
         <div className="relative flex h-full flex-col justify-between">
-          <div className="space-y-2">
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-[0.62rem] uppercase tracking-[0.3em] text-white/60">
+          <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
+            <div className="flex items-start justify-between gap-2">
+              <p
+                className={cn(
+                  "uppercase text-white/60",
+                  isMobileCompact
+                    ? "text-[0.46rem] tracking-[0.16em]"
+                    : "text-[0.54rem] tracking-[0.22em] sm:text-[0.62rem] sm:tracking-[0.3em]",
+                )}
+              >
                 {eyebrow}
               </p>
-              <span className="inline-flex shrink-0 rounded-full border border-white/12 bg-white/10 px-2.5 py-1 text-[0.56rem] font-semibold uppercase tracking-[0.22em] text-white/78">
+              <span
+                className={cn(
+                  "inline-flex shrink-0 rounded-full border border-white/12 bg-white/10 font-semibold uppercase text-white/78",
+                  isMobileCompact
+                    ? "px-1.5 py-0.5 text-[0.42rem] tracking-[0.12em]"
+                    : "px-2 py-0.5 text-[0.48rem] tracking-[0.18em] sm:px-2.5 sm:py-1 sm:text-[0.56rem] sm:tracking-[0.22em]",
+                )}
+              >
                 {memberState}
               </span>
             </div>
-            <p className="line-clamp-3 text-lg font-semibold leading-6 tracking-tight sm:text-[1.22rem] sm:leading-7">
+            <p
+              className={cn(
+                "font-semibold tracking-tight",
+                isMobileCompact
+                  ? "line-clamp-2 text-[0.84rem] leading-4.5"
+                  : "line-clamp-2 text-[0.95rem] leading-5 sm:line-clamp-3 sm:text-[1.22rem] sm:leading-7",
+              )}
+            >
               {title}
             </p>
           </div>
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-white/80 sm:text-[0.92rem]">
+          <div className={cn("space-y-2 sm:space-y-3", isMobileCompact && "space-y-1.5")}>
+            <p
+              className={cn(
+                "font-medium text-white/80",
+                isMobileCompact ? "text-[0.66rem]" : "text-[0.75rem] sm:text-[0.92rem]",
+              )}
+            >
               {subtitle}
             </p>
-            <p className="line-clamp-4 text-xs leading-5 text-white/62 sm:text-[0.84rem]">
+            <p
+              className={cn(
+                "text-white/62",
+                isMobileCompact
+                  ? "line-clamp-2 text-[0.58rem] leading-4"
+                  : "line-clamp-3 text-[0.66rem] leading-4 sm:line-clamp-4 sm:text-[0.84rem] sm:leading-5",
+              )}
+            >
               {body}
             </p>
           </div>
@@ -467,6 +565,7 @@ export function ActivateNetworkHexPage({
     totalReferrals: 0,
   });
   const isDisconnected = status !== "connected" || !accountAddress;
+  const [isMobileCompact, setIsMobileCompact] = useState(false);
 
   const loadNetwork = useCallback(async () => {
     if (!accountAddress) {
@@ -615,6 +714,24 @@ export function ActivateNetworkHexPage({
 
     void loadNetwork();
   }, [accountAddress, loadNetwork, status]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const sync = () => {
+      setIsMobileCompact(mediaQuery.matches);
+    };
+
+    sync();
+    mediaQuery.addEventListener("change", sync);
+
+    return () => {
+      mediaQuery.removeEventListener("change", sync);
+    };
+  }, []);
 
   const rootEmail = state.member?.email ?? null;
   const emailLookup = useMemo(() => {
@@ -883,7 +1000,7 @@ export function ActivateNetworkHexPage({
             <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)]" />
             <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_center,black,transparent_85%)]" />
 
-            <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-3 sm:inset-x-6 sm:top-6">
+            <div className="absolute inset-x-4 top-4 z-10 hidden items-start justify-between gap-3 sm:inset-x-6 sm:top-6 sm:flex">
               <div className="max-w-[14rem] rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 shadow-[0_16px_45px_rgba(15,23,42,0.24)] backdrop-blur">
                 <p className="text-[0.6rem] uppercase tracking-[0.28em] text-white/52">
                   {copy.hexView}
@@ -895,13 +1012,15 @@ export function ActivateNetworkHexPage({
                   {copy.boardHint}
                 </p>
               </div>
-              <div className="sm:hidden">
-                <ConnectionStatusChip labels={dictionary.common.status} status={status} />
-              </div>
             </div>
 
             <div
-              className="relative mx-auto aspect-square w-full max-w-[24rem] animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)] sm:max-w-[34rem] lg:max-w-[46rem] xl:max-w-[52rem]"
+              className={cn(
+                "relative mx-auto w-full animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)]",
+                isMobileCompact
+                  ? "h-[28.5rem] max-w-[21rem]"
+                  : "aspect-square max-w-[25.25rem] sm:max-w-[33rem] lg:max-w-[46rem] xl:max-w-[52rem]",
+              )}
               key={boardKey}
             >
               <svg
@@ -950,7 +1069,9 @@ export function ActivateNetworkHexPage({
                   badge={`${copy.slot} ${slotIndex + 1}`}
                   body={
                     member
-                      ? `${formatInteger(member.lifetimePoints, locale)}P · ${getMembershipCardLabel(locale, member.membershipCardTier)}`
+                      ? isMobileCompact
+                        ? `${formatInteger(member.lifetimePoints, locale)}P`
+                        : `${formatInteger(member.lifetimePoints, locale)}P · ${getMembershipCardLabel(locale, member.membershipCardTier)}`
                       : copy.emptySlot
                   }
                   className={cn(
@@ -959,10 +1080,13 @@ export function ActivateNetworkHexPage({
                   )}
                   depthLabel={
                     member
-                      ? `${dictionary.activateNetworkPage.labels.level} ${member.depth}`
+                      ? isMobileCompact
+                        ? `Lv ${member.depth}`
+                        : `${dictionary.activateNetworkPage.labels.level} ${member.depth}`
                       : null
                   }
                   interactive={Boolean(member)}
+                  isMobileCompact={isMobileCompact}
                   key={`slot-${slotIndex + 1}`}
                   onClick={
                     member
@@ -973,27 +1097,46 @@ export function ActivateNetworkHexPage({
                   }
                   subtitle={
                     member
-                      ? `${getMemberStatusLabel(dictionary, member.status)} · ${getTierLabel(locale, member.tier)}`
+                      ? isMobileCompact
+                        ? `${getMemberStatusLabel(dictionary, member.status)} · ${getTierLabel(locale, member.tier)}`
+                        : `${getMemberStatusLabel(dictionary, member.status)} · ${getTierLabel(locale, member.tier)}`
                       : null
                   }
-                  title={member ? formatEmailLabel(member.email) : copy.emptySlot}
+                  title={
+                    member
+                      ? formatHexMemberLabel(member.email, isMobileCompact)
+                      : copy.emptySlot
+                  }
                 />
               ))}
 
               <HexCenterTile
-                body={boardBody}
+                body={
+                  isMobileCompact
+                    ? isRootFocus || !focusedNode
+                      ? `${formatInteger(state.summary.directMembers, locale)} 직속 · ${formatInteger(state.summary.totalMembers, locale)} 전체`
+                      : `${formatInteger(focusedNode.directReferralCount, locale)} 직속 · ${formatInteger(focusedNode.totalReferralCount, locale)} 하위`
+                    : boardBody
+                }
                 eyebrow={
                   isRootFocus
                     ? copy.focusRoot
                     : dictionary.activateNetworkPage.labels.currentMember
                 }
+                isMobileCompact={isMobileCompact}
                 memberState={
                   isRootFocus || !focusedNode
                     ? getMemberStatusLabel(dictionary, state.member.status)
                     : getMemberStatusLabel(dictionary, focusedNode.status)
                 }
-                subtitle={boardSubtitle}
-                title={formatEmailLabel(boardTitle)}
+                subtitle={
+                  isMobileCompact
+                    ? isRootFocus
+                      ? copy.focusRoot
+                      : `${dictionary.activateNetworkPage.labels.level} ${focusDepth}`
+                    : boardSubtitle
+                }
+                title={formatHexMemberLabel(boardTitle, isMobileCompact)}
               />
             </div>
           </section>
