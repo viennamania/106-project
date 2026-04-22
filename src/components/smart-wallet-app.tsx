@@ -24,6 +24,7 @@ import {
   PenSquare,
   Rss,
   Share2,
+  ShieldAlert,
   Sparkles,
   Users,
   WalletMinimal,
@@ -134,6 +135,26 @@ type ReferralExperienceResponse = {
   memberEmail: string | null;
   referralCode: string | null;
 };
+
+function getServiceSuspensionCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      description:
+        "서비스가 중단되었습니다. 관리자에게 문의하세요. 확인 전까지 이 화면의 기능은 사용할 수 없습니다.",
+      eyebrow: "service paused",
+      returnHome: "홈으로 이동",
+      title: "서비스가 중단되었습니다",
+    };
+  }
+
+  return {
+    description:
+      "This service is currently suspended. Please contact the administrator. Until it is cleared, this screen will remain unavailable.",
+    eyebrow: "service paused",
+    returnHome: "Back to home",
+    title: "Service has been suspended",
+  };
+}
 
 const GENERIC_MEMBER_SYNC_ERRORS = new Set([
   "error",
@@ -296,10 +317,12 @@ export function SmartWalletApp({
     },
   );
   const notificationCopy = dictionary.activateNetworkPage.notifications;
+  const suspendedCopy = getServiceSuspensionCopy(locale);
   const isSelfIncomingReferral =
     incomingReferralCode !== null &&
     memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
+  const isServiceSuspended = Boolean(memberSync.member?.serviceSuspendedAt);
   const canManagePushAlerts =
     status === "connected" &&
     Boolean(accountAddress) &&
@@ -614,7 +637,7 @@ export function SmartWalletApp({
         triggerCelebration();
       }
 
-      if (syncedMember.status === "completed") {
+      if (syncedMember.status === "completed" && !syncedMember.serviceSuspendedAt) {
         void loadReferralDashboard(syncedMember.email, {
           background: options?.background,
         });
@@ -1345,6 +1368,56 @@ export function SmartWalletApp({
           client={thirdwebClient}
           wallets={supportedWallets}
         />
+      ) : null}
+
+      {isServiceSuspended ? (
+        <div className="fixed inset-0 z-[80] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.18),transparent_26%),linear-gradient(180deg,rgba(15,23,42,0.62),rgba(15,23,42,0.8))] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-xl sm:px-6">
+          <div className="mx-auto flex min-h-full w-full max-w-lg items-center justify-center">
+            <div className="w-full rounded-[32px] border border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.9))] p-6 shadow-[0_28px_80px_rgba(15,23,42,0.3)]">
+              <div className="flex size-14 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,#f59e0b,#facc15)] text-slate-950 shadow-[0_18px_36px_rgba(245,158,11,0.28)]">
+                <ShieldAlert className="size-6" />
+              </div>
+              <p className="mt-4 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-amber-700/80">
+                {suspendedCopy.eyebrow}
+              </p>
+              <h2 className="mt-2 text-[1.9rem] font-semibold tracking-tight text-slate-950">
+                {suspendedCopy.title}
+              </h2>
+              <p className="mt-3 text-[0.98rem] leading-7 text-slate-600">
+                {suspendedCopy.description}
+              </p>
+
+              <div className="mt-5 grid gap-3 rounded-[24px] border border-amber-200/80 bg-amber-50/80 p-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-amber-800/72">
+                    {locale === "ko" ? "중단 시각" : "Suspended at"}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {memberSync.member?.serviceSuspendedAt
+                      ? formatDateTime(memberSync.member.serviceSuspendedAt, locale)
+                      : dictionary.common.notAvailable}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-amber-800/72">
+                    {locale === "ko" ? "중단 처리 관리자" : "Suspended by"}
+                  </p>
+                  <p className="mt-2 break-all text-sm font-semibold text-slate-950">
+                    {memberSync.member?.serviceSuspendedByEmail ??
+                      dictionary.common.notAvailable}
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                href={homeHref}
+              >
+                {suspendedCopy.returnHome}
+              </Link>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       <div className="fixed inset-x-0 top-0 z-40 border-b border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.86))] shadow-[0_18px_44px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:hidden">

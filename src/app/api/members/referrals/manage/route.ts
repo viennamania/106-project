@@ -15,8 +15,10 @@ import {
   serializeMember,
   serializeReferralMember,
   REFERRAL_TREE_DEPTH_LIMIT,
+  type ServiceSuspensionScope,
   type MemberDocument,
 } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import type { PointBalanceDocument } from "@/lib/points";
 
 function jsonError(message: string, status: number) {
@@ -74,6 +76,34 @@ function buildReferralNetworkSummary(
   }
 
   return summary;
+}
+
+function findManagedReferralNode(
+  nodes: ManagedReferralTreeNodeRecord[],
+  targetEmail: string,
+): ManagedReferralTreeNodeRecord | null {
+  for (const node of nodes) {
+    if (normalizeEmail(node.email) === targetEmail) {
+      return node;
+    }
+
+    const nestedMatch = findManagedReferralNode(node.children, targetEmail);
+
+    if (nestedMatch) {
+      return nestedMatch;
+    }
+  }
+
+  return null;
+}
+
+function collectManagedReferralEmails(
+  node: ManagedReferralTreeNodeRecord,
+): string[] {
+  return [
+    normalizeEmail(node.email),
+    ...node.children.flatMap((child) => collectManagedReferralEmails(child)),
+  ];
 }
 
 async function buildManagedReferralTree(
@@ -258,6 +288,21 @@ async function buildManagedReferralTree(
   };
 }
 
+async function createManagedReferralResponse(
+  member: MemberDocument,
+): Promise<ManagedMemberReferralsResponse> {
+  const network = await buildManagedReferralTree(member);
+
+  return {
+    levelCounts: network.levelCounts,
+    member: serializeMember(member),
+    members: network.members,
+    referrals: network.referrals,
+    summary: network.summary,
+    totalReferrals: network.totalReferrals,
+  };
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
@@ -278,23 +323,151 @@ export async function GET(request: Request) {
       return jsonError("Member signup is not complete.", 403);
     }
 
-    const network = await buildManagedReferralTree(member);
-
-    const response: ManagedMemberReferralsResponse = {
-      levelCounts: network.levelCounts,
-      member: serializeMember(member),
-      members: network.members,
-      referrals: network.referrals,
-      summary: network.summary,
-      totalReferrals: network.totalReferrals,
-    };
-
-    return Response.json(response);
+    return Response.json(await createManagedReferralResponse(member));
   } catch (error) {
     const message =
       error instanceof Error
         ? error.message
         : "Failed to read referral network management data.";
+
+    return jsonError(message, 500);
+  }
+}
+
+type ManageReferralServiceStatusRequest = {
+  action?: "release" | "suspend";
+  email?: string;
+  scope?: ServiceSuspensionScope;
+  targetMemberEmail?: string;
+  walletAddress?: string;
+};
+
+export async function PATCH(request: Request) {
+  let payload: ManageReferralServiceStatusRequest;
+
+  try {
+    payload = (await request.json()) as ManageReferralServiceStatusRequest;
+  } catch {
+    return jsonError("Invalid JSON body.", 400);
+  }
+
+  const action = payload.action;
+  const rawEmail = payload.email;
+  const rawTargetMemberEmail = payload.targetMemberEmail;
+  const walletAddress = payload.walletAddress;
+  const scope = payload.scope;
+
+  if (!rawEmail) {
+    return jsonError("email is required.", 400);
+  }
+
+  if (!walletAddress) {
+    return jsonError("walletAddress is required.", 400);
+  }
+
+  if (!rawTargetMemberEmail) {
+    return jsonError("targetMemberEmail is required.", 400);
+  }
+
+  if (action !== "suspend" && action !== "release") {
+    return jsonError("action must be suspend or release.", 400);
+  }
+
+  if (scope !== "member" && scope !== "subtree") {
+    return jsonError("scope must be member or subtree.", 400);
+  }
+
+  try {
+    const authorization = await validateMemberWalletOwner({
+      email: rawEmail,
+      walletAddress,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const operatorMember = authorization.member;
+
+    if (!operatorMember?.referralCode) {
+      return jsonError("Member signup is not complete.", 403);
+    }
+
+    const targetEmail = normalizeEmail(rawTargetMemberEmail);
+    const operatorNetwork = await buildManagedReferralTree(operatorMember);
+    const targetNode = findManagedReferralNode(operatorNetwork.referrals, targetEmail);
+
+    if (!targetNode) {
+      return jsonError(
+        "The selected member is not managed by this referral network.",
+        404,
+      );
+    }
+
+    const affectedEmails = Array.from(
+      new Set(
+        scope === "subtree"
+          ? collectManagedReferralEmails(targetNode)
+          : [targetEmail],
+      ),
+    );
+
+    const membersCollection = await getMembersCollection();
+    const now = new Date();
+
+    if (action === "suspend") {
+      await membersCollection.updateMany(
+        {
+          email: { $in: affectedEmails },
+          status: "completed",
+        },
+        {
+          $set: {
+            serviceSuspendedAt: now,
+            serviceSuspendedByEmail: operatorMember.email,
+            serviceSuspendedScope: scope,
+            updatedAt: now,
+          },
+        },
+      );
+    } else {
+      await membersCollection.updateMany(
+        {
+          email: { $in: affectedEmails },
+          status: "completed",
+        },
+        {
+          $set: {
+            updatedAt: now,
+          },
+          $unset: {
+            serviceSuspendedAt: "",
+            serviceSuspendedByEmail: "",
+            serviceSuspendedScope: "",
+          },
+        },
+      );
+    }
+
+    const refreshedOperator = await membersCollection.findOne({
+      email: operatorMember.email,
+    });
+
+    if (!refreshedOperator) {
+      return jsonError("Member not found.", 404);
+    }
+
+    return Response.json({
+      ...(await createManagedReferralResponse(refreshedOperator)),
+      action,
+      scope,
+      updatedCount: affectedEmails.length,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update referral member service status.";
 
     return jsonError(message, 500);
   }

@@ -51,6 +51,7 @@ import {
   type ManagedMemberReferralsResponse,
   type ManagedReferralTreeNodeRecord,
   type MemberRecord,
+  type ServiceSuspensionScope,
   type SyncMemberResponse,
 } from "@/lib/member";
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
@@ -87,6 +88,64 @@ type ActivateNetworkNotificationsState = {
   status: "idle" | "loading" | "ready" | "error";
   unreadCount: number;
 };
+
+type ServiceStatusUpdateState = {
+  error: string | null;
+  notice: string | null;
+  status: "error" | "idle" | "submitting" | "success";
+};
+
+function getServiceManagementCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      activeValue: "정상",
+      description:
+        "선택 회원의 서비스 사용을 중단하거나 다시 해제합니다. 필요하면 하위 완료 회원까지 함께 적용할 수 있습니다.",
+      releaseAction: "서비스 해제",
+      releaseNoticeMember: "선택 회원의 서비스 중단이 해제되었습니다.",
+      releaseNoticeSubtree:
+        "선택 회원과 하위 완료 회원 전체의 서비스 중단이 해제되었습니다.",
+      scopeLabel: "적용 범위",
+      scopeMember: "회원만",
+      scopeSubtree: "회원 + 하위 전체",
+      statusLabel: "서비스 상태",
+      submitPending: "적용 중...",
+      suspendAction: "서비스 중단",
+      suspendedAtLabel: "중단 시각",
+      suspendedByLabel: "중단 처리 관리자",
+      suspendedScopeLabel: "중단 적용 범위",
+      suspendedValue: "중단됨",
+      suspendNoticeMember: "선택 회원 서비스가 중단되었습니다.",
+      suspendNoticeSubtree:
+        "선택 회원과 하위 완료 회원 전체의 서비스가 중단되었습니다.",
+      title: "서비스 관리",
+    };
+  }
+
+  return {
+    activeValue: "Active",
+    description:
+      "Suspend this member's service access or release it again. You can apply the change to this member only or to the full completed downline.",
+    releaseAction: "Release service block",
+    releaseNoticeMember: "Service access was restored for the selected member.",
+    releaseNoticeSubtree:
+      "Service access was restored for the selected member and the completed downline.",
+    scopeLabel: "Apply scope",
+    scopeMember: "Member only",
+    scopeSubtree: "Member + downline",
+    statusLabel: "Service status",
+    submitPending: "Applying...",
+    suspendAction: "Suspend service",
+    suspendedAtLabel: "Suspended at",
+    suspendedByLabel: "Suspended by",
+    suspendedScopeLabel: "Applied scope",
+    suspendedValue: "Suspended",
+    suspendNoticeMember: "Service access was suspended for the selected member.",
+    suspendNoticeSubtree:
+      "Service access was suspended for the selected member and the completed downline.",
+    title: "Service controls",
+  };
+}
 
 export function ActivateNetworkPage({
   dictionary,
@@ -131,12 +190,21 @@ export function ActivateNetworkPage({
     });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [serviceScope, setServiceScope] =
+    useState<ServiceSuspensionScope>("member");
+  const [serviceStatusUpdate, setServiceStatusUpdate] =
+    useState<ServiceStatusUpdateState>({
+      error: null,
+      notice: null,
+      status: "idle",
+    });
   const [selectedMemberEmail, setSelectedMemberEmail] = useState<string | null>(
     null,
   );
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
+  const serviceCopy = getServiceManagementCopy(locale);
   const isCompletedMember = state.member?.status === "completed";
   const notificationsPageHref = buildPathWithReferral(
     `/${locale}/notifications`,
@@ -207,6 +275,11 @@ export function ActivateNetworkPage({
     }
 
     setSearchQuery("");
+    setServiceStatusUpdate({
+      error: null,
+      notice: null,
+      status: "idle",
+    });
     setSelectedMemberEmail(null);
     setNotificationsState({
       error: null,
@@ -220,6 +293,14 @@ export function ActivateNetworkPage({
       unreadCount: 0,
     });
   }, [status]);
+
+  useEffect(() => {
+    setServiceStatusUpdate({
+      error: null,
+      notice: null,
+      status: "idle",
+    });
+  }, [selectedMemberEmail]);
 
   useEffect(() => {
     if (!selectedMemberEmail && filteredMembers[0]) {
@@ -383,6 +464,97 @@ export function ActivateNetworkPage({
       });
     }
   }, [accountAddress, chain.id, chain.name, dictionary, locale]);
+
+  const updateMemberServiceStatus = useCallback(
+    async (action: "release" | "suspend") => {
+      if (!selectedMember || !accountAddress) {
+        return;
+      }
+
+      setServiceStatusUpdate({
+        error: null,
+        notice: null,
+        status: "submitting",
+      });
+
+      try {
+        const email = await getUserEmail({ client: thirdwebClient });
+
+        if (!email) {
+          throw new Error(dictionary.activateNetworkPage.errors.missingEmail);
+        }
+
+        const response = await fetch("/api/members/referrals/manage", {
+          body: JSON.stringify({
+            action,
+            email,
+            scope: serviceScope,
+            targetMemberEmail: selectedMember.email,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
+        const data = (await response.json()) as
+          | (ManagedMemberReferralsResponse & { updatedCount: number })
+          | { error?: string };
+
+        if (!response.ok || !("member" in data) || !("members" in data)) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          );
+        }
+
+        setState({
+          error: null,
+          levelCounts: data.levelCounts,
+          member: data.member,
+          members: data.members,
+          referrals: data.referrals,
+          status: "ready",
+          summary: data.summary,
+          totalReferrals: data.totalReferrals,
+        });
+        setSelectedMemberEmail(selectedMember.email);
+        setServiceStatusUpdate({
+          error: null,
+          notice:
+            action === "suspend"
+              ? serviceScope === "subtree"
+                ? serviceCopy.suspendNoticeSubtree
+                : serviceCopy.suspendNoticeMember
+              : serviceScope === "subtree"
+                ? serviceCopy.releaseNoticeSubtree
+                : serviceCopy.releaseNoticeMember,
+          status: "success",
+        });
+      } catch (error) {
+        setServiceStatusUpdate({
+          error:
+            error instanceof Error
+              ? error.message
+              : dictionary.activateNetworkPage.errors.loadFailed,
+          notice: null,
+          status: "error",
+        });
+      }
+    },
+    [
+      accountAddress,
+      dictionary.activateNetworkPage.errors.loadFailed,
+      dictionary.activateNetworkPage.errors.missingEmail,
+      selectedMember,
+      serviceCopy.releaseNoticeMember,
+      serviceCopy.releaseNoticeSubtree,
+      serviceCopy.suspendNoticeMember,
+      serviceCopy.suspendNoticeSubtree,
+      serviceScope,
+    ],
+  );
 
   const openNotificationsPage = useCallback(() => {
     if (typeof window === "undefined") {
@@ -1074,6 +1246,11 @@ export function ActivateNetworkPage({
                     dictionary={dictionary}
                     locale={locale}
                     member={selectedMember}
+                    onApplyServiceStatus={updateMemberServiceStatus}
+                    onChangeServiceScope={setServiceScope}
+                    serviceCopy={serviceCopy}
+                    serviceScope={serviceScope}
+                    serviceStatusUpdate={serviceStatusUpdate}
                   />
                 </section>
 
@@ -1189,6 +1366,11 @@ export function ActivateNetworkPage({
                     dictionary={dictionary}
                     locale={locale}
                     member={selectedMember}
+                    onApplyServiceStatus={updateMemberServiceStatus}
+                    onChangeServiceScope={setServiceScope}
+                    serviceCopy={serviceCopy}
+                    serviceScope={serviceScope}
+                    serviceStatusUpdate={serviceStatusUpdate}
                   />
                 </div>
               </section>
@@ -1276,10 +1458,20 @@ function SelectedMemberPanel({
   dictionary,
   locale,
   member,
+  onApplyServiceStatus,
+  onChangeServiceScope,
+  serviceCopy,
+  serviceScope,
+  serviceStatusUpdate,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   member: ManagedReferralTreeNodeRecord | null;
+  onApplyServiceStatus: (action: "release" | "suspend") => void;
+  onChangeServiceScope: (scope: ServiceSuspensionScope) => void;
+  serviceCopy: ReturnType<typeof getServiceManagementCopy>;
+  serviceScope: ServiceSuspensionScope;
+  serviceStatusUpdate: ServiceStatusUpdateState;
 }) {
   return (
     <>
@@ -1298,6 +1490,11 @@ function SelectedMemberPanel({
           dictionary={dictionary}
           locale={locale}
           member={member}
+          onApplyServiceStatus={onApplyServiceStatus}
+          onChangeServiceScope={onChangeServiceScope}
+          serviceCopy={serviceCopy}
+          serviceScope={serviceScope}
+          serviceStatusUpdate={serviceStatusUpdate}
         />
       ) : (
         <div className="mt-5">
@@ -1313,12 +1510,24 @@ function SelectedMemberCard({
   dictionary,
   locale,
   member,
+  onApplyServiceStatus,
+  onChangeServiceScope,
+  serviceCopy,
+  serviceScope,
+  serviceStatusUpdate,
 }: {
   className?: string;
   dictionary: Dictionary;
   locale: Locale;
   member: ManagedReferralTreeNodeRecord;
+  onApplyServiceStatus: (action: "release" | "suspend") => void;
+  onChangeServiceScope: (scope: ServiceSuspensionScope) => void;
+  serviceCopy: ReturnType<typeof getServiceManagementCopy>;
+  serviceScope: ServiceSuspensionScope;
+  serviceStatusUpdate: ServiceStatusUpdateState;
 }) {
+  const isServiceSuspended = Boolean(member.serviceSuspendedAt);
+
   return (
     <div className={cn("mt-5 space-y-4", className)}>
       <div className="rounded-[26px] border border-slate-900/90 bg-[linear-gradient(150deg,#0f172a_0%,#13233d_48%,#14532d_100%)] p-4 text-white shadow-[0_22px_60px_rgba(15,23,42,0.18)]">
@@ -1361,6 +1570,14 @@ function SelectedMemberCard({
             member.status === "completed"
               ? dictionary.member.completedValue
               : dictionary.member.pendingValue
+          }
+        />
+        <InfoCard
+          label={serviceCopy.statusLabel}
+          value={
+            isServiceSuspended
+              ? serviceCopy.suspendedValue
+              : serviceCopy.activeValue
           }
         />
         <InfoCard
@@ -1414,6 +1631,123 @@ function SelectedMemberCard({
           label={dictionary.activateNetworkPage.labels.membershipCard}
           value={getMembershipCardLabel(dictionary, member.membershipCardTier)}
         />
+      </div>
+
+      <div className="rounded-[24px] border border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,223,0.92))] p-4 shadow-[0_18px_45px_rgba(217,119,6,0.08)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-amber-800/70">
+              {serviceCopy.title}
+            </p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">
+              {serviceCopy.description}
+            </p>
+          </div>
+          <span
+            className={cn(
+              "inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.32)]",
+              isServiceSuspended
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700",
+            )}
+          >
+            {isServiceSuspended
+              ? serviceCopy.suspendedValue
+              : serviceCopy.activeValue}
+          </span>
+        </div>
+
+        {isServiceSuspended ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <InfoCard
+              label={serviceCopy.suspendedAtLabel}
+              value={formatDateTime(member.serviceSuspendedAt ?? "", locale)}
+            />
+            <InfoCard
+              label={serviceCopy.suspendedByLabel}
+              value={
+                member.serviceSuspendedByEmail ?? dictionary.common.notAvailable
+              }
+            />
+            <InfoCard
+              label={serviceCopy.suspendedScopeLabel}
+              value={
+                member.serviceSuspendedScope === "subtree"
+                  ? serviceCopy.scopeSubtree
+                  : serviceCopy.scopeMember
+              }
+            />
+          </div>
+        ) : null}
+
+        <div className="mt-4">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            {serviceCopy.scopeLabel}
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {(["member", "subtree"] as const).map((scopeValue) => {
+              const active = serviceScope === scopeValue;
+
+              return (
+                <button
+                  className={cn(
+                    "inline-flex h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition",
+                    active
+                      ? "border-amber-300 bg-amber-100 text-amber-950 shadow-[0_12px_28px_rgba(217,119,6,0.12)]"
+                      : "border-white/80 bg-white/85 text-slate-700 hover:border-amber-200 hover:bg-white",
+                  )}
+                  key={scopeValue}
+                  onClick={() => {
+                    onChangeServiceScope(scopeValue);
+                  }}
+                  type="button"
+                >
+                  {scopeValue === "subtree"
+                    ? serviceCopy.scopeSubtree
+                    : serviceCopy.scopeMember}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {serviceStatusUpdate.error ? (
+          <div className="mt-4">
+            <MessageCard tone="error">{serviceStatusUpdate.error}</MessageCard>
+          </div>
+        ) : null}
+        {serviceStatusUpdate.notice ? (
+          <div className="mt-4">
+            <MessageCard>{serviceStatusUpdate.notice}</MessageCard>
+          </div>
+        ) : null}
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <button
+            className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={serviceStatusUpdate.status === "submitting"}
+            onClick={() => {
+              onApplyServiceStatus("suspend");
+            }}
+            type="button"
+          >
+            {serviceStatusUpdate.status === "submitting"
+              ? serviceCopy.submitPending
+              : serviceCopy.suspendAction}
+          </button>
+          <button
+            className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={serviceStatusUpdate.status === "submitting"}
+            onClick={() => {
+              onApplyServiceStatus("release");
+            }}
+            type="button"
+          >
+            {serviceStatusUpdate.status === "submitting"
+              ? serviceCopy.submitPending
+              : serviceCopy.releaseAction}
+          </button>
+        </div>
       </div>
     </div>
   );

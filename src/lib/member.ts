@@ -11,9 +11,12 @@ export const REFERRAL_REWARD_HISTORY_LIMIT = 24;
 
 export const memberStatuses = ["pending_payment", "completed"] as const;
 export const placementSources = ["manual", "auto"] as const;
+export const serviceSuspensionScopes = ["member", "subtree"] as const;
 
 export type MemberStatus = (typeof memberStatuses)[number];
 export type PlacementSource = (typeof placementSources)[number];
+export type ServiceSuspensionScope =
+  (typeof serviceSuspensionScopes)[number];
 
 export type MemberRecord = {
   awaitingPaymentSince: string;
@@ -43,6 +46,9 @@ export type MemberRecord = {
   sponsorEmail: string | null;
   sponsorReferralCode: string | null;
   status: MemberStatus;
+  serviceSuspendedAt: string | null;
+  serviceSuspendedByEmail: string | null;
+  serviceSuspendedScope: ServiceSuspensionScope | null;
   updatedAt: string;
   walletAddresses: string[];
 };
@@ -83,6 +89,9 @@ export type ReferralMemberRecord = {
   referralCode: string | null;
   referredByCode: string | null;
   registrationCompletedAt: string;
+  serviceSuspendedAt: string | null;
+  serviceSuspendedByEmail: string | null;
+  serviceSuspendedScope: ServiceSuspensionScope | null;
 };
 
 export type ReferralTreeNodeRecord = ReferralMemberRecord & {
@@ -205,6 +214,9 @@ export type MemberDocument = {
   sponsorEmail?: string | null;
   sponsorReferralCode?: string | null;
   status: MemberStatus;
+  serviceSuspendedAt?: Date | null;
+  serviceSuspendedByEmail?: string | null;
+  serviceSuspendedScope?: ServiceSuspensionScope | null;
   updatedAt: Date;
   walletAddresses: string[];
 };
@@ -254,6 +266,9 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     sponsorEmail: member.sponsorEmail ?? member.referredByEmail ?? null,
     sponsorReferralCode: member.sponsorReferralCode ?? member.referredByCode ?? null,
     status: member.status,
+    serviceSuspendedAt: member.serviceSuspendedAt?.toISOString() ?? null,
+    serviceSuspendedByEmail: member.serviceSuspendedByEmail ?? null,
+    serviceSuspendedScope: member.serviceSuspendedScope ?? null,
     updatedAt: member.updatedAt.toISOString(),
     walletAddresses: member.walletAddresses,
   };
@@ -275,6 +290,9 @@ export function serializeReferralMember(
     registrationCompletedAt:
       member.registrationCompletedAt?.toISOString() ??
       member.createdAt.toISOString(),
+    serviceSuspendedAt: member.serviceSuspendedAt?.toISOString() ?? null,
+    serviceSuspendedByEmail: member.serviceSuspendedByEmail ?? null,
+    serviceSuspendedScope: member.serviceSuspendedScope ?? null,
   };
 }
 
