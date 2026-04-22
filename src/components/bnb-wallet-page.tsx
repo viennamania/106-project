@@ -15,15 +15,12 @@ import {
   AutoConnect,
   TransactionButton,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletConnectionStatus,
-  useDisconnect,
   useWalletBalance,
 } from "thirdweb/react";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
@@ -74,8 +71,6 @@ export function BnbWalletPage({
   returnTo?: string | null;
 }) {
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
@@ -102,7 +97,6 @@ export function BnbWalletPage({
   const [destination, setDestination] = useState("");
   const [notice, setNotice] = useState<BnbNotice | null>(null);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const loadMarket = useCallback(async () => {
     setIsMarketFetching(true);
@@ -226,31 +220,9 @@ export function BnbWalletPage({
       : dictionary.bnbPage.errors.loadFailed;
   const isRefreshing = isBalanceFetching || isMarketFetching;
 
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
-
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.15),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(37,99,235,0.12),transparent_22%),linear-gradient(180deg,#fbf7ef_0%,#f7f1e8_100%)]" />
-
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -294,36 +266,20 @@ export function BnbWalletPage({
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <StatusChip labels={dictionary.common.status} status={status} />
+            <button
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              disabled={isRefreshing}
+              onClick={() => {
+                void refetchBalance();
+                void loadMarket();
+              }}
+              type="button"
+            >
+              <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
+              {dictionary.bnbPage.actions.refresh}
+            </button>
             {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-                  {accountAddress ? (
-                    <a
-                      className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto sm:justify-start"
-                      href={connectedAccountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {formatAddressLabel(accountAddress)}
-                      <ArrowUpRight className="size-4" />
-                    </a>
-                  ) : null}
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.disconnectWallet}
-                  </button>
-                </div>
-              ) : (
+              isDisconnected ? (
                 <button
                   className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
                   onClick={() => {
@@ -333,7 +289,7 @@ export function BnbWalletPage({
                 >
                   {dictionary.common.connectWallet}
                 </button>
-              )
+              ) : null
             ) : (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
@@ -838,14 +794,6 @@ function StatusChip({
       {copy}
     </div>
   );
-}
-
-function formatAddressLabel(address: string) {
-  if (!address) {
-    return "-";
-  }
-
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatTokenDisplay(value: string, locale: string) {
