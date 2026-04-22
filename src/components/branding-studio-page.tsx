@@ -12,7 +12,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
-  LogOut,
   Palette,
   RefreshCcw,
   Sparkles,
@@ -20,16 +19,13 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import {
   buildPathWithReferral,
@@ -43,7 +39,6 @@ import {
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
-  BSC_EXPLORER,
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -107,17 +102,9 @@ export function BrandingStudioPage({
 }) {
   const studioCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const accountLabel = accountAddress
-    ? `${accountAddress.slice(0, 6)}...${accountAddress.slice(-4)}`
-    : null;
-  const accountUrl = accountAddress
-    ? `${BSC_EXPLORER}/address/${accountAddress}`
-    : BSC_EXPLORER;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const isDisconnected = status !== "connected" || !accountAddress;
   const [state, setState] = useState<StudioState>(emptyState);
@@ -126,7 +113,6 @@ export function BrandingStudioPage({
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const homeHref = buildReferralLandingPath(locale, referralCode);
@@ -269,12 +255,6 @@ export function BrandingStudioPage({
   });
 
   useEffect(() => {
-    if (status !== "connected") {
-      setIsLogoutDialogOpen(false);
-    }
-  }, [status]);
-
-  useEffect(() => {
     if (status === "connected") {
       setIsLoginDialogOpen(false);
     }
@@ -290,16 +270,6 @@ export function BrandingStudioPage({
 
     void syncAndLoadStudio();
   }, [accountAddress, chain.id, chain.name, locale, status]);
-
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
 
   async function saveStudio() {
     if (!form || !state.member?.email) {
@@ -426,17 +396,6 @@ export function BrandingStudioPage({
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(245,158,11,0.16),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.14),transparent_26%)]" />
 
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -457,11 +416,11 @@ export function BrandingStudioPage({
       ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(254,240,138,0.30),transparent_28%),radial-gradient(circle_at_right,rgba(191,219,254,0.58),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
+        <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(254,240,138,0.22),transparent_24%),radial-gradient(circle_at_right,rgba(191,219,254,0.36),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:px-6 sm:py-5">
           <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
-          <div className="relative flex flex-col gap-4">
+          <div className="relative flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-start gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <Link
                   className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
                   href={backHref}
@@ -470,16 +429,16 @@ export function BrandingStudioPage({
                 </Link>
 
                 <div className="min-w-0">
-                  <div className="flex items-start gap-3">
-                    <div className="hidden size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_30px_rgba(15,23,42,0.18)] sm:inline-flex">
+                  <div className="flex items-center gap-3">
+                    <div className="hidden size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_30px_rgba(15,23,42,0.18)] sm:inline-flex">
                       <Palette className="size-5" />
                     </div>
                     <div className="min-w-0">
                       <p className="eyebrow hidden sm:block">{studioCopy.page.eyebrow}</p>
-                      <h1 className="mt-0.5 text-[1.02rem] font-semibold tracking-tight text-slate-950 sm:mt-1 sm:text-[1.35rem]">
+                      <h1 className="text-[1.02rem] font-semibold tracking-tight text-slate-950 sm:mt-1 sm:text-[1.35rem]">
                         {studioCopy.page.title}
                       </h1>
-                      <p className="mt-2 hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
+                      <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block">
                         {studioCopy.page.description}
                       </p>
                     </div>
@@ -502,60 +461,28 @@ export function BrandingStudioPage({
               </div>
             </div>
 
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-              {accountAddress ? (
-                <a
-                  className="inline-flex h-11 min-w-0 items-center justify-between gap-2 rounded-full border border-white/80 bg-white/90 px-4 text-sm font-medium text-slate-950 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:max-w-full sm:justify-start"
-                  href={accountUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <span className="truncate">{accountLabel ?? accountAddress}</span>
-                  <ArrowUpRight className="size-4 shrink-0" />
-                </a>
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <p className="text-sm leading-6 text-slate-600">
+                {studioCopy.page.description}
+              </p>
+
+              {hasThirdwebClientId ? (
+                status === "connected" ? null : (
+                  <button
+                    className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {studioCopy.actions.connectWallet}
+                  </button>
+                )
               ) : (
-                <p className="text-sm leading-6 text-slate-600">
-                  {studioCopy.page.description}
-                </p>
+                <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                  {dictionary.common.clientIdRequired}
+                </div>
               )}
-
-              <div className="flex flex-wrap items-center gap-2">
-                {hasThirdwebClientId ? (
-                  status === "connected" ? (
-                    <button
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={!wallet}
-                      onClick={() => {
-                        if (!wallet) {
-                          return;
-                        }
-
-                        setIsLogoutDialogOpen(true);
-                      }}
-                      type="button"
-                    >
-                      <LogOut className="size-4" />
-                      <span className="hidden sm:inline">
-                        {dictionary.common.disconnectWallet}
-                      </span>
-                    </button>
-                  ) : (
-                    <button
-                      className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                      onClick={() => {
-                        setIsLoginDialogOpen(true);
-                      }}
-                      type="button"
-                    >
-                      {studioCopy.actions.connectWallet}
-                    </button>
-                  )
-                ) : (
-                  <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                    {dictionary.common.clientIdRequired}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </header>
