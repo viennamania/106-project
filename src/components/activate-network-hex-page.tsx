@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   ArrowLeft,
   ChevronUp,
@@ -52,13 +59,22 @@ type ActivateNetworkHexState = {
   totalReferrals: number;
 };
 
-const slotPositions = [
-  "left-1/2 top-[13%] -translate-x-1/2 -translate-y-1/2 sm:top-[1.4rem] sm:translate-y-0 lg:top-[1.75rem]",
-  "left-[85%] top-[31%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:top-[7.8rem]",
-  "left-[85%] top-[69%] -translate-x-1/2 -translate-y-1/2 sm:left-auto sm:right-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:right-[1.6rem] lg:bottom-[7.8rem]",
-  "left-1/2 top-[87%] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-[1.4rem] sm:translate-y-0 lg:bottom-[1.75rem]",
-  "left-[15%] top-[69%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:bottom-[7rem] sm:top-auto sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:bottom-[7.8rem]",
-  "left-[15%] top-[31%] -translate-x-1/2 -translate-y-1/2 sm:left-[0.7rem] sm:top-[7rem] sm:translate-x-0 sm:translate-y-0 lg:left-[1.6rem] lg:top-[7.8rem]",
+const mobileSlotPositions = [
+  { left: "50%", top: "16%" },
+  { left: "80.5%", top: "34%" },
+  { left: "80.5%", top: "66%" },
+  { left: "50%", top: "84%" },
+  { left: "19.5%", top: "66%" },
+  { left: "19.5%", top: "34%" },
+] as const;
+
+const desktopSlotPositions = [
+  { left: "50%", top: "15%" },
+  { left: "82%", top: "33%" },
+  { left: "82%", top: "67%" },
+  { left: "50%", top: "85%" },
+  { left: "18%", top: "67%" },
+  { left: "18%", top: "33%" },
 ] as const;
 
 const hexClipPath =
@@ -77,6 +93,8 @@ function getHexCopy(locale: Locale) {
       hexView: "Hex dashboard",
       openList: "Open list view",
       slot: "Slot",
+      slotJump: "Slot jump",
+      slotMoveEmpty: "Empty",
       stepUp: "Go up",
     },
     id: {
@@ -90,6 +108,8 @@ function getHexCopy(locale: Locale) {
       hexView: "Dasbor heks",
       openList: "Buka tampilan daftar",
       slot: "Slot",
+      slotJump: "Pindah slot",
+      slotMoveEmpty: "Kosong",
       stepUp: "Naik satu tingkat",
     },
     ja: {
@@ -103,6 +123,8 @@ function getHexCopy(locale: Locale) {
       hexView: "ヘックスダッシュボード",
       openList: "一覧管理を開く",
       slot: "スロット",
+      slotJump: "スロット移動",
+      slotMoveEmpty: "空き",
       stepUp: "一段上へ",
     },
     ko: {
@@ -116,6 +138,8 @@ function getHexCopy(locale: Locale) {
       hexView: "육각형 대시보드",
       openList: "목록 관리 열기",
       slot: "슬롯",
+      slotJump: "슬롯 바로 이동",
+      slotMoveEmpty: "빈 슬롯",
       stepUp: "한 단계 위",
     },
     vi: {
@@ -129,6 +153,8 @@ function getHexCopy(locale: Locale) {
       hexView: "Bảng lục giác",
       openList: "Mở dạng danh sách",
       slot: "Slot",
+      slotJump: "Nhảy slot",
+      slotMoveEmpty: "Trống",
       stepUp: "Lên một cấp",
     },
     zh: {
@@ -142,6 +168,8 @@ function getHexCopy(locale: Locale) {
       hexView: "六角仪表盘",
       openList: "打开列表管理",
       slot: "槽位",
+      slotJump: "槽位跳转",
+      slotMoveEmpty: "空位",
       stepUp: "返回上一级",
     },
   } satisfies Record<
@@ -156,6 +184,8 @@ function getHexCopy(locale: Locale) {
       openList: string;
       slot: string;
       stepUp: string;
+      slotJump: string;
+      slotMoveEmpty: string;
     }
   >;
 
@@ -339,6 +369,7 @@ function HexTile({
   interactive = false,
   isMobileCompact = false,
   onClick,
+  style,
   subtitle,
   title,
 }: {
@@ -350,6 +381,7 @@ function HexTile({
   interactive?: boolean;
   isMobileCompact?: boolean;
   onClick?: () => void;
+  style?: CSSProperties;
   subtitle?: string | null;
   title: string;
 }) {
@@ -364,10 +396,11 @@ function HexTile({
     <div
       className={cn(
         isMobileCompact
-          ? "absolute w-[5.65rem] sm:w-[9rem] lg:w-[11rem]"
+          ? "absolute w-[5.15rem] sm:w-[9rem] lg:w-[11rem]"
           : "absolute w-[7.1rem] sm:w-[9rem] lg:w-[11rem]",
         className,
       )}
+      style={style}
     >
       <button
         className={cn(
@@ -385,7 +418,7 @@ function HexTile({
         <div
           className={cn(
             "relative flex h-full flex-col justify-between",
-            isMobileCompact ? "px-[15%] py-[15%]" : "px-[16%] py-[14%]",
+            isMobileCompact ? "px-[16%] py-[15%]" : "px-[16%] py-[14%]",
           )}
         >
           <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
@@ -395,7 +428,7 @@ function HexTile({
                   className={cn(
                     "uppercase text-current/72",
                     isMobileCompact
-                      ? "text-[0.42rem] tracking-[0.18em]"
+                      ? "text-[0.38rem] tracking-[0.16em]"
                       : "text-[0.5rem] tracking-[0.24em] sm:text-[0.58rem]",
                   )}
                 >
@@ -407,7 +440,7 @@ function HexTile({
                   className={cn(
                     "inline-flex shrink-0 rounded-full border border-current/15 bg-white/8 font-semibold uppercase text-current/74",
                     isMobileCompact
-                      ? "px-1.5 py-0.5 text-[0.42rem] tracking-[0.14em]"
+                      ? "px-1.5 py-0.5 text-[0.36rem] tracking-[0.12em]"
                       : "px-1.5 py-0.5 text-[0.48rem] tracking-[0.18em] sm:px-2 sm:py-1 sm:text-[0.52rem]",
                   )}
                 >
@@ -419,7 +452,7 @@ function HexTile({
               className={cn(
                 "font-semibold tracking-tight text-center",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.68rem] leading-4.5"
+                  ? "line-clamp-1 text-[0.54rem] leading-4"
                   : "line-clamp-2 text-[0.76rem] leading-4.5 sm:line-clamp-3 sm:text-[0.94rem] sm:leading-5",
               )}
             >
@@ -430,7 +463,7 @@ function HexTile({
                 className={cn(
                   "text-current/70 text-center",
                   isMobileCompact
-                    ? "line-clamp-1 text-[0.48rem] leading-3.5"
+                    ? "line-clamp-1 text-[0.38rem] leading-3"
                     : "line-clamp-1 text-[0.6rem] leading-4 sm:line-clamp-2 sm:text-[0.72rem]",
                 )}
               >
@@ -442,7 +475,7 @@ function HexTile({
             className={cn(
               "text-current/84 text-center",
               isMobileCompact
-                ? "line-clamp-2 text-[0.58rem] leading-4"
+                ? "line-clamp-2 text-[0.42rem] leading-3.5"
                 : "line-clamp-2 text-[0.64rem] leading-4.5 sm:line-clamp-3 sm:text-[0.78rem] sm:leading-5",
             )}
           >
@@ -473,7 +506,7 @@ function HexCenterTile({
     <div
       className={cn(
         "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-        isMobileCompact ? "w-[9.1rem]" : "w-[11.2rem] sm:w-[13rem] lg:w-[16.25rem]",
+        isMobileCompact ? "w-[8rem]" : "w-[11.2rem] sm:w-[13rem] lg:w-[16.25rem]",
       )}
     >
       <div
@@ -512,7 +545,7 @@ function HexCenterTile({
               className={cn(
                 "font-semibold tracking-tight text-center text-slate-950",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.95rem] leading-5"
+                  ? "line-clamp-1 text-[0.74rem] leading-4.5"
                   : "line-clamp-2 text-[0.95rem] leading-5 sm:line-clamp-3 sm:text-[1.22rem] sm:leading-7",
               )}
             >
@@ -523,7 +556,7 @@ function HexCenterTile({
             <p
               className={cn(
                 "font-medium text-slate-950/78 text-center",
-                isMobileCompact ? "text-[0.7rem]" : "text-[0.75rem] sm:text-[0.92rem]",
+                isMobileCompact ? "text-[0.56rem]" : "text-[0.75rem] sm:text-[0.92rem]",
               )}
             >
               {subtitle}
@@ -532,7 +565,7 @@ function HexCenterTile({
               className={cn(
                 "text-slate-950/72 text-center",
                 isMobileCompact
-                  ? "line-clamp-2 text-[0.64rem] leading-4.5"
+                  ? "line-clamp-2 text-[0.5rem] leading-4"
                   : "line-clamp-3 text-[0.66rem] leading-4 sm:line-clamp-4 sm:text-[0.84rem] sm:leading-5",
               )}
             >
@@ -895,6 +928,8 @@ export function ActivateNetworkHexPage({
     { x: 32, y: 61 },
     { x: 32, y: 39 },
   ] as const;
+  const slotAnchorPoints = isMobileCompact ? mobileSlotPositions : desktopSlotPositions;
+  const canStepUp = !isRootFocus && Boolean(parentFocusEmail);
 
   return (
     <div className="relative isolate overflow-hidden">
@@ -1030,11 +1065,40 @@ export function ActivateNetworkHexPage({
               className={cn(
                 "relative mx-auto w-full animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)]",
                 isMobileCompact
-                  ? "h-[30rem] max-w-[21.5rem]"
+                  ? "h-[34rem] max-w-[21.75rem]"
                   : "aspect-square max-w-[25.25rem] sm:max-w-[33rem] lg:max-w-[46rem] xl:max-w-[52rem]",
               )}
               key={boardKey}
             >
+              <div className="absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 sm:hidden">
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/18 bg-black/18 px-3 py-1.5 text-[0.62rem] font-semibold text-amber-50/82 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur transition hover:border-amber-100/35 hover:bg-black/24 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!canStepUp}
+                  onClick={() => {
+                    if (parentFocusEmail) {
+                      setFocusedEmail(parentFocusEmail);
+                    }
+                  }}
+                  type="button"
+                >
+                  <ChevronUp className="size-3.5" />
+                  {copy.stepUp}
+                </button>
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/18 bg-black/18 px-3 py-1.5 text-[0.62rem] font-semibold text-amber-50/82 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur transition hover:border-amber-100/35 hover:bg-black/24 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={isRootFocus}
+                  onClick={() => {
+                    if (rootEmail) {
+                      setFocusedEmail(rootEmail);
+                    }
+                  }}
+                  type="button"
+                >
+                  <Hexagon className="size-3.5" />
+                  {copy.backToRoot}
+                </button>
+              </div>
+
               <svg
                 className={cn(
                   "pointer-events-none absolute inset-0 h-full w-full",
@@ -1090,7 +1154,7 @@ export function ActivateNetworkHexPage({
                       : copy.emptySlot
                   }
                   className={cn(
-                    slotPositions[slotIndex],
+                    "absolute -translate-x-1/2 -translate-y-1/2",
                     isMobileCompact
                       ? "animate-[hex-node-float_5.2s_ease-in-out_infinite]"
                       : "animate-[hex-node-float_5.2s_ease-in-out_infinite]",
@@ -1124,6 +1188,10 @@ export function ActivateNetworkHexPage({
                       ? formatHexMemberLabel(member.email, isMobileCompact)
                       : copy.emptySlot
                   }
+                  style={{
+                    left: slotAnchorPoints[slotIndex].left,
+                    top: slotAnchorPoints[slotIndex].top,
+                  }}
                 />
               ))}
 
@@ -1155,6 +1223,59 @@ export function ActivateNetworkHexPage({
                 }
                 title={formatHexMemberLabel(boardTitle, isMobileCompact)}
               />
+
+              <div className="absolute inset-x-3 bottom-3 z-10 sm:inset-x-6 sm:bottom-6">
+                <div className="rounded-[24px] border border-white/10 bg-black/18 px-3 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.22)] backdrop-blur-xl sm:px-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-amber-100/78 sm:text-[0.66rem]">
+                      {copy.slotJump}
+                    </p>
+                    {canStepUp ? (
+                      <button
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-200/20 bg-white/10 px-2.5 py-1 text-[0.58rem] font-medium text-amber-50/80 transition hover:border-amber-200/35 hover:bg-white/16"
+                        onClick={() => {
+                          if (parentFocusEmail) {
+                            setFocusedEmail(parentFocusEmail);
+                          }
+                        }}
+                        type="button"
+                      >
+                        <ChevronUp className="size-3" />
+                        {copy.stepUp}
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {slotMembers.map((member, index) => (
+                      <button
+                        className={cn(
+                          "rounded-2xl border px-2 py-2 text-left transition",
+                          member
+                            ? "border-amber-200/20 bg-[linear-gradient(145deg,rgba(251,191,36,0.18),rgba(120,53,15,0.16))] text-amber-50 shadow-[0_12px_26px_rgba(120,53,15,0.16)] hover:-translate-y-0.5 hover:border-amber-100/45 hover:bg-[linear-gradient(145deg,rgba(251,191,36,0.3),rgba(120,53,15,0.26))]"
+                            : "border-white/8 bg-white/6 text-white/40",
+                        )}
+                        disabled={!member}
+                        key={`slot-jump-${index + 1}`}
+                        onClick={() => {
+                          if (member) {
+                            setFocusedEmail(member.email);
+                          }
+                        }}
+                        type="button"
+                      >
+                        <p className="text-[0.48rem] uppercase tracking-[0.18em] text-current/72">
+                          {copy.slot} {index + 1}
+                        </p>
+                        <p className="mt-1 truncate text-[0.64rem] font-semibold">
+                          {member
+                            ? formatHexMemberLabel(member.email, true)
+                            : copy.slotMoveEmpty}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         )}
