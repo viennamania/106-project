@@ -387,10 +387,10 @@ function HexTile({
 }) {
   const accentStyles =
     accent === "center"
-      ? "border-amber-100/55 bg-[linear-gradient(145deg,rgba(254,240,138,0.98),rgba(245,158,11,0.95)_42%,rgba(146,64,14,0.9)_100%)] text-slate-950 shadow-[0_34px_95px_rgba(120,53,15,0.42)]"
+      ? "border-transparent bg-[linear-gradient(145deg,rgba(254,240,138,0.99),rgba(245,158,11,0.97)_42%,rgba(146,64,14,0.92)_100%)] text-slate-950 shadow-[0_34px_95px_rgba(120,53,15,0.42)]"
       : accent === "empty"
-        ? "border-dashed border-amber-200/18 bg-[linear-gradient(155deg,rgba(120,53,15,0.28),rgba(51,25,8,0.18))] text-amber-100/60 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
-        : "border-amber-100/28 bg-[linear-gradient(155deg,rgba(251,191,36,0.24),rgba(180,83,9,0.22)_55%,rgba(15,23,42,0.4)_100%)] text-amber-50 shadow-[0_22px_50px_rgba(120,53,15,0.24)]";
+        ? "border-transparent bg-[linear-gradient(155deg,rgba(120,53,15,0.32),rgba(51,25,8,0.2))] text-amber-100/60 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+        : "border-transparent bg-[linear-gradient(155deg,rgba(251,191,36,0.26),rgba(180,83,9,0.24)_55%,rgba(15,23,42,0.44)_100%)] text-amber-50 shadow-[0_22px_50px_rgba(120,53,15,0.24)]";
 
   return (
     <div
@@ -414,6 +414,28 @@ function HexTile({
         style={{ clipPath: hexClipPath }}
         type="button"
       >
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0",
+            accent === "center"
+              ? "border-[2px] border-amber-50/90 shadow-[inset_0_0_0_1px_rgba(255,251,235,0.86),0_0_24px_rgba(251,191,36,0.42)]"
+              : accent === "empty"
+                ? "border border-amber-200/34 shadow-[inset_0_0_0_1px_rgba(253,230,138,0.16)]"
+                : "border-[1.5px] border-amber-100/58 shadow-[inset_0_0_0_1px_rgba(255,248,220,0.28),0_0_18px_rgba(251,191,36,0.16)]",
+          )}
+          style={{ clipPath: hexClipPath }}
+        />
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-[4px]",
+            accent === "center"
+              ? "border border-white/42"
+              : accent === "empty"
+                ? "border border-amber-100/10"
+                : "border border-amber-50/22",
+          )}
+          style={{ clipPath: hexClipPath }}
+        />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,251,235,0.26),transparent_36%),radial-gradient(circle_at_bottom,rgba(251,191,36,0.12),transparent_30%),radial-gradient(circle_at_center,rgba(253,230,138,0.12),transparent_54%)]" />
         <div
           className={cn(
@@ -511,11 +533,19 @@ function HexCenterTile({
     >
       <div
         className={cn(
-          "relative aspect-[0.92] overflow-hidden border border-amber-50/60 bg-[linear-gradient(145deg,rgba(254,249,195,0.98),rgba(250,204,21,0.95)_36%,rgba(245,158,11,0.96)_70%,rgba(146,64,14,0.94)_100%)] text-slate-950 shadow-[0_36px_95px_rgba(120,53,15,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]",
+          "relative aspect-[0.92] overflow-hidden border border-transparent bg-[linear-gradient(145deg,rgba(254,249,195,0.99),rgba(250,204,21,0.97)_36%,rgba(245,158,11,0.97)_70%,rgba(146,64,14,0.94)_100%)] text-slate-950 shadow-[0_36px_95px_rgba(120,53,15,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]",
           isMobileCompact ? "px-[14%] py-[14%]" : "px-[16%] py-[14%]",
         )}
         style={{ clipPath: hexClipPath }}
       >
+        <div
+          className="pointer-events-none absolute inset-0 border-[2.5px] border-amber-50/95 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.82),0_0_30px_rgba(250,204,21,0.42)]"
+          style={{ clipPath: hexClipPath }}
+        />
+        <div
+          className="pointer-events-none absolute inset-[5px] border border-white/40"
+          style={{ clipPath: hexClipPath }}
+        />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.48),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(254,240,138,0.28),transparent_24%),radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_46%)]" />
         <div className="relative flex h-full flex-col justify-between">
           <div className={cn("space-y-2", isMobileCompact && "space-y-1.5")}>
