@@ -449,11 +449,13 @@ export function CreatorContentStudioPage({
   dictionary,
   locale,
   referralCode = null,
+  returnToHref = null,
   view = "hub",
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnToHref?: string | null;
   view?: StudioView;
 }) {
   const contentCopy = getContentCopy(locale);
@@ -463,21 +465,21 @@ export function CreatorContentStudioPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const studioHomeHref = buildPathWithReferral(
-    `/${locale}/creator/studio`,
-    referralCode,
+  const studioHomeHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
+    { returnTo: returnToHref },
   );
-  const profileHref = buildPathWithReferral(
-    `/${locale}/creator/studio/profile`,
-    referralCode,
+  const profileHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
+    { returnTo: returnToHref },
   );
-  const postsManagerHref = buildPathWithReferral(
-    `/${locale}/creator/studio/posts`,
-    referralCode,
+  const postsManagerHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
+    { returnTo: returnToHref },
   );
-  const newPostHref = buildPathWithReferral(
-    `/${locale}/creator/studio/new`,
-    referralCode,
+  const newPostHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    { returnTo: returnToHref },
   );
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
@@ -917,7 +919,7 @@ export function CreatorContentStudioPage({
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
   const isDisconnected = status !== "connected" || !accountAddress;
-  const backHref = view === "hub" ? homeHref : studioHomeHref;
+  const backHref = view === "hub" ? returnToHref ?? homeHref : studioHomeHref;
   const pageTitle =
     view === "profile"
       ? contentCopy.labels.creatorSettings

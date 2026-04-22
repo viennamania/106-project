@@ -12,7 +12,6 @@ import {
 } from "react";
 import {
   ArrowLeft,
-  ArrowUpRight,
   Bell,
   ChevronRight,
   GitBranch,
@@ -27,10 +26,8 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWallet,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
-  useDisconnect,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
@@ -39,7 +36,6 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -59,7 +55,6 @@ import {
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import {
-  BSC_EXPLORER,
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -106,8 +101,6 @@ export function ActivateNetworkPage({
   returnToHref: string;
 }) {
   const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
   const router = useRouter();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
@@ -136,18 +129,11 @@ export function ActivateNetworkPage({
       unreadCount: 0,
     });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemberEmail, setSelectedMemberEmail] = useState<string | null>(
     null,
   );
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const accountLabel = accountAddress
-    ? `${accountAddress.slice(0, 6)}...${accountAddress.slice(-4)}`
-    : null;
-  const accountUrl = accountAddress
-    ? `${BSC_EXPLORER}/address/${accountAddress}`
-    : BSC_EXPLORER;
   const isDisconnected = status !== "connected" || !accountAddress;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const isCompletedMember = state.member?.status === "completed";
@@ -716,12 +702,6 @@ export function ActivateNetworkPage({
   );
 
   useEffect(() => {
-    if (status !== "connected") {
-      setIsLogoutDialogOpen(false);
-    }
-  }, [status]);
-
-  useEffect(() => {
     if (
       status !== "connected" ||
       !accountAddress ||
@@ -803,31 +783,9 @@ export function ActivateNetworkPage({
     status,
   ]);
 
-  function confirmLogout() {
-    if (!wallet) {
-      setIsLogoutDialogOpen(false);
-      return;
-    }
-
-    setIsLogoutDialogOpen(false);
-    disconnect(wallet);
-  }
-
   return (
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(217,161,58,0.16),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(37,99,235,0.12),transparent_24%),linear-gradient(180deg,#f6efe3_0%,#fbf7ef_38%,#f7f1e8_100%)]" />
-
-      <LogoutConfirmDialog
-        cancelLabel={dictionary.common.logoutDialog.cancel}
-        confirmLabel={dictionary.common.logoutDialog.confirm}
-        description={dictionary.common.logoutDialog.description}
-        onCancel={() => {
-          setIsLogoutDialogOpen(false);
-        }}
-        onConfirm={confirmLogout}
-        open={isLogoutDialogOpen}
-        title={dictionary.common.logoutDialog.title}
-      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -874,179 +832,107 @@ export function ActivateNetworkPage({
               </div>
             </div>
 
-            <button
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:size-11"
-              disabled={state.status === "loading"}
-              onClick={() => {
-                void loadNetwork();
-              }}
-              type="button"
-            >
-              <RefreshCcw
-                className={cn("size-4", state.status === "loading" && "animate-spin")}
-              />
-            </button>
-          </div>
-
-          <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
-            <StatusChip labels={dictionary.common.status} status={status} />
-            {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <>
-                  {isCompletedMember ? (
-                    <Link
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2]"
-                      href={announcementsPageHref}
-                    >
-                      <Megaphone className="size-4" />
-                      {dictionary.announcementsPage.title}
-                    </Link>
-                  ) : null}
-                  {isCompletedMember ? (
-                    <button
-                      className={cn(
-                        "group inline-flex h-11 cursor-pointer items-center justify-between gap-2 rounded-full border px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2",
-                        notificationsState.open
-                          ? "border-sky-300 bg-sky-50 shadow-[0_18px_38px_rgba(14,165,233,0.14)]"
-                          : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50/70 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]",
-                      )}
-                      onClick={() => {
-                        if (
-                          typeof window !== "undefined" &&
-                          window.matchMedia("(max-width: 1023px)").matches
-                        ) {
-                          openNotificationsPage();
-                          return;
-                        }
-
-                        setNotificationsState((current) => ({
-                          ...current,
-                          open: !current.open,
-                        }));
-                      }}
-                      type="button"
-                    >
-                      <span className="inline-flex items-center gap-2 transition group-hover:text-sky-900">
-                        <Bell className="size-4 transition group-hover:scale-105 group-hover:text-sky-700" />
-                        {notificationCopy.title}
-                      </span>
-                      {notificationsState.unreadCount > 0 ? (
-                        <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[0.68rem] font-semibold leading-none text-white transition group-hover:bg-sky-900 group-hover:shadow-[0_10px_20px_rgba(14,165,233,0.18)]">
-                          {formatInteger(notificationsState.unreadCount, locale)}
-                        </span>
-                      ) : null}
-                    </button>
-                  ) : null}
-                  {accountLabel ? (
-                    <a
-                      className="inline-flex h-11 items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
-                      href={accountUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {accountLabel}
-                      <ArrowUpRight className="size-4" />
-                    </a>
-                  ) : null}
-                  <button
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={!wallet}
-                    onClick={() => {
-                      if (!wallet) {
-                        return;
-                      }
-
-                      setIsLogoutDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.disconnectWallet}
-                  </button>
-                </>
-              ) : (
+            <div className="flex items-center gap-2">
+              {isCompletedMember ? (
                 <button
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                  className={cn(
+                    "inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70 sm:size-11",
+                    notificationsState.open && "border-sky-300 bg-sky-50 text-sky-800",
+                  )}
                   onClick={() => {
-                    setIsLoginDialogOpen(true);
-                  }}
-                  type="button"
-                >
-                  {dictionary.common.connectWallet}
-                </button>
-              )
-            ) : (
-              <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                {dictionary.common.clientIdRequired}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:hidden">
-            {isCompletedMember ? (
-              <button
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70"
-                onClick={() => {
-                  openNotificationsPage();
-                }}
-                type="button"
-              >
-                <Bell className="size-4" />
-                <span>{notificationCopy.title}</span>
-                {notificationsState.unreadCount > 0 ? (
-                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-0.5 text-[0.64rem] font-semibold leading-none text-white">
-                    {formatInteger(notificationsState.unreadCount, locale)}
-                  </span>
-                ) : null}
-              </button>
-            ) : null}
-            {isCompletedMember ? (
-              <Link
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-3 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
-                href={announcementsPageHref}
-              >
-                <Megaphone className="size-4" />
-                {dictionary.announcementsPage.title}
-              </Link>
-            ) : null}
-            {accountLabel ? (
-              <a
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
-                href={accountUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <span>{accountLabel}</span>
-                <ArrowUpRight className="size-4" />
-              </a>
-            ) : null}
-            {hasThirdwebClientId ? (
-              status === "connected" ? (
-                <button
-                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
-                  disabled={!wallet}
-                  onClick={() => {
-                    if (!wallet) {
+                    if (
+                      typeof window !== "undefined" &&
+                      window.matchMedia("(max-width: 1023px)").matches
+                    ) {
+                      openNotificationsPage();
                       return;
                     }
 
-                    setIsLogoutDialogOpen(true);
+                    setNotificationsState((current) => ({
+                      ...current,
+                      open: !current.open,
+                    }));
                   }}
                   type="button"
                 >
-                  {dictionary.common.disconnectWallet}
+                  <Bell className="size-4" />
                 </button>
-              ) : (
+              ) : null}
+              {isCompletedMember ? (
+                <Link
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-[#ead7b5] bg-[#fff8ea] text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2] sm:size-11"
+                  href={announcementsPageHref}
+                >
+                  <Megaphone className="size-4" />
+                </Link>
+              ) : null}
+              <button
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:size-11"
+                disabled={state.status === "loading"}
+                onClick={() => {
+                  void loadNetwork();
+                }}
+                type="button"
+              >
+                <RefreshCcw
+                  className={cn("size-4", state.status === "loading" && "animate-spin")}
+                />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="hidden sm:block">
+              <StatusChip labels={dictionary.common.status} status={status} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              {isCompletedMember ? (
                 <button
-                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
+                  className="hidden h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-sky-200 hover:bg-sky-50/70 lg:inline-flex"
                   onClick={() => {
-                    setIsLoginDialogOpen(true);
+                    setNotificationsState((current) => ({
+                      ...current,
+                      open: !current.open,
+                    }));
                   }}
                   type="button"
                 >
-                  {dictionary.common.connectWallet}
+                  <Bell className="size-4" />
+                  <span>{notificationCopy.title}</span>
+                  {notificationsState.unreadCount > 0 ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-0.5 text-[0.64rem] font-semibold leading-none text-white">
+                      {formatInteger(notificationsState.unreadCount, locale)}
+                    </span>
+                  ) : null}
                 </button>
-              )
-            ) : null}
+              ) : null}
+              {isCompletedMember ? (
+                <Link
+                  className="hidden h-10 items-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-3 text-sm font-medium text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.05)] lg:inline-flex"
+                  href={announcementsPageHref}
+                >
+                  <Megaphone className="size-4" />
+                  {dictionary.announcementsPage.title}
+                </Link>
+              ) : null}
+              {hasThirdwebClientId ? (
+                isDisconnected ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:bg-slate-800"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
+                ) : null
+              ) : (
+                <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                  {dictionary.common.clientIdRequired}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

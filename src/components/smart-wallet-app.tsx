@@ -259,9 +259,11 @@ export function SmartWalletApp({
       returnTo: activatePageHref,
     },
   );
-  const creatorStudioHref = buildPathWithReferral(
-    `/${locale}/creator/studio`,
-    preferredReferralCode,
+  const creatorStudioHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio`, preferredReferralCode),
+    {
+      returnTo: activatePageHref,
+    },
   );
   const networkFeedHref = buildPathWithReferral(
     `/${locale}/network-feed`,

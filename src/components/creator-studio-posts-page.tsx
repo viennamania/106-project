@@ -101,10 +101,12 @@ export function CreatorStudioPostsPage({
   dictionary,
   locale,
   referralCode = null,
+  returnToHref = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnToHref?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
   const searchParams = useSearchParams();
@@ -116,21 +118,21 @@ export function CreatorStudioPostsPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const studioHomeHref = buildPathWithReferral(
-    `/${locale}/creator/studio`,
-    referralCode,
+  const studioHomeHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
+    { returnTo: returnToHref },
   );
-  const profileHref = buildPathWithReferral(
-    `/${locale}/creator/studio/profile`,
-    referralCode,
+  const profileHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
+    { returnTo: returnToHref },
   );
-  const newPostHref = buildPathWithReferral(
-    `/${locale}/creator/studio/new`,
-    referralCode,
+  const newPostHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    { returnTo: returnToHref },
   );
-  const postsManagerBaseHref = buildPathWithReferral(
-    `/${locale}/creator/studio/posts`,
-    referralCode,
+  const postsManagerBaseHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
+    { returnTo: returnToHref },
   );
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const appliedQuery = searchParams.get("q")?.trim() ?? "";
