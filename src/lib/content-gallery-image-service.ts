@@ -14,8 +14,10 @@ const BODY_LIMIT = 480;
 const VISUAL_BRIEF_LIMIT = 320;
 const DEFAULT_MODEL = "black-forest-labs/flux-schnell-lora";
 const DEFAULT_ASPECT_RATIO = "4:5";
-const DEFAULT_OUTPUT_FORMAT = "webp";
-const DEFAULT_OUTPUT_QUALITY = 90;
+const DEFAULT_OUTPUT_FORMAT = "png";
+const DEFAULT_OUTPUT_QUALITY = 100;
+const DEFAULT_NUM_INFERENCE_STEPS = 4;
+const DEFAULT_MEGAPIXELS = "1";
 
 export type GenerateContentGalleryImageInput = {
   body?: string | null;
@@ -98,8 +100,9 @@ function buildGalleryImagePrompt(input: {
     "Create a premium editorial content image for a creator detail gallery.",
     "Do not include any text, letters, numbers, logos, watermarks, borders, frames, or UI chrome.",
     "Portrait-first composition, optimized for a mobile swipe gallery and immersive detail view.",
-    "Style: polished, cinematic, photorealistic or premium editorial illustration, visually rich, not cartoonish, not childish.",
-    "Use one clear focal subject, convincing depth, atmospheric lighting, and a composition that feels luxurious and modern.",
+    "Style: polished, cinematic, high-end photorealistic editorial imagery with refined materials, rich texture detail, premium lighting, and clean luxury art direction.",
+    "Use one clear focal subject, convincing depth, layered foreground and background detail, atmospheric lighting, realistic skin, fabric, metal, and surface texture, and a composition that feels luxurious and modern.",
+    "Prioritize sharp subject detail, natural contrast, elegant color grading, crisp edges, realistic anatomy, and premium magazine-quality finishing.",
     input.title ? `Core topic: ${input.title}.` : null,
     input.summary ? `Summary context: ${input.summary}.` : null,
     input.body ? `Supporting context: ${input.body}.` : null,
@@ -233,6 +236,9 @@ export async function generateAndUploadContentGalleryImage(
     input: {
       aspect_ratio: DEFAULT_ASPECT_RATIO,
       disable_safety_checker: true,
+      go_fast: false,
+      megapixels: DEFAULT_MEGAPIXELS,
+      num_inference_steps: DEFAULT_NUM_INFERENCE_STEPS,
       output_format: DEFAULT_OUTPUT_FORMAT,
       output_quality: DEFAULT_OUTPUT_QUALITY,
       prompt,

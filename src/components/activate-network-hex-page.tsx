@@ -8,7 +8,6 @@ import {
   GitBranch,
   Hexagon,
   RefreshCcw,
-  Sparkles,
 } from "lucide-react";
 import {
   AutoConnect,
@@ -19,7 +18,6 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
-import { LandingReveal } from "@/components/landing/landing-reveal";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -168,14 +166,6 @@ function formatInteger(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function formatAddressLabel(address: string) {
-  if (!address) {
-    return "-";
-  }
-
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
 function formatEmailLabel(email: string) {
   if (!email) {
     return "-";
@@ -318,94 +308,77 @@ function MessageCard({
   );
 }
 
-function HudStat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-white/12 bg-white/8 px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.16)] backdrop-blur">
-      <p className="text-[0.65rem] uppercase tracking-[0.28em] text-white/55">
-        {label}
-      </p>
-      <p className="mt-3 text-lg font-semibold tracking-tight text-white sm:text-xl">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-white/80 bg-white/92 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-      <p className="text-[0.68rem] uppercase tracking-[0.24em] text-slate-400">
-        {label}
-      </p>
-      <p className="mt-3 break-all text-sm font-semibold leading-6 text-slate-950">
-        {value}
-      </p>
-    </div>
-  );
-}
-
 function HexTile({
   accent = "node",
   badge,
   body,
   className,
+  depthLabel,
   interactive = false,
   onClick,
+  subtitle,
   title,
 }: {
   accent?: "center" | "empty" | "node";
   badge?: string;
   body: string;
   className?: string;
+  depthLabel?: string | null;
   interactive?: boolean;
   onClick?: () => void;
+  subtitle?: string | null;
   title: string;
 }) {
   const accentStyles =
     accent === "center"
       ? "border-white/25 bg-[linear-gradient(145deg,rgba(15,23,42,0.95),rgba(29,78,216,0.82))] text-white shadow-[0_32px_85px_rgba(15,23,42,0.4)]"
       : accent === "empty"
-        ? "border-dashed border-white/12 bg-white/5 text-white/55 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
-        : "border-white/18 bg-[linear-gradient(155deg,rgba(255,255,255,0.15),rgba(255,255,255,0.06))] text-white shadow-[0_18px_45px_rgba(15,23,42,0.2)]";
+        ? "border-dashed border-white/12 bg-[linear-gradient(155deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-white/55 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+        : "border-white/18 bg-[linear-gradient(155deg,rgba(255,255,255,0.16),rgba(255,255,255,0.05))] text-white shadow-[0_18px_45px_rgba(15,23,42,0.2)]";
 
   return (
-    <div className={cn("absolute w-[7.15rem] sm:w-[8.8rem] lg:w-[9.8rem]", className)}>
+    <div
+      className={cn(
+        "absolute w-[7.85rem] sm:w-[9.8rem] lg:w-[11rem]",
+        className,
+      )}
+    >
       <button
         className={cn(
-          "group relative aspect-[0.92] w-full overflow-hidden border px-4 py-4 text-left transition",
+          "group relative aspect-[0.92] w-full overflow-hidden border px-4 py-4 text-left transition duration-500",
           accentStyles,
           interactive &&
-            "hover:-translate-y-1 hover:border-sky-200/70 hover:bg-[linear-gradient(155deg,rgba(96,165,250,0.22),rgba(255,255,255,0.1))]",
+            "hover:-translate-y-1.5 hover:scale-[1.02] hover:border-sky-200/70 hover:bg-[linear-gradient(155deg,rgba(96,165,250,0.22),rgba(255,255,255,0.1))]",
         )}
         onClick={onClick}
         style={{ clipPath: hexClipPath }}
         type="button"
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_35%),radial-gradient(circle_at_bottom,rgba(250,204,21,0.08),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_34%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.08),transparent_26%),radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_48%)]" />
         <div className="relative flex h-full flex-col justify-between">
-          <div className="space-y-1">
-            {badge ? (
-              <p className="text-[0.58rem] uppercase tracking-[0.28em] text-current/65">
-                {badge}
-              </p>
-            ) : null}
-            <p className="line-clamp-3 text-[0.84rem] font-semibold leading-5 sm:text-[0.92rem]">
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              {badge ? (
+                <p className="text-[0.54rem] uppercase tracking-[0.28em] text-current/62 sm:text-[0.58rem]">
+                  {badge}
+                </p>
+              ) : <span />}
+              {depthLabel ? (
+                <span className="inline-flex shrink-0 rounded-full border border-current/15 bg-white/8 px-2 py-1 text-[0.52rem] font-semibold uppercase tracking-[0.22em] text-current/74">
+                  {depthLabel}
+                </span>
+              ) : null}
+            </div>
+            <p className="line-clamp-3 text-[0.84rem] font-semibold leading-5 tracking-tight sm:text-[0.94rem]">
               {title}
             </p>
+            {subtitle ? (
+              <p className="line-clamp-2 text-[0.68rem] leading-4 text-current/60 sm:text-[0.72rem]">
+                {subtitle}
+              </p>
+            ) : null}
           </div>
-          <p className="line-clamp-2 text-[0.7rem] leading-5 text-current/78 sm:text-xs">
+          <p className="line-clamp-3 text-[0.72rem] leading-5 text-current/78 sm:text-[0.78rem]">
             {body}
           </p>
         </div>
@@ -417,33 +390,42 @@ function HexTile({
 function HexCenterTile({
   body,
   eyebrow,
+  memberState,
   subtitle,
   title,
 }: {
   body: string;
   eyebrow: string;
+  memberState: string;
   subtitle: string;
   title: string;
 }) {
   return (
-    <div className="absolute left-1/2 top-1/2 w-[10rem] -translate-x-1/2 -translate-y-1/2 sm:w-[12.5rem] lg:w-[14rem]">
+    <div className="absolute left-1/2 top-1/2 w-[11rem] -translate-x-1/2 -translate-y-1/2 sm:w-[14rem] lg:w-[16.25rem]">
       <div
-        className="relative aspect-[0.92] overflow-hidden border border-white/20 bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(37,99,235,0.84))] px-5 py-5 text-white shadow-[0_36px_95px_rgba(15,23,42,0.42)]"
+        className="relative aspect-[0.92] overflow-hidden border border-white/20 bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(37,99,235,0.84))] px-5 py-5 text-white shadow-[0_36px_95px_rgba(15,23,42,0.42)] animate-[hex-core-glow_3.6s_ease-in-out_infinite]"
         style={{ clipPath: hexClipPath }}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.12),transparent_24%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_center,rgba(129,140,248,0.16),transparent_42%)]" />
         <div className="relative flex h-full flex-col justify-between">
           <div className="space-y-2">
-            <p className="text-[0.62rem] uppercase tracking-[0.3em] text-white/60">
-              {eyebrow}
-            </p>
-            <p className="line-clamp-3 text-base font-semibold leading-6 tracking-tight sm:text-lg">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-[0.62rem] uppercase tracking-[0.3em] text-white/60">
+                {eyebrow}
+              </p>
+              <span className="inline-flex shrink-0 rounded-full border border-white/12 bg-white/10 px-2.5 py-1 text-[0.56rem] font-semibold uppercase tracking-[0.22em] text-white/78">
+                {memberState}
+              </span>
+            </div>
+            <p className="line-clamp-3 text-lg font-semibold leading-6 tracking-tight sm:text-[1.22rem] sm:leading-7">
               {title}
             </p>
           </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-white/80">{subtitle}</p>
-            <p className="line-clamp-3 text-xs leading-5 text-white/62 sm:text-[0.82rem]">
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-white/80 sm:text-[0.92rem]">
+              {subtitle}
+            </p>
+            <p className="line-clamp-4 text-xs leading-5 text-white/62 sm:text-[0.84rem]">
               {body}
             </p>
           </div>
@@ -773,6 +755,17 @@ export function ActivateNetworkHexPage({
     isRootFocus || !focusedNode
       ? `${dictionary.activateNetworkPage.labels.directMembers} ${formatInteger(state.summary.directMembers, locale)} · ${dictionary.activateNetworkPage.labels.totalMembers} ${formatInteger(state.summary.totalMembers, locale)}`
       : `${dictionary.activateNetworkPage.labels.directChildren} ${formatInteger(focusedNode.directReferralCount, locale)} · ${dictionary.activateNetworkPage.labels.descendants} ${formatInteger(focusedNode.totalReferralCount, locale)}`;
+  const boardKey = `${focusedEmail ?? rootEmail ?? "root"}-${slotMembers
+    .map((member) => member?.email ?? "empty")
+    .join("|")}`;
+  const slotConnectionPoints = [
+    { x: 50, y: 22 },
+    { x: 76, y: 36 },
+    { x: 76, y: 64 },
+    { x: 50, y: 78 },
+    { x: 24, y: 64 },
+    { x: 24, y: 36 },
+  ] as const;
 
   return (
     <div className="relative isolate overflow-hidden">
@@ -796,9 +789,10 @@ export function ActivateNetworkHexPage({
         />
       ) : null}
 
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 -mx-4 flex flex-col gap-3 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-[28px] lg:border-x lg:px-5 lg:py-4">
-          <div className="flex items-center gap-3">
+      <main className="mx-auto flex min-h-screen w-full max-w-[110rem] flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
+        <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.65rem)] z-30 -mx-4 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-[24px] lg:border-x lg:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
             <Link
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12"
               href={returnToHref}
@@ -809,21 +803,52 @@ export function ActivateNetworkHexPage({
               <Hexagon className="size-4 sm:size-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="eyebrow hidden sm:block">
-                {dictionary.activateNetworkPage.eyebrow}
-              </p>
-              <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
+              <p className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                 {copy.hexView}
-              </h1>
-              <p className="hidden text-sm text-slate-600 lg:block">
-                {copy.description}
               </p>
-              <div className="mt-1 sm:hidden">
-                <ConnectionStatusChip labels={dictionary.common.status} status={status} />
-              </div>
+              <p className="mt-1 truncate text-xs text-slate-500 sm:text-sm">
+                {formatEmailLabel(boardTitle)}
+              </p>
+            </div>
             </div>
 
             <div className="flex items-center gap-2">
+              <div className="hidden sm:block">
+                <ConnectionStatusChip labels={dictionary.common.status} status={status} />
+              </div>
+              <button
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-55 sm:size-11"
+                disabled={isRootFocus}
+                onClick={() => {
+                  if (rootEmail) {
+                    setFocusedEmail(rootEmail);
+                  }
+                }}
+                title={copy.backToRoot}
+                type="button"
+              >
+                <Hexagon className="size-4" />
+              </button>
+              <button
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-55 sm:size-11"
+                disabled={isRootFocus || !parentFocusEmail}
+                onClick={() => {
+                  if (parentFocusEmail) {
+                    setFocusedEmail(parentFocusEmail);
+                  }
+                }}
+                title={copy.stepUp}
+                type="button"
+              >
+                <ChevronUp className="size-4" />
+              </button>
+              <Link
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-indigo-200 hover:bg-indigo-50/70 hover:text-indigo-800 sm:size-11"
+                href={listViewHref}
+                title={copy.openList}
+              >
+                <GitBranch className="size-4" />
+              </Link>
               <button
                 className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:size-11"
                 disabled={state.status === "loading"}
@@ -836,38 +861,6 @@ export function ActivateNetworkHexPage({
                   className={cn("size-4", state.status === "loading" && "animate-spin")}
                 />
               </button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="hidden sm:block">
-              <ConnectionStatusChip labels={dictionary.common.status} status={status} />
-            </div>
-            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-              <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-indigo-200 hover:bg-indigo-50/70 hover:text-indigo-800"
-                href={listViewHref}
-              >
-                <GitBranch className="size-4" />
-                {copy.openList}
-              </Link>
-              {hasThirdwebClientId ? (
-                isDisconnected ? (
-                  <button
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:bg-slate-800"
-                    onClick={() => {
-                      setIsLoginDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.connectWallet}
-                  </button>
-                ) : null
-              ) : (
-                <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                  {dictionary.common.clientIdRequired}
-                </div>
-              )}
             </div>
           </div>
         </header>
@@ -885,249 +878,125 @@ export function ActivateNetworkHexPage({
         ) : !state.member ? (
           <MessageCard>{dictionary.activateNetworkPage.memberMissing}</MessageCard>
         ) : (
-          <>
-            <LandingReveal variant="hero">
-              <section className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(150deg,#09111f_0%,#0f172a_48%,#2563eb_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(250,204,21,0.12),transparent_24%)]" />
-                <div className="relative">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-white/76">
-                      <Sparkles className="size-3.5" />
-                      {copy.hexView}
-                    </span>
-                    <span className="inline-flex items-center rounded-full border border-emerald-300/35 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100">
-                      {dictionary.member.completedValue}
-                    </span>
-                  </div>
+          <section className="relative flex min-h-[calc(100vh-6.8rem)] flex-1 items-center justify-center overflow-hidden rounded-[34px] border border-slate-900/90 bg-[linear-gradient(160deg,#06101f_0%,#091427_30%,#0d1630_54%,#10234a_100%)] shadow-[0_34px_100px_rgba(15,23,42,0.32)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(96,165,250,0.18),transparent_18%),radial-gradient(circle_at_18%_16%,rgba(250,204,21,0.1),transparent_18%),radial-gradient(circle_at_86%_18%,rgba(56,189,248,0.12),transparent_22%),radial-gradient(circle_at_82%_80%,rgba(129,140,248,0.14),transparent_26%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_center,black,transparent_85%)]" />
 
-                  <div className="mt-6 space-y-3">
-                    <p className="eyebrow text-white/70">
-                      {dictionary.activateNetworkPage.eyebrow}
-                    </p>
-                    <h2 className="max-w-3xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-white sm:text-[2.85rem] sm:leading-[1.04]">
-                      {copy.hexView}
-                    </h2>
-                    <p className="max-w-3xl text-[0.98rem] leading-7 text-white/78 sm:text-lg">
-                      {copy.description}
-                    </p>
-                  </div>
+            <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-3 sm:inset-x-6 sm:top-6">
+              <div className="max-w-[14rem] rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 shadow-[0_16px_45px_rgba(15,23,42,0.24)] backdrop-blur">
+                <p className="text-[0.6rem] uppercase tracking-[0.28em] text-white/52">
+                  {copy.hexView}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white sm:text-base">
+                  {formatEmailLabel(boardTitle)}
+                </p>
+                <p className="mt-2 text-[0.72rem] leading-5 text-white/56 sm:text-xs">
+                  {copy.boardHint}
+                </p>
+              </div>
+              <div className="sm:hidden">
+                <ConnectionStatusChip labels={dictionary.common.status} status={status} />
+              </div>
+            </div>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <HudStat
-                      label={dictionary.activateNetworkPage.labels.directMembers}
-                      value={formatInteger(state.summary.directMembers, locale)}
-                    />
-                    <HudStat
-                      label={dictionary.activateNetworkPage.labels.totalMembers}
-                      value={formatInteger(state.summary.totalMembers, locale)}
-                    />
-                    <HudStat
-                      label={dictionary.activateNetworkPage.labels.totalLifetimePoints}
-                      value={`${formatInteger(state.summary.totalLifetimePoints, locale)}P`}
-                    />
-                    <HudStat
-                      label={dictionary.activateNetworkPage.labels.totalSpendablePoints}
-                      value={`${formatInteger(state.summary.totalSpendablePoints, locale)}P`}
-                    />
-                  </div>
-                </div>
-              </section>
-            </LandingReveal>
+            <div
+              className="relative mx-auto aspect-square w-full max-w-[24rem] animate-[hex-board-enter_540ms_cubic-bezier(0.16,1,0.3,1)] sm:max-w-[34rem] lg:max-w-[46rem] xl:max-w-[52rem]"
+              key={boardKey}
+            >
+              <svg
+                className="pointer-events-none absolute inset-0 h-full w-full"
+                viewBox="0 0 100 100"
+              >
+                <defs>
+                  <linearGradient id="hex-link-gradient" x1="20%" x2="80%" y1="0%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(250,204,21,0.75)" />
+                    <stop offset="50%" stopColor="rgba(96,165,250,0.95)" />
+                    <stop offset="100%" stopColor="rgba(34,211,238,0.7)" />
+                  </linearGradient>
+                </defs>
+                {slotConnectionPoints.map((point, index) => {
+                  const occupied = Boolean(slotMembers[index]);
 
-            <section className="grid gap-5 xl:grid-cols-[1.18fr_0.82fr]">
-              <section className="glass-card overflow-hidden rounded-[32px] p-4 sm:p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="space-y-2">
-                    <p className="eyebrow">{copy.hexView}</p>
-                    <h3 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                      {boardTitle}
-                    </h3>
-                    <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                      {copy.boardHint}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-[0_12px_28px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-55"
-                      disabled={isRootFocus}
-                      onClick={() => {
-                        if (rootEmail) {
-                          setFocusedEmail(rootEmail);
-                        }
-                      }}
-                      type="button"
-                    >
-                      <Hexagon className="size-4" />
-                      {copy.backToRoot}
-                    </button>
-                    <button
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-[0_12px_28px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-55"
-                      disabled={isRootFocus || !parentFocusEmail}
-                      onClick={() => {
-                        if (parentFocusEmail) {
-                          setFocusedEmail(parentFocusEmail);
-                        }
-                      }}
-                      type="button"
-                    >
-                      <ChevronUp className="size-4" />
-                      {copy.stepUp}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative mt-5 min-h-[28rem] rounded-[30px] border border-slate-900/90 bg-[linear-gradient(165deg,#071120_0%,#0b1327_44%,#111f3d_100%)] p-3 shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:min-h-[34rem] sm:p-5">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(96,165,250,0.18),transparent_28%),radial-gradient(circle_at_18%_18%,rgba(250,204,21,0.12),transparent_22%),radial-gradient(circle_at_82%_80%,rgba(255,255,255,0.08),transparent_24%)]" />
-
-                  {slotMembers.map((member, slotIndex) => (
-                    <HexTile
-                      accent={member ? "node" : "empty"}
-                      badge={`${copy.slot} ${slotIndex + 1}`}
-                      body={
-                        member
-                          ? `${formatInteger(member.lifetimePoints, locale)}P · ${getTierLabel(locale, member.tier)}`
-                          : copy.emptySlot
-                      }
-                      className={slotPositions[slotIndex]}
-                      interactive={Boolean(member)}
-                      key={`slot-${slotIndex + 1}`}
-                      onClick={
-                        member
-                          ? () => {
-                              setFocusedEmail(member.email);
-                            }
-                          : undefined
-                      }
-                      title={member ? formatEmailLabel(member.email) : copy.emptySlot}
-                    />
-                  ))}
-
-                  <HexCenterTile
-                    body={boardBody}
-                    eyebrow={isRootFocus ? copy.focusRoot : dictionary.activateNetworkPage.labels.currentMember}
-                    subtitle={boardSubtitle}
-                    title={formatEmailLabel(boardTitle)}
-                  />
-                </div>
-              </section>
-
-              <section className="space-y-4">
-                <section className="glass-card rounded-[28px] p-4 sm:p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="eyebrow">{dictionary.activateNetworkPage.labels.currentMember}</p>
-                      <h3 className="text-xl font-semibold tracking-tight text-slate-950">
-                        {boardTitle}
-                      </h3>
-                    </div>
-                    <Link
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-slate-50"
-                      href={listViewHref}
-                    >
-                      <GitBranch className="size-4" />
-                      {dictionary.activateNetworkPage.actions.openManagement}
-                    </Link>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.memberStatus}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? getMemberStatusLabel(dictionary, state.member.status)
-                          : getMemberStatusLabel(dictionary, focusedNode.status)
-                      }
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.referralCode}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? state.member.referralCode ?? "-"
-                          : focusedNode.referralCode ?? "-"
-                      }
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.placementReferralCode}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? state.member.placementReferralCode ??
-                            dictionary.member.topLevelPlacementValue
-                          : focusedNode.placementReferralCode ??
-                            dictionary.member.topLevelPlacementValue
-                      }
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.placementEmail}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? state.member.placementEmail ??
-                            dictionary.member.topLevelPlacementValue
-                          : focusedNode.placementEmail ??
-                            dictionary.member.topLevelPlacementValue
-                      }
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.lastConnectedAt}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? `${state.member.lastConnectedAt} · ${formatAddressLabel(state.member.lastWalletAddress)}`
-                          : `${focusedNode.lastConnectedAt} · ${formatAddressLabel(focusedNode.lastWalletAddress)}`
-                      }
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.membershipCard}
-                      value={
-                        isRootFocus || !focusedNode
-                          ? `${formatInteger(state.summary.totalMembers, locale)} ${dictionary.activateNetworkPage.labels.totalMembers}`
-                          : getMembershipCardLabel(locale, focusedNode.membershipCardTier)
-                      }
-                    />
-                  </div>
-                </section>
-
-                <section className="glass-card rounded-[28px] p-4 sm:p-5">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.directChildren}
-                      value={formatInteger(
-                        isRootFocus
-                          ? state.summary.directMembers
-                          : focusedNode?.directReferralCount ?? 0,
-                        locale,
+                  return (
+                    <g
+                      className={cn(
+                        "origin-center",
+                        occupied
+                          ? "animate-[hex-link-glow_2.8s_ease-in-out_infinite]"
+                          : "opacity-28",
                       )}
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.descendants}
-                      value={formatInteger(
-                        isRootFocus
-                          ? state.summary.totalMembers
-                          : focusedNode?.totalReferralCount ?? 0,
-                        locale,
-                      )}
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.lifetimePoints}
-                      value={`${formatInteger(
-                        isRootFocus
-                          ? state.summary.totalLifetimePoints
-                          : focusedNode?.lifetimePoints ?? 0,
-                        locale,
-                      )}P`}
-                    />
-                    <DetailCard
-                      label={dictionary.activateNetworkPage.labels.spendablePoints}
-                      value={`${formatInteger(
-                        isRootFocus
-                          ? state.summary.totalSpendablePoints
-                          : focusedNode?.spendablePoints ?? 0,
-                        locale,
-                      )}P`}
-                    />
-                  </div>
-                </section>
-              </section>
-            </section>
-          </>
+                      key={`link-${index}`}
+                    >
+                      <line
+                        stroke="url(#hex-link-gradient)"
+                        strokeDasharray={occupied ? "2 0" : "2.6 2.6"}
+                        strokeLinecap="round"
+                        strokeOpacity={occupied ? 0.9 : 0.22}
+                        strokeWidth={occupied ? 0.72 : 0.4}
+                        x1="50"
+                        x2={String(point.x)}
+                        y1="50"
+                        y2={String(point.y)}
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {slotMembers.map((member, slotIndex) => (
+                <HexTile
+                  accent={member ? "node" : "empty"}
+                  badge={`${copy.slot} ${slotIndex + 1}`}
+                  body={
+                    member
+                      ? `${formatInteger(member.lifetimePoints, locale)}P · ${getMembershipCardLabel(locale, member.membershipCardTier)}`
+                      : copy.emptySlot
+                  }
+                  className={cn(
+                    slotPositions[slotIndex],
+                    "animate-[hex-node-float_5.2s_ease-in-out_infinite]",
+                  )}
+                  depthLabel={
+                    member
+                      ? `${dictionary.activateNetworkPage.labels.level} ${member.depth}`
+                      : null
+                  }
+                  interactive={Boolean(member)}
+                  key={`slot-${slotIndex + 1}`}
+                  onClick={
+                    member
+                      ? () => {
+                          setFocusedEmail(member.email);
+                        }
+                      : undefined
+                  }
+                  subtitle={
+                    member
+                      ? `${getMemberStatusLabel(dictionary, member.status)} · ${getTierLabel(locale, member.tier)}`
+                      : null
+                  }
+                  title={member ? formatEmailLabel(member.email) : copy.emptySlot}
+                />
+              ))}
+
+              <HexCenterTile
+                body={boardBody}
+                eyebrow={
+                  isRootFocus
+                    ? copy.focusRoot
+                    : dictionary.activateNetworkPage.labels.currentMember
+                }
+                memberState={
+                  isRootFocus || !focusedNode
+                    ? getMemberStatusLabel(dictionary, state.member.status)
+                    : getMemberStatusLabel(dictionary, focusedNode.status)
+                }
+                subtitle={boardSubtitle}
+                title={formatEmailLabel(boardTitle)}
+              />
+            </div>
+          </section>
         )}
       </main>
     </div>
