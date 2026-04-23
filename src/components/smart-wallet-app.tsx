@@ -1410,8 +1410,9 @@ export function SmartWalletApp({
               </div>
 
               <Link
-                className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.2)] transition hover:bg-slate-800"
                 href={homeHref}
+                style={{ textShadow: "0 1px 2px rgba(15,23,42,0.35)" }}
               >
                 {suspendedCopy.returnHome}
               </Link>
