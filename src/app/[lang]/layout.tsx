@@ -30,9 +30,11 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
+  contentModal,
   params,
 }: Readonly<{
   children: ReactNode;
+  contentModal: ReactNode;
   params: Promise<{ lang: string }>;
 }>) {
   const { lang } = await params;
@@ -45,6 +47,7 @@ export default async function LocaleLayout({
     <>
       <LocaleSync locale={lang} />
       {children}
+      {contentModal}
     </>
   );
 }

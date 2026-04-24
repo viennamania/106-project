@@ -120,6 +120,7 @@ export function ContentDetailPage({
   initialPreview = null,
   initialTeaser = null,
   locale,
+  presentation = "page",
   referralCode = null,
   returnToHref = null,
 }: {
@@ -128,6 +129,7 @@ export function ContentDetailPage({
   initialPreview?: ContentDetailRecord | null;
   initialTeaser?: ContentLockedTeaser | null;
   locale: Locale;
+  presentation?: "modal" | "page";
   referralCode?: string | null;
   returnToHref?: string | null;
 }) {
@@ -162,6 +164,7 @@ export function ContentDetailPage({
   const heroRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const isDisconnected = status !== "connected" || !accountAddress;
+  const isModalPresentation = presentation === "modal";
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
       return;
@@ -446,8 +449,15 @@ export function ContentDetailPage({
   );
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
-      {hasThirdwebClientId ? (
+    <main
+      className={cn(
+        "mx-auto flex w-full flex-col gap-4 sm:gap-5",
+        isModalPresentation
+          ? "min-h-full max-w-3xl px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 sm:px-5 sm:py-5"
+          : "min-h-screen max-w-5xl px-3 py-4 sm:px-6 sm:py-6 lg:px-8",
+      )}
+    >
+      {hasThirdwebClientId && !isModalPresentation ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
           appMetadata={appMetadata}
@@ -457,7 +467,7 @@ export function ContentDetailPage({
         />
       ) : null}
 
-      <AndroidInstallBanner locale={locale} />
+      {!isModalPresentation ? <AndroidInstallBanner locale={locale} /> : null}
 
       {state.status === "loading" && !state.content ? (
         <ContentDetailLoadingState

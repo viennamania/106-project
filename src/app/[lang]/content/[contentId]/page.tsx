@@ -1,27 +1,14 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
-import { ContentDetailPage } from "@/components/content-detail-page";
+import {
+  ContentDetailRoute,
+  type ContentDetailRouteSearchParams,
+} from "@/components/content-detail-route";
 import { getContentCopy } from "@/lib/content-copy";
 import {
   getPublishedContentShareMetadata,
 } from "@/lib/content-service";
-import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
-
-function normalizeReturnToPath(value: string | string[] | undefined, locale: Locale) {
-  const candidate = Array.isArray(value) ? value[0] : value;
-
-  if (!candidate || !candidate.startsWith(`/${locale}/`)) {
-    return null;
-  }
-
-  if (candidate.startsWith("//")) {
-    return null;
-  }
-
-  return candidate;
-}
+import { hasLocale } from "@/lib/i18n";
 
 export async function generateMetadata({
   params,
@@ -69,41 +56,16 @@ export default async function LocalizedContentDetailPage({
   searchParams,
 }: {
   params: Promise<{ contentId: string; lang: string }>;
-  searchParams: Promise<{ ref?: string | string[]; returnTo?: string | string[] }>;
+  searchParams: Promise<ContentDetailRouteSearchParams>;
 }) {
   const { contentId, lang } = await params;
   const query = await searchParams;
 
-  if (!hasLocale(lang)) {
-    notFound();
-  }
-
-  const locale = lang as Locale;
-  const dictionary = getDictionary(locale);
-  const referralCode = normalizeReferralCode(
-    Array.isArray(query.ref) ? query.ref[0] : query.ref,
-  );
-  const returnToHref = normalizeReturnToPath(query.returnTo, locale);
-  const initialTeaser = await getPublishedContentShareMetadata(contentId);
-
   return (
-    <ContentDetailPage
+    <ContentDetailRoute
       contentId={contentId}
-      dictionary={dictionary}
-      initialTeaser={
-        initialTeaser
-          ? {
-              authorDisplayName: initialTeaser.authorDisplayName,
-              coverImageUrl: initialTeaser.coverImageUrl,
-              publishedAt: initialTeaser.publishedAt?.toISOString() ?? null,
-              summary: initialTeaser.summary,
-              title: initialTeaser.title,
-            }
-          : null
-      }
-      locale={locale}
-      referralCode={referralCode}
-      returnToHref={returnToHref}
+      lang={lang}
+      searchParams={query}
     />
   );
 }

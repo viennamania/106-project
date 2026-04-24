@@ -256,6 +256,7 @@ export function NetworkFeedPage({
   );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const restoredFeedKeyRef = useRef<string | null>(null);
+  const isLoadingMoreRef = useRef(false);
   const [state, setState] = useState<FeedState>({
     error: null,
     items: [],
@@ -406,11 +407,14 @@ export function NetworkFeedPage({
       const cursor = options?.cursor ?? null;
 
       if (append) {
-        if (!cursor || isLoadingMore) {
+        if (!cursor || isLoadingMoreRef.current) {
           return;
         }
+        isLoadingMoreRef.current = true;
         setIsLoadingMore(true);
       } else {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
         setNextCursor(null);
         setState((current) => ({
           ...current,
@@ -538,6 +542,7 @@ export function NetworkFeedPage({
         setNextCursor(null);
       } finally {
         if (append) {
+          isLoadingMoreRef.current = false;
           setIsLoadingMore(false);
         }
       }
@@ -548,7 +553,6 @@ export function NetworkFeedPage({
       contentCopy.messages.memberMissing,
       contentCopy.messages.paymentRequired,
       dictionary.member.errors.missingEmail,
-      isLoadingMore,
       isPublicReferralFeed,
       locale,
       mergeItems,
