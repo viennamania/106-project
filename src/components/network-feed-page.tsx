@@ -8,11 +8,16 @@ import {
   useMemo,
   useRef,
   useState,
+  type PointerEvent,
   type ReactNode,
 } from "react";
 import {
   ArrowLeft,
   Bookmark,
+  Check,
+  Copy,
+  EyeOff,
+  ExternalLink,
   Heart,
   MessageCircle,
   MoreHorizontal,
@@ -54,8 +59,6 @@ type FeedState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
-type FeedLevelFilter = "all" | "extended" | "nearby";
-
 type FeedCreatorSummary = {
   avatarImageUrl: string | null;
   closestLevel: number | null;
@@ -64,6 +67,14 @@ type FeedCreatorSummary = {
   intro: string | null;
   key: string;
 };
+
+type LikeBurst = {
+  id: number;
+  x: number;
+  y: number;
+};
+
+type ShareState = "copied" | "error" | "idle" | "sharing";
 
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -93,6 +104,28 @@ function formatDate(value: string, locale: Locale) {
   }).format(date);
 }
 
+function readStoredFlag(key: string) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredFlag(key: string, value: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(key, value ? "1" : "0");
+  } catch {}
+}
+
 export function NetworkFeedPage({
   dictionary,
   locale,
@@ -120,7 +153,6 @@ export function NetworkFeedPage({
   });
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [levelFilter, setLevelFilter] = useState<FeedLevelFilter>("all");
   const [selectedCreatorKey, setSelectedCreatorKey] = useState<string | null>(
     null,
   );
@@ -130,32 +162,10 @@ export function NetworkFeedPage({
 
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
-      const level = item.networkLevel ?? 6;
-      const matchesCreator =
-        !selectedCreatorKey || item.authorEmail === selectedCreatorKey;
-
-      if (!matchesCreator) {
-        return false;
-      }
-
-      if (levelFilter === "nearby") {
-        return level <= 2;
-      }
-
-      if (levelFilter === "extended") {
-        return level >= 3;
-      }
-
-      return true;
+      return !selectedCreatorKey || item.authorEmail === selectedCreatorKey;
     });
-  }, [levelFilter, selectedCreatorKey, state.items]);
+  }, [selectedCreatorKey, state.items]);
 
-  const nearbyCount = useMemo(() => {
-    return state.items.filter((item) => (item.networkLevel ?? 6) <= 2).length;
-  }, [state.items]);
-  const extendedCount = useMemo(() => {
-    return state.items.filter((item) => (item.networkLevel ?? 6) >= 3).length;
-  }, [state.items]);
   const creatorSummaries = useMemo<FeedCreatorSummary[]>(() => {
     const map = new Map<string, FeedCreatorSummary>();
 
@@ -206,34 +216,6 @@ export function NetworkFeedPage({
       })
       .slice(0, 12);
   }, [state.items]);
-
-  const filterItems = useMemo(
-    () => [
-      {
-        count: state.items.length,
-        key: "all" as const,
-        label: contentCopy.labels.allLevels,
-      },
-      {
-        count: nearbyCount,
-        key: "nearby" as const,
-        label: contentCopy.labels.nearbyLevels,
-      },
-      {
-        count: extendedCount,
-        key: "extended" as const,
-        label: contentCopy.labels.extendedLevels,
-      },
-    ],
-    [
-      contentCopy.labels.allLevels,
-      contentCopy.labels.extendedLevels,
-      contentCopy.labels.nearbyLevels,
-      extendedCount,
-      nearbyCount,
-      state.items.length,
-    ],
-  );
 
   const mergeItems = useCallback(
     (currentItems: ContentFeedItemRecord[], nextItems: ContentFeedItemRecord[]) => {
@@ -499,44 +481,6 @@ export function NetworkFeedPage({
             </button>
           </div>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {filterItems.map((item) => (
-              <button
-                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  levelFilter === item.key
-                    ? "border-slate-950 bg-slate-950 text-white"
-                    : "border-slate-200 bg-white text-slate-700"
-                }`}
-                key={item.key}
-                onClick={() => {
-                  setLevelFilter(item.key);
-                }}
-                type="button"
-              >
-                <span>{item.label}</span>
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[0.65rem] ${
-                    levelFilter === item.key
-                      ? "bg-white text-slate-950"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {item.count}
-                </span>
-              </button>
-            ))}
-            {selectedCreatorKey ? (
-              <button
-                className="inline-flex shrink-0 items-center rounded-full border border-slate-950 bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white"
-                onClick={() => {
-                  setSelectedCreatorKey(null);
-                }}
-                type="button"
-              >
-                {locale === "ko" ? "크리에이터 해제" : "Clear creator"}
-              </button>
-            ) : null}
-          </div>
         </header>
 
         {creatorSummaries.length > 0 ? (
@@ -674,9 +618,235 @@ function SocialFeedPost({
     `/${locale}/content/${item.contentId}`,
     referralCode,
   );
+  const bridgeHref = buildPathWithReferral(
+    `/${locale}/content/bridge/${item.contentId}`,
+    referralCode,
+  );
+  const imageRef = useRef<HTMLDivElement | null>(null);
+  const lastTapAtRef = useRef(0);
+  const [isLiked, setIsLiked] = useState(() =>
+    readStoredFlag(`content-like:${item.contentId}`),
+  );
+  const [isSaved, setIsSaved] = useState(() =>
+    readStoredFlag(`content-save:${item.contentId}`),
+  );
+  const [isHidden, setIsHidden] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [likeBursts, setLikeBursts] = useState<LikeBurst[]>([]);
+  const [shareState, setShareState] = useState<ShareState>("idle");
+  const [toast, setToast] = useState<string | null>(null);
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return new URL(bridgeHref, window.location.origin).toString();
+  }, [bridgeHref]);
+  const actionCopy =
+    locale === "ko"
+      ? {
+          copied: "링크를 복사했습니다.",
+          copyLink: "링크 복사",
+          detail: "게시물 보기",
+          hidden: "게시물을 숨겼습니다.",
+          hide: "피드에서 숨기기",
+          like: "좋아요",
+          liked: "좋아요 완료",
+          openComments: "상세에서 댓글 보기",
+          saved: "저장했습니다.",
+          savePost: "저장",
+          share: "공유",
+          shareFailed: "공유할 수 없습니다.",
+          sharing: "공유 중",
+          unsavePost: "저장 취소",
+          unsaved: "저장을 취소했습니다.",
+          undo: "되돌리기",
+        }
+      : {
+          copied: "Link copied.",
+          copyLink: "Copy link",
+          detail: "View post",
+          hidden: "Post hidden.",
+          hide: "Hide from feed",
+          like: "Like",
+          liked: "Liked",
+          openComments: "View comments in detail",
+          saved: "Saved.",
+          savePost: "Save",
+          share: "Share",
+          shareFailed: "Sharing is unavailable.",
+          sharing: "Sharing",
+          unsavePost: "Unsave",
+          unsaved: "Removed from saved.",
+          undo: "Undo",
+        };
+
+  useEffect(() => {
+    writeStoredFlag(`content-like:${item.contentId}`, isLiked);
+  }, [isLiked, item.contentId]);
+
+  useEffect(() => {
+    writeStoredFlag(`content-save:${item.contentId}`, isSaved);
+  }, [isSaved, item.contentId]);
+
+  useEffect(() => {
+    if (!toast && shareState !== "copied" && shareState !== "error") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setToast(null);
+      setShareState("idle");
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [shareState, toast]);
+
+  const spawnLikeBurst = useCallback((clientX?: number, clientY?: number) => {
+    const rect = imageRef.current?.getBoundingClientRect();
+
+    if (!rect) {
+      return;
+    }
+
+    const id = Date.now() + Math.random();
+    const x =
+      typeof clientX === "number"
+        ? ((clientX - rect.left) / rect.width) * 100
+        : 50;
+    const y =
+      typeof clientY === "number"
+        ? ((clientY - rect.top) / rect.height) * 100
+        : 50;
+
+    setLikeBursts((current) => [...current, { id, x, y }]);
+    window.setTimeout(() => {
+      setLikeBursts((current) => current.filter((burst) => burst.id !== id));
+    }, 850);
+  }, []);
+
+  const triggerLike = useCallback(
+    (clientX?: number, clientY?: number) => {
+      setIsLiked(true);
+      spawnLikeBurst(clientX, clientY);
+    },
+    [spawnLikeBurst],
+  );
+
+  const toggleLike = useCallback(() => {
+    setIsLiked((current) => {
+      const next = !current;
+
+      if (next) {
+        spawnLikeBurst();
+      }
+
+      return next;
+    });
+  }, [spawnLikeBurst]);
+
+  const copyShareLink = useCallback(async () => {
+    if (!shareUrl) {
+      setShareState("error");
+      setToast(actionCopy.shareFailed);
+      return false;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareState("copied");
+      setToast(actionCopy.copied);
+      return true;
+    } catch {
+      setShareState("error");
+      setToast(actionCopy.shareFailed);
+      return false;
+    }
+  }, [actionCopy.copied, actionCopy.shareFailed, shareUrl]);
+
+  const handleShare = useCallback(async () => {
+    if (!shareUrl) {
+      setShareState("error");
+      setToast(actionCopy.shareFailed);
+      return;
+    }
+
+    if (typeof navigator.share === "function") {
+      setShareState("sharing");
+
+      try {
+        await navigator.share({
+          text: item.summary,
+          title: item.title,
+          url: shareUrl,
+        });
+        setShareState("idle");
+        return;
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
+          setShareState("idle");
+          return;
+        }
+      }
+    }
+
+    await copyShareLink();
+  }, [actionCopy.shareFailed, copyShareLink, item.summary, item.title, shareUrl]);
+
+  const toggleSave = useCallback(() => {
+    setIsSaved((current) => {
+      const next = !current;
+      setToast(next ? actionCopy.saved : actionCopy.unsaved);
+      return next;
+    });
+  }, [actionCopy.saved, actionCopy.unsaved]);
+
+  const handleMediaPointerUp = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType !== "touch") {
+        return;
+      }
+
+      const now = Date.now();
+
+      if (now - lastTapAtRef.current < 280) {
+        event.preventDefault();
+        triggerLike(event.clientX, event.clientY);
+      }
+
+      lastTapAtRef.current = now;
+    },
+    [triggerLike],
+  );
+
+  if (isHidden) {
+    return (
+      <article className="border-b border-slate-200 bg-white px-4 py-5">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <span>{actionCopy.hidden}</span>
+          <button
+            className="shrink-0 text-sm font-semibold text-slate-950"
+            onClick={() => {
+              setIsHidden(false);
+            }}
+            type="button"
+          >
+            {actionCopy.undo}
+          </button>
+        </div>
+      </article>
+    );
+  }
 
   return (
-    <article className="border-b border-slate-200 bg-white">
+    <article className="relative border-b border-slate-200 bg-white">
       <div className="flex items-center gap-3 px-3 py-3">
         <Avatar
           imageUrl={item.authorProfile?.avatarImageUrl ?? null}
@@ -691,12 +861,62 @@ function SocialFeedPost({
             {formatDate(item.publishedAt ?? item.createdAt, locale)}
           </p>
         </div>
-        <MoreHorizontal className="size-5 shrink-0 text-slate-500" />
+        <button
+          aria-expanded={isMenuOpen}
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+          onClick={() => {
+            setIsMenuOpen((current) => !current);
+          }}
+          type="button"
+        >
+          <span className="sr-only">More</span>
+          <MoreHorizontal className="size-5" />
+        </button>
+        {isMenuOpen ? (
+          <div className="absolute right-3 top-12 z-30 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_46px_rgba(15,23,42,0.16)]">
+            <button
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-50"
+              onClick={() => {
+                void copyShareLink();
+                setIsMenuOpen(false);
+              }}
+              type="button"
+            >
+              <Copy className="size-4" />
+              {actionCopy.copyLink}
+            </button>
+            <Link
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
+              href={href}
+              onClick={() => {
+                setIsMenuOpen(false);
+              }}
+            >
+              <ExternalLink className="size-4" />
+              {actionCopy.detail}
+            </Link>
+            <button
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-50"
+              onClick={() => {
+                setIsHidden(true);
+                setIsMenuOpen(false);
+              }}
+              type="button"
+            >
+              <EyeOff className="size-4" />
+              {actionCopy.hide}
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <Link
-        className="block bg-slate-100"
-        href={href}
+      <div
+        className="relative block bg-slate-100"
+        onDoubleClick={(event) => {
+          triggerLike(event.clientX, event.clientY);
+        }}
+        onPointerUp={handleMediaPointerUp}
+        ref={imageRef}
       >
         {previewImageUrl ? (
           <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
@@ -719,17 +939,88 @@ function SocialFeedPost({
             </div>
           </div>
         )}
-      </Link>
+        {likeBursts.map((burst) => (
+          <Heart
+            className="pointer-events-none absolute size-20 -translate-x-1/2 -translate-y-1/2 fill-white text-white drop-shadow-[0_12px_28px_rgba(15,23,42,0.42)] motion-safe:animate-ping"
+            key={burst.id}
+            style={{
+              left: `${burst.x}%`,
+              top: `${burst.y}%`,
+            }}
+          />
+        ))}
+      </div>
 
       <div className="px-3 pb-4 pt-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Heart className="size-6 text-slate-950" />
-            <MessageCircle className="size-6 text-slate-950" />
-            <Send className="size-6 text-slate-950" />
+            <button
+              aria-pressed={isLiked}
+              className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
+              onClick={toggleLike}
+              type="button"
+            >
+              <span className="sr-only">
+                {isLiked ? actionCopy.liked : actionCopy.like}
+              </span>
+              <Heart
+                className={`size-6 transition ${
+                  isLiked
+                    ? "fill-rose-500 text-rose-500"
+                    : "text-slate-950"
+                }`}
+              />
+            </button>
+            <Link
+              className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
+              href={href}
+            >
+              <span className="sr-only">{actionCopy.openComments}</span>
+              <MessageCircle className="size-6 text-slate-950" />
+            </Link>
+            <button
+              className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100 disabled:opacity-60"
+              disabled={shareState === "sharing"}
+              onClick={() => {
+                void handleShare();
+              }}
+              type="button"
+            >
+              <span className="sr-only">
+                {shareState === "sharing" ? actionCopy.sharing : actionCopy.share}
+              </span>
+              <Send
+                className={`size-6 transition ${
+                  shareState === "copied" ? "text-emerald-600" : "text-slate-950"
+                }`}
+              />
+            </button>
           </div>
-          <Bookmark className="size-6 text-slate-950" />
+          <button
+            aria-pressed={isSaved}
+            className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
+            onClick={toggleSave}
+            type="button"
+          >
+            <span className="sr-only">
+              {isSaved ? actionCopy.unsavePost : actionCopy.savePost}
+            </span>
+            <Bookmark
+              className={`size-6 transition ${
+                isSaved ? "fill-slate-950 text-slate-950" : "text-slate-950"
+              }`}
+            />
+          </button>
         </div>
+
+        {toast ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)]">
+            {toast === actionCopy.copied || toast === actionCopy.saved ? (
+              <Check className="size-3.5" />
+            ) : null}
+            {toast}
+          </div>
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           <Pill>{freeLabel}</Pill>
