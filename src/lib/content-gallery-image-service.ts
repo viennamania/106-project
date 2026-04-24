@@ -99,9 +99,11 @@ function buildGalleryImagePrompt(input: {
   return [
     "Create one premium editorial gallery image for a creator content detail page.",
     "This image should feel like a polished magazine still: high-end, cinematic, photoreal, elegant, and visually focused.",
+    "Follow the creator visual request as the highest priority when it specifies framing, subject distance, pose, or composition.",
     "Use a single dominant subject or a very clear focal composition. Avoid cluttered storytelling, collage layouts, split panels, tiny background characters, or trying to visualize every sentence literally.",
-    "Portrait-first composition optimized for a mobile swipe gallery and immersive detail view.",
-    "Lighting should be refined and believable with rich materials, strong texture fidelity, natural skin rendering, crisp facial detail, realistic anatomy, premium depth, and controlled contrast.",
+    "Use a clear, polished editorial composition with the requested subject fully represented.",
+    "Do not crop important subject details requested by the creator, such as full body, hands, feet, clothing, props, or background.",
+    "Lighting should be refined and believable with rich materials, strong texture fidelity, realistic anatomy, premium depth, and controlled contrast.",
     "Do not include any text, typography, letters, numbers, logos, watermarks, borders, frames, UI chrome, subtitles, or poster layout elements.",
     "Avoid low-detail faces, duplicate people, extra limbs, distorted hands, blurry eyes, warped anatomy, muddy lighting, oversaturated colors, cheap CGI feel, or generic stock-photo composition.",
     "If people appear, keep the styling tasteful, non-explicit, fully clothed, and fashion-editorial rather than provocative.",
