@@ -7,9 +7,14 @@ import type { Filter } from "mongodb";
 import {
   CONTENT_FEED_PAGE_SIZE,
   CONTENT_NETWORK_LEVEL_LIMIT,
+  createEmptyContentSocialSummary,
   normalizeContentLocale,
   serializeContentPost,
   serializeCreatorProfile,
+  type ContentCommentCreateResponse,
+  type ContentCommentDocument,
+  type ContentCommentRecord,
+  type ContentCommentsResponse,
   type ContentDetailResponse,
   type ContentFeedItemRecord,
   type ContentFeedResponse,
@@ -17,6 +22,8 @@ import {
   type ContentPostDocument,
   type ContentPostRecord,
   type ContentPostUpdateRequest,
+  type ContentSocialResponse,
+  type ContentSocialSummaryRecord,
   type CreatorProfileDocument,
   type CreatorProfileRecord,
   type CreatorProfileUpsertRequest,
@@ -25,8 +32,10 @@ import {
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
+  getContentCommentsCollection,
   getContentPostsCollection,
   getContentPostSourceAttributionsCollection,
+  getContentSocialActionsCollection,
   getCreatorProfilesCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
@@ -52,6 +61,7 @@ type NetworkFeedCursor = {
 
 type NetworkFeedQueryOptions = {
   cursor?: string | null;
+  viewerEmail?: string | null;
 };
 
 const PROFILE_DISPLAY_NAME_LIMIT = 40;
@@ -64,6 +74,8 @@ const CONTENT_TAG_LENGTH_LIMIT = 24;
 const CONTENT_IMAGE_LIMIT = 10;
 const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
+const CONTENT_COMMENT_BODY_LIMIT = 500;
+const CONTENT_COMMENTS_PAGE_SIZE = 30;
 
 function encodeNetworkFeedCursor(post: ContentPostDocument) {
   const cursor: NetworkFeedCursor = {
@@ -384,6 +396,7 @@ async function loadNetworkFeedItemsFromAncestors(
   const postsCollection = await getContentPostsCollection();
   const creatorProfilesCollection = await getCreatorProfilesCollection();
   const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
+  const hiddenContentIds = await getHiddenContentIdsForViewer(options?.viewerEmail);
   const localeFilter =
     contentLocale === defaultLocale
       ? [
@@ -398,6 +411,9 @@ async function loadNetworkFeedItemsFromAncestors(
     authorReferralCode: { $in: referralCodes },
     priceType: "free",
     status: "published",
+    ...(hiddenContentIds.length > 0
+      ? { contentId: { $nin: hiddenContentIds } }
+      : {}),
   };
   const filter: Filter<ContentPostDocument> = cursor
     ? {
@@ -446,6 +462,10 @@ async function loadNetworkFeedItemsFromAncestors(
   const ancestorByEmail = new Map(
     ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
   );
+  const socialByContentId = await getContentSocialSummaries(
+    pagePosts.map((post) => post.contentId),
+    options?.viewerEmail,
+  );
 
   const items = pagePosts.map((post) => {
       const storedProfile = storedProfileByEmail.get(post.authorEmail);
@@ -459,6 +479,7 @@ async function loadNetworkFeedItemsFromAncestors(
         authorProfile,
         content: post,
         networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
+        social: socialByContentId.get(post.contentId),
       });
     });
 
@@ -660,10 +681,12 @@ function buildFeedItem({
   authorProfile,
   content,
   networkLevel,
+  social,
 }: {
   authorProfile: CreatorProfileRecord | null;
   content: ContentPostDocument;
   networkLevel: number | null;
+  social?: ContentSocialSummaryRecord;
 }): ContentFeedItemRecord {
   return {
     ...serializeContentPost(content),
@@ -671,6 +694,364 @@ function buildFeedItem({
     canAccess: true,
     networkLevel,
     previewAssets: [],
+    social: social ?? createEmptyContentSocialSummary(),
+  };
+}
+
+function normalizeContentSocialAction(action: string | null | undefined) {
+  return action === "like" || action === "save" || action === "hide"
+    ? action
+    : null;
+}
+
+function socialActionToField(action: "hide" | "like" | "save") {
+  if (action === "like") {
+    return "liked";
+  }
+
+  if (action === "save") {
+    return "saved";
+  }
+
+  return "hidden";
+}
+
+async function ensurePublishedContentExists(contentId: string) {
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId,
+    status: "published",
+  });
+
+  if (!post) {
+    throw new Error("Content not found.");
+  }
+
+  return post;
+}
+
+async function getHiddenContentIdsForViewer(viewerEmail?: string | null) {
+  const normalizedViewerEmail = viewerEmail ? normalizeEmail(viewerEmail) : "";
+
+  if (!normalizedViewerEmail) {
+    return [];
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const hiddenActions = await socialActionsCollection
+    .find(
+      {
+        hidden: true,
+        memberEmail: normalizedViewerEmail,
+      },
+      {
+        projection: {
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+
+  return hiddenActions.map((action) => action.contentId);
+}
+
+async function getContentSocialSummaries(
+  contentIds: string[],
+  viewerEmail?: string | null,
+) {
+  const uniqueContentIds = [...new Set(contentIds.filter(Boolean))];
+  const summaries = new Map<string, ContentSocialSummaryRecord>();
+
+  for (const contentId of uniqueContentIds) {
+    summaries.set(contentId, createEmptyContentSocialSummary());
+  }
+
+  if (uniqueContentIds.length === 0) {
+    return summaries;
+  }
+
+  const normalizedViewerEmail = viewerEmail ? normalizeEmail(viewerEmail) : "";
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const commentsCollection = await getContentCommentsCollection();
+  const [actionCounts, commentCounts, viewerActions] = await Promise.all([
+    socialActionsCollection
+      .aggregate<{
+        _id: string;
+        likeCount: number;
+        saveCount: number;
+      }>([
+        {
+          $match: {
+            contentId: { $in: uniqueContentIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$contentId",
+            likeCount: {
+              $sum: {
+                $cond: ["$liked", 1, 0],
+              },
+            },
+            saveCount: {
+              $sum: {
+                $cond: ["$saved", 1, 0],
+              },
+            },
+          },
+        },
+      ])
+      .toArray(),
+    commentsCollection
+      .aggregate<{ _id: string; count: number }>([
+        {
+          $match: {
+            contentId: { $in: uniqueContentIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$contentId",
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+    normalizedViewerEmail
+      ? socialActionsCollection
+          .find({
+            contentId: { $in: uniqueContentIds },
+            memberEmail: normalizedViewerEmail,
+          })
+          .toArray()
+      : Promise.resolve([]),
+  ]);
+
+  for (const count of actionCounts) {
+    const current =
+      summaries.get(count._id) ?? createEmptyContentSocialSummary();
+    summaries.set(count._id, {
+      ...current,
+      likeCount: count.likeCount,
+      saveCount: count.saveCount,
+    });
+  }
+
+  for (const count of commentCounts) {
+    const current =
+      summaries.get(count._id) ?? createEmptyContentSocialSummary();
+    summaries.set(count._id, {
+      ...current,
+      commentCount: count.count,
+    });
+  }
+
+  for (const action of viewerActions) {
+    const current =
+      summaries.get(action.contentId) ?? createEmptyContentSocialSummary();
+    summaries.set(action.contentId, {
+      ...current,
+      hiddenByViewer: action.hidden,
+      likedByViewer: action.liked,
+      savedByViewer: action.saved,
+    });
+  }
+
+  return summaries;
+}
+
+export async function getContentSocialSummaryForViewer(
+  contentId: string,
+  viewerEmail?: string | null,
+): Promise<ContentSocialSummaryRecord> {
+  await ensurePublishedContentExists(contentId);
+
+  const summaries = await getContentSocialSummaries([contentId], viewerEmail);
+
+  return summaries.get(contentId) ?? createEmptyContentSocialSummary();
+}
+
+export async function updateContentSocialActionForMember({
+  action,
+  contentId,
+  email,
+  value,
+}: {
+  action: string;
+  contentId: string;
+  email: string;
+  value: boolean;
+}): Promise<ContentSocialResponse> {
+  const normalizedAction = normalizeContentSocialAction(action);
+
+  if (!normalizedAction) {
+    throw new Error("Unsupported social action.");
+  }
+
+  await ensurePublishedContentExists(contentId);
+
+  const member = await getCompletedMemberOrThrow(email);
+  const field = socialActionToField(normalizedAction);
+  const now = new Date();
+  const setOnInsert: Record<string, unknown> = {
+    contentId,
+    createdAt: now,
+    memberEmail: member.email,
+  };
+
+  if (field !== "liked") {
+    setOnInsert.liked = false;
+  }
+
+  if (field !== "saved") {
+    setOnInsert.saved = false;
+  }
+
+  if (field !== "hidden") {
+    setOnInsert.hidden = false;
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  await socialActionsCollection.updateOne(
+    {
+      contentId,
+      memberEmail: member.email,
+    },
+    {
+      $set: {
+        [field]: value,
+        updatedAt: now,
+      },
+      $setOnInsert: setOnInsert,
+    },
+    {
+      upsert: true,
+    },
+  );
+
+  return {
+    social: await getContentSocialSummaryForViewer(contentId, member.email),
+  };
+}
+
+function normalizeCommentBody(body: string | null | undefined) {
+  return trimToLength(body, CONTENT_COMMENT_BODY_LIMIT);
+}
+
+async function getCommentAuthorProfiles(memberEmails: string[]) {
+  const uniqueEmails = [...new Set(memberEmails.filter(Boolean))];
+
+  if (uniqueEmails.length === 0) {
+    return new Map<string, CreatorProfileRecord>();
+  }
+
+  const [profiles, members] = await Promise.all([
+    (await getCreatorProfilesCollection())
+      .find({
+        email: { $in: uniqueEmails },
+      })
+      .toArray(),
+    (await getMembersCollection())
+      .find({
+        email: { $in: uniqueEmails },
+      })
+      .toArray(),
+  ]);
+  const profileByEmail = new Map<string, CreatorProfileRecord>();
+
+  for (const profile of profiles) {
+    profileByEmail.set(profile.email, serializeCreatorProfile(profile));
+  }
+
+  for (const member of members) {
+    if (!profileByEmail.has(member.email)) {
+      profileByEmail.set(member.email, createDefaultCreatorProfile(member));
+    }
+  }
+
+  return profileByEmail;
+}
+
+function serializeContentComment(
+  comment: ContentCommentDocument,
+  profileByEmail: Map<string, CreatorProfileRecord>,
+): ContentCommentRecord {
+  const profile = profileByEmail.get(comment.memberEmail);
+
+  return {
+    authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
+    authorDisplayName:
+      profile?.displayName ??
+      comment.memberEmail.split("@")[0] ??
+      comment.memberEmail,
+    body: comment.body,
+    commentId: comment.commentId,
+    contentId: comment.contentId,
+    createdAt: comment.createdAt.toISOString(),
+    memberEmail: comment.memberEmail,
+  };
+}
+
+export async function getContentCommentsForContent(
+  contentId: string,
+  viewerEmail?: string | null,
+): Promise<ContentCommentsResponse> {
+  await ensurePublishedContentExists(contentId);
+
+  const commentsCollection = await getContentCommentsCollection();
+  const comments = await commentsCollection
+    .find({ contentId })
+    .sort({ createdAt: -1 })
+    .limit(CONTENT_COMMENTS_PAGE_SIZE)
+    .toArray();
+  const profileByEmail = await getCommentAuthorProfiles(
+    comments.map((comment) => comment.memberEmail),
+  );
+
+  return {
+    comments: comments.map((comment) =>
+      serializeContentComment(comment, profileByEmail),
+    ),
+    social: await getContentSocialSummaryForViewer(contentId, viewerEmail),
+  };
+}
+
+export async function addContentCommentForMember({
+  body,
+  contentId,
+  email,
+}: {
+  body: string;
+  contentId: string;
+  email: string;
+}): Promise<ContentCommentCreateResponse> {
+  await ensurePublishedContentExists(contentId);
+
+  const member = await getCompletedMemberOrThrow(email);
+  const normalizedBody = normalizeCommentBody(body);
+
+  if (!normalizedBody) {
+    throw new Error("Comment body is required.");
+  }
+
+  const now = new Date();
+  const comment: ContentCommentDocument = {
+    body: normalizedBody,
+    commentId: randomUUID(),
+    contentId,
+    createdAt: now,
+    memberEmail: member.email,
+    updatedAt: now,
+  };
+
+  const commentsCollection = await getContentCommentsCollection();
+  await commentsCollection.insertOne(comment);
+
+  const profileByEmail = await getCommentAuthorProfiles([member.email]);
+
+  return {
+    comment: serializeContentComment(comment, profileByEmail),
+    social: await getContentSocialSummaryForViewer(contentId, member.email),
   };
 }
 
@@ -681,7 +1062,10 @@ export async function getNetworkFeedForMember(
 ): Promise<ContentFeedResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const ancestors = await resolveNetworkAncestors(member);
-  const feed = await loadNetworkFeedItemsFromAncestors(ancestors, locale, options);
+  const feed = await loadNetworkFeedItemsFromAncestors(ancestors, locale, {
+    ...options,
+    viewerEmail: member.email,
+  });
 
   return {
     items: feed.items,

@@ -19,11 +19,13 @@ import {
   EyeOff,
   ExternalLink,
   Heart,
+  LoaderCircle,
   MessageCircle,
   MoreHorizontal,
   RefreshCcw,
   Rss,
   Send,
+  X,
 } from "lucide-react";
 import {
   AutoConnect,
@@ -34,8 +36,13 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { getContentCopy } from "@/lib/content-copy";
 import type {
+  ContentCommentCreateResponse,
+  ContentCommentRecord,
+  ContentCommentsResponse,
   ContentFeedItemRecord,
   ContentFeedLoadResponse,
+  ContentSocialResponse,
+  ContentSocialSummaryRecord,
 } from "@/lib/content";
 import {
   buildPathWithReferral,
@@ -526,11 +533,13 @@ export function NetworkFeedPage({
             <>
               {filteredItems.map((item, index) => (
                 <SocialFeedPost
+                  accountAddress={accountAddress ?? null}
                   freeLabel={contentCopy.labels.free}
                   item={item}
                   key={item.contentId}
                   levelLabel={contentCopy.labels.level}
                   locale={locale}
+                  missingEmailMessage={dictionary.member.errors.missingEmail}
                   priority={index < 2}
                   referralCode={referralCode}
                   viewDetailLabel={contentCopy.actions.viewDetail}
@@ -596,18 +605,22 @@ function CreatorStoryButton({
 }
 
 function SocialFeedPost({
+  accountAddress,
   freeLabel,
   item,
   levelLabel,
   locale,
+  missingEmailMessage,
   priority,
   referralCode,
   viewDetailLabel,
 }: {
+  accountAddress: string | null;
   freeLabel: string;
   item: ContentFeedItemRecord;
   levelLabel: string;
   locale: Locale;
+  missingEmailMessage: string;
   priority: boolean;
   referralCode: string | null;
   viewDetailLabel: string;
@@ -624,17 +637,25 @@ function SocialFeedPost({
   );
   const imageRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
-  const [isLiked, setIsLiked] = useState(() =>
-    readStoredFlag(`content-like:${item.contentId}`),
-  );
-  const [isSaved, setIsSaved] = useState(() =>
-    readStoredFlag(`content-save:${item.contentId}`),
-  );
+  const [social, setSocial] = useState<ContentSocialSummaryRecord>(() => ({
+    ...item.social,
+    likedByViewer:
+      item.social.likedByViewer || readStoredFlag(`content-like:${item.contentId}`),
+    savedByViewer:
+      item.social.savedByViewer || readStoredFlag(`content-save:${item.contentId}`),
+  }));
   const [isHidden, setIsHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [likeBursts, setLikeBursts] = useState<LikeBurst[]>([]);
   const [shareState, setShareState] = useState<ShareState>("idle");
   const [toast, setToast] = useState<string | null>(null);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [comments, setComments] = useState<ContentCommentRecord[]>([]);
+  const [commentsStatus, setCommentsStatus] = useState<
+    "idle" | "loading" | "ready" | "submitting" | "error"
+  >("idle");
+  const [commentsError, setCommentsError] = useState<string | null>(null);
+  const [commentBody, setCommentBody] = useState("");
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") {
       return "";
@@ -651,16 +672,23 @@ function SocialFeedPost({
           hidden: "게시물을 숨겼습니다.",
           hide: "피드에서 숨기기",
           like: "좋아요",
+          likeCount: "좋아요",
           liked: "좋아요 완료",
-          openComments: "상세에서 댓글 보기",
+          loadCommentsFailed: "댓글을 불러오지 못했습니다.",
+          noComments: "아직 댓글이 없습니다.",
+          openComments: "댓글 보기",
+          postComment: "게시",
           saved: "저장했습니다.",
           savePost: "저장",
           share: "공유",
           shareFailed: "공유할 수 없습니다.",
           sharing: "공유 중",
+          signInRequired: "지갑 연결 후 사용할 수 있습니다.",
+          submitCommentFailed: "댓글을 등록하지 못했습니다.",
           unsavePost: "저장 취소",
           unsaved: "저장을 취소했습니다.",
           undo: "되돌리기",
+          writeComment: "댓글 달기...",
         }
       : {
           copied: "Link copied.",
@@ -669,25 +697,32 @@ function SocialFeedPost({
           hidden: "Post hidden.",
           hide: "Hide from feed",
           like: "Like",
+          likeCount: "likes",
           liked: "Liked",
-          openComments: "View comments in detail",
+          loadCommentsFailed: "Failed to load comments.",
+          noComments: "No comments yet.",
+          openComments: "View comments",
+          postComment: "Post",
           saved: "Saved.",
           savePost: "Save",
           share: "Share",
           shareFailed: "Sharing is unavailable.",
           sharing: "Sharing",
+          signInRequired: "Connect your wallet to use this.",
+          submitCommentFailed: "Failed to post comment.",
           unsavePost: "Unsave",
           unsaved: "Removed from saved.",
           undo: "Undo",
+          writeComment: "Add a comment...",
         };
 
   useEffect(() => {
-    writeStoredFlag(`content-like:${item.contentId}`, isLiked);
-  }, [isLiked, item.contentId]);
+    writeStoredFlag(`content-like:${item.contentId}`, social.likedByViewer);
+  }, [item.contentId, social.likedByViewer]);
 
   useEffect(() => {
-    writeStoredFlag(`content-save:${item.contentId}`, isSaved);
-  }, [isSaved, item.contentId]);
+    writeStoredFlag(`content-save:${item.contentId}`, social.savedByViewer);
+  }, [item.contentId, social.savedByViewer]);
 
   useEffect(() => {
     if (!toast && shareState !== "copied" && shareState !== "error") {
@@ -729,23 +764,102 @@ function SocialFeedPost({
 
   const triggerLike = useCallback(
     (clientX?: number, clientY?: number) => {
-      setIsLiked(true);
+      setSocial((current) => {
+        if (current.likedByViewer) {
+          return current;
+        }
+
+        return {
+          ...current,
+          likedByViewer: true,
+          likeCount: current.likeCount + 1,
+        };
+      });
       spawnLikeBurst(clientX, clientY);
     },
     [spawnLikeBurst],
   );
 
-  const toggleLike = useCallback(() => {
-    setIsLiked((current) => {
-      const next = !current;
-
-      if (next) {
-        spawnLikeBurst();
+  const updateSocialAction = useCallback(
+    async (
+      action: "hide" | "like" | "save",
+      value: boolean,
+      rollback: ContentSocialSummaryRecord,
+    ) => {
+      if (!accountAddress) {
+        setSocial(rollback);
+        setToast(actionCopy.signInRequired);
+        return false;
       }
 
-      return next;
-    });
-  }, [spawnLikeBurst]);
+      try {
+        const email = await getUserEmail({ client: thirdwebClient });
+
+        if (!email) {
+          throw new Error(missingEmailMessage);
+        }
+
+        const response = await fetch(
+          `/api/content/posts/${encodeURIComponent(item.contentId)}/social`,
+          {
+            body: JSON.stringify({
+              action,
+              email,
+              value,
+              walletAddress: accountAddress,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          },
+        );
+        const data = (await response.json()) as
+          | ContentSocialResponse
+          | { error?: string };
+
+        if (!response.ok || !("social" in data)) {
+          throw new Error(
+            "error" in data && data.error ? data.error : actionCopy.shareFailed,
+          );
+        }
+
+        setSocial(data.social);
+        return true;
+      } catch (error) {
+        setSocial(rollback);
+        setToast(
+          error instanceof Error ? error.message : actionCopy.shareFailed,
+        );
+        return false;
+      }
+    },
+    [
+      accountAddress,
+      actionCopy.shareFailed,
+      actionCopy.signInRequired,
+      item.contentId,
+      missingEmailMessage,
+    ],
+  );
+
+  const toggleLike = useCallback(() => {
+    const previous = social;
+    const nextLiked = !previous.likedByViewer;
+    const nextSocial = {
+      ...previous,
+      likedByViewer: nextLiked,
+      likeCount: Math.max(0, previous.likeCount + (nextLiked ? 1 : -1)),
+    };
+
+    setSocial(nextSocial);
+
+    if (nextLiked) {
+      spawnLikeBurst();
+    }
+
+    void updateSocialAction("like", nextLiked, previous);
+  }, [social, spawnLikeBurst, updateSocialAction]);
 
   const copyShareLink = useCallback(async () => {
     if (!shareUrl) {
@@ -801,12 +915,29 @@ function SocialFeedPost({
   }, [actionCopy.shareFailed, copyShareLink, item.summary, item.title, shareUrl]);
 
   const toggleSave = useCallback(() => {
-    setIsSaved((current) => {
-      const next = !current;
-      setToast(next ? actionCopy.saved : actionCopy.unsaved);
-      return next;
+    const previous = social;
+    const nextSaved = !previous.savedByViewer;
+    const nextSocial = {
+      ...previous,
+      savedByViewer: nextSaved,
+      saveCount: Math.max(0, previous.saveCount + (nextSaved ? 1 : -1)),
+    };
+
+    setSocial(nextSocial);
+    setToast(nextSaved ? actionCopy.saved : actionCopy.unsaved);
+    void updateSocialAction("save", nextSaved, previous);
+  }, [actionCopy.saved, actionCopy.unsaved, social, updateSocialAction]);
+
+  const hidePost = useCallback(() => {
+    const previous = social;
+
+    setSocial({
+      ...previous,
+      hiddenByViewer: true,
     });
-  }, [actionCopy.saved, actionCopy.unsaved]);
+    setIsHidden(true);
+    void updateSocialAction("hide", true, previous);
+  }, [social, updateSocialAction]);
 
   const handleMediaPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -825,6 +956,117 @@ function SocialFeedPost({
     },
     [triggerLike],
   );
+
+  const loadComments = useCallback(async () => {
+    setIsCommentsOpen(true);
+    setCommentsError(null);
+    setCommentsStatus("loading");
+
+    try {
+      const searchParams = new URLSearchParams();
+
+      if (accountAddress) {
+        const email = await getUserEmail({ client: thirdwebClient });
+
+        if (email) {
+          searchParams.set("email", email);
+          searchParams.set("walletAddress", accountAddress);
+        }
+      }
+
+      const query = searchParams.toString();
+      const response = await fetch(
+        `/api/content/posts/${encodeURIComponent(item.contentId)}/comments${query ? `?${query}` : ""}`,
+      );
+      const data = (await response.json()) as
+        | ContentCommentsResponse
+        | { error?: string };
+
+      if (!response.ok || !("comments" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : actionCopy.loadCommentsFailed,
+        );
+      }
+
+      setComments(data.comments);
+      setSocial(data.social);
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsError(
+        error instanceof Error ? error.message : actionCopy.loadCommentsFailed,
+      );
+      setCommentsStatus("error");
+    }
+  }, [accountAddress, actionCopy.loadCommentsFailed, item.contentId]);
+
+  const submitComment = useCallback(async () => {
+    const body = commentBody.trim();
+
+    if (!body) {
+      return;
+    }
+
+    if (!accountAddress) {
+      setToast(actionCopy.signInRequired);
+      return;
+    }
+
+    setCommentsStatus("submitting");
+    setCommentsError(null);
+
+    try {
+      const email = await getUserEmail({ client: thirdwebClient });
+
+      if (!email) {
+        throw new Error(missingEmailMessage);
+      }
+
+      const response = await fetch(
+        `/api/content/posts/${encodeURIComponent(item.contentId)}/comments`,
+        {
+          body: JSON.stringify({
+            body,
+            email,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+      );
+      const data = (await response.json()) as
+        | ContentCommentCreateResponse
+        | { error?: string };
+
+      if (!response.ok || !("comment" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : actionCopy.submitCommentFailed,
+        );
+      }
+
+      setComments((current) => [data.comment, ...current]);
+      setSocial(data.social);
+      setCommentBody("");
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsError(
+        error instanceof Error ? error.message : actionCopy.submitCommentFailed,
+      );
+      setCommentsStatus("error");
+    }
+  }, [
+    accountAddress,
+    actionCopy.signInRequired,
+    actionCopy.submitCommentFailed,
+    commentBody,
+    item.contentId,
+    missingEmailMessage,
+  ]);
 
   if (isHidden) {
     return (
@@ -898,7 +1140,7 @@ function SocialFeedPost({
             <button
               className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-50"
               onClick={() => {
-                setIsHidden(true);
+                hidePost();
                 setIsMenuOpen(false);
               }}
               type="button"
@@ -955,29 +1197,32 @@ function SocialFeedPost({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              aria-pressed={isLiked}
+              aria-pressed={social.likedByViewer}
               className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
               onClick={toggleLike}
               type="button"
             >
               <span className="sr-only">
-                {isLiked ? actionCopy.liked : actionCopy.like}
+                {social.likedByViewer ? actionCopy.liked : actionCopy.like}
               </span>
               <Heart
                 className={`size-6 transition ${
-                  isLiked
+                  social.likedByViewer
                     ? "fill-rose-500 text-rose-500"
                     : "text-slate-950"
                 }`}
               />
             </button>
-            <Link
+            <button
               className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
-              href={href}
+              onClick={() => {
+                void loadComments();
+              }}
+              type="button"
             >
               <span className="sr-only">{actionCopy.openComments}</span>
               <MessageCircle className="size-6 text-slate-950" />
-            </Link>
+            </button>
             <button
               className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100 disabled:opacity-60"
               disabled={shareState === "sharing"}
@@ -997,17 +1242,19 @@ function SocialFeedPost({
             </button>
           </div>
           <button
-            aria-pressed={isSaved}
+            aria-pressed={social.savedByViewer}
             className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
             onClick={toggleSave}
             type="button"
           >
             <span className="sr-only">
-              {isSaved ? actionCopy.unsavePost : actionCopy.savePost}
+              {social.savedByViewer ? actionCopy.unsavePost : actionCopy.savePost}
             </span>
             <Bookmark
               className={`size-6 transition ${
-                isSaved ? "fill-slate-950 text-slate-950" : "text-slate-950"
+                social.savedByViewer
+                  ? "fill-slate-950 text-slate-950"
+                  : "text-slate-950"
               }`}
             />
           </button>
@@ -1021,6 +1268,31 @@ function SocialFeedPost({
             {toast}
           </div>
         ) : null}
+
+        <div className="mt-3 space-y-1.5">
+          {social.likeCount > 0 ? (
+            <button
+              className="text-sm font-semibold text-slate-950"
+              onClick={toggleLike}
+              type="button"
+            >
+              {actionCopy.likeCount} {social.likeCount.toLocaleString(locale)}
+            </button>
+          ) : null}
+          {social.commentCount > 0 ? (
+            <button
+              className="block text-sm text-slate-500"
+              onClick={() => {
+                void loadComments();
+              }}
+              type="button"
+            >
+              {locale === "ko"
+                ? `댓글 ${social.commentCount.toLocaleString(locale)}개 모두 보기`
+                : `View all ${social.commentCount.toLocaleString(locale)} comments`}
+            </button>
+          ) : null}
+        </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           <Pill>{freeLabel}</Pill>
@@ -1053,6 +1325,103 @@ function SocialFeedPost({
           {viewDetailLabel}
         </Link>
       </div>
+      {isCommentsOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 px-0 sm:px-4">
+          <div className="max-h-[82vh] w-full max-w-[520px] overflow-hidden rounded-t-3xl bg-white shadow-[0_-18px_60px_rgba(15,23,42,0.22)] sm:mb-6 sm:rounded-3xl">
+            <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-slate-200" />
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-950">
+                  {item.title}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {social.commentCount.toLocaleString(locale)}{" "}
+                  {locale === "ko" ? "댓글" : "comments"}
+                </p>
+              </div>
+              <button
+                className="inline-flex size-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+                onClick={() => {
+                  setIsCommentsOpen(false);
+                }}
+                type="button"
+              >
+                <span className="sr-only">Close</span>
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="max-h-[48vh] overflow-y-auto px-4 py-3">
+              {commentsStatus === "loading" ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-sm font-medium text-slate-500">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  {locale === "ko" ? "댓글을 불러오는 중" : "Loading comments"}
+                </div>
+              ) : commentsError ? (
+                <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {commentsError}
+                </p>
+              ) : comments.length === 0 ? (
+                <p className="py-10 text-center text-sm text-slate-500">
+                  {actionCopy.noComments}
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div className="flex gap-3" key={comment.commentId}>
+                      <Avatar
+                        imageUrl={comment.authorAvatarImageUrl}
+                        label={comment.authorDisplayName}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm leading-6 text-slate-800">
+                          <span className="font-semibold text-slate-950">
+                            {comment.authorDisplayName}
+                          </span>{" "}
+                          {comment.body}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {formatDate(comment.createdAt, locale)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-slate-200 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
+              <div className="flex items-end gap-2 rounded-2xl bg-slate-50 p-2">
+                <textarea
+                  className="max-h-28 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400"
+                  maxLength={500}
+                  onChange={(event) => {
+                    setCommentBody(event.target.value);
+                  }}
+                  placeholder={actionCopy.writeComment}
+                  value={commentBody}
+                />
+                <button
+                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition disabled:bg-slate-300"
+                  disabled={
+                    !commentBody.trim() || commentsStatus === "submitting"
+                  }
+                  onClick={() => {
+                    void submitComment();
+                  }}
+                  type="button"
+                >
+                  {commentsStatus === "submitting" ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    actionCopy.postComment
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }

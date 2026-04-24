@@ -119,6 +119,25 @@ export type ContentEntitlementDocument = {
   source: ContentEntitlementSource;
 };
 
+export type ContentSocialActionDocument = {
+  contentId: string;
+  createdAt: Date;
+  hidden: boolean;
+  liked: boolean;
+  memberEmail: string;
+  saved: boolean;
+  updatedAt: Date;
+};
+
+export type ContentCommentDocument = {
+  body: string;
+  commentId: string;
+  contentId: string;
+  createdAt: Date;
+  memberEmail: string;
+  updatedAt: Date;
+};
+
 export type CreatorProfileRecord = {
   avatarImageUrl: string | null;
   displayName: string;
@@ -158,11 +177,31 @@ export type ContentPostRecord = {
   updatedAt: string;
 };
 
+export type ContentSocialSummaryRecord = {
+  commentCount: number;
+  hiddenByViewer: boolean;
+  likeCount: number;
+  likedByViewer: boolean;
+  saveCount: number;
+  savedByViewer: boolean;
+};
+
+export type ContentCommentRecord = {
+  authorAvatarImageUrl: string | null;
+  authorDisplayName: string;
+  body: string;
+  commentId: string;
+  contentId: string;
+  createdAt: string;
+  memberEmail: string;
+};
+
 export type ContentFeedItemRecord = ContentPostRecord & {
   authorProfile: CreatorProfileRecord | null;
   canAccess: boolean;
   networkLevel: number | null;
   previewAssets: ContentAssetRecord[];
+  social: ContentSocialSummaryRecord;
 };
 
 export type ContentSourceAttributionRecord = {
@@ -348,6 +387,33 @@ export type ContentOrderVerifyResponse = {
   order: ContentOrderRecord;
 };
 
+export type ContentSocialActionRequest = {
+  action: "hide" | "like" | "save";
+  email: string;
+  value: boolean;
+  walletAddress: string;
+};
+
+export type ContentSocialResponse = {
+  social: ContentSocialSummaryRecord;
+};
+
+export type ContentCommentsResponse = {
+  comments: ContentCommentRecord[];
+  social: ContentSocialSummaryRecord;
+};
+
+export type ContentCommentCreateRequest = {
+  body: string;
+  email: string;
+  walletAddress: string;
+};
+
+export type ContentCommentCreateResponse = {
+  comment: ContentCommentRecord;
+  social: ContentSocialSummaryRecord;
+};
+
 export function serializeCreatorProfile(
   profile: CreatorProfileDocument,
 ): CreatorProfileRecord {
@@ -396,6 +462,20 @@ export function serializeContentPost(
     tags: content.tags,
     title: content.title,
     updatedAt: content.updatedAt.toISOString(),
+  };
+}
+
+export function createEmptyContentSocialSummary(
+  overrides?: Partial<ContentSocialSummaryRecord>,
+): ContentSocialSummaryRecord {
+  return {
+    commentCount: 0,
+    hiddenByViewer: false,
+    likeCount: 0,
+    likedByViewer: false,
+    saveCount: 0,
+    savedByViewer: false,
+    ...overrides,
   };
 }
 

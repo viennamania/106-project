@@ -33,7 +33,9 @@ import type {
 } from "@/lib/activity";
 import type { MemberAnnouncementDocument } from "@/lib/announcements";
 import type {
+  ContentCommentDocument,
   ContentPostDocument,
+  ContentSocialActionDocument,
   CreatorProfileDocument,
 } from "@/lib/content";
 import type {
@@ -105,6 +107,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoContentPostsCollectionPromise?: Promise<
     Collection<ContentPostDocument>
+  >;
+  mongoContentSocialActionsCollectionPromise?: Promise<
+    Collection<ContentSocialActionDocument>
+  >;
+  mongoContentCommentsCollectionPromise?: Promise<
+    Collection<ContentCommentDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -810,6 +818,59 @@ export async function getContentPostsCollection() {
   }
 
   return globalForMongo.mongoContentPostsCollectionPromise;
+}
+
+export async function getContentSocialActionsCollection() {
+  if (!globalForMongo.mongoContentSocialActionsCollectionPromise) {
+    globalForMongo.mongoContentSocialActionsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_SOCIAL_ACTIONS_COLLECTION ??
+        "contentSocialActions";
+      const collection = client
+        .db(dbName)
+        .collection<ContentSocialActionDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex(
+          { contentId: 1, memberEmail: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({ contentId: 1, liked: 1 }),
+        collection.createIndex({ contentId: 1, saved: 1 }),
+        collection.createIndex({ memberEmail: 1, hidden: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentSocialActionsCollectionPromise;
+}
+
+export async function getContentCommentsCollection() {
+  if (!globalForMongo.mongoContentCommentsCollectionPromise) {
+    globalForMongo.mongoContentCommentsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_COMMENTS_COLLECTION ?? "contentComments";
+      const collection = client
+        .db(dbName)
+        .collection<ContentCommentDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ commentId: 1 }, { unique: true }),
+        collection.createIndex({ contentId: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentCommentsCollectionPromise;
 }
 
 export async function getCreatorAutomationProfilesCollection() {
