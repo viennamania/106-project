@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "crypto";
+import { cache } from "react";
 
 import {
   CONTENT_FEED_PAGE_SIZE,
@@ -396,7 +397,8 @@ async function readStoredCreatorProfile(email: string) {
   return collection.findOne({ email: normalizeEmail(email) });
 }
 
-export async function getPublishedContentShareMetadata(contentId: string) {
+export const getPublishedContentShareMetadata = cache(
+async function getPublishedContentShareMetadata(contentId: string) {
   const postsCollection = await getContentPostsCollection();
   const post = await postsCollection.findOne({
     contentId,
@@ -428,7 +430,7 @@ export async function getPublishedContentShareMetadata(contentId: string) {
     title: post.title,
     updatedAt: post.updatedAt,
   };
-}
+});
 
 export async function getPublicContentPreview(contentId: string) {
   const postsCollection = await getContentPostsCollection();

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useCallback,
@@ -23,7 +24,6 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
@@ -73,6 +73,31 @@ type ContentLockedTeaser = {
   title: string;
 };
 
+const HERO_IMAGE_SIZES = "(max-width: 640px) 100vw, (max-width: 1280px) 960px, 1024px";
+
+function HeroImage({
+  alt,
+  preload = false,
+  src,
+}: {
+  alt: string;
+  preload?: boolean;
+  src: string;
+}) {
+  return (
+    <div className="relative aspect-[4/5] w-full sm:aspect-[16/9]">
+      <Image
+        alt={alt}
+        className="object-cover"
+        fill
+        preload={preload}
+        sizes={HERO_IMAGE_SIZES}
+        src={src}
+      />
+    </div>
+  );
+}
+
 function formatDateTime(value: string | null, locale: Locale) {
   if (!value) {
     return null;
@@ -108,7 +133,6 @@ export function ContentDetailPage({
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
-  const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
@@ -156,20 +180,13 @@ export function ContentDetailPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const response = await fetch(`/api/content/posts/${encodeURIComponent(contentId)}`, {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
+      const response = await fetch(
+        `/api/content/posts/${encodeURIComponent(contentId)}?${new URLSearchParams({
           email,
           locale,
-          syncMode: "light",
           walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
+        }).toString()}`,
+      );
       const data = (await response.json()) as
         | ContentDetailLoadResponse
         | { error?: string };
@@ -228,8 +245,6 @@ export function ContentDetailPage({
     }
   }, [
     accountAddress,
-    chain.id,
-    chain.name,
     contentCopy.messages.detailLoadFailed,
     contentId,
     dictionary.member.errors.missingEmail,
@@ -477,13 +492,7 @@ export function ContentDetailPage({
                 subtitle={contentCopy.page.detailEyebrow}
               />
               {heroImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt={heroTitle}
-                  className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
-                  loading="eager"
-                  src={heroImageUrl}
-                />
+                <HeroImage alt={heroTitle} preload src={heroImageUrl} />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
               )}
@@ -555,13 +564,7 @@ export function ContentDetailPage({
               subtitle={contentCopy.page.detailEyebrow}
             />
             {heroImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                alt={state.content.title}
-                className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
-                loading="eager"
-                src={heroImageUrl}
-              />
+              <HeroImage alt={state.content.title} preload src={heroImageUrl} />
             ) : (
               <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
             )}
@@ -881,13 +884,7 @@ function ContentDetailLoadingState({
           </div>
 
           {teaser.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt={teaser.title}
-              className="block aspect-[4/5] h-full w-full object-cover sm:aspect-[16/9]"
-              loading="eager"
-              src={teaser.coverImageUrl}
-            />
+            <HeroImage alt={teaser.title} preload src={teaser.coverImageUrl} />
           ) : (
             <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
           )}

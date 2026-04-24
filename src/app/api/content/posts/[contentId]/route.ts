@@ -8,7 +8,7 @@ import {
   getMemberRegistrationStatus,
   syncMemberRegistration,
 } from "@/lib/member-service";
-import type { SyncMemberRequest } from "@/lib/member";
+import { serializeMember, type SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getPublicContentPreview,
@@ -39,6 +39,7 @@ export async function GET(
 
   try {
     const authorization = await validateMemberWalletOwner({
+      allowedStatuses: ["completed", "pending_payment"],
       email: rawEmail,
       walletAddress: rawWalletAddress,
     });
@@ -47,12 +48,64 @@ export async function GET(
       return authorization.error;
     }
 
-    const response: ContentDetailResponse = await getContentDetailForMember(
-      contentId,
-      authorization.normalizedEmail,
-    );
+    const authorizedMember = authorization.member;
 
-    return Response.json(response);
+    if (!authorizedMember) {
+      return jsonError("Member not found.", 404);
+    }
+
+    if (authorizedMember.status !== "completed") {
+      const response: ContentDetailLoadResponse = {
+        content: null,
+        gateReason: "signup",
+        member: serializeMember(authorizedMember),
+        validationError: null,
+      };
+
+      return Response.json(response);
+    }
+
+    try {
+      const detail: ContentDetailResponse = await getContentDetailForMember(
+        contentId,
+        authorization.normalizedEmail,
+      );
+
+      const response: ContentDetailLoadResponse = {
+        content: detail.content,
+        gateReason: null,
+        member: detail.member,
+        validationError: null,
+      };
+
+      return Response.json(response);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load content.";
+
+      if (
+        message === "Content is not available in your network." ||
+        message === "This content requires a paid unlock."
+      ) {
+        const preview = await getPublicContentPreview(contentId);
+
+        if (!preview) {
+          throw error;
+        }
+
+        const response: ContentDetailLoadResponse = {
+          content: preview,
+          gateReason:
+            message === "This content requires a paid unlock." ? "paid" : "network",
+          member: serializeMember(authorizedMember),
+          validationError: null,
+        };
+
+        return Response.json(response);
+      }
+
+      throw error;
+    }
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to load content.";
