@@ -1027,6 +1027,9 @@ function ContentImageCarousel({
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxImage =
+    lightboxIndex === null ? null : images[lightboxIndex] ?? null;
 
   useEffect(() => {
     const animationFrameId =
@@ -1065,6 +1068,17 @@ function ContentImageCarousel({
     [images.length],
   );
 
+  const closeLightbox = useCallback(() => {
+    setLightboxIndex(null);
+  }, []);
+
+  const showLightboxImage = useCallback(
+    (nextIndex: number) => {
+      setLightboxIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
+    },
+    [images.length],
+  );
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="relative overflow-hidden bg-slate-950/95 sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
@@ -1085,17 +1099,30 @@ function ContentImageCarousel({
           {images.map((imageUrl, index) => (
             <div className="w-full shrink-0 snap-center" key={`${imageUrl}-${index}`}>
               <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={`${title} ${index + 1}`}
-                  className={cn(
-                    "block h-[74svh] w-full select-none object-contain sm:h-[min(82vh,760px)]",
-                    isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
-                  )}
-                  draggable={false}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  src={imageUrl}
-                />
+                <button
+                  aria-label={
+                    locale === "ko"
+                      ? `${title} 이미지 ${index + 1} 전체 보기`
+                      : `View ${title} image ${index + 1} fullscreen`
+                  }
+                  className="block w-full cursor-zoom-in"
+                  onClick={() => {
+                    showLightboxImage(index);
+                  }}
+                  type="button"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={`${title} ${index + 1}`}
+                    className={cn(
+                      "block h-[74svh] w-full select-none object-contain sm:h-[min(82vh,760px)]",
+                      isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
+                    )}
+                    draggable={false}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    src={imageUrl}
+                  />
+                </button>
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.18)_0%,rgba(15,23,42,0.06)_22%,rgba(15,23,42,0.1)_48%,rgba(15,23,42,0.42)_100%)]" />
               </div>
             </div>
@@ -1169,6 +1196,61 @@ function ContentImageCarousel({
               type="button"
             />
           ))}
+        </div>
+      ) : null}
+
+      {lightboxImage ? (
+        <div className="fixed inset-0 z-[160] flex flex-col bg-slate-950">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(2,6,23,0))] px-4 pb-10 pt-[calc(env(safe-area-inset-top)+1rem)] sm:px-6">
+            <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold text-white/86 backdrop-blur-md">
+              {lightboxIndex + 1} / {images.length}
+            </span>
+            <button
+              aria-label={locale === "ko" ? "전체 화면 닫기" : "Close fullscreen view"}
+              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-white/12 text-white backdrop-blur-md transition hover:bg-white/18"
+              onClick={closeLightbox}
+              type="button"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+          </div>
+
+          <div className="flex min-h-0 flex-1 items-center justify-center px-2 py-[calc(env(safe-area-inset-top)+4.25rem)] sm:px-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt={`${title} ${lightboxIndex + 1}`}
+              className="max-h-full max-w-full select-none object-contain"
+              draggable={false}
+              src={lightboxImage}
+            />
+          </div>
+
+          {images.length > 1 ? (
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+              <button
+                aria-label={locale === "ko" ? "이전 이미지" : "Previous image"}
+                className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
+                disabled={lightboxIndex === 0}
+                onClick={() => {
+                  showLightboxImage(lightboxIndex - 1);
+                }}
+                type="button"
+              >
+                <ArrowLeft className="size-5" />
+              </button>
+              <button
+                aria-label={locale === "ko" ? "다음 이미지" : "Next image"}
+                className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
+                disabled={lightboxIndex === images.length - 1}
+                onClick={() => {
+                  showLightboxImage(lightboxIndex + 1);
+                }}
+                type="button"
+              >
+                <ArrowRight className="size-5" />
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
