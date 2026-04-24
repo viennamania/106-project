@@ -2036,6 +2036,7 @@ export function CreatorContentStudioPage({
           locale,
           summary: postForm.summary,
           title: postForm.title,
+          visualBrief: contentImagePrompt,
           walletAddress: accountAddress,
         }),
         headers: {
