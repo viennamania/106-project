@@ -1028,6 +1028,7 @@ function ContentImageCarousel({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const activeLightboxIndex = lightboxIndex ?? 0;
   const lightboxImage =
     lightboxIndex === null ? null : images[lightboxIndex] ?? null;
 
@@ -1203,7 +1204,7 @@ function ContentImageCarousel({
         <div className="fixed inset-0 z-[160] flex flex-col bg-slate-950">
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(2,6,23,0))] px-4 pb-10 pt-[calc(env(safe-area-inset-top)+1rem)] sm:px-6">
             <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold text-white/86 backdrop-blur-md">
-              {lightboxIndex + 1} / {images.length}
+              {activeLightboxIndex + 1} / {images.length}
             </span>
             <button
               aria-label={locale === "ko" ? "전체 화면 닫기" : "Close fullscreen view"}
@@ -1218,7 +1219,7 @@ function ContentImageCarousel({
           <div className="flex min-h-0 flex-1 items-center justify-center px-2 py-[calc(env(safe-area-inset-top)+4.25rem)] sm:px-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              alt={`${title} ${lightboxIndex + 1}`}
+              alt={`${title} ${activeLightboxIndex + 1}`}
               className="max-h-full max-w-full select-none object-contain"
               draggable={false}
               src={lightboxImage}
@@ -1230,9 +1231,9 @@ function ContentImageCarousel({
               <button
                 aria-label={locale === "ko" ? "이전 이미지" : "Previous image"}
                 className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
-                disabled={lightboxIndex === 0}
+                disabled={activeLightboxIndex === 0}
                 onClick={() => {
-                  showLightboxImage(lightboxIndex - 1);
+                  showLightboxImage(activeLightboxIndex - 1);
                 }}
                 type="button"
               >
@@ -1241,9 +1242,9 @@ function ContentImageCarousel({
               <button
                 aria-label={locale === "ko" ? "다음 이미지" : "Next image"}
                 className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
-                disabled={lightboxIndex === images.length - 1}
+                disabled={activeLightboxIndex === images.length - 1}
                 onClick={() => {
-                  showLightboxImage(lightboxIndex + 1);
+                  showLightboxImage(activeLightboxIndex + 1);
                 }}
                 type="button"
               >
