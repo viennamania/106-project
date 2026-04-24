@@ -56,6 +56,8 @@ export async function ContentDetailRoute({
           ? {
               authorDisplayName: initialTeaser.authorDisplayName,
               coverImageUrl: initialTeaser.coverImageUrl,
+              priceType: initialTeaser.priceType,
+              priceUsdt: initialTeaser.priceUsdt,
               publishedAt: initialTeaser.publishedAt?.toISOString() ?? null,
               summary: initialTeaser.summary,
               title: initialTeaser.title,

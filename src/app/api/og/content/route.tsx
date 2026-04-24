@@ -36,6 +36,10 @@ export async function GET(request: Request) {
   const eyebrow = content.authorDisplayName
     ? `${content.authorDisplayName} · ${copy.meta.detailTitle}`
     : copy.meta.detailTitle;
+  const accessLabel =
+    content.priceType === "paid"
+      ? `${copy.labels.paid} · ${content.priceUsdt ?? "1"} USDT`
+      : copy.labels.free;
 
   return new ImageResponse(
     (
@@ -151,7 +155,7 @@ export async function GET(request: Request) {
                   padding: "12px 18px",
                 }}
               >
-                {copy.labels.free}
+                {accessLabel}
               </div>
               {content.authorDisplayName ? (
                 <div

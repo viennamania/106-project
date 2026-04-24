@@ -661,6 +661,8 @@ async function getPublishedContentShareMetadata(contentId: string) {
     contentId: post.contentId,
     coverImageUrl: resolvePrimaryContentImageUrl(post),
     locale: normalizeContentLocale(post.locale),
+    priceType: post.priceType,
+    priceUsdt: post.priceUsdt ?? null,
     publishedAt: post.publishedAt ?? null,
     summary: post.summary,
     title: post.title,

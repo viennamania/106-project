@@ -43,6 +43,7 @@ import type {
   ContentOrderCreateResponse,
   ContentOrderRecord,
   ContentOrderVerifyResponse,
+  ContentPriceType,
 } from "@/lib/content";
 import {
   CONTENT_PAID_USDT_AMOUNT,
@@ -83,6 +84,8 @@ type LikeBurst = {
 type ContentLockedTeaser = {
   authorDisplayName: string | null;
   coverImageUrl: string | null;
+  priceType: ContentPriceType;
+  priceUsdt: string | null;
   publishedAt: string | null;
   summary: string;
   title: string;
@@ -455,10 +458,12 @@ export function ContentDetailPage({
   );
   const heroTitle = state.content?.title ?? initialTeaser?.title ?? null;
   const heroSummary = state.content?.summary ?? initialTeaser?.summary ?? null;
+  const detailPriceType = state.content?.priceType ?? initialTeaser?.priceType ?? "free";
+  const detailPriceUsdt = state.content?.priceUsdt ?? initialTeaser?.priceUsdt ?? null;
   const detailAccessLabel =
-    state.content?.priceType === "paid"
+    detailPriceType === "paid"
       ? `${locale === "ko" ? "유료" : "Paid"} · ${
-          state.content.priceUsdt ?? CONTENT_PAID_USDT_AMOUNT
+          detailPriceUsdt ?? CONTENT_PAID_USDT_AMOUNT
         } USDT`
       : contentCopy.labels.free;
 
