@@ -776,6 +776,17 @@ export async function getContentPostsCollection() {
         collection.createIndex({ contentId: 1 }, { unique: true }),
         collection.createIndex({ authorEmail: 1, updatedAt: -1 }),
         collection.createIndex({
+          authorEmail: 1,
+          status: 1,
+          updatedAt: -1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          authorEmail: 1,
+          updatedAt: -1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
           authorReferralCode: 1,
           locale: 1,
           status: 1,

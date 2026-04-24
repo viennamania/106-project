@@ -108,6 +108,10 @@ type MemberSyncState = {
   status: "idle" | "syncing" | "ready" | "blocked" | "error";
 };
 
+type MemberLoadResponse = {
+  member?: MemberRecord | null;
+};
+
 type ReferralDashboardState = {
   error: string | null;
   lastUpdatedAt: string | null;
@@ -559,25 +563,41 @@ export function SmartWalletApp({
         return;
       }
 
-      const response = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          referredByCode: preferredReferralCode,
-          syncMode: options?.mode ?? "full",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-
-      const data = (await response.json()) as
+      let response = await fetch(
+        `/api/members?email=${encodeURIComponent(email)}`,
+      );
+      let data = (await response.json()) as
+        | MemberLoadResponse
         | SyncMemberResponse
         | { error?: string };
+      const loadedMember =
+        response.ok && "member" in data ? data.member ?? null : null;
+      const canUseLoadedMember =
+        loadedMember !== null &&
+        isMemberWalletKnown(loadedMember, accountAddress) &&
+        (!preferredReferralCode ||
+          loadedMember.status === "completed" ||
+          loadedMember.sponsorReferralCode === preferredReferralCode ||
+          loadedMember.referredByCode === preferredReferralCode);
+
+      if (!canUseLoadedMember) {
+        response = await fetch("/api/members", {
+          body: JSON.stringify({
+            chainId: chain.id,
+            chainName: chain.name ?? "BSC",
+            email,
+            locale,
+            referredByCode: preferredReferralCode,
+            syncMode: options?.mode ?? "full",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        data = (await response.json()) as SyncMemberResponse | { error?: string };
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -613,7 +633,7 @@ export function SmartWalletApp({
       }
 
       const syncedMember = data.member;
-      let shouldCelebrate = data.justCompleted;
+      let shouldCelebrate = "justCompleted" in data ? data.justCompleted : false;
 
       setMemberSync((current) => {
         if (
@@ -3386,6 +3406,22 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+function normalizeClientAddress(address?: string | null) {
+  return address?.trim().toLowerCase() ?? "";
+}
+
+function isMemberWalletKnown(member: MemberRecord, walletAddress: string) {
+  const normalizedWalletAddress = normalizeClientAddress(walletAddress);
+
+  if (!normalizedWalletAddress) {
+    return false;
+  }
+
+  return [member.lastWalletAddress, ...member.walletAddresses]
+    .map((address) => normalizeClientAddress(address))
+    .includes(normalizedWalletAddress);
 }
 
 function formatBalance(value: string | undefined, symbol: string, locale: Locale) {

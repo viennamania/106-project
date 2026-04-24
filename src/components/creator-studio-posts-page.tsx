@@ -200,27 +200,49 @@ export function CreatorStudioPostsPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const response = await fetch("/api/content/posts/load", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          page: appliedPage,
-          pageSize: POSTS_PAGE_SIZE,
-          q: appliedQuery || null,
-          status: appliedStatus !== "all" ? appliedStatus : null,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const query = new URLSearchParams({
+        email,
+        page: String(appliedPage),
+        pageSize: String(POSTS_PAGE_SIZE),
+        walletAddress: accountAddress,
       });
-      const data = (await response.json()) as CreatorStudioPostsLoadResponse | {
+
+      if (appliedQuery) {
+        query.set("q", appliedQuery);
+      }
+
+      if (appliedStatus !== "all") {
+        query.set("status", appliedStatus);
+      }
+
+      let response = await fetch(`/api/content/posts/load?${query.toString()}`);
+      let data = (await response.json()) as CreatorStudioPostsLoadResponse | {
         error?: string;
       };
+
+      if (!response.ok && response.status === 404) {
+        response = await fetch("/api/content/posts/load", {
+          body: JSON.stringify({
+            chainId: chain.id,
+            chainName: chain.name ?? "BSC",
+            email,
+            locale,
+            page: appliedPage,
+            pageSize: POSTS_PAGE_SIZE,
+            q: appliedQuery || null,
+            status: appliedStatus !== "all" ? appliedStatus : null,
+            syncMode: "light",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        data = (await response.json()) as CreatorStudioPostsLoadResponse | {
+          error?: string;
+        };
+      }
 
       if (!response.ok || !("posts" in data)) {
         throw new Error(

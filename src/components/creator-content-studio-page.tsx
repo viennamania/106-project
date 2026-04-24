@@ -86,6 +86,10 @@ type StudioState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
+type MemberLoadResponse = {
+  member?: MemberRecord | null;
+};
+
 type AutomationState = {
   available: boolean;
   error: string | null;
@@ -1001,41 +1005,56 @@ export function CreatorContentStudioPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
-      const syncResponse = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
+      let validationError: string | null = null;
+      let memberResponse = await fetch(
+        `/api/members?email=${encodeURIComponent(email)}`,
+      );
+      let memberData = (await memberResponse.json()) as
+        | MemberLoadResponse
         | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!memberResponse.ok && memberResponse.status === 404) {
+        memberResponse = await fetch("/api/members", {
+          body: JSON.stringify({
+            chainId: chain.id,
+            chainName: chain.name ?? "BSC",
+            email,
+            locale,
+            syncMode: "light",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        memberData = (await memberResponse.json()) as
+          | SyncMemberResponse
+          | { error?: string };
+        validationError =
+          "validationError" in memberData &&
+          typeof memberData.validationError === "string"
+            ? memberData.validationError
+            : null;
+      }
+
+      if (!memberResponse.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
+          "error" in memberData && memberData.error
+            ? memberData.error
             : contentCopy.messages.studioLoadFailed,
         );
       }
 
-      const member = "member" in syncData ? syncData.member : null;
+      const member = "member" in memberData ? memberData.member : null;
 
       if (!member) {
         throw new Error(contentCopy.messages.memberMissing);
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (validationError) {
         setState({
-          error: syncData.validationError,
+          error: validationError,
           member,
           notice: null,
           posts: [],
