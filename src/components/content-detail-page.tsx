@@ -82,6 +82,7 @@ type LikeBurst = {
 };
 
 type ContentLockedTeaser = {
+  authorAvatarImageUrl: string | null;
   authorDisplayName: string | null;
   coverImageUrl: string | null;
   priceType: ContentPriceType;
@@ -452,6 +453,10 @@ export function ContentDetailPage({
     null;
   const heroAuthorDisplayName =
     state.content?.authorProfile?.displayName ?? initialTeaser?.authorDisplayName ?? null;
+  const heroAuthorAvatarUrl =
+    state.content?.authorProfile?.avatarImageUrl ??
+    initialTeaser?.authorAvatarImageUrl ??
+    null;
   const heroPublishedLabel = formatDateTime(
     state.content?.publishedAt ?? initialTeaser?.publishedAt ?? null,
     locale,
@@ -828,6 +833,7 @@ export function ContentDetailPage({
           subtitle={contentCopy.page.detailEyebrow}
           teaser={heroTitle
             ? {
+                authorAvatarImageUrl: heroAuthorAvatarUrl,
                 authorDisplayName: heroAuthorDisplayName,
                 coverImageUrl: heroImageUrl,
                 publishedAt: heroPublishedLabel,
@@ -843,7 +849,7 @@ export function ContentDetailPage({
           {heroTitle ? (
             <section className="relative mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.20)] sm:mx-0 sm:rounded-[36px]">
               <HeroTopBar
-                authorAvatarUrl={state.content?.authorProfile?.avatarImageUrl ?? null}
+                authorAvatarUrl={heroAuthorAvatarUrl}
                 authorLabel={heroAuthorDisplayName}
                 backHref={backHref}
                 metaLabel={heroPublishedLabel}
@@ -915,7 +921,7 @@ export function ContentDetailPage({
             ref={heroRef}
           >
             <HeroTopBar
-              authorAvatarUrl={state.content.authorProfile?.avatarImageUrl}
+              authorAvatarUrl={heroAuthorAvatarUrl}
               authorLabel={heroAuthorDisplayName}
               backHref={backHref}
               metaLabel={heroPublishedLabel}
@@ -1434,6 +1440,7 @@ function ContentDetailLoadingState({
   locale: Locale;
   subtitle: string;
   teaser: {
+    authorAvatarImageUrl: string | null;
     authorDisplayName: string | null;
     coverImageUrl: string | null;
     publishedAt: string | null;
@@ -1453,7 +1460,16 @@ function ContentDetailLoadingState({
               <ArrowLeft className="size-4 stroke-[2.5] drop-shadow-[0_2px_6px_rgba(15,23,42,0.35)] sm:size-5" />
             </Link>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/38 px-3 py-2 text-[0.72rem] font-semibold text-white backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
-              <LoaderCircle className="size-3.5 animate-spin" />
+              {teaser.authorAvatarImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={teaser.authorDisplayName?.trim() || subtitle}
+                  className="size-6 rounded-full border border-white/20 object-cover"
+                  src={teaser.authorAvatarImageUrl}
+                />
+              ) : (
+                <LoaderCircle className="size-3.5 animate-spin" />
+              )}
               <span>{loadingTitle}</span>
             </div>
           </div>

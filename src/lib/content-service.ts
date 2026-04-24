@@ -650,13 +650,17 @@ async function getPublishedContentShareMetadata(contentId: string) {
   const authorMember = await membersCollection.findOne({
     email: post.authorEmail,
   });
+  const defaultAuthorProfile = authorMember
+    ? createDefaultCreatorProfile(authorMember)
+    : null;
   const authorDisplayName = storedProfile?.displayName?.trim()
     ? storedProfile.displayName.trim()
-    : authorMember
-      ? createDefaultCreatorProfile(authorMember).displayName
-      : null;
+    : defaultAuthorProfile?.displayName ?? null;
+  const authorAvatarImageUrl =
+    storedProfile?.avatarImageUrl ?? defaultAuthorProfile?.avatarImageUrl ?? null;
 
   return {
+    authorAvatarImageUrl,
     authorDisplayName,
     contentId: post.contentId,
     coverImageUrl: resolvePrimaryContentImageUrl(post),
