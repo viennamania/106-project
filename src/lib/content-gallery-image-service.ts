@@ -12,13 +12,12 @@ const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 220;
 const VISUAL_BRIEF_LIMIT = 320;
-const DEFAULT_MODEL = "black-forest-labs/flux-dev-lora";
+const DEFAULT_MODEL = "black-forest-labs/flux-dev";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
 const DEFAULT_NUM_INFERENCE_STEPS = 28;
-const DEFAULT_GUIDANCE = 3;
-const DEFAULT_MEGAPIXELS = "1";
+const DEFAULT_GUIDANCE = 3.5;
 
 export type GenerateContentGalleryImageInput = {
   body?: string | null;
@@ -241,9 +240,7 @@ export async function generateAndUploadContentGalleryImage(
     input: {
       aspect_ratio: DEFAULT_ASPECT_RATIO,
       disable_safety_checker: true,
-      go_fast: false,
       guidance: DEFAULT_GUIDANCE,
-      megapixels: DEFAULT_MEGAPIXELS,
       num_inference_steps: DEFAULT_NUM_INFERENCE_STEPS,
       output_format: DEFAULT_OUTPUT_FORMAT,
       output_quality: DEFAULT_OUTPUT_QUALITY,
