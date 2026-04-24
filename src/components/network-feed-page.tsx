@@ -47,6 +47,7 @@ import type {
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { MemberRecord } from "@/lib/member";
 import {
@@ -83,6 +84,18 @@ type LikeBurst = {
 
 type ShareState = "copied" | "error" | "idle" | "sharing";
 
+type FeedRestoreSnapshot = {
+  items: ContentFeedItemRecord[];
+  member: MemberRecord | null;
+  nextCursor: string | null;
+  savedAt: number;
+  scrollY: number;
+  selectedCreatorKey: string | null;
+  version: number;
+};
+
+const FEED_RESTORE_VERSION = 2;
+const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
 function resolveFeedPreviewImage(
@@ -133,6 +146,86 @@ function writeStoredFlag(key: string, value: boolean) {
   } catch {}
 }
 
+function createFeedRestoreKey({
+  accountAddress,
+  isPublicReferralFeed,
+  locale,
+  referralCode,
+}: {
+  accountAddress?: string | null;
+  isPublicReferralFeed: boolean;
+  locale: Locale;
+  referralCode?: string | null;
+}) {
+  if (isPublicReferralFeed && referralCode) {
+    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:ref:${referralCode}`;
+  }
+
+  if (accountAddress) {
+    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:wallet:${accountAddress.toLowerCase()}`;
+  }
+
+  return null;
+}
+
+function readFeedRestoreSnapshot(key: string | null) {
+  if (!key || typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(key);
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<FeedRestoreSnapshot>;
+
+    if (
+      parsed.version !== FEED_RESTORE_VERSION ||
+      typeof parsed.savedAt !== "number" ||
+      Date.now() - parsed.savedAt > FEED_RESTORE_TTL_MS ||
+      !Array.isArray(parsed.items)
+    ) {
+      window.sessionStorage.removeItem(key);
+      return null;
+    }
+
+    return {
+      items: parsed.items,
+      member: parsed.member ?? null,
+      nextCursor: parsed.nextCursor ?? null,
+      savedAt: parsed.savedAt,
+      scrollY: typeof parsed.scrollY === "number" ? parsed.scrollY : 0,
+      selectedCreatorKey: parsed.selectedCreatorKey ?? null,
+      version: FEED_RESTORE_VERSION,
+    } satisfies FeedRestoreSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function writeFeedRestoreSnapshot(
+  key: string | null,
+  snapshot: Omit<FeedRestoreSnapshot, "savedAt" | "version">,
+) {
+  if (!key || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      key,
+      JSON.stringify({
+        ...snapshot,
+        savedAt: Date.now(),
+        version: FEED_RESTORE_VERSION,
+      } satisfies FeedRestoreSnapshot),
+    );
+  } catch {}
+}
+
 export function NetworkFeedPage({
   dictionary,
   locale,
@@ -151,7 +244,18 @@ export function NetworkFeedPage({
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const isPublicReferralFeed = Boolean(referralCode);
   const isDisconnected = status !== "connected" || !accountAddress;
+  const feedRestoreKey = useMemo(
+    () =>
+      createFeedRestoreKey({
+        accountAddress,
+        isPublicReferralFeed,
+        locale,
+        referralCode,
+      }),
+    [accountAddress, isPublicReferralFeed, locale, referralCode],
+  );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const restoredFeedKeyRef = useRef<string | null>(null);
   const [state, setState] = useState<FeedState>({
     error: null,
     items: [],
@@ -233,6 +337,65 @@ export function NetworkFeedPage({
       }
 
       return [...map.values()];
+    },
+    [],
+  );
+
+  const restoreScrollPosition = useCallback((scrollY: number) => {
+    if (typeof window === "undefined" || scrollY <= 0) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({
+          behavior: "auto",
+          top: scrollY,
+        });
+      });
+    });
+  }, []);
+
+  const applyFeedSnapshot = useCallback(
+    (key: string, snapshot: FeedRestoreSnapshot) => {
+      restoredFeedKeyRef.current = key;
+      setState({
+        error: null,
+        items: snapshot.items,
+        member: snapshot.member,
+        status: "ready",
+      });
+      setNextCursor(snapshot.nextCursor);
+      setSelectedCreatorKey(snapshot.selectedCreatorKey);
+      restoreScrollPosition(snapshot.scrollY);
+    },
+    [restoreScrollPosition],
+  );
+
+  const saveFeedSnapshot = useCallback(() => {
+    writeFeedRestoreSnapshot(feedRestoreKey, {
+      items: state.items,
+      member: state.member,
+      nextCursor,
+      scrollY: typeof window === "undefined" ? 0 : window.scrollY,
+      selectedCreatorKey,
+    });
+  }, [
+    feedRestoreKey,
+    nextCursor,
+    selectedCreatorKey,
+    state.items,
+    state.member,
+  ]);
+
+  const updateItemSocial = useCallback(
+    (contentId: string, social: ContentSocialSummaryRecord) => {
+      setState((current) => ({
+        ...current,
+        items: current.items.map((item) =>
+          item.contentId === contentId ? { ...item, social } : item,
+        ),
+      }));
     },
     [],
   );
@@ -394,6 +557,20 @@ export function NetworkFeedPage({
   );
 
   useEffect(() => {
+    if (
+      feedRestoreKey &&
+      restoredFeedKeyRef.current !== feedRestoreKey
+    ) {
+      const snapshot = readFeedRestoreSnapshot(feedRestoreKey);
+
+      if (snapshot) {
+        applyFeedSnapshot(feedRestoreKey, snapshot);
+        return;
+      }
+
+      restoredFeedKeyRef.current = feedRestoreKey;
+    }
+
     if (isPublicReferralFeed) {
       void loadFeed();
       return;
@@ -411,7 +588,38 @@ export function NetworkFeedPage({
     }
 
     void loadFeed();
-  }, [accountAddress, isPublicReferralFeed, loadFeed, status]);
+  }, [
+    accountAddress,
+    applyFeedSnapshot,
+    feedRestoreKey,
+    isPublicReferralFeed,
+    loadFeed,
+    status,
+  ]);
+
+  useEffect(() => {
+    if (state.status !== "ready" || state.items.length === 0) {
+      return;
+    }
+
+    saveFeedSnapshot();
+  }, [saveFeedSnapshot, state.items.length, state.status]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handlePageHide = () => {
+      saveFeedSnapshot();
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [saveFeedSnapshot]);
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -540,6 +748,8 @@ export function NetworkFeedPage({
                   levelLabel={contentCopy.labels.level}
                   locale={locale}
                   missingEmailMessage={dictionary.member.errors.missingEmail}
+                  onOpenDetail={saveFeedSnapshot}
+                  onSocialChange={updateItemSocial}
                   priority={index < 2}
                   referralCode={referralCode}
                   viewDetailLabel={contentCopy.actions.viewDetail}
@@ -611,6 +821,8 @@ function SocialFeedPost({
   levelLabel,
   locale,
   missingEmailMessage,
+  onOpenDetail,
+  onSocialChange,
   priority,
   referralCode,
   viewDetailLabel,
@@ -621,15 +833,23 @@ function SocialFeedPost({
   levelLabel: string;
   locale: Locale;
   missingEmailMessage: string;
+  onOpenDetail: () => void;
+  onSocialChange: (
+    contentId: string,
+    social: ContentSocialSummaryRecord,
+  ) => void;
   priority: boolean;
   referralCode: string | null;
   viewDetailLabel: string;
 }) {
   const previewImageUrl = resolveFeedPreviewImage(item);
   const displayName = getDisplayName(item);
-  const href = buildPathWithReferral(
-    `/${locale}/content/${item.contentId}`,
-    referralCode,
+  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
+  const href = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
+    {
+      returnTo: feedHref,
+    },
   );
   const bridgeHref = buildPathWithReferral(
     `/${locale}/content/bridge/${item.contentId}`,
@@ -656,6 +876,13 @@ function SocialFeedPost({
   >("idle");
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
+  const applySocial = useCallback(
+    (nextSocial: ContentSocialSummaryRecord) => {
+      setSocial(nextSocial);
+      onSocialChange(item.contentId, nextSocial);
+    },
+    [item.contentId, onSocialChange],
+  );
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") {
       return "";
@@ -762,24 +989,6 @@ function SocialFeedPost({
     }, 850);
   }, []);
 
-  const triggerLike = useCallback(
-    (clientX?: number, clientY?: number) => {
-      setSocial((current) => {
-        if (current.likedByViewer) {
-          return current;
-        }
-
-        return {
-          ...current,
-          likedByViewer: true,
-          likeCount: current.likeCount + 1,
-        };
-      });
-      spawnLikeBurst(clientX, clientY);
-    },
-    [spawnLikeBurst],
-  );
-
   const updateSocialAction = useCallback(
     async (
       action: "hide" | "like" | "save",
@@ -787,7 +996,7 @@ function SocialFeedPost({
       rollback: ContentSocialSummaryRecord,
     ) => {
       if (!accountAddress) {
-        setSocial(rollback);
+        applySocial(rollback);
         setToast(actionCopy.signInRequired);
         return false;
       }
@@ -824,10 +1033,10 @@ function SocialFeedPost({
           );
         }
 
-        setSocial(data.social);
+        applySocial(data.social);
         return true;
       } catch (error) {
-        setSocial(rollback);
+        applySocial(rollback);
         setToast(
           error instanceof Error ? error.message : actionCopy.shareFailed,
         );
@@ -838,9 +1047,30 @@ function SocialFeedPost({
       accountAddress,
       actionCopy.shareFailed,
       actionCopy.signInRequired,
+      applySocial,
       item.contentId,
       missingEmailMessage,
     ],
+  );
+
+  const triggerLike = useCallback(
+    (clientX?: number, clientY?: number) => {
+      spawnLikeBurst(clientX, clientY);
+
+      if (social.likedByViewer) {
+        return;
+      }
+
+      const nextSocial = {
+        ...social,
+        likedByViewer: true,
+        likeCount: social.likeCount + 1,
+      };
+
+      applySocial(nextSocial);
+      void updateSocialAction("like", true, social);
+    },
+    [applySocial, social, spawnLikeBurst, updateSocialAction],
   );
 
   const toggleLike = useCallback(() => {
@@ -852,14 +1082,14 @@ function SocialFeedPost({
       likeCount: Math.max(0, previous.likeCount + (nextLiked ? 1 : -1)),
     };
 
-    setSocial(nextSocial);
+    applySocial(nextSocial);
 
     if (nextLiked) {
       spawnLikeBurst();
     }
 
     void updateSocialAction("like", nextLiked, previous);
-  }, [social, spawnLikeBurst, updateSocialAction]);
+  }, [applySocial, social, spawnLikeBurst, updateSocialAction]);
 
   const copyShareLink = useCallback(async () => {
     if (!shareUrl) {
@@ -923,21 +1153,32 @@ function SocialFeedPost({
       saveCount: Math.max(0, previous.saveCount + (nextSaved ? 1 : -1)),
     };
 
-    setSocial(nextSocial);
+    applySocial(nextSocial);
     setToast(nextSaved ? actionCopy.saved : actionCopy.unsaved);
     void updateSocialAction("save", nextSaved, previous);
-  }, [actionCopy.saved, actionCopy.unsaved, social, updateSocialAction]);
+  }, [
+    actionCopy.saved,
+    actionCopy.unsaved,
+    applySocial,
+    social,
+    updateSocialAction,
+  ]);
 
   const hidePost = useCallback(() => {
     const previous = social;
-
-    setSocial({
+    const nextSocial = {
       ...previous,
       hiddenByViewer: true,
-    });
+    };
+
+    applySocial(nextSocial);
     setIsHidden(true);
-    void updateSocialAction("hide", true, previous);
-  }, [social, updateSocialAction]);
+    void updateSocialAction("hide", true, previous).then((success) => {
+      if (!success) {
+        setIsHidden(false);
+      }
+    });
+  }, [applySocial, social, updateSocialAction]);
 
   const handleMediaPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -991,7 +1232,7 @@ function SocialFeedPost({
       }
 
       setComments(data.comments);
-      setSocial(data.social);
+      applySocial(data.social);
       setCommentsStatus("ready");
     } catch (error) {
       setCommentsError(
@@ -999,7 +1240,12 @@ function SocialFeedPost({
       );
       setCommentsStatus("error");
     }
-  }, [accountAddress, actionCopy.loadCommentsFailed, item.contentId]);
+  }, [
+    accountAddress,
+    actionCopy.loadCommentsFailed,
+    applySocial,
+    item.contentId,
+  ]);
 
   const submitComment = useCallback(async () => {
     const body = commentBody.trim();
@@ -1050,7 +1296,7 @@ function SocialFeedPost({
       }
 
       setComments((current) => [data.comment, ...current]);
-      setSocial(data.social);
+      applySocial(data.social);
       setCommentBody("");
       setCommentsStatus("ready");
     } catch (error) {
@@ -1063,6 +1309,7 @@ function SocialFeedPost({
     accountAddress,
     actionCopy.signInRequired,
     actionCopy.submitCommentFailed,
+    applySocial,
     commentBody,
     item.contentId,
     missingEmailMessage,
@@ -1076,7 +1323,14 @@ function SocialFeedPost({
           <button
             className="shrink-0 text-sm font-semibold text-slate-950"
             onClick={() => {
+              const nextSocial = {
+                ...social,
+                hiddenByViewer: false,
+              };
+
+              applySocial(nextSocial);
               setIsHidden(false);
+              void updateSocialAction("hide", false, social);
             }}
             type="button"
           >
@@ -1131,6 +1385,7 @@ function SocialFeedPost({
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
               href={href}
               onClick={() => {
+                onOpenDetail();
                 setIsMenuOpen(false);
               }}
             >
@@ -1304,7 +1559,7 @@ function SocialFeedPost({
           ))}
         </div>
 
-        <Link href={href}>
+        <Link href={href} onClick={onOpenDetail}>
           <h2 className="mt-3 line-clamp-2 text-[0.96rem] font-semibold leading-5 text-slate-950">
             {item.title}
           </h2>
@@ -1321,6 +1576,7 @@ function SocialFeedPost({
         <Link
           className="mt-3 inline-flex text-sm font-semibold text-slate-950"
           href={href}
+          onClick={onOpenDetail}
         >
           {viewDetailLabel}
         </Link>
