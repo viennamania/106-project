@@ -838,6 +838,7 @@ export function NetworkFeedPage({
                   onSocialChange={updateItemSocial}
                   priority={index < 2}
                   referralCode={referralCode}
+                  showNetworkLevel={!isPublicReferralFeed}
                   viewDetailLabel={contentCopy.actions.viewDetail}
                 />
               ))}
@@ -958,6 +959,7 @@ function SocialFeedPost({
   onSocialChange,
   priority,
   referralCode,
+  showNetworkLevel,
   viewDetailLabel,
 }: {
   accountAddress: string | null;
@@ -973,6 +975,7 @@ function SocialFeedPost({
   ) => void;
   priority: boolean;
   referralCode: string | null;
+  showNetworkLevel: boolean;
   viewDetailLabel: string;
 }) {
   const router = useRouter();
@@ -987,6 +990,13 @@ function SocialFeedPost({
   const priceLabel = isPaidContent
     ? `${item.priceUsdt ?? "1"} USDT`
     : null;
+  const metaItems = [
+    priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel,
+    ...(showNetworkLevel
+      ? [`${levelLabel} ${item.networkLevel ?? "-"}`]
+      : []),
+    formatDate(item.publishedAt ?? item.createdAt, locale),
+  ];
   const summaryPreview =
     item.summary.length > 96
       ? `${item.summary.slice(0, 96).trimEnd()}...`
@@ -1579,10 +1589,7 @@ function SocialFeedPost({
             {displayName}
           </p>
           <p className="truncate text-xs text-slate-500">
-            {accessLabel}
-            {priceLabel ? ` · ${priceLabel}` : ""} · {levelLabel}{" "}
-            {item.networkLevel ?? "-"} ·{" "}
-            {formatDate(item.publishedAt ?? item.createdAt, locale)}
+            {metaItems.filter(Boolean).join(" · ")}
           </p>
         </div>
         <button
@@ -1794,9 +1801,11 @@ function SocialFeedPost({
           <Pill tone={isPaidContent ? "paid" : "neutral"}>
             {priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel}
           </Pill>
-          <Pill>
-            {levelLabel} {item.networkLevel ?? "-"}
-          </Pill>
+          {showNetworkLevel ? (
+            <Pill>
+              {levelLabel} {item.networkLevel ?? "-"}
+            </Pill>
+          ) : null}
           {item.tags.slice(0, 3).map((tag) => (
             <Pill key={tag}>#{tag}</Pill>
           ))}
