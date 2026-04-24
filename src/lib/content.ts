@@ -4,6 +4,8 @@ import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 export const CONTENT_FEED_PAGE_SIZE = 20;
 export const CONTENT_LIBRARY_PAGE_SIZE = 24;
 export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
+export const CONTENT_PAID_USDT_AMOUNT = "1";
+export const CONTENT_PAID_USDT_AMOUNT_WEI = "1000000000000000000";
 export const contentCoverGenerationProgressSteps = [
   "authorizing",
   "preparing_prompt",
@@ -370,6 +372,7 @@ export type ContentPostMutationResponse = {
 export type ContentOrderCreateRequest = {
   contentId: string;
   email: string;
+  walletAddress?: string;
 };
 
 export type ContentOrderCreateResponse = {
@@ -380,6 +383,7 @@ export type ContentOrderCreateResponse = {
 export type ContentOrderVerifyRequest = {
   email: string;
   txHash: string;
+  walletAddress?: string;
 };
 
 export type ContentOrderVerifyResponse = {

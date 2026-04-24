@@ -34,6 +34,8 @@ import type {
 import type { MemberAnnouncementDocument } from "@/lib/announcements";
 import type {
   ContentCommentDocument,
+  ContentEntitlementDocument,
+  ContentOrderDocument,
   ContentPostDocument,
   ContentSocialActionDocument,
   CreatorProfileDocument,
@@ -107,6 +109,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoContentPostsCollectionPromise?: Promise<
     Collection<ContentPostDocument>
+  >;
+  mongoContentOrdersCollectionPromise?: Promise<
+    Collection<ContentOrderDocument>
+  >;
+  mongoContentEntitlementsCollectionPromise?: Promise<
+    Collection<ContentEntitlementDocument>
   >;
   mongoContentSocialActionsCollectionPromise?: Promise<
     Collection<ContentSocialActionDocument>
@@ -818,6 +826,66 @@ export async function getContentPostsCollection() {
   }
 
   return globalForMongo.mongoContentPostsCollectionPromise;
+}
+
+export async function getContentOrdersCollection() {
+  if (!globalForMongo.mongoContentOrdersCollectionPromise) {
+    globalForMongo.mongoContentOrdersCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_ORDERS_COLLECTION ?? "contentOrders";
+      const collection = client
+        .db(dbName)
+        .collection<ContentOrderDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ orderId: 1 }, { unique: true }),
+        collection.createIndex({ buyerEmail: 1, createdAt: -1 }),
+        collection.createIndex({ contentId: 1, buyerEmail: 1, status: 1 }),
+        collection.createIndex({ sellerEmail: 1, createdAt: -1 }),
+        collection.createIndex(
+          { txHash: 1 },
+          {
+            partialFilterExpression: { txHash: { $type: "string" } },
+            unique: true,
+          },
+        ),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentOrdersCollectionPromise;
+}
+
+export async function getContentEntitlementsCollection() {
+  if (!globalForMongo.mongoContentEntitlementsCollectionPromise) {
+    globalForMongo.mongoContentEntitlementsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_ENTITLEMENTS_COLLECTION ??
+        "contentEntitlements";
+      const collection = client
+        .db(dbName)
+        .collection<ContentEntitlementDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex(
+          { contentId: 1, memberEmail: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({ memberEmail: 1, grantedAt: -1 }),
+        collection.createIndex({ orderId: 1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentEntitlementsCollectionPromise;
 }
 
 export async function getContentSocialActionsCollection() {

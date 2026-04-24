@@ -978,6 +978,15 @@ function SocialFeedPost({
   const router = useRouter();
   const previewImageUrl = resolveFeedPreviewImage(item);
   const displayName = getDisplayName(item);
+  const isPaidContent = item.priceType === "paid";
+  const accessLabel = isPaidContent
+    ? locale === "ko"
+      ? "유료"
+      : "Paid"
+    : freeLabel;
+  const priceLabel = isPaidContent
+    ? `${item.priceUsdt ?? "1"} USDT`
+    : null;
   const summaryPreview =
     item.summary.length > 96
       ? `${item.summary.slice(0, 96).trimEnd()}...`
@@ -1570,7 +1579,9 @@ function SocialFeedPost({
             {displayName}
           </p>
           <p className="truncate text-xs text-slate-500">
-            {levelLabel} {item.networkLevel ?? "-"} ·{" "}
+            {accessLabel}
+            {priceLabel ? ` · ${priceLabel}` : ""} · {levelLabel}{" "}
+            {item.networkLevel ?? "-"} ·{" "}
             {formatDate(item.publishedAt ?? item.createdAt, locale)}
           </p>
         </div>
@@ -1669,6 +1680,13 @@ function SocialFeedPost({
         <span className="pointer-events-none absolute bottom-3 right-3 inline-flex size-10 items-center justify-center rounded-full bg-slate-950/58 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] backdrop-blur-md">
           <Maximize2 className="size-4" />
         </span>
+        {isPaidContent ? (
+          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-slate-950/72 px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] backdrop-blur-md">
+            {accessLabel}
+            <span className="h-1 w-1 rounded-full bg-white/55" />
+            {priceLabel}
+          </span>
+        ) : null}
       </div>
 
       <div className="px-3 pb-4 pt-3">
@@ -1773,7 +1791,9 @@ function SocialFeedPost({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <Pill>{freeLabel}</Pill>
+          <Pill tone={isPaidContent ? "paid" : "neutral"}>
+            {priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel}
+          </Pill>
           <Pill>
             {levelLabel} {item.networkLevel ?? "-"}
           </Pill>
@@ -1932,9 +1952,21 @@ function Avatar({
   );
 }
 
-function Pill({ children }: { children: ReactNode }) {
+function Pill({
+  children,
+  tone = "neutral",
+}: {
+  children: ReactNode;
+  tone?: "neutral" | "paid";
+}) {
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[0.68rem] font-semibold text-slate-600">
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.68rem] font-semibold ${
+        tone === "paid"
+          ? "bg-amber-50 text-amber-800"
+          : "bg-slate-100 text-slate-600"
+      }`}
+    >
       {children}
     </span>
   );

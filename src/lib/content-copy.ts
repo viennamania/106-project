@@ -103,6 +103,7 @@ export type ContentCopy = {
     feedEmpty: string;
     featured: string;
     free: string;
+    paid: string;
     imageGallery: string;
     level: string;
     nearbyLevels: string;
@@ -271,9 +272,10 @@ const englishCopy: ContentCopy = {
     creatorSettings: "Creator settings",
     draft: "Draft",
     extendedLevels: "Level 3-6",
-    feedEmpty: "No free content from your upstream network yet.",
+    feedEmpty: "No content from your upstream network yet.",
     featured: "Featured",
     free: "Free",
+    paid: "Paid",
     imageGallery: "Image gallery",
     level: "Level",
     nearbyLevels: "Level 1-2",
@@ -285,7 +287,7 @@ const englishCopy: ContentCopy = {
     references: "Sources",
     studioHome: "Studio home",
     studioNotice:
-      "This release supports free posts with cover images for your network feed.",
+      "Cover images stay public. Paid content images and body are unlocked after a fixed 1 USDT payment.",
   },
   messages: {
     automationLoadFailed: "Failed to load content automation settings.",
@@ -310,7 +312,7 @@ const englishCopy: ContentCopy = {
     previewLocked:
       "Unlock the full story after completing signup on the activation screen.",
     profileSaved: "Creator profile saved.",
-    publishSuccess: "Free post published to your network feed.",
+    publishSuccess: "Content published to your network feed.",
     saveDraftSuccess: "Draft saved.",
     searchPlaceholder: "Search your posts",
     shareFailed: "Sharing is not available right now.",
@@ -323,10 +325,10 @@ const englishCopy: ContentCopy = {
     detailDescription: "Read content shared inside your upstream network.",
     detailTitle: "Network Content",
     feedDescription:
-      "Consume free content published by creators in your upstream referral network.",
+      "Consume free and paid content published by creators in your upstream referral network.",
     feedTitle: "Network Feed",
     studioDescription:
-      "Create and manage free posts for your downstream network.",
+      "Create and manage free or paid posts for your downstream network.",
     studioTitle: "Creator Studio",
   },
   page: {
@@ -338,7 +340,7 @@ const englishCopy: ContentCopy = {
     feedEyebrow: "feed area",
     feedTitle: "Network Feed",
     newDescription:
-      "Write and publish a free post for your downstream network.",
+      "Write and publish free or paid content for your downstream network.",
     postsDescription:
       "Search, filter, and paginate through the posts you have already created.",
     profileDescription:
@@ -456,9 +458,10 @@ const koreanCopy: ContentCopy = {
     creatorSettings: "크리에이터 설정",
     draft: "임시저장",
     extendedLevels: "3~6단계",
-    feedEmpty: "현재 내 상위 네트워크에서 공개된 무료 콘텐츠가 없습니다.",
+    feedEmpty: "현재 내 상위 네트워크에서 공개된 콘텐츠가 없습니다.",
     featured: "추천 콘텐츠",
     free: "무료",
+    paid: "유료",
     imageGallery: "이미지 갤러리",
     level: "레벨",
     nearbyLevels: "1~2단계",
@@ -470,7 +473,7 @@ const koreanCopy: ContentCopy = {
     references: "참고 출처",
     studioHome: "스튜디오 홈",
     studioNotice:
-      "현재 버전은 네트워크 피드용 무료 콘텐츠와 커버 이미지 업로드를 지원합니다.",
+      "커버 이미지는 공개로 유지되고, 유료 콘텐츠 이미지와 본문은 1 USDT 결제 후 열람됩니다.",
   },
   messages: {
     automationLoadFailed: "콘텐츠 자동화 설정을 불러오지 못했습니다.",
@@ -495,7 +498,7 @@ const koreanCopy: ContentCopy = {
     previewLocked:
       "활성화 화면에서 가입을 완료하면 이 콘텐츠 전체를 열람할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
-    publishSuccess: "무료 콘텐츠를 네트워크 피드에 게시했습니다.",
+    publishSuccess: "콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
     searchPlaceholder: "내 콘텐츠 검색",
     shareFailed: "지금은 공유 기능을 사용할 수 없습니다.",
@@ -508,7 +511,7 @@ const koreanCopy: ContentCopy = {
     detailDescription: "상위 네트워크 안에서 공유된 콘텐츠를 확인하세요.",
     detailTitle: "네트워크 콘텐츠",
     feedDescription:
-      "상위 6단계 네트워크의 크리에이터가 발행한 무료 콘텐츠를 소비하는 영역입니다.",
+      "상위 6단계 네트워크의 크리에이터가 발행한 무료/유료 콘텐츠를 소비하는 영역입니다.",
     feedTitle: "네트워크 피드",
     studioDescription:
       "하위 네트워크에 노출할 콘텐츠를 만들고 관리하는 영역입니다.",
@@ -523,7 +526,7 @@ const koreanCopy: ContentCopy = {
     feedEyebrow: "feed area",
     feedTitle: "네트워크 피드",
     newDescription:
-      "내 하위 네트워크에 공개할 무료 콘텐츠를 작성하고 게시해보세요.",
+      "내 하위 네트워크에 공개할 무료 또는 유료 콘텐츠를 작성하고 게시해보세요.",
     postsDescription:
       "이미 만든 콘텐츠를 검색하고 상태별로 나눠서 관리할 수 있습니다.",
     profileDescription:

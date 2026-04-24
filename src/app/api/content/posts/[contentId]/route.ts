@@ -317,9 +317,12 @@ export async function PATCH(
           ? 403
           : message === "Content not found."
             ? 404
-            : message === "Only the author can update this content." ||
-                message === "Only free content is supported in this release."
+            : message === "Only the author can update this content."
               ? 403
+              : message ===
+                    "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
+                  message === "Failed to create seller wallet."
+                ? 400
               : 500;
 
     return jsonError(message, status);

@@ -14,6 +14,7 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
+  Coins,
   Copy,
   ExternalLink,
   Heart,
@@ -23,9 +24,13 @@ import {
 } from "lucide-react";
 import {
   AutoConnect,
+  TransactionButton,
   useActiveAccount,
   useActiveWalletConnectionStatus,
+  useWalletBalance,
 } from "thirdweb/react";
+import { getContract } from "thirdweb";
+import { transfer } from "thirdweb/extensions/erc20";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
@@ -34,6 +39,13 @@ import type {
   ContentDetailRecord,
   ContentDetailLoadResponse,
   ContentDetailResponse,
+  ContentOrderCreateResponse,
+  ContentOrderRecord,
+  ContentOrderVerifyResponse,
+} from "@/lib/content";
+import {
+  CONTENT_PAID_USDT_AMOUNT,
+  CONTENT_PAID_USDT_AMOUNT_WEI,
 } from "@/lib/content";
 import {
   buildPathWithReferral,
@@ -42,6 +54,8 @@ import {
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
+  BSC_EXPLORER,
+  BSC_USDT_ADDRESS,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -74,6 +88,18 @@ type ContentLockedTeaser = {
 };
 
 const HERO_IMAGE_SIZES = "(max-width: 640px) 100vw, (max-width: 1280px) 960px, 1024px";
+const usdtContract = getContract({
+  address: BSC_USDT_ADDRESS,
+  chain: smartWalletChain,
+  client: thirdwebClient,
+});
+
+type PaidUnlockState = {
+  error: string | null;
+  order: ContentOrderRecord | null;
+  status: "idle" | "creating" | "sent" | "verifying" | "unlocked" | "error";
+  txHash: string | null;
+};
 
 function HeroImage({
   alt,
@@ -138,6 +164,12 @@ export function ContentDetailPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
+  const { data: usdtBalance } = useWalletBalance({
+    address: accountAddress,
+    chain: smartWalletChain,
+    client: thirdwebClient,
+    tokenAddress: BSC_USDT_ADDRESS,
+  });
   const [state, setState] = useState<DetailState>({
     content: initialPreview,
     error: null,
@@ -145,6 +177,13 @@ export function ContentDetailPage({
     member: null,
     status: initialPreview ? "ready" : "idle",
   });
+  const [paidUnlock, setPaidUnlock] = useState<PaidUnlockState>({
+    error: null,
+    order: null,
+    status: "idle",
+    txHash: null,
+  });
+  const paidOrderRef = useRef<ContentOrderRecord | null>(null);
   const shareReferralCode =
     state.member?.referralCode ??
     referralCode ??
@@ -353,6 +392,14 @@ export function ContentDetailPage({
     [spawnLikeBurst],
   );
   const isPreviewLocked = Boolean(state.content && !state.content.canAccess);
+  const isPaidLocked =
+    isPreviewLocked &&
+    state.gateReason === "paid" &&
+    state.content?.priceType === "paid";
+  const paidUnlockAmount = state.content?.priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
+  const isInsufficientPaidUnlockBalance =
+    typeof usdtBalance?.value === "bigint" &&
+    usdtBalance.value < BigInt(CONTENT_PAID_USDT_AMOUNT_WEI);
   const shouldEncourageSignup =
     state.gateReason === "connect" ||
     state.gateReason === "signup" ||
@@ -376,6 +423,12 @@ export function ContentDetailPage({
   );
   const heroTitle = state.content?.title ?? initialTeaser?.title ?? null;
   const heroSummary = state.content?.summary ?? initialTeaser?.summary ?? null;
+  const detailAccessLabel =
+    state.content?.priceType === "paid"
+      ? `${locale === "ko" ? "유료" : "Paid"} · ${
+          state.content.priceUsdt ?? CONTENT_PAID_USDT_AMOUNT
+        } USDT`
+      : contentCopy.labels.free;
 
   const copyShareLink = useCallback(async () => {
     if (!shareUrl) {
@@ -425,6 +478,197 @@ export function ContentDetailPage({
 
     await copyShareLink();
   }, [copyShareLink, heroSummary, heroTitle, shareUrl]);
+
+  const createPaidUnlockTransaction = useCallback(async () => {
+    if (!accountAddress) {
+      throw new Error(contentCopy.messages.connectRequired);
+    }
+
+    if (!state.content) {
+      throw new Error(contentCopy.messages.detailLoadFailed);
+    }
+
+    if (isInsufficientPaidUnlockBalance) {
+      throw new Error(
+        locale === "ko"
+          ? `${paidUnlockAmount} USDT 이상이 필요합니다.`
+          : `You need at least ${paidUnlockAmount} USDT.`,
+      );
+    }
+
+    setPaidUnlock({
+      error: null,
+      order: null,
+      status: "creating",
+      txHash: null,
+    });
+
+    const email = await getUserEmail({ client: thirdwebClient });
+
+    if (!email) {
+      throw new Error(dictionary.member.errors.missingEmail);
+    }
+
+    const response = await fetch("/api/content/orders", {
+      body: JSON.stringify({
+        contentId,
+        email,
+        walletAddress: accountAddress,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const data = (await response.json()) as ContentOrderCreateResponse | {
+      error?: string;
+    };
+
+    if (!response.ok || !("order" in data)) {
+      if ("error" in data && data.error === "Content already unlocked.") {
+        await loadDetail();
+      }
+
+      throw new Error(
+        "error" in data && data.error
+          ? data.error
+          : contentCopy.messages.detailLoadFailed,
+      );
+    }
+
+    paidOrderRef.current = data.order;
+    setPaidUnlock({
+      error: null,
+      order: data.order,
+      status: "sent",
+      txHash: null,
+    });
+
+    return transfer({
+      amount: data.order.amountUsdt,
+      contract: usdtContract,
+      to: data.recipientWalletAddress,
+    });
+  }, [
+    accountAddress,
+    contentCopy.messages.connectRequired,
+    contentCopy.messages.detailLoadFailed,
+    contentId,
+    dictionary.member.errors.missingEmail,
+    isInsufficientPaidUnlockBalance,
+    loadDetail,
+    locale,
+    paidUnlockAmount,
+    state.content,
+  ]);
+
+  const handlePaidUnlockSent = useCallback(
+    (result: { transactionHash: string }) => {
+      setPaidUnlock((current) => ({
+        ...current,
+        error: null,
+        status: "sent",
+        txHash: result.transactionHash,
+      }));
+    },
+    [],
+  );
+
+  const handlePaidUnlockConfirmed = useCallback(
+    (receipt: { transactionHash: string }) => {
+      void (async () => {
+        const order = paidOrderRef.current;
+
+        if (!order || !accountAddress) {
+          setPaidUnlock((current) => ({
+            ...current,
+            error:
+              locale === "ko"
+                ? "결제 주문 정보를 확인하지 못했습니다."
+                : "Payment order is missing.",
+            status: "error",
+          }));
+          return;
+        }
+
+        setPaidUnlock((current) => ({
+          ...current,
+          error: null,
+          status: "verifying",
+          txHash: receipt.transactionHash,
+        }));
+
+        try {
+          const email = await getUserEmail({ client: thirdwebClient });
+
+          if (!email) {
+            throw new Error(dictionary.member.errors.missingEmail);
+          }
+
+          const response = await fetch(
+            `/api/content/orders/${encodeURIComponent(order.orderId)}/verify`,
+            {
+              body: JSON.stringify({
+                email,
+                txHash: receipt.transactionHash,
+                walletAddress: accountAddress,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+            },
+          );
+          const data = (await response.json()) as
+            | ContentOrderVerifyResponse
+            | { error?: string };
+
+          if (!response.ok || !("order" in data)) {
+            throw new Error(
+              "error" in data && data.error
+                ? data.error
+                : contentCopy.messages.detailLoadFailed,
+            );
+          }
+
+          setPaidUnlock({
+            error: null,
+            order: data.order,
+            status: "unlocked",
+            txHash: receipt.transactionHash,
+          });
+          await loadDetail();
+        } catch (error) {
+          setPaidUnlock((current) => ({
+            ...current,
+            error:
+              error instanceof Error
+                ? error.message
+                : contentCopy.messages.detailLoadFailed,
+            status: "error",
+          }));
+        }
+      })();
+    },
+    [
+      accountAddress,
+      contentCopy.messages.detailLoadFailed,
+      dictionary.member.errors.missingEmail,
+      loadDetail,
+      locale,
+    ],
+  );
+
+  const handlePaidUnlockError = useCallback(
+    (error: Error) => {
+      setPaidUnlock((current) => ({
+        ...current,
+        error: error.message || contentCopy.messages.detailLoadFailed,
+        status: "error",
+      }));
+    },
+    [contentCopy.messages.detailLoadFailed],
+  );
 
   const handleHeroPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -512,7 +756,7 @@ export function ContentDetailPage({
 
               <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 lg:p-8">
                 <div className="flex flex-wrap gap-2">
-                  <HeroBadge>{contentCopy.labels.free}</HeroBadge>
+                  <HeroBadge>{detailAccessLabel}</HeroBadge>
                   {heroAuthorDisplayName ? (
                     <HeroBadge>{heroAuthorDisplayName}</HeroBadge>
                   ) : null}
@@ -584,7 +828,7 @@ export function ContentDetailPage({
 
             <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 lg:p-8">
               <div className="flex flex-wrap gap-2">
-                <HeroBadge>{contentCopy.labels.free}</HeroBadge>
+                <HeroBadge>{detailAccessLabel}</HeroBadge>
                 {heroAuthorDisplayName ? (
                   <HeroBadge>{heroAuthorDisplayName}</HeroBadge>
                 ) : null}
@@ -725,12 +969,64 @@ export function ContentDetailPage({
                     {contentCopy.messages.previewLocked}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {shouldEncourageSignup
-                      ? contentCopy.messages.paymentRequired
-                      : contentCopy.messages.likeHint}
+                    {isPaidLocked
+                      ? locale === "ko"
+                        ? `콘텐츠 이미지와 전체 본문은 ${paidUnlockAmount} USDT 결제 후 열람할 수 있습니다.`
+                        : `Unlock the full gallery and body for ${paidUnlockAmount} USDT.`
+                      : shouldEncourageSignup
+                        ? contentCopy.messages.paymentRequired
+                        : contentCopy.messages.likeHint}
                   </p>
+                  {paidUnlock.error ? (
+                    <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
+                      {paidUnlock.error}
+                    </p>
+                  ) : null}
+                  {paidUnlock.txHash ? (
+                    <a
+                      className="mt-3 inline-flex text-xs font-semibold text-slate-500 underline"
+                      href={`${BSC_EXPLORER}/tx/${paidUnlock.txHash}`}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {locale === "ko" ? "결제 트랜잭션 보기" : "View payment transaction"}
+                    </a>
+                  ) : null}
+                  {isPaidLocked && isInsufficientPaidUnlockBalance ? (
+                    <p className="mt-3 text-xs font-medium text-amber-700">
+                      {locale === "ko"
+                        ? `${paidUnlockAmount} USDT 이상 보유한 지갑이 필요합니다.`
+                        : `A wallet with at least ${paidUnlockAmount} USDT is required.`}
+                    </p>
+                  ) : null}
                   <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
-                    {shouldEncourageSignup ? (
+                    {isPaidLocked && !shouldEncourageSignup ? (
+                      <TransactionButton
+                        className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={
+                          !accountAddress ||
+                          isInsufficientPaidUnlockBalance ||
+                          paidUnlock.status === "creating" ||
+                          paidUnlock.status === "sent" ||
+                          paidUnlock.status === "verifying"
+                        }
+                        onError={handlePaidUnlockError}
+                        onTransactionConfirmed={handlePaidUnlockConfirmed}
+                        onTransactionSent={handlePaidUnlockSent}
+                        transaction={createPaidUnlockTransaction}
+                        type="button"
+                        unstyled
+                      >
+                        <Coins className="mr-2 size-4" />
+                        {paidUnlock.status === "verifying"
+                          ? locale === "ko"
+                            ? "결제 확인 중"
+                            : "Verifying"
+                          : `${paidUnlockAmount} USDT ${
+                              locale === "ko" ? "결제하고 보기" : "unlock"
+                            }`}
+                      </TransactionButton>
+                    ) : shouldEncourageSignup ? (
                       <Link
                         className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03]"
                         href={activateHref}
@@ -1113,8 +1409,16 @@ function ContentImageCarousel({
                       ? `${title} 이미지 ${index + 1} 전체 보기`
                       : `View ${title} image ${index + 1} fullscreen`
                   }
-                  className="block w-full cursor-zoom-in"
+                  className={cn(
+                    "block w-full",
+                    isPreviewLocked ? "cursor-default" : "cursor-zoom-in",
+                  )}
+                  disabled={isPreviewLocked}
                   onClick={() => {
+                    if (isPreviewLocked) {
+                      return;
+                    }
+
                     showLightboxImage(index);
                   }}
                   type="button"
@@ -1124,7 +1428,9 @@ function ContentImageCarousel({
                     alt={`${title} ${index + 1}`}
                     className={cn(
                       "block h-[74svh] w-full select-none object-contain sm:h-[min(82vh,760px)]",
-                      isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
+                      isPreviewLocked
+                        ? "scale-[1.04] blur-xl brightness-90 saturate-75"
+                        : "",
                     )}
                     draggable={false}
                     loading={index === 0 ? "eager" : "lazy"}
@@ -1132,6 +1438,13 @@ function ContentImageCarousel({
                   />
                 </button>
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.18)_0%,rgba(15,23,42,0.06)_22%,rgba(15,23,42,0.1)_48%,rgba(15,23,42,0.42)_100%)]" />
+                {isPreviewLocked ? (
+                  <div className="pointer-events-none absolute inset-x-4 bottom-4 rounded-[22px] border border-white/18 bg-slate-950/58 px-4 py-3 text-center text-sm font-semibold text-white shadow-[0_18px_42px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+                    {locale === "ko"
+                      ? "결제 후 콘텐츠 이미지를 선명하게 볼 수 있습니다."
+                      : "Unlock to view content images clearly."}
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}

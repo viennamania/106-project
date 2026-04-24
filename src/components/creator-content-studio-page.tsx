@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Coins,
   ImagePlus,
   LayoutGrid,
   LoaderCircle,
@@ -39,6 +40,7 @@ import type {
 import { contentCoverGenerationProgressSteps } from "@/lib/content";
 import type {
   ContentCoverGenerationProgressStep,
+  ContentPriceType,
   ContentPostGenerateCoverResponse,
   ContentPostGenerateCoverStreamEvent,
   ContentPostMutationResponse,
@@ -48,6 +50,7 @@ import type {
   CreatorProfileUploadResponse,
   CreatorStudioPostsResponse,
 } from "@/lib/content";
+import { CONTENT_PAID_USDT_AMOUNT } from "@/lib/content";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -155,6 +158,7 @@ const EMPTY_POST_FORM = {
   contentImageUrls: [] as string[],
   coverImageUrl: "",
   generatedContentImageUrls: [] as string[],
+  priceType: "free" as ContentPriceType,
   summary: "",
   title: "",
 };
@@ -528,6 +532,7 @@ export function CreatorContentStudioPage({
   const [automationCelebration, setAutomationCelebration] =
     useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isCreatingSellerWallet, setIsCreatingSellerWallet] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
@@ -1492,6 +1497,64 @@ export function CreatorContentStudioPage({
     }
   }
 
+  async function createSellerWallet(email?: string) {
+    try {
+      setIsCreatingSellerWallet(true);
+      const resolvedEmail = email ?? (await resolveMemberEmail());
+      const response = await fetch("/api/content/profile/payout-wallet", {
+        body: JSON.stringify({
+          email: resolvedEmail,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorProfileResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("profile" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.studioLoadFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "유료 판매용 thirdweb 정산 지갑을 준비했습니다."
+            : "Seller wallet is ready for paid unlocks.",
+        profile: {
+          avatarImageUrl: data.profile.avatarImageUrl ?? "",
+          displayName: data.profile.displayName,
+          heroImageUrl: data.profile.heroImageUrl ?? "",
+          intro: data.profile.intro,
+          payoutWalletAddress: data.profile.payoutWalletAddress ?? "",
+        },
+      }));
+
+      return data.profile.payoutWalletAddress ?? "";
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.studioLoadFailed,
+        notice: null,
+      }));
+      throw error;
+    } finally {
+      setIsCreatingSellerWallet(false);
+    }
+  }
+
   async function createPost(statusToSave: "draft" | "published") {
     if (!postForm.body.trim()) {
       setPostBodyError(postBodyRequiredMessage);
@@ -1507,6 +1570,11 @@ export function CreatorContentStudioPage({
       setIsSavingPost(true);
       setPostBodyError(null);
       const email = await resolveMemberEmail();
+
+      if (postForm.priceType === "paid" && !state.profile.payoutWalletAddress) {
+        await createSellerWallet(email);
+      }
+
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body: postForm.body,
@@ -1514,7 +1582,9 @@ export function CreatorContentStudioPage({
           coverImageUrl: postForm.coverImageUrl || null,
           email,
           locale,
-          priceType: "free",
+          priceType: postForm.priceType,
+          priceUsdt:
+            postForm.priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
           status: statusToSave,
           summary: postForm.summary,
           title: postForm.title,
@@ -3209,6 +3279,107 @@ export function CreatorContentStudioPage({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-slate-900">
+                    {locale === "ko" ? "판매 방식" : "Access type"}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {locale === "ko"
+                      ? "커버 이미지는 항상 피드에 공개되고, 유료 콘텐츠 이미지와 본문은 결제 후 열람됩니다."
+                      : "Cover images stay visible in the feed. Paid body and gallery images unlock after payment."}
+                  </p>
+                </div>
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
+                  {CONTENT_PAID_USDT_AMOUNT} USDT
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
+                  const isSelected = postForm.priceType === priceType;
+                  const title =
+                    priceType === "paid"
+                      ? locale === "ko"
+                        ? "유료"
+                        : "Paid"
+                      : contentCopy.labels.free;
+                  const description =
+                    priceType === "paid"
+                      ? locale === "ko"
+                        ? "상세 본문과 콘텐츠 이미지를 1 USDT로 잠급니다."
+                        : "Lock the detail body and gallery for 1 USDT."
+                      : locale === "ko"
+                        ? "모든 회원이 바로 열람할 수 있습니다."
+                        : "Members can read it immediately.";
+
+                  return (
+                    <button
+                      className={cn(
+                        "rounded-[18px] border px-4 py-3 text-left transition",
+                        isSelected
+                          ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
+                          : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
+                      )}
+                      key={priceType}
+                      onClick={() => {
+                        setPostForm((current) => ({
+                          ...current,
+                          priceType,
+                        }));
+                      }}
+                      type="button"
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                        {priceType === "paid" ? (
+                          <Coins className="size-4 text-amber-600" />
+                        ) : (
+                          <Check className="size-4 text-emerald-600" />
+                        )}
+                        {title}
+                      </span>
+                      <span className="mt-1 block text-xs leading-5 text-slate-500">
+                        {description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {postForm.priceType === "paid" ? (
+                <div className="mt-4 rounded-[18px] border border-white bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        thirdweb server wallet
+                      </p>
+                      <p className="mt-1 break-all text-sm font-medium text-slate-900">
+                        {state.profile.payoutWalletAddress ||
+                          (locale === "ko"
+                            ? "유료 게시 전에 자동 생성됩니다."
+                            : "Created before publishing paid content.")}
+                      </p>
+                    </div>
+                    {!state.profile.payoutWalletAddress ? (
+                      <button
+                        className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                        disabled={isCreatingSellerWallet || isDisconnected}
+                        onClick={() => {
+                          void createSellerWallet();
+                        }}
+                        type="button"
+                      >
+                        {isCreatingSellerWallet ? (
+                          <LoaderCircle className="size-4 animate-spin" />
+                        ) : (
+                          <Coins className="size-4" />
+                        )}
+                        {locale === "ko" ? "지갑 생성" : "Create wallet"}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
                     {contentCopy.fields.coverImage}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
@@ -3433,6 +3604,7 @@ export function CreatorContentStudioPage({
                 className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 disabled={
                   isSavingPost ||
+                  isCreatingSellerWallet ||
                   isDisconnected ||
                   isUploadingPostImage ||
                   isGeneratingPostImage
@@ -3448,6 +3620,7 @@ export function CreatorContentStudioPage({
                 className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 disabled={
                   isSavingPost ||
+                  isCreatingSellerWallet ||
                   isDisconnected ||
                   isUploadingPostImage ||
                   isGeneratingPostImage
@@ -5089,15 +5262,19 @@ function StatusBadge({
               ? "Queued"
               : status === "free"
                 ? "Free"
+                : status === "paid"
+                  ? "Paid"
                 : status;
   const className =
     status === "failed"
       ? "border-rose-200 bg-rose-50 text-rose-700"
       : status === "running"
         ? "border-amber-200 bg-amber-50 text-amber-700"
-        : status === "queued"
-          ? "border-sky-200 bg-sky-50 text-sky-700"
-          : "border-slate-200 bg-white text-slate-700";
+      : status === "queued"
+        ? "border-sky-200 bg-sky-50 text-sky-700"
+        : status === "paid"
+          ? "border-amber-200 bg-amber-50 text-amber-800"
+        : "border-slate-200 bg-white text-slate-700";
 
   return (
     <span

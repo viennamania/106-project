@@ -7,8 +7,11 @@ import type { Filter } from "mongodb";
 import {
   CONTENT_FEED_PAGE_SIZE,
   CONTENT_NETWORK_LEVEL_LIMIT,
+  CONTENT_PAID_USDT_AMOUNT,
+  CONTENT_PAID_USDT_AMOUNT_WEI,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
+  serializeContentOrder,
   serializeContentPost,
   serializeCreatorProfile,
   type ContentCommentCreateResponse,
@@ -16,12 +19,19 @@ import {
   type ContentCommentRecord,
   type ContentCommentsResponse,
   type ContentDetailResponse,
+  type ContentEntitlementDocument,
   type ContentFeedItemRecord,
   type ContentFeedResponse,
+  type ContentOrderCreateRequest,
+  type ContentOrderCreateResponse,
+  type ContentOrderDocument,
+  type ContentOrderVerifyRequest,
+  type ContentOrderVerifyResponse,
   type ContentPostCreateRequest,
   type ContentPostDocument,
   type ContentPostRecord,
   type ContentPostUpdateRequest,
+  type ContentPriceType,
   type ContentSocialResponse,
   type ContentSocialSummaryRecord,
   type CreatorProfileDocument,
@@ -33,6 +43,8 @@ import { getMemberRegistrationStatus } from "@/lib/member-service";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
   getContentCommentsCollection,
+  getContentEntitlementsCollection,
+  getContentOrdersCollection,
   getContentPostsCollection,
   getContentPostSourceAttributionsCollection,
   getContentSocialActionsCollection,
@@ -46,6 +58,14 @@ import {
   type MemberDocument,
 } from "@/lib/member";
 import { emitNetworkContentPublishedNotifications } from "@/lib/notifications-service";
+import { BSC_USDT_ADDRESS, smartWalletChain } from "@/lib/thirdweb";
+import { serverThirdwebClient, createOrGetThirdwebSellerWallet } from "@/lib/thirdweb-server";
+import { ERC20_TRANSFER_SIG_HASH, normalizeAddress } from "@/lib/thirdweb-webhooks";
+import {
+  eth_getBlockByNumber,
+  eth_getTransactionReceipt,
+  getRpcClient,
+} from "thirdweb/rpc";
 
 type NetworkAncestor = {
   level: number;
@@ -76,6 +96,7 @@ const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
 const CONTENT_COMMENT_BODY_LIMIT = 500;
 const CONTENT_COMMENTS_PAGE_SIZE = 30;
+const CONTENT_ORDER_PAYMENT_WINDOW_MS = 1000 * 60 * 30;
 
 function encodeNetworkFeedCursor(post: ContentPostDocument) {
   const cursor: NetworkFeedCursor = {
@@ -152,6 +173,14 @@ function normalizeContentImageUrls(urls?: string[]) {
         .filter((url): url is string => Boolean(url)),
     ),
   ).slice(0, CONTENT_IMAGE_LIMIT);
+}
+
+function normalizePriceType(priceType?: ContentPriceType | null) {
+  return priceType === "paid" ? "paid" : "free";
+}
+
+function resolveContentPriceUsdt(priceType: ContentPriceType) {
+  return priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null;
 }
 
 function resolvePrimaryContentImageUrl(post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">) {
@@ -279,7 +308,7 @@ function createDefaultCreatorProfile(member: MemberDocument): CreatorProfileReco
     displayName: inferDisplayName(member),
     heroImageUrl: member.landingBranding?.heroImageUrl ?? null,
     intro: inferIntro(member),
-    payoutWalletAddress: member.lastWalletAddress ?? null,
+    payoutWalletAddress: null,
     referralCode: member.referralCode ?? "",
     status: "active",
     updatedAt: now,
@@ -298,6 +327,59 @@ async function getCompletedMemberOrThrow(email: string) {
   }
 
   return member;
+}
+
+function buildSellerWalletIdentifier(member: MemberDocument) {
+  return `content-seller:${member.referralCode ?? member.email}`;
+}
+
+export async function ensureCreatorPaidWalletForMember(
+  email: string,
+): Promise<CreatorProfileRecord> {
+  const member = await getCompletedMemberOrThrow(email);
+
+  if (!member.referralCode) {
+    throw new Error("Completed member is missing referral code.");
+  }
+
+  const collection = await getCreatorProfilesCollection();
+  const stored = await collection.findOne({ email: member.email });
+  const walletAddress = await createOrGetThirdwebSellerWallet(
+    buildSellerWalletIdentifier(member),
+  );
+  const now = new Date();
+  const defaultProfile = createDefaultCreatorProfile(member);
+
+  await collection.updateOne(
+    { email: member.email },
+    {
+      $set: {
+        avatarImageUrl:
+          stored?.avatarImageUrl ?? defaultProfile.avatarImageUrl ?? null,
+        displayName:
+          stored?.displayName?.trim() || defaultProfile.displayName,
+        email: member.email,
+        heroImageUrl: stored?.heroImageUrl ?? defaultProfile.heroImageUrl ?? null,
+        intro: stored?.intro ?? defaultProfile.intro,
+        payoutWalletAddress: walletAddress,
+        referralCode: member.referralCode,
+        status: stored?.status ?? "active",
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        createdAt: now,
+      },
+    },
+    { upsert: true },
+  );
+
+  const nextProfile = await collection.findOne({ email: member.email });
+
+  if (!nextProfile) {
+    throw new Error("Failed to save creator profile.");
+  }
+
+  return serializeCreatorProfile(nextProfile);
 }
 
 async function resolveNetworkAncestors(member: MemberDocument) {
@@ -409,7 +491,6 @@ async function loadNetworkFeedItemsFromAncestors(
   const baseFilter: Filter<ContentPostDocument> = {
     $or: localeFilter,
     authorReferralCode: { $in: referralCodes },
-    priceType: "free",
     status: "published",
     ...(hiddenContentIds.length > 0
       ? { contentId: { $nin: hiddenContentIds } }
@@ -466,6 +547,12 @@ async function loadNetworkFeedItemsFromAncestors(
     pagePosts.map((post) => post.contentId),
     options?.viewerEmail,
   );
+  const purchasedContentIds = await getPurchasedContentIdsForViewer(
+    pagePosts
+      .filter((post) => post.priceType === "paid")
+      .map((post) => post.contentId),
+    options?.viewerEmail,
+  );
 
   const items = pagePosts.map((post) => {
       const storedProfile = storedProfileByEmail.get(post.authorEmail);
@@ -477,6 +564,10 @@ async function loadNetworkFeedItemsFromAncestors(
 
       return buildFeedItem({
         authorProfile,
+        canAccess:
+          post.priceType === "free" ||
+          post.authorEmail === options?.viewerEmail ||
+          purchasedContentIds.has(post.contentId),
         content: post,
         networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
         social: socialByContentId.get(post.contentId),
@@ -679,11 +770,13 @@ export async function upsertCreatorProfileForMember(
 
 function buildFeedItem({
   authorProfile,
+  canAccess,
   content,
   networkLevel,
   social,
 }: {
   authorProfile: CreatorProfileRecord | null;
+  canAccess?: boolean;
   content: ContentPostDocument;
   networkLevel: number | null;
   social?: ContentSocialSummaryRecord;
@@ -691,7 +784,7 @@ function buildFeedItem({
   return {
     ...serializeContentPost(content),
     authorProfile,
-    canAccess: true,
+    canAccess: canAccess ?? content.priceType === "free",
     networkLevel,
     previewAssets: [],
     social: social ?? createEmptyContentSocialSummary(),
@@ -753,6 +846,46 @@ async function getHiddenContentIdsForViewer(viewerEmail?: string | null) {
     .toArray();
 
   return hiddenActions.map((action) => action.contentId);
+}
+
+async function getPurchasedContentIdsForViewer(
+  contentIds: string[],
+  viewerEmail?: string | null,
+) {
+  const normalizedViewerEmail = viewerEmail ? normalizeEmail(viewerEmail) : "";
+
+  if (!normalizedViewerEmail || contentIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const entitlementsCollection = await getContentEntitlementsCollection();
+  const entitlements = await entitlementsCollection
+    .find(
+      {
+        contentId: { $in: contentIds },
+        memberEmail: normalizedViewerEmail,
+      },
+      {
+        projection: {
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+
+  return new Set(entitlements.map((entitlement) => entitlement.contentId));
+}
+
+async function getContentEntitlementForMember(
+  contentId: string,
+  memberEmail: string,
+) {
+  const entitlementsCollection = await getContentEntitlementsCollection();
+
+  return entitlementsCollection.findOne({
+    contentId,
+    memberEmail: normalizeEmail(memberEmail),
+  });
 }
 
 async function getContentSocialSummaries(
@@ -1181,10 +1314,6 @@ export async function createContentPostForMember(
     throw new Error("Completed member is missing referral code.");
   }
 
-  if (input.priceType !== "free") {
-    throw new Error("Only free content is supported in this release.");
-  }
-
   const title = trimToLength(input.title, CONTENT_TITLE_LIMIT);
   const body = trimToLength(input.body, CONTENT_BODY_LIMIT);
   const summary = buildSummaryFromContent({
@@ -1202,6 +1331,12 @@ export async function createContentPostForMember(
   }
 
   const status = input.status === "published" ? "published" : "draft";
+  const priceType = normalizePriceType(input.priceType);
+
+  if (priceType === "paid") {
+    await ensureCreatorPaidWalletForMember(member.email);
+  }
+
   const now = new Date();
   const post: ContentPostDocument = {
     authorEmail: member.email,
@@ -1214,8 +1349,8 @@ export async function createContentPostForMember(
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
     previewText: normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT),
-    priceType: "free",
-    priceUsdt: null,
+    priceType,
+    priceUsdt: resolveContentPriceUsdt(priceType),
     publishedAt: status === "published" ? now : null,
     status,
     summary,
@@ -1261,14 +1396,19 @@ export async function updateContentPostForMember(
     throw new Error("Only the author can update this content.");
   }
 
-  if (input.priceType && input.priceType !== "free") {
-    throw new Error("Only free content is supported in this release.");
-  }
-
   const nextStatus =
     input.status && ["draft", "published", "archived"].includes(input.status)
       ? input.status
       : post.status;
+  const nextPriceType =
+    input.priceType !== undefined
+      ? normalizePriceType(input.priceType)
+      : post.priceType;
+
+  if (nextPriceType === "paid") {
+    await ensureCreatorPaidWalletForMember(member.email);
+  }
+
   const now = new Date();
   const nextPublishedAt =
     nextStatus === "published" ? post.publishedAt ?? now : post.publishedAt ?? null;
@@ -1314,6 +1454,8 @@ export async function updateContentPostForMember(
           input.previewText !== undefined
             ? normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT)
             : post.previewText ?? null,
+        priceType: nextPriceType,
+        priceUsdt: resolveContentPriceUsdt(nextPriceType),
         publishedAt: nextPublishedAt,
         status: nextStatus,
         summary: nextSummary,
@@ -1343,6 +1485,320 @@ export async function updateContentPostForMember(
   return serializeContentPost(nextPost);
 }
 
+function normalizeTxHash(txHash: string) {
+  const trimmed = txHash.trim();
+
+  if (!/^0x[a-fA-F0-9]{64}$/.test(trimmed)) {
+    throw new Error("Valid transaction hash is required.");
+  }
+
+  return trimmed.toLowerCase();
+}
+
+function extractTopicAddress(topic: string | null | undefined) {
+  if (!topic || !topic.startsWith("0x") || topic.length < 42) {
+    return null;
+  }
+
+  return normalizeAddress(`0x${topic.slice(-40)}`);
+}
+
+function isMatchingContentPaymentLog(
+  log: {
+    address: string;
+    data: string;
+    topics: readonly (string | null)[];
+  },
+  {
+    amountWei,
+    buyerWalletAddress,
+    sellerWalletAddress,
+  }: {
+    amountWei: string;
+    buyerWalletAddress: string;
+    sellerWalletAddress: string;
+  },
+) {
+  if (normalizeAddress(log.address) !== normalizeAddress(BSC_USDT_ADDRESS)) {
+    return false;
+  }
+
+  const topics = log.topics.filter(Boolean) as string[];
+
+  if (topics.length < 3 || topics[0]?.toLowerCase() !== ERC20_TRANSFER_SIG_HASH) {
+    return false;
+  }
+
+  const fromAddress = extractTopicAddress(topics[1]);
+  const toAddress = extractTopicAddress(topics[2]);
+
+  if (!fromAddress || !toAddress) {
+    return false;
+  }
+
+  return (
+    fromAddress === normalizeAddress(buyerWalletAddress) &&
+    toAddress === normalizeAddress(sellerWalletAddress) &&
+    BigInt(log.data).toString() === amountWei
+  );
+}
+
+async function verifyContentPaymentTransaction({
+  amountWei,
+  buyerWalletAddress,
+  createdAt,
+  sellerWalletAddress,
+  txHash,
+}: {
+  amountWei: string;
+  buyerWalletAddress: string;
+  createdAt: Date;
+  sellerWalletAddress: string;
+  txHash: string;
+}) {
+  const rpcClient = getRpcClient({
+    chain: smartWalletChain,
+    client: serverThirdwebClient,
+  });
+  const receipt = await eth_getTransactionReceipt(rpcClient, {
+    hash: txHash as `0x${string}`,
+  });
+  const receiptStatus = String(receipt.status ?? "").toLowerCase();
+
+  if (receiptStatus && receiptStatus !== "success" && receiptStatus !== "0x1") {
+    throw new Error("Transaction is not confirmed successfully.");
+  }
+
+  const matchingLog = receipt.logs.find((log) =>
+    isMatchingContentPaymentLog(log, {
+      amountWei,
+      buyerWalletAddress,
+      sellerWalletAddress,
+    }),
+  );
+
+  if (!matchingLog) {
+    throw new Error("Matching USDT transfer log not found in receipt.");
+  }
+
+  const blockNumber =
+    typeof receipt.blockNumber === "bigint"
+      ? receipt.blockNumber
+      : BigInt(receipt.blockNumber);
+  const block = await eth_getBlockByNumber(rpcClient, {
+    blockNumber,
+  });
+  const blockTimestampMs = Number(block.timestamp) * 1000;
+
+  if (
+    blockTimestampMs + 1000 * 60 <
+    createdAt.getTime() - CONTENT_ORDER_PAYMENT_WINDOW_MS
+  ) {
+    throw new Error("Transaction is outside the order payment window.");
+  }
+
+  return {
+    blockNumber,
+    blockTimestampMs,
+  };
+}
+
+async function assertContentVisibleToBuyer(
+  post: ContentPostDocument,
+  buyer: MemberDocument,
+) {
+  if (post.status !== "published") {
+    throw new Error("Content not found.");
+  }
+
+  const ancestors = await resolveNetworkAncestors(buyer);
+  const visibleReferralCodes = new Set(
+    ancestors.map((ancestor) => ancestor.referralCode),
+  );
+
+  if (!visibleReferralCodes.has(post.authorReferralCode)) {
+    throw new Error("Content is not available in your network.");
+  }
+}
+
+export async function createContentOrderForMember(
+  input: ContentOrderCreateRequest,
+): Promise<ContentOrderCreateResponse> {
+  const normalizedEmail = normalizeEmail(input.email);
+
+  if (!normalizedEmail) {
+    throw new Error("email is required.");
+  }
+
+  const buyer = await getCompletedMemberOrThrow(normalizedEmail);
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({ contentId: input.contentId });
+
+  if (!post) {
+    throw new Error("Content not found.");
+  }
+
+  if (post.authorEmail === buyer.email) {
+    throw new Error("Authors can already access their own content.");
+  }
+
+  if (post.priceType !== "paid") {
+    throw new Error("This content is free.");
+  }
+
+  await assertContentVisibleToBuyer(post, buyer);
+
+  const existingEntitlement = await getContentEntitlementForMember(
+    post.contentId,
+    buyer.email,
+  );
+
+  if (existingEntitlement) {
+    throw new Error("Content already unlocked.");
+  }
+
+  const sellerProfile = await ensureCreatorPaidWalletForMember(post.authorEmail);
+  const sellerWalletAddress = sellerProfile.payoutWalletAddress?.trim();
+
+  if (!sellerWalletAddress) {
+    throw new Error("Seller wallet is not configured.");
+  }
+
+  const now = new Date();
+  const order: ContentOrderDocument = {
+    amountUsdt: CONTENT_PAID_USDT_AMOUNT,
+    buyerEmail: buyer.email,
+    buyerReferralCode: buyer.referralCode ?? null,
+    contentId: post.contentId,
+    createdAt: now,
+    orderId: randomUUID(),
+    sellerEmail: post.authorEmail,
+    sellerWalletAddress: normalizeAddress(sellerWalletAddress),
+    status: "pending_payment",
+    txHash: null,
+    updatedAt: now,
+  };
+  const ordersCollection = await getContentOrdersCollection();
+
+  await ordersCollection.insertOne(order);
+
+  return {
+    order: serializeContentOrder(order),
+    recipientWalletAddress: order.sellerWalletAddress,
+  };
+}
+
+export async function verifyContentOrderForMember(
+  orderId: string,
+  input: ContentOrderVerifyRequest,
+): Promise<ContentOrderVerifyResponse> {
+  const normalizedEmail = normalizeEmail(input.email);
+
+  if (!normalizedEmail) {
+    throw new Error("email is required.");
+  }
+
+  const buyer = await getCompletedMemberOrThrow(normalizedEmail);
+  const buyerWalletAddress = input.walletAddress?.trim();
+
+  if (!buyerWalletAddress) {
+    throw new Error("walletAddress is required.");
+  }
+
+  const txHash = normalizeTxHash(input.txHash);
+  const ordersCollection = await getContentOrdersCollection();
+  const order = await ordersCollection.findOne({
+    buyerEmail: buyer.email,
+    orderId,
+  });
+
+  if (!order) {
+    throw new Error("Content order not found.");
+  }
+
+  if (order.status === "confirmed") {
+    return {
+      entitlementGranted: true,
+      order: serializeContentOrder(order),
+    };
+  }
+
+  if (order.status !== "pending_payment") {
+    throw new Error("Content order is not payable.");
+  }
+
+  const duplicateOrder = await ordersCollection.findOne({
+    orderId: { $ne: order.orderId },
+    txHash,
+  });
+
+  if (duplicateOrder) {
+    throw new Error("Transaction has already been used.");
+  }
+
+  await verifyContentPaymentTransaction({
+    amountWei: CONTENT_PAID_USDT_AMOUNT_WEI,
+    buyerWalletAddress,
+    createdAt: order.createdAt,
+    sellerWalletAddress: order.sellerWalletAddress,
+    txHash,
+  });
+
+  const now = new Date();
+  await ordersCollection.updateOne(
+    { orderId: order.orderId, status: "pending_payment" },
+    {
+      $set: {
+        status: "confirmed",
+        txHash,
+        updatedAt: now,
+        verifiedAt: now,
+      },
+    },
+  );
+
+  const entitlementsCollection = await getContentEntitlementsCollection();
+  const entitlement: ContentEntitlementDocument = {
+    contentId: order.contentId,
+    createdAt: now,
+    grantedAt: now,
+    memberEmail: buyer.email,
+    orderId: order.orderId,
+    source: "purchase",
+  };
+
+  await entitlementsCollection.updateOne(
+    {
+      contentId: entitlement.contentId,
+      memberEmail: entitlement.memberEmail,
+    },
+    {
+      $set: {
+        grantedAt: entitlement.grantedAt,
+        orderId: entitlement.orderId,
+        source: entitlement.source,
+      },
+      $setOnInsert: {
+        contentId: entitlement.contentId,
+        createdAt: entitlement.createdAt,
+        memberEmail: entitlement.memberEmail,
+      },
+    },
+    { upsert: true },
+  );
+
+  const confirmedOrder = await ordersCollection.findOne({ orderId: order.orderId });
+
+  if (!confirmedOrder) {
+    throw new Error("Content order not found.");
+  }
+
+  return {
+    entitlementGranted: true,
+    order: serializeContentOrder(confirmedOrder),
+  };
+}
+
 export async function getContentDetailForMember(
   contentId: string,
   email: string,
@@ -1356,14 +1812,11 @@ export async function getContentDetailForMember(
   }
 
   const isAuthor = post.authorEmail === member.email;
+  let entitlement: ContentEntitlementDocument | null = null;
 
   if (!isAuthor) {
     if (post.status !== "published") {
       throw new Error("Content not found.");
-    }
-
-    if (post.priceType !== "free") {
-      throw new Error("This content requires a paid unlock.");
     }
 
     const ancestors = await resolveNetworkAncestors(member);
@@ -1373,6 +1826,17 @@ export async function getContentDetailForMember(
 
     if (!visibleReferralCodes.has(post.authorReferralCode)) {
       throw new Error("Content is not available in your network.");
+    }
+
+    if (post.priceType === "paid") {
+      entitlement = await getContentEntitlementForMember(
+        post.contentId,
+        member.email,
+      );
+
+      if (!entitlement) {
+        throw new Error("This content requires a paid unlock.");
+      }
     }
   }
 
@@ -1409,7 +1873,11 @@ export async function getContentDetailForMember(
       authorProfile,
       body: post.body,
       canAccess: true,
-      entitlementSource: "free",
+      entitlementSource: isAuthor
+        ? "complimentary"
+        : post.priceType === "paid"
+          ? entitlement?.source ?? "purchase"
+          : "free",
       sources,
     },
     member: serializeMember(member),

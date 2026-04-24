@@ -124,7 +124,9 @@ export async function POST(request: Request) {
         : message === "Completed signup is required."
           ? 403
           : message.endsWith("is required.") ||
-              message === "Only free content is supported in this release."
+              message ===
+                "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
+              message === "Failed to create seller wallet."
             ? 400
             : 500;
 
