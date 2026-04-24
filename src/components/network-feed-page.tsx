@@ -12,7 +12,6 @@ import {
 import {
   AutoConnect,
   useActiveAccount,
-  useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
@@ -72,7 +71,6 @@ export function NetworkFeedPage({
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
-  const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
@@ -253,20 +251,13 @@ export function NetworkFeedPage({
                 throw new Error(dictionary.member.errors.missingEmail);
               }
 
-              return fetch("/api/content/feed", {
-                body: JSON.stringify({
-                  chainId: chain.id,
-                  chainName: chain.name ?? "BSC",
+              return fetch(
+                `/api/content/feed?${new URLSearchParams({
                   email,
                   locale,
-                  syncMode: "light",
                   walletAddress: accountAddress,
-                }),
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                method: "POST",
-              });
+                }).toString()}`,
+              );
             })()
           : null;
 
@@ -337,8 +328,6 @@ export function NetworkFeedPage({
     }
   }, [
     accountAddress,
-    chain.id,
-    chain.name,
     contentCopy.messages.feedLoadFailed,
     contentCopy.messages.memberMissing,
     contentCopy.messages.paymentRequired,

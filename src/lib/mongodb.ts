@@ -781,6 +781,14 @@ export async function getContentPostsCollection() {
           status: 1,
           publishedAt: -1,
         }),
+        collection.createIndex({
+          authorReferralCode: 1,
+          status: 1,
+          priceType: 1,
+          locale: 1,
+          publishedAt: -1,
+          createdAt: -1,
+        }),
         collection.createIndex({ locale: 1, status: 1, publishedAt: -1 }),
         collection.createIndex({ status: 1, createdAt: -1 }),
       ]);
