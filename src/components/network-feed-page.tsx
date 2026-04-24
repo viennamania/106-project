@@ -1817,14 +1817,7 @@ function SocialFeedPost({
           </h2>
         </Link>
         <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-700">
-          <span className="font-semibold">{displayName}</span> {summaryPreview}{" "}
-          <Link
-            className="font-semibold text-slate-400 transition hover:text-slate-700"
-            href={href}
-            onClick={onOpenDetail}
-          >
-            {actionCopy.readMore}
-          </Link>
+          <span className="font-semibold">{displayName}</span> {summaryPreview}
         </p>
         {item.authorProfile?.intro ? (
           <p className="mt-2 line-clamp-1 text-xs text-slate-500">
