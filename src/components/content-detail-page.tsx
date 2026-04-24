@@ -1066,7 +1066,7 @@ export function ContentDetailPage({
             </div>
 
             {isPreviewLocked ? (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.18)_20%,rgba(255,255,255,0.84)_52%,rgba(255,255,255,0.98)_100%)] px-4 pb-5 pt-20 sm:px-8 sm:pb-8">
+              <div className="pointer-events-auto absolute inset-x-0 bottom-0 top-0 z-10 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.18)_20%,rgba(255,255,255,0.84)_52%,rgba(255,255,255,0.98)_100%)] px-4 pb-5 pt-20 sm:px-8 sm:pb-8">
                 <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-white/90 bg-white/94 p-4 text-center shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:p-5">
                   <p className="text-base font-semibold tracking-tight text-slate-950">
                     {contentCopy.messages.previewLocked}
@@ -1107,8 +1107,6 @@ export function ContentDetailPage({
                       <button
                         className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={
-                          !accountAddress ||
-                          isInsufficientPaidUnlockBalance ||
                           paidUnlock.status === "sent" ||
                           paidUnlock.status === "verifying"
                         }
@@ -1272,6 +1270,14 @@ export function ContentDetailPage({
             {paidUnlock.error ? (
               <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
                 {paidUnlock.error}
+              </p>
+            ) : null}
+
+            {isInsufficientPaidUnlockBalance ? (
+              <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-5 text-amber-800">
+                {locale === "ko"
+                  ? `${paidUnlockAmount} USDT 이상 보유한 회원 지갑이 필요합니다.`
+                  : `A member wallet with at least ${paidUnlockAmount} USDT is required.`}
               </p>
             ) : null}
 

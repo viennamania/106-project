@@ -48,6 +48,7 @@ import {
 } from "@/lib/thirdweb-webhooks";
 import { syncPointLedgerForMemberEmails } from "@/lib/points-service";
 import { emitCompletedMemberNotifications } from "@/lib/notifications-service";
+import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
 import { getWalletBalance } from "thirdweb/wallets";
 
@@ -201,7 +202,12 @@ async function findClaimedPlacementSlotByEmail(email: string) {
 async function serializeMemberWithPlacementSlot(
   member: MemberDocument,
 ): Promise<MemberRecord> {
-  const serializedMember = serializeMember(member);
+  const collection = await getMembersCollection();
+  const memberWithServiceSuspension = await withMemberServiceSuspensionStatus(
+    collection,
+    member,
+  );
+  const serializedMember = serializeMember(memberWithServiceSuspension);
   const placementSlot = await findClaimedPlacementSlotByEmail(member.email);
 
   return {
@@ -1288,7 +1294,7 @@ export async function getMemberRegistrationStatus(emailInput: string) {
     member,
   });
 
-  return finalized.member;
+  return withMemberServiceSuspensionStatus(collection, finalized.member);
 }
 
 function normalizeReconcileEmail(email?: string | null) {

@@ -4,6 +4,10 @@ import {
   getReferralPlacementSlotsCollection,
   getRewardRedemptionsCollection,
 } from "@/lib/mongodb";
+import {
+  getMemberServiceSuspensionStatus,
+  SERVICE_SUSPENDED_ERROR_MESSAGE,
+} from "@/lib/member-suspension";
 import type {
   ManagedMemberReferralsResponse,
   ReferralMembershipCardTier,
@@ -321,6 +325,12 @@ export async function GET(request: Request) {
 
     if (member.status !== "completed" || !member.referralCode) {
       return jsonError("Member signup is not complete.", 403);
+    }
+
+    const suspension = await getMemberServiceSuspensionStatus(collection, member);
+
+    if (suspension) {
+      return jsonError(SERVICE_SUSPENDED_ERROR_MESSAGE, 403);
     }
 
     return Response.json(await createManagedReferralResponse(member));

@@ -2,6 +2,10 @@ import "server-only";
 
 import type { MemberStatus } from "@/lib/member";
 import { normalizeEmail } from "@/lib/member";
+import {
+  getMemberServiceSuspensionStatus,
+  SERVICE_SUSPENDED_ERROR_MESSAGE,
+} from "@/lib/member-suspension";
 import { getMembersCollection } from "@/lib/mongodb";
 import { normalizeAddress } from "@/lib/thirdweb-webhooks";
 
@@ -51,6 +55,16 @@ export async function validateMemberWalletOwner({
         "This wallet is not authorized for the requested member.",
         403,
       ),
+      member: null,
+      normalizedEmail,
+    };
+  }
+
+  const suspension = await getMemberServiceSuspensionStatus(collection, member);
+
+  if (suspension) {
+    return {
+      error: jsonError(SERVICE_SUSPENDED_ERROR_MESSAGE, 403),
       member: null,
       normalizedEmail,
     };
