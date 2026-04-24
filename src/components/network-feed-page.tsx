@@ -2,19 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
 } from "react";
 import {
   ArrowLeft,
+  ArrowUp,
   Bookmark,
   Check,
+  ChevronRight,
   Copy,
   EyeOff,
   ExternalLink,
@@ -22,6 +26,7 @@ import {
   LoaderCircle,
   MessageCircle,
   MoreHorizontal,
+  Maximize2,
   RefreshCcw,
   Rss,
   Send,
@@ -83,6 +88,7 @@ type LikeBurst = {
 };
 
 type ShareState = "copied" | "error" | "idle" | "sharing";
+type ScrollTopControlMode = "compact" | "hidden" | "ready";
 
 type FeedRestoreSnapshot = {
   items: ContentFeedItemRecord[];
@@ -257,6 +263,14 @@ export function NetworkFeedPage({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const restoredFeedKeyRef = useRef<string | null>(null);
   const isLoadingMoreRef = useRef(false);
+  const scrollTopControlRef = useRef<{
+    lastY: number;
+    mode: ScrollTopControlMode;
+  }>({
+    lastY: 0,
+    mode: "hidden",
+  });
+  const scrollTopIdleTimeoutRef = useRef<number | null>(null);
   const [state, setState] = useState<FeedState>({
     error: null,
     items: [],
@@ -268,6 +282,8 @@ export function NetworkFeedPage({
   const [selectedCreatorKey, setSelectedCreatorKey] = useState<string | null>(
     null,
   );
+  const [scrollTopControlMode, setScrollTopControlMode] =
+    useState<ScrollTopControlMode>("hidden");
 
   const isInitialLoading =
     state.status === "loading" && state.items.length === 0 && !state.error;
@@ -400,6 +416,23 @@ export function NetworkFeedPage({
     },
     [],
   );
+
+  const setScrollTopControl = useCallback((mode: ScrollTopControlMode) => {
+    if (scrollTopControlRef.current.mode === mode) {
+      return;
+    }
+
+    scrollTopControlRef.current.mode = mode;
+    setScrollTopControlMode(mode);
+  }, []);
+
+  const scrollToFeedTop = useCallback(() => {
+    setScrollTopControl("hidden");
+    window.scrollTo({
+      behavior: "smooth",
+      top: 0,
+    });
+  }, [setScrollTopControl]);
 
   const loadFeed = useCallback(
     async (options?: { append?: boolean; cursor?: string | null }) => {
@@ -626,6 +659,55 @@ export function NetworkFeedPage({
   }, [saveFeedSnapshot]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const clearIdleTimeout = () => {
+      if (scrollTopIdleTimeoutRef.current === null) {
+        return;
+      }
+
+      window.clearTimeout(scrollTopIdleTimeoutRef.current);
+      scrollTopIdleTimeoutRef.current = null;
+    };
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - scrollTopControlRef.current.lastY;
+      scrollTopControlRef.current.lastY = currentY;
+
+      clearIdleTimeout();
+
+      if (currentY < 900) {
+        setScrollTopControl("hidden");
+        return;
+      }
+
+      if (delta > 10) {
+        setScrollTopControl("compact");
+      } else {
+        setScrollTopControl("ready");
+      }
+
+      scrollTopIdleTimeoutRef.current = window.setTimeout(() => {
+        if (window.scrollY >= 900) {
+          setScrollTopControl("ready");
+        }
+      }, 520);
+    };
+
+    scrollTopControlRef.current.lastY = window.scrollY;
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      clearIdleTimeout();
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [setScrollTopControl]);
+
+  useEffect(() => {
     const node = sentinelRef.current;
 
     if (!node || !nextCursor || isInitialLoading || isLoadingMore) {
@@ -772,7 +854,54 @@ export function NetworkFeedPage({
           )}
         </section>
       </div>
+      <FeedScrollTopControl
+        locale={locale}
+        mode={scrollTopControlMode}
+        onClick={scrollToFeedTop}
+      />
     </main>
+  );
+}
+
+function FeedScrollTopControl({
+  locale,
+  mode,
+  onClick,
+}: {
+  locale: Locale;
+  mode: ScrollTopControlMode;
+  onClick: () => void;
+}) {
+  const label = locale === "ko" ? "맨 위로" : "Back to top";
+
+  return (
+    <div
+      className={`fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-50 flex justify-center px-4 transition duration-200 ${
+        mode === "hidden"
+          ? "pointer-events-none translate-y-4 opacity-0"
+          : "pointer-events-none translate-y-0 opacity-100"
+      }`}
+    >
+      <button
+        aria-label={label}
+        className={`pointer-events-auto inline-flex h-11 items-center justify-center gap-2 overflow-hidden rounded-full border border-white/70 bg-slate-950/88 text-sm font-semibold text-white shadow-[0_18px_46px_rgba(15,23,42,0.24)] backdrop-blur-xl transition-all duration-300 hover:bg-slate-900 active:scale-[0.98] ${
+          mode === "ready" ? "px-4" : "w-11 px-0"
+        }`}
+        onClick={onClick}
+        type="button"
+      >
+        <ArrowUp className="size-4 shrink-0" />
+        <span
+          className={`whitespace-nowrap transition-all duration-300 ${
+            mode === "ready"
+              ? "max-w-24 opacity-100"
+              : "max-w-0 opacity-0"
+          }`}
+        >
+          {label}
+        </span>
+      </button>
+    </div>
   );
 }
 
@@ -846,8 +975,13 @@ function SocialFeedPost({
   referralCode: string | null;
   viewDetailLabel: string;
 }) {
+  const router = useRouter();
   const previewImageUrl = resolveFeedPreviewImage(item);
   const displayName = getDisplayName(item);
+  const summaryPreview =
+    item.summary.length > 96
+      ? `${item.summary.slice(0, 96).trimEnd()}...`
+      : item.summary;
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const href = setPathSearchParams(
     buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
@@ -861,6 +995,8 @@ function SocialFeedPost({
   );
   const imageRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
+  const mediaOpenTimeoutRef = useRef<number | null>(null);
+  const mediaPointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const [social, setSocial] = useState<ContentSocialSummaryRecord>(() => ({
     ...item.social,
     likedByViewer:
@@ -907,8 +1043,10 @@ function SocialFeedPost({
           liked: "좋아요 완료",
           loadCommentsFailed: "댓글을 불러오지 못했습니다.",
           noComments: "아직 댓글이 없습니다.",
+          openPost: "게시물 열기",
           openComments: "댓글 보기",
           postComment: "게시",
+          readMore: "더 보기",
           saved: "저장했습니다.",
           savePost: "저장",
           share: "공유",
@@ -919,6 +1057,7 @@ function SocialFeedPost({
           unsavePost: "저장 취소",
           unsaved: "저장을 취소했습니다.",
           undo: "되돌리기",
+          viewFullPost: "본문 전체 보기",
           writeComment: "댓글 달기...",
         }
       : {
@@ -932,8 +1071,10 @@ function SocialFeedPost({
           liked: "Liked",
           loadCommentsFailed: "Failed to load comments.",
           noComments: "No comments yet.",
+          openPost: "Open post",
           openComments: "View comments",
           postComment: "Post",
+          readMore: "more",
           saved: "Saved.",
           savePost: "Save",
           share: "Share",
@@ -944,8 +1085,36 @@ function SocialFeedPost({
           unsavePost: "Unsave",
           unsaved: "Removed from saved.",
           undo: "Undo",
+          viewFullPost: "View full post",
           writeComment: "Add a comment...",
         };
+
+  const clearMediaOpenTimeout = useCallback(() => {
+    if (mediaOpenTimeoutRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(mediaOpenTimeoutRef.current);
+    mediaOpenTimeoutRef.current = null;
+  }, []);
+
+  const navigateToDetail = useCallback(() => {
+    onOpenDetail();
+    router.push(href);
+  }, [href, onOpenDetail, router]);
+
+  const openDetailFromMedia = useCallback(() => {
+    clearMediaOpenTimeout();
+    navigateToDetail();
+  }, [clearMediaOpenTimeout, navigateToDetail]);
+
+  const scheduleMediaDetailOpen = useCallback(() => {
+    clearMediaOpenTimeout();
+    mediaOpenTimeoutRef.current = window.setTimeout(() => {
+      mediaOpenTimeoutRef.current = null;
+      navigateToDetail();
+    }, 260);
+  }, [clearMediaOpenTimeout, navigateToDetail]);
 
   useEffect(() => {
     writeStoredFlag(`content-like:${item.contentId}`, social.likedByViewer);
@@ -954,6 +1123,10 @@ function SocialFeedPost({
   useEffect(() => {
     writeStoredFlag(`content-save:${item.contentId}`, social.savedByViewer);
   }, [item.contentId, social.savedByViewer]);
+
+  useEffect(() => {
+    return clearMediaOpenTimeout;
+  }, [clearMediaOpenTimeout]);
 
   useEffect(() => {
     if (!toast && shareState !== "copied" && shareState !== "error") {
@@ -1186,7 +1359,16 @@ function SocialFeedPost({
 
   const handleMediaPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType !== "touch") {
+      const pointerStart = mediaPointerStartRef.current;
+      mediaPointerStartRef.current = null;
+
+      if (
+        pointerStart &&
+        Math.hypot(
+          event.clientX - pointerStart.x,
+          event.clientY - pointerStart.y,
+        ) > 12
+      ) {
         return;
       }
 
@@ -1194,12 +1376,43 @@ function SocialFeedPost({
 
       if (now - lastTapAtRef.current < 280) {
         event.preventDefault();
+        clearMediaOpenTimeout();
+        lastTapAtRef.current = 0;
         triggerLike(event.clientX, event.clientY);
+        return;
       }
 
       lastTapAtRef.current = now;
+      scheduleMediaDetailOpen();
     },
-    [triggerLike],
+    [clearMediaOpenTimeout, scheduleMediaDetailOpen, triggerLike],
+  );
+
+  const handleMediaPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      mediaPointerStartRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+    },
+    [],
+  );
+
+  const handleMediaPointerCancel = useCallback(() => {
+    mediaPointerStartRef.current = null;
+    clearMediaOpenTimeout();
+  }, [clearMediaOpenTimeout]);
+
+  const handleMediaKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      openDetailFromMedia();
+    },
+    [openDetailFromMedia],
   );
 
   const loadComments = useCallback(async () => {
@@ -1412,12 +1625,15 @@ function SocialFeedPost({
       </div>
 
       <div
-        className="relative block bg-slate-100"
-        onDoubleClick={(event) => {
-          triggerLike(event.clientX, event.clientY);
-        }}
+        aria-label={`${actionCopy.openPost}: ${item.title}`}
+        className="relative block w-full cursor-pointer bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
+        onKeyDown={handleMediaKeyDown}
+        onPointerCancel={handleMediaPointerCancel}
+        onPointerDown={handleMediaPointerDown}
         onPointerUp={handleMediaPointerUp}
         ref={imageRef}
+        role="button"
+        tabIndex={0}
       >
         {previewImageUrl ? (
           <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
@@ -1450,6 +1666,9 @@ function SocialFeedPost({
             }}
           />
         ))}
+        <span className="pointer-events-none absolute bottom-3 right-3 inline-flex size-10 items-center justify-center rounded-full bg-slate-950/58 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] backdrop-blur-md">
+          <Maximize2 className="size-4" />
+        </span>
       </div>
 
       <div className="px-3 pb-4 pt-3">
@@ -1569,7 +1788,14 @@ function SocialFeedPost({
           </h2>
         </Link>
         <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-700">
-          <span className="font-semibold">{displayName}</span> {item.summary}
+          <span className="font-semibold">{displayName}</span> {summaryPreview}{" "}
+          <Link
+            className="font-semibold text-slate-400 transition hover:text-slate-700"
+            href={href}
+            onClick={onOpenDetail}
+          >
+            {actionCopy.readMore}
+          </Link>
         </p>
         {item.authorProfile?.intro ? (
           <p className="mt-2 line-clamp-1 text-xs text-slate-500">
@@ -1578,11 +1804,12 @@ function SocialFeedPost({
         ) : null}
 
         <Link
-          className="mt-3 inline-flex text-sm font-semibold text-slate-950"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)] transition hover:bg-slate-800 sm:w-auto"
           href={href}
           onClick={onOpenDetail}
         >
-          {viewDetailLabel}
+          {actionCopy.viewFullPost || viewDetailLabel}
+          <ChevronRight className="size-4" />
         </Link>
       </div>
       {isCommentsOpen ? (
