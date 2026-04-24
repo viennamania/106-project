@@ -4402,11 +4402,11 @@ function CoverGenerationDialog({
             <div className="mt-5">
               {isSuccess && progress.response?.url ? (
                 <div className="overflow-hidden rounded-[26px] border border-slate-200/90 bg-slate-950 shadow-[0_22px_60px_rgba(15,23,42,0.16)]">
-                  <div
-                    className="h-48 w-full bg-cover bg-center sm:h-64"
-                    style={{
-                      backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.26)), url(${progress.response.url})`,
-                    }}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={isSuccess ? labels.successTitle : labels.title}
+                    className="block h-64 w-full object-contain sm:h-[min(68vh,560px)]"
+                    src={progress.response.url}
                   />
                 </div>
               ) : (
