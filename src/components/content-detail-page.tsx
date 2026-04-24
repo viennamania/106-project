@@ -1089,7 +1089,7 @@ function ContentImageCarousel({
                 <img
                   alt={`${title} ${index + 1}`}
                   className={cn(
-                    "block h-[74svh] w-full select-none object-cover sm:h-auto sm:aspect-[16/10]",
+                    "block h-[74svh] w-full select-none object-contain sm:h-[min(82vh,760px)]",
                     isPreviewLocked ? "scale-[1.02] blur-[2px] saturate-75" : "",
                   )}
                   draggable={false}
