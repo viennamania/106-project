@@ -24,12 +24,14 @@ export async function GET(request: Request) {
   const rawLocale = url.searchParams.get("locale");
   const rawReferralCode = url.searchParams.get("referralCode");
   const rawWalletAddress = url.searchParams.get("walletAddress");
+  const rawCursor = url.searchParams.get("cursor");
 
   if (rawReferralCode) {
     try {
       const response = await getPublicNetworkFeedForReferralCode(
         rawReferralCode,
         rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,
+        { cursor: rawCursor },
       );
       return Response.json({
         items: response.items,
@@ -66,6 +68,7 @@ export async function GET(request: Request) {
     const response: ContentFeedResponse = await getNetworkFeedForMember(
       authorization.normalizedEmail,
       rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,
+      { cursor: rawCursor },
     );
     return Response.json(response);
   } catch (error) {

@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "crypto";
 import { cache } from "react";
+import type { Filter } from "mongodb";
 
 import {
   CONTENT_FEED_PAGE_SIZE,
@@ -43,6 +44,16 @@ type NetworkAncestor = {
   referralCode: string;
 };
 
+type NetworkFeedCursor = {
+  contentId: string;
+  createdAt: string;
+  publishedAt: string;
+};
+
+type NetworkFeedQueryOptions = {
+  cursor?: string | null;
+};
+
 const PROFILE_DISPLAY_NAME_LIMIT = 40;
 const PROFILE_INTRO_LIMIT = 220;
 const CONTENT_TITLE_LIMIT = 88;
@@ -53,6 +64,50 @@ const CONTENT_TAG_LENGTH_LIMIT = 24;
 const CONTENT_IMAGE_LIMIT = 10;
 const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
+
+function encodeNetworkFeedCursor(post: ContentPostDocument) {
+  const cursor: NetworkFeedCursor = {
+    contentId: post.contentId,
+    createdAt: post.createdAt.toISOString(),
+    publishedAt: (post.publishedAt ?? post.createdAt).toISOString(),
+  };
+
+  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+}
+
+function decodeNetworkFeedCursor(cursor?: string | null) {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(cursor, "base64url").toString("utf8"),
+    ) as Partial<NetworkFeedCursor>;
+    const publishedAt = parsed.publishedAt
+      ? new Date(parsed.publishedAt)
+      : null;
+    const createdAt = parsed.createdAt ? new Date(parsed.createdAt) : null;
+
+    if (
+      !parsed.contentId ||
+      !publishedAt ||
+      !createdAt ||
+      Number.isNaN(publishedAt.getTime()) ||
+      Number.isNaN(createdAt.getTime())
+    ) {
+      return null;
+    }
+
+    return {
+      contentId: parsed.contentId,
+      createdAt,
+      publishedAt,
+    };
+  } catch {
+    return null;
+  }
+}
 
 type CreatorStudioPostsQueryOptions = {
   page?: number;
@@ -310,6 +365,7 @@ async function resolveNetworkAncestorsFromReferralCode(referralCode: string) {
 async function loadNetworkFeedItemsFromAncestors(
   ancestors: NetworkAncestor[],
   locale: Locale,
+  options?: NetworkFeedQueryOptions,
 ) {
   const levelByReferralCode = new Map<string, number>();
   const contentLocale = normalizeContentLocale(locale);
@@ -319,7 +375,10 @@ async function loadNetworkFeedItemsFromAncestors(
   }
 
   if (ancestors.length === 0) {
-    return [];
+    return {
+      items: [],
+      nextCursor: null,
+    };
   }
 
   const postsCollection = await getContentPostsCollection();
@@ -333,21 +392,47 @@ async function loadNetworkFeedItemsFromAncestors(
           { locale: null },
         ]
       : [{ locale: contentLocale }];
+  const cursor = decodeNetworkFeedCursor(options?.cursor);
+  const baseFilter: Filter<ContentPostDocument> = {
+    $or: localeFilter,
+    authorReferralCode: { $in: referralCodes },
+    priceType: "free",
+    status: "published",
+  };
+  const filter: Filter<ContentPostDocument> = cursor
+    ? {
+        $and: [
+          baseFilter,
+          {
+            $or: [
+              { publishedAt: { $lt: cursor.publishedAt } },
+              {
+                publishedAt: cursor.publishedAt,
+                createdAt: { $lt: cursor.createdAt },
+              },
+              {
+                publishedAt: cursor.publishedAt,
+                createdAt: cursor.createdAt,
+                contentId: { $lt: cursor.contentId },
+              },
+            ],
+          },
+        ],
+      }
+    : baseFilter;
   const posts = await postsCollection
-    .find({
-      $or: localeFilter,
-      authorReferralCode: { $in: referralCodes },
-      priceType: "free",
-      status: "published",
-    })
+    .find(filter)
     .sort({
       publishedAt: -1,
       createdAt: -1,
+      contentId: -1,
     })
-    .limit(CONTENT_FEED_PAGE_SIZE)
+    .limit(CONTENT_FEED_PAGE_SIZE + 1)
     .toArray();
+  const hasNextPage = posts.length > CONTENT_FEED_PAGE_SIZE;
+  const pagePosts = hasNextPage ? posts.slice(0, CONTENT_FEED_PAGE_SIZE) : posts;
 
-  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
+  const authorEmails = [...new Set(pagePosts.map((post) => post.authorEmail))];
   const storedProfiles = authorEmails.length
     ? await creatorProfilesCollection
         .find({
@@ -362,8 +447,7 @@ async function loadNetworkFeedItemsFromAncestors(
     ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
   );
 
-  return posts
-    .map((post) => {
+  const items = pagePosts.map((post) => {
       const storedProfile = storedProfileByEmail.get(post.authorEmail);
       const authorProfile = storedProfile
         ? serializeCreatorProfile(storedProfile)
@@ -376,20 +460,15 @@ async function loadNetworkFeedItemsFromAncestors(
         content: post,
         networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
       });
-    })
-    .sort((left, right) => {
-      const leftLevel = left.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
-      const rightLevel = right.networkLevel ?? CONTENT_NETWORK_LEVEL_LIMIT + 1;
-
-      if (leftLevel !== rightLevel) {
-        return leftLevel - rightLevel;
-      }
-
-      return (
-        new Date(right.publishedAt ?? right.createdAt).getTime() -
-        new Date(left.publishedAt ?? left.createdAt).getTime()
-      );
     });
+
+  return {
+    items,
+    nextCursor:
+      hasNextPage && pagePosts.length > 0
+        ? encodeNetworkFeedCursor(pagePosts[pagePosts.length - 1])
+        : null,
+  };
 }
 
 async function readStoredCreatorProfile(email: string) {
@@ -598,27 +677,30 @@ function buildFeedItem({
 export async function getNetworkFeedForMember(
   email: string,
   locale: Locale,
+  options?: NetworkFeedQueryOptions,
 ): Promise<ContentFeedResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const ancestors = await resolveNetworkAncestors(member);
-  const items = await loadNetworkFeedItemsFromAncestors(ancestors, locale);
+  const feed = await loadNetworkFeedItemsFromAncestors(ancestors, locale, options);
 
   return {
-    items,
+    items: feed.items,
     member: serializeMember(member),
-    nextCursor: null,
+    nextCursor: feed.nextCursor,
   };
 }
 
 export async function getPublicNetworkFeedForReferralCode(
   referralCode: string,
   locale: Locale,
+  options?: NetworkFeedQueryOptions,
 ) {
   const ancestors = await resolveNetworkAncestorsFromReferralCode(referralCode);
+  const feed = await loadNetworkFeedItemsFromAncestors(ancestors, locale, options);
 
   return {
-    items: await loadNetworkFeedItemsFromAncestors(ancestors, locale),
-    nextCursor: null,
+    items: feed.items,
+    nextCursor: feed.nextCursor,
   };
 }
 
