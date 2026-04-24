@@ -1824,12 +1824,19 @@ function SocialFeedPost({
         ) : null}
 
         <Link
-          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)] transition hover:bg-slate-800 sm:w-auto"
+          className="group mt-4 flex h-12 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/[0.03] transition hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_34px_rgba(15,23,42,0.12)] active:scale-[0.99] sm:h-11 sm:w-auto sm:min-w-56 sm:justify-start"
           href={href}
           onClick={onOpenDetail}
         >
-          {actionCopy.viewFullPost || viewDetailLabel}
-          <ChevronRight className="size-4" />
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
+            <ExternalLink className="size-3.5" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-left">
+            {actionCopy.viewFullPost || viewDetailLabel}
+          </span>
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-hover:bg-slate-950 group-hover:text-white">
+            <ChevronRight className="size-4" />
+          </span>
         </Link>
       </div>
       {isCommentsOpen ? (

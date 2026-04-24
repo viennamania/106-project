@@ -21,6 +21,7 @@ import {
   LoaderCircle,
   LockKeyhole,
   Share2,
+  X,
 } from "lucide-react";
 import {
   AutoConnect,
@@ -97,6 +98,7 @@ const usdtContract = getContract({
 type PaidUnlockState = {
   error: string | null;
   order: ContentOrderRecord | null;
+  recipientWalletAddress: string | null;
   status: "idle" | "creating" | "sent" | "verifying" | "unlocked" | "error";
   txHash: string | null;
 };
@@ -140,6 +142,20 @@ function formatDateTime(value: string | null, locale: Locale) {
   }).format(date);
 }
 
+function formatAddressLabel(address?: string | null) {
+  const trimmed = address?.trim();
+
+  if (!trimmed) {
+    return "-";
+  }
+
+  if (trimmed.length <= 12) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
 export function ContentDetailPage({
   contentId,
   dictionary,
@@ -180,10 +196,13 @@ export function ContentDetailPage({
   const [paidUnlock, setPaidUnlock] = useState<PaidUnlockState>({
     error: null,
     order: null,
+    recipientWalletAddress: null,
     status: "idle",
     txHash: null,
   });
   const paidOrderRef = useRef<ContentOrderRecord | null>(null);
+  const paidRecipientWalletRef = useRef<string | null>(null);
+  const [isPaidConfirmOpen, setIsPaidConfirmOpen] = useState(false);
   const shareReferralCode =
     state.member?.referralCode ??
     referralCode ??
@@ -308,6 +327,19 @@ export function ContentDetailPage({
 
     void loadDetail();
   }, [accountAddress, initialPreview, loadDetail, status]);
+
+  useEffect(() => {
+    paidOrderRef.current = null;
+    paidRecipientWalletRef.current = null;
+    setIsPaidConfirmOpen(false);
+    setPaidUnlock({
+      error: null,
+      order: null,
+      recipientWalletAddress: null,
+      status: "idle",
+      txHash: null,
+    });
+  }, [accountAddress, contentId]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -479,7 +511,19 @@ export function ContentDetailPage({
     await copyShareLink();
   }, [copyShareLink, heroSummary, heroTitle, shareUrl]);
 
-  const createPaidUnlockTransaction = useCallback(async () => {
+  const ensurePaidUnlockOrder = useCallback(async () => {
+    if (
+      paidOrderRef.current &&
+      paidRecipientWalletRef.current &&
+      paidOrderRef.current.contentId === contentId &&
+      paidOrderRef.current.status === "pending_payment"
+    ) {
+      return {
+        order: paidOrderRef.current,
+        recipientWalletAddress: paidRecipientWalletRef.current,
+      };
+    }
+
     if (!accountAddress) {
       throw new Error(contentCopy.messages.connectRequired);
     }
@@ -496,12 +540,12 @@ export function ContentDetailPage({
       );
     }
 
-    setPaidUnlock({
+    setPaidUnlock((current) => ({
+      ...current,
       error: null,
-      order: null,
       status: "creating",
       txHash: null,
-    });
+    }));
 
     const email = await getUserEmail({ client: thirdwebClient });
 
@@ -527,6 +571,14 @@ export function ContentDetailPage({
     if (!response.ok || !("order" in data)) {
       if ("error" in data && data.error === "Content already unlocked.") {
         await loadDetail();
+        setIsPaidConfirmOpen(false);
+        setPaidUnlock({
+          error: null,
+          order: null,
+          recipientWalletAddress: null,
+          status: "unlocked",
+          txHash: null,
+        });
       }
 
       throw new Error(
@@ -537,18 +589,19 @@ export function ContentDetailPage({
     }
 
     paidOrderRef.current = data.order;
+    paidRecipientWalletRef.current = data.recipientWalletAddress;
     setPaidUnlock({
       error: null,
       order: data.order,
-      status: "sent",
+      recipientWalletAddress: data.recipientWalletAddress,
+      status: "idle",
       txHash: null,
     });
 
-    return transfer({
-      amount: data.order.amountUsdt,
-      contract: usdtContract,
-      to: data.recipientWalletAddress,
-    });
+    return {
+      order: data.order,
+      recipientWalletAddress: data.recipientWalletAddress,
+    };
   }, [
     accountAddress,
     contentCopy.messages.connectRequired,
@@ -561,6 +614,43 @@ export function ContentDetailPage({
     paidUnlockAmount,
     state.content,
   ]);
+
+  const openPaidUnlockConfirm = useCallback(() => {
+    setIsPaidConfirmOpen(true);
+    setPaidUnlock((current) => ({
+      ...current,
+      error: null,
+    }));
+  }, []);
+
+  const closePaidUnlockConfirm = useCallback(() => {
+    if (
+      paidUnlock.status === "creating" ||
+      paidUnlock.status === "sent" ||
+      paidUnlock.status === "verifying"
+    ) {
+      return;
+    }
+
+    setIsPaidConfirmOpen(false);
+  }, [paidUnlock.status]);
+
+  const createPaidUnlockTransaction = useCallback(async () => {
+    const preparedOrder = await ensurePaidUnlockOrder();
+
+    setPaidUnlock((current) => ({
+      ...current,
+      error: null,
+      order: preparedOrder.order,
+      recipientWalletAddress: preparedOrder.recipientWalletAddress,
+    }));
+
+    return transfer({
+      amount: preparedOrder.order.amountUsdt,
+      contract: usdtContract,
+      to: preparedOrder.recipientWalletAddress,
+    });
+  }, [ensurePaidUnlockOrder]);
 
   const handlePaidUnlockSent = useCallback(
     (result: { transactionHash: string }) => {
@@ -631,12 +721,14 @@ export function ContentDetailPage({
             );
           }
 
-          setPaidUnlock({
+          setPaidUnlock((current) => ({
+            ...current,
             error: null,
             order: data.order,
             status: "unlocked",
             txHash: receipt.transactionHash,
-          });
+          }));
+          setIsPaidConfirmOpen(false);
           await loadDetail();
         } catch (error) {
           setPaidUnlock((current) => ({
@@ -661,13 +753,24 @@ export function ContentDetailPage({
 
   const handlePaidUnlockError = useCallback(
     (error: Error) => {
+      if (error.message === "Content already unlocked.") {
+        void loadDetail();
+        setIsPaidConfirmOpen(false);
+        setPaidUnlock((current) => ({
+          ...current,
+          error: null,
+          status: "unlocked",
+        }));
+        return;
+      }
+
       setPaidUnlock((current) => ({
         ...current,
         error: error.message || contentCopy.messages.detailLoadFailed,
         status: "error",
       }));
     },
-    [contentCopy.messages.detailLoadFailed],
+    [contentCopy.messages.detailLoadFailed, loadDetail],
   );
 
   const handleHeroPointerUp = useCallback(
@@ -1001,31 +1104,30 @@ export function ContentDetailPage({
                   ) : null}
                   <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
                     {isPaidLocked && !shouldEncourageSignup ? (
-                      <TransactionButton
+                      <button
                         className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={
                           !accountAddress ||
                           isInsufficientPaidUnlockBalance ||
-                          paidUnlock.status === "creating" ||
                           paidUnlock.status === "sent" ||
                           paidUnlock.status === "verifying"
                         }
-                        onError={handlePaidUnlockError}
-                        onTransactionConfirmed={handlePaidUnlockConfirmed}
-                        onTransactionSent={handlePaidUnlockSent}
-                        transaction={createPaidUnlockTransaction}
+                        onClick={openPaidUnlockConfirm}
                         type="button"
-                        unstyled
                       >
                         <Coins className="mr-2 size-4" />
                         {paidUnlock.status === "verifying"
                           ? locale === "ko"
                             ? "결제 확인 중"
                             : "Verifying"
+                          : paidUnlock.status === "creating"
+                            ? locale === "ko"
+                              ? "결제 정보 준비 중"
+                              : "Preparing payment"
                           : `${paidUnlockAmount} USDT ${
                               locale === "ko" ? "결제하고 보기" : "unlock"
                             }`}
-                      </TransactionButton>
+                      </button>
                     ) : shouldEncourageSignup ? (
                       <Link
                         className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03]"
@@ -1073,6 +1175,162 @@ export function ContentDetailPage({
         </article>
       ) : isDisconnected ? (
         <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
+      ) : null}
+
+      {isPaidConfirmOpen && isPaidLocked ? (
+        <div className="fixed inset-0 z-[170] flex items-end justify-center bg-slate-950/58 px-0 backdrop-blur-sm sm:items-center sm:px-4">
+          <div className="max-h-[92svh] w-full max-w-[520px] overflow-y-auto rounded-t-[30px] border border-white/70 bg-white p-4 shadow-[0_-24px_70px_rgba(15,23,42,0.26)] sm:rounded-[32px] sm:p-5">
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden" />
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-amber-600">
+                  {locale === "ko" ? "Payment confirm" : "Payment confirm"}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                  {locale === "ko"
+                    ? "1 USDT 결제를 확인하세요"
+                    : "Confirm 1 USDT payment"}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {locale === "ko"
+                    ? "회원 지갑에서 판매자 판매용 지갑으로 USDT가 전송됩니다. 결제 완료 후 이 콘텐츠는 계속 열람할 수 있습니다."
+                    : "USDT will be sent from your member wallet to the seller sales wallet. Once confirmed, this content stays unlocked."}
+                </p>
+              </div>
+              <button
+                aria-label={locale === "ko" ? "결제 확인 닫기" : "Close payment confirmation"}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-950 disabled:opacity-40"
+                disabled={
+                  paidUnlock.status === "creating" ||
+                  paidUnlock.status === "sent" ||
+                  paidUnlock.status === "verifying"
+                }
+                onClick={closePaidUnlockConfirm}
+                type="button"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-3">
+              <div className="rounded-[20px] bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
+                <p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950">
+                  {state.content?.title}
+                </p>
+                <div className="mt-4 grid gap-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500">
+                      {locale === "ko" ? "결제 금액" : "Amount"}
+                    </span>
+                    <span className="font-semibold text-slate-950">
+                      {paidUnlockAmount} USDT
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500">
+                      {locale === "ko" ? "회원 지갑" : "Member wallet"}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-slate-950">
+                      {formatAddressLabel(accountAddress)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500">
+                      {locale === "ko" ? "판매자 지갑" : "Seller wallet"}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-slate-950">
+                      {paidUnlock.recipientWalletAddress
+                        ? formatAddressLabel(paidUnlock.recipientWalletAddress)
+                        : locale === "ko"
+                          ? "승인 시 지정"
+                          : "On approval"}
+                    </span>
+                  </div>
+                  {paidUnlock.order ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-slate-500">
+                        {locale === "ko" ? "주문" : "Order"}
+                      </span>
+                      <span className="font-mono text-xs font-semibold text-slate-500">
+                        {paidUnlock.order.orderId.slice(0, 8)}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-start gap-2 rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800">
+                <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  {locale === "ko"
+                    ? "지갑 승인 창에서 최종 확인하면 온체인 전송이 실행됩니다."
+                    : "The onchain transfer starts only after you approve it in your wallet."}
+                </span>
+              </div>
+            </div>
+
+            {paidUnlock.error ? (
+              <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
+                {paidUnlock.error}
+              </p>
+            ) : null}
+
+            {paidUnlock.txHash ? (
+              <a
+                className="mt-3 inline-flex text-xs font-semibold text-slate-500 underline"
+                href={`${BSC_EXPLORER}/tx/${paidUnlock.txHash}`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {locale === "ko" ? "결제 트랜잭션 보기" : "View payment transaction"}
+              </a>
+            ) : null}
+
+            <div className="mt-5 grid gap-2.5 sm:grid-cols-[0.82fr_1.18fr]">
+              <button
+                className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={
+                  paidUnlock.status === "creating" ||
+                  paidUnlock.status === "sent" ||
+                  paidUnlock.status === "verifying"
+                }
+                onClick={closePaidUnlockConfirm}
+                type="button"
+              >
+                {locale === "ko" ? "취소" : "Cancel"}
+              </button>
+              <TransactionButton
+                className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={
+                  !accountAddress ||
+                  isInsufficientPaidUnlockBalance ||
+                  paidUnlock.status === "creating" ||
+                  paidUnlock.status === "sent" ||
+                  paidUnlock.status === "verifying"
+                }
+                onError={handlePaidUnlockError}
+                onTransactionConfirmed={handlePaidUnlockConfirmed}
+                onTransactionSent={handlePaidUnlockSent}
+                transaction={createPaidUnlockTransaction}
+                type="button"
+                unstyled
+              >
+                <Coins className="mr-2 size-4" />
+                {paidUnlock.status === "creating"
+                  ? locale === "ko"
+                    ? "결제 정보 준비 중"
+                    : "Preparing payment"
+                  : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
+                    ? locale === "ko"
+                      ? "결제 확인 중"
+                      : "Verifying"
+                    : locale === "ko"
+                      ? `${paidUnlockAmount} USDT 결제 승인`
+                      : `Approve ${paidUnlockAmount} USDT`}
+              </TransactionButton>
+            </div>
+          </div>
+        </div>
       ) : null}
     </main>
   );
