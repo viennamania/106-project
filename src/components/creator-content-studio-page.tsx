@@ -487,6 +487,10 @@ export function CreatorContentStudioPage({
     buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
     { returnTo: returnToHref },
   );
+  const salesManagerHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/sales`, referralCode),
+    { returnTo: returnToHref },
+  );
   const newPostHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
     { returnTo: returnToHref },
@@ -956,6 +960,7 @@ export function CreatorContentStudioPage({
       : view === "new"
         ? contentCopy.labels.creatorSettings
         : null;
+  const salesManagerLabel = locale === "ko" ? "판매 관리" : "Sales";
 
   const publishedCount = state.summary.published;
   const draftCount = state.summary.draft;
@@ -3661,6 +3666,11 @@ export function CreatorContentStudioPage({
         isActive: false,
         label: contentCopy.actions.managePosts,
       },
+      {
+        href: salesManagerHref,
+        isActive: false,
+        label: salesManagerLabel,
+      },
     ];
 
     return (
@@ -3779,6 +3789,17 @@ export function CreatorContentStudioPage({
             href={postsManagerHref}
             icon={<LayoutGrid className="size-5" />}
             title={contentCopy.actions.managePosts}
+          />
+          <WorkspaceLaunchCard
+            description={
+              locale === "ko"
+                ? "유료 콘텐츠 판매 내역과 판매용 지갑 잔고를 관리합니다."
+                : "Manage paid content sales and seller wallet balance."
+            }
+            disabled={!canUseWorkspace}
+            href={salesManagerHref}
+            icon={<Coins className="size-5" />}
+            title={salesManagerLabel}
           />
         </div>
       </section>
@@ -3964,6 +3985,17 @@ export function CreatorContentStudioPage({
               href={postsManagerHref}
               icon={<LayoutGrid className="size-5" />}
               title={contentCopy.actions.managePosts}
+            />
+            <WorkspaceSupportLink
+              description={
+                locale === "ko"
+                  ? "유료 콘텐츠 판매 내역과 판매용 지갑 잔고를 관리합니다."
+                  : "Manage paid content sales and seller wallet balance."
+              }
+              disabled={!canUseWorkspace}
+              href={salesManagerHref}
+              icon={<Coins className="size-5" />}
+              title={salesManagerLabel}
             />
           </div>
         </div>

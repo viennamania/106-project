@@ -12,6 +12,7 @@ import {
   createEmptyContentSocialSummary,
   normalizeContentLocale,
   serializeContentOrder,
+  serializeContentSaleOrder,
   serializeContentPost,
   serializeCreatorProfile,
   type ContentCommentCreateResponse,
@@ -32,6 +33,10 @@ import {
   type ContentPostRecord,
   type ContentPostUpdateRequest,
   type ContentPriceType,
+  type ContentSalesDashboardResponse,
+  type ContentSellerWalletBalanceRecord,
+  type ContentSellerWithdrawalRequest,
+  type ContentSellerWithdrawalResponse,
   type ContentSocialResponse,
   type ContentSocialSummaryRecord,
   type CreatorProfileDocument,
@@ -59,13 +64,21 @@ import {
 } from "@/lib/member";
 import { emitNetworkContentPublishedNotifications } from "@/lib/notifications-service";
 import { BSC_USDT_ADDRESS, smartWalletChain } from "@/lib/thirdweb";
-import { serverThirdwebClient, createOrGetThirdwebSellerWallet } from "@/lib/thirdweb-server";
+import {
+  createOrGetThirdwebSellerWallet,
+  hasThirdwebSecretKey,
+  serverThirdwebClient,
+} from "@/lib/thirdweb-server";
 import { ERC20_TRANSFER_SIG_HASH, normalizeAddress } from "@/lib/thirdweb-webhooks";
+import { Engine, getAddress, getContract, isAddress } from "thirdweb";
+import { transfer } from "thirdweb/extensions/erc20";
 import {
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getRpcClient,
 } from "thirdweb/rpc";
+import { toTokens } from "thirdweb/utils";
+import { getWalletBalance } from "thirdweb/wallets";
 
 type NetworkAncestor = {
   level: number;
@@ -97,6 +110,13 @@ const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
 const CONTENT_COMMENT_BODY_LIMIT = 500;
 const CONTENT_COMMENTS_PAGE_SIZE = 30;
 const CONTENT_ORDER_PAYMENT_WINDOW_MS = 1000 * 60 * 30;
+const CONTENT_SALES_HISTORY_LIMIT = 50;
+const CONTENT_SELLER_WITHDRAW_TIMEOUT_SECONDS = 20;
+const contentUsdtContract = getContract({
+  address: BSC_USDT_ADDRESS,
+  chain: smartWalletChain,
+  client: serverThirdwebClient,
+});
 
 function encodeNetworkFeedCursor(post: ContentPostDocument) {
   const cursor: NetworkFeedCursor = {
@@ -181,6 +201,31 @@ function normalizePriceType(priceType?: ContentPriceType | null) {
 
 function resolveContentPriceUsdt(priceType: ContentPriceType) {
   return priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null;
+}
+
+function formatUsdtAmountFromWei(value: bigint) {
+  return toTokens(value, 18).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+}
+
+function serializeSellerWalletBalance(balance: {
+  displayValue?: string;
+  symbol?: string;
+  value: bigint;
+}): ContentSellerWalletBalanceRecord {
+  return {
+    amountUsdt: balance.displayValue || formatUsdtAmountFromWei(balance.value),
+    amountWei: balance.value.toString(),
+    symbol: balance.symbol || "USDT",
+  };
+}
+
+function addDecimalStrings(left: string, right: string) {
+  const leftWei = BigInt(Math.round(Number(left) * 1_000_000));
+  const rightWei = BigInt(Math.round(Number(right) * 1_000_000));
+
+  return (Number(leftWei + rightWei) / 1_000_000)
+    .toFixed(6)
+    .replace(/\.?0+$/, "");
 }
 
 function resolvePrimaryContentImageUrl(post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">) {
@@ -1796,6 +1841,193 @@ export async function verifyContentOrderForMember(
   return {
     entitlementGranted: true,
     order: serializeContentOrder(confirmedOrder),
+  };
+}
+
+async function getSellerWalletBalance(
+  sellerWalletAddress: string | null,
+): Promise<ContentSellerWalletBalanceRecord | null> {
+  if (!sellerWalletAddress) {
+    return null;
+  }
+
+  if (!isAddress(sellerWalletAddress)) {
+    throw new Error("Seller wallet address is invalid.");
+  }
+
+  const balance = await getWalletBalance({
+    address: getAddress(sellerWalletAddress),
+    chain: smartWalletChain,
+    client: serverThirdwebClient,
+    tokenAddress: BSC_USDT_ADDRESS,
+  });
+
+  return serializeSellerWalletBalance(balance);
+}
+
+export async function getCreatorSalesDashboardForMember(
+  email: string,
+): Promise<ContentSalesDashboardResponse> {
+  const member = await getCompletedMemberOrThrow(email);
+  const profile = await getCreatorProfileForMember(member.email);
+  const sellerWalletAddress = profile.payoutWalletAddress?.trim() || null;
+  const ordersCollection = await getContentOrdersCollection();
+  const [recentOrders, confirmedOrders, pendingSalesCount, totalSalesCount] =
+    await Promise.all([
+      ordersCollection
+        .find({ sellerEmail: member.email })
+        .sort({ createdAt: -1 })
+        .limit(CONTENT_SALES_HISTORY_LIMIT)
+        .toArray(),
+      ordersCollection
+        .find(
+          {
+            sellerEmail: member.email,
+            status: "confirmed",
+          },
+          {
+            projection: {
+              amountUsdt: 1,
+            },
+          },
+        )
+        .toArray(),
+      ordersCollection.countDocuments({
+        sellerEmail: member.email,
+        status: "pending_payment",
+      }),
+      ordersCollection.countDocuments({ sellerEmail: member.email }),
+    ]);
+  const confirmedSalesCount = confirmedOrders.length;
+  const totalSalesUsdt = confirmedOrders.reduce(
+    (total, order) => addDecimalStrings(total, order.amountUsdt),
+    "0",
+  );
+  const contentIds = [...new Set(recentOrders.map((order) => order.contentId))];
+  const postsCollection = await getContentPostsCollection();
+  const posts = contentIds.length
+    ? await postsCollection
+        .find(
+          {
+            contentId: { $in: contentIds },
+          },
+          {
+            projection: {
+              contentId: 1,
+              coverImageUrl: 1,
+              title: 1,
+            },
+          },
+        )
+        .toArray()
+    : [];
+  const postByContentId = new Map(
+    posts.map((post) => [post.contentId, post]),
+  );
+  const balance = await getSellerWalletBalance(sellerWalletAddress);
+
+  return {
+    balance,
+    member: serializeMember(member),
+    profile,
+    sales: recentOrders.map((order) =>
+      serializeContentSaleOrder(order, postByContentId.get(order.contentId)),
+    ),
+    sellerWalletAddress,
+    summary: {
+      availableBalanceUsdt: balance?.amountUsdt ?? "0",
+      confirmedSalesCount,
+      pendingSalesCount,
+      totalSalesCount,
+      totalSalesUsdt,
+    },
+  };
+}
+
+function getSellerServerWallet(sellerWalletAddress: string) {
+  if (!hasThirdwebSecretKey) {
+    throw new Error("THIRDWEB_SECRET_KEY is required for seller wallet withdrawals.");
+  }
+
+  if (!isAddress(sellerWalletAddress)) {
+    throw new Error("Seller wallet address is invalid.");
+  }
+
+  return Engine.serverWallet({
+    address: getAddress(sellerWalletAddress),
+    chain: smartWalletChain,
+    client: serverThirdwebClient,
+  });
+}
+
+export async function withdrawCreatorSalesBalanceForMember(
+  input: ContentSellerWithdrawalRequest,
+): Promise<ContentSellerWithdrawalResponse> {
+  const normalizedEmail = normalizeEmail(input.email);
+
+  if (!normalizedEmail) {
+    throw new Error("email is required.");
+  }
+
+  const destinationWalletAddress = input.walletAddress?.trim();
+
+  if (!destinationWalletAddress) {
+    throw new Error("walletAddress is required.");
+  }
+
+  if (!isAddress(destinationWalletAddress)) {
+    throw new Error("walletAddress is invalid.");
+  }
+
+  const member = await getCompletedMemberOrThrow(normalizedEmail);
+  const profile = await getCreatorProfileForMember(member.email);
+  const sellerWalletAddress = profile.payoutWalletAddress?.trim();
+
+  if (!sellerWalletAddress) {
+    throw new Error("Seller wallet is not configured.");
+  }
+
+  const balance = await getSellerWalletBalance(sellerWalletAddress);
+  const withdrawAmountWei = balance ? BigInt(balance.amountWei) : BigInt(0);
+
+  if (withdrawAmountWei <= BigInt(0)) {
+    throw new Error("Seller wallet USDT balance is empty.");
+  }
+
+  const transaction = transfer({
+    amountWei: withdrawAmountWei,
+    contract: contentUsdtContract,
+    to: getAddress(destinationWalletAddress),
+  });
+  const { transactionId } = await getSellerServerWallet(
+    sellerWalletAddress,
+  ).enqueueTransaction({
+    transaction,
+  });
+  let transactionHash: string | null = null;
+
+  try {
+    const receipt = await Engine.waitForTransactionHash({
+      client: serverThirdwebClient,
+      timeoutInSeconds: CONTENT_SELLER_WITHDRAW_TIMEOUT_SECONDS,
+      transactionId,
+    });
+    transactionHash = receipt.transactionHash;
+  } catch {
+    transactionHash = null;
+  }
+
+  const nextBalance = await getSellerWalletBalance(sellerWalletAddress).catch(
+    () => null,
+  );
+
+  return {
+    balance: nextBalance,
+    destinationWalletAddress: getAddress(destinationWalletAddress),
+    transactionHash,
+    transactionId,
+    withdrawnAmountUsdt: formatUsdtAmountFromWei(withdrawAmountWei),
+    withdrawnAmountWei: withdrawAmountWei.toString(),
   };
 }
 

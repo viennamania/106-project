@@ -230,6 +230,51 @@ export type ContentOrderRecord = {
   verifiedAt: string | null;
 };
 
+export type ContentSaleOrderRecord = ContentOrderRecord & {
+  buyerEmail: string;
+  buyerReferralCode: string | null;
+  contentTitle: string;
+  contentCoverImageUrl: string | null;
+};
+
+export type ContentSellerWalletBalanceRecord = {
+  amountUsdt: string;
+  amountWei: string;
+  symbol: string;
+};
+
+export type ContentSalesSummaryRecord = {
+  availableBalanceUsdt: string;
+  confirmedSalesCount: number;
+  pendingSalesCount: number;
+  totalSalesCount: number;
+  totalSalesUsdt: string;
+};
+
+export type ContentSalesDashboardResponse = {
+  balance: ContentSellerWalletBalanceRecord | null;
+  member: MemberRecord;
+  profile: CreatorProfileRecord;
+  sales: ContentSaleOrderRecord[];
+  sellerWalletAddress: string | null;
+  summary: ContentSalesSummaryRecord;
+};
+
+export type ContentSellerWithdrawalRequest = {
+  amountUsdt?: string | null;
+  email: string;
+  walletAddress?: string;
+};
+
+export type ContentSellerWithdrawalResponse = {
+  balance: ContentSellerWalletBalanceRecord | null;
+  destinationWalletAddress: string;
+  transactionHash: string | null;
+  transactionId: string;
+  withdrawnAmountUsdt: string;
+  withdrawnAmountWei: string;
+};
+
 export type ContentFeedResponse = {
   items: ContentFeedItemRecord[];
   member: MemberRecord;
@@ -502,6 +547,19 @@ export function serializeContentOrder(
     status: order.status,
     txHash: order.txHash ?? null,
     verifiedAt: order.verifiedAt?.toISOString() ?? null,
+  };
+}
+
+export function serializeContentSaleOrder(
+  order: ContentOrderDocument,
+  content?: Pick<ContentPostDocument, "coverImageUrl" | "title"> | null,
+): ContentSaleOrderRecord {
+  return {
+    ...serializeContentOrder(order),
+    buyerEmail: order.buyerEmail,
+    buyerReferralCode: order.buyerReferralCode ?? null,
+    contentCoverImageUrl: content?.coverImageUrl ?? null,
+    contentTitle: content?.title ?? order.contentId,
   };
 }
 

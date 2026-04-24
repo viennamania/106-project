@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Coins,
   LayoutGrid,
   PenSquare,
   RefreshCcw,
@@ -134,7 +135,12 @@ export function CreatorStudioPostsPage({
     buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
     { returnTo: returnToHref },
   );
+  const salesManagerHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/sales`, referralCode),
+    { returnTo: returnToHref },
+  );
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const salesManagerLabel = locale === "ko" ? "판매 관리" : "Sales";
   const appliedQuery = searchParams.get("q")?.trim() ?? "";
   const appliedStatus = isPostVisibilityFilter(searchParams.get("status"))
     ? (searchParams.get("status") as PostVisibilityFilter)
@@ -582,6 +588,11 @@ export function CreatorStudioPostsPage({
             isActive: true,
             label: contentCopy.actions.managePosts,
           },
+          {
+            href: salesManagerHref,
+            isActive: false,
+            label: salesManagerLabel,
+          },
         ].map((tab) => (
           <Link
             className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
@@ -688,6 +699,17 @@ export function CreatorStudioPostsPage({
                 href={homeHref}
                 icon={<ArrowLeft className="size-5" />}
                 title={contentCopy.actions.backHome}
+              />
+              <WorkspaceLaunchCard
+                description={
+                  locale === "ko"
+                    ? "유료 콘텐츠 판매 내역과 판매용 지갑 잔고를 관리합니다."
+                    : "Manage paid content sales and seller wallet balance."
+                }
+                disabled={!canUseWorkspace}
+                href={salesManagerHref}
+                icon={<Coins className="size-5" />}
+                title={salesManagerLabel}
               />
             </div>
           </div>
