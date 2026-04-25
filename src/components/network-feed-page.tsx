@@ -100,7 +100,7 @@ type FeedRestoreSnapshot = {
   version: number;
 };
 
-const FEED_RESTORE_VERSION = 2;
+const FEED_RESTORE_VERSION = 3;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -248,8 +248,19 @@ export function NetworkFeedPage({
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const isPublicReferralFeed = Boolean(referralCode);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const hasReferralCode = Boolean(referralCode);
+  const isWalletConnected = status === "connected" && Boolean(accountAddress);
+  const isFeedModeResolving =
+    hasReferralCode &&
+    hasThirdwebClientId &&
+    (status === "unknown" ||
+      status === "connecting" ||
+      (status === "connected" && !accountAddress));
+  const isPublicReferralFeed =
+    hasReferralCode &&
+    !isWalletConnected &&
+    (status === "disconnected" || !hasThirdwebClientId);
+  const isDisconnected = !isWalletConnected;
   const feedRestoreKey = useMemo(
     () =>
       createFeedRestoreKey({
@@ -284,15 +295,21 @@ export function NetworkFeedPage({
   );
   const [scrollTopControlMode, setScrollTopControlMode] =
     useState<ScrollTopControlMode>("hidden");
+  const effectiveSelectedCreatorKey = isPublicReferralFeed
+    ? null
+    : selectedCreatorKey;
 
   const isInitialLoading =
     state.status === "loading" && state.items.length === 0 && !state.error;
 
   const filteredItems = useMemo(() => {
     return state.items.filter((item) => {
-      return !selectedCreatorKey || item.authorEmail === selectedCreatorKey;
+      return (
+        !effectiveSelectedCreatorKey ||
+        item.authorEmail === effectiveSelectedCreatorKey
+      );
     });
-  }, [selectedCreatorKey, state.items]);
+  }, [effectiveSelectedCreatorKey, state.items]);
 
   const creatorSummaries = useMemo<FeedCreatorSummary[]>(() => {
     const map = new Map<string, FeedCreatorSummary>();
@@ -344,6 +361,7 @@ export function NetworkFeedPage({
       })
       .slice(0, 12);
   }, [state.items]);
+  const visibleCreatorSummaries = isPublicReferralFeed ? [] : creatorSummaries;
 
   const mergeItems = useCallback(
     (currentItems: ContentFeedItemRecord[], nextItems: ContentFeedItemRecord[]) => {
@@ -395,10 +413,11 @@ export function NetworkFeedPage({
       member: state.member,
       nextCursor,
       scrollY: typeof window === "undefined" ? 0 : window.scrollY,
-      selectedCreatorKey,
+      selectedCreatorKey: isPublicReferralFeed ? null : selectedCreatorKey,
     });
   }, [
     feedRestoreKey,
+    isPublicReferralFeed,
     nextCursor,
     selectedCreatorKey,
     state.items,
@@ -549,7 +568,13 @@ export function NetworkFeedPage({
           member,
           status: "ready",
         }));
-        setNextCursor("nextCursor" in data ? data.nextCursor : null);
+        setNextCursor(
+          isPublicReferralFeed
+            ? null
+            : "nextCursor" in data
+              ? data.nextCursor
+              : null,
+        );
       } catch (error) {
         if (append) {
           setState((current) => ({
@@ -594,6 +619,17 @@ export function NetworkFeedPage({
   );
 
   useEffect(() => {
+    if (isFeedModeResolving) {
+      setState({
+        error: null,
+        items: [],
+        member: null,
+        status: "loading",
+      });
+      setNextCursor(null);
+      return;
+    }
+
     if (
       feedRestoreKey &&
       restoredFeedKeyRef.current !== feedRestoreKey
@@ -629,6 +665,7 @@ export function NetworkFeedPage({
     accountAddress,
     applyFeedSnapshot,
     feedRestoreKey,
+    isFeedModeResolving,
     isPublicReferralFeed,
     loadFeed,
     status,
@@ -733,7 +770,7 @@ export function NetworkFeedPage({
     };
   }, [isInitialLoading, isLoadingMore, loadFeed, nextCursor]);
 
-  const feedDescription = isInitialLoading
+  const feedDescription = isInitialLoading || isFeedModeResolving
     ? contentCopy.messages.feedLoadingDescription
     : isPublicReferralFeed
       ? contentCopy.page.feedDescription
@@ -772,7 +809,7 @@ export function NetworkFeedPage({
             </div>
             <button
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-slate-950 transition hover:bg-slate-100 disabled:opacity-45"
-              disabled={isInitialLoading}
+              disabled={isInitialLoading || isFeedModeResolving}
               onClick={() => {
                 void loadFeed();
               }}
@@ -784,12 +821,12 @@ export function NetworkFeedPage({
 
         </header>
 
-        {creatorSummaries.length > 0 ? (
+        {visibleCreatorSummaries.length > 0 ? (
           <section className="border-b border-slate-200/80 bg-white px-3 py-3 sm:px-0">
             <div className="flex gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {creatorSummaries.map((creator) => (
+              {visibleCreatorSummaries.map((creator) => (
                 <CreatorStoryButton
-                  active={selectedCreatorKey === creator.key}
+                  active={effectiveSelectedCreatorKey === creator.key}
                   creator={creator}
                   key={creator.key}
                   onSelect={() => {
@@ -804,7 +841,9 @@ export function NetworkFeedPage({
         ) : null}
 
         <section className="flex flex-col">
-          {!isPublicReferralFeed && isDisconnected ? (
+          {isFeedModeResolving ? (
+            <FeedLoadingSkeleton />
+          ) : !isPublicReferralFeed && isDisconnected ? (
             <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
           ) : isInitialLoading ? (
             <FeedLoadingSkeleton />
