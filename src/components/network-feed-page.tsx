@@ -1135,12 +1135,13 @@ function PublicFeedConversionBanner({
           </div>
         </div>
         <Link
-          className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-950 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 active:scale-[0.99]"
+          className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-950 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 active:scale-[0.99]"
           href={href}
           onClick={onSignupClick}
+          style={{ color: "#ffffff" }}
         >
-          <UserPlus className="mr-2 size-4" />
-          {copy.cta}
+          <UserPlus className="mr-2 size-4 shrink-0 text-white" />
+          <span className="truncate text-white">{copy.cta}</span>
         </Link>
       </div>
     </section>
@@ -1165,12 +1166,15 @@ function PublicFeedStickySignupCta({
       }`}
     >
       <Link
-        className="mx-auto flex h-12 max-w-[440px] items-center justify-center rounded-full border border-slate-950/80 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_20px_52px_rgba(15,23,42,0.28)] backdrop-blur-xl active:scale-[0.99]"
+        className="mx-auto flex h-12 max-w-[440px] items-center justify-center rounded-full border border-slate-950/80 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_20px_52px_rgba(15,23,42,0.28)] backdrop-blur-xl active:scale-[0.99]"
         href={href}
         onClick={onClick}
+        style={{ color: "#ffffff" }}
       >
-        <UserPlus className="mr-2 size-4" />
-        {locale === "ko" ? "가입하고 피드 계속 보기" : "Sign up and keep browsing"}
+        <UserPlus className="mr-2 size-4 shrink-0 text-white" />
+        <span className="truncate text-white">
+          {locale === "ko" ? "가입하고 피드 계속 보기" : "Sign up and keep browsing"}
+        </span>
       </Link>
     </div>
   );
