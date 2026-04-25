@@ -46,6 +46,7 @@ import type {
   ContentSourceItemDocument,
   CreatorAutomationProfileDocument,
 } from "@/lib/content-automation";
+import type { FunnelEventDocument } from "@/lib/funnel";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -133,6 +134,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoContentPostSourceAttributionsCollectionPromise?: Promise<
     Collection<ContentPostSourceAttributionDocument>
+  >;
+  mongoFunnelEventsCollectionPromise?: Promise<
+    Collection<FunnelEventDocument>
   >;
 };
 
@@ -1037,4 +1041,29 @@ export async function getContentPostSourceAttributionsCollection() {
   }
 
   return globalForMongo.mongoContentPostSourceAttributionsCollectionPromise;
+}
+
+export async function getFunnelEventsCollection() {
+  if (!globalForMongo.mongoFunnelEventsCollectionPromise) {
+    globalForMongo.mongoFunnelEventsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FUNNEL_EVENTS_COLLECTION ?? "funnelEvents";
+      const collection = client
+        .db(dbName)
+        .collection<FunnelEventDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ createdAt: -1 }),
+        collection.createIndex({ name: 1, createdAt: -1 }),
+        collection.createIndex({ referralCode: 1, createdAt: -1 }),
+        collection.createIndex({ contentId: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFunnelEventsCollectionPromise;
 }

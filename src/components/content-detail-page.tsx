@@ -54,6 +54,7 @@ import {
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
@@ -649,6 +650,29 @@ export function ContentDetailPage({
     setIsPaidConfirmOpen(false);
   }, [paidUnlock.status]);
 
+  const trackSignupCtaClick = useCallback(() => {
+    trackFunnelEvent("signup_cta_click", {
+      contentId,
+      metadata: {
+        gateReason: state.gateReason ?? "unknown",
+        source: "content-detail",
+      },
+      referralCode: shareReferralCode,
+      targetHref: activateHref,
+    });
+  }, [activateHref, contentId, shareReferralCode, state.gateReason]);
+
+  const trackPaidUnlockClick = useCallback(() => {
+    trackFunnelEvent("paid_unlock_click", {
+      contentId,
+      metadata: {
+        amountUsdt: paidUnlockAmount,
+        source: "content-detail",
+      },
+      referralCode: shareReferralCode,
+    });
+  }, [contentId, paidUnlockAmount, shareReferralCode]);
+
   const createPaidUnlockTransaction = useCallback(async () => {
     const preparedOrder = await ensurePaidUnlockOrder();
 
@@ -896,6 +920,7 @@ export function ContentDetailPage({
             activateHref={activateHref}
             homeHref={homeHref}
             locale={locale}
+            onSignupClick={trackSignupCtaClick}
             primaryMessage={contentCopy.messages.paymentRequired}
             secondaryMessage={contentCopy.messages.connectRequired}
           />
@@ -905,7 +930,11 @@ export function ContentDetailPage({
           {state.error}
           {state.member?.status !== "completed" ? (
             <span className="mt-3 block">
-              <Link className="font-semibold text-slate-950 underline" href={activateHref}>
+              <Link
+                className="font-semibold text-slate-950 underline"
+                href={activateHref}
+                onClick={trackSignupCtaClick}
+              >
                 {dictionary.referralsPage.actions.completeSignup}
               </Link>
             </span>
@@ -1125,7 +1154,10 @@ export function ContentDetailPage({
                           paidUnlock.status === "sent" ||
                           paidUnlock.status === "verifying"
                         }
-                        onClick={openPaidUnlockConfirm}
+                        onClick={() => {
+                          trackPaidUnlockClick();
+                          openPaidUnlockConfirm();
+                        }}
                         type="button"
                       >
                         <Coins className="mr-2 size-4" />
@@ -1145,6 +1177,7 @@ export function ContentDetailPage({
                       <Link
                         className="inline-flex h-11 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03]"
                         href={activateHref}
+                        onClick={trackSignupCtaClick}
                       >
                         <LockKeyhole className="mr-2 size-4" />
                         <span className="sm:hidden">가입 완료하기</span>
@@ -1553,12 +1586,14 @@ function LockedContentGate({
   activateHref,
   homeHref,
   locale,
+  onSignupClick,
   primaryMessage,
   secondaryMessage,
 }: {
   activateHref: string;
   homeHref: string;
   locale: Locale;
+  onSignupClick: () => void;
   primaryMessage: string;
   secondaryMessage: string;
 }) {
@@ -1581,19 +1616,20 @@ function LockedContentGate({
         </p>
         <div className="mt-8 rounded-[28px] border border-white/10 bg-white/6 p-3 backdrop-blur-xl sm:p-4">
           <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-5 text-sm font-semibold !text-slate-950 shadow-[0_20px_45px_rgba(251,191,36,0.28)] transition hover:brightness-[1.03]"
-            href={activateHref}
-          >
-            <LockKeyhole className="mr-2 size-4" />
-            {locale === "ko" ? "가입 완료하기" : "Complete signup"}
-          </Link>
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-slate-950/28 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:bg-slate-950/40"
-            href={homeHref}
-          >
-            {locale === "ko" ? "홈으로 돌아가기" : "Back home"}
-          </Link>
+            <Link
+              className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-5 text-sm font-semibold !text-slate-950 shadow-[0_20px_45px_rgba(251,191,36,0.28)] transition hover:brightness-[1.03]"
+              href={activateHref}
+              onClick={onSignupClick}
+            >
+              <LockKeyhole className="mr-2 size-4" />
+              {locale === "ko" ? "가입 완료하기" : "Complete signup"}
+            </Link>
+            <Link
+              className="inline-flex h-12 items-center justify-center rounded-full border border-white/18 bg-slate-950/28 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:bg-slate-950/40"
+              href={homeHref}
+            >
+              {locale === "ko" ? "홈으로 돌아가기" : "Back home"}
+            </Link>
           </div>
           <p className="mt-3 text-xs leading-6 text-white/58">
             {locale === "ko"

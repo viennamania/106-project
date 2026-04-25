@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { NetworkFeedPage } from "@/components/network-feed-page";
 import { getContentCopy } from "@/lib/content-copy";
+import { getPublicNetworkFeedForReferralCode } from "@/lib/content-service";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildNetworkFeedOgImagePath,
@@ -151,10 +152,14 @@ export default async function LocalizedNetworkFeedPage({
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
   const returnToHref = normalizeReturnToPath(query.returnTo, locale);
+  const initialPublicFeed = referralCode
+    ? await getPublicNetworkFeedForReferralCode(referralCode, locale).catch(() => null)
+    : null;
 
   return (
     <NetworkFeedPage
       dictionary={dictionary}
+      initialPublicFeed={initialPublicFeed}
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}

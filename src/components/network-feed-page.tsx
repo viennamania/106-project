@@ -55,6 +55,7 @@ import {
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
@@ -100,6 +101,11 @@ type FeedRestoreSnapshot = {
   selectedCreatorKey: string | null;
   version: number;
 };
+
+type InitialPublicFeed = {
+  items: ContentFeedItemRecord[];
+  nextCursor: string | null;
+} | null;
 
 const FEED_RESTORE_VERSION = 3;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
@@ -235,11 +241,13 @@ function writeFeedRestoreSnapshot(
 
 export function NetworkFeedPage({
   dictionary,
+  initialPublicFeed = null,
   locale,
   referralCode = null,
   returnToHref = null,
 }: {
   dictionary: Dictionary;
+  initialPublicFeed?: InitialPublicFeed;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
@@ -262,17 +270,19 @@ export function NetworkFeedPage({
     returnTo: feedHref,
   });
   const hasReferralCode = Boolean(referralCode);
+  const hasInitialPublicFeed = hasReferralCode && Boolean(initialPublicFeed);
   const isWalletConnected = status === "connected" && Boolean(accountAddress);
   const isFeedModeResolving =
     hasReferralCode &&
     hasThirdwebClientId &&
+    !hasInitialPublicFeed &&
     (status === "unknown" ||
       status === "connecting" ||
       (status === "connected" && !accountAddress));
   const isPublicReferralFeed =
     hasReferralCode &&
     !isWalletConnected &&
-    (status === "disconnected" || !hasThirdwebClientId);
+    (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
   const isDisconnected = !isWalletConnected;
   const feedRestoreKey = useMemo(
     () =>
@@ -286,6 +296,8 @@ export function NetworkFeedPage({
   );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const restoredFeedKeyRef = useRef<string | null>(null);
+  const skippedInitialPublicLoadRef = useRef(false);
+  const trackedPublicFeedViewRef = useRef<string | null>(null);
   const isLoadingMoreRef = useRef(false);
   const scrollTopControlRef = useRef<{
     lastY: number;
@@ -297,12 +309,15 @@ export function NetworkFeedPage({
   const scrollTopIdleTimeoutRef = useRef<number | null>(null);
   const [state, setState] = useState<FeedState>({
     error: null,
-    items: [],
+    items: initialPublicFeed?.items ?? [],
     member: null,
-    status: "idle",
+    status: initialPublicFeed ? "ready" : "idle",
   });
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(
+    initialPublicFeed?.nextCursor ?? null,
+  );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showPublicStickyCta, setShowPublicStickyCta] = useState(false);
   const [selectedCreatorKey, setSelectedCreatorKey] = useState<string | null>(
     null,
   );
@@ -438,6 +453,26 @@ export function NetworkFeedPage({
     state.items,
     state.member,
   ]);
+
+  const openContentFromFeed = useCallback(
+    (item: ContentFeedItemRecord) => {
+      saveFeedSnapshot();
+
+      if (!isPublicReferralFeed) {
+        return;
+      }
+
+      trackFunnelEvent("content_open", {
+        contentId: item.contentId,
+        metadata: {
+          priceType: item.priceType,
+          source: "network-feed",
+        },
+        referralCode,
+      });
+    },
+    [isPublicReferralFeed, referralCode, saveFeedSnapshot],
+  );
 
   const updateItemSocial = useCallback(
     (contentId: string, social: ContentSocialSummaryRecord) => {
@@ -584,11 +619,9 @@ export function NetworkFeedPage({
           status: "ready",
         }));
         setNextCursor(
-          isPublicReferralFeed
-            ? null
-            : "nextCursor" in data
-              ? data.nextCursor
-              : null,
+          "nextCursor" in data
+            ? data.nextCursor
+            : null,
         );
       } catch (error) {
         if (append) {
@@ -659,6 +692,15 @@ export function NetworkFeedPage({
       restoredFeedKeyRef.current = feedRestoreKey;
     }
 
+    if (
+      isPublicReferralFeed &&
+      initialPublicFeed &&
+      !skippedInitialPublicLoadRef.current
+    ) {
+      skippedInitialPublicLoadRef.current = true;
+      return;
+    }
+
     if (isPublicReferralFeed) {
       void loadFeed();
       return;
@@ -680,6 +722,7 @@ export function NetworkFeedPage({
     accountAddress,
     applyFeedSnapshot,
     feedRestoreKey,
+    initialPublicFeed,
     isFeedModeResolving,
     isPublicReferralFeed,
     loadFeed,
@@ -693,6 +736,25 @@ export function NetworkFeedPage({
 
     saveFeedSnapshot();
   }, [saveFeedSnapshot, state.items.length, state.status]);
+
+  useEffect(() => {
+    if (
+      !isPublicReferralFeed ||
+      state.status !== "ready" ||
+      trackedPublicFeedViewRef.current === referralCode
+    ) {
+      return;
+    }
+
+    trackedPublicFeedViewRef.current = referralCode;
+    trackFunnelEvent("feed_view_public", {
+      metadata: {
+        itemCount: state.items.length,
+        source: "network-feed",
+      },
+      referralCode,
+    });
+  }, [isPublicReferralFeed, referralCode, state.items.length, state.status]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -733,14 +795,13 @@ export function NetworkFeedPage({
 
       if (currentY < 900) {
         setScrollTopControl("hidden");
-        return;
-      }
-
-      if (delta > 10) {
+      } else if (delta > 10) {
         setScrollTopControl("compact");
       } else {
         setScrollTopControl("ready");
       }
+
+      setShowPublicStickyCta(currentY > 680);
 
       scrollTopIdleTimeoutRef.current = window.setTimeout(() => {
         if (window.scrollY >= 900) {
@@ -853,6 +914,16 @@ export function NetworkFeedPage({
             creatorName={publicFeedCreatorLabel}
             href={publicSignupHref}
             locale={locale}
+            onSignupClick={() => {
+              trackFunnelEvent("signup_cta_click", {
+                metadata: {
+                  placement: "banner",
+                  source: "network-feed",
+                },
+                referralCode,
+                targetHref: publicSignupHref,
+              });
+            }}
             referralCode={referralCode}
           />
         ) : null}
@@ -909,7 +980,7 @@ export function NetworkFeedPage({
                   levelLabel={contentCopy.labels.level}
                   locale={locale}
                   missingEmailMessage={dictionary.member.errors.missingEmail}
-                  onOpenDetail={saveFeedSnapshot}
+                  onOpenDetail={openContentFromFeed}
                   onSocialChange={updateItemSocial}
                   priority={index < 2}
                   returnToHref={feedHref}
@@ -933,9 +1004,30 @@ export function NetworkFeedPage({
       </div>
       <FeedScrollTopControl
         locale={locale}
-        mode={scrollTopControlMode}
+        mode={
+          isPublicReferralFeed && showPublicStickyCta
+            ? "hidden"
+            : scrollTopControlMode
+        }
         onClick={scrollToFeedTop}
       />
+      {isPublicReferralFeed ? (
+        <PublicFeedStickySignupCta
+          href={publicSignupHref}
+          locale={locale}
+          onClick={() => {
+            trackFunnelEvent("signup_cta_click", {
+              metadata: {
+                placement: "sticky",
+                source: "network-feed",
+              },
+              referralCode,
+              targetHref: publicSignupHref,
+            });
+          }}
+          visible={showPublicStickyCta}
+        />
+      ) : null}
     </main>
   );
 }
@@ -986,11 +1078,13 @@ function PublicFeedConversionBanner({
   creatorName,
   href,
   locale,
+  onSignupClick,
   referralCode,
 }: {
   creatorName: string | null;
   href: string;
   locale: Locale;
+  onSignupClick: () => void;
   referralCode: string | null;
 }) {
   const copy =
@@ -1043,12 +1137,42 @@ function PublicFeedConversionBanner({
         <Link
           className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-950 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 active:scale-[0.99]"
           href={href}
+          onClick={onSignupClick}
         >
           <UserPlus className="mr-2 size-4" />
           {copy.cta}
         </Link>
       </div>
     </section>
+  );
+}
+
+function PublicFeedStickySignupCta({
+  href,
+  locale,
+  onClick,
+  visible,
+}: {
+  href: string;
+  locale: Locale;
+  onClick: () => void;
+  visible: boolean;
+}) {
+  return (
+    <div
+      className={`fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-40 px-3 transition duration-300 sm:hidden ${
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-5 opacity-0"
+      }`}
+    >
+      <Link
+        className="mx-auto flex h-12 max-w-[440px] items-center justify-center rounded-full border border-slate-950/80 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_20px_52px_rgba(15,23,42,0.28)] backdrop-blur-xl active:scale-[0.99]"
+        href={href}
+        onClick={onClick}
+      >
+        <UserPlus className="mr-2 size-4" />
+        {locale === "ko" ? "가입하고 피드 계속 보기" : "Sign up and keep browsing"}
+      </Link>
+    </div>
   );
 }
 
@@ -1115,7 +1239,7 @@ function SocialFeedPost({
   levelLabel: string;
   locale: Locale;
   missingEmailMessage: string;
-  onOpenDetail: () => void;
+  onOpenDetail: (item: ContentFeedItemRecord) => void;
   onSocialChange: (
     contentId: string,
     social: ContentSocialSummaryRecord,
@@ -1265,9 +1389,9 @@ function SocialFeedPost({
   }, []);
 
   const navigateToDetail = useCallback(() => {
-    onOpenDetail();
+    onOpenDetail(item);
     router.push(href);
-  }, [href, onOpenDetail, router]);
+  }, [href, item, onOpenDetail, router]);
 
   const openDetailFromMedia = useCallback(() => {
     clearMediaOpenTimeout();
@@ -1767,7 +1891,7 @@ function SocialFeedPost({
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
               href={href}
               onClick={() => {
-                onOpenDetail();
+                onOpenDetail(item);
                 setIsMenuOpen(false);
               }}
             >
@@ -1958,7 +2082,12 @@ function SocialFeedPost({
           ))}
         </div>
 
-        <Link href={href} onClick={onOpenDetail}>
+        <Link
+          href={href}
+          onClick={() => {
+            onOpenDetail(item);
+          }}
+        >
           <h2 className="mt-3 line-clamp-2 text-[0.96rem] font-semibold leading-5 text-slate-950">
             {item.title}
           </h2>
@@ -1975,7 +2104,9 @@ function SocialFeedPost({
         <Link
           className="group mt-4 flex h-12 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/[0.03] transition hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_34px_rgba(15,23,42,0.12)] active:scale-[0.99] sm:h-11 sm:w-auto sm:min-w-56 sm:justify-start"
           href={href}
-          onClick={onOpenDetail}
+          onClick={() => {
+            onOpenDetail(item);
+          }}
         >
           <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
             <ExternalLink className="size-3.5" />

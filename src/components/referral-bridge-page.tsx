@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { buildChromeIntentUrl, type BridgePlatformHint } from "@/lib/in-app-browser";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 
 type ReferralBridgePageProps = {
@@ -221,6 +222,17 @@ export function ReferralBridgePage({
 
     return new URL(targetHref, window.location.origin).toString();
   }, [targetHref]);
+
+  useEffect(() => {
+    trackFunnelEvent("bridge_view", {
+      metadata: {
+        platform: platformHint,
+        target,
+      },
+      referralCode,
+      targetHref,
+    });
+  }, [platformHint, referralCode, target, targetHref]);
 
   const handleCopy = useCallback(async () => {
     try {
