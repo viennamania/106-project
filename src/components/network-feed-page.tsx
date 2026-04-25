@@ -121,7 +121,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 4;
+const FEED_RESTORE_VERSION = 5;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -754,7 +754,10 @@ export function NetworkFeedPage({
 
       if (snapshot) {
         applyFeedSnapshot(feedRestoreKey, snapshot);
-        return;
+
+        if (feedView === "network") {
+          return;
+        }
       }
 
       restoredFeedKeyRef.current = feedRestoreKey;
@@ -789,6 +792,7 @@ export function NetworkFeedPage({
   }, [
     accountAddress,
     applyFeedSnapshot,
+    feedView,
     feedRestoreKey,
     initialPublicFeed,
     isFeedModeResolving,
