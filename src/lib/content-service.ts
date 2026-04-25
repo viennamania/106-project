@@ -1705,6 +1705,12 @@ export async function createContentPostForMember(
 
   const status = input.status === "published" ? "published" : "draft";
   const priceType = normalizePriceType(input.priceType);
+  const contentImageUrls = normalizeContentImageUrls(input.contentImageUrls);
+  const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
+
+  if (status === "published" && !coverImageUrl && contentImageUrls.length === 0) {
+    throw new Error("image is required.");
+  }
 
   if (priceType === "paid") {
     await ensureCreatorPaidWalletForMember(member.email);
@@ -1716,8 +1722,8 @@ export async function createContentPostForMember(
     authorReferralCode: member.referralCode,
     body,
     contentId: randomUUID(),
-    contentImageUrls: normalizeContentImageUrls(input.contentImageUrls),
-    coverImageUrl: normalizeOptionalText(input.coverImageUrl, 500),
+    contentImageUrls,
+    coverImageUrl,
     createdAt: now,
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
@@ -1777,6 +1783,22 @@ export async function updateContentPostForMember(
     input.priceType !== undefined
       ? normalizePriceType(input.priceType)
       : post.priceType;
+  const nextContentImageUrls =
+    input.contentImageUrls !== undefined
+      ? normalizeContentImageUrls(input.contentImageUrls)
+      : post.contentImageUrls ?? [];
+  const nextCoverImageUrl =
+    input.coverImageUrl !== undefined
+      ? normalizeOptionalText(input.coverImageUrl, 500)
+      : post.coverImageUrl ?? null;
+
+  if (
+    nextStatus === "published" &&
+    !nextCoverImageUrl &&
+    nextContentImageUrls.length === 0
+  ) {
+    throw new Error("image is required.");
+  }
 
   if (nextPriceType === "paid") {
     await ensureCreatorPaidWalletForMember(member.email);
@@ -1807,14 +1829,8 @@ export async function updateContentPostForMember(
     {
       $set: {
         body: nextBody,
-        contentImageUrls:
-          input.contentImageUrls !== undefined
-            ? normalizeContentImageUrls(input.contentImageUrls)
-            : post.contentImageUrls ?? [],
-        coverImageUrl:
-          input.coverImageUrl !== undefined
-            ? normalizeOptionalText(input.coverImageUrl, 500)
-            : post.coverImageUrl ?? null,
+        contentImageUrls: nextContentImageUrls,
+        coverImageUrl: nextCoverImageUrl,
         locale:
           input.locale !== undefined
             ? normalizeContentLocale(input.locale)

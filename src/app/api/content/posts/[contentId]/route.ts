@@ -323,18 +323,17 @@ export async function PATCH(
     const message =
       error instanceof Error ? error.message : "Failed to update content.";
     const status =
-      message === "Member not found."
+      message === "Member not found." || message === "Content not found."
         ? 404
         : message === "Completed signup is required."
           ? 403
-          : message === "Content not found."
-            ? 404
-            : message === "Only the author can update this content."
-              ? 403
-              : message ===
-                    "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
-                  message === "Failed to create seller wallet."
-                ? 400
+          : message === "Only the author can update this content."
+            ? 403
+            : message.endsWith("is required.") ||
+                message ===
+                  "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
+                message === "Failed to create seller wallet."
+              ? 400
               : 500;
 
     return jsonError(message, status);

@@ -547,6 +547,9 @@ export function CreatorContentStudioPage({
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isCreatingSellerWallet, setIsCreatingSellerWallet] = useState(false);
   const [isSavingPost, setIsSavingPost] = useState(false);
+  const [savingPostStatus, setSavingPostStatus] = useState<
+    "draft" | "published" | null
+  >(null);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
   const [isUploadingProfileAvatar, setIsUploadingProfileAvatar] = useState(false);
@@ -1084,10 +1087,27 @@ export function CreatorContentStudioPage({
   const canShareCreatorFeed = canUseWorkspace && Boolean(creatorFeedShareUrl);
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
+  const hasPostImages = Boolean(
+    postForm.coverImageUrl || postForm.contentImageUrls.length > 0,
+  );
   const postBodyRequiredMessage =
     locale === "ko"
       ? "본문을 입력한 뒤 저장하거나 게시해주세요."
       : "Enter the content body before saving or publishing.";
+  const postImageRequiredMessage =
+    locale === "ko"
+      ? "이미지를 1장 이상 추가해야 바로 게시할 수 있습니다."
+      : "Add at least one image before publishing.";
+  const postSaveProgressCopy =
+    locale === "ko"
+      ? {
+          draft: "임시 저장 중...",
+          publish: "게시 중...",
+        }
+      : {
+          draft: "Saving draft...",
+          publish: "Publishing...",
+        };
   const canGeneratePostCover = Boolean(
     postForm.title.trim() || postForm.summary.trim() || postForm.body.trim(),
   );
@@ -1738,8 +1758,18 @@ export function CreatorContentStudioPage({
       return;
     }
 
+    if (statusToSave === "published" && !hasPostImages) {
+      setState((current) => ({
+        ...current,
+        error: postImageRequiredMessage,
+        notice: null,
+      }));
+      return;
+    }
+
     try {
       setIsSavingPost(true);
+      setSavingPostStatus(statusToSave);
       setPostBodyError(null);
       const fallbackTitle =
         normalizedBody
@@ -1818,6 +1848,7 @@ export function CreatorContentStudioPage({
       }));
     } finally {
       setIsSavingPost(false);
+      setSavingPostStatus(null);
     }
   }
 
@@ -3628,26 +3659,52 @@ export function CreatorContentStudioPage({
 
               <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
                 <button
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 disabled:opacity-50"
+                  aria-busy={savingPostStatus === "draft"}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                   disabled={composerBusy}
                   onClick={() => {
                     void createPost("draft");
                   }}
                   type="button"
                 >
-                  {contentCopy.actions.saveDraft}
+                  {savingPostStatus === "draft" ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      {postSaveProgressCopy.draft}
+                    </>
+                  ) : (
+                    contentCopy.actions.saveDraft
+                  )}
                 </button>
                 <button
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] disabled:opacity-50"
-                  disabled={composerBusy}
+                  aria-busy={savingPostStatus === "published"}
+                  className={cn(
+                    "inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed",
+                    !hasPostImages && savingPostStatus !== "published"
+                      ? "bg-slate-200 text-slate-500 shadow-none"
+                      : "bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
+                  )}
+                  disabled={composerBusy || !hasPostImages}
                   onClick={() => {
                     void createPost("published");
                   }}
                   type="button"
                 >
-                  {contentCopy.actions.publish}
+                  {savingPostStatus === "published" ? (
+                    <>
+                      <LoaderCircle className="size-4 animate-spin" />
+                      {postSaveProgressCopy.publish}
+                    </>
+                  ) : (
+                    contentCopy.actions.publish
+                  )}
                 </button>
               </div>
+              {!hasPostImages ? (
+                <p className="text-center text-xs font-medium leading-5 text-slate-500">
+                  {postImageRequiredMessage}
+                </p>
+              ) : null}
 
               <button
                 className="inline-flex h-10 w-full items-center justify-center rounded-full text-sm font-semibold text-slate-500"
@@ -3989,7 +4046,8 @@ export function CreatorContentStudioPage({
             />
             <div className="flex flex-wrap gap-2">
               <button
-                className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                aria-busy={savingPostStatus === "draft"}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 sm:w-auto"
                 disabled={
                   isSavingPost ||
                   isCreatingSellerWallet ||
@@ -4002,25 +4060,51 @@ export function CreatorContentStudioPage({
                 }}
                 type="button"
               >
-                {contentCopy.actions.saveDraft}
+                {savingPostStatus === "draft" ? (
+                  <>
+                    <LoaderCircle className="size-4 animate-spin" />
+                    {postSaveProgressCopy.draft}
+                  </>
+                ) : (
+                  contentCopy.actions.saveDraft
+                )}
               </button>
               <button
-                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                aria-busy={savingPostStatus === "published"}
+                className={cn(
+                  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed sm:w-auto",
+                  !hasPostImages && savingPostStatus !== "published"
+                    ? "bg-slate-200 text-slate-500 shadow-none"
+                    : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
+                )}
                 disabled={
                   isSavingPost ||
                   isCreatingSellerWallet ||
                   isDisconnected ||
                   isUploadingPostImage ||
-                  isGeneratingPostImage
+                  isGeneratingPostImage ||
+                  !hasPostImages
                 }
                 onClick={() => {
                   void createPost("published");
                 }}
                 type="button"
               >
-                {contentCopy.actions.publish}
+                {savingPostStatus === "published" ? (
+                  <>
+                    <LoaderCircle className="size-4 animate-spin" />
+                    {postSaveProgressCopy.publish}
+                  </>
+                ) : (
+                  contentCopy.actions.publish
+                )}
               </button>
             </div>
+            {!hasPostImages ? (
+              <p className="text-sm font-medium leading-6 text-slate-500">
+                {postImageRequiredMessage}
+              </p>
+            ) : null}
             </div>
           </div>
         )}
