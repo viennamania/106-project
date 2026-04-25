@@ -999,6 +999,42 @@ export function CreatorContentStudioPage({
           sharing: "Sharing",
           title: "Share my feed",
         };
+  const emptyStudioCopy =
+    locale === "ko"
+      ? {
+          ctaCreate: "첫 콘텐츠 만들기",
+          ctaProfile: "프로필 설정",
+          description:
+            "첫 콘텐츠를 만들면 네트워크 피드에 노출되고, 무료 또는 1 USDT 유료 콘텐츠로 공유할 수 있습니다.",
+          eyebrow: "START GUIDE",
+          paidHint:
+            "유료 콘텐츠는 콘텐츠 이미지와 본문을 1 USDT 결제 후 열람하도록 설정할 수 있습니다.",
+          shareHint:
+            "게시 후 내 피드 링크를 공유하면 신규 방문자가 바로 콘텐츠를 확인할 수 있습니다.",
+          steps: [
+            "크리에이터 이름과 소개를 정리합니다.",
+            "커버 이미지와 본문으로 첫 콘텐츠를 만듭니다.",
+            "게시 후 내 피드 링크를 공유합니다.",
+          ],
+          title: "아직 등록한 콘텐츠가 없습니다.",
+        }
+      : {
+          ctaCreate: "Create first post",
+          ctaProfile: "Set up profile",
+          description:
+            "Your first post can appear in the network feed and be shared as free or fixed 1 USDT paid content.",
+          eyebrow: "START GUIDE",
+          paidHint:
+            "Paid posts can lock content images and body until a 1 USDT unlock is completed.",
+          shareHint:
+            "After publishing, share your feed link so new visitors can start browsing immediately.",
+          steps: [
+            "Set your creator name and channel intro.",
+            "Create your first post with a cover image and body.",
+            "Publish it and share your feed link.",
+          ],
+          title: "No posts created yet.",
+        };
   const creatorFeedSharePath = state.member?.referralCode
     ? setPathSearchParams(
         buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode),
@@ -4132,6 +4168,80 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderEmptyPostsGuide() {
+    return (
+      <div className="mt-4 overflow-hidden rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#020617_0%,#0f172a_58%,#155e75_100%)] px-4 py-5 text-white sm:px-5 sm:py-6">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-cyan-50/86 backdrop-blur-md">
+              <Sparkles className="size-3.5" />
+              {emptyStudioCopy.eyebrow}
+            </div>
+            <h3 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+              {emptyStudioCopy.title}
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+              {emptyStudioCopy.description}
+            </p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <Link
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_38px_rgba(2,6,23,0.24)] transition hover:-translate-y-0.5 hover:bg-cyan-50"
+                href={newPostHref}
+              >
+                <PenSquare className="size-4" />
+                {emptyStudioCopy.ctaCreate}
+              </Link>
+              <Link
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:bg-white/16"
+                href={profileHref}
+              >
+                <UserRound className="size-4" />
+                {emptyStudioCopy.ctaProfile}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">
+          {emptyStudioCopy.steps.map((step, index) => {
+            const StepIcon = index === 0 ? UserRound : index === 1 ? PenSquare : Rss;
+
+            return (
+              <div
+                className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]"
+                key={step}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <StepIcon className="size-4" />
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.68rem] font-semibold text-slate-500">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-900">
+                  {step}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="grid gap-3 border-t border-slate-200/80 bg-slate-50/80 p-4 sm:grid-cols-2 sm:p-5">
+          <div className="flex gap-3 rounded-[20px] bg-white p-3 text-sm leading-6 text-slate-600">
+            <Coins className="mt-1 size-4 shrink-0 text-amber-600" />
+            <span>{emptyStudioCopy.paidHint}</span>
+          </div>
+          <div className="flex gap-3 rounded-[20px] bg-white p-3 text-sm leading-6 text-slate-600">
+            <Share2 className="mt-1 size-4 shrink-0 text-cyan-700" />
+            <span>{emptyStudioCopy.shareHint}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function renderRecentPostsPanel(options?: {
     compact?: boolean;
     hideManageLink?: boolean;
@@ -4187,7 +4297,7 @@ export function CreatorContentStudioPage({
         ) : state.error && state.posts.length === 0 ? (
           <MessageCard tone="error">{state.error}</MessageCard>
         ) : posts.length === 0 ? (
-          <MessageCard>{contentCopy.labels.feedEmpty}</MessageCard>
+          renderEmptyPostsGuide()
         ) : (
           <div className="mt-4 space-y-3">
             <div className="rounded-[24px] border border-slate-900/10 bg-[linear-gradient(135deg,#020617_0%,#0f172a_58%,#155e75_100%)] p-4 text-white shadow-[0_20px_48px_rgba(15,23,42,0.24)]">
