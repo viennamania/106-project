@@ -236,10 +236,12 @@ export function NetworkFeedPage({
   dictionary,
   locale,
   referralCode = null,
+  returnToHref = null,
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
+  returnToHref?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
@@ -247,6 +249,13 @@ export function NetworkFeedPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
+  const feedHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/network-feed`, referralCode),
+    {
+      returnTo: returnToHref,
+    },
+  );
+  const backHref = returnToHref ?? homeHref;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const hasReferralCode = Boolean(referralCode);
   const isWalletConnected = status === "connected" && Boolean(accountAddress);
@@ -797,7 +806,7 @@ export function NetworkFeedPage({
           <div className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-slate-950 transition hover:bg-slate-100"
-              href={homeHref}
+              href={backHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -876,6 +885,7 @@ export function NetworkFeedPage({
                   onOpenDetail={saveFeedSnapshot}
                   onSocialChange={updateItemSocial}
                   priority={index < 2}
+                  returnToHref={feedHref}
                   referralCode={referralCode}
                   showNetworkLevel={!isPublicReferralFeed}
                   viewDetailLabel={contentCopy.actions.viewDetail}
@@ -998,6 +1008,7 @@ function SocialFeedPost({
   onSocialChange,
   priority,
   referralCode,
+  returnToHref,
   showNetworkLevel,
   viewDetailLabel,
 }: {
@@ -1014,6 +1025,7 @@ function SocialFeedPost({
   ) => void;
   priority: boolean;
   referralCode: string | null;
+  returnToHref: string;
   showNetworkLevel: boolean;
   viewDetailLabel: string;
 }) {
@@ -1040,11 +1052,10 @@ function SocialFeedPost({
     item.summary.length > 96
       ? `${item.summary.slice(0, 96).trimEnd()}...`
       : item.summary;
-  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const href = setPathSearchParams(
     buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
     {
-      returnTo: feedHref,
+      returnTo: returnToHref,
     },
   );
   const bridgeHref = buildPathWithReferral(
