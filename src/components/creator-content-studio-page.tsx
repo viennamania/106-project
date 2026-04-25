@@ -3150,21 +3150,7 @@ export function CreatorContentStudioPage({
               rows={3}
               value={automation.form.allowedDomains}
             />
-            <div className="grid gap-4 sm:grid-cols-3">
-              <InputField
-                hint={contentCopy.hints.automationMaxPostsPerDay}
-                label={contentCopy.fields.automationMaxPostsPerDay}
-                onChange={(value) => {
-                  setAutomation((current) => ({
-                    ...current,
-                    form: {
-                      ...current.form,
-                      maxPostsPerDay: value,
-                    },
-                  }));
-                }}
-                value={automation.form.maxPostsPerDay}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
               <InputField
                 hint={contentCopy.hints.automationMinIntervalMinutes}
                 label={contentCopy.fields.automationMinIntervalMinutes}

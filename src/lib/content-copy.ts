@@ -46,7 +46,6 @@ export type ContentCopy = {
   fields: {
     avatarImage: string;
     automationAllowedDomains: string;
-    automationMaxPostsPerDay: string;
     automationMinIntervalMinutes: string;
     automationPersonaName: string;
     automationPersonaPrompt: string;
@@ -66,7 +65,6 @@ export type ContentCopy = {
   hints: {
     avatarImage: string;
     automationAllowedDomains: string;
-    automationMaxPostsPerDay: string;
     automationMinIntervalMinutes: string;
     automationPersonaName: string;
     automationPersonaPrompt: string;
@@ -216,7 +214,6 @@ const englishCopy: ContentCopy = {
   fields: {
     avatarImage: "Avatar image",
     automationAllowedDomains: "Allowed domains",
-    automationMaxPostsPerDay: "Daily post limit",
     automationMinIntervalMinutes: "Minimum interval (minutes)",
     automationPersonaName: "Automation persona name",
     automationPersonaPrompt: "Automation persona prompt",
@@ -237,7 +234,6 @@ const englishCopy: ContentCopy = {
     avatarImage:
       "Square PNG, JPG, or WEBP up to 4MB. It appears on the content detail header as your creator avatar.",
     automationAllowedDomains: "Comma-separated domains. Leave empty to let web search choose public sources broadly.",
-    automationMaxPostsPerDay: "Keep this low while testing.",
     automationMinIntervalMinutes: "Minimum time between successful automated posts.",
     automationPersonaName: "Used as the visible AI editor persona for this creator.",
     automationPersonaPrompt: "Rules for tone, audience, and what the AI editor should avoid.",
@@ -400,7 +396,6 @@ const koreanCopy: ContentCopy = {
   fields: {
     avatarImage: "아바타 이미지",
     automationAllowedDomains: "허용 도메인",
-    automationMaxPostsPerDay: "하루 최대 발행 수",
     automationMinIntervalMinutes: "최소 간격(분)",
     automationPersonaName: "자동화 페르소나 이름",
     automationPersonaPrompt: "자동화 페르소나 프롬프트",
@@ -421,7 +416,6 @@ const koreanCopy: ContentCopy = {
     avatarImage:
       "정사각형 PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드하세요. 콘텐츠 상세 상단의 크리에이터 아바타로 표시됩니다.",
     automationAllowedDomains: "쉼표로 구분해서 입력하세요. 비워두면 공개 웹 소스를 넓게 탐색합니다.",
-    automationMaxPostsPerDay: "테스트 단계에서는 낮게 유지하는 편이 좋습니다.",
     automationMinIntervalMinutes: "자동 생성이 성공한 뒤 다음 자동 생성까지 최소 간격입니다.",
     automationPersonaName: "이 크리에이터를 대신 운영하는 AI 에디터 이름입니다.",
     automationPersonaPrompt: "톤, 금지 표현, 대상 독자, 다뤄야 할 방식 등을 적어주세요.",

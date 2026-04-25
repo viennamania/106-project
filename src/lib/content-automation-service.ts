@@ -854,24 +854,6 @@ async function enforceAutomationCadence(
   profile: CreatorAutomationProfileDocument,
 ) {
   const jobsCollection = await getContentAutomationJobsCollection();
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const publishedToday = await jobsCollection.countDocuments({
-    createdAt: { $gte: since },
-    memberEmail,
-    outputStatus: "published",
-    status: "completed",
-  });
-
-  if (publishedToday >= profile.maxPostsPerDay) {
-    throw new Error(
-      getAutomationLocaleMessage(
-        profile.language,
-        `오늘 자동 게시 한도(${profile.maxPostsPerDay}회)에 도달했습니다. 내일 다시 실행하거나 하루 최대 발행 수를 조정해 주세요.`,
-        `Daily automation posting limit (${profile.maxPostsPerDay}) has been reached. Run it tomorrow or raise the daily limit.`,
-      ),
-    );
-  }
-
   const latestJob = await jobsCollection.findOne(
     {
       memberEmail,
@@ -1254,8 +1236,8 @@ export async function runContentAutomationForMember(
       12,
       getAutomationLocaleMessage(
         storedProfile.language,
-        "하루 발행 한도와 최소 실행 간격을 확인하고 있습니다.",
-        "Checking the daily publish limit and minimum run interval.",
+        "최소 실행 간격을 확인하고 있습니다.",
+        "Checking the minimum run interval.",
       ),
     );
     await enforceAutomationCadence(member.email, storedProfile);
