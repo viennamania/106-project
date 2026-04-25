@@ -957,59 +957,82 @@ async function getContentSocialSummaries(
   const normalizedViewerEmail = viewerEmail ? normalizeEmail(viewerEmail) : "";
   const socialActionsCollection = await getContentSocialActionsCollection();
   const commentsCollection = await getContentCommentsCollection();
-  const [actionCounts, commentCounts, viewerActions] = await Promise.all([
-    socialActionsCollection
-      .aggregate<{
-        _id: string;
-        likeCount: number;
-        saveCount: number;
-      }>([
-        {
-          $match: {
-            contentId: { $in: uniqueContentIds },
-          },
-        },
-        {
-          $group: {
-            _id: "$contentId",
-            likeCount: {
-              $sum: {
-                $cond: ["$liked", 1, 0],
-              },
-            },
-            saveCount: {
-              $sum: {
-                $cond: ["$saved", 1, 0],
-              },
+  const ordersCollection = await getContentOrdersCollection();
+  const [actionCounts, commentCounts, paidOrderSummaries, viewerActions] =
+    await Promise.all([
+      socialActionsCollection
+        .aggregate<{
+          _id: string;
+          likeCount: number;
+          saveCount: number;
+        }>([
+          {
+            $match: {
+              contentId: { $in: uniqueContentIds },
             },
           },
-        },
-      ])
-      .toArray(),
-    commentsCollection
-      .aggregate<{ _id: string; count: number }>([
-        {
-          $match: {
-            contentId: { $in: uniqueContentIds },
+          {
+            $group: {
+              _id: "$contentId",
+              likeCount: {
+                $sum: {
+                  $cond: ["$liked", 1, 0],
+                },
+              },
+              saveCount: {
+                $sum: {
+                  $cond: ["$saved", 1, 0],
+                },
+              },
+            },
           },
-        },
-        {
-          $group: {
-            _id: "$contentId",
-            count: { $sum: 1 },
+        ])
+        .toArray(),
+      commentsCollection
+        .aggregate<{ _id: string; count: number }>([
+          {
+            $match: {
+              contentId: { $in: uniqueContentIds },
+            },
           },
-        },
-      ])
-      .toArray(),
-    normalizedViewerEmail
-      ? socialActionsCollection
-          .find({
-            contentId: { $in: uniqueContentIds },
-            memberEmail: normalizedViewerEmail,
-          })
-          .toArray()
-      : Promise.resolve([]),
-  ]);
+          {
+            $group: {
+              _id: "$contentId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      ordersCollection
+        .aggregate<{
+          _id: string;
+          amountUsdts: string[];
+          buyerEmails: string[];
+        }>([
+          {
+            $match: {
+              contentId: { $in: uniqueContentIds },
+              status: "confirmed",
+            },
+          },
+          {
+            $group: {
+              _id: "$contentId",
+              amountUsdts: { $push: "$amountUsdt" },
+              buyerEmails: { $addToSet: "$buyerEmail" },
+            },
+          },
+        ])
+        .toArray(),
+      normalizedViewerEmail
+        ? socialActionsCollection
+            .find({
+              contentId: { $in: uniqueContentIds },
+              memberEmail: normalizedViewerEmail,
+            })
+            .toArray()
+        : Promise.resolve([]),
+    ]);
 
   for (const count of actionCounts) {
     const current =
@@ -1027,6 +1050,21 @@ async function getContentSocialSummaries(
     summaries.set(count._id, {
       ...current,
       commentCount: count.count,
+    });
+  }
+
+  for (const summary of paidOrderSummaries) {
+    const current =
+      summaries.get(summary._id) ?? createEmptyContentSocialSummary();
+    const paidTotalUsdt = summary.amountUsdts.reduce(
+      (total, amount) => addDecimalStrings(total, amount),
+      "0",
+    );
+
+    summaries.set(summary._id, {
+      ...current,
+      paidBuyerCount: summary.buyerEmails.length,
+      paidTotalUsdt,
     });
   }
 

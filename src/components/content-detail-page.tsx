@@ -20,7 +20,10 @@ import {
   Heart,
   LoaderCircle,
   LockKeyhole,
+  MessageCircle,
+  RefreshCw,
   Share2,
+  Send,
   X,
 } from "lucide-react";
 import {
@@ -37,6 +40,9 @@ import { getUserEmail } from "thirdweb/wallets/in-app";
 import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
+  ContentCommentCreateResponse,
+  ContentCommentRecord,
+  ContentCommentsResponse,
   ContentDetailRecord,
   ContentDetailLoadResponse,
   ContentDetailResponse,
@@ -85,6 +91,24 @@ type LikeBurst = {
   id: number;
   x: number;
   y: number;
+};
+
+type CommentsStatus = "idle" | "loading" | "ready" | "submitting" | "error";
+
+type ContentDetailCommentCopy = {
+  completeSignup: string;
+  countSuffix: string;
+  eyebrow: string;
+  helper: string;
+  loadFailed: string;
+  loading: string;
+  noComments: string;
+  post: string;
+  refresh: string;
+  signInRequired: string;
+  submitFailed: string;
+  title: string;
+  writePlaceholder: string;
 };
 
 type ContentLockedTeaser = {
@@ -152,6 +176,19 @@ function formatDateTime(value: string | null, locale: Locale) {
   }).format(date);
 }
 
+function formatCommentDateTime(value: string, locale: Locale) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 function formatAddressLabel(address?: string | null) {
   const trimmed = address?.trim();
 
@@ -188,6 +225,38 @@ export function ContentDetailPage({
   shareId?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
+  const commentCopy: ContentDetailCommentCopy =
+    locale === "ko"
+      ? {
+          completeSignup: "가입 완료 후 댓글 쓰기",
+          countSuffix: "댓글",
+          eyebrow: "Conversation",
+          helper: "댓글은 공개로 보이며, 작성은 가입 완료 회원만 가능합니다.",
+          loadFailed: "댓글을 불러오지 못했습니다.",
+          loading: "댓글을 불러오는 중",
+          noComments: "아직 댓글이 없습니다.",
+          post: "게시",
+          refresh: "새로고침",
+          signInRequired: "댓글을 작성하려면 가입을 완료해야 합니다.",
+          submitFailed: "댓글을 등록하지 못했습니다.",
+          title: "댓글",
+          writePlaceholder: "댓글 달기...",
+        }
+      : {
+          completeSignup: "Complete signup to comment",
+          countSuffix: "comments",
+          eyebrow: "Conversation",
+          helper: "Comments are public. Posting is available after signup.",
+          loadFailed: "Failed to load comments.",
+          loading: "Loading comments",
+          noComments: "No comments yet.",
+          post: "Post",
+          refresh: "Refresh",
+          signInRequired: "Complete signup to write a comment.",
+          submitFailed: "Failed to post comment.",
+          title: "Comments",
+          writePlaceholder: "Add a comment...",
+        };
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
@@ -234,6 +303,11 @@ export function ContentDetailPage({
   const [isLiked, setIsLiked] = useState(false);
   const [likeBursts, setLikeBursts] = useState<LikeBurst[]>([]);
   const [shareUrl, setShareUrl] = useState("");
+  const [comments, setComments] = useState<ContentCommentRecord[]>([]);
+  const [commentsStatus, setCommentsStatus] = useState<CommentsStatus>("idle");
+  const [commentsError, setCommentsError] = useState<string | null>(null);
+  const [commentBody, setCommentBody] = useState("");
+  const [commentCount, setCommentCount] = useState(0);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const isDisconnected = status !== "connected" || !accountAddress;
@@ -456,6 +530,7 @@ export function ContentDetailPage({
     state.gateReason === "connect" ||
     state.gateReason === "signup" ||
     state.member?.status !== "completed";
+  const canWriteComment = !isDisconnected && state.member?.status === "completed";
   const requiresMembershipGate =
     !state.content &&
     (isDisconnected ||
@@ -549,6 +624,142 @@ export function ContentDetailPage({
 
     await copyShareLink(nextShareUrl);
   }, [contentId, copyShareLink, heroSummary, heroTitle, shareReferralCode, shareUrl]);
+
+  const loadComments = useCallback(async () => {
+    if (!heroTitle) {
+      return;
+    }
+
+    setCommentsError(null);
+    setCommentsStatus("loading");
+
+    try {
+      const searchParams = new URLSearchParams();
+
+      if (!isDisconnected && accountAddress) {
+        try {
+          const email = await getUserEmail({ client: thirdwebClient });
+
+          if (email) {
+            searchParams.set("email", email);
+            searchParams.set("walletAddress", accountAddress);
+          }
+        } catch {}
+      }
+
+      const query = searchParams.toString();
+      const response = await fetch(
+        `/api/content/posts/${encodeURIComponent(contentId)}/comments${query ? `?${query}` : ""}`,
+      );
+      const data = (await response.json()) as
+        | ContentCommentsResponse
+        | { error?: string };
+
+      if (!response.ok || !("comments" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : commentCopy.loadFailed,
+        );
+      }
+
+      setComments(data.comments);
+      setCommentCount(data.social.commentCount);
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsError(
+        error instanceof Error ? error.message : commentCopy.loadFailed,
+      );
+      setCommentsStatus("error");
+    }
+  }, [
+    accountAddress,
+    commentCopy.loadFailed,
+    contentId,
+    heroTitle,
+    isDisconnected,
+  ]);
+
+  useEffect(() => {
+    if (!heroTitle) {
+      setComments([]);
+      setCommentsError(null);
+      setCommentsStatus("idle");
+      setCommentBody("");
+      setCommentCount(0);
+      return;
+    }
+
+    void loadComments();
+  }, [contentId, heroTitle, loadComments]);
+
+  const submitComment = useCallback(async () => {
+    const body = commentBody.trim();
+
+    if (!body) {
+      return;
+    }
+
+    if (isDisconnected || state.member?.status !== "completed" || !accountAddress) {
+      setCommentsError(commentCopy.signInRequired);
+      return;
+    }
+
+    setCommentsStatus("submitting");
+    setCommentsError(null);
+
+    try {
+      const email = await getUserEmail({ client: thirdwebClient });
+
+      if (!email) {
+        throw new Error(dictionary.member.errors.missingEmail);
+      }
+
+      const response = await fetch(
+        `/api/content/posts/${encodeURIComponent(contentId)}/comments`,
+        {
+          body: JSON.stringify({
+            body,
+            email,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+      );
+      const data = (await response.json()) as
+        | ContentCommentCreateResponse
+        | { error?: string };
+
+      if (!response.ok || !("comment" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : commentCopy.submitFailed,
+        );
+      }
+
+      setComments((current) => [
+        data.comment,
+        ...current.filter((comment) => comment.commentId !== data.comment.commentId),
+      ]);
+      setCommentCount(data.social.commentCount);
+      setCommentBody("");
+      setCommentsStatus("ready");
+    } catch (error) {
+      setCommentsError(
+        error instanceof Error ? error.message : commentCopy.submitFailed,
+      );
+      setCommentsStatus("error");
+    }
+  }, [
+    accountAddress,
+    commentBody,
+    commentCopy.signInRequired,
+    commentCopy.submitFailed,
+    contentId,
+    dictionary.member.errors.missingEmail,
+    isDisconnected,
+    state.member?.status,
+  ]);
 
   const ensurePaidUnlockOrder = useCallback(async () => {
     if (
@@ -950,6 +1161,27 @@ export function ContentDetailPage({
             primaryMessage={contentCopy.messages.paymentRequired}
             secondaryMessage={contentCopy.messages.connectRequired}
           />
+          {heroTitle ? (
+            <ContentCommentsSection
+              activateHref={activateHref}
+              canWrite={canWriteComment}
+              commentBody={commentBody}
+              comments={comments}
+              commentsError={commentsError}
+              commentsStatus={commentsStatus}
+              copy={commentCopy}
+              count={commentCount}
+              locale={locale}
+              onCommentBodyChange={setCommentBody}
+              onRefresh={() => {
+                void loadComments();
+              }}
+              onSignupClick={trackSignupCtaClick}
+              onSubmit={() => {
+                void submitComment();
+              }}
+            />
+          ) : null}
         </div>
       ) : state.error && !state.content ? (
         <MessageCard tone="error">
@@ -1218,6 +1450,26 @@ export function ContentDetailPage({
             ) : null}
           </section>
 
+          <ContentCommentsSection
+            activateHref={activateHref}
+            canWrite={canWriteComment}
+            commentBody={commentBody}
+            comments={comments}
+            commentsError={commentsError}
+            commentsStatus={commentsStatus}
+            copy={commentCopy}
+            count={commentCount}
+            locale={locale}
+            onCommentBodyChange={setCommentBody}
+            onRefresh={() => {
+              void loadComments();
+            }}
+            onSignupClick={trackSignupCtaClick}
+            onSubmit={() => {
+              void submitComment();
+            }}
+          />
+
           {state.content.sources.length > 0 ? (
             <section className="rounded-[28px] border border-slate-200 bg-slate-50/92 p-4 sm:rounded-[32px] sm:p-5">
               <p className="eyebrow">{contentCopy.labels.references}</p>
@@ -1413,6 +1665,186 @@ export function ContentDetailPage({
         </div>
       ) : null}
     </main>
+  );
+}
+
+function ContentCommentsSection({
+  activateHref,
+  canWrite,
+  commentBody,
+  comments,
+  commentsError,
+  commentsStatus,
+  copy,
+  count,
+  locale,
+  onCommentBodyChange,
+  onRefresh,
+  onSignupClick,
+  onSubmit,
+}: {
+  activateHref: string;
+  canWrite: boolean;
+  commentBody: string;
+  comments: ContentCommentRecord[];
+  commentsError: string | null;
+  commentsStatus: CommentsStatus;
+  copy: ContentDetailCommentCopy;
+  count: number;
+  locale: Locale;
+  onCommentBodyChange: (value: string) => void;
+  onRefresh: () => void;
+  onSignupClick: () => void;
+  onSubmit: () => void;
+}) {
+  const isBusy = commentsStatus === "loading" || commentsStatus === "submitting";
+  const countLabel = `${count.toLocaleString(locale)} ${copy.countSuffix}`;
+
+  return (
+    <section className="rounded-[28px] border border-white/80 bg-white/95 p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+            <MessageCircle className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-slate-400">
+              {copy.eyebrow}
+            </p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+              {copy.title}
+            </h2>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
+            {countLabel}
+          </span>
+          <button
+            aria-label={copy.refresh}
+            className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isBusy}
+            onClick={onRefresh}
+            type="button"
+          >
+            <RefreshCw
+              className={cn("size-4", commentsStatus === "loading" ? "animate-spin" : "")}
+            />
+          </button>
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm leading-6 text-slate-500">{copy.helper}</p>
+
+      <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-3 sm:p-4">
+        {commentsStatus === "loading" && comments.length === 0 ? (
+          <div className="flex items-center justify-center gap-2 py-9 text-sm font-medium text-slate-500">
+            <LoaderCircle className="size-4 animate-spin" />
+            {copy.loading}
+          </div>
+        ) : commentsError && comments.length === 0 ? (
+          <div className="rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700">
+            {commentsError}
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="rounded-[20px] border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+            {copy.noComments}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div className="flex gap-3" key={comment.commentId}>
+                <ContentCommentAvatar
+                  imageUrl={comment.authorAvatarImageUrl}
+                  label={comment.authorDisplayName}
+                />
+                <div className="min-w-0 flex-1 rounded-[20px] bg-white px-3.5 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="text-sm font-semibold text-slate-950">
+                      {comment.authorDisplayName}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {formatCommentDateTime(comment.createdAt, locale)}
+                    </p>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+                    {comment.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {commentsError && comments.length > 0 ? (
+          <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
+            {commentsError}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-3 rounded-[24px] border border-slate-200 bg-white p-2 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
+        {canWrite ? (
+          <div className="flex items-end gap-2">
+            <textarea
+              className="max-h-28 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400"
+              maxLength={500}
+              onChange={(event) => {
+                onCommentBodyChange(event.target.value);
+              }}
+              placeholder={copy.writePlaceholder}
+              rows={1}
+              value={commentBody}
+            />
+            <button
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={!commentBody.trim() || commentsStatus === "submitting"}
+              onClick={onSubmit}
+              type="button"
+            >
+              {commentsStatus === "submitting" ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Send className="size-4" />
+              )}
+              <span className="sr-only">{copy.post}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 px-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-6 text-slate-500">{copy.signInRequired}</p>
+            <Link
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)] transition hover:bg-slate-900"
+              href={activateHref}
+              onClick={onSignupClick}
+            >
+              {copy.completeSignup}
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ContentCommentAvatar({
+  imageUrl,
+  label,
+}: {
+  imageUrl: string | null;
+  label: string;
+}) {
+  const initial = label.trim().slice(0, 1).toUpperCase() || "?";
+
+  return (
+    <span className="inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-600">
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img alt={label} className="h-full w-full object-cover" src={imageUrl} />
+      ) : (
+        initial
+      )}
+    </span>
   );
 }
 

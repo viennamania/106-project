@@ -184,6 +184,8 @@ export type ContentSocialSummaryRecord = {
   hiddenByViewer: boolean;
   likeCount: number;
   likedByViewer: boolean;
+  paidBuyerCount: number;
+  paidTotalUsdt: string;
   saveCount: number;
   savedByViewer: boolean;
 };
@@ -522,6 +524,8 @@ export function createEmptyContentSocialSummary(
     hiddenByViewer: false,
     likeCount: 0,
     likedByViewer: false,
+    paidBuyerCount: 0,
+    paidTotalUsdt: "0",
     saveCount: 0,
     savedByViewer: false,
     ...overrides,

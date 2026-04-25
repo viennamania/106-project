@@ -20,6 +20,7 @@ import {
   Bookmark,
   Check,
   ChevronRight,
+  Coins,
   Copy,
   EyeOff,
   ExternalLink,
@@ -32,7 +33,9 @@ import {
   RefreshCcw,
   Rss,
   Send,
+  TrendingUp,
   UserPlus,
+  Users,
   X,
 } from "lucide-react";
 import {
@@ -115,6 +118,8 @@ type InitialPublicFeed = {
   nextCursor: string | null;
 } | null;
 
+type PaidProofTier = "new" | "proven" | "hot";
+
 const FEED_RESTORE_VERSION = 3;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
@@ -143,6 +148,32 @@ function formatDate(value: string, locale: Locale) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
   }).format(date);
+}
+
+function formatUsdtAmountLabel(value: string | null | undefined, locale: Locale) {
+  const parsed = Number(value ?? "0");
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "0";
+  }
+
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
+
+function getPaidProofTier(social: ContentSocialSummaryRecord): PaidProofTier {
+  const paidTotal = Number(social.paidTotalUsdt);
+
+  if ((Number.isFinite(paidTotal) && paidTotal >= 10) || social.paidBuyerCount >= 10) {
+    return "hot";
+  }
+
+  if ((Number.isFinite(paidTotal) && paidTotal > 0) || social.paidBuyerCount > 0) {
+    return "proven";
+  }
+
+  return "new";
 }
 
 function readStoredFlag(key: string) {
@@ -1390,6 +1421,10 @@ function SocialFeedPost({
           noComments: "아직 댓글이 없습니다.",
           openPost: "게시물 열기",
           openComments: "댓글 보기",
+          paidBuyers: "결제 회원",
+          paidProofHot: "많이 결제된 유료 콘텐츠",
+          paidProofNew: "유료 전체보기",
+          paidProofProven: "결제 검증된 유료 콘텐츠",
           postComment: "게시",
           readMore: "더 보기",
           saved: "저장했습니다.",
@@ -1399,9 +1434,11 @@ function SocialFeedPost({
           sharing: "공유 중",
           signInRequired: "지갑 연결 후 사용할 수 있습니다.",
           submitCommentFailed: "댓글을 등록하지 못했습니다.",
+          totalPaid: "누적 결제",
           unsavePost: "저장 취소",
           unsaved: "저장을 취소했습니다.",
           undo: "되돌리기",
+          unlockAfterPayment: "결제 후 전체 콘텐츠를 계속 볼 수 있습니다.",
           viewFullPost: "본문 전체 보기",
           writeComment: "댓글 달기...",
         }
@@ -1418,6 +1455,10 @@ function SocialFeedPost({
           noComments: "No comments yet.",
           openPost: "Open post",
           openComments: "View comments",
+          paidBuyers: "paid members",
+          paidProofHot: "Top paid content",
+          paidProofNew: "Paid full access",
+          paidProofProven: "Payment-proven content",
           postComment: "Post",
           readMore: "more",
           saved: "Saved.",
@@ -1427,12 +1468,25 @@ function SocialFeedPost({
           sharing: "Sharing",
           signInRequired: "Connect your wallet to use this.",
           submitCommentFailed: "Failed to post comment.",
+          totalPaid: "Total paid",
           unsavePost: "Unsave",
           unsaved: "Removed from saved.",
           undo: "Undo",
+          unlockAfterPayment: "Unlock once and keep access to the full content.",
           viewFullPost: "View full post",
           writeComment: "Add a comment...",
         };
+  const paidProofTier = isPaidContent ? getPaidProofTier(social) : "new";
+  const paidTotalLabel = formatUsdtAmountLabel(social.paidTotalUsdt, locale);
+  const paidBuyerLabel = social.paidBuyerCount.toLocaleString(locale);
+  const paidProofTitle =
+    paidProofTier === "hot"
+      ? actionCopy.paidProofHot
+      : paidProofTier === "proven"
+        ? actionCopy.paidProofProven
+        : actionCopy.paidProofNew;
+  const hasPaidProof =
+    social.paidBuyerCount > 0 || Number(social.paidTotalUsdt) > 0;
 
   const clearMediaOpenTimeout = useCallback(() => {
     if (mediaOpenTimeoutRef.current === null) {
@@ -2043,6 +2097,16 @@ function SocialFeedPost({
             {priceLabel}
           </span>
         ) : null}
+        {isPaidContent && hasPaidProof ? (
+          <span className="pointer-events-none absolute bottom-3 left-3 inline-flex max-w-[calc(100%-4.5rem)] items-center gap-1.5 rounded-full border border-amber-200/50 bg-amber-300/92 px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.22)] backdrop-blur-md">
+            <TrendingUp className="size-3.5" />
+            <span className="truncate">
+              {locale === "ko"
+                ? `누적 ${paidTotalLabel} USDT`
+                : `${paidTotalLabel} USDT paid`}
+            </span>
+          </span>
+        ) : null}
       </div>
 
       <div className="px-3 pb-4 pt-3">
@@ -2145,6 +2209,59 @@ function SocialFeedPost({
             </button>
           ) : null}
         </div>
+
+        {isPaidContent ? (
+          <div
+            className={`mt-3 overflow-hidden rounded-2xl border ${
+              paidProofTier === "hot"
+                ? "border-amber-300 bg-[linear-gradient(135deg,#fff7ed_0%,#fef3c7_48%,#ffffff_100%)] shadow-[0_16px_34px_rgba(217,119,6,0.16)]"
+                : paidProofTier === "proven"
+                  ? "border-amber-200 bg-amber-50/88 shadow-[0_12px_28px_rgba(217,119,6,0.08)]"
+                  : "border-slate-200 bg-slate-50/85"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span
+                  className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full ${
+                    paidProofTier === "new"
+                      ? "bg-slate-950 text-white"
+                      : "bg-amber-400 text-slate-950"
+                  }`}
+                >
+                  <Coins className="size-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-950">
+                    {paidProofTitle}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-slate-600">
+                    {hasPaidProof
+                      ? `${actionCopy.totalPaid} ${paidTotalLabel} USDT`
+                      : actionCopy.unlockAfterPayment}
+                  </p>
+                </div>
+              </div>
+              {hasPaidProof ? (
+                <div className="flex shrink-0 items-center gap-1.5 text-right">
+                  <Users className="size-3.5 text-slate-500" />
+                  <div>
+                    <p className="text-sm font-bold text-slate-950">
+                      {paidBuyerLabel}
+                    </p>
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      {actionCopy.paidBuyers}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.06)]">
+                  {priceLabel}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           <Pill tone={isPaidContent ? "paid" : "neutral"}>
