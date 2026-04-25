@@ -23,6 +23,7 @@ import {
   type ContentEntitlementDocument,
   type ContentFeedItemRecord,
   type ContentFeedResponse,
+  type ContentFeedView,
   type ContentOrderCreateRequest,
   type ContentOrderCreateResponse,
   type ContentOrderDocument,
@@ -37,6 +38,7 @@ import {
   type ContentSellerWalletBalanceRecord,
   type ContentSellerWithdrawalRequest,
   type ContentSellerWithdrawalResponse,
+  type ContentSocialActionDocument,
   type ContentSocialResponse,
   type ContentSocialSummaryRecord,
   type CreatorProfileDocument,
@@ -95,6 +97,11 @@ type NetworkFeedCursor = {
 type NetworkFeedQueryOptions = {
   cursor?: string | null;
   viewerEmail?: string | null;
+};
+
+type ContentFeedActivityCursor = {
+  contentId: string;
+  sortAt: string;
 };
 
 const PROFILE_DISPLAY_NAME_LIMIT = 40;
@@ -156,6 +163,45 @@ function decodeNetworkFeedCursor(cursor?: string | null) {
       contentId: parsed.contentId,
       createdAt,
       publishedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function encodeContentFeedActivityCursor({
+  contentId,
+  sortAt,
+}: {
+  contentId: string;
+  sortAt: Date;
+}) {
+  const cursor: ContentFeedActivityCursor = {
+    contentId,
+    sortAt: sortAt.toISOString(),
+  };
+
+  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+}
+
+function decodeContentFeedActivityCursor(cursor?: string | null) {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(cursor, "base64url").toString("utf8"),
+    ) as Partial<ContentFeedActivityCursor>;
+    const sortAt = parsed.sortAt ? new Date(parsed.sortAt) : null;
+
+    if (!parsed.contentId || !sortAt || Number.isNaN(sortAt.getTime())) {
+      return null;
+    }
+
+    return {
+      contentId: parsed.contentId,
+      sortAt,
     };
   } catch {
     return null;
@@ -501,18 +547,87 @@ async function resolveNetworkAncestorsFromReferralCode(referralCode: string) {
   return ancestors;
 }
 
-async function loadNetworkFeedItemsFromAncestors(
-  ancestors: NetworkAncestor[],
-  locale: Locale,
-  options?: NetworkFeedQueryOptions,
-) {
-  const levelByReferralCode = new Map<string, number>();
+function getPublishedContentLocaleFilter(locale: Locale): Filter<ContentPostDocument> {
   const contentLocale = normalizeContentLocale(locale);
+
+  return contentLocale === defaultLocale
+    ? {
+        $or: [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ],
+      }
+    : { locale: contentLocale };
+}
+
+async function buildFeedItemsFromPosts({
+  ancestors,
+  posts,
+  viewerEmail,
+}: {
+  ancestors: NetworkAncestor[];
+  posts: ContentPostDocument[];
+  viewerEmail?: string | null;
+}) {
+  const creatorProfilesCollection = await getCreatorProfilesCollection();
+  const levelByReferralCode = new Map<string, number>();
 
   for (const ancestor of ancestors) {
     levelByReferralCode.set(ancestor.referralCode, ancestor.level);
   }
 
+  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
+  const storedProfiles = authorEmails.length
+    ? await creatorProfilesCollection
+        .find({
+          email: { $in: authorEmails },
+        })
+        .toArray()
+    : [];
+  const storedProfileByEmail = new Map(
+    storedProfiles.map((profile) => [profile.email, profile]),
+  );
+  const ancestorByEmail = new Map(
+    ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
+  );
+  const socialByContentId = await getContentSocialSummaries(
+    posts.map((post) => post.contentId),
+    viewerEmail,
+  );
+  const purchasedContentIds = await getPurchasedContentIdsForViewer(
+    posts
+      .filter((post) => post.priceType === "paid")
+      .map((post) => post.contentId),
+    viewerEmail,
+  );
+
+  return posts.map((post) => {
+    const storedProfile = storedProfileByEmail.get(post.authorEmail);
+    const authorProfile = storedProfile
+      ? serializeCreatorProfile(storedProfile)
+      : ancestorByEmail.has(post.authorEmail)
+        ? createDefaultCreatorProfile(ancestorByEmail.get(post.authorEmail)!)
+        : null;
+
+    return buildFeedItem({
+      authorProfile,
+      canAccess:
+        post.priceType === "free" ||
+        post.authorEmail === viewerEmail ||
+        purchasedContentIds.has(post.contentId),
+      content: post,
+      networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
+      social: socialByContentId.get(post.contentId),
+    });
+  });
+}
+
+async function loadNetworkFeedItemsFromAncestors(
+  ancestors: NetworkAncestor[],
+  locale: Locale,
+  options?: NetworkFeedQueryOptions,
+) {
   if (ancestors.length === 0) {
     return {
       items: [],
@@ -521,20 +636,11 @@ async function loadNetworkFeedItemsFromAncestors(
   }
 
   const postsCollection = await getContentPostsCollection();
-  const creatorProfilesCollection = await getCreatorProfilesCollection();
   const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
   const hiddenContentIds = await getHiddenContentIdsForViewer(options?.viewerEmail);
-  const localeFilter =
-    contentLocale === defaultLocale
-      ? [
-          { locale: contentLocale },
-          { locale: { $exists: false } },
-          { locale: null },
-        ]
-      : [{ locale: contentLocale }];
   const cursor = decodeNetworkFeedCursor(options?.cursor);
   const baseFilter: Filter<ContentPostDocument> = {
-    $or: localeFilter,
+    ...getPublishedContentLocaleFilter(locale),
     authorReferralCode: { $in: referralCodes },
     status: "published",
     ...(hiddenContentIds.length > 0
@@ -573,51 +679,11 @@ async function loadNetworkFeedItemsFromAncestors(
     .toArray();
   const hasNextPage = posts.length > CONTENT_FEED_PAGE_SIZE;
   const pagePosts = hasNextPage ? posts.slice(0, CONTENT_FEED_PAGE_SIZE) : posts;
-
-  const authorEmails = [...new Set(pagePosts.map((post) => post.authorEmail))];
-  const storedProfiles = authorEmails.length
-    ? await creatorProfilesCollection
-        .find({
-          email: { $in: authorEmails },
-        })
-        .toArray()
-    : [];
-  const storedProfileByEmail = new Map(
-    storedProfiles.map((profile) => [profile.email, profile]),
-  );
-  const ancestorByEmail = new Map(
-    ancestors.map((ancestor) => [ancestor.member.email, ancestor.member]),
-  );
-  const socialByContentId = await getContentSocialSummaries(
-    pagePosts.map((post) => post.contentId),
-    options?.viewerEmail,
-  );
-  const purchasedContentIds = await getPurchasedContentIdsForViewer(
-    pagePosts
-      .filter((post) => post.priceType === "paid")
-      .map((post) => post.contentId),
-    options?.viewerEmail,
-  );
-
-  const items = pagePosts.map((post) => {
-      const storedProfile = storedProfileByEmail.get(post.authorEmail);
-      const authorProfile = storedProfile
-        ? serializeCreatorProfile(storedProfile)
-        : ancestorByEmail.has(post.authorEmail)
-          ? createDefaultCreatorProfile(ancestorByEmail.get(post.authorEmail)!)
-          : null;
-
-      return buildFeedItem({
-        authorProfile,
-        canAccess:
-          post.priceType === "free" ||
-          post.authorEmail === options?.viewerEmail ||
-          purchasedContentIds.has(post.contentId),
-        content: post,
-        networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
-        social: socialByContentId.get(post.contentId),
-      });
-    });
+  const items = await buildFeedItemsFromPosts({
+    ancestors,
+    posts: pagePosts,
+    viewerEmail: options?.viewerEmail,
+  });
 
   return {
     items,
@@ -1308,6 +1374,196 @@ export async function getPublicNetworkFeedForReferralCode(
     items: feed.items,
     nextCursor: feed.nextCursor,
   };
+}
+
+function orderPostsByContentIds(
+  posts: ContentPostDocument[],
+  contentIds: string[],
+) {
+  const postByContentId = new Map(posts.map((post) => [post.contentId, post]));
+
+  return contentIds
+    .map((contentId) => postByContentId.get(contentId))
+    .filter((post): post is ContentPostDocument => Boolean(post));
+}
+
+function buildActivityCursorFilter(
+  cursor: ReturnType<typeof decodeContentFeedActivityCursor>,
+  sortField: "grantedAt" | "updatedAt",
+) {
+  if (!cursor) {
+    return {};
+  }
+
+  return {
+    $or: [
+      { [sortField]: { $lt: cursor.sortAt } },
+      {
+        [sortField]: cursor.sortAt,
+        contentId: { $lt: cursor.contentId },
+      },
+    ],
+  };
+}
+
+export async function getSavedFeedForMember(
+  email: string,
+  locale: Locale,
+  options?: NetworkFeedQueryOptions,
+): Promise<ContentFeedResponse> {
+  const member = await getCompletedMemberOrThrow(email);
+  const ancestors = await resolveNetworkAncestors(member);
+  const visibleReferralCodes = new Set(
+    ancestors.map((ancestor) => ancestor.referralCode),
+  );
+  const cursor = decodeContentFeedActivityCursor(options?.cursor);
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const baseFilter: Filter<ContentSocialActionDocument> = {
+    hidden: { $ne: true },
+    memberEmail: member.email,
+    saved: true,
+  };
+  const filter: Filter<ContentSocialActionDocument> = cursor
+    ? {
+        $and: [
+          baseFilter,
+          buildActivityCursorFilter(cursor, "updatedAt"),
+        ],
+      }
+    : baseFilter;
+  const actions = await socialActionsCollection
+    .find(filter)
+    .sort({
+      updatedAt: -1,
+      contentId: -1,
+    })
+    .limit(CONTENT_FEED_PAGE_SIZE + 1)
+    .toArray();
+  const hasNextPage = actions.length > CONTENT_FEED_PAGE_SIZE;
+  const pageActions = hasNextPage
+    ? actions.slice(0, CONTENT_FEED_PAGE_SIZE)
+    : actions;
+  const contentIds = pageActions.map((action) => action.contentId);
+  const postsCollection = await getContentPostsCollection();
+  const posts = contentIds.length
+    ? await postsCollection
+        .find({
+          ...getPublishedContentLocaleFilter(locale),
+          contentId: { $in: contentIds },
+          status: "published",
+        })
+        .toArray()
+    : [];
+  const purchasedContentIds = await getPurchasedContentIdsForViewer(
+    contentIds,
+    member.email,
+  );
+  const visiblePosts = orderPostsByContentIds(posts, contentIds).filter(
+    (post) =>
+      post.authorEmail === member.email ||
+      visibleReferralCodes.has(post.authorReferralCode) ||
+      purchasedContentIds.has(post.contentId),
+  );
+  const items = await buildFeedItemsFromPosts({
+    ancestors,
+    posts: visiblePosts,
+    viewerEmail: member.email,
+  });
+  const lastAction = pageActions[pageActions.length - 1];
+
+  return {
+    items,
+    member: serializeMember(member),
+    nextCursor:
+      hasNextPage && lastAction
+        ? encodeContentFeedActivityCursor({
+            contentId: lastAction.contentId,
+            sortAt: lastAction.updatedAt,
+          })
+        : null,
+  };
+}
+
+export async function getPurchasedFeedForMember(
+  email: string,
+  locale: Locale,
+  options?: NetworkFeedQueryOptions,
+): Promise<ContentFeedResponse> {
+  const member = await getCompletedMemberOrThrow(email);
+  const ancestors = await resolveNetworkAncestors(member);
+  const cursor = decodeContentFeedActivityCursor(options?.cursor);
+  const entitlementsCollection = await getContentEntitlementsCollection();
+  const baseFilter: Filter<ContentEntitlementDocument> = {
+    memberEmail: member.email,
+    source: "purchase",
+  };
+  const filter: Filter<ContentEntitlementDocument> = cursor
+    ? {
+        $and: [
+          baseFilter,
+          buildActivityCursorFilter(cursor, "grantedAt"),
+        ],
+      }
+    : baseFilter;
+  const entitlements = await entitlementsCollection
+    .find(filter)
+    .sort({
+      grantedAt: -1,
+      contentId: -1,
+    })
+    .limit(CONTENT_FEED_PAGE_SIZE + 1)
+    .toArray();
+  const hasNextPage = entitlements.length > CONTENT_FEED_PAGE_SIZE;
+  const pageEntitlements = hasNextPage
+    ? entitlements.slice(0, CONTENT_FEED_PAGE_SIZE)
+    : entitlements;
+  const contentIds = pageEntitlements.map((entitlement) => entitlement.contentId);
+  const postsCollection = await getContentPostsCollection();
+  const posts = contentIds.length
+    ? await postsCollection
+        .find({
+          ...getPublishedContentLocaleFilter(locale),
+          contentId: { $in: contentIds },
+          priceType: "paid",
+          status: "published",
+        })
+        .toArray()
+    : [];
+  const items = await buildFeedItemsFromPosts({
+    ancestors,
+    posts: orderPostsByContentIds(posts, contentIds),
+    viewerEmail: member.email,
+  });
+  const lastEntitlement = pageEntitlements[pageEntitlements.length - 1];
+
+  return {
+    items,
+    member: serializeMember(member),
+    nextCursor:
+      hasNextPage && lastEntitlement
+        ? encodeContentFeedActivityCursor({
+            contentId: lastEntitlement.contentId,
+            sortAt: lastEntitlement.grantedAt,
+          })
+        : null,
+  };
+}
+
+export async function getContentFeedForMember(
+  email: string,
+  locale: Locale,
+  view: ContentFeedView,
+  options?: NetworkFeedQueryOptions,
+): Promise<ContentFeedResponse> {
+  if (view === "saved") {
+    return getSavedFeedForMember(email, locale, options);
+  }
+
+  if (view === "purchases") {
+    return getPurchasedFeedForMember(email, locale, options);
+  }
+
+  return getNetworkFeedForMember(email, locale, options);
 }
 
 export async function getCreatorStudioPostsForMember(
@@ -2095,22 +2351,26 @@ export async function getContentDetailForMember(
       throw new Error("Content not found.");
     }
 
-    const ancestors = await resolveNetworkAncestors(member);
-    const visibleReferralCodes = new Set(
-      ancestors.map((ancestor) => ancestor.referralCode),
-    );
-
-    if (!visibleReferralCodes.has(post.authorReferralCode)) {
-      throw new Error("Content is not available in your network.");
-    }
-
     if (post.priceType === "paid") {
       entitlement = await getContentEntitlementForMember(
         post.contentId,
         member.email,
       );
+    }
 
-      if (!entitlement) {
+    const hasPaidUnlock = post.priceType === "paid" && Boolean(entitlement);
+
+    if (!hasPaidUnlock) {
+      const ancestors = await resolveNetworkAncestors(member);
+      const visibleReferralCodes = new Set(
+        ancestors.map((ancestor) => ancestor.referralCode),
+      );
+
+      if (!visibleReferralCodes.has(post.authorReferralCode)) {
+        throw new Error("Content is not available in your network.");
+      }
+
+      if (post.priceType === "paid") {
         throw new Error("This content requires a paid unlock.");
       }
     }

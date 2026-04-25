@@ -17,6 +17,7 @@ export const contentCoverGenerationProgressSteps = [
 export const creatorProfileStatuses = ["active", "restricted"] as const;
 export const contentPostStatuses = ["draft", "published", "archived"] as const;
 export const contentPriceTypes = ["free", "paid"] as const;
+export const contentFeedViews = ["network", "saved", "purchases"] as const;
 export const contentAssetKinds = [
   "cover",
   "preview_image",
@@ -39,6 +40,7 @@ export const contentEntitlementSources = [
 export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
 export type ContentPostStatus = (typeof contentPostStatuses)[number];
 export type ContentPriceType = (typeof contentPriceTypes)[number];
+export type ContentFeedView = (typeof contentFeedViews)[number];
 export type ContentAssetKind = (typeof contentAssetKinds)[number];
 export type ContentOrderStatus = (typeof contentOrderStatuses)[number];
 export type ContentEntitlementSource =

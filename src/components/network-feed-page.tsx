@@ -52,6 +52,7 @@ import type {
   ContentCommentCreateResponse,
   ContentCommentRecord,
   ContentCommentsResponse,
+  ContentFeedView,
   ContentFeedItemRecord,
   ContentFeedLoadResponse,
   ContentSocialResponse,
@@ -120,7 +121,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 3;
+const FEED_RESTORE_VERSION = 4;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -200,21 +201,23 @@ function writeStoredFlag(key: string, value: boolean) {
 
 function createFeedRestoreKey({
   accountAddress,
+  feedView,
   isPublicReferralFeed,
   locale,
   referralCode,
 }: {
   accountAddress?: string | null;
+  feedView: ContentFeedView;
   isPublicReferralFeed: boolean;
   locale: Locale;
   referralCode?: string | null;
 }) {
   if (isPublicReferralFeed && referralCode) {
-    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:ref:${referralCode}`;
+    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:${feedView}:ref:${referralCode}`;
   }
 
   if (accountAddress) {
-    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:wallet:${accountAddress.toLowerCase()}`;
+    return `network-feed:${FEED_RESTORE_VERSION}:${locale}:${feedView}:wallet:${accountAddress.toLowerCase()}`;
   }
 
   return null;
@@ -280,6 +283,7 @@ function writeFeedRestoreSnapshot(
 
 export function NetworkFeedPage({
   dictionary,
+  feedView = "network",
   initialPublicFeed = null,
   locale,
   referralCode = null,
@@ -287,6 +291,7 @@ export function NetworkFeedPage({
   shareId = null,
 }: {
   dictionary: Dictionary;
+  feedView?: ContentFeedView;
   initialPublicFeed?: InitialPublicFeed;
   locale: Locale;
   referralCode?: string | null;
@@ -299,8 +304,35 @@ export function NetworkFeedPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
-  const feedHref = setPathSearchParams(
+  const feedPath =
+    feedView === "saved"
+      ? `/${locale}/network-feed/saved`
+      : feedView === "purchases"
+        ? `/${locale}/network-feed/purchases`
+        : `/${locale}/network-feed`;
+  const currentFeedHref = setPathSearchParams(
+    buildPathWithReferral(feedPath, referralCode),
+    {
+      returnTo: returnToHref,
+      shareId,
+    },
+  );
+  const networkFeedHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/network-feed`, referralCode),
+    {
+      returnTo: returnToHref,
+      shareId,
+    },
+  );
+  const savedFeedHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/network-feed/saved`, referralCode),
+    {
+      returnTo: returnToHref,
+      shareId,
+    },
+  );
+  const purchasesFeedHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/network-feed/purchases`, referralCode),
     {
       returnTo: returnToHref,
       shareId,
@@ -309,13 +341,15 @@ export function NetworkFeedPage({
   const backHref = returnToHref ?? homeHref;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const publicSignupHref = setPathSearchParams(activateHref, {
-    returnTo: feedHref,
+    returnTo: currentFeedHref,
     shareId,
   });
   const hasReferralCode = Boolean(referralCode);
-  const hasInitialPublicFeed = hasReferralCode && Boolean(initialPublicFeed);
+  const hasInitialPublicFeed =
+    feedView === "network" && hasReferralCode && Boolean(initialPublicFeed);
   const isWalletConnected = status === "connected" && Boolean(accountAddress);
   const isFeedModeResolving =
+    feedView === "network" &&
     hasReferralCode &&
     hasThirdwebClientId &&
     !hasInitialPublicFeed &&
@@ -323,6 +357,7 @@ export function NetworkFeedPage({
       status === "connecting" ||
       (status === "connected" && !accountAddress));
   const isPublicReferralFeed =
+    feedView === "network" &&
     hasReferralCode &&
     !isWalletConnected &&
     (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
@@ -338,11 +373,12 @@ export function NetworkFeedPage({
     () =>
       createFeedRestoreKey({
         accountAddress,
+        feedView,
         isPublicReferralFeed,
         locale,
         referralCode,
       }),
-    [accountAddress, isPublicReferralFeed, locale, referralCode],
+    [accountAddress, feedView, isPublicReferralFeed, locale, referralCode],
   );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const restoredFeedKeyRef = useRef<string | null>(null);
@@ -599,6 +635,7 @@ export function NetworkFeedPage({
                     ...(cursor ? { cursor } : {}),
                     email,
                     locale,
+                    view: feedView,
                     walletAddress: accountAddress,
                   }).toString()}`,
                 );
@@ -711,6 +748,7 @@ export function NetworkFeedPage({
       contentCopy.messages.memberMissing,
       contentCopy.messages.paymentRequired,
       dictionary.member.errors.missingEmail,
+      feedView,
       isPublicReferralFeed,
       locale,
       mergeItems,
@@ -899,6 +937,16 @@ export function NetworkFeedPage({
     };
   }, [isInitialLoading, isLoadingMore, loadFeed, nextCursor]);
 
+  const feedViewTitle =
+    feedView === "saved"
+      ? locale === "ko"
+        ? "저장한 피드"
+        : "Saved feed"
+      : feedView === "purchases"
+        ? locale === "ko"
+          ? "결제 완료 피드"
+          : "Paid feed"
+        : contentCopy.page.feedTitle;
   const feedHeaderDescription = isInitialLoading || isFeedModeResolving
     ? contentCopy.messages.feedLoadingTitle
     : isPublicReferralFeed
@@ -906,16 +954,54 @@ export function NetworkFeedPage({
         ? "공개 네트워크 콘텐츠"
         : "Public network content"
       : isDisconnected
-        ? locale === "ko"
-          ? "로그인 후 맞춤 피드 보기"
-          : "Sign in for your feed"
-        : state.member?.status === "completed"
+        ? feedView === "saved"
           ? locale === "ko"
-            ? "상위 네트워크 콘텐츠"
-            : "Upstream network content"
+            ? "로그인 후 저장한 피드 보기"
+            : "Sign in to view saved posts"
+          : feedView === "purchases"
+            ? locale === "ko"
+              ? "로그인 후 결제 완료 피드 보기"
+              : "Sign in to view paid posts"
+            : locale === "ko"
+              ? "로그인 후 맞춤 피드 보기"
+              : "Sign in for your feed"
+        : state.member?.status === "completed"
+          ? feedView === "saved"
+            ? locale === "ko"
+              ? "내가 다시 보려고 저장한 콘텐츠"
+              : "Posts you saved to revisit"
+            : feedView === "purchases"
+              ? locale === "ko"
+                ? "1 USDT 결제를 완료한 콘텐츠"
+                : "Content you unlocked with payment"
+              : locale === "ko"
+                ? "상위 네트워크 콘텐츠"
+                : "Upstream network content"
           : locale === "ko"
             ? "활성화 후 이용 가능"
             : "Available after activation";
+  const emptyFeedMessage =
+    feedView === "saved"
+      ? locale === "ko"
+        ? "아직 저장한 피드가 없습니다."
+        : "No saved posts yet."
+      : feedView === "purchases"
+        ? locale === "ko"
+          ? "아직 결제 완료한 피드가 없습니다."
+          : "No paid posts yet."
+        : contentCopy.labels.feedEmpty;
+  const endOfFeedMessage =
+    feedView === "saved"
+      ? locale === "ko"
+        ? "저장한 피드를 모두 확인했습니다."
+        : "End of saved feed."
+      : feedView === "purchases"
+        ? locale === "ko"
+          ? "결제 완료 피드를 모두 확인했습니다."
+          : "End of paid feed."
+        : locale === "ko"
+          ? "모든 피드를 확인했습니다."
+          : "End of feed.";
 
   return (
     <main className="min-h-screen bg-[#fafafa] text-slate-950">
@@ -947,7 +1033,7 @@ export function NetworkFeedPage({
             </Link>
             <div className="min-w-0 px-1 text-center">
               <h1 className="truncate text-[1.05rem] font-semibold leading-5 tracking-tight text-slate-950 sm:text-lg sm:leading-6">
-                {contentCopy.page.feedTitle}
+                {feedViewTitle}
               </h1>
               <p className="mt-0.5 truncate text-[0.68rem] font-medium leading-4 text-slate-500 sm:text-xs">
                 {feedHeaderDescription}
@@ -965,6 +1051,15 @@ export function NetworkFeedPage({
               <span className="sr-only">{contentCopy.actions.refresh}</span>
             </button>
           </div>
+          {!isPublicReferralFeed ? (
+            <FeedViewTabs
+              activeView={feedView}
+              locale={locale}
+              networkHref={networkFeedHref}
+              purchasesHref={purchasesFeedHref}
+              savedHref={savedFeedHref}
+            />
+          ) : null}
 
         </header>
 
@@ -1033,7 +1128,7 @@ export function NetworkFeedPage({
               ) : null}
             </MessageCard>
           ) : state.items.length === 0 ? (
-            <MessageCard>{contentCopy.labels.feedEmpty}</MessageCard>
+            <MessageCard>{emptyFeedMessage}</MessageCard>
           ) : filteredItems.length === 0 ? (
             <MessageCard>{contentCopy.messages.noFilteredFeed}</MessageCard>
           ) : (
@@ -1051,7 +1146,7 @@ export function NetworkFeedPage({
                     onOpenDetail={openContentFromFeed}
                     onSocialChange={updateItemSocial}
                     priority={index < 2}
-                    returnToHref={feedHref}
+                    returnToHref={currentFeedHref}
                     referralCode={referralCode}
                     shareId={shareId}
                     showNetworkLevel={!isPublicReferralFeed}
@@ -1072,7 +1167,7 @@ export function NetworkFeedPage({
               {isLoadingMore ? <InlineLoader /> : null}
               {!nextCursor && filteredItems.length > 0 ? (
                 <div className="px-6 py-8 text-center text-xs font-medium text-slate-400">
-                  {locale === "ko" ? "모든 피드를 확인했습니다." : "End of feed."}
+                  {endOfFeedMessage}
                 </div>
               ) : null}
             </>
@@ -1151,6 +1246,75 @@ function FeedScrollTopControl({
         </span>
       </button>
     </div>
+  );
+}
+
+function FeedViewTabs({
+  activeView,
+  locale,
+  networkHref,
+  purchasesHref,
+  savedHref,
+}: {
+  activeView: ContentFeedView;
+  locale: Locale;
+  networkHref: string;
+  purchasesHref: string;
+  savedHref: string;
+}) {
+  const tabs: Array<{
+    href: string;
+    icon: typeof Rss;
+    label: string;
+    view: ContentFeedView;
+  }> = [
+    {
+      href: networkHref,
+      icon: Rss,
+      label: locale === "ko" ? "전체" : "All",
+      view: "network",
+    },
+    {
+      href: savedHref,
+      icon: Bookmark,
+      label: locale === "ko" ? "저장됨" : "Saved",
+      view: "saved",
+    },
+    {
+      href: purchasesHref,
+      icon: Coins,
+      label: locale === "ko" ? "결제 완료" : "Paid",
+      view: "purchases",
+    },
+  ];
+
+  return (
+    <nav
+      aria-label={locale === "ko" ? "피드 보기 전환" : "Feed views"}
+      className="mt-2.5 grid grid-cols-3 gap-1.5 rounded-full border border-slate-200 bg-white/86 p-1 shadow-[0_10px_26px_rgba(15,23,42,0.05)]"
+    >
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const active = tab.view === activeView;
+
+        return (
+          <Link
+            aria-current={active ? "page" : undefined}
+            className={`inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-[0.72rem] font-semibold transition sm:text-xs ${
+              active
+                ? "bg-slate-950 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+            }`}
+            href={tab.href}
+            key={tab.view}
+            style={active ? { color: "#ffffff" } : undefined}
+          >
+            <Icon className="size-3.5 shrink-0" />
+            <span className="truncate">{tab.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 

@@ -1,9 +1,13 @@
 import type {
+  ContentFeedView,
   ContentFeedLoadResponse,
   ContentFeedResponse,
 } from "@/lib/content";
 import {
-  getNetworkFeedForMember,
+  contentFeedViews,
+} from "@/lib/content";
+import {
+  getContentFeedForMember,
   getPublicNetworkFeedForReferralCode,
 } from "@/lib/content-service";
 import { defaultLocale, hasLocale } from "@/lib/i18n";
@@ -18,6 +22,12 @@ function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
+function normalizeFeedView(value: string | null): ContentFeedView {
+  return contentFeedViews.includes(value as ContentFeedView)
+    ? (value as ContentFeedView)
+    : "network";
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
@@ -25,8 +35,9 @@ export async function GET(request: Request) {
   const rawReferralCode = url.searchParams.get("referralCode");
   const rawWalletAddress = url.searchParams.get("walletAddress");
   const rawCursor = url.searchParams.get("cursor");
+  const feedView = normalizeFeedView(url.searchParams.get("view"));
 
-  if (rawReferralCode) {
+  if (rawReferralCode && feedView === "network") {
     try {
       const response = await getPublicNetworkFeedForReferralCode(
         rawReferralCode,
@@ -65,9 +76,10 @@ export async function GET(request: Request) {
       return authorization.error;
     }
 
-    const response: ContentFeedResponse = await getNetworkFeedForMember(
+    const response: ContentFeedResponse = await getContentFeedForMember(
       authorization.normalizedEmail,
       rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,
+      feedView,
       { cursor: rawCursor },
     );
     return Response.json(response);
@@ -156,9 +168,10 @@ export async function POST(request: Request) {
       return Response.json(response);
     }
 
-    const feed = await getNetworkFeedForMember(
+    const feed = await getContentFeedForMember(
       sync.member.email,
       hasLocale(sync.member.locale) ? sync.member.locale : defaultLocale,
+      "network",
     );
     const response: ContentFeedLoadResponse = {
       items: feed.items,

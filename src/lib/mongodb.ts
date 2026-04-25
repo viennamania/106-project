@@ -882,6 +882,12 @@ export async function getContentEntitlementsCollection() {
           { unique: true },
         ),
         collection.createIndex({ memberEmail: 1, grantedAt: -1 }),
+        collection.createIndex({
+          memberEmail: 1,
+          source: 1,
+          grantedAt: -1,
+          contentId: -1,
+        }),
         collection.createIndex({ orderId: 1 }),
       ]);
 
@@ -911,6 +917,12 @@ export async function getContentSocialActionsCollection() {
         ),
         collection.createIndex({ contentId: 1, liked: 1 }),
         collection.createIndex({ contentId: 1, saved: 1 }),
+        collection.createIndex({
+          memberEmail: 1,
+          saved: 1,
+          updatedAt: -1,
+          contentId: -1,
+        }),
         collection.createIndex({ memberEmail: 1, hidden: 1, updatedAt: -1 }),
       ]);
 
