@@ -61,6 +61,7 @@ export async function generateMetadata({
         {
           alt: `${copy.meta.feedTitle} preview`,
           height: 630,
+          type: "image/png",
           url: ogImagePath,
           width: 1200,
         },
@@ -71,7 +72,15 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       description,
-      images: [ogImagePath],
+      images: [
+        {
+          alt: `${copy.meta.feedTitle} preview`,
+          height: 630,
+          type: "image/png",
+          url: ogImagePath,
+          width: 1200,
+        },
+      ],
       title,
     },
   };

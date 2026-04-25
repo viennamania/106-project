@@ -52,6 +52,10 @@ export async function generateMetadata({
   const contentCopy = getContentCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
   const activeReferralCode = experience.referralCode ?? referralCode;
+  const feedBridgeUrl = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/referral/bridge`, activeReferralCode),
+    { target: "feed" },
+  );
   const title =
     bridgeTarget === "feed"
       ? experience.branding
@@ -69,7 +73,7 @@ export async function generateMetadata({
       ? buildNetworkFeedOgImagePath({
           locale,
           referralCode: activeReferralCode,
-          version: experience.branding?.updatedAt ?? activeReferralCode ?? null,
+          version: activeReferralCode,
         })
       : buildReferralOgImagePath({
           locale,
@@ -78,7 +82,7 @@ export async function generateMetadata({
         });
   const url =
     bridgeTarget === "feed"
-      ? buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)
+      ? feedBridgeUrl
       : buildReferralLandingPath(locale, activeReferralCode);
 
   return {
@@ -95,6 +99,7 @@ export async function generateMetadata({
                 ? `${experience.branding.brandName} referral landing preview`
                 : copy.meta.title,
           height: 630,
+          type: "image/png",
           url: ogImagePath,
           width: 1200,
         },
@@ -105,7 +110,20 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       description,
-      images: [ogImagePath],
+      images: [
+        {
+          alt:
+            bridgeTarget === "feed"
+              ? `${contentCopy.meta.feedTitle} preview`
+              : experience.branding
+                ? `${experience.branding.brandName} referral landing preview`
+                : copy.meta.title,
+          height: 630,
+          type: "image/png",
+          url: ogImagePath,
+          width: 1200,
+        },
+      ],
       title,
     },
   };

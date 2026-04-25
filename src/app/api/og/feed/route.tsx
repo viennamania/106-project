@@ -18,6 +18,36 @@ export const size = {
 };
 
 const PREVIEW_ITEM_LIMIT = 3;
+const COVER_THEMES = [
+  {
+    accent: "#f97316",
+    dark: "#111827",
+    from: "#fff7ed",
+    soft: "#fed7aa",
+    to: "#0f172a",
+  },
+  {
+    accent: "#0ea5e9",
+    dark: "#082f49",
+    from: "#eff6ff",
+    soft: "#bae6fd",
+    to: "#0f172a",
+  },
+  {
+    accent: "#10b981",
+    dark: "#064e3b",
+    from: "#ecfdf5",
+    soft: "#a7f3d0",
+    to: "#0f172a",
+  },
+  {
+    accent: "#e11d48",
+    dark: "#4c0519",
+    from: "#fff1f2",
+    soft: "#fecdd3",
+    to: "#0f172a",
+  },
+] as const;
 
 function truncateText(value: string | null | undefined, maxLength: number) {
   const normalized = value?.replace(/\s+/g, " ").trim() ?? "";
@@ -49,10 +79,14 @@ function getInitials(value: string) {
   return characters.slice(0, 2).join("").toUpperCase() || "10";
 }
 
-function getCoverImageUrl(item: ContentFeedItemRecord | null) {
-  const coverImageUrl = item?.coverImageUrl?.trim();
+function getCoverTheme(seed: string | null | undefined) {
+  const normalized = seed?.trim() || "1066friend";
+  const index = Array.from(normalized).reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
 
-  return coverImageUrl || null;
+  return COVER_THEMES[index % COVER_THEMES.length];
 }
 
 function getAccessLabel(item: ContentFeedItemRecord, locale: Locale) {
@@ -66,97 +100,117 @@ function getAccessLabel(item: ContentFeedItemRecord, locale: Locale) {
 }
 
 function renderImagePanel({
-  imageUrl,
   label,
+  seed,
+  summary,
   title,
 }: {
-  imageUrl: string | null;
   label: string;
+  seed: string;
+  summary: string;
   title: string;
 }) {
+  const theme = getCoverTheme(seed);
+
   return (
     <div
       style={{
-        background: "#0f172a",
+        background: `linear-gradient(135deg, ${theme.dark} 0%, ${theme.to} 58%, ${theme.accent} 100%)`,
         borderRadius: 36,
         display: "flex",
+        flexDirection: "column",
         height: "100%",
+        justifyContent: "space-between",
         overflow: "hidden",
+        padding: 30,
         position: "relative",
         width: "100%",
       }}
     >
-      {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets.
-        <img
-          alt={title}
-          height="430"
-          src={imageUrl}
-          style={{
-            display: "flex",
-            height: "100%",
-            objectFit: "cover",
-            width: "100%",
-          }}
-          width="520"
-        />
-      ) : (
-        <div
-          style={{
-            alignItems: "center",
-            background:
-              "linear-gradient(135deg, #111827 0%, #334155 48%, #f97316 100%)",
-            color: "rgba(255,255,255,0.86)",
-            display: "flex",
-            fontSize: 108,
-            fontWeight: 800,
-            height: "100%",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          {getInitials(title)}
-        </div>
-      )}
       <div
         style={{
           background:
-            "linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.78) 100%)",
-          bottom: 0,
+            "radial-gradient(circle at top right, rgba(255,255,255,0.30), transparent 30%), radial-gradient(circle at bottom left, rgba(255,255,255,0.16), transparent 34%)",
+          inset: 0,
+          position: "absolute",
+        }}
+      />
+      <div
+        style={{
+          color: "rgba(255,255,255,0.10)",
+          display: "flex",
+          fontSize: 128,
+          fontWeight: 900,
+          letterSpacing: "-0.04em",
+          position: "absolute",
+          right: -12,
+          top: 72,
+        }}
+      >
+        FEED
+      </div>
+      <div
+        style={{
+          alignItems: "center",
+          alignSelf: "flex-start",
+          background: "rgba(255,255,255,0.94)",
+          borderRadius: 999,
+          color: "#111827",
+          display: "flex",
+          fontSize: 19,
+          fontWeight: 800,
+          padding: "10px 16px",
+          position: "relative",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
           display: "flex",
           flexDirection: "column",
-          gap: 12,
-          left: 0,
-          padding: 30,
-          position: "absolute",
-          right: 0,
+          gap: 18,
+          position: "relative",
         }}
       >
         <div
           style={{
             alignItems: "center",
-            alignSelf: "flex-start",
-            background: "rgba(255,255,255,0.94)",
-            borderRadius: 999,
-            color: "#111827",
+            background: "rgba(255,255,255,0.16)",
+            border: "1px solid rgba(255,255,255,0.20)",
+            borderRadius: 26,
+            color: "white",
             display: "flex",
-            fontSize: 19,
-            fontWeight: 800,
-            padding: "10px 16px",
+            fontSize: 42,
+            fontWeight: 900,
+            height: 96,
+            justifyContent: "center",
+            width: 96,
           }}
         >
-          {label}
+          {getInitials(title)}
         </div>
         <div
           style={{
             color: "white",
             display: "flex",
-            fontSize: 34,
+            fontSize: 40,
             fontWeight: 800,
-            lineHeight: 1.18,
+            lineHeight: 1.12,
           }}
         >
-          {truncateText(title, 46)}
+          {truncateText(title, 52)}
+        </div>
+        <div
+          style={{
+            color: "rgba(255,255,255,0.78)",
+            display: "flex",
+            fontSize: 23,
+            fontWeight: 600,
+            lineHeight: 1.34,
+          }}
+        >
+          {truncateText(summary, 92)}
         </div>
       </div>
     </div>
@@ -171,7 +225,7 @@ function renderPreviewCard({
   locale: Locale;
 }) {
   const authorName = getAuthorName(item);
-  const imageUrl = getCoverImageUrl(item);
+  const theme = getCoverTheme(item.contentId);
 
   return (
     <div
@@ -191,45 +245,19 @@ function renderPreviewCard({
     >
       <div
         style={{
-          background: "#111827",
+          alignItems: "center",
+          background: `linear-gradient(135deg, ${theme.dark} 0%, ${theme.accent} 100%)`,
           borderRadius: 22,
+          color: "white",
           display: "flex",
+          fontSize: 32,
+          fontWeight: 900,
           height: 104,
-          overflow: "hidden",
+          justifyContent: "center",
           width: 104,
         }}
       >
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets.
-          <img
-            alt={item.title}
-            height="104"
-            src={imageUrl}
-            style={{
-              display: "flex",
-              height: "100%",
-              objectFit: "cover",
-              width: "100%",
-            }}
-            width="104"
-          />
-        ) : (
-          <div
-            style={{
-              alignItems: "center",
-              background: "#f97316",
-              color: "white",
-              display: "flex",
-              fontSize: 34,
-              fontWeight: 800,
-              height: "100%",
-              justifyContent: "center",
-              width: "100%",
-            }}
-          >
-            {getInitials(item.title)}
-          </div>
-        )}
+        {getInitials(item.title)}
       </div>
       <div
         style={{
@@ -343,7 +371,6 @@ export async function GET(request: Request) {
     : locale === "ko"
       ? "공개 네트워크 크리에이터"
       : "public network creators";
-  const featuredImageUrl = getCoverImageUrl(featuredItem);
   const previewCards = [
     ...secondaryItems.map((item) => renderPreviewCard({ item, locale })),
     ...Array.from(
@@ -485,10 +512,11 @@ export async function GET(request: Request) {
             }}
           >
             {renderImagePanel({
-              imageUrl: featuredImageUrl,
               label: featuredItem
                 ? getAccessLabel(featuredItem, locale)
                 : copy.meta.feedTitle,
+              seed: featuredItem?.contentId ?? referralCode ?? "1066friend",
+              summary: featuredSummary,
               title: featuredTitle,
             })}
           </div>
@@ -556,6 +584,12 @@ export async function GET(request: Request) {
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      headers: {
+        "Cache-Control":
+          "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000",
+      },
+    },
   );
 }
