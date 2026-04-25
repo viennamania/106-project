@@ -3152,20 +3152,6 @@ export function CreatorContentStudioPage({
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <InputField
-                hint={contentCopy.hints.automationMinIntervalMinutes}
-                label={contentCopy.fields.automationMinIntervalMinutes}
-                onChange={(value) => {
-                  setAutomation((current) => ({
-                    ...current,
-                    form: {
-                      ...current.form,
-                      minIntervalMinutes: value,
-                    },
-                  }));
-                }}
-                value={automation.form.minIntervalMinutes}
-              />
-              <InputField
                 hint={contentCopy.hints.automationPublishScoreThreshold}
                 label={contentCopy.fields.automationPublishScoreThreshold}
                 onChange={(value) => {

@@ -849,43 +849,6 @@ async function failStaleAutomationJobsForMember(
   );
 }
 
-async function enforceAutomationCadence(
-  memberEmail: string,
-  profile: CreatorAutomationProfileDocument,
-) {
-  const jobsCollection = await getContentAutomationJobsCollection();
-  const latestJob = await jobsCollection.findOne(
-    {
-      memberEmail,
-      outputStatus: "published",
-      status: "completed",
-    },
-    { sort: { finishedAt: -1, createdAt: -1 } },
-  );
-
-  if (!latestJob?.finishedAt) {
-    return;
-  }
-
-  const elapsedMs = Date.now() - latestJob.finishedAt.getTime();
-  const minIntervalMs = profile.minIntervalMinutes * 60 * 1000;
-
-  if (elapsedMs < minIntervalMs) {
-    const remainingMinutes = Math.max(
-      1,
-      Math.ceil((minIntervalMs - elapsedMs) / 60_000),
-    );
-
-    throw new Error(
-      getAutomationLocaleMessage(
-        profile.language,
-        `이전 자동 게시 이후 최소 간격이 아직 지나지 않았습니다. 약 ${remainingMinutes}분 후 다시 실행해 주세요.`,
-        `Automation minimum posting interval has not elapsed yet. Try again in about ${remainingMinutes} minute(s).`,
-      ),
-    );
-  }
-}
-
 async function maybeGenerateAutomationCover(options: {
   body: string;
   member: MemberDocument;
@@ -1236,11 +1199,10 @@ export async function runContentAutomationForMember(
       12,
       getAutomationLocaleMessage(
         storedProfile.language,
-        "최소 실행 간격을 확인하고 있습니다.",
-        "Checking the minimum run interval.",
+        "실행 환경을 확인하고 있습니다.",
+        "Checking the automation runtime.",
       ),
     );
-    await enforceAutomationCadence(member.email, storedProfile);
     await reportProgress(
       "queueing",
       "running",
