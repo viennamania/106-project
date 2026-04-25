@@ -8,14 +8,15 @@ import {
   isBridgeCrawler,
   isKakaoInAppBrowser,
 } from "@/lib/in-app-browser";
+import { getContentCopy } from "@/lib/content-copy";
 import {
+  buildNetworkFeedOgImagePath,
   buildPathWithReferral,
   buildReferralLandingPath,
   buildReferralOgImagePath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
-import { getContentCopy } from "@/lib/content-copy";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { getLandingCopy } from "@/lib/marketing-copy";
 import { normalizeReferralCode } from "@/lib/member";
@@ -50,6 +51,7 @@ export async function generateMetadata({
   const copy = getLandingCopy(locale);
   const contentCopy = getContentCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
+  const activeReferralCode = experience.referralCode ?? referralCode;
   const title =
     bridgeTarget === "feed"
       ? experience.branding
@@ -62,18 +64,22 @@ export async function generateMetadata({
     bridgeTarget === "feed"
       ? contentCopy.meta.feedDescription
       : experience.branding?.description ?? copy.meta.description;
-  const ogImagePath = buildReferralOgImagePath({
-    locale,
-    referralCode: experience.referralCode ?? referralCode,
-    version: experience.branding?.updatedAt ?? experience.referralCode ?? null,
-  });
+  const ogImagePath =
+    bridgeTarget === "feed"
+      ? buildNetworkFeedOgImagePath({
+          locale,
+          referralCode: activeReferralCode,
+          version: experience.branding?.updatedAt ?? activeReferralCode ?? null,
+        })
+      : buildReferralOgImagePath({
+          locale,
+          referralCode: activeReferralCode,
+          version: experience.branding?.updatedAt ?? activeReferralCode ?? null,
+        });
   const url =
     bridgeTarget === "feed"
-      ? buildPathWithReferral(
-          `/${locale}/network-feed`,
-          experience.referralCode ?? referralCode,
-        )
-      : buildReferralLandingPath(locale, experience.referralCode ?? referralCode);
+      ? buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)
+      : buildReferralLandingPath(locale, activeReferralCode);
 
   return {
     title,
@@ -82,9 +88,12 @@ export async function generateMetadata({
       description,
       images: [
         {
-          alt: experience.branding
-            ? `${experience.branding.brandName} referral landing preview`
-            : copy.meta.title,
+          alt:
+            bridgeTarget === "feed"
+              ? `${contentCopy.meta.feedTitle} preview`
+              : experience.branding
+                ? `${experience.branding.brandName} referral landing preview`
+                : copy.meta.title,
           height: 630,
           url: ogImagePath,
           width: 1200,

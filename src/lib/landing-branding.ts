@@ -292,6 +292,30 @@ export function buildReferralOgImagePath({
   return `/api/og/referral?${searchParams.toString()}`;
 }
 
+export function buildNetworkFeedOgImagePath({
+  locale,
+  referralCode,
+  version,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  version?: string | null;
+}) {
+  const searchParams = new URLSearchParams({
+    lang: locale,
+  });
+
+  if (referralCode) {
+    searchParams.set("ref", referralCode);
+  }
+
+  if (version) {
+    searchParams.set("v", version);
+  }
+
+  return `/api/og/feed?${searchParams.toString()}`;
+}
+
 export function inferBrandNameFromEmail(email: string) {
   const localPart = email.trim().split("@")[0] ?? "";
   const cleaned = localPart
