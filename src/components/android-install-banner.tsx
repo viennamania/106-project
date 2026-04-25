@@ -6,6 +6,7 @@ import { Download, Smartphone, X } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
 import { isRestrictedInAppBrowser } from "@/lib/in-app-browser";
+import { normalizeShareId } from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import { cn } from "@/lib/utils";
 
@@ -93,6 +94,7 @@ export function AndroidInstallBanner({
   const searchParams = useSearchParams();
   const search = searchParams.toString();
   const referralCode = searchParams.get("ref");
+  const shareId = normalizeShareId(searchParams.get("shareId"));
   const [dismissed, setDismissed] = useState(false);
   const [environment, setEnvironment] =
     useState<InstallEnvironment>(initialEnvironment);
@@ -268,6 +270,7 @@ export function AndroidInstallBanner({
         source: "from-bridge",
       },
       referralCode,
+      shareId,
       targetHref: currentPath,
     });
   }, [
@@ -277,6 +280,7 @@ export function AndroidInstallBanner({
     installPrompt,
     isEligible,
     referralCode,
+    shareId,
   ]);
 
   const handleDismiss = useCallback(() => {
@@ -292,9 +296,10 @@ export function AndroidInstallBanner({
         source: "from-bridge",
       },
       referralCode,
+      shareId,
       targetHref: currentPath,
     });
-  }, [currentPath, environment.platform, referralCode, storageKey]);
+  }, [currentPath, environment.platform, referralCode, shareId, storageKey]);
 
   const handleInstall = useCallback(async () => {
     if (!installPrompt) {
@@ -308,6 +313,7 @@ export function AndroidInstallBanner({
         source: "from-bridge",
       },
       referralCode,
+      shareId,
       targetHref: currentPath,
     });
 
@@ -322,6 +328,7 @@ export function AndroidInstallBanner({
           source: "from-bridge-result",
         },
         referralCode,
+        shareId,
         targetHref: currentPath,
       });
 
@@ -338,6 +345,7 @@ export function AndroidInstallBanner({
     handleDismiss,
     installPrompt,
     referralCode,
+    shareId,
   ]);
 
   if (!isEligible || dismissed) {

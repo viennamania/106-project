@@ -71,10 +71,12 @@ function parseEnvironmentSnapshot(snapshot: string): ExitEnvironment {
 export function InAppBrowserExitBanner({
   locale,
   referralCode,
+  shareId = null,
   source,
 }: {
   locale: Locale;
   referralCode: string | null;
+  shareId?: string | null;
   source: string;
 }) {
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
@@ -101,6 +103,7 @@ export function InAppBrowserExitBanner({
         surface: "in-app-browser-exit",
       },
       referralCode,
+      shareId,
       targetHref: environment.targetHref,
     });
   }, [
@@ -108,6 +111,7 @@ export function InAppBrowserExitBanner({
     environment.targetHref,
     environment.visible,
     referralCode,
+    shareId,
     source,
   ]);
 
@@ -180,6 +184,7 @@ export function InAppBrowserExitBanner({
         surface: "in-app-browser-exit",
       },
       referralCode,
+      shareId,
       targetHref: environment.targetHref,
     });
 
@@ -199,7 +204,7 @@ export function InAppBrowserExitBanner({
     window.setTimeout(() => {
       setLaunchState("idle");
     }, 1200);
-  }, [environment.platform, environment.targetHref, referralCode, source]);
+  }, [environment.platform, environment.targetHref, referralCode, shareId, source]);
 
   const handleCopy = useCallback(async () => {
     if (!environment.targetHref) {
@@ -217,12 +222,13 @@ export function InAppBrowserExitBanner({
           surface: "in-app-browser-exit",
         },
         referralCode,
+        shareId,
         targetHref: environment.targetHref,
       });
     } catch {
       setCopyState("error");
     }
-  }, [environment.platform, environment.targetHref, referralCode, source]);
+  }, [environment.platform, environment.targetHref, referralCode, shareId, source]);
 
   if (!environment.visible) {
     return null;

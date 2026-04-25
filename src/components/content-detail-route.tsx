@@ -4,10 +4,12 @@ import { ContentDetailPage } from "@/components/content-detail-page";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 export type ContentDetailRouteSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
+  shareId?: string | string[];
 };
 
 function normalizeReturnToPath(value: string | string[] | undefined, locale: Locale) {
@@ -45,6 +47,11 @@ export async function ContentDetailRoute({
     Array.isArray(searchParams.ref) ? searchParams.ref[0] : searchParams.ref,
   );
   const returnToHref = normalizeReturnToPath(searchParams.returnTo, locale);
+  const shareId = normalizeShareId(
+    Array.isArray(searchParams.shareId)
+      ? searchParams.shareId[0]
+      : searchParams.shareId,
+  );
   const initialTeaser = await getPublishedContentShareMetadata(contentId);
 
   return (
@@ -69,6 +76,7 @@ export async function ContentDetailRoute({
       presentation={presentation}
       referralCode={referralCode}
       returnToHref={returnToHref}
+      shareId={shareId}
     />
   );
 }

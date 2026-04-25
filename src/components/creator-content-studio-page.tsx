@@ -59,8 +59,10 @@ import {
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
   getAppMetadata,
   hasThirdwebClientId,
@@ -1460,27 +1462,43 @@ export function CreatorContentStudioPage({
     };
   }, [feedShareState]);
 
-  const copyCreatorFeedLink = useCallback(async () => {
-    if (!creatorFeedShareUrl) {
-      setFeedShareState("error");
-      return false;
-    }
+  const copyCreatorFeedLink = useCallback(
+    async (nextShareUrl = creatorFeedShareUrl) => {
+      if (!nextShareUrl) {
+        setFeedShareState("error");
+        return false;
+      }
 
-    try {
-      await navigator.clipboard.writeText(creatorFeedShareUrl);
-      setFeedShareState("copied");
-      return true;
-    } catch {
-      setFeedShareState("error");
-      return false;
-    }
-  }, [creatorFeedShareUrl]);
+      try {
+        await navigator.clipboard.writeText(nextShareUrl);
+        setFeedShareState("copied");
+        return true;
+      } catch {
+        setFeedShareState("error");
+        return false;
+      }
+    },
+    [creatorFeedShareUrl],
+  );
 
   const handleShareCreatorFeed = useCallback(async () => {
     if (!creatorFeedShareUrl) {
       setFeedShareState("error");
       return;
     }
+
+    const nextShareId = createShareId("feed");
+    const nextShareUrl = setShareIdOnHref(creatorFeedShareUrl, nextShareId);
+
+    trackFunnelEvent("share_click", {
+      metadata: {
+        placement: "creator-studio",
+        source: "creator-feed-share",
+      },
+      referralCode: state.member?.referralCode ?? null,
+      shareId: nextShareId,
+      targetHref: nextShareUrl,
+    });
 
     if (typeof navigator.share === "function") {
       setFeedShareState("sharing");
@@ -1489,7 +1507,7 @@ export function CreatorContentStudioPage({
         await navigator.share({
           text: feedShareCopy.description,
           title: feedShareCopy.title,
-          url: creatorFeedShareUrl,
+          url: nextShareUrl,
         });
         setFeedShareState("idle");
         return;
@@ -1506,12 +1524,13 @@ export function CreatorContentStudioPage({
       }
     }
 
-    await copyCreatorFeedLink();
+    await copyCreatorFeedLink(nextShareUrl);
   }, [
     copyCreatorFeedLink,
     creatorFeedShareUrl,
     feedShareCopy.description,
     feedShareCopy.title,
+    state.member?.referralCode,
   ]);
 
   useEffect(() => {

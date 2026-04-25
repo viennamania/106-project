@@ -6,6 +6,7 @@ import {
 } from "@/lib/funnel";
 import { getFunnelEventsCollection } from "@/lib/mongodb";
 import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 function readNullableString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -87,6 +88,9 @@ export async function POST(request: Request) {
     referer: headerStore.get("referer"),
     referralCode: normalizeReferralCode(
       readNullableString("referralCode" in body ? body.referralCode : null),
+    ),
+    shareId: normalizeShareId(
+      readNullableString("shareId" in body ? body.shareId : null),
     ),
     targetHref: readNullableString("targetHref" in body ? body.targetHref : null),
     userAgent: headerStore.get("user-agent"),

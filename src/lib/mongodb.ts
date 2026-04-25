@@ -1058,6 +1058,7 @@ export async function getFunnelEventsCollection() {
         collection.createIndex({ createdAt: -1 }),
         collection.createIndex({ name: 1, createdAt: -1 }),
         collection.createIndex({ referralCode: 1, createdAt: -1 }),
+        collection.createIndex({ shareId: 1, createdAt: -1 }),
         collection.createIndex({ contentId: 1, createdAt: -1 }),
       ]);
 

@@ -8,6 +8,7 @@ type FunnelEventPayload = {
   metadata?: FunnelEventMetadata;
   path?: string | null;
   referralCode?: string | null;
+  shareId?: string | null;
   targetHref?: string | null;
 };
 

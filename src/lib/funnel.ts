@@ -7,6 +7,7 @@ export const funnelEventNames = [
   "pwa_install_banner_view",
   "pwa_install_click",
   "pwa_install_dismiss",
+  "share_click",
   "signup_cta_click",
 ] as const;
 
@@ -26,6 +27,7 @@ export type FunnelEventDocument = {
   path?: string | null;
   referer?: string | null;
   referralCode?: string | null;
+  shareId?: string | null;
   targetHref?: string | null;
   userAgent?: string | null;
   viewport?: {

@@ -24,6 +24,7 @@ type ContentBridgePageProps = {
   locale: Locale;
   platformHint: BridgePlatformHint;
   publishedAt: string | null;
+  shareId?: string | null;
   summary: string;
   targetHref: string;
   title: string;
@@ -37,6 +38,7 @@ export function ContentBridgePage({
   locale,
   platformHint,
   publishedAt,
+  shareId = null,
   summary,
   targetHref,
   title,
@@ -185,6 +187,7 @@ export function ContentBridgePage({
         platform: platformHint,
         source: "content-bridge",
       },
+      shareId,
       targetHref,
     });
 
@@ -204,7 +207,7 @@ export function ContentBridgePage({
     window.setTimeout(() => {
       setLaunchState("idle");
     }, 1200);
-  }, [absoluteTargetUrl, platformHint, targetHref]);
+  }, [absoluteTargetUrl, platformHint, shareId, targetHref]);
 
   if (autoRedirect) {
     return (

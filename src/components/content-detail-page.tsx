@@ -54,6 +54,10 @@ import {
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import {
+  createShareId,
+  setShareIdOnHref,
+} from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
@@ -171,6 +175,7 @@ export function ContentDetailPage({
   presentation = "page",
   referralCode = null,
   returnToHref = null,
+  shareId = null,
 }: {
   contentId: string;
   dictionary: Dictionary;
@@ -180,6 +185,7 @@ export function ContentDetailPage({
   presentation?: "modal" | "page";
   referralCode?: string | null;
   returnToHref?: string | null;
+  shareId?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
@@ -220,7 +226,7 @@ export function ContentDetailPage({
   const backHref = returnToHref ?? feedHref;
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, shareReferralCode),
-    { returnTo: backHref },
+    { returnTo: backHref, shareId },
   );
   const [shareState, setShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
@@ -359,12 +365,17 @@ export function ContentDetailPage({
       `/${locale}/content/bridge/${contentId}`,
       shareReferralCode,
     );
-    setShareUrl(new URL(bridgePath, window.location.origin).toString());
+    setShareUrl(
+      new URL(
+        setShareIdOnHref(bridgePath, shareId),
+        window.location.origin,
+      ).toString(),
+    );
 
     try {
       setIsLiked(window.localStorage.getItem(`content-like:${contentId}`) === "1");
     } catch {}
-  }, [contentId, locale, shareReferralCode]);
+  }, [contentId, locale, shareId, shareReferralCode]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -477,14 +488,14 @@ export function ContentDetailPage({
         } USDT`
       : contentCopy.labels.free;
 
-  const copyShareLink = useCallback(async () => {
-    if (!shareUrl) {
+  const copyShareLink = useCallback(async (nextShareUrl = shareUrl) => {
+    if (!nextShareUrl) {
       setShareState("error");
       return false;
     }
 
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(nextShareUrl);
       setShareState("copied");
       return true;
     } catch {
@@ -499,6 +510,19 @@ export function ContentDetailPage({
       return;
     }
 
+    const nextShareId = createShareId("content");
+    const nextShareUrl = setShareIdOnHref(shareUrl, nextShareId);
+
+    trackFunnelEvent("share_click", {
+      contentId,
+      metadata: {
+        source: "content-detail",
+      },
+      referralCode: shareReferralCode,
+      shareId: nextShareId,
+      targetHref: nextShareUrl,
+    });
+
     if (typeof navigator.share === "function") {
       setShareState("sharing");
 
@@ -506,7 +530,7 @@ export function ContentDetailPage({
         await navigator.share({
           text: heroSummary ?? "",
           title: heroTitle,
-          url: shareUrl,
+          url: nextShareUrl,
         });
         setShareState("idle");
         return;
@@ -523,8 +547,8 @@ export function ContentDetailPage({
       }
     }
 
-    await copyShareLink();
-  }, [copyShareLink, heroSummary, heroTitle, shareUrl]);
+    await copyShareLink(nextShareUrl);
+  }, [contentId, copyShareLink, heroSummary, heroTitle, shareReferralCode, shareUrl]);
 
   const ensurePaidUnlockOrder = useCallback(async () => {
     if (
@@ -658,9 +682,10 @@ export function ContentDetailPage({
         source: "content-detail",
       },
       referralCode: shareReferralCode,
+      shareId,
       targetHref: activateHref,
     });
-  }, [activateHref, contentId, shareReferralCode, state.gateReason]);
+  }, [activateHref, contentId, shareId, shareReferralCode, state.gateReason]);
 
   const trackPaidUnlockClick = useCallback(() => {
     trackFunnelEvent("paid_unlock_click", {
@@ -670,8 +695,9 @@ export function ContentDetailPage({
         source: "content-detail",
       },
       referralCode: shareReferralCode,
+      shareId,
     });
-  }, [contentId, paidUnlockAmount, shareReferralCode]);
+  }, [contentId, paidUnlockAmount, shareId, shareReferralCode]);
 
   const createPaidUnlockTransaction = useCallback(async () => {
     const preparedOrder = await ensurePaidUnlockOrder();

@@ -25,6 +25,7 @@ type ReferralBridgePageProps = {
   locale: Locale;
   platformHint: BridgePlatformHint;
   referralCode: string | null;
+  shareId?: string | null;
   target: "feed" | "landing";
   targetHref: string;
   title: string;
@@ -39,6 +40,7 @@ export function ReferralBridgePage({
   locale,
   platformHint,
   referralCode,
+  shareId = null,
   target,
   targetHref,
   title,
@@ -230,9 +232,10 @@ export function ReferralBridgePage({
         target,
       },
       referralCode,
+      shareId,
       targetHref,
     });
-  }, [platformHint, referralCode, target, targetHref]);
+  }, [platformHint, referralCode, shareId, target, targetHref]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -252,6 +255,7 @@ export function ReferralBridgePage({
         target,
       },
       referralCode,
+      shareId,
       targetHref,
     });
 
@@ -275,6 +279,7 @@ export function ReferralBridgePage({
     absoluteTargetUrl,
     platformHint,
     referralCode,
+    shareId,
     target,
     targetHref,
   ]);

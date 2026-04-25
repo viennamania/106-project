@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  Fragment,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
@@ -23,6 +24,7 @@ import {
   EyeOff,
   ExternalLink,
   Heart,
+  House,
   LoaderCircle,
   MessageCircle,
   MoreHorizontal,
@@ -57,6 +59,10 @@ import {
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import {
+  createShareId,
+  setShareIdOnHref,
+} from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
@@ -247,12 +253,14 @@ export function NetworkFeedPage({
   locale,
   referralCode = null,
   returnToHref = null,
+  shareId = null,
 }: {
   dictionary: Dictionary;
   initialPublicFeed?: InitialPublicFeed;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
+  shareId?: string | null;
 }) {
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
@@ -264,12 +272,14 @@ export function NetworkFeedPage({
     buildPathWithReferral(`/${locale}/network-feed`, referralCode),
     {
       returnTo: returnToHref,
+      shareId,
     },
   );
   const backHref = returnToHref ?? homeHref;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const publicSignupHref = setPathSearchParams(activateHref, {
     returnTo: feedHref,
+    shareId,
   });
   const hasReferralCode = Boolean(referralCode);
   const hasInitialPublicFeed = hasReferralCode && Boolean(initialPublicFeed);
@@ -285,6 +295,13 @@ export function NetworkFeedPage({
     hasReferralCode &&
     !isWalletConnected &&
     (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
+  const usesReferralHomeNavigation = isPublicReferralFeed && !returnToHref;
+  const headerBackLabel = usesReferralHomeNavigation
+    ? locale === "ko"
+      ? "추천 페이지 보기"
+      : "View referral page"
+    : contentCopy.actions.backHome;
+  const HeaderBackIcon = usesReferralHomeNavigation ? House : ArrowLeft;
   const isDisconnected = !isWalletConnected;
   const feedRestoreKey = useMemo(
     () =>
@@ -471,9 +488,10 @@ export function NetworkFeedPage({
           source: "network-feed",
         },
         referralCode,
+        shareId,
       });
     },
-    [isPublicReferralFeed, referralCode, saveFeedSnapshot],
+    [isPublicReferralFeed, referralCode, saveFeedSnapshot, shareId],
   );
 
   const updateItemSocial = useCallback(
@@ -743,20 +761,21 @@ export function NetworkFeedPage({
     if (
       !isPublicReferralFeed ||
       state.status !== "ready" ||
-      trackedPublicFeedViewRef.current === referralCode
+      trackedPublicFeedViewRef.current === `${referralCode ?? ""}:${shareId ?? ""}`
     ) {
       return;
     }
 
-    trackedPublicFeedViewRef.current = referralCode;
+    trackedPublicFeedViewRef.current = `${referralCode ?? ""}:${shareId ?? ""}`;
     trackFunnelEvent("feed_view_public", {
       metadata: {
         itemCount: state.items.length,
         source: "network-feed",
       },
       referralCode,
+      shareId,
     });
-  }, [isPublicReferralFeed, referralCode, state.items.length, state.status]);
+  }, [isPublicReferralFeed, referralCode, shareId, state.items.length, state.status]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -882,11 +901,17 @@ export function NetworkFeedPage({
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#fafafa]/94 px-3 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.65rem)] backdrop-blur-xl sm:px-0 sm:pb-3 sm:pt-[calc(env(safe-area-inset-top)+0.75rem)]">
           <div className="grid min-h-12 grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2 sm:gap-3">
             <Link
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-slate-950 transition hover:bg-slate-100"
+              aria-label={headerBackLabel}
+              className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full transition ${
+                usesReferralHomeNavigation
+                  ? "border border-slate-200 bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-slate-50"
+                  : "text-slate-950 hover:bg-slate-100"
+              }`}
               href={backHref}
+              title={headerBackLabel}
             >
-              <ArrowLeft className="size-5" />
-              <span className="sr-only">{contentCopy.actions.backHome}</span>
+              <HeaderBackIcon className="size-5" />
+              <span className="sr-only">{headerBackLabel}</span>
             </Link>
             <div className="min-w-0 px-1 text-center">
               <h1 className="truncate text-[1.05rem] font-semibold leading-5 tracking-tight text-slate-950 sm:text-lg sm:leading-6">
@@ -914,9 +939,9 @@ export function NetworkFeedPage({
         <InAppBrowserExitBanner
           locale={locale}
           referralCode={referralCode}
+          shareId={shareId}
           source="network-feed"
         />
-        <AndroidInstallBanner className="mx-3 my-3 sm:mx-0" locale={locale} />
 
         {isPublicReferralFeed ? (
           <PublicFeedConversionBanner
@@ -930,6 +955,7 @@ export function NetworkFeedPage({
                   source: "network-feed",
                 },
                 referralCode,
+                shareId,
                 targetHref: publicSignupHref,
               });
             }}
@@ -981,22 +1007,31 @@ export function NetworkFeedPage({
           ) : (
             <>
               {filteredItems.map((item, index) => (
-                <SocialFeedPost
-                  accountAddress={accountAddress ?? null}
-                  freeLabel={contentCopy.labels.free}
-                  item={item}
-                  key={item.contentId}
-                  levelLabel={contentCopy.labels.level}
-                  locale={locale}
-                  missingEmailMessage={dictionary.member.errors.missingEmail}
-                  onOpenDetail={openContentFromFeed}
-                  onSocialChange={updateItemSocial}
-                  priority={index < 2}
-                  returnToHref={feedHref}
-                  referralCode={referralCode}
-                  showNetworkLevel={!isPublicReferralFeed}
-                  viewDetailLabel={contentCopy.actions.viewDetail}
-                />
+                <Fragment key={item.contentId}>
+                  <SocialFeedPost
+                    accountAddress={accountAddress ?? null}
+                    freeLabel={contentCopy.labels.free}
+                    item={item}
+                    levelLabel={contentCopy.labels.level}
+                    locale={locale}
+                    missingEmailMessage={dictionary.member.errors.missingEmail}
+                    onOpenDetail={openContentFromFeed}
+                    onSocialChange={updateItemSocial}
+                    priority={index < 2}
+                    returnToHref={feedHref}
+                    referralCode={referralCode}
+                    shareId={shareId}
+                    showNetworkLevel={!isPublicReferralFeed}
+                    viewDetailLabel={contentCopy.actions.viewDetail}
+                  />
+                  {isPublicReferralFeed &&
+                  index === Math.min(1, filteredItems.length - 1) ? (
+                    <AndroidInstallBanner
+                      className="mx-3 my-3 sm:mx-0"
+                      locale={locale}
+                    />
+                  ) : null}
+                </Fragment>
               ))}
 
               <div ref={sentinelRef} />
@@ -1031,6 +1066,7 @@ export function NetworkFeedPage({
                 source: "network-feed",
               },
               referralCode,
+              shareId,
               targetHref: publicSignupHref,
             });
           }}
@@ -1243,6 +1279,7 @@ function SocialFeedPost({
   priority,
   referralCode,
   returnToHref,
+  shareId,
   showNetworkLevel,
   viewDetailLabel,
 }: {
@@ -1260,6 +1297,7 @@ function SocialFeedPost({
   priority: boolean;
   referralCode: string | null;
   returnToHref: string;
+  shareId: string | null;
   showNetworkLevel: boolean;
   viewDetailLabel: string;
 }) {
@@ -1290,6 +1328,7 @@ function SocialFeedPost({
     buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
     {
       returnTo: returnToHref,
+      shareId,
     },
   );
   const bridgeHref = buildPathWithReferral(
@@ -1331,8 +1370,11 @@ function SocialFeedPost({
       return "";
     }
 
-    return new URL(bridgeHref, window.location.origin).toString();
-  }, [bridgeHref]);
+    return new URL(
+      setShareIdOnHref(bridgeHref, shareId),
+      window.location.origin,
+    ).toString();
+  }, [bridgeHref, shareId]);
   const actionCopy =
     locale === "ko"
       ? {
@@ -1571,15 +1613,15 @@ function SocialFeedPost({
     void updateSocialAction("like", nextLiked, previous);
   }, [applySocial, social, spawnLikeBurst, updateSocialAction]);
 
-  const copyShareLink = useCallback(async () => {
-    if (!shareUrl) {
+  const copyShareLink = useCallback(async (nextShareUrl = shareUrl) => {
+    if (!nextShareUrl) {
       setShareState("error");
       setToast(actionCopy.shareFailed);
       return false;
     }
 
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(nextShareUrl);
       setShareState("copied");
       setToast(actionCopy.copied);
       return true;
@@ -1597,6 +1639,20 @@ function SocialFeedPost({
       return;
     }
 
+    const nextShareId = createShareId("feedpost");
+    const nextShareUrl = setShareIdOnHref(shareUrl, nextShareId);
+
+    trackFunnelEvent("share_click", {
+      contentId: item.contentId,
+      metadata: {
+        priceType: item.priceType,
+        source: "network-feed-post",
+      },
+      referralCode,
+      shareId: nextShareId,
+      targetHref: nextShareUrl,
+    });
+
     if (typeof navigator.share === "function") {
       setShareState("sharing");
 
@@ -1604,7 +1660,7 @@ function SocialFeedPost({
         await navigator.share({
           text: item.summary,
           title: item.title,
-          url: shareUrl,
+          url: nextShareUrl,
         });
         setShareState("idle");
         return;
@@ -1621,8 +1677,17 @@ function SocialFeedPost({
       }
     }
 
-    await copyShareLink();
-  }, [actionCopy.shareFailed, copyShareLink, item.summary, item.title, shareUrl]);
+    await copyShareLink(nextShareUrl);
+  }, [
+    actionCopy.shareFailed,
+    copyShareLink,
+    item.contentId,
+    item.priceType,
+    item.summary,
+    item.title,
+    referralCode,
+    shareUrl,
+  ]);
 
   const toggleSave = useCallback(() => {
     const previous = social;

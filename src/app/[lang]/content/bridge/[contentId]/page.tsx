@@ -17,14 +17,24 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ contentId: string; lang: string }>;
+  searchParams: Promise<{ ref?: string | string[]; shareId?: string | string[] }>;
 }): Promise<Metadata> {
   const { contentId, lang } = await params;
+  const query = await searchParams;
   const locale = hasLocale(lang) ? lang : "ko";
+  const referralCode = normalizeReferralCode(
+    Array.isArray(query.ref) ? query.ref[0] : query.ref,
+  );
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
+  );
   const copy = getContentCopy(locale);
   const content = await getPublishedContentShareMetadata(contentId);
   const title = content
@@ -32,7 +42,10 @@ export async function generateMetadata({
     : `${copy.meta.detailTitle} | 1066friend+`;
   const description = content?.summary ?? copy.meta.detailDescription;
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
-  const url = `/${locale}/content/bridge/${contentId}`;
+  const url = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/content/bridge/${contentId}`, referralCode),
+    { shareId },
+  );
 
   return {
     title,
@@ -64,7 +77,7 @@ export default async function LocalizedContentBridgePage({
   searchParams,
 }: {
   params: Promise<{ contentId: string; lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<{ ref?: string | string[]; shareId?: string | string[] }>;
 }) {
   const { contentId, lang } = await params;
   const query = await searchParams;
@@ -76,6 +89,9 @@ export default async function LocalizedContentBridgePage({
   const locale = lang as Locale;
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
+  );
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
   );
   const teaser = await getPublishedContentShareMetadata(contentId);
 
@@ -89,7 +105,7 @@ export default async function LocalizedContentBridgePage({
     !isRestrictedInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
   const targetHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/content/${contentId}`, referralCode),
-    { fromBridge: "1" },
+    { fromBridge: "1", shareId },
   );
   const homeHref = buildReferralLandingPath(locale, referralCode);
 
@@ -102,6 +118,7 @@ export default async function LocalizedContentBridgePage({
       locale={locale}
       platformHint={inferBridgePlatform(userAgent)}
       publishedAt={teaser.publishedAt?.toISOString() ?? null}
+      shareId={shareId}
       summary={teaser.summary}
       targetHref={targetHref}
       title={teaser.title}

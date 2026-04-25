@@ -8,13 +8,16 @@ import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildNetworkFeedOgImagePath,
   buildPathWithReferral,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 type NetworkFeedSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
+  shareId?: string | string[];
 };
 
 function normalizeReturnToPath(value: string | string[] | undefined, locale: Locale) {
@@ -80,6 +83,9 @@ export async function generateMetadata({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
+  );
   const copy = getContentCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
   const activeReferralCode = experience.referralCode ?? referralCode;
@@ -96,7 +102,10 @@ export async function generateMetadata({
     referralCode: activeReferralCode,
     version: activeReferralCode,
   });
-  const url = buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode);
+  const url = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode),
+    { shareId },
+  );
 
   return {
     title,
@@ -151,6 +160,9 @@ export default async function LocalizedNetworkFeedPage({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
+  );
   const returnToHref = normalizeReturnToPath(query.returnTo, locale);
   const initialPublicFeed = referralCode
     ? await getPublicNetworkFeedForReferralCode(referralCode, locale).catch(() => null)
@@ -163,6 +175,7 @@ export default async function LocalizedNetworkFeedPage({
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}
+      shareId={shareId}
     />
   );
 }

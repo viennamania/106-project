@@ -20,6 +20,7 @@ import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { getLandingCopy } from "@/lib/marketing-copy";
 import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 function readReferralCode(rawValue?: string | string[]) {
   return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
@@ -27,6 +28,7 @@ function readReferralCode(rawValue?: string | string[]) {
 
 type ReferralBridgeSearchParams = {
   ref?: string | string[];
+  shareId?: string | string[];
   target?: string | string[];
 };
 
@@ -83,6 +85,9 @@ export async function generateMetadata({
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readReferralCode(query.ref);
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
+  );
   const bridgeTarget = readBridgeTarget(query.target);
   const copy = getLandingCopy(locale);
   const contentCopy = getContentCopy(locale);
@@ -98,7 +103,7 @@ export async function generateMetadata({
   });
   const feedBridgeUrl = setPathSearchParams(
     buildPathWithReferral(`/${locale}/referral/bridge`, activeReferralCode),
-    { target: "feed" },
+    { shareId, target: "feed" },
   );
   const title =
     bridgeTarget === "feed"
@@ -187,6 +192,9 @@ export default async function LocalizedReferralBridgePage({
 
   const locale = lang as Locale;
   const referralCode = readReferralCode(query.ref);
+  const shareId = normalizeShareId(
+    Array.isArray(query.shareId) ? query.shareId[0] : query.shareId,
+  );
 
   if (!referralCode) {
     notFound();
@@ -205,7 +213,7 @@ export default async function LocalizedReferralBridgePage({
     bridgeTarget === "feed"
       ? buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)
       : buildReferralLandingPath(locale, activeReferralCode),
-    { fromBridge: "1" },
+    { fromBridge: "1", shareId },
   );
 
   return (
@@ -228,6 +236,7 @@ export default async function LocalizedReferralBridgePage({
       locale={locale}
       platformHint={inferBridgePlatform(userAgent)}
       referralCode={activeReferralCode}
+      shareId={shareId}
       target={bridgeTarget}
       targetHref={targetHref}
       title={
