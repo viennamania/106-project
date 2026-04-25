@@ -309,8 +309,7 @@ const englishCopy: ContentCopy = {
     noFilteredFeed: "No posts match this network range yet.",
     paymentRequired: "Completed signup is required to use network content.",
     postsLoading: "Loading your posts, counts, and filters now.",
-    previewLocked:
-      "Unlock the full story after completing signup on the activation screen.",
+    previewLocked: "Complete signup to continue to the full content.",
     profileSaved: "Creator profile saved.",
     publishSuccess: "Content published to your network feed.",
     saveDraftSuccess: "Draft saved.",
@@ -495,8 +494,7 @@ const koreanCopy: ContentCopy = {
     noFilteredFeed: "선택한 단계 범위에 해당하는 콘텐츠가 아직 없습니다.",
     paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
     postsLoading: "콘텐츠 목록과 상태, 필터를 불러오는 중입니다.",
-    previewLocked:
-      "활성화 화면에서 가입을 완료하면 이 콘텐츠 전체를 열람할 수 있습니다.",
+    previewLocked: "가입을 완료하면 이 콘텐츠 전체를 열람할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
     publishSuccess: "콘텐츠를 네트워크 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",

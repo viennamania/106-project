@@ -293,12 +293,14 @@ export type ContentFeedLoadResponse = {
 export type ContentDetailResponse = {
   content: ContentDetailRecord;
   member: MemberRecord;
+  social: ContentSocialSummaryRecord;
 };
 
 export type ContentDetailLoadResponse = {
   content: ContentDetailRecord | null;
   gateReason: ContentAccessGateReason | null;
   member: MemberRecord | null;
+  social: ContentSocialSummaryRecord | null;
   validationError: string | null;
 };
 

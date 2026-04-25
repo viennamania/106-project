@@ -13,6 +13,7 @@ import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getPublicContentPreview,
   getContentDetailForMember,
+  getContentSocialSummaryForViewer,
   updateContentPostForMember,
 } from "@/lib/content-service";
 
@@ -59,6 +60,7 @@ export async function GET(
         content: null,
         gateReason: "signup",
         member: serializeMember(authorizedMember),
+        social: null,
         validationError: null,
       };
 
@@ -75,6 +77,7 @@ export async function GET(
         content: detail.content,
         gateReason: null,
         member: detail.member,
+        social: detail.social,
         validationError: null,
       };
 
@@ -98,6 +101,10 @@ export async function GET(
           gateReason:
             message === "This content requires a paid unlock." ? "paid" : "network",
           member: serializeMember(authorizedMember),
+          social: await getContentSocialSummaryForViewer(
+            contentId,
+            authorization.normalizedEmail,
+          ),
           validationError: null,
         };
 
@@ -179,6 +186,7 @@ export async function POST(
         content: null,
         gateReason: "signup",
         member: null,
+        social: null,
         validationError: null,
       };
 
@@ -190,6 +198,7 @@ export async function POST(
         content: null,
         gateReason: "signup",
         member: sync.member,
+        social: null,
         validationError: sync.validationError,
       };
 
@@ -201,6 +210,7 @@ export async function POST(
         content: null,
         gateReason: "signup",
         member: sync.member,
+        social: null,
         validationError: null,
       };
 
@@ -230,6 +240,7 @@ export async function POST(
           gateReason:
             message === "This content requires a paid unlock." ? "paid" : "network",
           member: sync.member,
+          social: await getContentSocialSummaryForViewer(contentId, sync.member.email),
           validationError: null,
         };
 
@@ -243,6 +254,7 @@ export async function POST(
       content: detail.content,
       gateReason: null,
       member: sync.member,
+      social: detail.social,
       validationError: null,
     };
 

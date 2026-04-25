@@ -2157,5 +2157,6 @@ export async function getContentDetailForMember(
       sources,
     },
     member: serializeMember(member),
+    social: await getContentSocialSummaryForViewer(post.contentId, member.email),
   };
 }

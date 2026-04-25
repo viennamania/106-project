@@ -14,6 +14,7 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   Coins,
   Copy,
   ExternalLink,
@@ -24,6 +25,8 @@ import {
   RefreshCw,
   Share2,
   Send,
+  TrendingUp,
+  Users,
   X,
 } from "lucide-react";
 import {
@@ -50,10 +53,12 @@ import type {
   ContentOrderRecord,
   ContentOrderVerifyResponse,
   ContentPriceType,
+  ContentSocialSummaryRecord,
 } from "@/lib/content";
 import {
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
+  createEmptyContentSocialSummary,
 } from "@/lib/content";
 import {
   buildPathWithReferral,
@@ -94,6 +99,7 @@ type LikeBurst = {
 };
 
 type CommentsStatus = "idle" | "loading" | "ready" | "submitting" | "error";
+type PaidProofTier = "hot" | "new" | "proven";
 
 type ContentDetailCommentCopy = {
   completeSignup: string;
@@ -187,6 +193,32 @@ function formatCommentDateTime(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function formatUsdtAmountLabel(value: string | null | undefined, locale: Locale) {
+  const parsed = Number(value ?? "0");
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "0";
+  }
+
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
+
+function getPaidProofTier(social: ContentSocialSummaryRecord): PaidProofTier {
+  const paidTotal = Number(social.paidTotalUsdt);
+
+  if ((Number.isFinite(paidTotal) && paidTotal >= 10) || social.paidBuyerCount >= 10) {
+    return "hot";
+  }
+
+  if ((Number.isFinite(paidTotal) && paidTotal > 0) || social.paidBuyerCount > 0) {
+    return "proven";
+  }
+
+  return "new";
 }
 
 function formatAddressLabel(address?: string | null) {
@@ -308,6 +340,9 @@ export function ContentDetailPage({
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
   const [commentCount, setCommentCount] = useState(0);
+  const [socialSummary, setSocialSummary] = useState<ContentSocialSummaryRecord>(
+    () => createEmptyContentSocialSummary(),
+  );
   const heroRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const isDisconnected = status !== "connected" || !accountAddress;
@@ -350,6 +385,11 @@ export function ContentDetailPage({
       }
 
       const member = "member" in data ? data.member : null;
+      setSocialSummary(
+        "social" in data && data.social
+          ? data.social
+          : createEmptyContentSocialSummary(),
+      );
 
       if ("validationError" in data && data.validationError) {
         setState({
@@ -392,6 +432,7 @@ export function ContentDetailPage({
         member: null,
         status: initialPreview ? "ready" : "error",
       });
+      setSocialSummary(createEmptyContentSocialSummary());
     }
   }, [
     accountAddress,
@@ -411,6 +452,7 @@ export function ContentDetailPage({
         member: null,
         status: initialPreview ? "ready" : "idle",
       });
+      setSocialSummary(createEmptyContentSocialSummary());
       return;
     }
 
@@ -562,6 +604,33 @@ export function ContentDetailPage({
           detailPriceUsdt ?? CONTENT_PAID_USDT_AMOUNT
         } USDT`
       : contentCopy.labels.free;
+  const isPaidDetail = detailPriceType === "paid";
+  const isPaidPurchaseUnlocked =
+    isPaidDetail &&
+    state.content?.canAccess === true &&
+    state.content.entitlementSource === "purchase";
+  const paidProofTier = getPaidProofTier(socialSummary);
+  const paidTotalLabel = formatUsdtAmountLabel(socialSummary.paidTotalUsdt, locale);
+  const paidBuyerLabel = socialSummary.paidBuyerCount.toLocaleString(locale);
+  const hasPaidProof =
+    socialSummary.paidBuyerCount > 0 || Number(socialSummary.paidTotalUsdt) > 0;
+  const paidProofTitle =
+    paidProofTier === "hot"
+      ? locale === "ko"
+        ? "많이 결제된 유료 콘텐츠"
+        : "Top paid content"
+      : paidProofTier === "proven"
+        ? locale === "ko"
+          ? "결제 검증된 유료 콘텐츠"
+          : "Payment-proven content"
+        : locale === "ko"
+          ? "유료 전체보기"
+          : "Paid full access";
+  const lockedPreviewTitle = isPaidLocked
+    ? locale === "ko"
+      ? "유료 콘텐츠입니다"
+      : "This is paid content"
+    : contentCopy.messages.previewLocked;
 
   const copyShareLink = useCallback(async (nextShareUrl = shareUrl) => {
     if (!nextShareUrl) {
@@ -663,6 +732,7 @@ export function ContentDetailPage({
 
       setComments(data.comments);
       setCommentCount(data.social.commentCount);
+      setSocialSummary(data.social);
       setCommentsStatus("ready");
     } catch (error) {
       setCommentsError(
@@ -742,6 +812,7 @@ export function ContentDetailPage({
         ...current.filter((comment) => comment.commentId !== data.comment.commentId),
       ]);
       setCommentCount(data.social.commentCount);
+      setSocialSummary(data.social);
       setCommentBody("");
       setCommentsStatus("ready");
     } catch (error) {
@@ -1161,6 +1232,17 @@ export function ContentDetailPage({
             primaryMessage={contentCopy.messages.paymentRequired}
             secondaryMessage={contentCopy.messages.connectRequired}
           />
+          {isPaidDetail ? (
+            <PaidProofPanel
+              buyerLabel={paidBuyerLabel}
+              hasProof={hasPaidProof}
+              locale={locale}
+              priceLabel={`${detailPriceUsdt ?? CONTENT_PAID_USDT_AMOUNT} USDT`}
+              tier={paidProofTier}
+              title={paidProofTitle}
+              totalLabel={paidTotalLabel}
+            />
+          ) : null}
           {heroTitle ? (
             <ContentCommentsSection
               activateHref={activateHref}
@@ -1326,6 +1408,25 @@ export function ContentDetailPage({
 
           </section>
 
+          {isPaidPurchaseUnlocked ? (
+            <PaidUnlockedPanel
+              locale={locale}
+              priceLabel={`${detailPriceUsdt ?? CONTENT_PAID_USDT_AMOUNT} USDT`}
+            />
+          ) : null}
+
+          {isPaidDetail ? (
+            <PaidProofPanel
+              buyerLabel={paidBuyerLabel}
+              hasProof={hasPaidProof}
+              locale={locale}
+              priceLabel={`${detailPriceUsdt ?? CONTENT_PAID_USDT_AMOUNT} USDT`}
+              tier={paidProofTier}
+              title={paidProofTitle}
+              totalLabel={paidTotalLabel}
+            />
+          ) : null}
+
           {state.content.contentImageUrls.length > 0 ? (
             <section className="mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.18)] sm:mx-0 sm:rounded-[32px] sm:border sm:border-white/70 sm:bg-white/92 sm:p-5">
               <div className="mb-4 hidden items-center justify-between gap-3 sm:flex">
@@ -1371,7 +1472,7 @@ export function ContentDetailPage({
               <div className="pointer-events-auto absolute inset-x-0 bottom-0 top-0 z-10 flex items-end justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.18)_20%,rgba(255,255,255,0.84)_52%,rgba(255,255,255,0.98)_100%)] px-4 pb-5 pt-20 sm:px-8 sm:pb-8">
                 <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-white/90 bg-white/94 p-4 text-center shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl sm:p-5">
                   <p className="text-base font-semibold tracking-tight text-slate-950">
-                    {contentCopy.messages.previewLocked}
+                    {lockedPreviewTitle}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     {isPaidLocked
@@ -1382,6 +1483,20 @@ export function ContentDetailPage({
                         ? contentCopy.messages.paymentRequired
                         : contentCopy.messages.likeHint}
                   </p>
+                  {isPaidLocked ? (
+                    <div className="mt-3">
+                      <PaidProofPanel
+                        buyerLabel={paidBuyerLabel}
+                        hasProof={hasPaidProof}
+                        locale={locale}
+                        priceLabel={`${paidUnlockAmount} USDT`}
+                        tier={paidProofTier}
+                        title={paidProofTitle}
+                        totalLabel={paidTotalLabel}
+                        variant="compact"
+                      />
+                    </div>
+                  ) : null}
                   {paidUnlock.error ? (
                     <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
                       {paidUnlock.error}
@@ -1593,6 +1708,19 @@ export function ContentDetailPage({
               </div>
             </div>
 
+            <div className="mt-3">
+              <PaidProofPanel
+                buyerLabel={paidBuyerLabel}
+                hasProof={hasPaidProof}
+                locale={locale}
+                priceLabel={`${paidUnlockAmount} USDT`}
+                tier={paidProofTier}
+                title={paidProofTitle}
+                totalLabel={paidTotalLabel}
+                variant="compact"
+              />
+            </div>
+
             {paidUnlock.error ? (
               <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
                 {paidUnlock.error}
@@ -1665,6 +1793,153 @@ export function ContentDetailPage({
         </div>
       ) : null}
     </main>
+  );
+}
+
+function PaidUnlockedPanel({
+  locale,
+  priceLabel,
+}: {
+  locale: Locale;
+  priceLabel: string;
+}) {
+  return (
+    <section className="overflow-hidden rounded-[28px] border border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_68%)] p-4 shadow-[0_18px_42px_rgba(16,185,129,0.12)] sm:rounded-[32px] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_14px_30px_rgba(16,185,129,0.22)]">
+          <CheckCircle2 className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+              {locale === "ko" ? "결제 완료 · 전체 열람 가능" : "Payment complete · Full access"}
+            </h2>
+            <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              {priceLabel}
+            </span>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            {locale === "ko"
+              ? "이 콘텐츠는 이미 결제가 완료되어 전체 본문과 콘텐츠 이미지를 계속 열람할 수 있습니다."
+              : "This content is already paid for. You can keep viewing the full body and content images."}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PaidProofPanel({
+  buyerLabel,
+  hasProof,
+  locale,
+  priceLabel,
+  tier,
+  title,
+  totalLabel,
+  variant = "section",
+}: {
+  buyerLabel: string;
+  hasProof: boolean;
+  locale: Locale;
+  priceLabel: string;
+  tier: PaidProofTier;
+  title: string;
+  totalLabel: string;
+  variant?: "compact" | "section";
+}) {
+  const isCompact = variant === "compact";
+  const proofDescription = hasProof
+    ? locale === "ko"
+      ? `이미 ${buyerLabel}명이 결제했고 누적 ${totalLabel} USDT가 검증되었습니다.`
+      : `${buyerLabel} members have paid, with ${totalLabel} USDT verified.`
+    : locale === "ko"
+      ? "결제하면 전체 본문과 콘텐츠 이미지를 계속 열람할 수 있습니다."
+      : "Unlock once to keep access to the full body and content images.";
+  const metricLabel = locale === "ko" ? "누적 결제" : "Total paid";
+  const buyerCountLabel = locale === "ko" ? "결제 회원" : "Paid members";
+
+  return (
+    <section
+      className={cn(
+        "overflow-hidden border",
+        isCompact
+          ? "rounded-[20px] border-amber-200 bg-amber-50/92 p-3 text-left"
+          : tier === "hot"
+            ? "rounded-[28px] border-amber-300 bg-[linear-gradient(135deg,#fff7ed_0%,#fef3c7_48%,#ffffff_100%)] p-4 shadow-[0_22px_55px_rgba(217,119,6,0.16)] sm:rounded-[32px] sm:p-5"
+            : tier === "proven"
+              ? "rounded-[28px] border-amber-200 bg-amber-50/90 p-4 shadow-[0_18px_42px_rgba(217,119,6,0.10)] sm:rounded-[32px] sm:p-5"
+              : "rounded-[28px] border-slate-200 bg-white/94 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.07)] sm:rounded-[32px] sm:p-5",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center rounded-full",
+              isCompact ? "size-9" : "size-11",
+              tier === "new" ? "bg-slate-950 text-white" : "bg-amber-400 text-slate-950",
+            )}
+          >
+            {tier === "hot" ? (
+              <TrendingUp className={isCompact ? "size-4" : "size-5"} />
+            ) : (
+              <Coins className={isCompact ? "size-4" : "size-5"} />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "font-semibold tracking-tight text-slate-950",
+                isCompact ? "text-sm" : "text-lg",
+              )}
+            >
+              {title}
+            </p>
+            <p
+              className={cn(
+                "mt-1 leading-6 text-slate-600",
+                isCompact ? "text-xs" : "text-sm",
+              )}
+            >
+              {proofDescription}
+            </p>
+          </div>
+        </div>
+        <span className="shrink-0 rounded-full border border-white/80 bg-white px-3 py-1 text-xs font-semibold text-slate-800 shadow-[0_8px_18px_rgba(15,23,42,0.06)]">
+          {priceLabel}
+        </span>
+      </div>
+
+      {hasProof ? (
+        <div
+          className={cn(
+            "mt-3 grid gap-2",
+            isCompact ? "grid-cols-2" : "sm:grid-cols-2",
+          )}
+        >
+          <div className="rounded-2xl border border-white/80 bg-white/80 px-3 py-2.5">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              {metricLabel}
+            </p>
+            <p className="mt-1 text-base font-bold text-slate-950">
+              {totalLabel} USDT
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/80 bg-white/80 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Users className="size-3.5" />
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em]">
+                {buyerCountLabel}
+              </p>
+            </div>
+            <p className="mt-1 text-base font-bold text-slate-950">
+              {buyerLabel}
+            </p>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
