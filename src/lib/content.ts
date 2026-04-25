@@ -313,6 +313,7 @@ export type ContentLibraryResponse = {
 
 export type CreatorProfileResponse = {
   automationAvailable?: boolean;
+  member?: MemberRecord | null;
   profile: CreatorProfileRecord;
   profileConfigured: boolean;
 };

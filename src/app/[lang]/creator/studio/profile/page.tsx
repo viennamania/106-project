@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { CreatorContentStudioPage } from "@/components/creator-content-studio-page";
 import { getContentCopy } from "@/lib/content-copy";
+import { getCreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -53,7 +54,7 @@ export default async function LocalizedCreatorStudioProfilePage({
   }
 
   const locale = lang as Locale;
-  const dictionary = getDictionary(locale);
+  const dictionary = getCreatorStudioDictionary(getDictionary(locale));
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );

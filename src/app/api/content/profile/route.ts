@@ -3,9 +3,10 @@ import type {
   CreatorProfileUpsertRequest,
 } from "@/lib/content";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { serializeMember } from "@/lib/member";
 import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
 import {
-  getCreatorProfileSnapshotForMember,
+  getCreatorProfileSnapshotForCompletedMember,
   upsertCreatorProfileForMember,
 } from "@/lib/content-service";
 
@@ -36,13 +37,18 @@ export async function GET(request: Request) {
       return authorization.error;
     }
 
-    const profileSnapshot = await getCreatorProfileSnapshotForMember(
-      authorization.normalizedEmail,
+    if (!authorization.member) {
+      return jsonError("Member not found.", 404);
+    }
+
+    const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
+      authorization.member,
     );
     const response: CreatorProfileResponse = {
       automationAvailable: isMemberAllowedForContentAutomation(
         authorization.normalizedEmail,
       ),
+      member: serializeMember(authorization.member),
       profile: profileSnapshot.profile,
       profileConfigured: profileSnapshot.profileConfigured,
     };

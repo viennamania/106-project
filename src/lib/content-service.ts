@@ -849,6 +849,17 @@ export async function getCreatorProfileSnapshotForMember(
   email: string,
 ): Promise<{ profile: CreatorProfileRecord; profileConfigured: boolean }> {
   const member = await getCompletedMemberOrThrow(email);
+
+  return getCreatorProfileSnapshotForCompletedMember(member);
+}
+
+export async function getCreatorProfileSnapshotForCompletedMember(
+  member: MemberDocument,
+): Promise<{ profile: CreatorProfileRecord; profileConfigured: boolean }> {
+  if (member.status !== "completed") {
+    throw new Error("Completed signup is required.");
+  }
+
   const stored = await readStoredCreatorProfile(member.email);
   const defaultProfile = createDefaultCreatorProfile(member);
 

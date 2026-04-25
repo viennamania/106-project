@@ -55,13 +55,14 @@ import type {
   CreatorStudioPostsLoadResponse,
 } from "@/lib/content";
 import { CONTENT_PAID_USDT_AMOUNT } from "@/lib/content";
+import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { trackFunnelEvent } from "@/lib/funnel-client";
-import type { Dictionary, Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
@@ -469,7 +470,7 @@ export function CreatorContentStudioPage({
   returnToHref = null,
   view = "hub",
 }: {
-  dictionary: Dictionary;
+  dictionary: CreatorStudioDictionary;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
@@ -1261,16 +1262,14 @@ export function CreatorContentStudioPage({
         return;
       }
 
-      let validationError: string | null = null;
-      let memberResponse = await fetch(
-        `/api/members?email=${encodeURIComponent(email)}`,
-      );
-      let memberData = (await memberResponse.json()) as
-        | MemberLoadResponse
+      const profileUrl = `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`;
+      let profileResponse = await fetch(profileUrl);
+      let profileData = (await profileResponse.json()) as
+        | CreatorProfileResponse
         | { error?: string };
 
-      if (!memberResponse.ok && memberResponse.status === 404) {
-        memberResponse = await fetch("/api/members", {
+      if (!profileResponse.ok && profileResponse.status === 404) {
+        const memberResponse = await fetch("/api/members", {
           body: JSON.stringify({
             chainId: chain.id,
             chainName: chain.name ?? "BSC",
@@ -1284,107 +1283,40 @@ export function CreatorContentStudioPage({
           },
           method: "POST",
         });
-        memberData = (await memberResponse.json()) as
+        const memberData = (await memberResponse.json()) as
           | SyncMemberResponse
           | { error?: string };
-        validationError =
+        const validationError =
           "validationError" in memberData &&
           typeof memberData.validationError === "string"
             ? memberData.validationError
             : null;
-      }
 
-      if (!memberResponse.ok) {
-        throw new Error(
-          "error" in memberData && memberData.error
-            ? memberData.error
-            : contentCopy.messages.studioLoadFailed,
-        );
-      }
-
-      const member = "member" in memberData ? memberData.member : null;
-
-      if (!member) {
-        throw new Error(contentCopy.messages.memberMissing);
-      }
-
-      if (validationError) {
-        setState({
-          error: validationError,
-          member,
-          notice: null,
-          posts: [],
-          profile: EMPTY_PROFILE,
-          profileConfigured: false,
-          summary: EMPTY_STUDIO_SUMMARY,
-          status: "ready",
-        });
-        setAutomation({
-          available: false,
-          error: null,
-          form: EMPTY_AUTOMATION_FORM,
-          jobs: [],
-          status: "ready",
-        });
-        return;
-      }
-
-      if (member.status !== "completed") {
-        setState({
-          error: contentCopy.messages.paymentRequired,
-          member,
-          notice: null,
-          posts: [],
-          profile: EMPTY_PROFILE,
-          profileConfigured: false,
-          summary: EMPTY_STUDIO_SUMMARY,
-          status: "ready",
-        });
-        setAutomation({
-          available: false,
-          error: null,
-          form: EMPTY_AUTOMATION_FORM,
-          jobs: [],
-          status: "ready",
-        });
-        return;
-      }
-
-      if (shouldLoadProfileView) {
-        const profileResponse = await fetch(
-          `/api/content/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        );
-
-        const profileData = (await profileResponse.json()) as
-          | CreatorProfileResponse
-          | { error?: string };
-
-        if (!profileResponse.ok || !("profile" in profileData)) {
+        if (!memberResponse.ok) {
           throw new Error(
-            "error" in profileData && profileData.error
-              ? profileData.error
+            "error" in memberData && memberData.error
+              ? memberData.error
               : contentCopy.messages.studioLoadFailed,
           );
         }
 
-        setState({
-          error: null,
-          member,
-          notice: null,
-          posts: [],
-          profile: {
-            avatarImageUrl: profileData.profile.avatarImageUrl ?? "",
-            displayName: profileData.profile.displayName,
-            heroImageUrl: profileData.profile.heroImageUrl ?? "",
-            intro: profileData.profile.intro,
-            payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
-          },
-          profileConfigured: profileData.profileConfigured,
-          summary: EMPTY_STUDIO_SUMMARY,
-          status: "ready",
-        });
+        const member = "member" in memberData ? memberData.member : null;
 
-        if (profileData.automationAvailable === false) {
+        if (!member) {
+          throw new Error(contentCopy.messages.memberMissing);
+        }
+
+        if (validationError) {
+          setState({
+            error: validationError,
+            member,
+            notice: null,
+            posts: [],
+            profile: EMPTY_PROFILE,
+            profileConfigured: false,
+            summary: EMPTY_STUDIO_SUMMARY,
+            status: "ready",
+          });
           setAutomation({
             available: false,
             error: null,
@@ -1395,57 +1327,17 @@ export function CreatorContentStudioPage({
           return;
         }
 
-        const [automationProfileResponse, automationJobsResponse] =
-          await Promise.all([
-            fetch(
-              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-            fetch(
-              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-          ]);
-
-        const automationProfileData = (await automationProfileResponse.json()) as
-          | CreatorAutomationProfileResponse
-          | { error?: string };
-        const automationJobsData = (await automationJobsResponse.json()) as
-          | ContentAutomationJobsResponse
-          | { error?: string };
-
-        if (
-          automationProfileResponse.ok &&
-          "profile" in automationProfileData &&
-          automationJobsResponse.ok &&
-          "items" in automationJobsData
-        ) {
-          setAutomation({
-            available: true,
-            error: null,
-            form: {
-              allowedDomains: stringifyDelimitedValues(
-                automationProfileData.profile.allowedDomains,
-              ),
-              autoPublish: automationProfileData.profile.autoPublish,
-              enabled: automationProfileData.profile.enabled,
-              maxPostsPerDay: String(automationProfileData.profile.maxPostsPerDay),
-              minIntervalMinutes: String(
-                automationProfileData.profile.minIntervalMinutes,
-              ),
-              personaName: automationProfileData.profile.personaName,
-              personaPrompt: automationProfileData.profile.personaPrompt,
-              publishScoreThreshold: String(
-                automationProfileData.profile.publishScoreThreshold,
-              ),
-              topics: stringifyDelimitedValues(automationProfileData.profile.topics),
-            },
-            jobs: automationJobsData.items,
+        if (member.status !== "completed") {
+          setState({
+            error: contentCopy.messages.paymentRequired,
+            member,
+            notice: null,
+            posts: [],
+            profile: EMPTY_PROFILE,
+            profileConfigured: false,
+            summary: EMPTY_STUDIO_SUMMARY,
             status: "ready",
           });
-        } else if (
-          automationProfileResponse.status === 403 &&
-          "error" in automationProfileData &&
-          automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
-        ) {
           setAutomation({
             available: false,
             error: null,
@@ -1453,23 +1345,160 @@ export function CreatorContentStudioPage({
             jobs: [],
             status: "ready",
           });
-        } else {
-          setAutomation({
-            available: false,
-            error:
-              "error" in automationJobsData && automationJobsData.error
-                ? automationJobsData.error
-                : "error" in automationProfileData && automationProfileData.error
-                  ? automationProfileData.error
-                  : contentCopy.messages.automationLoadFailed,
-            form: EMPTY_AUTOMATION_FORM,
-            jobs: [],
-            status: "ready",
-          });
+          return;
         }
 
+        profileResponse = await fetch(profileUrl);
+        profileData = (await profileResponse.json()) as
+          | CreatorProfileResponse
+          | { error?: string };
+      } else if (!profileResponse.ok && profileResponse.status === 403) {
+        const memberResponse = await fetch(
+          `/api/members?email=${encodeURIComponent(email)}`,
+        );
+        const memberData = (await memberResponse.json()) as
+          | MemberLoadResponse
+          | { error?: string };
+        const member = "member" in memberData ? memberData.member : null;
+
+        if (memberResponse.ok && member && member.status !== "completed") {
+          setState({
+            error: contentCopy.messages.paymentRequired,
+            member,
+            notice: null,
+            posts: [],
+            profile: EMPTY_PROFILE,
+            profileConfigured: false,
+            summary: EMPTY_STUDIO_SUMMARY,
+            status: "ready",
+          });
+          setAutomation({
+            available: false,
+            error: null,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+          return;
+        }
+      }
+
+      if (!profileResponse.ok || !("profile" in profileData)) {
+        throw new Error(
+          "error" in profileData && profileData.error
+            ? profileData.error
+            : contentCopy.messages.studioLoadFailed,
+        );
+      }
+
+      const member = "member" in profileData ? profileData.member : null;
+
+      if (!member) {
+        throw new Error(contentCopy.messages.memberMissing);
+      }
+
+      setState({
+        error: null,
+        member,
+        notice: null,
+        posts: [],
+        profile: {
+          avatarImageUrl: profileData.profile.avatarImageUrl ?? "",
+          displayName: profileData.profile.displayName,
+          heroImageUrl: profileData.profile.heroImageUrl ?? "",
+          intro: profileData.profile.intro,
+          payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
+        },
+        profileConfigured: profileData.profileConfigured,
+        summary: EMPTY_STUDIO_SUMMARY,
+        status: "ready",
+      });
+
+      if (profileData.automationAvailable === false) {
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
         return;
       }
+
+      const [automationProfileResponse, automationJobsResponse] =
+        await Promise.all([
+          fetch(
+            `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+          ),
+          fetch(
+            `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
+          ),
+        ]);
+
+      const automationProfileData = (await automationProfileResponse.json()) as
+        | CreatorAutomationProfileResponse
+        | { error?: string };
+      const automationJobsData = (await automationJobsResponse.json()) as
+        | ContentAutomationJobsResponse
+        | { error?: string };
+
+      if (
+        automationProfileResponse.ok &&
+        "profile" in automationProfileData &&
+        automationJobsResponse.ok &&
+        "items" in automationJobsData
+      ) {
+        setAutomation({
+          available: true,
+          error: null,
+          form: {
+            allowedDomains: stringifyDelimitedValues(
+              automationProfileData.profile.allowedDomains,
+            ),
+            autoPublish: automationProfileData.profile.autoPublish,
+            enabled: automationProfileData.profile.enabled,
+            maxPostsPerDay: String(automationProfileData.profile.maxPostsPerDay),
+            minIntervalMinutes: String(
+              automationProfileData.profile.minIntervalMinutes,
+            ),
+            personaName: automationProfileData.profile.personaName,
+            personaPrompt: automationProfileData.profile.personaPrompt,
+            publishScoreThreshold: String(
+              automationProfileData.profile.publishScoreThreshold,
+            ),
+            topics: stringifyDelimitedValues(automationProfileData.profile.topics),
+          },
+          jobs: automationJobsData.items,
+          status: "ready",
+        });
+      } else if (
+        automationProfileResponse.status === 403 &&
+        "error" in automationProfileData &&
+        automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
+      ) {
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
+      } else {
+        setAutomation({
+          available: false,
+          error:
+            "error" in automationJobsData && automationJobsData.error
+              ? automationJobsData.error
+              : "error" in automationProfileData && automationProfileData.error
+                ? automationProfileData.error
+                : contentCopy.messages.automationLoadFailed,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "ready",
+        });
+      }
+
+      return;
     } catch (error) {
       setState({
         error:

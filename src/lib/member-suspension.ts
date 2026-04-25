@@ -8,7 +8,7 @@ import {
   type ServiceSuspensionScope,
 } from "@/lib/member";
 
-const FORCED_SERVICE_SUSPENSION_ROOT_EMAILS = ["jasonkim.v@gmail.com"];
+const FORCED_SERVICE_SUSPENSION_ROOT_EMAILS: string[] = [];
 const FORCED_SERVICE_SUSPENSION_AT = new Date("2026-04-24T00:00:00.000Z");
 const FORCED_SERVICE_SUSPENSION_BY_EMAIL = "system@1066friend.plus";
 const MAX_SERVICE_SUSPENSION_REFERRAL_DEPTH = 64;
@@ -68,6 +68,10 @@ async function isMemberBelowForcedSuspensionRoot(
   collection: MembersCollection,
   member: MemberDocument,
 ) {
+  if (FORCED_SERVICE_SUSPENSION_ROOT_EMAILS.length === 0) {
+    return false;
+  }
+
   if (isForcedSuspensionRootEmail(member.email)) {
     return true;
   }
