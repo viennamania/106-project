@@ -33,6 +33,7 @@ export const contentAutomationRunProgressSteps = [
   "collecting_sources",
   "drafting",
   "generating_cover",
+  "generating_content_images",
   "saving_content",
   "finalizing",
 ] as const;

@@ -590,6 +590,10 @@ export function CreatorContentStudioPage({
             description: "초안 분위기에 맞는 AI 커버 이미지를 준비합니다.",
             label: "AI 커버 생성",
           },
+          generating_content_images: {
+            description: "상세 페이지 갤러리에 들어갈 AI 콘텐츠 이미지 3장을 생성합니다.",
+            label: "AI 콘텐츠 이미지",
+          },
           pending: "대기",
           progress: "진행률",
           queueing: {
@@ -631,6 +635,10 @@ export function CreatorContentStudioPage({
           generating_cover: {
             description: "Preparing an AI cover image for the draft.",
             label: "Cover generation",
+          },
+          generating_content_images: {
+            description: "Generating three AI gallery images for the detail page.",
+            label: "Gallery images",
           },
           pending: "Pending",
           progress: "Progress",
@@ -683,6 +691,11 @@ export function CreatorContentStudioPage({
       description: automationProgressLabels.generating_cover.description,
       icon: WandSparkles,
       label: automationProgressLabels.generating_cover.label,
+    },
+    generating_content_images: {
+      description: automationProgressLabels.generating_content_images.description,
+      icon: ImagePlus,
+      label: automationProgressLabels.generating_content_images.label,
     },
     queueing: {
       description: automationProgressLabels.queueing.description,

@@ -24,6 +24,7 @@ import {
   type CreatorAutomationProfileUpsertRequest,
 } from "@/lib/content-automation";
 import { generateAndUploadContentCover } from "@/lib/content-cover-service";
+import { generateAndUploadContentGalleryImage } from "@/lib/content-gallery-image-service";
 import { createContentPostForMember, getCreatorProfileForMember } from "@/lib/content-service";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import {
@@ -44,6 +45,7 @@ const DEFAULT_MIN_INTERVAL_MINUTES = 360;
 const DEFAULT_LANGUAGE = "ko";
 const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
 const DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS = 90_000;
+const AUTOMATION_CONTENT_IMAGE_COUNT = 3;
 
 type DiscoverySource = {
   domain: string;
@@ -881,6 +883,80 @@ async function maybeGenerateAutomationCover(options: {
   }
 }
 
+function buildAutomationGalleryVisualBrief(
+  draft: Pick<DraftPayload, "suggestedCoverPrompt" | "summary" | "title" | "topic">,
+  index: number,
+) {
+  const variants = [
+    "Primary editorial scene with a clear premium focal subject.",
+    "Close-up detail image with rich texture, materials, and mood.",
+    "Contextual lifestyle scene that expands the story without text.",
+  ];
+  const variant = variants[index] ?? variants[0];
+
+  return [
+    draft.suggestedCoverPrompt,
+    `Gallery image ${index + 1}: ${variant}`,
+    draft.topic ? `Topic: ${draft.topic}.` : null,
+    draft.title ? `Title: ${draft.title}.` : null,
+    draft.summary ? `Summary: ${draft.summary}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+async function maybeGenerateAutomationContentImages(options: {
+  body: string;
+  draft: DraftPayload;
+  member: MemberDocument;
+  profile: CreatorAutomationProfileDocument;
+}) {
+  if (options.profile.coverImageMode !== "generated") {
+    return {
+      contentImageError: null,
+      contentImageUrls: [] as string[],
+    };
+  }
+
+  if (!options.member.referralCode) {
+    return {
+      contentImageError: "Completed member is missing referral code.",
+      contentImageUrls: [] as string[],
+    };
+  }
+
+  const contentImageUrls: string[] = [];
+  const errors: string[] = [];
+
+  for (let index = 0; index < AUTOMATION_CONTENT_IMAGE_COUNT; index += 1) {
+    try {
+      const generatedImage = await generateAndUploadContentGalleryImage({
+        body: options.body,
+        referralCode: options.member.referralCode,
+        summary: options.draft.summary,
+        title: options.draft.title,
+        visualBrief: buildAutomationGalleryVisualBrief(options.draft, index),
+      });
+
+      contentImageUrls.push(generatedImage.url);
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : "unknown error");
+    }
+  }
+
+  return {
+    contentImageError:
+      errors.length > 0
+        ? `AI content image generation completed with ${errors.length} failure(s): ${errors.join("; ")}`
+        : null,
+    contentImageUrls,
+  };
+}
+
+function joinAutomationWarnings(...warnings: Array<string | null | undefined>) {
+  return warnings.filter(Boolean).join(" ") || null;
+}
+
 export async function getEnabledContentAutomationMemberEmails() {
   const collection = await getCreatorAutomationProfilesCollection();
   const profiles = await collection
@@ -1145,18 +1221,48 @@ export async function runContentAutomationForMember(
     await reportProgress(
       "generating_cover",
       "completed",
-      88,
+      84,
       coverImageError,
     );
 
+    await reportProgress(
+      "generating_content_images",
+      "running",
+      86,
+      storedProfile.language === "ko"
+        ? "상세 페이지 갤러리에 사용할 AI 콘텐츠 이미지 3장을 생성하고 있습니다."
+        : "Generating three AI gallery images for the detail page.",
+    );
+    const { contentImageError, contentImageUrls } =
+      await maybeGenerateAutomationContentImages({
+        body: draft.body,
+        draft,
+        member,
+        profile: storedProfile,
+      });
+    await reportProgress(
+      "generating_content_images",
+      "completed",
+      90,
+      contentImageError,
+    );
+
     await reportProgress("saving_content", "running", 92);
-    const nextStatus =
+    const hasGeneratedVisual = Boolean(coverImageUrl || contentImageUrls.length > 0);
+    const isAutoPublishEligible =
       storedProfile.autoPublish &&
-      draft.score >= storedProfile.publishScoreThreshold
+      draft.score >= storedProfile.publishScoreThreshold;
+    const nextStatus =
+      isAutoPublishEligible && hasGeneratedVisual
         ? "published"
         : "draft";
+    const publishDowngradeWarning =
+      isAutoPublishEligible && !hasGeneratedVisual
+        ? "Automation saved a draft because AI image generation did not produce a publishable visual."
+        : null;
     const content = await createContentPostForMember({
       body: draft.body,
+      contentImageUrls,
       coverImageUrl,
       email: member.email,
       locale: storedProfile.language,
@@ -1212,7 +1318,11 @@ export async function runContentAutomationForMember(
       tags: draft.tags,
       title: draft.title,
       topic: draft.topic,
-      warning: coverImageError,
+      warning: joinAutomationWarnings(
+        coverImageError,
+        contentImageError,
+        publishDowngradeWarning,
+      ),
     });
     await reportProgress("finalizing", "completed", 100);
 
