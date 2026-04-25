@@ -45,6 +45,7 @@ const DEFAULT_MIN_INTERVAL_MINUTES = 360;
 const DEFAULT_LANGUAGE = "ko";
 const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
 const DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS = 90_000;
+const DEFAULT_STALE_AUTOMATION_JOB_MINUTES = 30;
 const AUTOMATION_CONTENT_IMAGE_COUNT = 3;
 
 type DiscoverySource = {
@@ -279,6 +280,27 @@ function getReasoningEffort(
   }
 
   return fallback;
+}
+
+function getStaleAutomationJobCutoff() {
+  const configuredMinutes = Number.parseInt(
+    process.env.CONTENT_AUTOMATION_STALE_JOB_MINUTES?.trim() ?? "",
+    10,
+  );
+  const minutes =
+    Number.isFinite(configuredMinutes) && configuredMinutes > 0
+      ? configuredMinutes
+      : DEFAULT_STALE_AUTOMATION_JOB_MINUTES;
+
+  return new Date(Date.now() - minutes * 60 * 1000);
+}
+
+function getAutomationLocaleMessage(
+  language: CreatorAutomationProfileDocument["language"],
+  ko: string,
+  en: string,
+) {
+  return language === "ko" ? ko : en;
 }
 
 async function requestOpenAiResponse(
@@ -799,6 +821,34 @@ async function failJob(jobId: string, errorMessage: string) {
   return nextJob;
 }
 
+async function failStaleAutomationJobsForMember(
+  memberEmail: string,
+  language: CreatorAutomationProfileDocument["language"],
+) {
+  const collection = await getContentAutomationJobsCollection();
+  const cutoff = getStaleAutomationJobCutoff();
+  const now = new Date();
+
+  await collection.updateMany(
+    {
+      createdAt: { $lt: cutoff },
+      memberEmail,
+      status: { $in: ["queued", "running"] },
+    },
+    {
+      $set: {
+        error: getAutomationLocaleMessage(
+          language,
+          "이전 자동화 실행이 서버 응답 없이 중단되어 실패 처리되었습니다. 다시 실행해 주세요.",
+          "The previous automation run stopped without a server response. Please run it again.",
+        ),
+        finishedAt: now,
+        status: "failed",
+      },
+    },
+  );
+}
+
 async function enforceAutomationCadence(
   memberEmail: string,
   profile: CreatorAutomationProfileDocument,
@@ -813,7 +863,13 @@ async function enforceAutomationCadence(
   });
 
   if (publishedToday >= profile.maxPostsPerDay) {
-    throw new Error("Daily automation posting limit has been reached.");
+    throw new Error(
+      getAutomationLocaleMessage(
+        profile.language,
+        `오늘 자동 게시 한도(${profile.maxPostsPerDay}회)에 도달했습니다. 내일 다시 실행하거나 하루 최대 발행 수를 조정해 주세요.`,
+        `Daily automation posting limit (${profile.maxPostsPerDay}) has been reached. Run it tomorrow or raise the daily limit.`,
+      ),
+    );
   }
 
   const latestJob = await jobsCollection.findOne(
@@ -833,7 +889,18 @@ async function enforceAutomationCadence(
   const minIntervalMs = profile.minIntervalMinutes * 60 * 1000;
 
   if (elapsedMs < minIntervalMs) {
-    throw new Error("Automation minimum posting interval has not elapsed yet.");
+    const remainingMinutes = Math.max(
+      1,
+      Math.ceil((minIntervalMs - elapsedMs) / 60_000),
+    );
+
+    throw new Error(
+      getAutomationLocaleMessage(
+        profile.language,
+        `이전 자동 게시 이후 최소 간격이 아직 지나지 않았습니다. 약 ${remainingMinutes}분 후 다시 실행해 주세요.`,
+        `Automation minimum posting interval has not elapsed yet. Try again in about ${remainingMinutes} minute(s).`,
+      ),
+    );
   }
 }
 
@@ -1086,6 +1153,7 @@ export async function getContentAutomationJobsForMember(
 }> {
   const { member, profile } = await getCreatorAutomationProfileForMember(email);
   const collection = await getContentAutomationJobsCollection();
+  await failStaleAutomationJobsForMember(member.email, profile.language);
   const jobs = await collection
     .find({ memberEmail: member.email })
     .sort({ createdAt: -1 })
@@ -1156,14 +1224,62 @@ export async function runContentAutomationForMember(
     throw new Error("Automation is disabled for this creator.");
   }
 
-  await reportProgress("queueing", "running", 10);
-  await enforceAutomationCadence(member.email, storedProfile);
-
+  await reportProgress(
+    "queueing",
+    "running",
+    8,
+    getAutomationLocaleMessage(
+      storedProfile.language,
+      "이전 자동화 작업 상태를 확인하고 있습니다.",
+      "Checking previous automation job status.",
+    ),
+  );
+  await failStaleAutomationJobsForMember(member.email, storedProfile.language);
+  await reportProgress(
+    "queueing",
+    "running",
+    10,
+    getAutomationLocaleMessage(
+      storedProfile.language,
+      "이번 실행 기록을 만들고 있습니다.",
+      "Creating this automation run record.",
+    ),
+  );
   const queuedJob = await createQueuedJob(member.email, mode);
 
   try {
+    await reportProgress(
+      "queueing",
+      "running",
+      12,
+      getAutomationLocaleMessage(
+        storedProfile.language,
+        "하루 발행 한도와 최소 실행 간격을 확인하고 있습니다.",
+        "Checking the daily publish limit and minimum run interval.",
+      ),
+    );
+    await enforceAutomationCadence(member.email, storedProfile);
+    await reportProgress(
+      "queueing",
+      "running",
+      15,
+      getAutomationLocaleMessage(
+        storedProfile.language,
+        "실행 조건이 확인되었습니다. 자동화를 시작합니다.",
+        "Run checks passed. Starting automation.",
+      ),
+    );
     await markJobRunning(queuedJob.jobId);
-    await reportProgress("queueing", "completed", 18);
+    await reportProgress(
+      "queueing",
+      "completed",
+      18,
+      getAutomationLocaleMessage(
+        storedProfile.language,
+        "작업 준비가 완료되었습니다.",
+        "Queue setup is complete.",
+      ),
+    );
 
     await reportProgress("discovering", "running", 28);
     const discovery = await discoverSourcesForProfile(storedProfile);

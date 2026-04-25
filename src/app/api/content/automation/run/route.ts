@@ -90,7 +90,10 @@ function resolveStatus(message: string) {
   if (
     message.includes("limit") ||
     message.includes("interval") ||
-    message.includes("disabled")
+    message.includes("disabled") ||
+    message.includes("한도") ||
+    message.includes("간격") ||
+    message.includes("비활성")
   ) {
     return 409;
   }
