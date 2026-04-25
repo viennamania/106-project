@@ -974,18 +974,28 @@ export function CreatorContentStudioPage({
   const feedShareCopy =
     locale === "ko"
       ? {
+          action: "내 피드 공유",
           copied: "링크 복사됨",
           description:
             "내 레퍼럴이 포함된 공개 피드 미리보기 링크를 공유합니다.",
+          disabled: "활성화 후 공유 가능",
           error: "복사 실패",
+          recentDescription:
+            "최근 콘텐츠를 공개 피드 링크로 묶어 신규 방문자가 바로 볼 수 있게 공유하세요.",
+          recentTitle: "최근 콘텐츠를 공개 피드로 공유",
           sharing: "공유 중",
           title: "내 피드 공유",
         }
       : {
+          action: "Share feed",
           copied: "Link copied",
           description:
             "Share the public feed preview with your referral attached.",
+          disabled: "Available after activation",
           error: "Copy failed",
+          recentDescription:
+            "Share your recent content as a public feed link so new visitors can start browsing immediately.",
+          recentTitle: "Share recent posts as a feed",
           sharing: "Sharing",
           title: "Share my feed",
         };
@@ -4170,6 +4180,14 @@ export function CreatorContentStudioPage({
       0,
       compact ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE,
     );
+    const feedShareStateLabel =
+      feedShareState === "copied"
+        ? feedShareCopy.copied
+        : feedShareState === "error"
+          ? feedShareCopy.error
+          : feedShareState === "sharing"
+            ? feedShareCopy.sharing
+            : null;
 
     return (
       <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
@@ -4210,6 +4228,45 @@ export function CreatorContentStudioPage({
           <MessageCard>{contentCopy.labels.feedEmpty}</MessageCard>
         ) : (
           <div className="mt-4 space-y-3">
+            <div className="rounded-[24px] border border-slate-900/10 bg-[linear-gradient(135deg,#020617_0%,#0f172a_58%,#155e75_100%)] p-4 text-white shadow-[0_20px_48px_rgba(15,23,42,0.24)]">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/12 text-cyan-100 ring-1 ring-white/14">
+                    <Rss className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold tracking-tight">
+                      {feedShareCopy.recentTitle}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-300">
+                      {feedShareCopy.recentDescription}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(2,6,23,0.28)] transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:bg-white/70 disabled:text-slate-500 sm:w-auto"
+                  disabled={!canShareCreatorFeed || feedShareState === "sharing"}
+                  onClick={() => {
+                    void handleShareCreatorFeed();
+                  }}
+                  type="button"
+                >
+                  {feedShareState === "sharing" ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : feedShareState === "copied" ? (
+                    <Check className="size-4" />
+                  ) : (
+                    <Share2 className="size-4" />
+                  )}
+                  <span>
+                    {feedShareStateLabel ??
+                      (canShareCreatorFeed
+                        ? feedShareCopy.action
+                        : feedShareCopy.disabled)}
+                  </span>
+                </button>
+              </div>
+            </div>
             {posts.map((post) => (
               <article
                 className="rounded-[24px] border border-white/80 bg-white/90 p-4"
@@ -4296,29 +4353,6 @@ export function CreatorContentStudioPage({
     return (
       <section className="grid gap-3 lg:hidden">
         {renderRecentPostsPanel({ compact: true, hideManageLink: true })}
-        <section className="space-y-3 px-4">
-          <div>
-            <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-              {feedShareCopy.title}
-            </h2>
-          </div>
-          <WorkspaceShareCard
-            description={feedShareCopy.description}
-            disabled={!canShareCreatorFeed}
-            icon={<Rss className="size-5" />}
-            onShare={() => {
-              void handleShareCreatorFeed();
-            }}
-            state={feedShareState}
-            stateLabels={{
-              copied: feedShareCopy.copied,
-              error: feedShareCopy.error,
-              sharing: feedShareCopy.sharing,
-            }}
-            title={feedShareCopy.title}
-          />
-        </section>
       </section>
     );
   }
