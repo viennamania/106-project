@@ -4193,7 +4193,7 @@ export function CreatorContentStudioPage({
                 {emptyStudioCopy.ctaCreate}
               </Link>
               <Link
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:bg-white/16"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-5 text-sm font-semibold !text-slate-950 shadow-[0_14px_30px_rgba(8,145,178,0.18)] transition hover:-translate-y-0.5 hover:border-white hover:bg-white"
                 href={profileHref}
               >
                 <UserRound className="size-4" />
@@ -4316,7 +4316,7 @@ export function CreatorContentStudioPage({
                   </div>
                 </div>
                 <button
-                  className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(2,6,23,0.28)] transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:bg-white/70 disabled:text-slate-500 sm:w-auto"
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(2,6,23,0.28)] transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:bg-white/92 disabled:text-slate-700 sm:w-auto"
                   disabled={!canShareCreatorFeed || feedShareState === "sharing"}
                   onClick={() => {
                     void handleShareCreatorFeed();
@@ -4854,10 +4854,10 @@ function WorkspaceLaunchCard({
   const body = (
     <div
       className={
-        "rounded-[22px] border border-slate-200 bg-white p-4 shadow-none transition sm:rounded-[30px] sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
+        "rounded-[22px] border border-slate-200 bg-white p-4 shadow-none transition sm:rounded-[30px] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
         (disabled
-          ? "cursor-not-allowed opacity-70"
-          : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
+          ? "cursor-not-allowed bg-slate-50/95 sm:border-slate-200"
+          : "sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
       }
     >
       <div
@@ -4931,10 +4931,10 @@ function WorkspaceShareCard({
   return (
     <button
       className={
-        "block h-full rounded-[22px] border border-slate-200 bg-white p-4 text-left shadow-none transition sm:rounded-[30px] sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
+        "block h-full rounded-[22px] border border-slate-200 bg-white p-4 text-left shadow-none transition sm:rounded-[30px] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
         (disabled
-          ? "cursor-not-allowed opacity-70"
-          : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
+          ? "cursor-not-allowed bg-slate-50/95 sm:border-slate-200"
+          : "sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
       }
       disabled={disabled}
       onClick={onShare}
@@ -5000,7 +5000,7 @@ function WorkspaceSupportLink({
       className={
         "rounded-[24px] border border-white/80 bg-white/90 p-4 transition " +
         (disabled
-          ? "cursor-not-allowed opacity-70"
+          ? "cursor-not-allowed border-slate-200 bg-slate-50/95"
           : "hover:border-slate-200 hover:bg-white")
       }
     >

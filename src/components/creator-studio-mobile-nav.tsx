@@ -91,7 +91,7 @@ export function CreatorStudioMobileNav({
           return (
             <Link
               className={cn(
-                "flex h-14 min-w-0 flex-col items-center justify-end gap-1 rounded-2xl px-1 pb-1 text-[0.68rem] font-semibold text-slate-500 transition",
+                "flex h-14 min-w-0 flex-col items-center justify-end gap-1 rounded-2xl px-1 pb-1 text-[0.7rem] font-semibold text-slate-600 transition",
                 isActive && "text-slate-950",
                 isCreate && "relative -mt-3 text-slate-950",
               )}
