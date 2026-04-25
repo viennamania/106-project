@@ -368,6 +368,7 @@ export function NetworkFeedPage({
   );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showPublicStickyCta, setShowPublicStickyCta] = useState(false);
+  const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [selectedCreatorKey, setSelectedCreatorKey] = useState<string | null>(
     null,
   );
@@ -1046,6 +1047,7 @@ export function NetworkFeedPage({
                     levelLabel={contentCopy.labels.level}
                     locale={locale}
                     missingEmailMessage={dictionary.member.errors.missingEmail}
+                    onCommentsOpenChange={setIsCommentSheetOpen}
                     onOpenDetail={openContentFromFeed}
                     onSocialChange={updateItemSocial}
                     priority={index < 2}
@@ -1080,13 +1082,15 @@ export function NetworkFeedPage({
       <FeedScrollTopControl
         locale={locale}
         mode={
-          isPublicReferralFeed && showPublicStickyCta
+          isCommentSheetOpen
             ? "hidden"
-            : scrollTopControlMode
+            : isPublicReferralFeed && showPublicStickyCta
+              ? "hidden"
+              : scrollTopControlMode
         }
         onClick={scrollToFeedTop}
       />
-      {isPublicReferralFeed ? (
+      {isPublicReferralFeed && !isCommentSheetOpen ? (
         <PublicFeedStickySignupCta
           href={publicSignupHref}
           locale={locale}
@@ -1305,6 +1309,7 @@ function SocialFeedPost({
   levelLabel,
   locale,
   missingEmailMessage,
+  onCommentsOpenChange,
   onOpenDetail,
   onSocialChange,
   priority,
@@ -1320,6 +1325,7 @@ function SocialFeedPost({
   levelLabel: string;
   locale: Locale;
   missingEmailMessage: string;
+  onCommentsOpenChange: (open: boolean) => void;
   onOpenDetail: (item: ContentFeedItemRecord) => void;
   onSocialChange: (
     contentId: string,
@@ -1526,6 +1532,65 @@ function SocialFeedPost({
   useEffect(() => {
     return clearMediaOpenTimeout;
   }, [clearMediaOpenTimeout]);
+
+  useEffect(() => {
+    onCommentsOpenChange(isCommentsOpen);
+
+    return () => {
+      if (isCommentsOpen) {
+        onCommentsOpenChange(false);
+      }
+    };
+  }, [isCommentsOpen, onCommentsOpenChange]);
+
+  useEffect(() => {
+    if (!isCommentsOpen || typeof window === "undefined") {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const { body, documentElement } = document;
+    const previousBodyPosition = body.style.position;
+    const previousBodyTop = body.style.top;
+    const previousBodyLeft = body.style.left;
+    const previousBodyRight = body.style.right;
+    const previousBodyWidth = body.style.width;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyOverscrollBehavior = body.style.overscrollBehavior;
+    const previousBodyPaddingRight = body.style.paddingRight;
+    const previousDocumentOverflow = documentElement.style.overflow;
+    const previousDocumentOverscrollBehavior =
+      documentElement.style.overscrollBehavior;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    documentElement.style.overflow = "hidden";
+    documentElement.style.overscrollBehavior = "none";
+
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      body.style.position = previousBodyPosition;
+      body.style.top = previousBodyTop;
+      body.style.left = previousBodyLeft;
+      body.style.right = previousBodyRight;
+      body.style.width = previousBodyWidth;
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscrollBehavior;
+      body.style.paddingRight = previousBodyPaddingRight;
+      documentElement.style.overflow = previousDocumentOverflow;
+      documentElement.style.overscrollBehavior = previousDocumentOverscrollBehavior;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isCommentsOpen]);
 
   useEffect(() => {
     if (!toast && shareState !== "copied" && shareState !== "error") {
@@ -2315,10 +2380,10 @@ function SocialFeedPost({
         </Link>
       </div>
       {isCommentsOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 px-0 sm:px-4">
-          <div className="max-h-[82vh] w-full max-w-[520px] overflow-hidden rounded-t-3xl bg-white shadow-[0_-18px_60px_rgba(15,23,42,0.22)] sm:mb-6 sm:rounded-3xl">
-            <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-slate-200" />
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div className="fixed inset-0 z-[120] flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/45 px-0 sm:px-4">
+          <div className="flex max-h-[min(82svh,720px)] w-full max-w-[520px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_-18px_60px_rgba(15,23,42,0.22)] sm:mb-6 sm:rounded-3xl">
+            <div className="mx-auto mt-2 h-1.5 w-12 shrink-0 rounded-full bg-slate-200" />
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-slate-950">
                   {item.title}
@@ -2340,7 +2405,7 @@ function SocialFeedPost({
               </button>
             </div>
 
-            <div className="max-h-[48vh] overflow-y-auto px-4 py-3">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
               {commentsStatus === "loading" ? (
                 <div className="flex items-center justify-center gap-2 py-10 text-sm font-medium text-slate-500">
                   <LoaderCircle className="size-4 animate-spin" />
@@ -2379,7 +2444,7 @@ function SocialFeedPost({
               )}
             </div>
 
-            <div className="border-t border-slate-200 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
+            <div className="shrink-0 border-t border-slate-200 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
               <div className="flex items-end gap-2 rounded-2xl bg-slate-50 p-2">
                 <textarea
                   className="max-h-28 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400"
