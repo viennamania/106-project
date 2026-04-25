@@ -52,7 +52,7 @@ import type {
   ContentPostUploadResponse,
   CreatorProfileResponse,
   CreatorProfileUploadResponse,
-  CreatorStudioPostsResponse,
+  CreatorStudioPostsLoadResponse,
 } from "@/lib/content";
 import { CONTENT_PAID_USDT_AMOUNT } from "@/lib/content";
 import {
@@ -1040,7 +1040,6 @@ export function CreatorContentStudioPage({
 
     const shouldLoadProfileView = view === "profile";
     const shouldLoadAutomation = view === "profile";
-    const shouldUseCompactPostsBootstrap = view !== "profile";
     const compactPageSize =
       view === "new" ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE;
 
@@ -1062,6 +1061,122 @@ export function CreatorContentStudioPage({
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
+      }
+
+      if (!shouldLoadProfileView) {
+        const query = new URLSearchParams({
+          email,
+          page: "1",
+          pageSize: String(compactPageSize),
+          walletAddress: accountAddress,
+        });
+        let postsResponse = await fetch(
+          `/api/content/posts/load?${query.toString()}`,
+        );
+        let postsData = (await postsResponse.json()) as
+          | CreatorStudioPostsLoadResponse
+          | { error?: string };
+
+        if (!postsResponse.ok && postsResponse.status === 404) {
+          postsResponse = await fetch("/api/content/posts/load", {
+            body: JSON.stringify({
+              chainId: chain.id,
+              chainName: chain.name ?? "BSC",
+              email,
+              locale,
+              page: 1,
+              pageSize: compactPageSize,
+              syncMode: "light",
+              walletAddress: accountAddress,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          });
+          postsData = (await postsResponse.json()) as
+            | CreatorStudioPostsLoadResponse
+            | { error?: string };
+        }
+
+        if (!postsResponse.ok || !("posts" in postsData)) {
+          throw new Error(
+            "error" in postsData && postsData.error
+              ? postsData.error
+              : contentCopy.messages.studioLoadFailed,
+          );
+        }
+
+        const member = postsData.member;
+
+        if (!member) {
+          throw new Error(contentCopy.messages.memberMissing);
+        }
+
+        if (postsData.validationError) {
+          setState({
+            error: postsData.validationError,
+            member,
+            notice: null,
+            posts: [],
+            profile: EMPTY_PROFILE,
+            summary: EMPTY_STUDIO_SUMMARY,
+            status: "ready",
+          });
+          setAutomation({
+            available: false,
+            error: null,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+          return;
+        }
+
+        if (member.status !== "completed") {
+          setState({
+            error: contentCopy.messages.paymentRequired,
+            member,
+            notice: null,
+            posts: [],
+            profile: EMPTY_PROFILE,
+            summary: EMPTY_STUDIO_SUMMARY,
+            status: "ready",
+          });
+          setAutomation({
+            available: false,
+            error: null,
+            form: EMPTY_AUTOMATION_FORM,
+            jobs: [],
+            status: "ready",
+          });
+          return;
+        }
+
+        setState({
+          error: null,
+          member,
+          notice: null,
+          posts: postsData.posts,
+          profile: postsData.profile
+            ? {
+                avatarImageUrl: postsData.profile.avatarImageUrl ?? "",
+                displayName: postsData.profile.displayName,
+                heroImageUrl: postsData.profile.heroImageUrl ?? "",
+                intro: postsData.profile.intro,
+                payoutWalletAddress:
+                  postsData.profile.payoutWalletAddress ?? "",
+              }
+            : EMPTY_PROFILE,
+          summary: postsData.summary,
+          status: "ready",
+        });
+        setAutomation((current) => ({
+          ...current,
+          error: null,
+          status: "idle",
+        }));
+        return;
       }
 
       let validationError: string | null = null;
@@ -1269,159 +1384,6 @@ export function CreatorContentStudioPage({
         }
 
         return;
-      }
-
-      const postsRequestUrl = shouldUseCompactPostsBootstrap
-        ? `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}&page=1&pageSize=${compactPageSize}`
-        : `/api/content/posts?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`;
-
-      const requests = [
-        fetch(postsRequestUrl),
-      ] as const;
-
-      const automationRequests = shouldLoadAutomation
-        ? ([
-            fetch(
-              `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-            fetch(
-              `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-            ),
-          ] as const)
-        : null;
-
-      const [postsResponse, ...automationResponses] = await Promise.all([
-        ...requests,
-        ...(automationRequests ?? []),
-      ]);
-
-      const postsData = (await postsResponse.json()) as
-        | CreatorStudioPostsResponse
-        | { error?: string };
-
-      let automationProfileResponse: Response | null = null;
-      let automationJobsResponse: Response | null = null;
-      let automationProfileData:
-        | CreatorAutomationProfileResponse
-        | { error?: string }
-        | null = null;
-      let automationJobsData:
-        | ContentAutomationJobsResponse
-        | { error?: string }
-        | null = null;
-
-      if (shouldLoadAutomation) {
-        [automationProfileResponse, automationJobsResponse] = automationResponses as [
-          Response,
-          Response,
-        ];
-        automationProfileData = (await automationProfileResponse.json()) as
-          | CreatorAutomationProfileResponse
-          | { error?: string };
-        automationJobsData = (await automationJobsResponse.json()) as
-          | ContentAutomationJobsResponse
-          | { error?: string };
-      }
-
-      if (
-        !postsResponse.ok ||
-        !("posts" in postsData)
-      ) {
-        throw new Error(
-          "error" in postsData && postsData.error
-            ? postsData.error
-            : contentCopy.messages.studioLoadFailed,
-        );
-      }
-
-      setState({
-        error: null,
-        member: postsData.member,
-        notice: null,
-        posts: postsData.posts,
-        profile: {
-          avatarImageUrl: postsData.profile.avatarImageUrl ?? "",
-          displayName: postsData.profile.displayName,
-          heroImageUrl: postsData.profile.heroImageUrl ?? "",
-          intro: postsData.profile.intro,
-          payoutWalletAddress: postsData.profile.payoutWalletAddress ?? "",
-        },
-        summary: postsData.summary,
-        status: "ready",
-      });
-
-      if (
-        shouldLoadAutomation &&
-        automationProfileResponse &&
-        automationJobsResponse &&
-        automationProfileData &&
-        automationJobsData &&
-        automationProfileResponse.ok &&
-        "profile" in automationProfileData &&
-        automationJobsResponse.ok &&
-        "items" in automationJobsData
-      ) {
-        setAutomation({
-          available: true,
-          error: null,
-          form: {
-            allowedDomains: stringifyDelimitedValues(
-              automationProfileData.profile.allowedDomains,
-            ),
-            autoPublish: automationProfileData.profile.autoPublish,
-            enabled: automationProfileData.profile.enabled,
-            maxPostsPerDay: String(automationProfileData.profile.maxPostsPerDay),
-            minIntervalMinutes: String(
-              automationProfileData.profile.minIntervalMinutes,
-            ),
-            personaName: automationProfileData.profile.personaName,
-            personaPrompt: automationProfileData.profile.personaPrompt,
-            publishScoreThreshold: String(
-              automationProfileData.profile.publishScoreThreshold,
-            ),
-            topics: stringifyDelimitedValues(automationProfileData.profile.topics),
-          },
-          jobs: automationJobsData.items,
-          status: "ready",
-        });
-      } else if (
-        shouldLoadAutomation &&
-        automationProfileResponse &&
-        automationProfileData &&
-        automationProfileResponse.status === 403 &&
-        "error" in automationProfileData &&
-        automationProfileData.error === AUTOMATION_RESTRICTED_MESSAGE
-      ) {
-        setAutomation({
-          available: false,
-          error: null,
-          form: EMPTY_AUTOMATION_FORM,
-          jobs: [],
-          status: "ready",
-        });
-      } else if (!shouldLoadAutomation) {
-        setAutomation((current) => ({
-          ...current,
-          error: null,
-          status: "idle",
-        }));
-      } else {
-        setAutomation({
-          available: false,
-          error:
-            automationJobsData &&
-            "error" in automationJobsData &&
-            automationJobsData.error
-              ? automationJobsData.error
-              : automationProfileData &&
-                  "error" in automationProfileData &&
-                  automationProfileData.error
-                ? automationProfileData.error
-                : contentCopy.messages.automationLoadFailed,
-          form: EMPTY_AUTOMATION_FORM,
-          jobs: [],
-          status: "ready",
-        });
       }
     } catch (error) {
       setState({
