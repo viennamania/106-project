@@ -36,7 +36,7 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     scope: "/",
     short_name: "Pocket",
-    start_url: "/",
+    start_url: "/?pwa=1",
     theme_color: "#0a1325",
   };
 }

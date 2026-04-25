@@ -40,6 +40,8 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { AndroidInstallBanner } from "@/components/android-install-banner";
+import { InAppBrowserExitBanner } from "@/components/in-app-browser-exit-banner";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentCommentCreateResponse,
@@ -908,6 +910,13 @@ export function NetworkFeedPage({
           </div>
 
         </header>
+
+        <InAppBrowserExitBanner
+          locale={locale}
+          referralCode={referralCode}
+          source="network-feed"
+        />
+        <AndroidInstallBanner className="mx-3 my-3 sm:mx-0" locale={locale} />
 
         {isPublicReferralFeed ? (
           <PublicFeedConversionBanner

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { BridgePlatformHint } from "@/lib/in-app-browser";
 import { buildChromeIntentUrl } from "@/lib/in-app-browser";
 
@@ -179,6 +180,13 @@ export function ContentBridgePage({
 
   const handleOpenBrowser = useCallback(() => {
     setLaunchState("opening");
+    trackFunnelEvent("external_browser_click", {
+      metadata: {
+        platform: platformHint,
+        source: "content-bridge",
+      },
+      targetHref,
+    });
 
     if (platformHint === "android") {
       const intentUrl = buildChromeIntentUrl(absoluteTargetUrl);

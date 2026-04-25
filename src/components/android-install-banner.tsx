@@ -1,10 +1,12 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Download, Smartphone, X } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
+import { isRestrictedInAppBrowser } from "@/lib/in-app-browser";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import { cn } from "@/lib/utils";
 
 type BeforeInstallPromptEvent = Event & {
@@ -12,13 +14,21 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-function isAndroidBrowser() {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
+type InstallPlatform = "android" | "ios" | "other";
 
-  return /android/i.test(navigator.userAgent ?? "");
-}
+type InstallEnvironment = {
+  platform: InstallPlatform;
+  ready: boolean;
+  restrictedInApp: boolean;
+  standalone: boolean;
+};
+
+const initialEnvironment: InstallEnvironment = {
+  platform: "other",
+  ready: false,
+  restrictedInApp: false,
+  standalone: false,
+};
 
 function isStandaloneDisplayMode() {
   if (typeof window === "undefined") {
@@ -33,6 +43,44 @@ function isStandaloneDisplayMode() {
   );
 }
 
+function getInstallPlatform(userAgent: string): InstallPlatform {
+  if (/android/i.test(userAgent)) {
+    return "android";
+  }
+
+  if (/(iphone|ipad|ipod)/i.test(userAgent)) {
+    return "ios";
+  }
+
+  return "other";
+}
+
+function safeReadStorage(key: string) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeWriteStorage(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {}
+}
+
+function normalizeStoredPath(value: string | null) {
+  if (!value || !value.startsWith("/")) {
+    return null;
+  }
+
+  if (value.startsWith("//")) {
+    return null;
+  }
+
+  return value;
+}
+
 export function AndroidInstallBanner({
   className,
   locale,
@@ -40,29 +88,61 @@ export function AndroidInstallBanner({
   className?: string;
   locale: Locale;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const search = searchParams.toString();
+  const referralCode = searchParams.get("ref");
   const [dismissed, setDismissed] = useState(false);
+  const [environment, setEnvironment] =
+    useState<InstallEnvironment>(initialEnvironment);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [promptState, setPromptState] = useState<"idle" | "prompting">("idle");
+  const trackedViewKeyRef = useRef<string | null>(null);
 
   const copy = useMemo(
-    () =>
-      locale === "ko"
+    () => {
+      if (locale === "ko") {
+        return environment.platform === "ios"
+          ? {
+              badge: "IPHONE HOME SCREEN APP",
+              body:
+                "Safari로 잘 넘어왔습니다. 홈 화면에 추가하면 다음부터 카카오톡 인앱브라우저를 거치지 않고 앱처럼 바로 열 수 있습니다.",
+              dismiss: "나중에",
+              fallback:
+                "Safari 하단 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택하세요. 이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱에서 여는 것이 가장 안정적입니다.",
+              title: "홈 화면 앱으로 이어가면 가입과 결제가 더 안정적입니다",
+              trigger: "앱 설치",
+              triggering: "설치 화면 여는 중...",
+            }
+          : {
+              badge: "PWA APP INSTALL",
+              body:
+                "외부 브라우저로 잘 넘어왔습니다. 이미 설치했다면 홈 화면의 Pocket 앱에서 여는 것이 가장 좋고, 아직 설치하지 않았다면 지금 설치하면 다음부터 더 빠르게 열리고 푸시 흐름도 안정적입니다.",
+              dismiss: "나중에",
+              fallback:
+                "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요. 설치하지 않았다면 Chrome 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 됩니다.",
+              title: "이 흐름은 앱으로 여는 것이 가장 좋습니다",
+              trigger: "앱 설치",
+              triggering: "설치 화면 여는 중...",
+            };
+      }
+
+      return environment.platform === "ios"
         ? {
-            badge: "ANDROID APP INSTALL",
+            badge: "IPHONE HOME SCREEN APP",
             body:
-              "외부 브라우저로 잘 넘어왔습니다. 이미 설치했다면 홈 화면의 Pocket 앱에서 여는 것이 가장 좋고, 아직 설치하지 않았다면 지금 설치하면 다음부터 더 빠르게 열리고 푸시 흐름도 안정적입니다.",
-            dismiss: "나중에",
+              "You are in Safari. Add Pocket to your Home Screen so future opens avoid the in-app browser and feel like an app.",
+            dismiss: "Maybe later",
             fallback:
-              "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요. 설치하지 않았다면 Chrome 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 됩니다.",
-            title: "이 흐름은 앱으로 여는 것이 가장 좋습니다",
-            trigger: "앱 설치",
-            triggering: "설치 화면 여는 중...",
+              "Tap the Safari Share button, then choose Add to Home Screen. If Pocket is already installed, open it from your Home Screen.",
+            title: "Signup and payment work better from the Home Screen app",
+            trigger: "Install app",
+            triggering: "Opening install prompt...",
           }
         : {
-            badge: "ANDROID APP INSTALL",
+            badge: "PWA APP INSTALL",
             body:
               "You have reached the external browser. If Pocket is already installed, opening it from your home screen is best. If not, installing it now will make future opens faster and improve push flows.",
             dismiss: "Maybe later",
@@ -71,18 +151,78 @@ export function AndroidInstallBanner({
             title: "This flow works best as an installed app",
             trigger: "Install app",
             triggering: "Opening install prompt...",
-          },
-    [locale],
+          };
+    },
+    [environment.platform, locale],
   );
 
   const fromBridge = searchParams.get("fromBridge") === "1";
+  const pwaLaunch = searchParams.get("pwa") === "1";
   const storageKey = useMemo(
     () => `android-install-banner-dismissed:${pathname}`,
     [pathname],
   );
+  const currentPath = useMemo(() => {
+    return search ? `${pathname}?${search}` : pathname;
+  }, [pathname, search]);
   const isEligible = useMemo(() => {
-    return fromBridge && isAndroidBrowser() && !isStandaloneDisplayMode();
-  }, [fromBridge]);
+    return (
+      fromBridge &&
+      environment.ready &&
+      !environment.restrictedInApp &&
+      !environment.standalone &&
+      (environment.platform === "android" || environment.platform === "ios")
+    );
+  }, [environment, fromBridge]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined") {
+      return;
+    }
+
+    const userAgent = navigator.userAgent ?? "";
+
+    setEnvironment({
+      platform: getInstallPlatform(userAgent),
+      ready: true,
+      restrictedInApp: isRestrictedInAppBrowser(userAgent),
+      standalone: isStandaloneDisplayMode(),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!referralCode || typeof window === "undefined") {
+      return;
+    }
+
+    safeWriteStorage("pocket:lastReferralCode", referralCode);
+    safeWriteStorage("pocket:lastReferralPath", currentPath);
+  }, [currentPath, referralCode]);
+
+  useEffect(() => {
+    if (
+      !pwaLaunch ||
+      referralCode ||
+      !environment.ready ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    const restoredPath = normalizeStoredPath(
+      safeReadStorage("pocket:lastReferralPath"),
+    );
+    const restoredReferralCode = safeReadStorage("pocket:lastReferralCode");
+
+    if (restoredPath && restoredPath !== currentPath) {
+      router.replace(restoredPath);
+      return;
+    }
+
+    if (restoredReferralCode) {
+      router.replace(`/${locale}?ref=${encodeURIComponent(restoredReferralCode)}`);
+    }
+  }, [currentPath, environment.ready, locale, pwaLaunch, referralCode, router]);
 
   useEffect(() => {
     if (!isEligible || typeof window === "undefined") {
@@ -93,7 +233,7 @@ export function AndroidInstallBanner({
   }, [isEligible, storageKey]);
 
   useEffect(() => {
-    if (!isEligible) {
+    if (!isEligible || environment.platform !== "android") {
       return;
     }
 
@@ -107,7 +247,37 @@ export function AndroidInstallBanner({
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
-  }, [isEligible]);
+  }, [environment.platform, isEligible]);
+
+  useEffect(() => {
+    if (!isEligible || dismissed) {
+      return;
+    }
+
+    const viewKey = `${environment.platform}:${currentPath}`;
+
+    if (trackedViewKeyRef.current === viewKey) {
+      return;
+    }
+
+    trackedViewKeyRef.current = viewKey;
+    trackFunnelEvent("pwa_install_banner_view", {
+      metadata: {
+        hasPrompt: Boolean(installPrompt),
+        platform: environment.platform,
+        source: "from-bridge",
+      },
+      referralCode,
+      targetHref: currentPath,
+    });
+  }, [
+    currentPath,
+    dismissed,
+    environment.platform,
+    installPrompt,
+    isEligible,
+    referralCode,
+  ]);
 
   const handleDismiss = useCallback(() => {
     setDismissed(true);
@@ -115,7 +285,16 @@ export function AndroidInstallBanner({
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem(storageKey, "1");
     }
-  }, [storageKey]);
+
+    trackFunnelEvent("pwa_install_dismiss", {
+      metadata: {
+        platform: environment.platform,
+        source: "from-bridge",
+      },
+      referralCode,
+      targetHref: currentPath,
+    });
+  }, [currentPath, environment.platform, referralCode, storageKey]);
 
   const handleInstall = useCallback(async () => {
     if (!installPrompt) {
@@ -123,10 +302,28 @@ export function AndroidInstallBanner({
     }
 
     setPromptState("prompting");
+    trackFunnelEvent("pwa_install_click", {
+      metadata: {
+        platform: environment.platform,
+        source: "from-bridge",
+      },
+      referralCode,
+      targetHref: currentPath,
+    });
 
     try {
       await installPrompt.prompt();
       const outcome = await installPrompt.userChoice;
+
+      trackFunnelEvent("pwa_install_click", {
+        metadata: {
+          outcome: outcome.outcome,
+          platform: environment.platform,
+          source: "from-bridge-result",
+        },
+        referralCode,
+        targetHref: currentPath,
+      });
 
       if (outcome.outcome === "accepted") {
         handleDismiss();
@@ -135,7 +332,13 @@ export function AndroidInstallBanner({
       setPromptState("idle");
       setInstallPrompt(null);
     }
-  }, [handleDismiss, installPrompt]);
+  }, [
+    currentPath,
+    environment.platform,
+    handleDismiss,
+    installPrompt,
+    referralCode,
+  ]);
 
   if (!isEligible || dismissed) {
     return null;
@@ -175,7 +378,7 @@ export function AndroidInstallBanner({
       </div>
 
       <div className="relative mt-4 flex flex-wrap gap-2.5">
-        {installPrompt ? (
+        {environment.platform === "android" && installPrompt ? (
           <button
             className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={promptState === "prompting"}

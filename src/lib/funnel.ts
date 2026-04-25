@@ -1,8 +1,12 @@
 export const funnelEventNames = [
   "bridge_view",
   "content_open",
+  "external_browser_click",
   "feed_view_public",
   "paid_unlock_click",
+  "pwa_install_banner_view",
+  "pwa_install_click",
+  "pwa_install_dismiss",
   "signup_cta_click",
 ] as const;
 

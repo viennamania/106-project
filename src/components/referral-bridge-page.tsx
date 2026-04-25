@@ -245,6 +245,15 @@ export function ReferralBridgePage({
 
   const handleOpenBrowser = useCallback(() => {
     setLaunchState("opening");
+    trackFunnelEvent("external_browser_click", {
+      metadata: {
+        platform: platformHint,
+        source: "referral-bridge",
+        target,
+      },
+      referralCode,
+      targetHref,
+    });
 
     if (platformHint === "android") {
       const intentUrl = buildChromeIntentUrl(absoluteTargetUrl);
@@ -262,7 +271,13 @@ export function ReferralBridgePage({
     window.setTimeout(() => {
       setLaunchState("idle");
     }, 1200);
-  }, [absoluteTargetUrl, platformHint, targetHref]);
+  }, [
+    absoluteTargetUrl,
+    platformHint,
+    referralCode,
+    target,
+    targetHref,
+  ]);
 
   if (autoRedirect) {
     return (
