@@ -2694,7 +2694,7 @@ export function CreatorContentStudioPage({
     const blockedState = renderBlockedState();
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
         <div className="flex items-start gap-3">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
             <UserRound className="size-5" />
@@ -2925,7 +2925,7 @@ export function CreatorContentStudioPage({
     const blockedState = renderBlockedState();
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{contentCopy.labels.automationBetaOnly}</p>
@@ -3124,7 +3124,7 @@ export function CreatorContentStudioPage({
       automationProgress.error !== null;
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{contentCopy.labels.automationBetaOnly}</p>
@@ -3374,7 +3374,7 @@ export function CreatorContentStudioPage({
       isGeneratingPostImage;
 
     return (
-      <div className="glass-card rounded-[30px] p-5">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
@@ -4045,7 +4045,7 @@ export function CreatorContentStudioPage({
           : contentCopy.page.studioDescription;
 
     return (
-      <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
@@ -4174,7 +4174,7 @@ export function CreatorContentStudioPage({
     );
 
     return (
-      <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
@@ -4296,7 +4296,7 @@ export function CreatorContentStudioPage({
 
   function renderMobileHub() {
     return (
-      <section className="grid gap-5 lg:hidden">
+      <section className="grid gap-3 lg:hidden">
         {renderRecentPostsPanel({ compact: true })}
         {renderHubActionCards({ mobile: true })}
       </section>
@@ -4322,7 +4322,7 @@ export function CreatorContentStudioPage({
 
     return (
       <div className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-        <div className="glass-card rounded-[28px] p-5">
+        <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
           <div>
             <p className="eyebrow">{contentCopy.labels.quickActions}</p>
             <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -4375,7 +4375,7 @@ export function CreatorContentStudioPage({
   return (
     <>
       <main
-        className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:py-6 lg:px-8 ${
+        className={`mx-auto flex min-h-screen w-full flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8 ${
           view === "hub" ? "max-w-6xl" : "max-w-5xl"
         }`}
       >
@@ -4389,23 +4389,23 @@ export function CreatorContentStudioPage({
         />
       ) : null}
 
-      <header className="sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.58),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.26),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.91))] px-4 py-4 shadow-[0_20px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:px-6 sm:py-5 lg:static lg:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] lg:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
-        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
-        <div className="relative flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
+      <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.58),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.26),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.91))] sm:px-6 sm:py-5 sm:shadow-[0_20px_48px_rgba(15,23,42,0.12)] lg:static lg:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] lg:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
+        <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />
+        <div className="relative flex flex-col gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-3 sm:items-start">
+            <div className="flex min-w-0 items-center gap-2 sm:items-start sm:gap-3">
               <Link
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-none transition hover:bg-slate-50 sm:size-12 sm:rounded-2xl sm:border-white/80 sm:bg-white/92 sm:shadow-[0_14px_28px_rgba(15,23,42,0.10)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
                 href={backHref}
               >
                 <ArrowLeft className="size-4 sm:size-5" />
               </Link>
               <div className="min-w-0">
                 <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
-                <h1 className="text-[1.12rem] font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
+                <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
                   {pageTitle}
                 </h1>
-                <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm">
+                <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
                   {isDisconnected
                     ? contentCopy.messages.connectRequired
                     : state.status === "loading"
@@ -4425,7 +4425,7 @@ export function CreatorContentStudioPage({
                 </Link>
               ) : null}
               <button
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
+                className="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
                 onClick={() => {
                   void loadStudio();
                 }}
@@ -4438,7 +4438,7 @@ export function CreatorContentStudioPage({
           </div>
 
           {view === "hub" ? (
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="hidden grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <HeaderStatChip
                 label={contentCopy.labels.posts}
                 value={String(state.summary.all)}
@@ -4466,7 +4466,7 @@ export function CreatorContentStudioPage({
         <>
           {renderMobileHub()}
           <section className="hidden gap-5 lg:grid lg:grid-cols-[0.88fr_1.12fr]">
-            <div className="space-y-5">
+            <div className="space-y-3 sm:space-y-5">
               {renderWorkspaceOverviewCard()}
               {renderHubActionCards()}
             </div>
@@ -4475,18 +4475,18 @@ export function CreatorContentStudioPage({
         </>
       ) : view === "profile" ? (
         <section className="mx-auto w-full max-w-6xl">
-          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+          <div className="grid gap-3 sm:gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-3 sm:space-y-5 xl:sticky xl:top-6 xl:self-start">
               {renderProfileCard()}
             </div>
-            <div className="space-y-5">
+            <div className="space-y-3 sm:space-y-5">
               {renderAutomationPanel()}
               {renderAutomationJobsPanel()}
             </div>
           </div>
         </section>
       ) : (
-        <section className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
+        <section className="grid gap-3 sm:gap-5 xl:grid-cols-[1.02fr_0.98fr]">
           {renderComposerCard()}
           {renderSideRail("profile")}
         </section>
@@ -4728,7 +4728,7 @@ function WorkspaceLaunchCard({
   const body = (
     <div
       className={
-        "rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition " +
+        "rounded-[22px] border border-slate-200 bg-white p-4 shadow-none transition sm:rounded-[30px] sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
         (disabled
           ? "cursor-not-allowed opacity-70"
           : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
@@ -4738,18 +4738,18 @@ function WorkspaceLaunchCard({
         className={
           compact
             ? "flex items-start justify-between gap-4"
-            : "flex min-h-[190px] flex-col justify-between"
+            : "flex min-h-[124px] flex-col justify-between sm:min-h-[190px]"
         }
       >
         <div className={compact ? "flex min-w-0 items-start gap-4" : undefined}>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white sm:size-12">
             {icon}
           </div>
           <div className={compact ? "min-w-0 pt-1" : "mt-5"}>
-            <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+            <h3 className="text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
               {title}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <p className="mt-1.5 text-xs leading-5 text-slate-500 sm:mt-2 sm:text-sm sm:leading-6 sm:text-slate-600">
               {description}
             </p>
           </div>
@@ -4805,7 +4805,7 @@ function WorkspaceShareCard({
   return (
     <button
       className={
-        "block h-full rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 text-left shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition " +
+        "block h-full rounded-[22px] border border-slate-200 bg-white p-4 text-left shadow-none transition sm:rounded-[30px] sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] " +
         (disabled
           ? "cursor-not-allowed opacity-70"
           : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
@@ -4814,16 +4814,16 @@ function WorkspaceShareCard({
       onClick={onShare}
       type="button"
     >
-      <div className="flex min-h-[190px] flex-col justify-between">
+      <div className="flex min-h-[124px] flex-col justify-between sm:min-h-[190px]">
         <div>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white sm:size-12">
             {icon}
           </div>
           <div className="mt-5">
-            <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+            <h3 className="text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
               {title}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <p className="mt-1.5 text-xs leading-5 text-slate-500 sm:mt-2 sm:text-sm sm:leading-6 sm:text-slate-600">
               {description}
             </p>
           </div>

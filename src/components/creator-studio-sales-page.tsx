@@ -453,7 +453,7 @@ export function CreatorStudioSalesPage({
 
   return (
     <>
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:py-6 lg:px-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -464,13 +464,13 @@ export function CreatorStudioSalesPage({
         />
       ) : null}
 
-      <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:px-6 sm:py-5">
-        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)]" />
-        <div className="relative flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
+      <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] sm:px-6 sm:py-5 sm:shadow-[0_24px_60px_rgba(15,23,42,0.10)] lg:static">
+        <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />
+        <div className="relative flex flex-col gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-3 sm:items-start">
+            <div className="flex min-w-0 items-center gap-2 sm:items-start sm:gap-3">
               <Link
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:size-12"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-none transition hover:bg-slate-50 sm:size-12 sm:rounded-2xl sm:border-white/80 sm:bg-white/92 sm:shadow-[0_14px_28px_rgba(15,23,42,0.10)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
                 href={studioHomeHref}
               >
                 <ArrowLeft className="size-4 sm:size-5" />
@@ -479,10 +479,10 @@ export function CreatorStudioSalesPage({
                 <p className="eyebrow hidden sm:block">
                   {contentCopy.page.studioEyebrow}
                 </p>
-                <h1 className="text-[1.12rem] font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
+                <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
                   {salesCopy.title}
                 </h1>
-                <p className="mt-1 max-w-2xl text-[0.92rem] leading-6 text-slate-600 sm:text-sm">
+                <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
                   {isDisconnected
                     ? contentCopy.messages.connectRequired
                     : state.status === "loading"
@@ -492,7 +492,7 @@ export function CreatorStudioSalesPage({
               </div>
             </div>
             <button
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white"
+              className="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
               onClick={() => {
                 void loadSales();
               }}
@@ -503,7 +503,7 @@ export function CreatorStudioSalesPage({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <div className="hidden grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <HeaderStatChip
               label={salesCopy.totalSales}
               loading={state.status === "loading" && !dashboard}
@@ -547,8 +547,8 @@ export function CreatorStudioSalesPage({
       {blockedState ? (
         blockedState
       ) : (
-        <section className="grid gap-5 xl:grid-cols-[0.82fr_1.18fr]">
-          <div className="space-y-5">
+        <section className="grid gap-3 sm:gap-5 xl:grid-cols-[0.82fr_1.18fr]">
+          <div className="space-y-3 sm:space-y-5">
             <WalletManagementCard
               accountAddress={accountAddress ?? null}
               balanceLabel={balanceLabel}
@@ -569,7 +569,7 @@ export function CreatorStudioSalesPage({
               salesCopy={salesCopy}
               walletAddress={dashboard?.sellerWalletAddress ?? null}
             />
-            <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+            <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
@@ -607,7 +607,7 @@ export function CreatorStudioSalesPage({
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-3 sm:space-y-5">
             {state.error ? <MessageCard tone="error">{state.error}</MessageCard> : null}
             {state.notice ? (
               <MessageCard tone="success">
@@ -675,7 +675,7 @@ function WalletManagementCard({
   walletAddress: string | null;
 }) {
   return (
-    <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+    <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="eyebrow">thirdweb server wallet</p>
@@ -770,7 +770,7 @@ function SalesHistoryPanel({
   salesCopy: ReturnType<typeof getSalesCopy>;
 }) {
   return (
-    <div className="rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+    <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="eyebrow">{salesCopy.sales}</p>
