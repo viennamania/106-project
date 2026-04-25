@@ -4276,7 +4276,7 @@ export function CreatorContentStudioPage({
             </p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <Link
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_38px_rgba(2,6,23,0.24)] transition hover:-translate-y-0.5 hover:bg-cyan-50"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white bg-white px-5 text-sm font-bold !text-slate-950 shadow-[0_18px_38px_rgba(2,6,23,0.28)] ring-1 ring-cyan-100/80 transition hover:-translate-y-0.5 hover:bg-cyan-50"
                 href={newPostHref}
               >
                 <PenSquare className="size-4" />
