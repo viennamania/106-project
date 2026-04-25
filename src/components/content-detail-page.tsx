@@ -2567,7 +2567,7 @@ function ContentImageCarousel({
       </div>
 
       {images.length > 1 ? (
-        <div className="flex items-center justify-center gap-2">
+        <div className="hidden items-center justify-center gap-2 sm:flex">
           {images.map((imageUrl, index) => (
             <button
               className={cn(
