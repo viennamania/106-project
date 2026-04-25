@@ -1680,19 +1680,26 @@ function SocialFeedPost({
       return;
     }
 
-    const scrollY = window.scrollY;
     const { body, documentElement } = document;
+    const scrollY = Math.max(
+      window.scrollY,
+      documentElement.scrollTop,
+      body.scrollTop,
+      0,
+    );
     const previousBodyPosition = body.style.position;
     const previousBodyTop = body.style.top;
     const previousBodyLeft = body.style.left;
     const previousBodyRight = body.style.right;
     const previousBodyWidth = body.style.width;
+    const previousBodyHeight = body.style.height;
     const previousBodyOverflow = body.style.overflow;
     const previousBodyOverscrollBehavior = body.style.overscrollBehavior;
     const previousBodyPaddingRight = body.style.paddingRight;
     const previousDocumentOverflow = documentElement.style.overflow;
     const previousDocumentOverscrollBehavior =
       documentElement.style.overscrollBehavior;
+    const previousDocumentScrollBehavior = documentElement.style.scrollBehavior;
     const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
 
     body.style.position = "fixed";
@@ -1700,27 +1707,40 @@ function SocialFeedPost({
     body.style.left = "0";
     body.style.right = "0";
     body.style.width = "100%";
+    body.style.height = "100%";
     body.style.overflow = "hidden";
     body.style.overscrollBehavior = "none";
     documentElement.style.overflow = "hidden";
     documentElement.style.overscrollBehavior = "none";
+    documentElement.style.scrollBehavior = "auto";
 
     if (scrollbarWidth > 0) {
       body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
     return () => {
+      const restoreScroll = () => {
+        window.scrollTo({
+          behavior: "auto",
+          top: scrollY,
+        });
+      };
+
       body.style.position = previousBodyPosition;
       body.style.top = previousBodyTop;
       body.style.left = previousBodyLeft;
       body.style.right = previousBodyRight;
       body.style.width = previousBodyWidth;
+      body.style.height = previousBodyHeight;
       body.style.overflow = previousBodyOverflow;
       body.style.overscrollBehavior = previousBodyOverscrollBehavior;
       body.style.paddingRight = previousBodyPaddingRight;
       documentElement.style.overflow = previousDocumentOverflow;
       documentElement.style.overscrollBehavior = previousDocumentOverscrollBehavior;
-      window.scrollTo(0, scrollY);
+      documentElement.style.scrollBehavior = previousDocumentScrollBehavior;
+      restoreScroll();
+      window.requestAnimationFrame(restoreScroll);
+      window.setTimeout(restoreScroll, 80);
     };
   }, [isCommentsOpen]);
 
