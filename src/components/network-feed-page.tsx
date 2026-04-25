@@ -1569,7 +1569,7 @@ function SocialFeedPost({
           openComments: "댓글 보기",
           paidBuyers: "결제 회원",
           paidProofHot: "많이 결제된 유료 콘텐츠",
-          paidProofNew: "유료 전체보기",
+          paidProofNew: "유료 전체 보기",
           paidProofProven: "결제 검증된 유료 콘텐츠",
           postComment: "게시",
           readMore: "더 보기",
@@ -1633,6 +1633,8 @@ function SocialFeedPost({
         : actionCopy.paidProofNew;
   const hasPaidProof =
     social.paidBuyerCount > 0 || Number(social.paidTotalUsdt) > 0;
+  const shouldUsePaidUnlockCta = isPaidContent && !item.canAccess;
+  const shouldShowFullPostCta = !shouldUsePaidUnlockCta;
 
   const clearMediaOpenTimeout = useCallback(() => {
     if (mediaOpenTimeoutRef.current === null) {
@@ -2428,14 +2430,29 @@ function SocialFeedPost({
         </div>
 
         {isPaidContent ? (
-          <div
-            className={`mt-3 overflow-hidden rounded-2xl border ${
+          <Link
+            aria-disabled={!shouldUsePaidUnlockCta}
+            className={`mt-3 block overflow-hidden rounded-2xl border ${
               paidProofTier === "hot"
                 ? "border-amber-300 bg-[linear-gradient(135deg,#fff7ed_0%,#fef3c7_48%,#ffffff_100%)] shadow-[0_16px_34px_rgba(217,119,6,0.16)]"
                 : paidProofTier === "proven"
                   ? "border-amber-200 bg-amber-50/88 shadow-[0_12px_28px_rgba(217,119,6,0.08)]"
                   : "border-slate-200 bg-slate-50/85"
+            } ${
+              shouldUsePaidUnlockCta
+                ? "transition hover:border-slate-300 hover:bg-white hover:shadow-[0_18px_36px_rgba(15,23,42,0.12)] active:scale-[0.99]"
+                : "pointer-events-none"
             }`}
+            href={href}
+            tabIndex={shouldUsePaidUnlockCta ? undefined : -1}
+            onClick={(event) => {
+              if (!shouldUsePaidUnlockCta) {
+                event.preventDefault();
+                return;
+              }
+
+              onOpenDetail(item);
+            }}
           >
             <div className="flex items-center justify-between gap-3 px-3.5 py-3">
               <div className="flex min-w-0 items-center gap-2.5">
@@ -2477,7 +2494,7 @@ function SocialFeedPost({
                 </span>
               )}
             </div>
-          </div>
+          </Link>
         ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -2513,23 +2530,25 @@ function SocialFeedPost({
           </p>
         ) : null}
 
-        <Link
-          className="group mt-4 flex h-12 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/[0.03] transition hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_34px_rgba(15,23,42,0.12)] active:scale-[0.99] sm:h-11 sm:w-auto sm:min-w-56 sm:justify-start"
-          href={href}
-          onClick={() => {
-            onOpenDetail(item);
-          }}
-        >
-          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
-            <ExternalLink className="size-3.5" />
-          </span>
-          <span className="min-w-0 flex-1 truncate text-left">
-            {actionCopy.viewFullPost || viewDetailLabel}
-          </span>
-          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-hover:bg-slate-950 group-hover:text-white">
-            <ChevronRight className="size-4" />
-          </span>
-        </Link>
+        {shouldShowFullPostCta ? (
+          <Link
+            className="group mt-4 flex h-12 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-950/[0.03] transition hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_34px_rgba(15,23,42,0.12)] active:scale-[0.99] sm:h-11 sm:w-auto sm:min-w-56 sm:justify-start"
+            href={href}
+            onClick={() => {
+              onOpenDetail(item);
+            }}
+          >
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
+              <ExternalLink className="size-3.5" />
+            </span>
+            <span className="min-w-0 flex-1 truncate text-left">
+              {actionCopy.viewFullPost || viewDetailLabel}
+            </span>
+            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-hover:bg-slate-950 group-hover:text-white">
+              <ChevronRight className="size-4" />
+            </span>
+          </Link>
+        ) : null}
       </div>
       {isCommentsOpen ? (
         <div className="fixed inset-0 z-[120] flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/45 px-0 sm:px-4">

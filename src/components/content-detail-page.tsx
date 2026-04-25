@@ -624,7 +624,7 @@ export function ContentDetailPage({
           ? "결제 검증된 유료 콘텐츠"
           : "Payment-proven content"
         : locale === "ko"
-          ? "유료 전체보기"
+          ? "유료 전체 보기"
           : "Paid full access";
   const lockedPreviewTitle = isPaidLocked
     ? locale === "ko"
