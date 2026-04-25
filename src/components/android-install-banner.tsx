@@ -108,24 +108,21 @@ export function AndroidInstallBanner({
       if (locale === "ko") {
         return environment.platform === "ios"
           ? {
-              badge: "IPHONE HOME SCREEN APP",
+              badge: "HOME SCREEN APP",
               body:
-                "Safari로 잘 넘어왔습니다. 홈 화면에 추가하면 다음부터 카카오톡 인앱브라우저를 거치지 않고 앱처럼 바로 열 수 있습니다.",
+                "홈 화면에 추가하면 다음부터 카카오톡을 거치지 않고 바로 열 수 있습니다.",
               dismiss: "나중에",
-              fallback:
-                "Safari 하단 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택하세요. 이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱에서 여는 것이 가장 안정적입니다.",
-              title: "홈 화면 앱으로 이어가면 가입과 결제가 더 안정적입니다",
+              fallback: "Safari 공유 버튼에서 '홈 화면에 추가'를 선택하세요.",
+              title: "앱처럼 빠르게 열기",
               trigger: "앱 설치",
               triggering: "설치 화면 여는 중...",
             }
           : {
               badge: "PWA APP INSTALL",
-              body:
-                "외부 브라우저로 잘 넘어왔습니다. 이미 설치했다면 홈 화면의 Pocket 앱에서 여는 것이 가장 좋고, 아직 설치하지 않았다면 지금 설치하면 다음부터 더 빠르게 열리고 푸시 흐름도 안정적입니다.",
+              body: "홈 화면에 추가하면 다음부터 더 빠르고 안정적으로 열립니다.",
               dismiss: "나중에",
-              fallback:
-                "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요. 설치하지 않았다면 Chrome 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 됩니다.",
-              title: "이 흐름은 앱으로 여는 것이 가장 좋습니다",
+              fallback: "이미 설치했다면 홈 화면의 Pocket 앱을 열어주세요.",
+              title: "앱처럼 빠르게 열기",
               trigger: "앱 설치",
               triggering: "설치 화면 여는 중...",
             };
@@ -133,24 +130,20 @@ export function AndroidInstallBanner({
 
       return environment.platform === "ios"
         ? {
-            badge: "IPHONE HOME SCREEN APP",
-            body:
-              "You are in Safari. Add Pocket to your Home Screen so future opens avoid the in-app browser and feel like an app.",
+            badge: "HOME SCREEN APP",
+            body: "Add Pocket to your Home Screen to open it directly next time.",
             dismiss: "Maybe later",
-            fallback:
-              "Tap the Safari Share button, then choose Add to Home Screen. If Pocket is already installed, open it from your Home Screen.",
-            title: "Signup and payment work better from the Home Screen app",
+            fallback: "Use Safari Share, then Add to Home Screen.",
+            title: "Open faster like an app",
             trigger: "Install app",
             triggering: "Opening install prompt...",
           }
         : {
             badge: "PWA APP INSTALL",
-            body:
-              "You have reached the external browser. If Pocket is already installed, opening it from your home screen is best. If not, installing it now will make future opens faster and improve push flows.",
+            body: "Install once to open this flow faster and more reliably.",
             dismiss: "Maybe later",
-            fallback:
-              "If Pocket is already installed, open it from your home screen. Otherwise use the Chrome menu and choose Install app or Add to Home screen.",
-            title: "This flow works best as an installed app",
+            fallback: "Already installed? Open Pocket from your Home Screen.",
+            title: "Open faster like an app",
             trigger: "Install app",
             triggering: "Opening install prompt...",
           };
