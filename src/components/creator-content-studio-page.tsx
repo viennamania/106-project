@@ -30,6 +30,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
 import { getContentCopy } from "@/lib/content-copy";
 import { contentAutomationRunProgressSteps } from "@/lib/content-automation";
 import type {
@@ -518,6 +519,7 @@ export function CreatorContentStudioPage({
   });
   const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
   const [postBodyError, setPostBodyError] = useState<string | null>(null);
+  const [isAdvancedComposerOpen, setIsAdvancedComposerOpen] = useState(false);
   const [automation, setAutomation] = useState<AutomationState>({
     available: false,
     error: null,
@@ -1683,7 +1685,9 @@ export function CreatorContentStudioPage({
   }
 
   async function createPost(statusToSave: "draft" | "published") {
-    if (!postForm.body.trim()) {
+    const normalizedBody = postForm.body.trim();
+
+    if (!normalizedBody) {
       setPostBodyError(postBodyRequiredMessage);
       setState((current) => ({
         ...current,
@@ -1696,6 +1700,13 @@ export function CreatorContentStudioPage({
     try {
       setIsSavingPost(true);
       setPostBodyError(null);
+      const fallbackTitle =
+        normalizedBody
+          .split("\n")
+          .find((line) => line.trim())
+          ?.trim()
+          .slice(0, 72) || contentCopy.actions.createPost;
+      const fallbackSummary = normalizedBody.replace(/\s+/g, " ").slice(0, 140);
       const email = await resolveMemberEmail();
 
       if (postForm.priceType === "paid" && !state.profile.payoutWalletAddress) {
@@ -1704,7 +1715,7 @@ export function CreatorContentStudioPage({
 
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
-          body: postForm.body,
+          body: normalizedBody,
           contentImageUrls: postForm.contentImageUrls,
           coverImageUrl: postForm.coverImageUrl || null,
           email,
@@ -1713,8 +1724,8 @@ export function CreatorContentStudioPage({
           priceUsdt:
             postForm.priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
           status: statusToSave,
-          summary: postForm.summary,
-          title: postForm.title,
+          summary: postForm.summary.trim() || fallbackSummary,
+          title: postForm.title.trim() || fallbackTitle,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -3353,6 +3364,14 @@ export function CreatorContentStudioPage({
       locale === "ko" ? "콘텐츠 이미지 추가" : "Add gallery images";
     const aiContentImageLabel =
       locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI gallery image";
+    const mobilePreviewImage =
+      postForm.coverImageUrl || postForm.contentImageUrls[0] || null;
+    const composerBusy =
+      isSavingPost ||
+      isCreatingSellerWallet ||
+      isDisconnected ||
+      isUploadingPostImage ||
+      isGeneratingPostImage;
 
     return (
       <div className="glass-card rounded-[30px] p-5">
@@ -3379,6 +3398,238 @@ export function CreatorContentStudioPage({
             {recoverableStudioError ? (
               <MessageCard tone="error">{recoverableStudioError}</MessageCard>
             ) : null}
+            <input
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (file) {
+                  void uploadPostCoverImage(file);
+                }
+
+                event.target.value = "";
+              }}
+              ref={postImageInputRef}
+              type="file"
+            />
+            <input
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+
+                if (files.length > 0) {
+                  void uploadPostContentImages(files);
+                }
+
+                event.target.value = "";
+              }}
+              ref={postGalleryInputRef}
+              type="file"
+            />
+            <section className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_42px_rgba(15,23,42,0.07)] sm:hidden">
+              <button
+                className="group relative block aspect-square w-full overflow-hidden rounded-[26px] border border-dashed border-slate-300 bg-slate-100 text-left"
+                disabled={isUploadingPostImage || isGeneratingPostImage}
+                onClick={() => {
+                  postImageInputRef.current?.click();
+                }}
+                type="button"
+              >
+                {mobilePreviewImage ? (
+                  <span
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg,rgba(15,23,42,0.02),rgba(15,23,42,0.22)),url(${mobilePreviewImage})`,
+                    }}
+                  />
+                ) : (
+                  <span className="flex h-full flex-col items-center justify-center gap-3 text-slate-500">
+                    <span className="inline-flex size-14 items-center justify-center rounded-full bg-white text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+                      <ImagePlus className="size-6" />
+                    </span>
+                    <span className="text-sm font-semibold">
+                      {locale === "ko" ? "사진 선택" : "Choose photo"}
+                    </span>
+                  </span>
+                )}
+                <span className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.24)]">
+                  <ImagePlus className="size-3.5" />
+                  {mobilePreviewImage
+                    ? locale === "ko"
+                      ? "커버 변경"
+                      : "Change cover"
+                    : locale === "ko"
+                      ? "커버 선택"
+                      : "Select cover"}
+                </span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950"
+                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  onClick={() => {
+                    postGalleryInputRef.current?.click();
+                  }}
+                  type="button"
+                >
+                  <LayoutGrid className="size-4" />
+                  {locale === "ko" ? "여러 장" : "Gallery"}
+                </button>
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 text-sm font-semibold text-amber-950 disabled:opacity-50"
+                  disabled={
+                    isUploadingPostImage ||
+                    isGeneratingPostImage ||
+                    !canGeneratePostCover ||
+                    postForm.generatedContentImageUrls.length >=
+                      GENERATED_CONTENT_IMAGE_LIMIT ||
+                    postForm.contentImageUrls.length >= 10
+                  }
+                  onClick={() => {
+                    openContentImageGenerationDialog();
+                  }}
+                  type="button"
+                >
+                  <Sparkles className="size-4" />
+                  {locale === "ko" ? "AI 이미지" : "AI image"}
+                </button>
+              </div>
+
+              {postForm.contentImageUrls.length > 0 ? (
+                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {postForm.contentImageUrls.map((imageUrl, index) => (
+                    <button
+                      className="relative size-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
+                      key={`${imageUrl}-quick-${index}`}
+                      onClick={() => {
+                        setPostForm((current) => ({
+                          ...current,
+                          coverImageUrl: imageUrl,
+                        }));
+                      }}
+                      style={{
+                        backgroundImage: `url(${imageUrl})`,
+                        backgroundPosition: "center",
+                        backgroundSize: "cover",
+                      }}
+                      type="button"
+                    >
+                      <span className="sr-only">
+                        {locale === "ko" ? "커버로 선택" : "Set as cover"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <textarea
+                className={cn(
+                  "min-h-32 w-full resize-none rounded-[22px] border bg-slate-50 px-4 py-3 text-base leading-7 text-slate-950 outline-none transition placeholder:text-slate-400",
+                  postBodyError
+                    ? "border-rose-300 bg-rose-50/50 focus:border-rose-400"
+                    : "border-slate-200 focus:border-slate-400",
+                )}
+                onChange={(event) => {
+                  if (postBodyError) {
+                    setPostBodyError(null);
+                  }
+                  setPostForm((current) => ({
+                    ...current,
+                    body: event.target.value,
+                  }));
+                }}
+                placeholder={
+                  locale === "ko" ? "문구 입력..." : "Write a caption..."
+                }
+                value={postForm.body}
+              />
+              {postBodyError ? (
+                <p className="text-xs font-medium text-rose-600">{postBodyError}</p>
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
+                {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
+                  const isSelected = postForm.priceType === priceType;
+
+                  return (
+                    <button
+                      className={cn(
+                        "inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition",
+                        isSelected
+                          ? "bg-white text-slate-950 shadow-sm"
+                          : "text-slate-500",
+                      )}
+                      key={`mobile-${priceType}`}
+                      onClick={() => {
+                        setPostForm((current) => ({
+                          ...current,
+                          priceType,
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {priceType === "paid" ? (
+                        <Coins className="size-4 text-amber-600" />
+                      ) : (
+                        <Check className="size-4 text-emerald-600" />
+                      )}
+                      {priceType === "paid"
+                        ? `${CONTENT_PAID_USDT_AMOUNT} USDT`
+                        : contentCopy.labels.free}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 disabled:opacity-50"
+                  disabled={composerBusy}
+                  onClick={() => {
+                    void createPost("draft");
+                  }}
+                  type="button"
+                >
+                  {contentCopy.actions.saveDraft}
+                </button>
+                <button
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] disabled:opacity-50"
+                  disabled={composerBusy}
+                  onClick={() => {
+                    void createPost("published");
+                  }}
+                  type="button"
+                >
+                  {contentCopy.actions.publish}
+                </button>
+              </div>
+
+              <button
+                className="inline-flex h-10 w-full items-center justify-center rounded-full text-sm font-semibold text-slate-500"
+                onClick={() => {
+                  setIsAdvancedComposerOpen((current) => !current);
+                }}
+                type="button"
+              >
+                {isAdvancedComposerOpen
+                  ? locale === "ko"
+                    ? "상세 옵션 닫기"
+                    : "Hide details"
+                  : locale === "ko"
+                    ? "제목·요약·커버 상세 설정"
+                    : "Title, summary, cover settings"}
+              </button>
+            </section>
+            <div
+              className={cn(
+                "space-y-4",
+                isAdvancedComposerOpen ? "block" : "hidden sm:block",
+              )}
+            >
             <InputField
               hint={contentCopy.hints.title}
               label={contentCopy.fields.title}
@@ -3517,37 +3768,6 @@ export function CreatorContentStudioPage({
                   {locale === "ko" ? "대표 1장" : "One hero image"}
                 </span>
               </div>
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-
-                  if (file) {
-                    void uploadPostCoverImage(file);
-                  }
-
-                  event.target.value = "";
-                }}
-                ref={postImageInputRef}
-                type="file"
-              />
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="sr-only"
-                multiple
-                onChange={(event) => {
-                  const files = Array.from(event.target.files ?? []);
-
-                  if (files.length > 0) {
-                    void uploadPostContentImages(files);
-                  }
-
-                  event.target.value = "";
-                }}
-                ref={postGalleryInputRef}
-                type="file"
-              />
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
@@ -3760,6 +3980,7 @@ export function CreatorContentStudioPage({
                 {contentCopy.actions.publish}
               </button>
             </div>
+            </div>
           </div>
         )}
       </div>
@@ -3796,7 +4017,7 @@ export function CreatorContentStudioPage({
     ];
 
     return (
-      <nav className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1">
+      <nav className="hidden gap-2 sm:flex sm:overflow-x-auto sm:pb-1">
         {tabs.map((tab) => (
           <Link
             className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
@@ -4154,7 +4375,7 @@ export function CreatorContentStudioPage({
   return (
     <>
       <main
-        className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ${
+        className={`mx-auto flex min-h-screen w-full flex-col gap-5 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:py-6 lg:px-8 ${
           view === "hub" ? "max-w-6xl" : "max-w-5xl"
         }`}
       >
@@ -4341,6 +4562,12 @@ export function CreatorContentStudioPage({
           onPromptValueChange={setContentImagePrompt}
         />
       ) : null}
+      <CreatorStudioMobileNav
+        active={view}
+        locale={locale}
+        referralCode={referralCode}
+        returnToHref={returnToHref}
+      />
     </>
   );
 }

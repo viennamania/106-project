@@ -22,6 +22,7 @@ import {
 } from "thirdweb/react";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
+import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
 import type {
   CreatorStudioPostsLoadResponse,
   ContentPostMutationResponse,
@@ -484,7 +485,8 @@ export function CreatorStudioPostsPage({
   ];
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+    <>
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:py-6 lg:px-8">
       {hasThirdwebClientId ? (
         <AutoConnect
           accountAbstraction={smartWalletOptions}
@@ -566,7 +568,7 @@ export function CreatorStudioPostsPage({
         </div>
       </header>
 
-      <nav className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1">
+      <nav className="hidden gap-2 sm:flex sm:overflow-x-auto sm:pb-1">
         {[
           {
             href: studioHomeHref,
@@ -914,6 +916,13 @@ export function CreatorStudioPostsPage({
         </div>
       </section>
     </main>
+    <CreatorStudioMobileNav
+      active="posts"
+      locale={locale}
+      referralCode={referralCode}
+      returnToHref={returnToHref}
+    />
+    </>
   );
 }
 
