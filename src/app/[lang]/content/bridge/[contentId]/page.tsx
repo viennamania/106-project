@@ -8,7 +8,7 @@ import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import {
   inferBridgePlatform,
   isBridgeCrawler,
-  isKakaoInAppBrowser,
+  isRestrictedInAppBrowser,
 } from "@/lib/in-app-browser";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -86,7 +86,7 @@ export default async function LocalizedContentBridgePage({
   const headerStore = await headers();
   const userAgent = headerStore.get("user-agent") ?? "";
   const autoRedirect =
-    !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
+    !isRestrictedInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
   const targetHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/content/${contentId}`, referralCode),
     { fromBridge: "1" },

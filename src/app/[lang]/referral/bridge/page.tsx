@@ -6,7 +6,7 @@ import { ReferralBridgePage } from "@/components/referral-bridge-page";
 import {
   inferBridgePlatform,
   isBridgeCrawler,
-  isKakaoInAppBrowser,
+  isRestrictedInAppBrowser,
 } from "@/lib/in-app-browser";
 import { getContentCopy } from "@/lib/content-copy";
 import {
@@ -36,6 +36,42 @@ function readBridgeTarget(rawValue?: string | string[]) {
   return target === "feed" ? "feed" : "landing";
 }
 
+function getFeedShareTitle({
+  brandName,
+  locale,
+}: {
+  brandName?: string | null;
+  locale: Locale;
+}) {
+  if (locale === "ko") {
+    return brandName
+      ? `${brandName} 네트워크 피드 미리보기`
+      : "1066friend+ 네트워크 피드 미리보기";
+  }
+
+  return brandName
+    ? `${brandName} network feed preview`
+    : "1066friend+ network feed preview";
+}
+
+function getFeedShareDescription({
+  brandName,
+  locale,
+}: {
+  brandName?: string | null;
+  locale: Locale;
+}) {
+  if (locale === "ko") {
+    return brandName
+      ? `${brandName}이 공유한 최신 콘텐츠를 확인하고 1066friend+ 네트워크를 시작하세요.`
+      : "SNS로 공유된 최신 네트워크 콘텐츠를 먼저 확인하고 1066friend+를 시작하세요.";
+  }
+
+  return brandName
+    ? `Explore the latest content shared by ${brandName} and start your 1066friend+ network.`
+    : "Preview the latest shared network content and start your 1066friend+ network.";
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -52,21 +88,27 @@ export async function generateMetadata({
   const contentCopy = getContentCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
   const activeReferralCode = experience.referralCode ?? referralCode;
+  const feedShareTitle = getFeedShareTitle({
+    brandName: experience.branding?.brandName,
+    locale,
+  });
+  const feedShareDescription = getFeedShareDescription({
+    brandName: experience.branding?.brandName,
+    locale,
+  });
   const feedBridgeUrl = setPathSearchParams(
     buildPathWithReferral(`/${locale}/referral/bridge`, activeReferralCode),
     { target: "feed" },
   );
   const title =
     bridgeTarget === "feed"
-      ? experience.branding
-        ? `${experience.branding.brandName} | ${contentCopy.meta.feedTitle}`
-        : contentCopy.meta.feedTitle
+      ? feedShareTitle
       : experience.branding
         ? `${experience.branding.brandName} | ${copy.meta.title}`
         : copy.meta.title;
   const description =
     bridgeTarget === "feed"
-      ? contentCopy.meta.feedDescription
+      ? feedShareDescription
       : experience.branding?.description ?? copy.meta.description;
   const ogImagePath =
     bridgeTarget === "feed"
@@ -158,7 +200,7 @@ export default async function LocalizedReferralBridgePage({
   const headerStore = await headers();
   const userAgent = headerStore.get("user-agent") ?? "";
   const autoRedirect =
-    !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
+    !isRestrictedInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
   const targetHref = setPathSearchParams(
     bridgeTarget === "feed"
       ? buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)
@@ -171,13 +213,28 @@ export default async function LocalizedReferralBridgePage({
       autoRedirect={autoRedirect}
       brandName={branding?.brandName ?? null}
       coverImageUrl={branding?.heroImageUrl ?? null}
-      description={branding?.description ?? landingCopy.hero.description}
-      eyebrow={branding?.brandedExperienceLabel ?? landingCopy.hero.eyebrow}
+      description={
+        bridgeTarget === "feed"
+          ? getFeedShareDescription({ brandName: branding?.brandName, locale })
+          : branding?.description ?? landingCopy.hero.description
+      }
+      eyebrow={
+        bridgeTarget === "feed"
+          ? locale === "ko"
+            ? "SNS 피드 미리보기"
+            : "SNS feed preview"
+          : branding?.brandedExperienceLabel ?? landingCopy.hero.eyebrow
+      }
       locale={locale}
       platformHint={inferBridgePlatform(userAgent)}
       referralCode={activeReferralCode}
+      target={bridgeTarget}
       targetHref={targetHref}
-      title={branding?.headline ?? landingCopy.hero.title}
+      title={
+        bridgeTarget === "feed"
+          ? getFeedShareTitle({ brandName: branding?.brandName, locale })
+          : branding?.headline ?? landingCopy.hero.title
+      }
     />
   );
 }

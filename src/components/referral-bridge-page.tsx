@@ -24,6 +24,7 @@ type ReferralBridgePageProps = {
   locale: Locale;
   platformHint: BridgePlatformHint;
   referralCode: string | null;
+  target: "feed" | "landing";
   targetHref: string;
   title: string;
 };
@@ -37,15 +38,85 @@ export function ReferralBridgePage({
   locale,
   platformHint,
   referralCode,
+  target,
   targetHref,
   title,
 }: ReferralBridgePageProps) {
   const router = useRouter();
   const [copyState, setCopyState] = useState<"copied" | "error" | "idle">("idle");
   const [launchState, setLaunchState] = useState<"idle" | "opening">("idle");
+  const isFeedTarget = target === "feed";
   const copy = useMemo(
     () =>
-      locale === "ko"
+      isFeedTarget
+        ? locale === "ko"
+          ? {
+              autoDescription:
+                "추천 코드가 유지된 공개 피드 미리보기로 이동합니다. 잠시만 기다려주세요.",
+              autoTitle: "피드 미리보기로 이동 중",
+              browserCta: "피드 계속 보기",
+              browserHint:
+                platformHint === "android"
+                  ? "안드로이드 SNS 앱에서는 Chrome 실행을 먼저 시도합니다. 열리지 않으면 앱 메뉴의 다른 브라우저로 열기를 사용하세요."
+                  : platformHint === "ios"
+                    ? "iPhone SNS 앱에서는 우측 메뉴의 다른 브라우저로 열기를 사용하면 가입과 결제가 더 안정적입니다."
+                    : "SNS 앱 안에서는 로그인과 결제가 제한될 수 있습니다. 외부 브라우저에서 열면 더 안정적입니다.",
+              browserReady: "SNS 링크로 열린 공개 피드",
+              copyFailed: "링크 복사에 실패했습니다.",
+              copyLink: "피드 링크 복사",
+              copiedLink: "링크 복사됨",
+              eyebrow: "SNS FEED PREVIEW",
+              intro:
+                "콘텐츠는 먼저 둘러볼 수 있고, 가입하면 추천 코드가 유지된 상태로 내 지갑, 저장, 유료 콘텐츠 결제를 이어갈 수 있습니다.",
+              installTitle: "가입 전환은 브라우저나 홈 화면 앱에서 더 안정적입니다",
+              installSteps:
+                platformHint === "ios"
+                  ? [
+                      "피드를 먼저 둘러본 뒤 가입 버튼을 눌러도 추천 코드가 유지됩니다.",
+                      "Safari로 열거나 홈 화면 앱에서 이어가면 로그인과 결제가 더 안정적입니다.",
+                    ]
+                  : [
+                      "피드를 먼저 둘러본 뒤 가입 버튼을 눌러도 추천 코드가 유지됩니다.",
+                      "Chrome으로 열거나 홈 화면 앱에서 이어가면 로그인과 결제가 더 안정적입니다.",
+                    ],
+              opening: "피드를 여는 중...",
+              protectedHint: "이 링크에는 추천 코드와 피드 이동 경로가 함께 유지됩니다.",
+              title: "공개 피드를 먼저 보고 가입을 이어가세요",
+            }
+          : {
+              autoDescription:
+                "Opening the public feed preview with the referral preserved.",
+              autoTitle: "Opening feed preview",
+              browserCta: "Continue to feed",
+              browserHint:
+                platformHint === "android"
+                  ? "On Android social apps, we try Chrome first. If it does not open, use Open in Browser from the app menu."
+                  : platformHint === "ios"
+                    ? "On iPhone social apps, Open in Browser is more reliable for signup and payment."
+                    : "Login and payment can be limited inside social app browsers. Opening externally is more reliable.",
+              browserReady: "Public feed opened from a social link",
+              copyFailed: "Unable to copy the link.",
+              copyLink: "Copy feed link",
+              copiedLink: "Link copied",
+              eyebrow: "SNS FEED PREVIEW",
+              intro:
+                "Preview the content first. When you sign up, the referral stays attached so wallet, saves, and paid content flows can continue.",
+              installTitle: "Conversion works better in a browser or home screen app",
+              installSteps:
+                platformHint === "ios"
+                  ? [
+                      "You can browse the feed first and keep the referral when you sign up.",
+                      "Open in Safari or the home screen app for more reliable login and payment.",
+                    ]
+                  : [
+                      "You can browse the feed first and keep the referral when you sign up.",
+                      "Open in Chrome or the home screen app for more reliable login and payment.",
+                    ],
+              opening: "Opening feed...",
+              protectedHint: "This link preserves both the referral code and feed path.",
+              title: "Preview the public feed, then continue to signup",
+            }
+        : locale === "ko"
         ? {
             autoDescription:
               "일반 브라우저에서는 레퍼럴이 포함된 랜딩으로 바로 이동합니다. 잠시만 기다려주세요.",
@@ -112,7 +183,7 @@ export function ReferralBridgePage({
             protectedHint: "This link preserves the referral code.",
             title: "Open your referral link in a more reliable browser or installed app",
           },
-    [locale, platformHint],
+    [isFeedTarget, locale, platformHint],
   );
 
   useEffect(() => {

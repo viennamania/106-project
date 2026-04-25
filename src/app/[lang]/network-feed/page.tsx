@@ -8,6 +8,7 @@ import {
   buildNetworkFeedOgImagePath,
   buildPathWithReferral,
 } from "@/lib/landing-branding";
+import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { normalizeReferralCode } from "@/lib/member";
 
 type NetworkFeedSearchParams = {
@@ -29,6 +30,42 @@ function normalizeReturnToPath(value: string | string[] | undefined, locale: Loc
   return candidate;
 }
 
+function getFeedShareTitle({
+  brandName,
+  locale,
+}: {
+  brandName?: string | null;
+  locale: Locale;
+}) {
+  if (locale === "ko") {
+    return brandName
+      ? `${brandName} 네트워크 피드 미리보기`
+      : "1066friend+ 네트워크 피드 미리보기";
+  }
+
+  return brandName
+    ? `${brandName} network feed preview`
+    : "1066friend+ network feed preview";
+}
+
+function getFeedShareDescription({
+  brandName,
+  locale,
+}: {
+  brandName?: string | null;
+  locale: Locale;
+}) {
+  if (locale === "ko") {
+    return brandName
+      ? `${brandName}이 공유한 최신 콘텐츠를 확인하고 1066friend+ 네트워크를 시작하세요.`
+      : "SNS로 공유된 최신 네트워크 콘텐츠를 먼저 확인하고 1066friend+를 시작하세요.";
+  }
+
+  return brandName
+    ? `Explore the latest content shared by ${brandName} and start your 1066friend+ network.`
+    : "Preview the latest shared network content and start your 1066friend+ network.";
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -43,14 +80,22 @@ export async function generateMetadata({
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
   const copy = getContentCopy(locale);
-  const title = `${copy.meta.feedTitle} | 1066friend+`;
-  const description = copy.meta.feedDescription;
+  const experience = await getReferralLandingExperience(locale, referralCode);
+  const activeReferralCode = experience.referralCode ?? referralCode;
+  const title = getFeedShareTitle({
+    brandName: experience.branding?.brandName,
+    locale,
+  });
+  const description = getFeedShareDescription({
+    brandName: experience.branding?.brandName,
+    locale,
+  });
   const ogImagePath = buildNetworkFeedOgImagePath({
     locale,
-    referralCode,
-    version: referralCode,
+    referralCode: activeReferralCode,
+    version: activeReferralCode,
   });
-  const url = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
+  const url = buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode);
 
   return {
     title,

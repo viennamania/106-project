@@ -52,6 +52,7 @@ import {
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { MemberRecord } from "@/lib/member";
 import {
@@ -216,7 +217,10 @@ export function ContentDetailPage({
   const homeHref = buildReferralLandingPath(locale, shareReferralCode);
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, shareReferralCode);
   const backHref = returnToHref ?? feedHref;
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, shareReferralCode);
+  const activateHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate`, shareReferralCode),
+    { returnTo: backHref },
+  );
   const [shareState, setShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
   >("idle");

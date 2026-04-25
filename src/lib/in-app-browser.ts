@@ -16,6 +16,12 @@ export function isKakaoInAppBrowser(userAgent: string) {
   return /KAKAOTALK/i.test(userAgent);
 }
 
+export function isRestrictedInAppBrowser(userAgent: string) {
+  return /(KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|DaumApps|KAKAOStory)/i.test(
+    userAgent,
+  );
+}
+
 export function isBridgeCrawler(userAgent: string) {
   return /(bot|crawler|spider|facebookexternalhit|slackbot|twitterbot|linkedinbot|whatsapp|discordbot|kakaotalk-scrap)/i.test(
     userAgent,

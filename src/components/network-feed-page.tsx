@@ -30,6 +30,7 @@ import {
   RefreshCcw,
   Rss,
   Send,
+  UserPlus,
   X,
 } from "lucide-react";
 import {
@@ -257,6 +258,9 @@ export function NetworkFeedPage({
   );
   const backHref = returnToHref ?? homeHref;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const publicSignupHref = setPathSearchParams(activateHref, {
+    returnTo: feedHref,
+  });
   const hasReferralCode = Boolean(referralCode);
   const isWalletConnected = status === "connected" && Boolean(accountAddress);
   const isFeedModeResolving =
@@ -371,6 +375,8 @@ export function NetworkFeedPage({
       .slice(0, 12);
   }, [state.items]);
   const visibleCreatorSummaries = isPublicReferralFeed ? [] : creatorSummaries;
+  const publicFeedCreatorLabel =
+    isPublicReferralFeed && state.items[0] ? getDisplayName(state.items[0]) : null;
 
   const mergeItems = useCallback(
     (currentItems: ContentFeedItemRecord[], nextItems: ContentFeedItemRecord[]) => {
@@ -779,15 +785,23 @@ export function NetworkFeedPage({
     };
   }, [isInitialLoading, isLoadingMore, loadFeed, nextCursor]);
 
-  const feedDescription = isInitialLoading || isFeedModeResolving
-    ? contentCopy.messages.feedLoadingDescription
+  const feedHeaderDescription = isInitialLoading || isFeedModeResolving
+    ? contentCopy.messages.feedLoadingTitle
     : isPublicReferralFeed
-      ? contentCopy.page.feedDescription
+      ? locale === "ko"
+        ? "공개 네트워크 콘텐츠"
+        : "Public network content"
       : isDisconnected
-        ? contentCopy.messages.connectRequired
+        ? locale === "ko"
+          ? "로그인 후 맞춤 피드 보기"
+          : "Sign in for your feed"
         : state.member?.status === "completed"
-          ? contentCopy.page.feedDescription
-          : contentCopy.messages.paymentRequired;
+          ? locale === "ko"
+            ? "상위 네트워크 콘텐츠"
+            : "Upstream network content"
+          : locale === "ko"
+            ? "활성화 후 이용 가능"
+            : "Available after activation";
 
   return (
     <main className="min-h-screen bg-[#fafafa] text-slate-950">
@@ -802,19 +816,22 @@ export function NetworkFeedPage({
       ) : null}
 
       <div className="mx-auto flex w-full max-w-[470px] flex-col pb-8 sm:max-w-[520px]">
-        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#fafafa]/92 px-3 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl sm:px-0">
-          <div className="flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#fafafa]/94 px-3 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.65rem)] backdrop-blur-xl sm:px-0 sm:pb-3 sm:pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+          <div className="grid min-h-12 grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2 sm:gap-3">
             <Link
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-slate-950 transition hover:bg-slate-100"
               href={backHref}
             >
               <ArrowLeft className="size-5" />
+              <span className="sr-only">{contentCopy.actions.backHome}</span>
             </Link>
-            <div className="min-w-0 flex-1 text-center">
-              <h1 className="truncate text-lg font-semibold tracking-tight">
+            <div className="min-w-0 px-1 text-center">
+              <h1 className="truncate text-[1.05rem] font-semibold leading-5 tracking-tight text-slate-950 sm:text-lg sm:leading-6">
                 {contentCopy.page.feedTitle}
               </h1>
-              <p className="truncate text-xs text-slate-500">{feedDescription}</p>
+              <p className="mt-0.5 truncate text-[0.68rem] font-medium leading-4 text-slate-500 sm:text-xs">
+                {feedHeaderDescription}
+              </p>
             </div>
             <button
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-slate-950 transition hover:bg-slate-100 disabled:opacity-45"
@@ -825,10 +842,20 @@ export function NetworkFeedPage({
               type="button"
             >
               <RefreshCcw className="size-5" />
+              <span className="sr-only">{contentCopy.actions.refresh}</span>
             </button>
           </div>
 
         </header>
+
+        {isPublicReferralFeed ? (
+          <PublicFeedConversionBanner
+            creatorName={publicFeedCreatorLabel}
+            href={publicSignupHref}
+            locale={locale}
+            referralCode={referralCode}
+          />
+        ) : null}
 
         {visibleCreatorSummaries.length > 0 ? (
           <section className="border-b border-slate-200/80 bg-white px-3 py-3 sm:px-0">
@@ -952,6 +979,76 @@ function FeedScrollTopControl({
         </span>
       </button>
     </div>
+  );
+}
+
+function PublicFeedConversionBanner({
+  creatorName,
+  href,
+  locale,
+  referralCode,
+}: {
+  creatorName: string | null;
+  href: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy =
+    locale === "ko"
+      ? {
+          cta: "가입하고 계속 보기",
+          eyebrow: "SNS 링크로 열린 공개 피드",
+          refLabel: "추천 코드",
+          subtitle: creatorName
+            ? `${creatorName}의 콘텐츠를 먼저 둘러보고, 가입하면 저장과 결제를 이어갈 수 있습니다.`
+            : "콘텐츠를 먼저 둘러보고, 가입하면 추천 코드가 유지된 상태로 저장과 결제를 이어갈 수 있습니다.",
+          title: "피드를 보고 마음에 들면 바로 내 네트워크를 시작하세요.",
+        }
+      : {
+          cta: "Sign up and continue",
+          eyebrow: "Public feed from a social link",
+          refLabel: "Referral",
+          subtitle: creatorName
+            ? `Preview ${creatorName}'s content first. Sign up to keep saves and paid access flowing.`
+            : "Preview the content first. Sign up with the referral preserved for saves and paid access.",
+          title: "Browse the feed first, then start your network when ready.",
+        };
+
+  return (
+    <section className="border-b border-slate-200/80 bg-white px-3 py-3 sm:px-0">
+      <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_58%,#fff7ed_100%)] p-3.5 shadow-[0_16px_38px_rgba(15,23,42,0.07)]">
+        <div className="flex items-start gap-3">
+          <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_12px_26px_rgba(15,23,42,0.14)]">
+            <Rss className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-orange-600">
+                {copy.eyebrow}
+              </p>
+              {referralCode ? (
+                <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[0.65rem] font-semibold text-orange-700">
+                  {copy.refLabel} {referralCode}
+                </span>
+              ) : null}
+            </div>
+            <h2 className="mt-1 text-sm font-semibold leading-5 text-slate-950">
+              {copy.title}
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-slate-600">
+              {copy.subtitle}
+            </p>
+          </div>
+        </div>
+        <Link
+          className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-950 bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 active:scale-[0.99]"
+          href={href}
+        >
+          <UserPlus className="mr-2 size-4" />
+          {copy.cta}
+        </Link>
+      </div>
+    </section>
   );
 }
 
