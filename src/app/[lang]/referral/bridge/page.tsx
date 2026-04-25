@@ -9,11 +9,13 @@ import {
   isKakaoInAppBrowser,
 } from "@/lib/in-app-browser";
 import {
+  buildPathWithReferral,
   buildReferralLandingPath,
   buildReferralOgImagePath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
+import { getContentCopy } from "@/lib/content-copy";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { getLandingCopy } from "@/lib/marketing-copy";
 import { normalizeReferralCode } from "@/lib/member";
@@ -22,29 +24,56 @@ function readReferralCode(rawValue?: string | string[]) {
   return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
 }
 
+type ReferralBridgeSearchParams = {
+  ref?: string | string[];
+  target?: string | string[];
+};
+
+function readBridgeTarget(rawValue?: string | string[]) {
+  const target = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+
+  return target === "feed" ? "feed" : "landing";
+}
+
 export async function generateMetadata({
   params,
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<ReferralBridgeSearchParams>;
 }): Promise<Metadata> {
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readReferralCode(query.ref);
+  const bridgeTarget = readBridgeTarget(query.target);
   const copy = getLandingCopy(locale);
+  const contentCopy = getContentCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
-  const title = experience.branding
-    ? `${experience.branding.brandName} | ${copy.meta.title}`
-    : copy.meta.title;
-  const description = experience.branding?.description ?? copy.meta.description;
+  const title =
+    bridgeTarget === "feed"
+      ? experience.branding
+        ? `${experience.branding.brandName} | ${contentCopy.meta.feedTitle}`
+        : contentCopy.meta.feedTitle
+      : experience.branding
+        ? `${experience.branding.brandName} | ${copy.meta.title}`
+        : copy.meta.title;
+  const description =
+    bridgeTarget === "feed"
+      ? contentCopy.meta.feedDescription
+      : experience.branding?.description ?? copy.meta.description;
   const ogImagePath = buildReferralOgImagePath({
     locale,
     referralCode: experience.referralCode ?? referralCode,
     version: experience.branding?.updatedAt ?? experience.referralCode ?? null,
   });
-  const url = buildReferralLandingPath(locale, experience.referralCode ?? referralCode);
+  const url =
+    bridgeTarget === "feed"
+      ? buildPathWithReferral(
+          `/${locale}/network-feed`,
+          experience.referralCode ?? referralCode,
+        )
+      : buildReferralLandingPath(locale, experience.referralCode ?? referralCode);
 
   return {
     title,
@@ -78,7 +107,7 @@ export default async function LocalizedReferralBridgePage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<ReferralBridgeSearchParams>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -97,13 +126,16 @@ export default async function LocalizedReferralBridgePage({
   const landingCopy = getLandingCopy(locale);
   const experience = await getReferralLandingExperience(locale, referralCode);
   const activeReferralCode = experience.referralCode ?? referralCode;
+  const bridgeTarget = readBridgeTarget(query.target);
   const branding = experience.branding;
   const headerStore = await headers();
   const userAgent = headerStore.get("user-agent") ?? "";
   const autoRedirect =
     !isKakaoInAppBrowser(userAgent) && !isBridgeCrawler(userAgent);
   const targetHref = setPathSearchParams(
-    buildReferralLandingPath(locale, activeReferralCode),
+    bridgeTarget === "feed"
+      ? buildPathWithReferral(`/${locale}/network-feed`, activeReferralCode)
+      : buildReferralLandingPath(locale, activeReferralCode),
     { fromBridge: "1" },
   );
 

@@ -8,13 +8,16 @@ import {
   ArrowRight,
   Check,
   Coins,
+  Copy,
   ImagePlus,
   LayoutGrid,
   LoaderCircle,
   PenSquare,
   RefreshCcw,
+  Rss,
   Save,
   Search,
+  Share2,
   Sparkles,
   WandSparkles,
   UserRound,
@@ -544,6 +547,9 @@ export function CreatorContentStudioPage({
   const [isUploadingProfileHeroImage, setIsUploadingProfileHeroImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
+  const [feedShareState, setFeedShareState] = useState<
+    "copied" | "error" | "idle" | "sharing"
+  >("idle");
   const automationProgressLabels =
     locale === "ko"
       ? {
@@ -961,6 +967,34 @@ export function CreatorContentStudioPage({
         ? contentCopy.labels.creatorSettings
         : null;
   const salesManagerLabel = locale === "ko" ? "판매 관리" : "Sales";
+  const feedShareCopy =
+    locale === "ko"
+      ? {
+          copied: "링크 복사됨",
+          description:
+            "내 레퍼럴이 포함된 공개 피드 미리보기 링크를 공유합니다.",
+          error: "복사 실패",
+          sharing: "공유 중",
+          title: "내 피드 공유",
+        }
+      : {
+          copied: "Link copied",
+          description:
+            "Share the public feed preview with your referral attached.",
+          error: "Copy failed",
+          sharing: "Sharing",
+          title: "Share my feed",
+        };
+  const creatorFeedSharePath = state.member?.referralCode
+    ? setPathSearchParams(
+        buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode),
+        { target: "feed" },
+      )
+    : null;
+  const creatorFeedShareUrl =
+    typeof window === "undefined" || !creatorFeedSharePath
+      ? creatorFeedSharePath ?? ""
+      : new URL(creatorFeedSharePath, window.location.origin).toString();
 
   const publishedCount = state.summary.published;
   const draftCount = state.summary.draft;
@@ -974,6 +1008,7 @@ export function CreatorContentStudioPage({
   }, [state.posts]);
 
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
+  const canShareCreatorFeed = canUseWorkspace && Boolean(creatorFeedShareUrl);
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
   const postBodyRequiredMessage =
@@ -1409,6 +1444,74 @@ export function CreatorContentStudioPage({
     dictionary.member.errors.missingEmail,
     locale,
     view,
+  ]);
+
+  useEffect(() => {
+    if (feedShareState !== "copied" && feedShareState !== "error") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setFeedShareState("idle");
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [feedShareState]);
+
+  const copyCreatorFeedLink = useCallback(async () => {
+    if (!creatorFeedShareUrl) {
+      setFeedShareState("error");
+      return false;
+    }
+
+    try {
+      await navigator.clipboard.writeText(creatorFeedShareUrl);
+      setFeedShareState("copied");
+      return true;
+    } catch {
+      setFeedShareState("error");
+      return false;
+    }
+  }, [creatorFeedShareUrl]);
+
+  const handleShareCreatorFeed = useCallback(async () => {
+    if (!creatorFeedShareUrl) {
+      setFeedShareState("error");
+      return;
+    }
+
+    if (typeof navigator.share === "function") {
+      setFeedShareState("sharing");
+
+      try {
+        await navigator.share({
+          text: feedShareCopy.description,
+          title: feedShareCopy.title,
+          url: creatorFeedShareUrl,
+        });
+        setFeedShareState("idle");
+        return;
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
+          setFeedShareState("idle");
+          return;
+        }
+      }
+    }
+
+    await copyCreatorFeedLink();
+  }, [
+    copyCreatorFeedLink,
+    creatorFeedShareUrl,
+    feedShareCopy.description,
+    feedShareCopy.title,
   ]);
 
   useEffect(() => {
@@ -3790,6 +3893,21 @@ export function CreatorContentStudioPage({
             icon={<LayoutGrid className="size-5" />}
             title={contentCopy.actions.managePosts}
           />
+          <WorkspaceShareCard
+            description={feedShareCopy.description}
+            disabled={!canShareCreatorFeed}
+            icon={<Rss className="size-5" />}
+            onShare={() => {
+              void handleShareCreatorFeed();
+            }}
+            state={feedShareState}
+            stateLabels={{
+              copied: feedShareCopy.copied,
+              error: feedShareCopy.error,
+              sharing: feedShareCopy.sharing,
+            }}
+            title={feedShareCopy.title}
+          />
           <WorkspaceLaunchCard
             description={
               locale === "ko"
@@ -4405,6 +4523,90 @@ function WorkspaceLaunchCard({
     <Link className="block h-full" href={href}>
       {body}
     </Link>
+  );
+}
+
+function WorkspaceShareCard({
+  description,
+  disabled = false,
+  icon,
+  onShare,
+  state,
+  stateLabels,
+  title,
+}: {
+  description: string;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  onShare: () => void;
+  state: "copied" | "error" | "idle" | "sharing";
+  stateLabels: {
+    copied: string;
+    error: string;
+    sharing: string;
+  };
+  title: string;
+}) {
+  const stateLabel =
+    state === "copied"
+      ? stateLabels.copied
+      : state === "error"
+        ? stateLabels.error
+        : state === "sharing"
+          ? stateLabels.sharing
+          : null;
+
+  return (
+    <button
+      className={
+        "block h-full rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] p-5 text-left shadow-[0_18px_44px_rgba(15,23,42,0.08)] transition " +
+        (disabled
+          ? "cursor-not-allowed opacity-70"
+          : "hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]")
+      }
+      disabled={disabled}
+      onClick={onShare}
+      type="button"
+    >
+      <div className="flex min-h-[190px] flex-col justify-between">
+        <div>
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            {icon}
+          </div>
+          <div className="mt-5">
+            <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+              {title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {description}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          {stateLabel ? (
+            <span
+              className={cn(
+                "truncate text-xs font-semibold",
+                state === "error" ? "text-rose-600" : "text-slate-500",
+              )}
+            >
+              {stateLabel}
+            </span>
+          ) : (
+            <span />
+          )}
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950">
+            {state === "copied" ? (
+              <Check className="size-4" />
+            ) : state === "error" ? (
+              <Copy className="size-4" />
+            ) : (
+              <Share2 className="size-4" />
+            )}
+          </span>
+        </div>
+      </div>
+    </button>
   );
 }
 
