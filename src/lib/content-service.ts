@@ -1408,18 +1408,14 @@ function buildActivityCursorFilter(
 
 export async function getSavedFeedForMember(
   email: string,
-  locale: Locale,
+  _locale: Locale,
   options?: NetworkFeedQueryOptions,
 ): Promise<ContentFeedResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const ancestors = await resolveNetworkAncestors(member);
-  const visibleReferralCodes = new Set(
-    ancestors.map((ancestor) => ancestor.referralCode),
-  );
   const cursor = decodeContentFeedActivityCursor(options?.cursor);
   const socialActionsCollection = await getContentSocialActionsCollection();
   const baseFilter: Filter<ContentSocialActionDocument> = {
-    hidden: { $ne: true },
     memberEmail: member.email,
     saved: true,
   };
@@ -1448,25 +1444,14 @@ export async function getSavedFeedForMember(
   const posts = contentIds.length
     ? await postsCollection
         .find({
-          ...getPublishedContentLocaleFilter(locale),
           contentId: { $in: contentIds },
           status: "published",
         })
         .toArray()
     : [];
-  const purchasedContentIds = await getPurchasedContentIdsForViewer(
-    contentIds,
-    member.email,
-  );
-  const visiblePosts = orderPostsByContentIds(posts, contentIds).filter(
-    (post) =>
-      post.authorEmail === member.email ||
-      visibleReferralCodes.has(post.authorReferralCode) ||
-      purchasedContentIds.has(post.contentId),
-  );
   const items = await buildFeedItemsFromPosts({
     ancestors,
-    posts: visiblePosts,
+    posts: orderPostsByContentIds(posts, contentIds),
     viewerEmail: member.email,
   });
   const lastAction = pageActions[pageActions.length - 1];

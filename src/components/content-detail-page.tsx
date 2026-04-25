@@ -1232,7 +1232,7 @@ export function ContentDetailPage({
             primaryMessage={contentCopy.messages.paymentRequired}
             secondaryMessage={contentCopy.messages.connectRequired}
           />
-          {isPaidDetail ? (
+          {isPaidDetail && !isPaidLocked ? (
             <PaidProofPanel
               buyerLabel={paidBuyerLabel}
               hasProof={hasPaidProof}
@@ -1623,17 +1623,17 @@ export function ContentDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-amber-600">
-                  {locale === "ko" ? "Payment confirm" : "Payment confirm"}
+                  {locale === "ko" ? "유료 콘텐츠 결제" : "Paid content"}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
                   {locale === "ko"
-                    ? "1 USDT 결제를 확인하세요"
-                    : "Confirm 1 USDT payment"}
+                    ? `${paidUnlockAmount} USDT 결제 후 바로 열람`
+                    : `Unlock with ${paidUnlockAmount} USDT`}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   {locale === "ko"
-                    ? "회원 지갑에서 판매자 판매용 지갑으로 USDT가 전송됩니다. 결제 완료 후 이 콘텐츠는 계속 열람할 수 있습니다."
-                    : "USDT will be sent from your member wallet to the seller sales wallet. Once confirmed, this content stays unlocked."}
+                    ? "회원 지갑에서 판매자 지갑으로 결제됩니다. 한 번 결제하면 이 콘텐츠의 전체 본문과 이미지를 계속 볼 수 있습니다."
+                    : "Payment is sent from your member wallet to the seller wallet. Unlock once to keep access to the full body and images."}
                 </p>
               </div>
               <button
@@ -1698,27 +1698,35 @@ export function ContentDetailPage({
                 </div>
               </div>
 
+              {hasPaidProof ? (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-2.5">
+                    <p className="text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                      {locale === "ko" ? "누적 결제" : "Total paid"}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-slate-950">
+                      {paidTotalLabel} USDT
+                    </p>
+                  </div>
+                  <div className="rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-2.5">
+                    <p className="text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                      {locale === "ko" ? "결제 회원" : "Paid members"}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-slate-950">
+                      {paidBuyerLabel}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-3 flex items-start gap-2 rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800">
                 <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
                 <span>
                   {locale === "ko"
-                    ? "지갑 승인 창에서 최종 확인하면 온체인 전송이 실행됩니다."
-                    : "The onchain transfer starts only after you approve it in your wallet."}
+                    ? "지갑 승인 창에서 금액과 받는 주소를 확인한 뒤 승인하면 온체인 전송이 실행됩니다."
+                    : "Review the amount and recipient in your wallet. The onchain transfer starts only after approval."}
                 </span>
               </div>
-            </div>
-
-            <div className="mt-3">
-              <PaidProofPanel
-                buyerLabel={paidBuyerLabel}
-                hasProof={hasPaidProof}
-                locale={locale}
-                priceLabel={`${paidUnlockAmount} USDT`}
-                tier={paidProofTier}
-                title={paidProofTitle}
-                totalLabel={paidTotalLabel}
-                variant="compact"
-              />
             </div>
 
             {paidUnlock.error ? (
@@ -1785,8 +1793,8 @@ export function ContentDetailPage({
                       ? "결제 확인 중"
                       : "Verifying"
                     : locale === "ko"
-                      ? `${paidUnlockAmount} USDT 결제 승인`
-                      : `Approve ${paidUnlockAmount} USDT`}
+                      ? `${paidUnlockAmount} USDT 결제하기`
+                      : `Pay ${paidUnlockAmount} USDT`}
               </TransactionButton>
             </div>
           </div>

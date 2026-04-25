@@ -177,28 +177,6 @@ function getPaidProofTier(social: ContentSocialSummaryRecord): PaidProofTier {
   return "new";
 }
 
-function readStoredFlag(key: string) {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  try {
-    return window.localStorage.getItem(key) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeStoredFlag(key: string, value: boolean) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(key, value ? "1" : "0");
-  } catch {}
-}
-
 function createFeedRestoreKey({
   accountAddress,
   feedView,
@@ -1540,13 +1518,7 @@ function SocialFeedPost({
   const lastTapAtRef = useRef(0);
   const mediaOpenTimeoutRef = useRef<number | null>(null);
   const mediaPointerStartRef = useRef<{ x: number; y: number } | null>(null);
-  const [social, setSocial] = useState<ContentSocialSummaryRecord>(() => ({
-    ...item.social,
-    likedByViewer:
-      item.social.likedByViewer || readStoredFlag(`content-like:${item.contentId}`),
-    savedByViewer:
-      item.social.savedByViewer || readStoredFlag(`content-save:${item.contentId}`),
-  }));
+  const [social, setSocial] = useState<ContentSocialSummaryRecord>(item.social);
   const [isHidden, setIsHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [likeBursts, setLikeBursts] = useState<LikeBurst[]>([]);
@@ -1684,14 +1656,6 @@ function SocialFeedPost({
       navigateToDetail();
     }, 260);
   }, [clearMediaOpenTimeout, navigateToDetail]);
-
-  useEffect(() => {
-    writeStoredFlag(`content-like:${item.contentId}`, social.likedByViewer);
-  }, [item.contentId, social.likedByViewer]);
-
-  useEffect(() => {
-    writeStoredFlag(`content-save:${item.contentId}`, social.savedByViewer);
-  }, [item.contentId, social.savedByViewer]);
 
   useEffect(() => {
     return clearMediaOpenTimeout;
