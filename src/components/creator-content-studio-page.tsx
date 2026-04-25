@@ -86,6 +86,7 @@ type StudioState = {
     intro: string;
     payoutWalletAddress: string;
   };
+  profileConfigured: boolean;
   summary: {
     all: number;
     archived: number;
@@ -514,6 +515,7 @@ export function CreatorContentStudioPage({
     notice: null,
     posts: [],
     profile: EMPTY_PROFILE,
+    profileConfigured: false,
     summary: EMPTY_STUDIO_SUMMARY,
     status: "idle",
   });
@@ -1035,6 +1037,27 @@ export function CreatorContentStudioPage({
           ],
           title: "No posts created yet.",
         };
+  const profileSummaryCopy =
+    locale === "ko"
+      ? {
+          configured: "프로필 등록됨",
+          edit: "수정",
+          fallbackIntro: "등록한 소개문이 아직 없습니다.",
+          fallbackName: "크리에이터 프로필",
+          notConfigured: "프로필을 먼저 설정하면 피드에서 크리에이터 정보가 더 신뢰감 있게 보입니다.",
+          salesWalletMissing: "판매 지갑 미연결",
+          salesWalletReady: "판매 지갑 연결됨",
+        }
+      : {
+          configured: "Profile saved",
+          edit: "Edit",
+          fallbackIntro: "No channel intro saved yet.",
+          fallbackName: "Creator profile",
+          notConfigured:
+            "Set up your profile so creator details look more trustworthy in the feed.",
+          salesWalletMissing: "Seller wallet not connected",
+          salesWalletReady: "Seller wallet connected",
+        };
   const creatorFeedSharePath = state.member?.referralCode
     ? setPathSearchParams(
         buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode),
@@ -1156,6 +1179,7 @@ export function CreatorContentStudioPage({
             notice: null,
             posts: [],
             profile: EMPTY_PROFILE,
+            profileConfigured: false,
             summary: EMPTY_STUDIO_SUMMARY,
             status: "ready",
           });
@@ -1176,6 +1200,7 @@ export function CreatorContentStudioPage({
             notice: null,
             posts: [],
             profile: EMPTY_PROFILE,
+            profileConfigured: false,
             summary: EMPTY_STUDIO_SUMMARY,
             status: "ready",
           });
@@ -1204,6 +1229,7 @@ export function CreatorContentStudioPage({
                   postsData.profile.payoutWalletAddress ?? "",
               }
             : EMPTY_PROFILE,
+          profileConfigured: postsData.profileConfigured,
           summary: postsData.summary,
           status: "ready",
         });
@@ -1269,6 +1295,7 @@ export function CreatorContentStudioPage({
           notice: null,
           posts: [],
           profile: EMPTY_PROFILE,
+          profileConfigured: false,
           summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
@@ -1289,6 +1316,7 @@ export function CreatorContentStudioPage({
           notice: null,
           posts: [],
           profile: EMPTY_PROFILE,
+          profileConfigured: false,
           summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
@@ -1331,6 +1359,7 @@ export function CreatorContentStudioPage({
             intro: profileData.profile.intro,
             payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
           },
+          profileConfigured: profileData.profileConfigured,
           summary: EMPTY_STUDIO_SUMMARY,
           status: "ready",
         });
@@ -1431,6 +1460,7 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: [],
         profile: EMPTY_PROFILE,
+        profileConfigured: false,
         summary: EMPTY_STUDIO_SUMMARY,
         status: "error",
       });
@@ -1551,6 +1581,7 @@ export function CreatorContentStudioPage({
         notice: null,
         posts: [],
         profile: EMPTY_PROFILE,
+        profileConfigured: false,
         summary: EMPTY_STUDIO_SUMMARY,
         status: "idle",
       });
@@ -1619,6 +1650,7 @@ export function CreatorContentStudioPage({
           intro: data.profile.intro,
           payoutWalletAddress: data.profile.payoutWalletAddress ?? "",
         },
+        profileConfigured: data.profileConfigured,
       }));
     } catch (error) {
       setState((current) => ({
@@ -1674,6 +1706,7 @@ export function CreatorContentStudioPage({
           intro: data.profile.intro,
           payoutWalletAddress: data.profile.payoutWalletAddress ?? "",
         },
+        profileConfigured: data.profileConfigured,
       }));
 
       return data.profile.payoutWalletAddress ?? "";
@@ -4106,6 +4139,59 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderProfileSummaryCard() {
+    const displayName =
+      state.profile.displayName.trim() || profileSummaryCopy.fallbackName;
+    const intro = state.profile.intro.trim() || profileSummaryCopy.fallbackIntro;
+    const walletLabel = state.profile.payoutWalletAddress
+      ? `${profileSummaryCopy.salesWalletReady} · ${formatAddressLabel(
+          state.profile.payoutWalletAddress,
+        )}`
+      : profileSummaryCopy.salesWalletMissing;
+
+    return (
+      <Link
+        className="block h-full rounded-[22px] border border-cyan-100 bg-[linear-gradient(180deg,rgba(236,254,255,0.96),rgba(255,255,255,0.96))] p-4 text-left shadow-none transition hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(8,145,178,0.14)] sm:rounded-[30px] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)]"
+        href={profileHref}
+      >
+        <div className="flex min-h-[124px] flex-col justify-between sm:min-h-[190px]">
+          <div>
+            <div className="flex items-start justify-between gap-4">
+              <CreatorProfileAvatar
+                avatarImageUrl={state.profile.avatarImageUrl}
+                displayName={displayName}
+                fallbackLabel={profileSummaryCopy.fallbackName}
+                sizeClassName="size-12"
+              />
+              <span className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-cyan-200 bg-white px-3 text-xs font-semibold text-slate-950">
+                {profileSummaryCopy.edit}
+              </span>
+            </div>
+            <div className="mt-5">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-cyan-700">
+                {profileSummaryCopy.configured}
+              </p>
+              <h3 className="mt-1 truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
+                {displayName}
+              </h3>
+              <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-600 sm:text-sm sm:leading-6">
+                {intro}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate text-xs font-semibold text-slate-600">
+              {walletLabel}
+            </span>
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-cyan-200 bg-white text-cyan-800">
+              <UserRound className="size-4" />
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   function renderHubActionCards() {
     return (
       <section className="space-y-3">
@@ -4116,13 +4202,17 @@ export function CreatorContentStudioPage({
           </h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <WorkspaceLaunchCard
-            description={contentCopy.page.profileDescription}
-            disabled={!canUseWorkspace}
-            href={profileHref}
-            icon={<UserRound className="size-5" />}
-            title={contentCopy.labels.creatorSettings}
-          />
+          {state.profileConfigured ? (
+            renderProfileSummaryCard()
+          ) : (
+            <WorkspaceLaunchCard
+              description={profileSummaryCopy.notConfigured}
+              disabled={!canUseWorkspace}
+              href={profileHref}
+              icon={<UserRound className="size-5" />}
+              title={contentCopy.labels.creatorSettings}
+            />
+          )}
           <WorkspaceLaunchCard
             description={contentCopy.page.newDescription}
             disabled={!canUseWorkspace}
@@ -4192,13 +4282,32 @@ export function CreatorContentStudioPage({
                 <PenSquare className="size-4" />
                 {emptyStudioCopy.ctaCreate}
               </Link>
-              <Link
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-5 text-sm font-semibold !text-slate-950 shadow-[0_14px_30px_rgba(8,145,178,0.18)] transition hover:-translate-y-0.5 hover:border-white hover:bg-white"
-                href={profileHref}
-              >
-                <UserRound className="size-4" />
-                {emptyStudioCopy.ctaProfile}
-              </Link>
+              {state.profileConfigured ? (
+                <div className="inline-flex min-h-12 items-center gap-3 rounded-full border border-white/18 bg-white/12 py-1.5 pl-2 pr-4 text-left text-white backdrop-blur-md">
+                  <CreatorProfileAvatar
+                    avatarImageUrl={state.profile.avatarImageUrl}
+                    displayName={state.profile.displayName}
+                    fallbackLabel={profileSummaryCopy.fallbackName}
+                    sizeClassName="size-9"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-cyan-100">
+                      {profileSummaryCopy.configured}
+                    </span>
+                    <span className="block max-w-[13rem] truncate text-sm font-semibold">
+                      {state.profile.displayName || profileSummaryCopy.fallbackName}
+                    </span>
+                  </span>
+                </div>
+              ) : (
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-5 text-sm font-semibold !text-slate-950 shadow-[0_14px_30px_rgba(8,145,178,0.18)] transition hover:-translate-y-0.5 hover:border-white hover:bg-white"
+                  href={profileHref}
+                >
+                  <UserRound className="size-4" />
+                  {emptyStudioCopy.ctaProfile}
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -4696,6 +4805,54 @@ export function CreatorContentStudioPage({
       />
     </>
   );
+}
+
+function CreatorProfileAvatar({
+  avatarImageUrl,
+  displayName,
+  fallbackLabel,
+  sizeClassName,
+}: {
+  avatarImageUrl: string | null | undefined;
+  displayName: string;
+  fallbackLabel: string;
+  sizeClassName: string;
+}) {
+  const label = displayName.trim() || fallbackLabel;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-950 text-white ring-1 ring-white/40",
+        sizeClassName,
+      )}
+    >
+      {avatarImageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt={label}
+          className="size-full object-cover"
+          src={avatarImageUrl}
+        />
+      ) : (
+        <UserRound className="size-5" />
+      )}
+    </span>
+  );
+}
+
+function formatAddressLabel(address?: string | null) {
+  const trimmed = address?.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (trimmed.length <= 12) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
 }
 
 function InputField({

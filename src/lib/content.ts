@@ -55,6 +55,7 @@ export type ContentCoverGenerationProgressStep =
 
 export type CreatorProfileDocument = {
   avatarImageUrl?: string | null;
+  configuredAt?: Date | null;
   createdAt: Date;
   displayName: string;
   email: string;
@@ -313,6 +314,7 @@ export type ContentLibraryResponse = {
 export type CreatorProfileResponse = {
   automationAvailable?: boolean;
   profile: CreatorProfileRecord;
+  profileConfigured: boolean;
 };
 
 export type CreatorProfileUploadResponse = {
@@ -367,6 +369,7 @@ export type CreatorStudioPostsResponse = {
   };
   posts: ContentPostRecord[];
   profile: CreatorProfileRecord;
+  profileConfigured: boolean;
   summary: {
     all: number;
     archived: number;
@@ -380,6 +383,7 @@ export type CreatorStudioPostsLoadResponse = {
   pageInfo: CreatorStudioPostsResponse["pageInfo"] | null;
   posts: ContentPostRecord[];
   profile: CreatorProfileRecord | null;
+  profileConfigured: boolean;
   summary: CreatorStudioPostsResponse["summary"];
   validationError: string | null;
 };

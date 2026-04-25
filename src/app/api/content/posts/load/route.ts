@@ -74,6 +74,7 @@ export async function GET(request: Request) {
         pageInfo: null,
         posts: [],
         profile: null,
+        profileConfigured: false,
         summary: EMPTY_SUMMARY,
         validationError: null,
       };
@@ -93,6 +94,7 @@ export async function GET(request: Request) {
       pageInfo: posts.pageInfo,
       posts: posts.posts,
       profile: posts.profile,
+      profileConfigured: posts.profileConfigured,
       summary: posts.summary,
       validationError: null,
     };
@@ -170,6 +172,7 @@ export async function POST(request: Request) {
         pageInfo: null,
         posts: [],
         profile: null,
+        profileConfigured: false,
         summary: EMPTY_SUMMARY,
         validationError: sync.validationError,
       };
@@ -183,6 +186,7 @@ export async function POST(request: Request) {
         pageInfo: null,
         posts: [],
         profile: null,
+        profileConfigured: false,
         summary: EMPTY_SUMMARY,
         validationError: null,
       };
@@ -202,6 +206,7 @@ export async function POST(request: Request) {
       pageInfo: posts.pageInfo,
       posts: posts.posts,
       profile: posts.profile,
+      profileConfigured: posts.profileConfigured,
       summary: posts.summary,
       validationError: null,
     };

@@ -406,6 +406,30 @@ function createDefaultCreatorProfile(member: MemberDocument): CreatorProfileReco
   };
 }
 
+function normalizeProfileComparisonValue(value: string | null | undefined) {
+  return value?.trim() ?? "";
+}
+
+function isStoredCreatorProfileConfigured(
+  stored: CreatorProfileDocument,
+  defaultProfile: CreatorProfileRecord,
+) {
+  if (stored.configuredAt) {
+    return true;
+  }
+
+  return (
+    normalizeProfileComparisonValue(stored.avatarImageUrl) !==
+      normalizeProfileComparisonValue(defaultProfile.avatarImageUrl) ||
+    normalizeProfileComparisonValue(stored.displayName) !==
+      normalizeProfileComparisonValue(defaultProfile.displayName) ||
+    normalizeProfileComparisonValue(stored.heroImageUrl) !==
+      normalizeProfileComparisonValue(defaultProfile.heroImageUrl) ||
+    normalizeProfileComparisonValue(stored.intro) !==
+      normalizeProfileComparisonValue(defaultProfile.intro)
+  );
+}
+
 async function getCompletedMemberOrThrow(email: string) {
   const member = await getMemberRegistrationStatus(email);
 
@@ -447,6 +471,7 @@ export async function ensureCreatorPaidWalletForMember(
       $set: {
         avatarImageUrl:
           stored?.avatarImageUrl ?? defaultProfile.avatarImageUrl ?? null,
+        configuredAt: stored?.configuredAt ?? null,
         displayName:
           stored?.displayName?.trim() || defaultProfile.displayName,
         email: member.email,
@@ -815,14 +840,29 @@ async function emitPublishedContentNotifications(options: {
 export async function getCreatorProfileForMember(
   email: string,
 ): Promise<CreatorProfileRecord> {
+  const snapshot = await getCreatorProfileSnapshotForMember(email);
+
+  return snapshot.profile;
+}
+
+export async function getCreatorProfileSnapshotForMember(
+  email: string,
+): Promise<{ profile: CreatorProfileRecord; profileConfigured: boolean }> {
   const member = await getCompletedMemberOrThrow(email);
   const stored = await readStoredCreatorProfile(member.email);
+  const defaultProfile = createDefaultCreatorProfile(member);
 
   if (!stored) {
-    return createDefaultCreatorProfile(member);
+    return {
+      profile: defaultProfile,
+      profileConfigured: false,
+    };
   }
 
-  return serializeCreatorProfile(stored);
+  return {
+    profile: serializeCreatorProfile(stored),
+    profileConfigured: isStoredCreatorProfileConfigured(stored, defaultProfile),
+  };
 }
 
 export async function upsertCreatorProfileForMember(
@@ -870,6 +910,7 @@ export async function upsertCreatorProfileForMember(
     {
       $set: {
         ...nextProfile,
+        configuredAt: existing?.configuredAt ?? now,
         createdAt: existing?.createdAt ?? now,
       },
     },
@@ -1612,6 +1653,7 @@ export async function getCreatorStudioPostsForMember(
     .limit(usingPagination ? pageSize : Math.max(summary.all, 1))
     .toArray();
   const totalPages = usingPagination ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+  const profileSnapshot = await getCreatorProfileSnapshotForMember(member.email);
 
   return {
     member: serializeMember(member),
@@ -1624,7 +1666,8 @@ export async function getCreatorStudioPostsForMember(
       totalPages,
     },
     posts: posts.map((post) => serializeContentPost(post)),
-    profile: await getCreatorProfileForMember(member.email),
+    profile: profileSnapshot.profile,
+    profileConfigured: profileSnapshot.profileConfigured,
     summary,
   };
 }

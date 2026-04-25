@@ -5,7 +5,7 @@ import type {
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
 import {
-  getCreatorProfileForMember,
+  getCreatorProfileSnapshotForMember,
   upsertCreatorProfileForMember,
 } from "@/lib/content-service";
 
@@ -36,11 +36,15 @@ export async function GET(request: Request) {
       return authorization.error;
     }
 
+    const profileSnapshot = await getCreatorProfileSnapshotForMember(
+      authorization.normalizedEmail,
+    );
     const response: CreatorProfileResponse = {
       automationAvailable: isMemberAllowedForContentAutomation(
         authorization.normalizedEmail,
       ),
-      profile: await getCreatorProfileForMember(authorization.normalizedEmail),
+      profile: profileSnapshot.profile,
+      profileConfigured: profileSnapshot.profileConfigured,
     };
 
     return Response.json(response);
@@ -89,14 +93,16 @@ export async function POST(request: Request) {
       return authorization.error;
     }
 
+    const profile = await upsertCreatorProfileForMember({
+      ...body,
+      email: authorization.normalizedEmail,
+    });
     const response: CreatorProfileResponse = {
       automationAvailable: isMemberAllowedForContentAutomation(
         authorization.normalizedEmail,
       ),
-      profile: await upsertCreatorProfileForMember({
-        ...body,
-        email: authorization.normalizedEmail,
-      }),
+      profile,
+      profileConfigured: true,
     };
 
     return Response.json(response);

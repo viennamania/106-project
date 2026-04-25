@@ -1,5 +1,8 @@
 import type { CreatorProfileResponse } from "@/lib/content";
-import { ensureCreatorPaidWalletForMember } from "@/lib/content-service";
+import {
+  ensureCreatorPaidWalletForMember,
+  getCreatorProfileSnapshotForMember,
+} from "@/lib/content-service";
 import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
@@ -39,13 +42,18 @@ export async function POST(request: Request) {
       return authorization.error;
     }
 
+    const profile = await ensureCreatorPaidWalletForMember(
+      authorization.normalizedEmail,
+    );
+    const profileSnapshot = await getCreatorProfileSnapshotForMember(
+      authorization.normalizedEmail,
+    );
     const response: CreatorProfileResponse = {
       automationAvailable: isMemberAllowedForContentAutomation(
         authorization.normalizedEmail,
       ),
-      profile: await ensureCreatorPaidWalletForMember(
-        authorization.normalizedEmail,
-      ),
+      profile,
+      profileConfigured: profileSnapshot.profileConfigured,
     };
 
     return Response.json(response, { status: 201 });
