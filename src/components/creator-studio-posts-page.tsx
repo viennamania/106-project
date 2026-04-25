@@ -7,12 +7,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  Coins,
   LayoutGrid,
-  PenSquare,
   RefreshCcw,
   Search,
-  UserRound,
 } from "lucide-react";
 import {
   AutoConnect,
@@ -33,7 +30,6 @@ import type {
 import { getContentCopy } from "@/lib/content-copy";
 import {
   buildPathWithReferral,
-  buildReferralLandingPath,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
@@ -119,7 +115,6 @@ export function CreatorStudioPostsPage({
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const homeHref = buildReferralLandingPath(locale, referralCode);
   const studioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
     { returnTo: returnToHref },
@@ -159,7 +154,6 @@ export function CreatorStudioPostsPage({
     summary: EMPTY_SUMMARY,
   });
   const isDisconnected = connectionStatus !== "connected" || !accountAddress;
-  const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
 
   useEffect(() => {
     setSearchInput(appliedQuery);
@@ -666,55 +660,6 @@ export function CreatorStudioPostsPage({
             ) : null}
           </div>
 
-          <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
-            <div>
-              <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                {contentCopy.labels.quickActions}
-              </h2>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <WorkspaceLaunchCard
-                description={contentCopy.page.newDescription}
-                disabled={!canUseWorkspace}
-                href={newPostHref}
-                icon={<PenSquare className="size-5" />}
-                title={contentCopy.actions.createPost}
-              />
-              <WorkspaceLaunchCard
-                description={contentCopy.page.profileDescription}
-                disabled={!canUseWorkspace}
-                href={profileHref}
-                icon={<UserRound className="size-5" />}
-                title={contentCopy.labels.creatorSettings}
-              />
-              <WorkspaceLaunchCard
-                description={contentCopy.page.studioDescription}
-                disabled={!canUseWorkspace}
-                href={studioHomeHref}
-                icon={<ArrowLeft className="size-5" />}
-                title={contentCopy.labels.studioHome}
-              />
-              <WorkspaceLaunchCard
-                description={contentCopy.entry.description}
-                disabled={!canUseWorkspace}
-                href={homeHref}
-                icon={<ArrowLeft className="size-5" />}
-                title={contentCopy.actions.backHome}
-              />
-              <WorkspaceLaunchCard
-                description={
-                  locale === "ko"
-                    ? "유료 콘텐츠 판매 내역과 판매용 지갑 잔고를 관리합니다."
-                    : "Manage paid content sales and seller wallet balance."
-                }
-                disabled={!canUseWorkspace}
-                href={salesManagerHref}
-                icon={<Coins className="size-5" />}
-                title={salesManagerLabel}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="order-1 border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_24px_60px_rgba(15,23,42,0.08)] xl:order-2">
@@ -948,49 +893,6 @@ function HeaderStatChip({
         </p>
       )}
     </div>
-  );
-}
-
-function WorkspaceLaunchCard({
-  description,
-  disabled,
-  href,
-  icon,
-  title,
-}: {
-  description: string;
-  disabled?: boolean;
-  href: string;
-  icon: ReactNode;
-  title: string;
-}) {
-  const body = (
-    <div className="flex min-h-[118px] flex-col justify-between rounded-[22px] border border-slate-200 bg-white p-4 shadow-none transition hover:translate-y-[-1px] sm:min-h-[138px] sm:rounded-[28px] sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:hover:shadow-[0_22px_50px_rgba(15,23,42,0.12)]">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex size-11 items-center justify-center rounded-[18px] bg-slate-950 text-white shadow-[0_16px_32px_rgba(15,23,42,0.16)] sm:size-14 sm:rounded-[20px] sm:shadow-[0_20px_40px_rgba(15,23,42,0.18)]">
-          {icon}
-        </div>
-        <div className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 shadow-sm sm:size-12">
-          <ArrowRight className="size-4 sm:size-5" />
-        </div>
-      </div>
-      <div className="space-y-1.5 sm:space-y-2">
-        <h3 className="text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
-          {title}
-        </h3>
-        <p className="text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6 sm:text-slate-600">{description}</p>
-      </div>
-    </div>
-  );
-
-  if (disabled) {
-    return <div className="opacity-60">{body}</div>;
-  }
-
-  return (
-    <Link className="block" href={href}>
-      {body}
-    </Link>
   );
 }
 

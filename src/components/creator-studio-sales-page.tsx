@@ -8,10 +8,8 @@ import {
   Coins,
   Copy,
   ExternalLink,
-  LayoutGrid,
   LoaderCircle,
   RefreshCcw,
-  UserRound,
   WalletMinimal,
 } from "lucide-react";
 import {
@@ -569,42 +567,6 @@ export function CreatorStudioSalesPage({
               salesCopy={salesCopy}
               walletAddress={dashboard?.sellerWalletAddress ?? null}
             />
-            <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
-                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                    {contentCopy.labels.quickActions}
-                  </h2>
-                </div>
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                  <LayoutGrid className="size-5" />
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3">
-                <WorkspaceSupportLink
-                  description={contentCopy.page.newDescription}
-                  disabled={!canUseWorkspace}
-                  href={newPostHref}
-                  icon={<Coins className="size-5" />}
-                  title={contentCopy.actions.createPost}
-                />
-                <WorkspaceSupportLink
-                  description={contentCopy.page.postsDescription}
-                  disabled={!canUseWorkspace}
-                  href={postsManagerHref}
-                  icon={<LayoutGrid className="size-5" />}
-                  title={contentCopy.actions.managePosts}
-                />
-                <WorkspaceSupportLink
-                  description={contentCopy.page.profileDescription}
-                  disabled={!canUseWorkspace}
-                  href={profileHref}
-                  icon={<UserRound className="size-5" />}
-                  title={contentCopy.labels.creatorSettings}
-                />
-              </div>
-            </div>
           </div>
 
           <div className="space-y-3 sm:space-y-5">
@@ -871,51 +833,6 @@ function HeaderStatChip({
         {loading ? "..." : value}
       </p>
     </div>
-  );
-}
-
-function WorkspaceSupportLink({
-  description,
-  disabled,
-  href,
-  icon,
-  title,
-}: {
-  description: string;
-  disabled?: boolean;
-  href: string;
-  icon: ReactNode;
-  title: string;
-}) {
-  if (disabled) {
-    return (
-      <div className="flex items-start gap-3 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4 text-slate-400">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-300">
-          {icon}
-        </span>
-        <span className="min-w-0">
-          <span className="block text-sm font-semibold">{title}</span>
-          <span className="mt-1 block text-xs leading-5">{description}</span>
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      className="flex items-start gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-      href={href}
-    >
-      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-slate-950">{title}</span>
-        <span className="mt-1 block text-xs leading-5 text-slate-500">
-          {description}
-        </span>
-      </span>
-    </Link>
   );
 }
 

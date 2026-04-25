@@ -4098,11 +4098,7 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderHubActionCards(options?: {
-    mobile?: boolean;
-  }) {
-    const mobile = options?.mobile ?? false;
-
+  function renderHubActionCards() {
     return (
       <section className="space-y-3">
         <div>
@@ -4111,7 +4107,7 @@ export function CreatorContentStudioPage({
             {contentCopy.labels.quickActions}
           </h2>
         </div>
-        <div className={mobile ? "grid gap-3" : "grid gap-4 md:grid-cols-2"}>
+        <div className="grid gap-4 md:grid-cols-2">
           <WorkspaceLaunchCard
             description={contentCopy.page.profileDescription}
             disabled={!canUseWorkspace}
@@ -4166,8 +4162,10 @@ export function CreatorContentStudioPage({
 
   function renderRecentPostsPanel(options?: {
     compact?: boolean;
+    hideManageLink?: boolean;
   }) {
     const compact = options?.compact ?? false;
+    const hideManageLink = options?.hideManageLink ?? false;
     const posts = sortedPosts.slice(
       0,
       compact ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE,
@@ -4183,7 +4181,7 @@ export function CreatorContentStudioPage({
             </h2>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {canUseWorkspace ? (
+            {canUseWorkspace && !hideManageLink ? (
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
                 href={postsManagerHref}
@@ -4297,8 +4295,30 @@ export function CreatorContentStudioPage({
   function renderMobileHub() {
     return (
       <section className="grid gap-3 lg:hidden">
-        {renderRecentPostsPanel({ compact: true })}
-        {renderHubActionCards({ mobile: true })}
+        {renderRecentPostsPanel({ compact: true, hideManageLink: true })}
+        <section className="space-y-3 px-4">
+          <div>
+            <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {feedShareCopy.title}
+            </h2>
+          </div>
+          <WorkspaceShareCard
+            description={feedShareCopy.description}
+            disabled={!canShareCreatorFeed}
+            icon={<Rss className="size-5" />}
+            onShare={() => {
+              void handleShareCreatorFeed();
+            }}
+            state={feedShareState}
+            stateLabels={{
+              copied: feedShareCopy.copied,
+              error: feedShareCopy.error,
+              sharing: feedShareCopy.sharing,
+            }}
+            title={feedShareCopy.title}
+          />
+        </section>
       </section>
     );
   }
@@ -4321,7 +4341,7 @@ export function CreatorContentStudioPage({
       );
 
     return (
-      <div className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+      <div className="hidden space-y-4 xl:sticky xl:top-6 xl:block xl:self-start">
         <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
           <div>
             <p className="eyebrow">{contentCopy.labels.quickActions}</p>
