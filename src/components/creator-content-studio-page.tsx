@@ -41,7 +41,11 @@ import type {
   ContentAutomationRunStreamEvent,
   CreatorAutomationProfileResponse,
 } from "@/lib/content-automation";
-import { contentCoverGenerationProgressSteps } from "@/lib/content";
+import {
+  CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  CONTENT_PAID_USDT_AMOUNT,
+  contentCoverGenerationProgressSteps,
+} from "@/lib/content";
 import type {
   ContentCoverGenerationProgressStep,
   ContentPriceType,
@@ -54,7 +58,6 @@ import type {
   CreatorProfileUploadResponse,
   CreatorStudioPostsLoadResponse,
 } from "@/lib/content";
-import { CONTENT_PAID_USDT_AMOUNT } from "@/lib/content";
 import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
 import {
   buildPathWithReferral,
@@ -5410,12 +5413,12 @@ function CoverGenerationDialog({
                       {promptLabel ?? labels.preparing_prompt.label}
                     </p>
                     <p className="text-xs font-medium text-slate-400">
-                      {(promptValue ?? "").trim().length}/320
+                      {(promptValue ?? "").trim().length}/{CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
                     </p>
                   </div>
                   <textarea
                     className="mt-3 min-h-28 w-full rounded-[18px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-                    maxLength={320}
+                    maxLength={CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
                     onChange={(event) => {
                       onPromptValueChange(event.target.value);
                     }}

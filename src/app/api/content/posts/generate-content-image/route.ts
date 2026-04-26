@@ -1,6 +1,7 @@
-import type {
-  ContentPostGenerateCoverResponse,
-  ContentPostGenerateCoverStreamEvent,
+import {
+  CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  type ContentPostGenerateCoverResponse,
+  type ContentPostGenerateCoverStreamEvent,
 } from "@/lib/content";
 import { generateAndUploadContentGalleryImage } from "@/lib/content-gallery-image-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
@@ -12,7 +13,6 @@ export const runtime = "nodejs";
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 480;
-const VISUAL_BRIEF_LIMIT = 320;
 
 type GenerateContentImageRequest = {
   body?: string | null;
@@ -124,7 +124,10 @@ export async function POST(request: Request) {
   const title = trimToLength(body?.title, TITLE_LIMIT);
   const summary = trimToLength(body?.summary, SUMMARY_LIMIT);
   const contentBody = trimToLength(body?.body, BODY_LIMIT);
-  const visualBrief = trimToLength(body?.visualBrief, VISUAL_BRIEF_LIMIT);
+  const visualBrief = trimToLength(
+    body?.visualBrief,
+    CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  );
 
   if (!title && !summary && !contentBody && !visualBrief) {
     return jsonError(

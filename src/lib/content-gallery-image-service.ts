@@ -3,15 +3,15 @@ import "server-only";
 import { put } from "@vercel/blob";
 import Replicate, { type FileOutput } from "replicate";
 
-import type {
-  ContentCoverGenerationProgressStep,
-  ContentPostGenerateCoverProgressEvent,
+import {
+  CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  type ContentCoverGenerationProgressStep,
+  type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 220;
-const VISUAL_BRIEF_LIMIT = 320;
 const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
@@ -200,7 +200,10 @@ export async function generateAndUploadContentGalleryImage(
   const title = trimToLength(input.title, TITLE_LIMIT);
   const summary = trimToLength(input.summary, SUMMARY_LIMIT);
   const body = trimToLength(input.body, BODY_LIMIT);
-  const visualBrief = trimToLength(input.visualBrief, VISUAL_BRIEF_LIMIT);
+  const visualBrief = trimToLength(
+    input.visualBrief,
+    CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  );
 
   if (!title && !summary && !body && !visualBrief) {
     throw new Error(
