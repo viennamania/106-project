@@ -16,7 +16,6 @@ import {
   ArrowUpRight,
   Bell,
   Check,
-  Coins,
   Copy,
   LogOut,
   Mail,
@@ -60,6 +59,7 @@ import {
   setPathSearchParams,
   type LandingPageBranding,
 } from "@/lib/landing-branding";
+import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import { getContentCopy } from "@/lib/content-copy";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
@@ -310,14 +310,8 @@ export function SmartWalletApp({
     `/${locale}/activate/network`,
     preferredReferralCode,
   );
-  const walletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet`, preferredReferralCode),
-    {
-      returnTo: activatePageHref,
-    },
-  );
-  const bnbWalletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet/bnb`, preferredReferralCode),
+  const assetManagementHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate/assets`, preferredReferralCode),
     {
       returnTo: activatePageHref,
     },
@@ -1679,8 +1673,7 @@ export function SmartWalletApp({
             }}
             referralDashboard={referralDashboard}
             rewardsHref={rewardsHref}
-            walletHref={walletHref}
-            bnbWalletHref={bnbWalletHref}
+            assetManagementHref={assetManagementHref}
           />
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
@@ -2364,6 +2357,7 @@ function IncomingReferralHighlightCard({
 function CompletedHomeDashboard({
   activateNetworkHref,
   announcementsPageHref,
+  assetManagementHref,
   brandingStudioHref,
   creatorStudioHref,
   dictionary,
@@ -2375,12 +2369,10 @@ function CompletedHomeDashboard({
   onRefresh,
   referralDashboard,
   rewardsHref,
-  walletHref,
-  bnbWalletHref,
 }: {
   activateNetworkHref: string;
   announcementsPageHref: string;
-  bnbWalletHref: string;
+  assetManagementHref: string;
   brandingStudioHref: string;
   creatorStudioHref: string;
   dictionary: Dictionary;
@@ -2392,12 +2384,12 @@ function CompletedHomeDashboard({
   onRefresh: () => void;
   referralDashboard: ReferralDashboardState;
   rewardsHref: string;
-  walletHref: string;
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
   const brandingCopy = getLandingBrandingCopy(locale);
   const contentCopy = getContentCopy(locale);
+  const assetCopy = getAssetManagementCopy(locale);
   const referralSharePath = buildPathWithReferral(
     `/${locale}/referral/bridge`,
     member.referralCode,
@@ -2661,49 +2653,44 @@ function CompletedHomeDashboard({
                 </p>
               </Link>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <Link
-                  className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
-                  href={walletHref}
-                >
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                    {dictionary.walletPage.eyebrow}
-                  </p>
-                  <div className="mt-3 flex items-start justify-between gap-4">
-                    <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                      <WalletMinimal className="size-4" />
-                    </div>
-                    <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+              <Link
+                className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
+                href={assetManagementHref}
+              >
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                  {assetCopy.eyebrow}
+                </p>
+                <div className="mt-3 flex items-start justify-between gap-4">
+                  <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                    <WalletMinimal className="size-4" />
                   </div>
-                  <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                    {dictionary.walletPage.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {dictionary.walletPage.description}
-                  </p>
-                </Link>
-
-                <Link
-                  className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
-                  href={bnbWalletHref}
-                >
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                    {dictionary.bnbPage.eyebrow}
-                  </p>
-                  <div className="mt-3 flex items-start justify-between gap-4">
-                    <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                      <Coins className="size-4" />
-                    </div>
-                    <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                  <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
+                </div>
+                <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
+                  {assetCopy.title}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {assetCopy.description}
+                </p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-slate-950">
+                      {dictionary.walletPage.title}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      {assetCopy.usdt.metric}
+                    </p>
                   </div>
-                  <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                    {dictionary.bnbPage.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {dictionary.bnbPage.description}
-                  </p>
-                </Link>
-              </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-slate-950">
+                      {dictionary.bnbPage.title}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      {assetCopy.bnb.metric}
+                    </p>
+                  </div>
+                </div>
+              </Link>
 
               <div className="grid grid-cols-2 gap-3">
                 <MetricCard
