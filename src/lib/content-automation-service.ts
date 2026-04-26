@@ -46,10 +46,13 @@ const DEFAULT_LANGUAGE = "ko";
 const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
 const DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS = 90_000;
 const DEFAULT_OPENAI_DISCOVERY_TIMEOUT_MS = 120_000;
+const DEFAULT_OPENAI_DRAFT_TIMEOUT_MS = 180_000;
 const DEFAULT_DISCOVERY_CACHED_SOURCE_LOOKBACK_DAYS = 14;
 const DISCOVERY_RETRY_COUNT = 1;
 const DEFAULT_STALE_AUTOMATION_JOB_MINUTES = 30;
 const AUTOMATION_CONTENT_IMAGE_COUNT = 3;
+const DRAFT_TIMEOUT_MESSAGE =
+  "OpenAI request timed out while drafting automation content. Please try again.";
 
 type DiscoverySource = {
   domain: string;
@@ -73,6 +76,11 @@ type DraftPayload = {
   tags: string[];
   title: string;
   topic: string;
+};
+
+type DraftGenerationResult = {
+  draft: DraftPayload;
+  warning: string | null;
 };
 
 type OpenAiResponsesApiResponse = {
@@ -281,6 +289,13 @@ function getDiscoveryTimeoutMs() {
   return getConfiguredPositiveInteger(
     "OPENAI_CONTENT_DISCOVERY_TIMEOUT_MS",
     DEFAULT_OPENAI_DISCOVERY_TIMEOUT_MS,
+  );
+}
+
+function getDraftTimeoutMs() {
+  return getConfiguredPositiveInteger(
+    "OPENAI_CONTENT_DRAFT_TIMEOUT_MS",
+    DEFAULT_OPENAI_DRAFT_TIMEOUT_MS,
   );
 }
 
@@ -791,61 +806,97 @@ function createDraftSchema() {
   };
 }
 
-async function generateDraftForProfile(
+function createDraftPayload(
   profile: CreatorAutomationProfileDocument,
   discovery: { discoveryText: string; sources: DiscoverySource[] },
-): Promise<DraftPayload> {
-  const response = await createOpenAiResponse(
-    {
-      model: getDraftModel(),
-      input: [
-        {
-          role: "system",
-          content: [
-            `You are the editorial operator for ${profile.personaName}.`,
-            profile.personaPrompt,
-            "Use only the supplied source list and discovery summary.",
-            "Write original Korean copy. Do not copy source text verbatim.",
-            "Keep the writing concise, practical, and credible.",
-          ].join(" "),
-        },
-        {
-          role: "user",
-          content: JSON.stringify(
-            {
-              allowedDomains: profile.allowedDomains,
-              autoPublish: profile.autoPublish,
-              coverImageMode: profile.coverImageMode,
-              discoverySummary: discovery.discoveryText,
-              personaName: profile.personaName,
-              publishScoreThreshold: profile.publishScoreThreshold,
-              sourcePackets: discovery.sources.map((source) => ({
-                domain: source.domain,
-                title: source.title,
-                url: source.url,
-              })),
-              topics: profile.topics,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-      reasoning: {
-        effort: getReasoningEffort("OPENAI_CONTENT_DRAFT_REASONING", "high"),
+  options?: {
+    compact?: boolean;
+  },
+) {
+  const compact = options?.compact ?? false;
+  const bodyLimitCharacters = compact ? 900 : 1_400;
+  const sourcePackets = discovery.sources
+    .slice(0, compact ? 3 : CONTENT_AUTOMATION_MAX_SOURCE_COUNT)
+    .map((source) => ({
+      domain: source.domain,
+      title: source.title,
+      url: source.url,
+    }));
+
+  return {
+    model: getDraftModel(),
+    max_output_tokens: compact ? 1_500 : 2_200,
+    input: [
+      {
+        role: "system",
+        content: [
+          `You are the editorial operator for ${profile.personaName}.`,
+          compact
+            ? trimToLength(profile.personaPrompt, 900)
+            : profile.personaPrompt,
+          "Use only the supplied source list and discovery summary.",
+          "Write original Korean copy. Do not copy source text verbatim.",
+          "Keep the writing concise, practical, and credible.",
+          `Keep body under ${bodyLimitCharacters} Korean characters.`,
+        ].join(" "),
       },
-      text: {
-        format: {
-          type: "json_schema",
-          name: "content_automation_draft",
-          schema: createDraftSchema(),
-          strict: true,
-        },
+      {
+        role: "user",
+        content: JSON.stringify(
+          {
+            allowedDomains: profile.allowedDomains,
+            autoPublish: profile.autoPublish,
+            bodyLimitCharacters,
+            coverImageMode: profile.coverImageMode,
+            discoverySummary: trimToLength(
+              discovery.discoveryText,
+              compact ? 1_000 : 2_000,
+            ),
+            personaName: profile.personaName,
+            publishScoreThreshold: profile.publishScoreThreshold,
+            sourcePackets,
+            topics: profile.topics,
+          },
+          null,
+          compact ? 0 : 2,
+        ),
+      },
+    ],
+    reasoning: {
+      effort: compact
+        ? "low"
+        : getReasoningEffort("OPENAI_CONTENT_DRAFT_REASONING", "medium"),
+    },
+    text: {
+      format: {
+        type: "json_schema",
+        name: "content_automation_draft",
+        schema: createDraftSchema(),
+        strict: true,
       },
     },
-    "OpenAI request timed out while drafting automation content. Please try again.",
-  );
+  };
+}
 
+async function createDraftResponse(
+  profile: CreatorAutomationProfileDocument,
+  discovery: { discoveryText: string; sources: DiscoverySource[] },
+  options?: {
+    compact?: boolean;
+  },
+) {
+  return createOpenAiResponse(
+    createDraftPayload(profile, discovery, options),
+    DRAFT_TIMEOUT_MESSAGE,
+    {
+      timeoutMs: options?.compact
+        ? Math.min(getDraftTimeoutMs(), DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS)
+        : getDraftTimeoutMs(),
+    },
+  );
+}
+
+function parseDraftPayload(response: OpenAiResponsesApiResponse): DraftPayload {
   const outputText = extractResponseTextContent(response);
 
   if (!outputText) {
@@ -877,6 +928,165 @@ async function generateDraftForProfile(
     title: parsed.title.trim(),
     topic: parsed.topic.trim() || parsed.title.trim(),
   };
+}
+
+function isRetryableDraftGenerationError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    error.message === DRAFT_TIMEOUT_MESSAGE ||
+    error.message === "Draft generation returned an empty payload." ||
+    error.message === "Draft generation returned invalid JSON." ||
+    error.message === "Draft generation returned incomplete content."
+  );
+}
+
+function createDraftRetryWarning(
+  language: CreatorAutomationProfileDocument["language"],
+  error: unknown,
+) {
+  const detail =
+    error instanceof Error && error.message.trim()
+      ? ` (${error.message.trim()})`
+      : "";
+
+  return getAutomationLocaleMessage(
+    language,
+    `초안 작성이 지연되어 간소 설정으로 다시 생성했습니다.${detail}`,
+    `Draft generation was delayed, so it was regenerated with compact settings.${detail}`,
+  );
+}
+
+function createFallbackDraftWarning(
+  language: CreatorAutomationProfileDocument["language"],
+  error: unknown,
+) {
+  const detail =
+    error instanceof Error && error.message.trim()
+      ? ` (${error.message.trim()})`
+      : "";
+
+  return getAutomationLocaleMessage(
+    language,
+    `AI 초안 작성이 지연되어 출처 요약 기반 간소 초안으로 저장했습니다.${detail}`,
+    `AI draft generation was delayed, so a simplified source-summary draft was saved.${detail}`,
+  );
+}
+
+function buildFallbackDraft(
+  profile: CreatorAutomationProfileDocument,
+  discovery: { discoveryText: string; sources: DiscoverySource[] },
+  error: unknown,
+): DraftGenerationResult {
+  const sources = discovery.sources.slice(0, CONTENT_AUTOMATION_MAX_SOURCE_COUNT);
+  const sourceTitles = sources.map((source) => source.title.trim()).filter(Boolean);
+  const sourceDomains = Array.from(
+    new Set(sources.map((source) => source.domain.trim()).filter(Boolean)),
+  );
+  const topic = profile.topics[0] ?? sourceTitles[0] ?? "네트워크 인사이트";
+  const title =
+    trimToLength(sourceTitles[0], 80) ||
+    getAutomationLocaleMessage(
+      profile.language,
+      `${profile.personaName}의 오늘 콘텐츠 메모`,
+      `${profile.personaName}'s content note`,
+    );
+  const summary =
+    trimToLength(discovery.discoveryText, 220) ||
+    getAutomationLocaleMessage(
+      profile.language,
+      "공개 출처를 바탕으로 임시 초안을 구성했습니다.",
+      "A temporary draft was prepared from public sources.",
+    );
+  const body = getAutomationLocaleMessage(
+    profile.language,
+    [
+      `${profile.personaName} 채널에서 최근 공개 출처를 바탕으로 정리한 간소 초안입니다.`,
+      summary,
+      sourceTitles.length > 0
+        ? `확인한 출처는 ${sourceTitles.slice(0, 3).join(", ")}입니다.`
+        : null,
+      sourceDomains.length > 0
+        ? `참고 도메인: ${sourceDomains.slice(0, 4).join(", ")}.`
+        : null,
+      "게시 전 원문을 확인하고 브랜드 톤에 맞춰 제목과 본문을 다듬어 주세요.",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    [
+      `This is a simplified draft for ${profile.personaName} based on recent public sources.`,
+      summary,
+      sourceTitles.length > 0
+        ? `Reviewed sources: ${sourceTitles.slice(0, 3).join(", ")}.`
+        : null,
+      sourceDomains.length > 0
+        ? `Reference domains: ${sourceDomains.slice(0, 4).join(", ")}.`
+        : null,
+      "Review the original sources and refine the title and body before publishing.",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+  );
+  const tags = Array.from(
+    new Set(
+      [
+        ...profile.topics,
+        ...sourceDomains.map((domain) => domain.split(".")[0]),
+      ]
+        .map((tag) => trimToLength(tag, 24))
+        .filter(Boolean),
+    ),
+  ).slice(0, 6);
+
+  return {
+    draft: {
+      body,
+      score: 68,
+      sourceUrls: sources.map((source) => source.url),
+      suggestedCoverPrompt: [
+        `Editorial social feed image for: ${title}.`,
+        "Premium, clean, realistic, no text overlay.",
+      ].join(" "),
+      summary,
+      tags,
+      title,
+      topic: trimToLength(topic, 80),
+    },
+    warning: createFallbackDraftWarning(profile.language, error),
+  };
+}
+
+async function generateDraftForProfile(
+  profile: CreatorAutomationProfileDocument,
+  discovery: { discoveryText: string; sources: DiscoverySource[] },
+): Promise<DraftGenerationResult> {
+  try {
+    const response = await createDraftResponse(profile, discovery);
+
+    return {
+      draft: parseDraftPayload(response),
+      warning: null,
+    };
+  } catch (firstError) {
+    if (!isRetryableDraftGenerationError(firstError)) {
+      throw firstError;
+    }
+
+    try {
+      const retryResponse = await createDraftResponse(profile, discovery, {
+        compact: true,
+      });
+
+      return {
+        draft: parseDraftPayload(retryResponse),
+        warning: createDraftRetryWarning(profile.language, firstError),
+      };
+    } catch (retryError) {
+      return buildFallbackDraft(profile, discovery, retryError);
+    }
+  }
 }
 
 async function upsertSourceItems(
@@ -1448,8 +1658,12 @@ export async function runContentAutomationForMember(
         ? "선별한 출처를 바탕으로 초안을 작성하고 있습니다. 길면 1분 정도 걸릴 수 있습니다."
         : "Drafting the post from the selected sources. This can take about a minute.",
     );
-    const draft = await generateDraftForProfile(storedProfile, availableDiscovery);
-    await reportProgress("drafting", "completed", 74);
+    const draftResult = await generateDraftForProfile(
+      storedProfile,
+      availableDiscovery,
+    );
+    const { draft } = draftResult;
+    await reportProgress("drafting", "completed", 74, draftResult.warning);
 
     await reportProgress("generating_cover", "running", 82);
     const selectedSources = availableSourceItems.filter((item) =>
@@ -1569,6 +1783,7 @@ export async function runContentAutomationForMember(
       topic: draft.topic,
       warning: joinAutomationWarnings(
         discovery.warning,
+        draftResult.warning,
         coverImageError,
         contentImageError,
         publishDowngradeWarning,
