@@ -45,6 +45,9 @@ const DEFAULT_MIN_INTERVAL_MINUTES = 360;
 const DEFAULT_LANGUAGE = "ko";
 const DEFAULT_AUTOMATION_TEST_MEMBER_EMAILS = ["genie1647@gmail.com"];
 const DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS = 90_000;
+const DEFAULT_OPENAI_DISCOVERY_TIMEOUT_MS = 120_000;
+const DEFAULT_DISCOVERY_CACHED_SOURCE_LOOKBACK_DAYS = 14;
+const DISCOVERY_RETRY_COUNT = 1;
 const DEFAULT_STALE_AUTOMATION_JOB_MINUTES = 30;
 const AUTOMATION_CONTENT_IMAGE_COUNT = 3;
 
@@ -53,6 +56,12 @@ type DiscoverySource = {
   imageUrl: string | null;
   title: string;
   url: string;
+};
+
+type DiscoveryResult = {
+  discoveryText: string;
+  sources: DiscoverySource[];
+  warning: string | null;
 };
 
 type DraftPayload = {
@@ -262,6 +271,26 @@ function getDraftModel() {
   return process.env.OPENAI_CONTENT_DRAFT_MODEL ?? "gpt-5.4";
 }
 
+function getConfiguredPositiveInteger(envKey: string, fallback: number) {
+  const configured = Number.parseInt(process.env[envKey]?.trim() ?? "", 10);
+
+  return Number.isFinite(configured) && configured > 0 ? configured : fallback;
+}
+
+function getDiscoveryTimeoutMs() {
+  return getConfiguredPositiveInteger(
+    "OPENAI_CONTENT_DISCOVERY_TIMEOUT_MS",
+    DEFAULT_OPENAI_DISCOVERY_TIMEOUT_MS,
+  );
+}
+
+function getDiscoveryCachedSourceLookbackDays() {
+  return getConfiguredPositiveInteger(
+    "CONTENT_AUTOMATION_DISCOVERY_CACHE_LOOKBACK_DAYS",
+    DEFAULT_DISCOVERY_CACHED_SOURCE_LOOKBACK_DAYS,
+  );
+}
+
 type ReasoningEffort = "low" | "medium" | "high" | "xhigh";
 
 function getReasoningEffort(
@@ -283,14 +312,10 @@ function getReasoningEffort(
 }
 
 function getStaleAutomationJobCutoff() {
-  const configuredMinutes = Number.parseInt(
-    process.env.CONTENT_AUTOMATION_STALE_JOB_MINUTES?.trim() ?? "",
-    10,
+  const minutes = getConfiguredPositiveInteger(
+    "CONTENT_AUTOMATION_STALE_JOB_MINUTES",
+    DEFAULT_STALE_AUTOMATION_JOB_MINUTES,
   );
-  const minutes =
-    Number.isFinite(configuredMinutes) && configuredMinutes > 0
-      ? configuredMinutes
-      : DEFAULT_STALE_AUTOMATION_JOB_MINUTES;
 
   return new Date(Date.now() - minutes * 60 * 1000);
 }
@@ -307,15 +332,16 @@ async function requestOpenAiResponse(
   apiKey: string,
   payload: Record<string, unknown>,
   timeoutMessage: string,
+  options?: {
+    timeoutMs?: number;
+  },
 ) {
-  const configuredTimeoutMs = Number.parseInt(
-    process.env.OPENAI_CONTENT_RESPONSE_TIMEOUT_MS?.trim() ?? "",
-    10,
-  );
   const timeoutMs =
-    Number.isFinite(configuredTimeoutMs) && configuredTimeoutMs > 0
-      ? configuredTimeoutMs
-      : DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS;
+    options?.timeoutMs ??
+    getConfiguredPositiveInteger(
+      "OPENAI_CONTENT_RESPONSE_TIMEOUT_MS",
+      DEFAULT_OPENAI_RESPONSE_TIMEOUT_MS,
+    );
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -353,13 +379,16 @@ function isUnsupportedReasoningError(message: string | undefined) {
 
   return (
     normalizedMessage.includes("reasoning.effort") &&
-    normalizedMessage.includes("not supported with this model")
+    normalizedMessage.includes("not supported")
   );
 }
 
 async function createOpenAiResponse(
   payload: Record<string, unknown>,
   timeoutMessage = "OpenAI request timed out while generating automation content.",
+  options?: {
+    timeoutMs?: number;
+  },
 ) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
@@ -371,6 +400,7 @@ async function createOpenAiResponse(
     apiKey,
     payload,
     timeoutMessage,
+    options,
   );
 
   if (!response.ok) {
@@ -382,6 +412,7 @@ async function createOpenAiResponse(
         apiKey,
         fallbackPayload,
         timeoutMessage,
+        options,
       );
 
       if (!fallbackResponse.response.ok) {
@@ -496,56 +527,192 @@ function buildDiscoverySummaryFromSources(
   );
 }
 
-async function discoverSourcesForProfile(
+function createDiscoveryFallbackWarning(
+  language: CreatorAutomationProfileDocument["language"],
+  error: unknown,
+) {
+  const detail =
+    error instanceof Error && error.message.trim()
+      ? ` (${error.message.trim()})`
+      : "";
+
+  return getAutomationLocaleMessage(
+    language,
+    `공개 웹 탐색이 지연되어 최근 저장된 공개 출처로 초안을 이어갑니다.${detail}`,
+    `Public web discovery was delayed, so the draft continued with recently stored public sources.${detail}`,
+  );
+}
+
+function isOpenAiDiscoveryTimeout(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message === "OpenAI request timed out while discovering public sources."
+  );
+}
+
+function createDiscoveryPayload(profile: CreatorAutomationProfileDocument) {
+  const topics =
+    profile.topics.length > 0
+      ? profile.topics.join(", ")
+      : "AI, productivity, network content";
+  const today = new Date().toISOString().slice(0, 10);
+
+  return {
+    model: getDiscoveryModel(),
+    max_output_tokens: 700,
+    reasoning: {
+      effort: getReasoningEffort("OPENAI_CONTENT_DISCOVERY_REASONING", "low"),
+    },
+    tools: [
+      profile.allowedDomains.length > 0
+        ? {
+            type: "web_search",
+            filters: {
+              allowed_domains: profile.allowedDomains,
+            },
+          }
+        : {
+            type: "web_search",
+          },
+    ],
+    tool_choice: "auto",
+    include: ["web_search_call.action.sources"],
+    input: [
+      {
+        role: "system",
+        content:
+          "You are a fast source researcher for an AI creator. Find public, factual sources quickly. Prefer credible, recent sources. Avoid gossip, rumors, and low quality listicles.",
+      },
+      {
+        role: "user",
+        content: [
+          `Date: ${today}.`,
+          `Language: ${profile.language}.`,
+          `Persona: ${profile.personaName}.`,
+          `Topics: ${topics}.`,
+          "Find up to 3 timely, practical public sources that could support one feed post. Return a concise Korean common-thread summary.",
+        ].join(" "),
+      },
+    ],
+  };
+}
+
+async function createDiscoveryResponse(
   profile: CreatorAutomationProfileDocument,
-): Promise<{ discoveryText: string; sources: DiscoverySource[] }> {
+): Promise<OpenAiResponsesApiResponse> {
+  return createOpenAiResponse(
+    createDiscoveryPayload(profile),
+    "OpenAI request timed out while discovering public sources.",
+    {
+      timeoutMs: getDiscoveryTimeoutMs(),
+    },
+  );
+}
+
+async function getCachedDiscoveryForMember(
+  memberEmail: string,
+  profile: CreatorAutomationProfileDocument,
+  error: unknown,
+): Promise<DiscoveryResult | null> {
+  const collection = await getContentSourceItemsCollection();
+  const since = new Date(
+    Date.now() - getDiscoveryCachedSourceLookbackDays() * 24 * 60 * 60 * 1000,
+  );
+  const query: {
+    domain?: { $in: string[] };
+    fetchedAt: { $gte: Date };
+    memberEmail: string;
+    status: "new";
+  } = {
+    fetchedAt: { $gte: since },
+    memberEmail,
+    status: "new",
+  };
+
+  if (profile.allowedDomains.length > 0) {
+    query.domain = { $in: profile.allowedDomains };
+  }
+
+  const cachedItems = await collection
+    .find(query)
+    .sort({ fetchedAt: -1 })
+    .limit(CONTENT_AUTOMATION_MAX_SOURCE_COUNT)
+    .toArray();
+
+  if (cachedItems.length === 0) {
+    return null;
+  }
+
+  const sources = cachedItems.map((item) => ({
+    domain: item.domain,
+    imageUrl: item.imageUrl ?? null,
+    title: item.title,
+    url: item.url,
+  }));
+  const cachedSummary = trimToLength(
+    cachedItems
+      .map((item) => item.snippet)
+      .filter(Boolean)
+      .join("\n"),
+    2_000,
+  );
+
+  return {
+    discoveryText: cachedSummary || buildDiscoverySummaryFromSources(profile, sources),
+    sources,
+    warning: createDiscoveryFallbackWarning(profile.language, error),
+  };
+}
+
+async function discoverSourcesForProfile(
+  memberEmail: string,
+  profile: CreatorAutomationProfileDocument,
+): Promise<DiscoveryResult> {
   if (!profile.sourceModes.includes("web_search")) {
     throw new Error("Only web_search source mode is supported in this release.");
   }
 
-  const topics =
-    profile.topics.length > 0 ? profile.topics.join(", ") : "AI, productivity, network content";
-  const today = new Date().toISOString().slice(0, 10);
-  const response = await createOpenAiResponse(
-    {
-      model: getDiscoveryModel(),
-      reasoning: {
-        effort: getReasoningEffort("OPENAI_CONTENT_DISCOVERY_REASONING", "medium"),
-      },
-      tools: [
-        profile.allowedDomains.length > 0
-          ? {
-              type: "web_search",
-              filters: {
-                allowed_domains: profile.allowedDomains,
-              },
-            }
-          : {
-              type: "web_search",
-            },
-      ],
-      tool_choice: "auto",
-      include: ["web_search_call.action.sources"],
-      input: [
-        {
-          role: "system",
-          content:
-            "You are a source researcher for an AI creator. Find recent, public, factual web sources and summarize why they matter. Avoid gossip, rumors, and low quality listicles.",
-        },
-        {
-          role: "user",
-          content: [
-            `Date: ${today}.`,
-            `Language: ${profile.language}.`,
-            `Persona: ${profile.personaName}.`,
-            `Topics: ${topics}.`,
-            "Find up to 5 timely, practical public sources that could support one feed post. Summarize the common thread in concise Korean.",
-          ].join(" "),
-        },
-      ],
-    },
-    "OpenAI request timed out while discovering public sources.",
-  );
+  let response: OpenAiResponsesApiResponse | null = null;
+
+  try {
+    response = await createDiscoveryResponse(profile);
+  } catch (firstError) {
+    const cachedDiscovery = await getCachedDiscoveryForMember(
+      memberEmail,
+      profile,
+      firstError,
+    );
+
+    if (cachedDiscovery) {
+      return cachedDiscovery;
+    }
+
+    if (!isOpenAiDiscoveryTimeout(firstError)) {
+      throw firstError;
+    }
+
+    let retryError: unknown = firstError;
+
+    for (let attempt = 0; attempt < DISCOVERY_RETRY_COUNT; attempt += 1) {
+      try {
+        response = await createDiscoveryResponse(profile);
+        retryError = null;
+        break;
+      } catch (error) {
+        retryError = error;
+      }
+    }
+
+    if (retryError || !response) {
+      throw retryError instanceof Error
+        ? retryError
+        : new Error("Failed to discover public sources.");
+    }
+  }
+
+  if (!response) {
+    throw new Error("Failed to discover public sources.");
+  }
 
   const sources = extractWebSearchSources(response);
   const discoveryText =
@@ -553,14 +720,36 @@ async function discoverSourcesForProfile(
     buildDiscoverySummaryFromSources(profile, sources);
 
   if (sources.length === 0) {
-    throw new Error("No public sources were found for automation.");
+    const error = new Error("No public sources were found for automation.");
+    const cachedDiscovery = await getCachedDiscoveryForMember(
+      memberEmail,
+      profile,
+      error,
+    );
+
+    if (cachedDiscovery) {
+      return cachedDiscovery;
+    }
+
+    throw error;
   }
 
   if (!discoveryText) {
-    throw new Error("Discovery summary was empty.");
+    const error = new Error("Discovery summary was empty.");
+    const cachedDiscovery = await getCachedDiscoveryForMember(
+      memberEmail,
+      profile,
+      error,
+    );
+
+    if (cachedDiscovery) {
+      return cachedDiscovery;
+    }
+
+    throw error;
   }
 
-  return { discoveryText, sources };
+  return { discoveryText, sources, warning: null };
 }
 
 function createDraftSchema() {
@@ -1226,8 +1415,8 @@ export async function runContentAutomationForMember(
     );
 
     await reportProgress("discovering", "running", 28);
-    const discovery = await discoverSourcesForProfile(storedProfile);
-    await reportProgress("discovering", "completed", 38);
+    const discovery = await discoverSourcesForProfile(member.email, storedProfile);
+    await reportProgress("discovering", "completed", 38, discovery.warning);
 
     await reportProgress("collecting_sources", "running", 46);
     const sourceItems = await upsertSourceItems(
@@ -1379,6 +1568,7 @@ export async function runContentAutomationForMember(
       title: draft.title,
       topic: draft.topic,
       warning: joinAutomationWarnings(
+        discovery.warning,
         coverImageError,
         contentImageError,
         publishDowngradeWarning,
