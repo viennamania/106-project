@@ -319,14 +319,14 @@ export function WalletUnlockPage({
   }
 
   return (
-    <main className="min-h-dvh bg-[#f8f7f4] text-slate-950">
+    <main className="min-h-dvh overflow-y-auto bg-[#f8f7f4] text-slate-950">
       <AutoConnect
         appMetadata={appMetadata}
         client={thirdwebClient}
         wallets={supportedWallets}
       />
-      <div className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col bg-white px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-[max(18px,env(safe-area-inset-top))]">
-        <div className="flex h-12 items-center justify-between">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col bg-white px-6 pb-[max(48px,calc(env(safe-area-inset-bottom)+24px))] pt-[max(16px,env(safe-area-inset-top))] [@media(max-height:760px)]:pb-[max(24px,calc(env(safe-area-inset-bottom)+12px))]">
+        <div className="flex h-10 items-center justify-between sm:h-12">
           <Link
             className="inline-flex size-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
             href={returnTo || fallbackHref}
@@ -336,27 +336,27 @@ export function WalletUnlockPage({
           </Link>
         </div>
 
-        <section className="flex flex-1 flex-col justify-between gap-8 pb-4">
-          <div className="pt-16 text-center sm:pt-20">
-            <div className="mx-auto flex size-[104px] items-center justify-center rounded-[28px] bg-[#f7f3ec] text-[#bd9458] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <section className="flex flex-1 flex-col justify-start gap-7 pb-2 [@media(max-height:760px)]:gap-2">
+          <div className="pt-10 text-center sm:pt-16 [@media(max-height:760px)]:pt-1">
+            <div className="mx-auto flex size-[92px] items-center justify-center rounded-[26px] bg-[#f7f3ec] text-[#bd9458] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:size-[104px] sm:rounded-[28px] [@media(max-height:760px)]:size-16 [@media(max-height:760px)]:rounded-[20px]">
               {isSubmitting || mode === "checking" ? (
-                <LoaderCircle className="size-10 animate-spin" />
+                <LoaderCircle className="size-9 animate-spin [@media(max-height:760px)]:size-6" />
               ) : (
-                <LockKeyhole className="size-11" />
+                <LockKeyhole className="size-10 [@media(max-height:760px)]:size-7" />
               )}
             </div>
-            <h1 className="mt-9 text-[2rem] font-semibold tracking-tight text-slate-950 sm:text-[2.35rem]">
+            <h1 className="mt-7 text-[1.85rem] font-semibold tracking-tight text-slate-950 sm:mt-9 sm:text-[2.35rem] [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:text-[1.45rem]">
               {title}
             </h1>
-            <p className="mt-4 text-lg font-medium leading-7 text-slate-500">
+            <p className="mt-3 text-[1rem] font-medium leading-6 text-slate-500 sm:mt-4 sm:text-lg sm:leading-7 [@media(max-height:760px)]:mt-2 [@media(max-height:760px)]:text-xs [@media(max-height:760px)]:leading-5">
               {isSubmitting ? copy.verifying : subtitle}
             </p>
 
-            <div className="mt-10 flex items-center justify-center gap-5">
+            <div className="mt-7 flex items-center justify-center gap-4 sm:mt-10 sm:gap-5 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:gap-2.5">
               {Array.from({ length: WALLET_UNLOCK_PIN_LENGTH }, (_, index) => (
                 <span
                   className={cn(
-                    "size-5 rounded-full bg-slate-200 transition",
+                    "size-4 rounded-full bg-slate-200 transition sm:size-5 [@media(max-height:760px)]:size-3",
                     index < pin.length && "bg-slate-950",
                   )}
                   key={index}
@@ -365,20 +365,20 @@ export function WalletUnlockPage({
             </div>
 
             {error ? (
-              <p className="mx-auto mt-6 max-w-sm rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium leading-6 text-rose-700">
+              <p className="mx-auto mt-4 max-w-sm rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium leading-6 text-rose-700 [@media(max-height:760px)]:mt-2 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-xs [@media(max-height:760px)]:leading-5">
                 {error}
               </p>
             ) : null}
 
             {isResetRequested && !error ? (
-              <p className="mx-auto mt-6 max-w-sm rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-600">
+              <p className="mx-auto mt-4 max-w-sm rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-600 [@media(max-height:760px)]:mt-2 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-xs [@media(max-height:760px)]:leading-5">
                 {copy.resetStarted}
               </p>
             ) : null}
 
             {!isConnected ? (
               <button
-                className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:h-9"
                 onClick={() => {
                   setIsLoginDialogOpen(true);
                 }}
@@ -390,7 +390,7 @@ export function WalletUnlockPage({
 
             {isConnected && mode === "unlock" ? (
               <button
-                className="mt-5 text-sm font-semibold text-slate-500 underline-offset-4 transition hover:text-slate-950 hover:underline"
+                className="mt-4 text-sm font-semibold text-slate-500 underline-offset-4 transition hover:text-slate-950 hover:underline [@media(max-height:760px)]:mt-2 [@media(max-height:760px)]:text-xs"
                 onClick={() => {
                   void startPinReset();
                 }}
@@ -401,13 +401,13 @@ export function WalletUnlockPage({
             ) : null}
           </div>
 
-          <div className="mx-auto grid w-full max-w-[340px] grid-cols-3 gap-5">
+          <div className="mx-auto grid grid-cols-[repeat(3,clamp(56px,8.8dvh,88px))] justify-center gap-[clamp(6px,1.1dvh,16px)] pb-2">
             {digits.map((digit, index) =>
               digit === "" ? (
                 <div key={`blank-${index}`} />
               ) : (
                 <button
-                  className="flex aspect-square items-center justify-center rounded-full border border-slate-200 bg-white text-[2rem] font-semibold text-slate-950 shadow-[0_14px_32px_rgba(15,23,42,0.04)] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex size-[clamp(56px,8.8dvh,88px)] items-center justify-center rounded-full border border-slate-200 bg-white text-[clamp(1.4rem,3.4dvh,2rem)] font-semibold text-slate-950 shadow-[0_14px_32px_rgba(15,23,42,0.04)] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={!isConnected || mode === "checking" || isSubmitting}
                   key={digit}
                   onClick={() => {
@@ -422,7 +422,7 @@ export function WalletUnlockPage({
                 >
                   {digit === "delete" ? (
                     <>
-                      <Delete className="size-8" />
+                      <Delete className="size-8 [@media(max-height:760px)]:size-5" />
                       <span className="sr-only">{copy.delete}</span>
                     </>
                   ) : (
