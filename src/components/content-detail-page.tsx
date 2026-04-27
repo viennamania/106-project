@@ -74,7 +74,7 @@ import {
   setShareIdOnHref,
 } from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
-import type { MemberRecord } from "@/lib/member";
+import { normalizeEmail, type MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
   BSC_EXPLORER,
@@ -85,6 +85,7 @@ import {
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { WALLET_UNLOCK_PIN_LENGTH } from "@/lib/wallet-unlock";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -133,6 +134,7 @@ type ContentLockedTeaser = {
 };
 
 const HERO_IMAGE_SIZES = "(max-width: 640px) 100vw, (max-width: 1280px) 960px, 1024px";
+const PAID_GALLERY_PIN_SESSION_MS = 15 * 60 * 1000;
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
@@ -237,6 +239,80 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+function getPaidGalleryPinSessionKey({
+  contentId,
+  email,
+  walletAddress,
+}: {
+  contentId: string;
+  email: string;
+  walletAddress: string;
+}) {
+  return `content-gallery-pin:${contentId}:${normalizeEmail(email)}:${walletAddress.trim().toLowerCase()}`;
+}
+
+function isPaidGalleryPinUnlockedForSession({
+  contentId,
+  email,
+  walletAddress,
+}: {
+  contentId: string;
+  email: string | null | undefined;
+  walletAddress: string | null | undefined;
+}) {
+  if (!email || !walletAddress || typeof window === "undefined") {
+    return false;
+  }
+
+  const key = getPaidGalleryPinSessionKey({
+    contentId,
+    email,
+    walletAddress,
+  });
+  const rawSession = window.sessionStorage.getItem(key);
+
+  if (!rawSession) {
+    return false;
+  }
+
+  try {
+    const session = JSON.parse(rawSession) as { expiresAt?: unknown };
+
+    if (
+      typeof session.expiresAt === "number" &&
+      session.expiresAt > Date.now()
+    ) {
+      return true;
+    }
+  } catch {
+    // Fall through and clear malformed session data.
+  }
+
+  window.sessionStorage.removeItem(key);
+  return false;
+}
+
+function markPaidGalleryPinUnlockedForSession({
+  contentId,
+  email,
+  walletAddress,
+}: {
+  contentId: string;
+  email: string;
+  walletAddress: string;
+}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(
+    getPaidGalleryPinSessionKey({ contentId, email, walletAddress }),
+    JSON.stringify({
+      expiresAt: Date.now() + PAID_GALLERY_PIN_SESSION_MS,
+    }),
+  );
 }
 
 export function ContentDetailPage({
@@ -350,6 +426,7 @@ export function ContentDetailPage({
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
   const [commentCount, setCommentCount] = useState(0);
+  const [isGalleryPinUnlocked, setIsGalleryPinUnlocked] = useState(false);
   const [socialSummary, setSocialSummary] = useState<ContentSocialSummaryRecord>(
     () => createEmptyContentSocialSummary(),
   );
@@ -619,6 +696,13 @@ export function ContentDetailPage({
     isPaidDetail &&
     state.content?.canAccess === true &&
     state.content.entitlementSource === "purchase";
+  const shouldRequirePaidGalleryPin =
+    isPaidPurchaseUnlocked &&
+    Boolean(accountAddress) &&
+    Boolean(state.member?.email) &&
+    Boolean(state.content?.contentImageUrls.length);
+  const isPaidGalleryPinLocked =
+    shouldRequirePaidGalleryPin && !isGalleryPinUnlocked;
   const paidProofTier = getPaidProofTier(socialSummary);
   const paidTotalLabel = formatUsdtAmountLabel(socialSummary.paidTotalUsdt, locale);
   const paidBuyerLabel = socialSummary.paidBuyerCount.toLocaleString(locale);
@@ -641,6 +725,26 @@ export function ContentDetailPage({
       ? "유료 콘텐츠입니다"
       : "This is paid content"
     : contentCopy.messages.previewLocked;
+
+  useEffect(() => {
+    if (!shouldRequirePaidGalleryPin) {
+      setIsGalleryPinUnlocked(false);
+      return;
+    }
+
+    setIsGalleryPinUnlocked(
+      isPaidGalleryPinUnlockedForSession({
+        contentId,
+        email: state.member?.email,
+        walletAddress: accountAddress,
+      }),
+    );
+  }, [
+    accountAddress,
+    contentId,
+    shouldRequirePaidGalleryPin,
+    state.member?.email,
+  ]);
 
   const copyShareLink = useCallback(async (nextShareUrl = shareUrl) => {
     if (!nextShareUrl) {
@@ -1442,26 +1546,52 @@ export function ContentDetailPage({
           ) : null}
 
           {state.content.contentImageUrls.length > 0 ? (
-            <section className="mx-[-0.75rem] overflow-hidden rounded-[32px] border border-white/70 bg-slate-950 shadow-[0_28px_70px_rgba(15,23,42,0.18)] sm:mx-0 sm:rounded-[32px] sm:border sm:border-white/70 sm:bg-white/92 sm:p-5">
+            <section
+              className={cn(
+                "mx-[-0.75rem] overflow-hidden rounded-[32px] border shadow-[0_28px_70px_rgba(15,23,42,0.18)] sm:mx-0 sm:rounded-[32px]",
+                isPaidGalleryPinLocked
+                  ? "border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_62%,#f8fafc_100%)] p-4 sm:p-5"
+                  : "border-white/70 bg-slate-950 sm:border-white/70 sm:bg-white/92 sm:p-5",
+              )}
+            >
               <div className="mb-4 hidden items-center justify-between gap-3 sm:flex">
                 <div>
                   <p className="eyebrow">{contentCopy.labels.imageGallery}</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {locale === "ko"
-                      ? "모바일에서 좌우로 넘기며 이미지 중심으로 콘텐츠를 볼 수 있습니다."
-                      : "Swipe through the visual gallery on mobile."}
+                    {isPaidGalleryPinLocked
+                      ? locale === "ko"
+                        ? "결제 완료된 이미지 갤러리는 PIN 확인 후 열립니다."
+                        : "The paid gallery opens after PIN confirmation."
+                      : locale === "ko"
+                        ? "모바일에서 좌우로 넘기며 이미지 중심으로 콘텐츠를 볼 수 있습니다."
+                        : "Swipe through the visual gallery on mobile."}
                   </p>
                 </div>
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
                   {state.content.contentImageUrls.length}
                 </span>
               </div>
-              <ContentImageCarousel
-                images={state.content.contentImageUrls}
-                isPreviewLocked={isPreviewLocked}
-                locale={locale}
-                title={state.content.title}
-              />
+              {isPaidGalleryPinLocked ? (
+                <PaidGalleryPinGate
+                  contentId={contentId}
+                  email={state.member?.email ?? null}
+                  imageCount={state.content.contentImageUrls.length}
+                  locale={locale}
+                  onUnlocked={() => {
+                    setIsGalleryPinUnlocked(true);
+                  }}
+                  title={state.content.title}
+                  unlockHref={walletUnlock.unlockHref}
+                  walletAddress={accountAddress ?? null}
+                />
+              ) : (
+                <ContentImageCarousel
+                  images={state.content.contentImageUrls}
+                  isPreviewLocked={isPreviewLocked}
+                  locale={locale}
+                  title={state.content.title}
+                />
+              )}
             </section>
           ) : null}
 
@@ -2403,6 +2533,259 @@ function LockedContentGate({
         </div>
       </div>
     </section>
+  );
+}
+
+function mapGalleryPinError(message: string, locale: Locale) {
+  if (message === "Wallet PIN is incorrect.") {
+    return locale === "ko"
+      ? "PIN이 일치하지 않습니다. 다시 입력하세요."
+      : "The PIN does not match. Try again.";
+  }
+
+  if (message === "Wallet PIN is temporarily locked.") {
+    return locale === "ko"
+      ? "PIN 오류가 여러 번 발생했습니다. 잠시 후 다시 시도하세요."
+      : "Too many wrong PIN attempts. Try again shortly.";
+  }
+
+  if (message === "Wallet PIN is not configured.") {
+    return locale === "ko"
+      ? "지갑 PIN 설정이 필요합니다. PIN 설정 후 갤러리를 열 수 있습니다."
+      : "Wallet PIN setup is required before opening the gallery.";
+  }
+
+  return message;
+}
+
+function PaidGalleryPinGate({
+  contentId,
+  email,
+  imageCount,
+  locale,
+  onUnlocked,
+  title,
+  unlockHref,
+  walletAddress,
+}: {
+  contentId: string;
+  email: string | null;
+  imageCount: number;
+  locale: Locale;
+  onUnlocked: () => void;
+  title: string;
+  unlockHref: string;
+  walletAddress: string | null;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "submitting">("idle");
+  const isSubmitting = status === "submitting";
+  const pinReady = pin.length === WALLET_UNLOCK_PIN_LENGTH;
+  const imageCountLabel = imageCount.toLocaleString(locale);
+
+  const submitPin = useCallback(async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!pinReady) {
+      setError(
+        locale === "ko"
+          ? `PIN 숫자 ${WALLET_UNLOCK_PIN_LENGTH}자리를 입력하세요.`
+          : `Enter the ${WALLET_UNLOCK_PIN_LENGTH}-digit PIN.`,
+      );
+      inputRef.current?.focus();
+      return;
+    }
+
+    if (!walletAddress) {
+      setError(
+        locale === "ko"
+          ? "연결된 회원 지갑을 확인하지 못했습니다."
+          : "Could not find the connected member wallet.",
+      );
+      return;
+    }
+
+    setStatus("submitting");
+    setError(null);
+
+    try {
+      const resolvedEmail = email ?? (await getUserEmail({ client: thirdwebClient }));
+
+      if (!resolvedEmail) {
+        throw new Error(
+          locale === "ko"
+            ? "이메일 지갑 정보를 확인하지 못했습니다."
+            : "Could not find the email wallet.",
+        );
+      }
+
+      const response = await fetch("/api/wallet/unlock", {
+        body: JSON.stringify({
+          action: "verify",
+          email: resolvedEmail,
+          pin,
+          walletAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as { ok?: boolean; error?: string };
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ??
+            (locale === "ko"
+              ? "PIN 확인에 실패했습니다."
+              : "PIN confirmation failed."),
+        );
+      }
+
+      markPaidGalleryPinUnlockedForSession({
+        contentId,
+        email: resolvedEmail,
+        walletAddress,
+      });
+      setPin("");
+      onUnlocked();
+    } catch (error) {
+      setPin("");
+      setError(
+        mapGalleryPinError(
+          error instanceof Error
+            ? error.message
+            : locale === "ko"
+              ? "PIN 확인에 실패했습니다."
+              : "PIN confirmation failed.",
+          locale,
+        ),
+      );
+      inputRef.current?.focus();
+    } finally {
+      setStatus("idle");
+    }
+  }, [
+    contentId,
+    email,
+    isSubmitting,
+    locale,
+    onUnlocked,
+    pin,
+    pinReady,
+    walletAddress,
+  ]);
+
+  return (
+    <div className="relative overflow-hidden rounded-[28px] border border-emerald-200 bg-white p-4 text-center shadow-[0_20px_55px_rgba(16,185,129,0.10)] sm:p-6">
+      <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_62%)]" />
+      <div className="relative mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)]">
+        <LockKeyhole className="size-6" />
+      </div>
+      <p className="relative mt-5 text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-emerald-700">
+        {locale === "ko" ? "결제 완료 갤러리" : "Paid gallery"}
+      </p>
+      <h2 className="relative mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+        {locale === "ko" ? "PIN으로 이미지 갤러리 열기" : "Open gallery with PIN"}
+      </h2>
+      <p className="relative mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+        {locale === "ko"
+          ? "결제가 완료된 콘텐츠입니다. 이미지 갤러리는 지갑 PIN 확인 후 이 세션에서 열립니다."
+          : "Payment is complete. The image gallery opens in this session after wallet PIN confirmation."}
+      </p>
+
+      <div className="relative mt-5 grid gap-2 sm:grid-cols-2">
+        <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3 text-left">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {locale === "ko" ? "콘텐츠" : "Content"}
+          </p>
+          <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-950">
+            {title}
+          </p>
+        </div>
+        <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-3 py-3 text-left">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            {locale === "ko" ? "이미지" : "Images"}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">
+            {imageCountLabel}
+          </p>
+        </div>
+      </div>
+
+      <form
+        className="relative mt-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submitPin();
+        }}
+      >
+        <label
+          className="sr-only"
+          htmlFor={`paid-gallery-pin-${contentId}`}
+        >
+          {locale === "ko" ? "갤러리 PIN" : "Gallery PIN"}
+        </label>
+        <input
+          autoComplete="one-time-code"
+          className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-center text-xl font-semibold text-slate-950 outline-none transition placeholder:text-base placeholder:font-medium placeholder:text-slate-400 focus:border-slate-950 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSubmitting}
+          id={`paid-gallery-pin-${contentId}`}
+          inputMode="numeric"
+          maxLength={WALLET_UNLOCK_PIN_LENGTH}
+          onChange={(event) => {
+            setPin(
+              event.target.value
+                .replace(/\D/gu, "")
+                .slice(0, WALLET_UNLOCK_PIN_LENGTH),
+            );
+            setError(null);
+          }}
+          pattern={`\\d{${WALLET_UNLOCK_PIN_LENGTH}}`}
+          placeholder={
+            locale === "ko"
+              ? `PIN ${WALLET_UNLOCK_PIN_LENGTH}자리`
+              : `${WALLET_UNLOCK_PIN_LENGTH}-digit PIN`
+          }
+          ref={inputRef}
+          type="password"
+          value={pin}
+        />
+
+        {error ? (
+          <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-5 text-rose-700">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-[1fr_auto]">
+          <button
+            className="inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold !text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+            disabled={!pinReady || isSubmitting}
+            type="submit"
+          >
+            {isSubmitting ? (
+              <>
+                <LoaderCircle className="mr-2 size-4 animate-spin" />
+                {locale === "ko" ? "확인 중" : "Verifying"}
+              </>
+            ) : (
+              locale === "ko" ? "갤러리 열기" : "Open gallery"
+            )}
+          </button>
+          <WalletUnlockAction
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            href={unlockHref}
+          >
+            {locale === "ko" ? "PIN 관리" : "Manage PIN"}
+          </WalletUnlockAction>
+        </div>
+      </form>
+    </div>
   );
 }
 
