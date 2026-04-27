@@ -50,10 +50,30 @@ function createProgressCopy(locale: Locale) {
       };
 }
 
+function isOpenAiSafetyErrorMessage(message: string) {
+  return /OpenAI image generation failed:.*safety|rejected by the safety system|safety_violations/i.test(
+    message,
+  );
+}
+
+function getCoverGenerationErrorMessage(error: unknown, locale: Locale) {
+  const message =
+    error instanceof Error ? error.message : "Failed to generate AI cover.";
+
+  if (!isOpenAiSafetyErrorMessage(message)) {
+    return message;
+  }
+
+  return locale === "ko"
+    ? "AI 이미지 안전 필터가 이 요청을 차단했습니다. 사람, 신체, 노출, 선정적 표현처럼 민감하게 해석될 수 있는 문구를 줄이고 다시 시도해 주세요."
+    : "The AI image safety filter blocked this request. Try again with a more neutral prompt and avoid wording about people, bodies, nudity, or suggestive presentation.";
+}
+
 function createStreamResponse(
   run: (
     emit: (event: ContentPostGenerateCoverStreamEvent) => void,
   ) => Promise<void>,
+  locale: Locale,
 ) {
   const encoder = new TextEncoder();
 
@@ -68,10 +88,7 @@ function createStreamResponse(
           await run(emit);
         } catch (error) {
           emit({
-            error:
-              error instanceof Error
-                ? error.message
-                : "Failed to generate AI cover.",
+            error: getCoverGenerationErrorMessage(error, locale),
             type: "error",
           });
         } finally {
@@ -217,7 +234,7 @@ export async function POST(request: Request) {
         response,
         type: "result",
       });
-    });
+    }, locale);
   }
 
   const authorization = await validateMemberWalletOwner({
@@ -252,7 +269,7 @@ export async function POST(request: Request) {
     return Response.json(response);
   } catch (error) {
     return jsonError(
-      error instanceof Error ? error.message : "Failed to generate AI cover.",
+      getCoverGenerationErrorMessage(error, locale),
       500,
     );
   }

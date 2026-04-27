@@ -79,18 +79,28 @@ function buildImagePrompt(input: {
 function buildSafeRetryPrompt(input: {
   summary: string;
   title: string;
-  visualBrief: string;
 }) {
   return [
     "Create a premium editorial cover image for a network content feed.",
-    "Safe-for-work only. Avoid nudity, lingerie, exposed cleavage, erotic framing, fetish styling, suggestive poses, or any sexualized presentation.",
-    "Depict subjects as fully clothed adults in a tasteful magazine-style composition.",
+    "Safe-for-work only. Use a non-human symbolic composition: refined objects, architecture, interiors, landscape details, abstract light, natural textures, or product-like still life.",
+    "Do not depict people, faces, bodies, silhouettes, skin, crowds, hands, clothing, celebrities, real people, lookalikes, minors, nudity, erotic framing, violence, gore, weapons, or medical injury.",
+    "Treat the content topic only as abstract editorial context. Do not literally visualize sensitive wording from the title or summary.",
     "Do not include any text, letters, numbers, logos, watermarks, or UI chrome.",
     "Use a clean, modern, trustworthy composition with one clear focal subject and cinematic lighting.",
     "Landscape aspect ratio, suitable for a feed card and article header.",
     input.title ? `Core topic: ${input.title}.` : null,
     input.summary ? `Summary context: ${input.summary}.` : null,
-    input.visualBrief ? `Visual direction: ${input.visualBrief}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function buildNeutralFallbackPrompt() {
+  return [
+    "Create a premium editorial cover image for a creator network content feed.",
+    "Use a completely non-human, safe-for-work abstract composition with polished light, refined materials, soft depth, subtle geometric structure, and a trustworthy modern tone.",
+    "Do not depict people, faces, bodies, silhouettes, skin, clothing, text, typography, letters, numbers, logos, watermarks, weapons, violence, medical scenes, or sexual content.",
+    "Landscape aspect ratio, suitable for a feed card and article header.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -224,19 +234,34 @@ export async function generateAndUploadContentCover(
 
     await reportProgress(input.onProgress, {
       message:
-        "The first cover prompt was blocked by image safety filters. Retrying with a safer editorial direction.",
+        "The first cover prompt was blocked by image safety filters. Retrying with a non-human editorial direction.",
       progress: 58,
       status: "running",
       step: "generating_image",
     });
 
-    generatedImage = await generateImageBase64(
-      buildSafeRetryPrompt({
-        summary,
-        title,
-        visualBrief,
-      }),
-    );
+    try {
+      generatedImage = await generateImageBase64(
+        buildSafeRetryPrompt({
+          summary,
+          title,
+        }),
+      );
+    } catch (retryError) {
+      if (!isSafetyRejection(retryError)) {
+        throw retryError;
+      }
+
+      await reportProgress(input.onProgress, {
+        message:
+          "The safer cover prompt was also blocked. Retrying with a neutral fallback cover.",
+        progress: 64,
+        status: "running",
+        step: "generating_image",
+      });
+
+      generatedImage = await generateImageBase64(buildNeutralFallbackPrompt());
+    }
   }
 
   const { imageBase64, revisedPrompt } = generatedImage;

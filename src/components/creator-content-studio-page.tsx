@@ -326,11 +326,18 @@ function applyCoverGenerationProgressEvent(
   event: ContentPostGenerateCoverStreamEvent,
 ): CoverGenerationProgressState {
   if (event.type === "error") {
+    const failedStep = current.currentStep ?? "generating_image";
+
     return {
       ...current,
       active: false,
+      currentStep: failedStep,
       error: event.error,
       message: event.error,
+      steps: {
+        ...current.steps,
+        [failedStep]: "error",
+      },
     };
   }
 
