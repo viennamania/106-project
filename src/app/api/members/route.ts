@@ -1,11 +1,14 @@
 import {
-  getMemberRegistrationStatus,
   MemberSyncError,
   syncMemberRegistration,
 } from "@/lib/member-service";
-import { getReferralPlacementSlotsCollection } from "@/lib/mongodb";
+import {
+  getMembersCollection,
+  getReferralPlacementSlotsCollection,
+} from "@/lib/mongodb";
 import type { SyncMemberRequest } from "@/lib/member";
-import { serializeMember } from "@/lib/member";
+import { normalizeEmail, serializeMember } from "@/lib/member";
+import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -20,12 +23,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const member = await getMemberRegistrationStatus(rawEmail);
+    const membersCollection = await getMembersCollection();
+    const member = await membersCollection.findOne({
+      email: normalizeEmail(rawEmail),
+    });
 
     if (!member) {
       return jsonError("Member not found.", 404);
     }
 
+    const memberWithServiceSuspension =
+      await withMemberServiceSuspensionStatus(membersCollection, member);
     const placementSlotsCollection = await getReferralPlacementSlotsCollection();
     const placementSlot = await placementSlotsCollection.findOne({
       claimedByEmail: member.email,
@@ -33,7 +41,7 @@ export async function GET(request: Request) {
 
     return Response.json({
       member: {
-        ...serializeMember(member),
+        ...serializeMember(memberWithServiceSuspension),
         placementSlotIndex: placementSlot?.slotIndex ?? null,
       },
     });

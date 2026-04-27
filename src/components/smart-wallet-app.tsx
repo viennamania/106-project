@@ -568,9 +568,11 @@ export function SmartWalletApp({
         | { error?: string };
       const loadedMember =
         response.ok && "member" in data ? data.member ?? null : null;
+      const shouldVerifyPayment = options?.mode !== "light";
       const canUseLoadedMember =
         loadedMember !== null &&
         isMemberWalletKnown(loadedMember, accountAddress) &&
+        (!shouldVerifyPayment || loadedMember.status === "completed") &&
         (!preferredReferralCode ||
           loadedMember.status === "completed" ||
           loadedMember.sponsorReferralCode === preferredReferralCode ||
@@ -1107,7 +1109,7 @@ export function SmartWalletApp({
   ]);
 
   const pollForCompletedSignup = useEffectEvent(async () => {
-    await runMemberSync({ background: true });
+    await runMemberSync({ background: true, mode: "light" });
   });
 
   const openNotificationsPage = useCallback((mode: "push" | "replace" = "push") => {
