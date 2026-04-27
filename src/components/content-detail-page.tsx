@@ -315,6 +315,24 @@ function markPaidGalleryPinUnlockedForSession({
   );
 }
 
+function clearPaidGalleryPinUnlockedForSession({
+  contentId,
+  email,
+  walletAddress,
+}: {
+  contentId: string;
+  email: string;
+  walletAddress: string;
+}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(
+    getPaidGalleryPinSessionKey({ contentId, email, walletAddress }),
+  );
+}
+
 export function ContentDetailPage({
   contentId,
   dictionary,
@@ -745,6 +763,19 @@ export function ContentDetailPage({
     shouldRequirePaidGalleryPin,
     state.member?.email,
   ]);
+
+  const lockPaidGallery = useCallback(() => {
+    if (!accountAddress || !state.member?.email) {
+      return;
+    }
+
+    clearPaidGalleryPinUnlockedForSession({
+      contentId,
+      email: state.member.email,
+      walletAddress: accountAddress,
+    });
+    setIsGalleryPinUnlocked(false);
+  }, [accountAddress, contentId, state.member?.email]);
 
   const copyShareLink = useCallback(async (nextShareUrl = shareUrl) => {
     if (!nextShareUrl) {
@@ -1567,9 +1598,21 @@ export function ContentDetailPage({
                         : "Swipe through the visual gallery on mobile."}
                   </p>
                 </div>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {state.content.contentImageUrls.length}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {state.content.contentImageUrls.length}
+                  </span>
+                  {shouldRequirePaidGalleryPin && isGalleryPinUnlocked ? (
+                    <button
+                      className="inline-flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                      onClick={lockPaidGallery}
+                      type="button"
+                    >
+                      <LockKeyhole className="size-3.5" />
+                      {locale === "ko" ? "갤러리 잠그기" : "Lock gallery"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
               {isPaidGalleryPinLocked ? (
                 <PaidGalleryPinGate
@@ -1585,12 +1628,21 @@ export function ContentDetailPage({
                   walletAddress={accountAddress ?? null}
                 />
               ) : (
-                <ContentImageCarousel
-                  images={state.content.contentImageUrls}
-                  isPreviewLocked={isPreviewLocked}
-                  locale={locale}
-                  title={state.content.title}
-                />
+                <>
+                  {shouldRequirePaidGalleryPin && isGalleryPinUnlocked ? (
+                    <PaidGalleryLockBar
+                      imageCount={state.content.contentImageUrls.length}
+                      locale={locale}
+                      onLock={lockPaidGallery}
+                    />
+                  ) : null}
+                  <ContentImageCarousel
+                    images={state.content.contentImageUrls}
+                    isPreviewLocked={isPreviewLocked}
+                    locale={locale}
+                    title={state.content.title}
+                  />
+                </>
               )}
             </section>
           ) : null}
@@ -2533,6 +2585,39 @@ function LockedContentGate({
         </div>
       </div>
     </section>
+  );
+}
+
+function PaidGalleryLockBar({
+  imageCount,
+  locale,
+  onLock,
+}: {
+  imageCount: number;
+  locale: Locale;
+  onLock: () => void;
+}) {
+  return (
+    <div className="m-3 flex items-center justify-between gap-3 rounded-[24px] border border-white/12 bg-white/10 px-3.5 py-3 text-white backdrop-blur-md sm:hidden">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold">
+          {locale === "ko" ? "갤러리가 열려 있습니다" : "Gallery is open"}
+        </p>
+        <p className="mt-0.5 text-xs text-white/62">
+          {locale === "ko"
+            ? `이미지 ${imageCount.toLocaleString(locale)}개`
+            : `${imageCount.toLocaleString(locale)} images`}
+        </p>
+      </div>
+      <button
+        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-white px-3.5 text-xs font-semibold text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.22)]"
+        onClick={onLock}
+        type="button"
+      >
+        <LockKeyhole className="size-3.5" />
+        {locale === "ko" ? "잠그기" : "Lock"}
+      </button>
+    </div>
   );
 }
 
