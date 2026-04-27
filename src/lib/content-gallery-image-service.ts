@@ -105,7 +105,6 @@ function buildGalleryImagePrompt(input: {
     "Lighting should be refined and believable with rich materials, strong texture fidelity, realistic anatomy, premium depth, and controlled contrast.",
     "Do not include any text, typography, letters, numbers, logos, watermarks, borders, frames, UI chrome, subtitles, or poster layout elements.",
     "Avoid low-detail faces, duplicate people, extra limbs, distorted hands, blurry eyes, warped anatomy, muddy lighting, oversaturated colors, cheap CGI feel, or generic stock-photo composition.",
-    "If people appear, keep the styling tasteful, non-explicit, fully clothed, and fashion-editorial rather than provocative.",
     input.title ? `Primary concept: ${input.title}.` : null,
     input.summary ? `Tone and scene direction: ${input.summary}.` : null,
     input.visualBrief ? `Creator visual request: ${input.visualBrief}.` : null,
