@@ -21,6 +21,10 @@ import {
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
+import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
 import type {
   ContentSaleOrderRecord,
   ContentSalesDashboardResponse,
@@ -199,6 +203,13 @@ export function CreatorStudioSalesPage({
     !isDisconnected && state.dashboard?.member.status === "completed";
   const hasSellerWallet = Boolean(state.dashboard?.sellerWalletAddress);
   const hasWithdrawableBalance = isPositiveWei(state.dashboard?.balance?.amountWei);
+  const walletUnlock = useWalletUnlockGate({
+    email: state.dashboard?.member.email,
+    locale,
+    referralCode,
+    returnTo: salesManagerHref,
+    walletAddress: accountAddress,
+  });
 
   const resolveMemberEmail = useCallback(async () => {
     const email = await getUserEmail({ client: thirdwebClient });
@@ -354,6 +365,14 @@ export function CreatorStudioSalesPage({
 
   async function withdrawBalance() {
     if (!accountAddress || !hasWithdrawableBalance) {
+      return;
+    }
+
+    if (!walletUnlock.isUnlocked) {
+      setState((current) => ({
+        ...current,
+        error: walletUnlock.copy.unlockRequired,
+      }));
       return;
     }
 
@@ -554,6 +573,7 @@ export function CreatorStudioSalesPage({
               canWithdraw={canUseWorkspace && hasWithdrawableBalance}
               copied={copied}
               isCreatingWallet={isCreatingWallet}
+              isWalletUnlocked={walletUnlock.isUnlocked}
               isWithdrawing={isWithdrawing}
               onCopy={() => {
                 void copySellerWallet();
@@ -565,6 +585,8 @@ export function CreatorStudioSalesPage({
                 void withdrawBalance();
               }}
               salesCopy={salesCopy}
+              unlockHref={walletUnlock.unlockHref}
+              unlockLabel={walletUnlock.copy.unlockAction}
               walletAddress={dashboard?.sellerWalletAddress ?? null}
             />
           </div>
@@ -616,11 +638,14 @@ function WalletManagementCard({
   canWithdraw,
   copied,
   isCreatingWallet,
+  isWalletUnlocked,
   isWithdrawing,
   onCopy,
   onCreateWallet,
   onWithdraw,
   salesCopy,
+  unlockHref,
+  unlockLabel,
   walletAddress,
 }: {
   accountAddress: string | null;
@@ -629,11 +654,14 @@ function WalletManagementCard({
   canWithdraw: boolean;
   copied: boolean;
   isCreatingWallet: boolean;
+  isWalletUnlocked: boolean;
   isWithdrawing: boolean;
   onCopy: () => void;
   onCreateWallet: () => void;
   onWithdraw: () => void;
   salesCopy: ReturnType<typeof getSalesCopy>;
+  unlockHref: string;
+  unlockLabel: string;
   walletAddress: string | null;
 }) {
   return (
@@ -704,19 +732,28 @@ function WalletManagementCard({
           )}
           {isCreatingWallet ? salesCopy.creatingWallet : salesCopy.createWallet}
         </button>
-        <button
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!canWithdraw || isWithdrawing}
-          onClick={onWithdraw}
-          type="button"
-        >
-          {isWithdrawing ? (
-            <LoaderCircle className="size-4 animate-spin" />
-          ) : (
-            <Coins className="size-4" />
-          )}
-          {isWithdrawing ? salesCopy.withdrawing : salesCopy.withdraw}
-        </button>
+        {!isWalletUnlocked && canWithdraw ? (
+          <WalletUnlockAction
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+            href={unlockHref}
+          >
+            {unlockLabel}
+          </WalletUnlockAction>
+        ) : (
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!canWithdraw || isWithdrawing}
+            onClick={onWithdraw}
+            type="button"
+          >
+            {isWithdrawing ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Coins className="size-4" />
+            )}
+            {isWithdrawing ? salesCopy.withdrawing : salesCopy.withdraw}
+          </button>
+        )}
       </div>
     </div>
   );

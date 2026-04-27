@@ -54,6 +54,10 @@ import { CopyTextButton } from "@/components/copy-text-button";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
+import {
   buildPathWithReferral,
   buildReferralLandingPath,
   setPathSearchParams,
@@ -278,6 +282,13 @@ export function SmartWalletApp({
     `/${locale}/activate`,
     preferredReferralCode,
   );
+  const signupWalletUnlock = useWalletUnlockGate({
+    email: memberSync.email ?? memberSync.member?.email,
+    locale,
+    referralCode: preferredReferralCode,
+    returnTo: activatePageHref,
+    walletAddress: accountAddress,
+  });
   const brandingStudioHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/branding-studio`, preferredReferralCode),
     {
@@ -418,6 +429,10 @@ export function SmartWalletApp({
   function createSignupPaymentTransaction() {
     if (!accountAddress) {
       throw new Error(dictionary.sponsored.connectFirst);
+    }
+
+    if (!signupWalletUnlock.isUnlocked) {
+      throw new Error(signupWalletUnlock.copy.unlockRequired);
     }
 
     if (!projectWallet) {
@@ -1881,18 +1896,27 @@ export function SmartWalletApp({
                           <p className="mb-3 text-xs uppercase tracking-[0.24em] text-white/45">
                             {dictionary.sponsored.eyebrow}
                           </p>
-                          <TransactionButton
-                            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={isSignupPaymentDisabled}
-                            onError={handleSignupPaymentError}
-                            onTransactionConfirmed={handleSignupPaymentConfirmed}
-                            onTransactionSent={handleSignupPaymentSent}
-                            transaction={createSignupPaymentTransaction}
-                            type="button"
-                            unstyled
-                          >
-                            {paymentCtaLabel}
-                          </TransactionButton>
+                          {!signupWalletUnlock.isUnlocked ? (
+                            <WalletUnlockAction
+                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                              href={signupWalletUnlock.unlockHref}
+                            >
+                              {signupWalletUnlock.copy.unlockAction}
+                            </WalletUnlockAction>
+                          ) : (
+                            <TransactionButton
+                              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={isSignupPaymentDisabled}
+                              onError={handleSignupPaymentError}
+                              onTransactionConfirmed={handleSignupPaymentConfirmed}
+                              onTransactionSent={handleSignupPaymentSent}
+                              transaction={createSignupPaymentTransaction}
+                              type="button"
+                              unstyled
+                            >
+                              {paymentCtaLabel}
+                            </TransactionButton>
+                          )}
                         </div>
                       </div>
 
@@ -2103,18 +2127,27 @@ export function SmartWalletApp({
                 </p>
               </div>
 
-              <TransactionButton
-                className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
-                disabled={isSignupPaymentDisabled}
-                onError={handleSignupPaymentError}
-                onTransactionConfirmed={handleSignupPaymentConfirmed}
-                onTransactionSent={handleSignupPaymentSent}
-                transaction={createSignupPaymentTransaction}
-                type="button"
-                unstyled
-              >
-                {paymentCtaLabel}
-              </TransactionButton>
+              {!signupWalletUnlock.isUnlocked ? (
+                <WalletUnlockAction
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
+                  href={signupWalletUnlock.unlockHref}
+                >
+                  {signupWalletUnlock.copy.unlockAction}
+                </WalletUnlockAction>
+              ) : (
+                <TransactionButton
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
+                  disabled={isSignupPaymentDisabled}
+                  onError={handleSignupPaymentError}
+                  onTransactionConfirmed={handleSignupPaymentConfirmed}
+                  onTransactionSent={handleSignupPaymentSent}
+                  transaction={createSignupPaymentTransaction}
+                  type="button"
+                  unstyled
+                >
+                  {paymentCtaLabel}
+                </TransactionButton>
+              )}
             </div>
           </div>
         </div>

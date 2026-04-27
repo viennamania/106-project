@@ -41,6 +41,10 @@ import { transfer } from "thirdweb/extensions/erc20";
 import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
+import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentCommentCreateResponse,
@@ -329,6 +333,12 @@ export function ContentDetailPage({
     buildPathWithReferral(`/${locale}/activate`, shareReferralCode),
     { returnTo: backHref, shareId },
   );
+  const walletUnlock = useWalletUnlockGate({
+    email: state.member?.email,
+    locale,
+    referralCode: shareReferralCode,
+    walletAddress: accountAddress,
+  });
   const [shareState, setShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
   >("idle");
@@ -982,6 +992,10 @@ export function ContentDetailPage({
   }, [contentId, paidUnlockAmount, shareId, shareReferralCode]);
 
   const createPaidUnlockTransaction = useCallback(async () => {
+    if (!walletUnlock.isUnlocked) {
+      throw new Error(walletUnlock.copy.unlockRequired);
+    }
+
     const preparedOrder = await ensurePaidUnlockOrder();
 
     setPaidUnlock((current) => ({
@@ -996,7 +1010,7 @@ export function ContentDetailPage({
       contract: usdtContract,
       to: preparedOrder.recipientWalletAddress,
     });
-  }, [ensurePaidUnlockOrder]);
+  }, [ensurePaidUnlockOrder, walletUnlock.copy.unlockRequired, walletUnlock.isUnlocked]);
 
   const handlePaidUnlockSent = useCallback(
     (result: { transactionHash: string }) => {
@@ -1767,35 +1781,44 @@ export function ContentDetailPage({
               >
                 {locale === "ko" ? "취소" : "Cancel"}
               </button>
-              <TransactionButton
-                className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={
-                  !accountAddress ||
-                  isInsufficientPaidUnlockBalance ||
-                  paidUnlock.status === "creating" ||
-                  paidUnlock.status === "sent" ||
-                  paidUnlock.status === "verifying"
-                }
-                onError={handlePaidUnlockError}
-                onTransactionConfirmed={handlePaidUnlockConfirmed}
-                onTransactionSent={handlePaidUnlockSent}
-                transaction={createPaidUnlockTransaction}
-                type="button"
-                unstyled
-              >
-                <Coins className="mr-2 size-4" />
-                {paidUnlock.status === "creating"
-                  ? locale === "ko"
-                    ? "결제 정보 준비 중"
-                    : "Preparing payment"
-                  : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
+              {!walletUnlock.isUnlocked ? (
+                <WalletUnlockAction
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03]"
+                  href={walletUnlock.unlockHref}
+                >
+                  {walletUnlock.copy.unlockAction}
+                </WalletUnlockAction>
+              ) : (
+                <TransactionButton
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(251,191,36,0.24)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    !accountAddress ||
+                    isInsufficientPaidUnlockBalance ||
+                    paidUnlock.status === "creating" ||
+                    paidUnlock.status === "sent" ||
+                    paidUnlock.status === "verifying"
+                  }
+                  onError={handlePaidUnlockError}
+                  onTransactionConfirmed={handlePaidUnlockConfirmed}
+                  onTransactionSent={handlePaidUnlockSent}
+                  transaction={createPaidUnlockTransaction}
+                  type="button"
+                  unstyled
+                >
+                  <Coins className="mr-2 size-4" />
+                  {paidUnlock.status === "creating"
                     ? locale === "ko"
-                      ? "결제 확인 중"
-                      : "Verifying"
-                    : locale === "ko"
-                      ? `${paidUnlockAmount} USDT 결제하기`
-                      : `Pay ${paidUnlockAmount} USDT`}
-              </TransactionButton>
+                      ? "결제 정보 준비 중"
+                      : "Preparing payment"
+                    : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
+                      ? locale === "ko"
+                        ? "결제 확인 중"
+                        : "Verifying"
+                      : locale === "ko"
+                        ? `${paidUnlockAmount} USDT 결제하기`
+                        : `Pay ${paidUnlockAmount} USDT`}
+                </TransactionButton>
+              )}
             </div>
           </div>
         </div>

@@ -22,6 +22,10 @@ import {
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
+import {
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
@@ -214,6 +218,11 @@ export function BnbWalletPage({
   const isDisconnected = status !== "connected" || !accountAddress;
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const backHref = returnTo ?? homeHref;
+  const walletUnlock = useWalletUnlockGate({
+    locale,
+    referralCode,
+    walletAddress: accountAddress,
+  });
   const balanceErrorMessage =
     balanceError instanceof Error
       ? balanceError.message
@@ -576,63 +585,72 @@ export function BnbWalletPage({
                 ) : null}
 
                 <div className="mt-5">
-                  <TransactionButton
-                    className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={
-                      !accountAddress ||
-                      !hasValidDestination ||
-                      isSelfTransfer ||
-                      balanceValue <= BigInt(0)
-                    }
-                    onError={(error) => {
-                      setNotice({
-                        text: error.message,
-                        tone: "error",
-                      });
-                    }}
-                    onTransactionConfirmed={(receipt) => {
-                      setNotice({
-                        href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                        text: dictionary.bnbPage.notices.txConfirmed,
-                        tone: "success",
-                      });
-                      setDestination("");
-                      void refetchBalance();
-                    }}
-                    onTransactionSent={(result) => {
-                      setNotice({
-                        href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                        text: dictionary.bnbPage.notices.txSent,
-                        tone: "info",
-                      });
-                    }}
-                    transaction={() => {
-                      if (!normalizedDestination) {
-                        throw new Error(dictionary.bnbPage.errors.invalidAddress);
+                  {!walletUnlock.isUnlocked ? (
+                    <WalletUnlockAction
+                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800"
+                      href={walletUnlock.unlockHref}
+                    >
+                      {walletUnlock.copy.unlockAction}
+                    </WalletUnlockAction>
+                  ) : (
+                    <TransactionButton
+                      className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={
+                        !accountAddress ||
+                        !hasValidDestination ||
+                        isSelfTransfer ||
+                        balanceValue <= BigInt(0)
                       }
+                      onError={(error) => {
+                        setNotice({
+                          text: error.message,
+                          tone: "error",
+                        });
+                      }}
+                      onTransactionConfirmed={(receipt) => {
+                        setNotice({
+                          href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                          text: dictionary.bnbPage.notices.txConfirmed,
+                          tone: "success",
+                        });
+                        setDestination("");
+                        void refetchBalance();
+                      }}
+                      onTransactionSent={(result) => {
+                        setNotice({
+                          href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                          text: dictionary.bnbPage.notices.txSent,
+                          tone: "info",
+                        });
+                      }}
+                      transaction={() => {
+                        if (!normalizedDestination) {
+                          throw new Error(dictionary.bnbPage.errors.invalidAddress);
+                        }
 
-                      if (isSelfTransfer) {
-                        throw new Error(dictionary.bnbPage.errors.selfTransfer);
-                      }
+                        if (isSelfTransfer) {
+                          throw new Error(dictionary.bnbPage.errors.selfTransfer);
+                        }
 
-                      if (balanceValue <= BigInt(0)) {
-                        throw new Error(
-                          dictionary.bnbPage.errors.insufficientBalance,
-                        );
-                      }
+                        if (balanceValue <= BigInt(0)) {
+                          throw new Error(
+                            dictionary.bnbPage.errors.insufficientBalance,
+                          );
+                        }
 
-                      return prepareTransaction({
-                        chain: smartWalletChain,
-                        client: thirdwebClient,
-                        to: normalizedDestination,
-                        value: balanceValue,
-                      });
-                    }}
-                    type="button"
-                    unstyled
-                  >
-                    {dictionary.bnbPage.actions.sendAll}
-                  </TransactionButton>
+                        return prepareTransaction({
+                          chain: smartWalletChain,
+                          client: thirdwebClient,
+                          to: normalizedDestination,
+                          value: balanceValue,
+                        });
+                      }}
+                      type="button"
+                      unstyled
+                    >
+                      {dictionary.bnbPage.actions.sendAll}
+                    </TransactionButton>
+                  )}
                 </div>
               </section>
             </LandingReveal>

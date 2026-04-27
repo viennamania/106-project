@@ -219,6 +219,13 @@ export type MemberDocument = {
   serviceSuspendedScope?: ServiceSuspensionScope | null;
   updatedAt: Date;
   walletAddresses: string[];
+  walletPinFailedAttempts?: number | null;
+  walletPinHash?: string | null;
+  walletPinLockedUntil?: Date | null;
+  walletPinResetAt?: Date | null;
+  walletPinSalt?: string | null;
+  walletPinUpdatedAt?: Date | null;
+  walletPinVerifiedAt?: Date | null;
 };
 
 export function normalizeEmail(email: string) {

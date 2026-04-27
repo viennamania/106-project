@@ -42,6 +42,10 @@ import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
+import {
   buildPathWithReferral,
   buildReferralLandingPath,
   setPathSearchParams,
@@ -212,6 +216,13 @@ export function WalletPage({
     buildPathWithReferral(`/${locale}/wallet`, referralCode),
     { returnTo },
   );
+  const walletUnlock = useWalletUnlockGate({
+    email: currentEmail,
+    locale,
+    referralCode,
+    returnTo: currentWalletHref,
+    walletAddress: accountAddress,
+  });
   const bnbWalletHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
     { returnTo: currentWalletHref },
@@ -1179,135 +1190,144 @@ export function WalletPage({
                   </p>
 
                   <div className="mt-5">
-                    <TransactionButton
-                      className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={
-                        !accountAddress ||
-                        !selectedRecipient ||
-                        !sendAmount.trim() ||
-                        isSelfTransfer
-                      }
-                      onError={(error) => {
-                        setNotice({
-                          text: error.message,
-                          tone: "error",
-                        });
-                      }}
-                      onTransactionConfirmed={(receipt) => {
-                        const confirmedRecipient = selectedRecipient;
-                        const confirmedAmount = sendAmount.trim();
-
-                        if (
-                          accountAddress &&
-                          confirmedRecipient &&
-                          confirmedAmount &&
-                          /^\d+(\.\d+)?$/u.test(confirmedAmount)
-                        ) {
-                          const amountWei = toUnits(
-                            confirmedAmount,
-                            MEMBER_SIGNUP_USDT_DECIMALS,
-                          ).toString();
-
-                          void persistWalletTransfer({
-                            action: "confirm_send",
-                            amountWei,
-                            fromWalletAddress: accountAddress,
-                            toWalletAddress: confirmedRecipient.walletAddress,
-                            transactionHash: receipt.transactionHash,
-                          }).catch(() => {
-                            // The history row stays pending until the next refresh retry.
+                    {!walletUnlock.isUnlocked ? (
+                      <WalletUnlockAction
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        href={walletUnlock.unlockHref}
+                      >
+                        {walletUnlock.copy.unlockAction}
+                      </WalletUnlockAction>
+                    ) : (
+                      <TransactionButton
+                        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={
+                          !accountAddress ||
+                          !selectedRecipient ||
+                          !sendAmount.trim() ||
+                          isSelfTransfer
+                        }
+                        onError={(error) => {
+                          setNotice({
+                            text: error.message,
+                            tone: "error",
                           });
-                        }
+                        }}
+                        onTransactionConfirmed={(receipt) => {
+                          const confirmedRecipient = selectedRecipient;
+                          const confirmedAmount = sendAmount.trim();
 
-                        setNotice({
-                          href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                          text: dictionary.walletPage.notices.txConfirmed,
-                          tone: "success",
-                        });
-                        setSendAmount("");
-                        window.setTimeout(() => {
-                          void runWalletSync({ background: true });
-                        }, 1800);
-                      }}
-                      onTransactionSent={(result) => {
-                        const sentRecipient = selectedRecipient;
-                        const sentAmount = sendAmount.trim();
+                          if (
+                            accountAddress &&
+                            confirmedRecipient &&
+                            confirmedAmount &&
+                            /^\d+(\.\d+)?$/u.test(confirmedAmount)
+                          ) {
+                            const amountWei = toUnits(
+                              confirmedAmount,
+                              MEMBER_SIGNUP_USDT_DECIMALS,
+                            ).toString();
 
-                        if (
-                          accountAddress &&
-                          sentRecipient &&
-                          sentAmount &&
-                          /^\d+(\.\d+)?$/u.test(sentAmount)
-                        ) {
-                          const amountWei = toUnits(
-                            sentAmount,
-                            MEMBER_SIGNUP_USDT_DECIMALS,
-                          ).toString();
+                            void persistWalletTransfer({
+                              action: "confirm_send",
+                              amountWei,
+                              fromWalletAddress: accountAddress,
+                              toWalletAddress: confirmedRecipient.walletAddress,
+                              transactionHash: receipt.transactionHash,
+                            }).catch(() => {
+                              // The history row stays pending until the next refresh retry.
+                            });
+                          }
 
-                          void persistWalletTransfer({
-                            action: "record_send",
-                            amountWei,
-                            fromWalletAddress: accountAddress,
-                            toWalletAddress: sentRecipient.walletAddress,
-                            transactionHash: result.transactionHash,
-                          }).catch(() => {
-                            // Keep the UI moving even if the history write fails.
+                          setNotice({
+                            href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                            text: dictionary.walletPage.notices.txConfirmed,
+                            tone: "success",
                           });
-                        }
+                          setSendAmount("");
+                          window.setTimeout(() => {
+                            void runWalletSync({ background: true });
+                          }, 1800);
+                        }}
+                        onTransactionSent={(result) => {
+                          const sentRecipient = selectedRecipient;
+                          const sentAmount = sendAmount.trim();
 
-                        setNotice({
-                          href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                          text: dictionary.walletPage.notices.txSent,
-                          tone: "info",
-                        });
-                        window.setTimeout(() => {
-                          void runWalletSync({ background: true });
-                        }, 3200);
-                      }}
-                      transaction={() => {
-                        if (!selectedRecipient) {
-                          throw new Error(dictionary.walletPage.errors.selectRecipient);
-                        }
+                          if (
+                            accountAddress &&
+                            sentRecipient &&
+                            sentAmount &&
+                            /^\d+(\.\d+)?$/u.test(sentAmount)
+                          ) {
+                            const amountWei = toUnits(
+                              sentAmount,
+                              MEMBER_SIGNUP_USDT_DECIMALS,
+                            ).toString();
 
-                        const normalizedAmount = sendAmount.trim();
+                            void persistWalletTransfer({
+                              action: "record_send",
+                              amountWei,
+                              fromWalletAddress: accountAddress,
+                              toWalletAddress: sentRecipient.walletAddress,
+                              transactionHash: result.transactionHash,
+                            }).catch(() => {
+                              // Keep the UI moving even if the history write fails.
+                            });
+                          }
 
-                        if (!normalizedAmount || !/^\d+(\.\d+)?$/u.test(normalizedAmount)) {
-                          throw new Error(dictionary.walletPage.errors.invalidAmount);
-                        }
+                          setNotice({
+                            href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                            text: dictionary.walletPage.notices.txSent,
+                            tone: "info",
+                          });
+                          window.setTimeout(() => {
+                            void runWalletSync({ background: true });
+                          }, 3200);
+                        }}
+                        transaction={() => {
+                          if (!selectedRecipient) {
+                            throw new Error(dictionary.walletPage.errors.selectRecipient);
+                          }
 
-                        const amountInUnits = toUnits(
-                          normalizedAmount,
-                          MEMBER_SIGNUP_USDT_DECIMALS,
-                        );
+                          const normalizedAmount = sendAmount.trim();
 
-                        if (amountInUnits <= BigInt(0)) {
-                          throw new Error(dictionary.walletPage.errors.invalidAmount);
-                        }
+                          if (!normalizedAmount || !/^\d+(\.\d+)?$/u.test(normalizedAmount)) {
+                            throw new Error(dictionary.walletPage.errors.invalidAmount);
+                          }
 
-                        if (isSelfTransfer) {
-                          throw new Error(dictionary.walletPage.errors.selfTransfer);
-                        }
-
-                        if (
-                          typeof balance?.value === "bigint" &&
-                          amountInUnits > balance.value
-                        ) {
-                          throw new Error(
-                            dictionary.walletPage.errors.insufficientBalance,
+                          const amountInUnits = toUnits(
+                            normalizedAmount,
+                            MEMBER_SIGNUP_USDT_DECIMALS,
                           );
-                        }
 
-                        return transfer({
-                          amount: normalizedAmount,
-                          contract: usdtContract,
-                          to: selectedRecipient.walletAddress,
-                        });
-                      }}
-                      type="button"
-                      unstyled
-                    >
-                      {dictionary.walletPage.actions.send}
-                    </TransactionButton>
+                          if (amountInUnits <= BigInt(0)) {
+                            throw new Error(dictionary.walletPage.errors.invalidAmount);
+                          }
+
+                          if (isSelfTransfer) {
+                            throw new Error(dictionary.walletPage.errors.selfTransfer);
+                          }
+
+                          if (
+                            typeof balance?.value === "bigint" &&
+                            amountInUnits > balance.value
+                          ) {
+                            throw new Error(
+                              dictionary.walletPage.errors.insufficientBalance,
+                            );
+                          }
+
+                          return transfer({
+                            amount: normalizedAmount,
+                            contract: usdtContract,
+                            to: selectedRecipient.walletAddress,
+                          });
+                        }}
+                        type="button"
+                        unstyled
+                      >
+                        {dictionary.walletPage.actions.send}
+                      </TransactionButton>
+                    )}
                   </div>
                 </section>
               </LandingReveal>
