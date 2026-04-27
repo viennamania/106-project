@@ -8,8 +8,10 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Coins,
+  LockKeyhole,
   RefreshCcw,
   ShieldCheck,
+  Vault,
   WalletMinimal,
 } from "lucide-react";
 import {
@@ -22,6 +24,10 @@ import {
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import {
+  useWalletUnlockGate,
+  WalletUnlockAction,
+} from "@/components/wallet-unlock-gate";
 import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import {
   buildPathWithReferral,
@@ -78,6 +84,22 @@ export function AssetManagementPage({
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const isDisconnected = status !== "connected" || !accountAddress;
+  const assetPageHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate/assets`, referralCode),
+    {
+      returnTo,
+    },
+  );
+  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const backHref = returnTo ?? activateHref;
+  const walletUnlock = useWalletUnlockGate({
+    locale,
+    referralCode,
+    returnTo: assetPageHref,
+    walletAddress: accountAddress,
+  });
+  const hasAssetAccess = !isDisconnected && walletUnlock.isUnlocked;
+  const securedAccountAddress = hasAssetAccess ? accountAddress : undefined;
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [market, setMarket] = useState<BnbMarketSnapshot | null>(null);
   const [marketError, setMarketError] = useState<string | null>(null);
@@ -95,7 +117,7 @@ export function AssetManagementPage({
     refetch: refetchUsdtBalance,
   } = useWalletBalance(
     {
-      address: accountAddress,
+      address: securedAccountAddress,
       chain: smartWalletChain,
       client: thirdwebClient,
       tokenAddress: BSC_USDT_ADDRESS,
@@ -112,7 +134,7 @@ export function AssetManagementPage({
     refetch: refetchBnbBalance,
   } = useWalletBalance(
     {
-      address: accountAddress,
+      address: securedAccountAddress,
       chain: smartWalletChain,
       client: thirdwebClient,
     },
@@ -122,14 +144,6 @@ export function AssetManagementPage({
     },
   );
 
-  const assetPageHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate/assets`, referralCode),
-    {
-      returnTo,
-    },
-  );
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const backHref = returnTo ?? activateHref;
   const usdtManagementHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/wallet`, referralCode),
     {
@@ -179,7 +193,7 @@ export function AssetManagementPage({
   }, [dictionary.bnbPage.errors.marketFailed]);
 
   const loadHistory = useCallback(async () => {
-    if (!accountAddress) {
+    if (!securedAccountAddress) {
       return;
     }
 
@@ -192,7 +206,7 @@ export function AssetManagementPage({
     try {
       const response = await fetch(
         `/api/wallet/usdt-history?walletAddress=${encodeURIComponent(
-          accountAddress,
+          securedAccountAddress,
         )}&limit=3`,
         {
           cache: "no-store",
@@ -225,7 +239,7 @@ export function AssetManagementPage({
         transfers: [],
       });
     }
-  }, [accountAddress, dictionary.walletPage.errors.loadFailed]);
+  }, [dictionary.walletPage.errors.loadFailed, securedAccountAddress]);
 
   const refreshAssets = useCallback(() => {
     void refetchUsdtBalance();
@@ -237,20 +251,21 @@ export function AssetManagementPage({
   useEffect(() => {
     if (status === "connected") {
       setIsLoginDialogOpen(false);
-      return;
     }
 
-    setMarket(null);
-    setMarketError(null);
-    setHistory({
-      error: null,
-      status: "idle",
-      transfers: [],
-    });
-  }, [status]);
+    if (!hasAssetAccess) {
+      setMarket(null);
+      setMarketError(null);
+      setHistory({
+        error: null,
+        status: "idle",
+        transfers: [],
+      });
+    }
+  }, [hasAssetAccess, status]);
 
   useEffect(() => {
-    if (isDisconnected || !hasThirdwebClientId) {
+    if (!hasAssetAccess || !hasThirdwebClientId) {
       return;
     }
 
@@ -263,7 +278,7 @@ export function AssetManagementPage({
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [isDisconnected, loadHistory, loadMarket]);
+  }, [hasAssetAccess, loadHistory, loadMarket]);
 
   const formattedUsdtBalance =
     usdtBalance?.displayValue !== undefined
@@ -385,6 +400,13 @@ export function AssetManagementPage({
               </div>
             </section>
           </LandingReveal>
+        ) : !walletUnlock.isUnlocked ? (
+          <AssetUnlockRequiredPanel
+            copy={copy}
+            locale={locale}
+            unlockActionLabel={walletUnlock.copy.unlockAction}
+            unlockHref={walletUnlock.unlockHref}
+          />
         ) : (
           <>
             <LandingReveal variant="hero">
@@ -653,6 +675,78 @@ function AssetRow({
         </div>
       </div>
     </Link>
+  );
+}
+
+function AssetUnlockRequiredPanel({
+  copy,
+  locale,
+  unlockActionLabel,
+  unlockHref,
+}: {
+  copy: ReturnType<typeof getAssetManagementCopy>;
+  locale: Locale;
+  unlockActionLabel: string;
+  unlockHref: string;
+}) {
+  return (
+    <LandingReveal variant="soft">
+      <section className="relative overflow-hidden rounded-[28px] border border-slate-900 bg-[linear-gradient(145deg,#07111f_0%,#111827_54%,#12372f_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:p-6">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.45),transparent)]" />
+        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="flex justify-center lg:justify-start">
+            <div className="grid size-36 place-items-center rounded-[36px] border border-white/12 bg-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+              <div className="grid size-24 place-items-center rounded-full border border-amber-100/24 bg-slate-950/34 text-amber-100">
+                <Vault className="size-10" />
+              </div>
+            </div>
+          </div>
+
+          <div className="min-w-0 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-emerald-100/82">
+              <LockKeyhole className="size-3.5" />
+              {locale === "ko" ? "보안 확인 필요" : "Security check required"}
+            </div>
+            <h2 className="mt-4 text-[1.9rem] font-semibold leading-tight tracking-tight text-white sm:text-[2.4rem]">
+              {locale === "ko" ? "자산 금고를 열어주세요" : "Unlock your asset vault"}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/72 lg:mx-0">
+              {locale === "ko"
+                ? "자산 관리에는 잔고, 지갑 주소, 입출금 내역이 포함됩니다. 지갑 PIN 확인 후 이 세션에서 안전하게 확인할 수 있습니다."
+                : "Asset management includes balances, wallet address, and transfer history. Confirm your wallet PIN to review them in this session."}
+            </p>
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-left">
+                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  {copy.usdt.label}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {copy.usdt.metric}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-left">
+                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  {copy.bnb.label}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {copy.bnb.metric}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <WalletUnlockAction
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(255,255,255,0.14)] transition hover:bg-emerald-50 sm:w-auto"
+                href={unlockHref}
+              >
+                {unlockActionLabel}
+              </WalletUnlockAction>
+            </div>
+          </div>
+        </div>
+      </section>
+    </LandingReveal>
   );
 }
 

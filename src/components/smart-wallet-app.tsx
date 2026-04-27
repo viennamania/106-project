@@ -24,8 +24,10 @@ import {
   Rss,
   Share2,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Users,
+  Vault,
   WalletMinimal,
 } from "lucide-react";
 import { getContract } from "thirdweb";
@@ -321,12 +323,22 @@ export function SmartWalletApp({
     `/${locale}/activate/network`,
     preferredReferralCode,
   );
-  const assetManagementHref = setPathSearchParams(
+  const assetPageHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate/assets`, preferredReferralCode),
     {
       returnTo: activatePageHref,
     },
   );
+  const assetWalletUnlock = useWalletUnlockGate({
+    email: memberSync.email ?? memberSync.member?.email,
+    locale,
+    referralCode: preferredReferralCode,
+    returnTo: assetPageHref,
+    walletAddress: accountAddress,
+  });
+  const assetManagementHref = assetWalletUnlock.isUnlocked
+    ? assetPageHref
+    : assetWalletUnlock.unlockHref;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const suspendedCopy = getServiceSuspensionCopy(locale);
   const isSelfIncomingReferral =
@@ -1691,6 +1703,7 @@ export function SmartWalletApp({
             referralDashboard={referralDashboard}
             rewardsHref={rewardsHref}
             assetManagementHref={assetManagementHref}
+            assetManagementLocked={!assetWalletUnlock.isUnlocked}
           />
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
@@ -2393,6 +2406,7 @@ function CompletedHomeDashboard({
   activateNetworkHref,
   announcementsPageHref,
   assetManagementHref,
+  assetManagementLocked,
   brandingStudioHref,
   creatorStudioHref,
   dictionary,
@@ -2408,6 +2422,7 @@ function CompletedHomeDashboard({
   activateNetworkHref: string;
   announcementsPageHref: string;
   assetManagementHref: string;
+  assetManagementLocked: boolean;
   brandingStudioHref: string;
   creatorStudioHref: string;
   dictionary: Dictionary;
@@ -2688,44 +2703,14 @@ function CompletedHomeDashboard({
                 </p>
               </Link>
 
-              <Link
-                className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
+              <AssetVaultEntryCard
+                assetCopy={assetCopy}
+                bnbTitle={dictionary.bnbPage.title}
                 href={assetManagementHref}
-              >
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  {assetCopy.eyebrow}
-                </p>
-                <div className="mt-3 flex items-start justify-between gap-4">
-                  <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <WalletMinimal className="size-4" />
-                  </div>
-                  <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
-                </div>
-                <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                  {assetCopy.title}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {assetCopy.description}
-                </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <p className="text-xs font-semibold text-slate-950">
-                      {dictionary.walletPage.title}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                      {assetCopy.usdt.metric}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <p className="text-xs font-semibold text-slate-950">
-                      {dictionary.bnbPage.title}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                      {assetCopy.bnb.metric}
-                    </p>
-                  </div>
-                </div>
-              </Link>
+                isLocked={assetManagementLocked}
+                locale={locale}
+                walletTitle={dictionary.walletPage.title}
+              />
 
               <div className="grid grid-cols-2 gap-3">
                 <MetricCard
@@ -2959,6 +2944,121 @@ function CompletedHomeDashboard({
         )}
       </Panel>
     </section>
+  );
+}
+
+function AssetVaultEntryCard({
+  assetCopy,
+  bnbTitle,
+  href,
+  isLocked,
+  locale,
+  walletTitle,
+}: {
+  assetCopy: ReturnType<typeof getAssetManagementCopy>;
+  bnbTitle: string;
+  href: string;
+  isLocked: boolean;
+  locale: Locale;
+  walletTitle: string;
+}) {
+  const title = locale === "ko" ? "자산 금고" : "Asset Vault";
+  const description =
+    locale === "ko"
+      ? "테더, BNB, 지갑 보안을 한 번 더 확인하고 관리합니다."
+      : "Review USDT, BNB, and wallet security behind an extra PIN check.";
+  const statusLabel = locale === "ko" ? "PIN 보호" : "PIN protected";
+  const actionLabel = isLocked
+    ? locale === "ko"
+      ? "PIN 확인 후 열기"
+      : "Open with PIN"
+    : locale === "ko"
+      ? "자산 관리 열기"
+      : "Open assets";
+
+  return (
+    <Link
+      className="group relative isolate overflow-hidden rounded-[26px] border border-slate-900 bg-[linear-gradient(145deg,#07111f_0%,#111827_52%,#12372f_100%)] p-4 text-white shadow-[0_26px_70px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_32px_82px_rgba(15,23,42,0.28)] sm:p-5"
+      href={href}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.45),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0)_34%,rgba(255,255,255,0.05)_100%)]" />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-emerald-100/82">
+            <ShieldCheck className="size-3.5" />
+            {statusLabel}
+          </div>
+          <p className="mt-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/45">
+            {assetCopy.eyebrow}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="inline-flex size-11 items-center justify-center rounded-[18px] border border-white/12 bg-white/10 text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur">
+            <Vault className="size-5" />
+          </div>
+          <ArrowUpRight className="size-4 text-white/52 transition group-hover:text-white" />
+        </div>
+      </div>
+
+      <div className="relative mt-4">
+        <p className="text-2xl font-semibold tracking-tight text-white">
+          {title}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-white/70">
+          {description}
+        </p>
+      </div>
+
+      <div className="relative mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-white/7 px-4 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="grid size-16 shrink-0 place-items-center rounded-full border border-amber-200/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))]">
+              <div className="grid size-11 place-items-center rounded-full border border-amber-100/24 bg-slate-950/35 text-amber-100">
+                <Vault className="size-5" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white">
+                {assetCopy.title}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-white/55">
+                {assetCopy.usdt.label} · {assetCopy.bnb.label}
+              </p>
+            </div>
+          </div>
+          <div className="hidden rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold text-white/76 sm:inline-flex">
+            BSC
+          </div>
+        </div>
+      </div>
+
+      <div className="relative mt-4 grid gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2.5">
+            <p className="truncate text-xs font-semibold text-white">
+              {walletTitle}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-white/52">
+              {assetCopy.usdt.metric}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2.5">
+            <p className="truncate text-xs font-semibold text-white">
+              {bnbTitle}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-white/52">
+              {assetCopy.bnb.metric}
+            </p>
+          </div>
+        </div>
+        <div className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(255,255,255,0.14)] transition group-hover:bg-emerald-50">
+          <Vault className="size-4 !text-slate-950" />
+          {actionLabel}
+        </div>
+      </div>
+    </Link>
   );
 }
 
