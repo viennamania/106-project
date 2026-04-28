@@ -175,8 +175,6 @@ const GENERIC_MEMBER_SYNC_ERRORS = new Set([
 ]);
 
 const CELEBRATION_DURATION_MS = 4200;
-const SERVER_UPDATE_NOTICE_SESSION_KEY =
-  "activate-server-update-notice-2026-04-28";
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
@@ -1336,10 +1334,6 @@ export function SmartWalletApp({
       return;
     }
 
-    if (window.sessionStorage.getItem(SERVER_UPDATE_NOTICE_SESSION_KEY) === "1") {
-      return;
-    }
-
     setIsServerUpdateNoticeOpen(true);
   }, [locale]);
 
@@ -1410,10 +1404,6 @@ export function SmartWalletApp({
       />
       <ActivateServerUpdateNoticeModal
         onClose={() => {
-          if (typeof window !== "undefined") {
-            window.sessionStorage.setItem(SERVER_UPDATE_NOTICE_SESSION_KEY, "1");
-          }
-
           setIsServerUpdateNoticeOpen(false);
         }}
         open={isServerUpdateNoticeOpen}
