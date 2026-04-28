@@ -1176,7 +1176,7 @@ export function WalletPage({
                   <div className="mt-5">
                     {!walletUnlock.isUnlocked ? (
                       <WalletUnlockAction
-                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.16)] transition hover:bg-slate-800 [text-shadow:0_1px_14px_rgba(255,255,255,0.18)]"
                         href={walletUnlock.unlockHref}
                       >
                         {walletUnlock.copy.unlockAction}
