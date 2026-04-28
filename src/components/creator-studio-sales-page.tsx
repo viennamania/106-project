@@ -720,7 +720,7 @@ function WalletManagementCard({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <button
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold !text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:!text-slate-500 disabled:opacity-100"
           disabled={!canCreateWallet || isCreatingWallet}
           onClick={onCreateWallet}
           type="button"
@@ -734,14 +734,14 @@ function WalletManagementCard({
         </button>
         {!isWalletUnlocked && canWithdraw ? (
           <WalletUnlockAction
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 [text-shadow:0_1px_14px_rgba(255,255,255,0.18)]"
             href={unlockHref}
           >
             {unlockLabel}
           </WalletUnlockAction>
         ) : (
           <button
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:!text-slate-600 disabled:opacity-100 disabled:shadow-none"
             disabled={!canWithdraw || isWithdrawing}
             onClick={onWithdraw}
             type="button"
