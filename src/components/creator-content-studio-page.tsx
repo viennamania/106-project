@@ -4768,13 +4768,16 @@ export function CreatorContentStudioPage({
                 </Link>
               ) : null}
               <button
-                className="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
+                className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
+                disabled={state.status === "loading"}
                 onClick={() => {
                   void loadStudio();
                 }}
                 type="button"
               >
-                <RefreshCcw className="size-4" />
+                <RefreshCcw
+                  className={cn("size-4", state.status === "loading" && "animate-spin")}
+                />
                 <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
               </button>
             </div>
