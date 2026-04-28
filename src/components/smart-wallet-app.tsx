@@ -1928,14 +1928,14 @@ export function SmartWalletApp({
                           </p>
                           {!signupWalletUnlock.isUnlocked ? (
                             <WalletUnlockAction
-                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(255,255,255,0.12)] transition hover:bg-slate-100"
                               href={signupWalletUnlock.unlockHref}
                             >
                               {signupWalletUnlock.copy.unlockAction}
                             </WalletUnlockAction>
                           ) : (
                             <TransactionButton
-                              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="signup-payment-transaction-button inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(255,255,255,0.12)] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:!text-slate-600 disabled:opacity-100 disabled:shadow-none"
                               disabled={isSignupPaymentDisabled}
                               onError={handleSignupPaymentError}
                               onTransactionConfirmed={handleSignupPaymentConfirmed}
@@ -2166,7 +2166,7 @@ export function SmartWalletApp({
                 </WalletUnlockAction>
               ) : (
                 <TransactionButton
-                  className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 min-[420px]:w-auto"
+                  className="signup-payment-transaction-button inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:!text-white disabled:opacity-100 min-[420px]:w-auto"
                   disabled={isSignupPaymentDisabled}
                   onError={handleSignupPaymentError}
                   onTransactionConfirmed={handleSignupPaymentConfirmed}

@@ -71,6 +71,14 @@ a {
   display: none !important;
 }
 
+.signup-payment-transaction-button[data-is-loading="true"] > span {
+  visibility: visible !important;
+}
+
+.signup-payment-transaction-button[data-is-loading="true"] > span + div {
+  display: none !important;
+}
+
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }
