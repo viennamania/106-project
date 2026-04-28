@@ -55,7 +55,6 @@ import {
   type MemberRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
-import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import {
@@ -158,7 +157,6 @@ export function WalletPage({
   referralCode?: string | null;
   returnTo?: string | null;
 }) {
-  const brandingCopy = getLandingBrandingCopy(locale);
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
@@ -228,12 +226,6 @@ export function WalletPage({
     { returnTo: currentWalletHref },
   );
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
-  const brandingStudioHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
-    {
-      returnTo: currentWalletHref,
-    },
-  );
 
   const persistWalletTransfer = useCallback(
     async (payload: WalletTransferMutationRequest) => {
@@ -886,67 +878,40 @@ export function WalletPage({
               </LandingReveal>
 
               <LandingReveal delay={80} variant="soft">
-                <section className="glass-card rounded-[30px] p-5 sm:p-6">
-                  <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.walletPage.eyebrow}</p>
-                    <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                      {dictionary.walletPage.labels.memberAccount}
-                    </h2>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {dictionary.walletPage.description}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.98),rgba(255,255,255,0.96))] p-4 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                <section className="glass-card rounded-[26px] p-4 sm:rounded-[30px] sm:p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+                        <ShieldCheck className="size-5" />
+                      </div>
                       <div className="min-w-0">
-                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
                           {dictionary.walletPage.labels.memberAccount}
                         </p>
-                        <p className="mt-2 break-all text-lg font-semibold text-slate-950">
+                        <p className="mt-1 truncate text-base font-semibold text-slate-950">
                           {dashboard.member?.email ?? currentEmail ?? "-"}
                         </p>
                       </div>
-                      <InfoBadge className="border-slate-200 bg-white text-slate-700">
-                        {dashboard.member
-                          ? dashboard.member.status === "completed"
-                            ? dictionary.member.completedValue
-                            : dictionary.member.pendingValue
+                    </div>
+                    <InfoBadge className="shrink-0 border-slate-200 bg-white text-slate-700">
+                      {dashboard.member
+                        ? dashboard.member.status === "completed"
+                          ? dictionary.member.completedValue
+                          : dictionary.member.pendingValue
+                        : dashboard.memberStatus === "loading"
+                          ? dictionary.walletPage.loading
                           : "-"}
-                      </InfoBadge>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <MetricCard
-                        label={dictionary.walletPage.labels.referralCode}
-                        value={dashboard.member?.referralCode ?? "-"}
-                      />
-                      <MetricCard
-                        label={dictionary.walletPage.labels.updatedAt}
-                        value={
-                          dashboard.memberUpdatedAt
-                            ? formatDateTime(dashboard.memberUpdatedAt, locale)
-                            : dashboard.memberStatus === "loading"
-                              ? dictionary.walletPage.loading
-                              : "-"
-                        }
-                      />
-                    </div>
+                    </InfoBadge>
                   </div>
 
                   {isCompletedMember ? (
-                    <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
+                    <div className="mt-4">
                       <Link
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                         href={referralsHref}
                       >
                         {dictionary.member.actions.viewReferrals}
-                      </Link>
-                      <Link
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
-                        href={brandingStudioHref}
-                      >
-                        {brandingCopy.page.title}
+                        <ArrowUpRight className="size-4" />
                       </Link>
                     </div>
                   ) : null}
@@ -1401,25 +1366,6 @@ export function WalletPage({
           </>
         )}
       </main>
-    </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 break-all text-sm font-semibold text-slate-950">
-        {value}
-      </p>
     </div>
   );
 }
