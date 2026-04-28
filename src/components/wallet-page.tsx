@@ -213,7 +213,6 @@ export function WalletPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const currentEmail = dashboard.member?.email ?? dashboard.email;
-  const isCompletedMember = dashboard.member?.status === "completed";
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const backHref = returnTo ?? homeHref;
   const currentWalletHref = setPathSearchParams(
@@ -231,7 +230,6 @@ export function WalletPage({
     buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
     { returnTo: currentWalletHref },
   );
-  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
   const sendProgress =
     sendTransactionStatus === "idle"
       ? null
@@ -922,18 +920,6 @@ export function WalletPage({
                           : "-"}
                     </InfoBadge>
                   </div>
-
-                  {isCompletedMember ? (
-                    <div className="mt-4">
-                      <Link
-                        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                        href={referralsHref}
-                      >
-                        {dictionary.member.actions.viewReferrals}
-                        <ArrowUpRight className="size-4" />
-                      </Link>
-                    </div>
-                  ) : null}
 
                   {dashboard.memberError ? (
                     <div className="mt-4">
