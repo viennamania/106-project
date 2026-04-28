@@ -29,6 +29,7 @@ import {
   Users,
   Vault,
   WalletMinimal,
+  X,
 } from "lucide-react";
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
@@ -174,6 +175,8 @@ const GENERIC_MEMBER_SYNC_ERRORS = new Set([
 ]);
 
 const CELEBRATION_DURATION_MS = 4200;
+const SERVER_UPDATE_NOTICE_SESSION_KEY =
+  "activate-server-update-notice-2026-04-28";
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
@@ -247,6 +250,8 @@ export function SmartWalletApp({
   const [showCelebration, setShowCelebration] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isServerUpdateNoticeOpen, setIsServerUpdateNoticeOpen] =
+    useState(false);
   const copiedTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
@@ -1327,6 +1332,18 @@ export function SmartWalletApp({
   }, [status]);
 
   useEffect(() => {
+    if (locale !== "ko" || typeof window === "undefined") {
+      return;
+    }
+
+    if (window.sessionStorage.getItem(SERVER_UPDATE_NOTICE_SESSION_KEY) === "1") {
+      return;
+    }
+
+    setIsServerUpdateNoticeOpen(true);
+  }, [locale]);
+
+  useEffect(() => {
     return () => {
       if (copiedTimeoutRef.current) {
         window.clearTimeout(copiedTimeoutRef.current);
@@ -1390,6 +1407,16 @@ export function SmartWalletApp({
         onConfirm={confirmLogout}
         open={isLogoutDialogOpen}
         title={dictionary.common.logoutDialog.title}
+      />
+      <ActivateServerUpdateNoticeModal
+        onClose={() => {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(SERVER_UPDATE_NOTICE_SESSION_KEY, "1");
+          }
+
+          setIsServerUpdateNoticeOpen(false);
+        }}
+        open={isServerUpdateNoticeOpen}
       />
       <CelebrationOverlay
         description={dictionary.member.celebrationDescription}
@@ -3419,6 +3446,67 @@ function NoticeCard({
       )}
     >
       <p>{notice.text}</p>
+    </div>
+  );
+}
+
+function ActivateServerUpdateNoticeModal({
+  onClose,
+  open,
+}: {
+  onClose: () => void;
+  open: boolean;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/58 px-0 backdrop-blur-sm sm:items-center sm:px-4">
+      <div
+        aria-modal="true"
+        className="w-full max-w-[520px] rounded-t-[30px] border border-white/80 bg-white p-4 shadow-[0_-24px_70px_rgba(15,23,42,0.26)] sm:rounded-[32px] sm:p-5"
+        role="dialog"
+      >
+        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+              <ShieldAlert className="size-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-amber-700">
+                중요 공지
+              </p>
+              <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-slate-950">
+                서버 업데이트 안내
+              </h2>
+            </div>
+          </div>
+          <button
+            aria-label="공지 닫기"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-950"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4">
+          <p className="whitespace-pre-wrap text-[0.96rem] font-medium leading-7 text-amber-950">
+            4월 28일(화) 자정에 서버 업데이트로 지갑주소가 변경됩니다. 지갑에 자산이 있을경우 모두 자정까지 출금하시기 바랍니다. 이용에 불편을 드려서 죄송합니다.
+          </p>
+        </div>
+
+        <button
+          className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+          onClick={onClose}
+          type="button"
+        >
+          확인했습니다
+        </button>
+      </div>
     </div>
   );
 }
