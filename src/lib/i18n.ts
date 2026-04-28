@@ -449,6 +449,20 @@ export type Dictionary = {
       txConfirmed: string;
       qrUnavailable: string;
     };
+    sendProgress: {
+      approving: {
+        label: string;
+        description: string;
+      };
+      submitted: {
+        label: string;
+        description: string;
+      };
+      confirmed: {
+        label: string;
+        description: string;
+      };
+    };
   };
   bnbPage: {
     title: string;
@@ -1271,6 +1285,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txConfirmed:
           "전송이 확인되었습니다. 잔고와 내역을 다시 불러오는 중입니다.",
         qrUnavailable: "QR 코드를 생성하지 못했습니다.",
+      },
+      sendProgress: {
+        approving: {
+          label: "지갑 승인 대기 중",
+          description:
+            "지갑 승인 화면에서 전송을 확인하면 체인 제출이 이어집니다. 창을 닫지 말고 잠시 기다려 주세요.",
+        },
+        submitted: {
+          label: "체인 확인 중",
+          description:
+            "전송이 제출되었습니다. 블록 확인이 끝나면 잔고와 내역을 자동으로 새로고침합니다.",
+        },
+        confirmed: {
+          label: "전송 완료",
+          description:
+            "체인 확인이 끝났습니다. 잔고와 입출금 내역을 다시 불러오고 있습니다.",
+        },
       },
     },
     bnbPage: {
@@ -2126,6 +2157,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txConfirmed:
           "The transfer was confirmed. Reloading balance and history now.",
         qrUnavailable: "Unable to generate a QR code right now.",
+      },
+      sendProgress: {
+        approving: {
+          label: "Waiting for wallet approval",
+          description:
+            "Confirm the transfer in the wallet prompt. Keep this screen open while the transaction is prepared.",
+        },
+        submitted: {
+          label: "Confirming onchain",
+          description:
+            "The transfer was submitted. Balance and history will refresh after the block is confirmed.",
+        },
+        confirmed: {
+          label: "Transfer complete",
+          description:
+            "The transfer was confirmed. Balance and transfer history are refreshing now.",
+        },
       },
     },
     bnbPage: {
@@ -2986,6 +3034,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "送金が確認されました。残高と履歴を再読み込みしています。",
         qrUnavailable: "現在 QR コードを生成できません。",
       },
+      sendProgress: {
+        approving: {
+          label: "ウォレット承認待ち",
+          description:
+            "ウォレットの承認画面で送金を確認してください。処理中はこの画面を開いたままお待ちください。",
+        },
+        submitted: {
+          label: "チェーン確認中",
+          description:
+            "送金が送信されました。ブロック確認後に残高と履歴を自動更新します。",
+        },
+        confirmed: {
+          label: "送金完了",
+          description:
+            "チェーン確認が完了しました。残高と入出金履歴を再読み込みしています。",
+        },
+      },
     },
     bnbPage: {
       title: "BNB 評価",
@@ -3836,6 +3901,23 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         txSent: "转账已提交。链上确认后，记录会自动刷新。",
         txConfirmed: "转账已确认。正在重新加载余额和记录。",
         qrUnavailable: "暂时无法生成二维码。",
+      },
+      sendProgress: {
+        approving: {
+          label: "等待钱包确认",
+          description:
+            "请在钱包确认窗口中批准转账。交易准备期间请保持当前页面打开。",
+        },
+        submitted: {
+          label: "链上确认中",
+          description:
+            "转账已提交。区块确认完成后，余额和记录会自动刷新。",
+        },
+        confirmed: {
+          label: "转账完成",
+          description:
+            "链上确认已完成。正在重新加载余额和收支记录。",
+        },
       },
     },
     bnbPage: {

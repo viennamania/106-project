@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Coins,
+  LoaderCircle,
   QrCode,
   RefreshCcw,
   Search,
@@ -103,6 +104,8 @@ type RecipientSearchState = {
   results: WalletMemberLookupRecord[];
   status: "idle" | "loading" | "ready" | "error";
 };
+
+type SendTransactionStatus = "idle" | "approving" | "submitted" | "confirmed";
 
 const HISTORY_LIMIT = 24;
 const HISTORY_FETCH_TIMEOUT_MS = 10_000;
@@ -194,12 +197,15 @@ export function WalletPage({
   const [selectedRecipient, setSelectedRecipient] =
     useState<WalletMemberLookupRecord | null>(null);
   const [sendAmount, setSendAmount] = useState("");
+  const [sendTransactionStatus, setSendTransactionStatus] =
+    useState<SendTransactionStatus>("idle");
   const [notice, setNotice] = useState<WalletNotice | null>(null);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const historyRetryTimeoutRef = useRef<number | null>(null);
+  const sendStatusResetTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
   const syncVersionRef = useRef(0);
   const walletRefreshRequesterRef = useRef<(() => void) | null>(null);
@@ -226,6 +232,11 @@ export function WalletPage({
     { returnTo: currentWalletHref },
   );
   const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const sendProgress =
+    sendTransactionStatus === "idle"
+      ? null
+      : dictionary.walletPage.sendProgress[sendTransactionStatus];
+  const isSendTransactionBusy = sendTransactionStatus !== "idle";
 
   const persistWalletTransfer = useCallback(
     async (payload: WalletTransferMutationRequest) => {
@@ -522,6 +533,9 @@ export function WalletPage({
       if (historyRetryTimeoutRef.current !== null) {
         window.clearTimeout(historyRetryTimeoutRef.current);
       }
+      if (sendStatusResetTimeoutRef.current !== null) {
+        window.clearTimeout(sendStatusResetTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -587,6 +601,11 @@ export function WalletPage({
       });
       setSelectedRecipient(null);
       setSendAmount("");
+      setSendTransactionStatus("idle");
+      if (sendStatusResetTimeoutRef.current !== null) {
+        window.clearTimeout(sendStatusResetTimeoutRef.current);
+        sendStatusResetTimeoutRef.current = null;
+      }
       return;
     }
   }, [status]);
@@ -1163,135 +1182,189 @@ export function WalletPage({
                         {walletUnlock.copy.unlockAction}
                       </WalletUnlockAction>
                     ) : (
-                      <TransactionButton
-                        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={
-                          !accountAddress ||
-                          !selectedRecipient ||
-                          !sendAmount.trim() ||
-                          isSelfTransfer
-                        }
-                        onError={(error) => {
-                          setNotice({
-                            text: error.message,
-                            tone: "error",
-                          });
-                        }}
-                        onTransactionConfirmed={(receipt) => {
-                          const confirmedRecipient = selectedRecipient;
-                          const confirmedAmount = sendAmount.trim();
-
-                          if (
-                            accountAddress &&
-                            confirmedRecipient &&
-                            confirmedAmount &&
-                            /^\d+(\.\d+)?$/u.test(confirmedAmount)
-                          ) {
-                            const amountWei = toUnits(
-                              confirmedAmount,
-                              MEMBER_SIGNUP_USDT_DECIMALS,
-                            ).toString();
-
-                            void persistWalletTransfer({
-                              action: "confirm_send",
-                              amountWei,
-                              fromWalletAddress: accountAddress,
-                              toWalletAddress: confirmedRecipient.walletAddress,
-                              transactionHash: receipt.transactionHash,
-                            }).catch(() => {
-                              // The history row stays pending until the next refresh retry.
+                      <>
+                        <TransactionButton
+                          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={
+                            isSendTransactionBusy ||
+                            !accountAddress ||
+                            !selectedRecipient ||
+                            !sendAmount.trim() ||
+                            isSelfTransfer
+                          }
+                          onError={(error) => {
+                            if (sendStatusResetTimeoutRef.current !== null) {
+                              window.clearTimeout(sendStatusResetTimeoutRef.current);
+                              sendStatusResetTimeoutRef.current = null;
+                            }
+                            setSendTransactionStatus("idle");
+                            setNotice({
+                              text: error.message,
+                              tone: "error",
                             });
-                          }
+                          }}
+                          onTransactionConfirmed={(receipt) => {
+                            const confirmedRecipient = selectedRecipient;
+                            const confirmedAmount = sendAmount.trim();
 
-                          setNotice({
-                            href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
-                            text: dictionary.walletPage.notices.txConfirmed,
-                            tone: "success",
-                          });
-                          setSendAmount("");
-                          window.setTimeout(() => {
-                            void runWalletSync({ background: true });
-                          }, 1800);
-                        }}
-                        onTransactionSent={(result) => {
-                          const sentRecipient = selectedRecipient;
-                          const sentAmount = sendAmount.trim();
+                            setSendTransactionStatus("confirmed");
+                            if (sendStatusResetTimeoutRef.current !== null) {
+                              window.clearTimeout(sendStatusResetTimeoutRef.current);
+                            }
+                            sendStatusResetTimeoutRef.current = window.setTimeout(() => {
+                              setSendTransactionStatus("idle");
+                              sendStatusResetTimeoutRef.current = null;
+                            }, 2400);
 
-                          if (
-                            accountAddress &&
-                            sentRecipient &&
-                            sentAmount &&
-                            /^\d+(\.\d+)?$/u.test(sentAmount)
-                          ) {
-                            const amountWei = toUnits(
-                              sentAmount,
-                              MEMBER_SIGNUP_USDT_DECIMALS,
-                            ).toString();
+                            if (
+                              accountAddress &&
+                              confirmedRecipient &&
+                              confirmedAmount &&
+                              /^\d+(\.\d+)?$/u.test(confirmedAmount)
+                            ) {
+                              const amountWei = toUnits(
+                                confirmedAmount,
+                                MEMBER_SIGNUP_USDT_DECIMALS,
+                              ).toString();
 
-                            void persistWalletTransfer({
-                              action: "record_send",
-                              amountWei,
-                              fromWalletAddress: accountAddress,
-                              toWalletAddress: sentRecipient.walletAddress,
-                              transactionHash: result.transactionHash,
-                            }).catch(() => {
-                              // Keep the UI moving even if the history write fails.
+                              void persistWalletTransfer({
+                                action: "confirm_send",
+                                amountWei,
+                                fromWalletAddress: accountAddress,
+                                toWalletAddress: confirmedRecipient.walletAddress,
+                                transactionHash: receipt.transactionHash,
+                              }).catch(() => {
+                                // The history row stays pending until the next refresh retry.
+                              });
+                            }
+
+                            setNotice({
+                              href: `${BSC_EXPLORER}/tx/${receipt.transactionHash}`,
+                              text: dictionary.walletPage.notices.txConfirmed,
+                              tone: "success",
                             });
-                          }
+                            setSendAmount("");
+                            window.setTimeout(() => {
+                              void runWalletSync({ background: true });
+                            }, 1800);
+                          }}
+                          onTransactionSent={(result) => {
+                            const sentRecipient = selectedRecipient;
+                            const sentAmount = sendAmount.trim();
 
-                          setNotice({
-                            href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
-                            text: dictionary.walletPage.notices.txSent,
-                            tone: "info",
-                          });
-                          window.setTimeout(() => {
-                            void runWalletSync({ background: true });
-                          }, 3200);
-                        }}
-                        transaction={() => {
-                          if (!selectedRecipient) {
-                            throw new Error(dictionary.walletPage.errors.selectRecipient);
-                          }
+                            setSendTransactionStatus("submitted");
 
-                          const normalizedAmount = sendAmount.trim();
+                            if (
+                              accountAddress &&
+                              sentRecipient &&
+                              sentAmount &&
+                              /^\d+(\.\d+)?$/u.test(sentAmount)
+                            ) {
+                              const amountWei = toUnits(
+                                sentAmount,
+                                MEMBER_SIGNUP_USDT_DECIMALS,
+                              ).toString();
 
-                          if (!normalizedAmount || !/^\d+(\.\d+)?$/u.test(normalizedAmount)) {
-                            throw new Error(dictionary.walletPage.errors.invalidAmount);
-                          }
+                              void persistWalletTransfer({
+                                action: "record_send",
+                                amountWei,
+                                fromWalletAddress: accountAddress,
+                                toWalletAddress: sentRecipient.walletAddress,
+                                transactionHash: result.transactionHash,
+                              }).catch(() => {
+                                // Keep the UI moving even if the history write fails.
+                              });
+                            }
 
-                          const amountInUnits = toUnits(
-                            normalizedAmount,
-                            MEMBER_SIGNUP_USDT_DECIMALS,
-                          );
+                            setNotice({
+                              href: `${BSC_EXPLORER}/tx/${result.transactionHash}`,
+                              text: dictionary.walletPage.notices.txSent,
+                              tone: "info",
+                            });
+                            window.setTimeout(() => {
+                              void runWalletSync({ background: true });
+                            }, 3200);
+                          }}
+                          transaction={() => {
+                            if (!selectedRecipient) {
+                              throw new Error(dictionary.walletPage.errors.selectRecipient);
+                            }
 
-                          if (amountInUnits <= BigInt(0)) {
-                            throw new Error(dictionary.walletPage.errors.invalidAmount);
-                          }
+                            const normalizedAmount = sendAmount.trim();
 
-                          if (isSelfTransfer) {
-                            throw new Error(dictionary.walletPage.errors.selfTransfer);
-                          }
+                            if (!normalizedAmount || !/^\d+(\.\d+)?$/u.test(normalizedAmount)) {
+                              throw new Error(dictionary.walletPage.errors.invalidAmount);
+                            }
 
-                          if (
-                            typeof balance?.value === "bigint" &&
-                            amountInUnits > balance.value
-                          ) {
-                            throw new Error(
-                              dictionary.walletPage.errors.insufficientBalance,
+                            const amountInUnits = toUnits(
+                              normalizedAmount,
+                              MEMBER_SIGNUP_USDT_DECIMALS,
                             );
-                          }
 
-                          return transfer({
-                            amount: normalizedAmount,
-                            contract: usdtContract,
-                            to: selectedRecipient.walletAddress,
-                          });
-                        }}
-                        type="button"
-                        unstyled
-                      >
-                        {dictionary.walletPage.actions.send}
-                      </TransactionButton>
+                            if (amountInUnits <= BigInt(0)) {
+                              throw new Error(dictionary.walletPage.errors.invalidAmount);
+                            }
+
+                            if (isSelfTransfer) {
+                              throw new Error(dictionary.walletPage.errors.selfTransfer);
+                            }
+
+                            if (
+                              typeof balance?.value === "bigint" &&
+                              amountInUnits > balance.value
+                            ) {
+                              throw new Error(
+                                dictionary.walletPage.errors.insufficientBalance,
+                              );
+                            }
+
+                            if (sendStatusResetTimeoutRef.current !== null) {
+                              window.clearTimeout(sendStatusResetTimeoutRef.current);
+                              sendStatusResetTimeoutRef.current = null;
+                            }
+                            setSendTransactionStatus("approving");
+
+                            return transfer({
+                              amount: normalizedAmount,
+                              contract: usdtContract,
+                              to: selectedRecipient.walletAddress,
+                            });
+                          }}
+                          type="button"
+                          unstyled
+                        >
+                          {isSendTransactionBusy && sendProgress ? (
+                            <>
+                              {sendTransactionStatus === "confirmed" ? (
+                                <ShieldCheck className="size-4" />
+                              ) : (
+                                <LoaderCircle className="size-4 animate-spin" />
+                              )}
+                              <span>{sendProgress.label}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="size-4" />
+                              <span>{dictionary.walletPage.actions.send}</span>
+                            </>
+                          )}
+                        </TransactionButton>
+                        {sendProgress ? (
+                          <div
+                            aria-live="polite"
+                            className="mt-3 rounded-[22px] border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-950 shadow-[0_14px_34px_rgba(14,165,233,0.08)]"
+                          >
+                            <div className="flex items-start gap-3">
+                              {sendTransactionStatus === "confirmed" ? (
+                                <ShieldCheck className="mt-1 size-4 shrink-0" />
+                              ) : (
+                                <LoaderCircle className="mt-1 size-4 shrink-0 animate-spin" />
+                              )}
+                              <p>{sendProgress.description}</p>
+                            </div>
+                          </div>
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </section>
