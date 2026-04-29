@@ -1564,7 +1564,7 @@ export function ContentDetailPage({
             />
           ) : null}
 
-          {isPaidDetail ? (
+          {isPaidDetail && !isPaidPurchaseUnlocked ? (
             <PaidProofPanel
               buyerLabel={paidBuyerLabel}
               hasProof={hasPaidProof}
