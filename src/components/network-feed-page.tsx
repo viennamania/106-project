@@ -121,7 +121,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 6;
+const FEED_RESTORE_VERSION = 7;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -599,6 +599,7 @@ export function NetworkFeedPage({
                 locale,
                 referralCode: referralCode ?? "",
               }).toString()}`,
+              { cache: "no-store" },
             )
           : accountAddress
             ? await (async () => {
@@ -616,6 +617,7 @@ export function NetworkFeedPage({
                     view: feedView,
                     walletAddress: accountAddress,
                   }).toString()}`,
+                  { cache: "no-store" },
                 );
               })()
             : null;
@@ -755,7 +757,7 @@ export function NetworkFeedPage({
       if (snapshot) {
         applyFeedSnapshot(feedRestoreKey, snapshot);
 
-        if (feedView === "network" && snapshot.items.length > 0) {
+        if (feedView !== "network" && snapshot.items.length > 0) {
           return;
         }
       }
@@ -769,7 +771,6 @@ export function NetworkFeedPage({
       !skippedInitialPublicLoadRef.current
     ) {
       skippedInitialPublicLoadRef.current = true;
-      return;
     }
 
     if (isPublicReferralFeed) {
