@@ -365,9 +365,12 @@ function inferSourceTitle(title: string | undefined, url: string) {
   }
 }
 
-function getSponsorReferralCode(member: MemberDocument) {
+function getNetworkParentReferralCode(member: MemberDocument) {
   return normalizeReferralCode(
-    member.sponsorReferralCode ?? member.referredByCode ?? null,
+    member.placementReferralCode ??
+      member.sponsorReferralCode ??
+      member.referredByCode ??
+      null,
   );
 }
 
@@ -502,17 +505,17 @@ async function resolveNetworkAncestors(member: MemberDocument) {
   const membersCollection = await getMembersCollection();
   const visited = new Set<string>();
   const ancestors: NetworkAncestor[] = [];
-  let currentSponsorCode = getSponsorReferralCode(member);
+  let currentParentCode = getNetworkParentReferralCode(member);
 
   while (
-    currentSponsorCode &&
+    currentParentCode &&
     ancestors.length < CONTENT_NETWORK_LEVEL_LIMIT &&
-    !visited.has(currentSponsorCode)
+    !visited.has(currentParentCode)
   ) {
-    visited.add(currentSponsorCode);
+    visited.add(currentParentCode);
 
     const ancestor = await membersCollection.findOne({
-      referralCode: currentSponsorCode,
+      referralCode: currentParentCode,
       status: "completed",
     });
 
@@ -523,10 +526,10 @@ async function resolveNetworkAncestors(member: MemberDocument) {
     ancestors.push({
       level: ancestors.length + 1,
       member: ancestor,
-      referralCode: currentSponsorCode,
+      referralCode: currentParentCode,
     });
 
-    currentSponsorCode = getSponsorReferralCode(ancestor);
+    currentParentCode = getNetworkParentReferralCode(ancestor);
   }
 
   return ancestors;
@@ -542,17 +545,17 @@ async function resolveNetworkAncestorsFromReferralCode(referralCode: string) {
 
   const visited = new Set<string>();
   const ancestors: NetworkAncestor[] = [];
-  let currentSponsorCode: string | null = normalizedReferralCode;
+  let currentParentCode: string | null = normalizedReferralCode;
 
   while (
-    currentSponsorCode &&
+    currentParentCode &&
     ancestors.length < CONTENT_NETWORK_LEVEL_LIMIT &&
-    !visited.has(currentSponsorCode)
+    !visited.has(currentParentCode)
   ) {
-    visited.add(currentSponsorCode);
+    visited.add(currentParentCode);
 
     const ancestor = await membersCollection.findOne({
-      referralCode: currentSponsorCode,
+      referralCode: currentParentCode,
       status: "completed",
     });
 
@@ -563,10 +566,10 @@ async function resolveNetworkAncestorsFromReferralCode(referralCode: string) {
     ancestors.push({
       level: ancestors.length + 1,
       member: ancestor,
-      referralCode: currentSponsorCode,
+      referralCode: currentParentCode,
     });
 
-    currentSponsorCode = getSponsorReferralCode(ancestor);
+    currentParentCode = getNetworkParentReferralCode(ancestor);
   }
 
   return ancestors;
