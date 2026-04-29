@@ -11,32 +11,38 @@ import {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "black-forest-labs/flux-1.1-pro-ultra";
+const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
 const DEFAULT_ASPECT_RATIO = "4:5";
+const DEFAULT_MEGAPIXELS = "2";
 const DEFAULT_OUTPUT_FORMAT = "png";
-const DEFAULT_SAFETY_TOLERANCE = 6;
+const DEFAULT_OUTPUT_QUALITY = 100;
+const DEFAULT_DISABLE_SAFETY_CHECKER = true;
 
-type FluxProUltraAspectRatio =
-  | "21:9"
-  | "16:9"
-  | "3:2"
-  | "4:3"
-  | "5:4"
+type Flux2KleinAspectRatio =
   | "1:1"
-  | "4:5"
-  | "3:4"
-  | "2:3"
+  | "16:9"
   | "9:16"
-  | "9:21";
+  | "3:2"
+  | "2:3"
+  | "4:3"
+  | "3:4"
+  | "5:4"
+  | "4:5"
+  | "21:9"
+  | "9:21"
+  | "match_input_image";
 
-type FluxProUltraInput = {
-  aspect_ratio?: FluxProUltraAspectRatio;
-  image_prompt?: string;
-  image_prompt_strength?: number;
-  output_format?: "jpg" | "png";
+type Flux2KleinMegapixels = "0.25" | "0.5" | "1" | "2" | "4";
+
+type Flux2KleinInput = {
+  aspect_ratio?: Flux2KleinAspectRatio;
+  disable_safety_checker?: boolean;
+  go_fast?: boolean;
+  images?: string[];
+  megapixels?: Flux2KleinMegapixels;
+  output_format?: "webp" | "jpg" | "png";
+  output_quality?: number;
   prompt: string;
-  raw?: boolean;
-  safety_tolerance?: 1 | 2 | 3 | 4 | 5 | 6;
   seed?: number;
 };
 
@@ -229,10 +235,13 @@ export async function generateAndUploadContentGalleryImage(
   const replicate = new Replicate({ auth: replicateToken });
   const modelInput = {
     aspect_ratio: DEFAULT_ASPECT_RATIO,
+    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
+    go_fast: false,
+    megapixels: DEFAULT_MEGAPIXELS,
     output_format: DEFAULT_OUTPUT_FORMAT,
+    output_quality: DEFAULT_OUTPUT_QUALITY,
     prompt,
-    safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
-  } satisfies FluxProUltraInput;
+  } satisfies Flux2KleinInput;
 
   const rawOutput = await replicate.run(DEFAULT_MODEL, {
     input: modelInput,
