@@ -553,7 +553,7 @@ export function CreatorStudioPostsPage({
 
           <div className="hidden gap-2 sm:flex sm:flex-wrap">
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 [text-shadow:0_1px_14px_rgba(255,255,255,0.18)]"
               href={newPostHref}
             >
               {contentCopy.actions.createPost}
