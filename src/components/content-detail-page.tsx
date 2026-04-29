@@ -7,7 +7,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type ComponentType,
   type PointerEvent,
   type ReactNode,
 } from "react";
@@ -743,6 +742,18 @@ export function ContentDetailPage({
       ? "유료 콘텐츠입니다"
       : "This is paid content"
     : contentCopy.messages.previewLocked;
+  const detailShareActionLabel =
+    shareState === "sharing"
+      ? locale === "ko"
+        ? "공유 중"
+        : "Sharing"
+      : contentCopy.actions.share;
+  const detailCopyActionLabel =
+    shareState === "copied"
+      ? locale === "ko"
+        ? "복사됨"
+        : "Copied"
+      : contentCopy.actions.copyLink;
 
   useEffect(() => {
     if (!shouldRequirePaidGalleryPin) {
@@ -1484,19 +1495,19 @@ export function ContentDetailPage({
             ))}
           </section>
 
-          <section className="relative -mt-6 rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] px-4 py-4 shadow-[0_24px_60px_rgba(15,23,42,0.10)] sm:mt-0 sm:rounded-[32px] sm:px-6 sm:py-6">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-slate-400">
-                  {contentCopy.page.detailEyebrow}
-                </p>
-              </div>
+          <section
+            aria-label={contentCopy.page.detailEyebrow}
+            className="relative -mt-4 rounded-[24px] border border-white/80 bg-white/95 p-2 shadow-[0_18px_45px_rgba(15,23,42,0.10)] backdrop-blur sm:mt-0 sm:rounded-[28px] sm:p-3"
+          >
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <button
+                aria-label={isLiked ? contentCopy.actions.liked : contentCopy.actions.like}
+                aria-pressed={isLiked}
                 className={cn(
-                  "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition",
+                  "inline-flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 text-[0.78rem] font-semibold transition sm:h-[3.25rem] sm:gap-2 sm:text-sm",
                   isLiked
-                    ? "border-rose-200 bg-rose-50 text-rose-700 shadow-[0_14px_30px_rgba(244,63,94,0.14)]"
-                    : "border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50",
+                    ? "border-rose-200 bg-rose-50 text-rose-700 shadow-[0_12px_26px_rgba(244,63,94,0.12)]"
+                    : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50",
                 )}
                 onClick={() => {
                   if (isLiked) {
@@ -1510,40 +1521,44 @@ export function ContentDetailPage({
               >
                 <Heart
                   className={cn(
-                    "size-4 transition-transform",
+                    "size-4 shrink-0 transition-transform",
                     isLiked ? "fill-current text-rose-500" : "",
                   )}
                 />
-                <span>{isLiked ? contentCopy.actions.liked : contentCopy.actions.like}</span>
+                <span className="truncate">{contentCopy.actions.like}</span>
               </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <ActionChip
-                className="w-full justify-center"
-                icon={Share2}
-                label={
-                  shareState === "sharing"
-                    ? contentCopy.actions.sharing
-                    : contentCopy.actions.share
-                }
+              <button
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full bg-slate-950 px-2 text-[0.78rem] font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] transition hover:bg-slate-900 sm:h-[3.25rem] sm:gap-2 sm:text-sm"
                 onClick={() => {
                   void handleShare();
                 }}
-                tone="primary"
-              />
-              <ActionChip
-                className="w-full justify-center"
-                icon={Copy}
-                label={
-                  shareState === "copied"
-                    ? contentCopy.actions.copiedLink
-                    : contentCopy.actions.copyLink
-                }
+                type="button"
+              >
+                {shareState === "sharing" ? (
+                  <LoaderCircle className="size-4 shrink-0 animate-spin" />
+                ) : (
+                  <Share2 className="size-4 shrink-0" />
+                )}
+                <span className="truncate">
+                  {detailShareActionLabel}
+                </span>
+              </button>
+              <button
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-[0.78rem] font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:h-[3.25rem] sm:gap-2 sm:text-sm"
                 onClick={() => {
                   void copyShareLink();
                 }}
-              />
+                type="button"
+              >
+                {shareState === "copied" ? (
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                ) : (
+                  <Copy className="size-4 shrink-0" />
+                )}
+                <span className="truncate">
+                  {detailCopyActionLabel}
+                </span>
+              </button>
             </div>
 
             {shareState === "error" ? (
@@ -3133,37 +3148,6 @@ function ContentImageCarousel({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function ActionChip({
-  className,
-  icon: Icon,
-  label,
-  onClick,
-  tone = "neutral",
-}: {
-  className?: string;
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  onClick?: () => void;
-  tone?: "neutral" | "primary";
-}) {
-  return (
-    <button
-      className={cn(
-        "inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-semibold transition",
-        tone === "primary"
-          ? "border-slate-950 bg-slate-950 !text-white shadow-[0_16px_34px_rgba(15,23,42,0.22)] hover:bg-slate-900"
-          : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
-        className,
-      )}
-      onClick={onClick}
-      type="button"
-    >
-      <Icon className="size-4" />
-      <span>{label}</span>
-    </button>
   );
 }
 
