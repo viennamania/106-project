@@ -1320,19 +1320,19 @@ export function WalletPage({
                           unstyled
                         >
                           {isSendTransactionBusy && sendProgress ? (
-                            <>
+                            <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                               {sendTransactionStatus === "confirmed" ? (
-                                <ShieldCheck className="size-4" />
+                                <ShieldCheck className="size-4 shrink-0" />
                               ) : (
-                                <LoaderCircle className="size-4 animate-spin" />
+                                <LoaderCircle className="size-4 shrink-0 animate-spin" />
                               )}
                               <span>{sendProgress.label}</span>
-                            </>
+                            </span>
                           ) : (
-                            <>
-                              <Send className="size-4" />
+                            <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                              <Send className="size-4 shrink-0" />
                               <span>{dictionary.walletPage.actions.send}</span>
-                            </>
+                            </span>
                           )}
                         </TransactionButton>
                         {sendProgress ? (
