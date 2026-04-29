@@ -5366,10 +5366,16 @@ function CoverGenerationDialog({
     isRunning || progress.currentStep !== null || progress.error !== null;
   const currentStepMeta = progress.currentStep ? stepMeta[progress.currentStep] : null;
   const shouldShowConfirm = !showProgress && !isSuccess;
+  const hasPromptInput = typeof onPromptValueChange === "function";
 
   return (
     <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
-      <div className="relative flex max-h-[calc(100svh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)] sm:max-h-[calc(100svh-3rem)]">
+      <div
+        className={cn(
+          "relative flex max-h-[calc(100svh-1.5rem)] w-full flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.97))] shadow-[0_34px_90px_rgba(15,23,42,0.26)] sm:max-h-[calc(100svh-3rem)]",
+          hasPromptInput ? "max-w-3xl" : "max-w-2xl",
+        )}
+      >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.18),transparent_54%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_46%)]" />
         <div className="relative overflow-y-auto overscroll-y-contain p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
@@ -5416,7 +5422,7 @@ function CoverGenerationDialog({
                   </p>
                 ) : null}
               </div>
-              {onPromptValueChange ? (
+              {hasPromptInput ? (
                 <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
@@ -5427,13 +5433,13 @@ function CoverGenerationDialog({
                     </p>
                   </div>
                   <textarea
-                    className="mt-3 min-h-28 w-full rounded-[18px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                    className="mt-3 min-h-48 w-full rounded-[18px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white sm:min-h-56"
                     maxLength={CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
                     onChange={(event) => {
                       onPromptValueChange(event.target.value);
                     }}
                     placeholder={promptPlaceholder}
-                    rows={4}
+                    rows={8}
                     value={promptValue ?? ""}
                   />
                   <p className="mt-2 text-xs leading-5 text-slate-500">
