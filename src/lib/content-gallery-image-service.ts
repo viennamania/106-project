@@ -11,36 +11,32 @@ import {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "black-forest-labs/flux-schnell-lora";
+const DEFAULT_MODEL = "black-forest-labs/flux-1.1-pro-ultra";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
-const DEFAULT_DISABLE_SAFETY_CHECKER = true;
+const DEFAULT_SAFETY_TOLERANCE = 6;
 
-type FluxSchnellLoraAspectRatio =
-  | "1:1"
-  | "16:9"
+type FluxProUltraAspectRatio =
   | "21:9"
+  | "16:9"
   | "3:2"
-  | "2:3"
-  | "4:5"
-  | "5:4"
-  | "3:4"
   | "4:3"
+  | "5:4"
+  | "1:1"
+  | "4:5"
+  | "3:4"
+  | "2:3"
   | "9:16"
   | "9:21";
 
-type FluxSchnellLoraInput = {
-  aspect_ratio?: FluxSchnellLoraAspectRatio;
-  disable_safety_checker?: boolean;
-  go_fast?: boolean;
-  lora_scale?: number;
-  lora_weights?: string;
-  megapixels?: "1" | "0.25";
-  num_inference_steps?: 1 | 2 | 3 | 4;
-  num_outputs?: 1 | 2 | 3 | 4;
-  output_format?: "webp" | "jpg" | "png";
-  output_quality?: number;
+type FluxProUltraInput = {
+  aspect_ratio?: FluxProUltraAspectRatio;
+  image_prompt?: string;
+  image_prompt_strength?: number;
+  output_format?: "jpg" | "png";
   prompt: string;
+  raw?: boolean;
+  safety_tolerance?: 1 | 2 | 3 | 4 | 5 | 6;
   seed?: number;
 };
 
@@ -233,10 +229,10 @@ export async function generateAndUploadContentGalleryImage(
   const replicate = new Replicate({ auth: replicateToken });
   const modelInput = {
     aspect_ratio: DEFAULT_ASPECT_RATIO,
-    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
     output_format: DEFAULT_OUTPUT_FORMAT,
     prompt,
-  } satisfies FluxSchnellLoraInput;
+    safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
+  } satisfies FluxProUltraInput;
 
   const rawOutput = await replicate.run(DEFAULT_MODEL, {
     input: modelInput,
