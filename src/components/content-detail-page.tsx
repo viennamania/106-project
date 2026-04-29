@@ -1490,9 +1490,6 @@ export function ContentDetailPage({
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-slate-400">
                   {contentCopy.page.detailEyebrow}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {contentCopy.messages.likeHint}
-                </p>
               </div>
               <button
                 className={cn(
@@ -1677,7 +1674,7 @@ export function ContentDetailPage({
                         : `Unlock the full gallery and body for ${paidUnlockAmount} USDT.`
                       : shouldEncourageSignup
                         ? contentCopy.messages.paymentRequired
-                        : contentCopy.messages.likeHint}
+                        : contentCopy.messages.previewLocked}
                   </p>
                   {isPaidLocked ? (
                     <div className="mt-3">
