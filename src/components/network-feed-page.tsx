@@ -121,7 +121,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 5;
+const FEED_RESTORE_VERSION = 6;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -243,7 +243,7 @@ function writeFeedRestoreSnapshot(
   key: string | null,
   snapshot: Omit<FeedRestoreSnapshot, "savedAt" | "version">,
 ) {
-  if (!key || typeof window === "undefined") {
+  if (!key || typeof window === "undefined" || snapshot.items.length === 0) {
     return;
   }
 
@@ -755,7 +755,7 @@ export function NetworkFeedPage({
       if (snapshot) {
         applyFeedSnapshot(feedRestoreKey, snapshot);
 
-        if (feedView === "network") {
+        if (feedView === "network" && snapshot.items.length > 0) {
           return;
         }
       }
