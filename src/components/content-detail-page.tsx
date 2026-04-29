@@ -1987,18 +1987,22 @@ export function ContentDetailPage({
                   type="button"
                   unstyled
                 >
-                  <Coins className="mr-2 size-4" />
-                  {paidUnlock.status === "creating"
-                    ? locale === "ko"
-                      ? "결제 정보 준비 중"
-                      : "Preparing payment"
-                    : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
-                      ? locale === "ko"
-                        ? "결제 확인 중"
-                        : "Verifying"
-                      : locale === "ko"
-                        ? `${paidUnlockAmount} USDT 결제하기`
-                        : `Pay ${paidUnlockAmount} USDT`}
+                  <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                    <Coins className="size-4 shrink-0" />
+                    <span>
+                      {paidUnlock.status === "creating"
+                        ? locale === "ko"
+                          ? "결제 정보 준비 중"
+                          : "Preparing payment"
+                        : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
+                          ? locale === "ko"
+                            ? "결제 확인 중"
+                            : "Verifying"
+                          : locale === "ko"
+                            ? `${paidUnlockAmount} USDT 결제하기`
+                            : `Pay ${paidUnlockAmount} USDT`}
+                    </span>
+                  </span>
                 </TransactionButton>
               )}
             </div>
