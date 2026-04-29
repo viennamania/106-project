@@ -601,7 +601,7 @@ export function CreatorContentStudioPage({
             label: "AI 커버 생성",
           },
           generating_content_images: {
-            description: "상세 페이지 갤러리에 들어갈 AI 콘텐츠 이미지 3장을 생성합니다.",
+            description: "상세 페이지에 사용할 AI 콘텐츠 이미지 3장을 생성합니다.",
             label: "AI 콘텐츠 이미지",
           },
           pending: "대기",
@@ -647,8 +647,8 @@ export function CreatorContentStudioPage({
             label: "Cover generation",
           },
           generating_content_images: {
-            description: "Generating three AI gallery images for the detail page.",
-            label: "Gallery images",
+            description: "Generating three AI content images for the detail page.",
+            label: "Content images",
           },
           pending: "Pending",
           progress: "Progress",
@@ -881,32 +881,32 @@ export function CreatorContentStudioPage({
           },
           completed: "완료",
           confirmBody:
-            "현재 입력한 제목, 요약, 본문을 바탕으로 상세 갤러리용 AI 이미지를 생성합니다.",
+            "이미지 프롬프트 내용만 사용해 AI 콘텐츠 이미지를 생성합니다.",
           confirmHint:
-            `갤러리용 AI 이미지는 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.`,
+            `AI 콘텐츠 이미지는 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.`,
           promptHint:
-            "원하는 분위기, 구도, 색감, 소품, 배경을 추가로 적으면 생성 프롬프트에 함께 반영됩니다.",
-          promptLabel: "추가 프롬프트",
+            "여기에 적은 내용이 이미지 생성 프롬프트로 그대로 적용됩니다.",
+          promptLabel: "이미지 프롬프트",
           promptPlaceholder:
             "예: 해변의 황금빛 석양, 역동적인 모래 질감, 하이패션 에디토리얼 무드",
           confirmPrimary: "이미지 생성",
           confirmSecondary: "나중에",
           error: "오류",
           finalizing: {
-            description: "생성된 이미지를 콘텐츠 갤러리에 추가합니다.",
-            label: "갤러리 반영",
+            description: "생성된 이미지를 콘텐츠 이미지 목록에 추가합니다.",
+            label: "콘텐츠 이미지 반영",
           },
           generating_image: {
-            description: "상세 페이지에서 크게 보일 화보형 이미지를 생성합니다.",
+            description: "상세 페이지에 사용할 AI 콘텐츠 이미지를 생성합니다.",
             label: "이미지 생성",
           },
           preparing_prompt: {
-            description: "콘텐츠 분위기에 맞는 갤러리 이미지 브리프를 정리합니다.",
-            label: "비주얼 브리프",
+            description: "이미지 프롬프트를 생성 요청으로 준비합니다.",
+            label: "이미지 프롬프트",
           },
           progress: "진행률",
           running: "진행 중",
-          successPrimary: "갤러리에 추가 완료",
+          successPrimary: "콘텐츠 이미지에 추가 완료",
           successSecondary: "계속 편집하기",
           successTitle: "AI 콘텐츠 이미지가 준비되었습니다.",
           title: "AI 콘텐츠 이미지 생성",
@@ -922,35 +922,35 @@ export function CreatorContentStudioPage({
           },
           completed: "Completed",
           confirmBody:
-            "The AI will generate a gallery image from your current title, summary, and body.",
+            "The AI will generate a content image using only the image prompt.",
           confirmHint:
-            `AI gallery images are limited to ${GENERATED_CONTENT_IMAGE_LIMIT} and will be added directly into your content image list.`,
+            `AI content images are limited to ${GENERATED_CONTENT_IMAGE_LIMIT} and will be added directly into your content image list.`,
           promptHint:
-            "Add any extra direction for mood, composition, color, props, or background to blend into the final prompt.",
-          promptLabel: "Extra prompt",
+            "This text is used directly as the image prompt.",
+          promptLabel: "Image prompt",
           promptPlaceholder:
             "Example: golden sunset on a beach, dynamic sand texture, high-fashion editorial mood",
           confirmPrimary: "Generate image",
           confirmSecondary: "Later",
           error: "Error",
           finalizing: {
-            description: "Adding the generated result into the content gallery.",
-            label: "Gallery update",
+            description: "Adding the generated result into the content image list.",
+            label: "Content images",
           },
           generating_image: {
-            description: "Creating an editorial gallery visual for the detail page.",
+            description: "Creating an AI content image for the detail page.",
             label: "Image generation",
           },
           preparing_prompt: {
-            description: "Preparing the visual brief for the gallery image.",
-            label: "Visual brief",
+            description: "Preparing the image prompt for generation.",
+            label: "Image prompt",
           },
           progress: "Progress",
           running: "Running",
-          successPrimary: "Added to gallery",
+          successPrimary: "Added to content images",
           successSecondary: "Keep editing",
           successTitle: "Your AI content image is ready.",
-          title: "AI gallery image",
+          title: "AI content image generation",
           uploading_cover: {
             description: "Uploading the generated image to studio assets.",
             label: "Asset upload",
@@ -2348,6 +2348,14 @@ export function CreatorContentStudioPage({
 
   async function generatePostContentImage() {
     try {
+      if (!contentImagePrompt.trim()) {
+        throw new Error(
+          locale === "ko"
+            ? "AI 콘텐츠 이미지를 생성하려면 이미지 프롬프트를 입력하세요."
+            : "Enter an image prompt to generate an AI content image.",
+        );
+      }
+
       if (
         postForm.generatedContentImageUrls.length >=
         GENERATED_CONTENT_IMAGE_LIMIT
@@ -2382,7 +2390,6 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/posts/generate-content-image", {
         body: JSON.stringify({
-          body: postForm.body,
           email,
           locale,
           summary: postForm.summary,
@@ -2457,8 +2464,8 @@ export function CreatorContentStudioPage({
         error: null,
         notice:
           locale === "ko"
-            ? "AI 콘텐츠 이미지를 생성해 갤러리에 추가했습니다."
-            : "Generated an AI content image and added it to the gallery.",
+            ? "AI 콘텐츠 이미지를 생성해 콘텐츠 이미지 목록에 추가했습니다."
+            : "Generated an AI content image and added it to content images.",
       }));
       setContentImageGenerationProgress((current) => ({
         ...current,
@@ -2467,8 +2474,8 @@ export function CreatorContentStudioPage({
         error: null,
         message:
           locale === "ko"
-            ? "콘텐츠 이미지 갤러리에 AI 이미지를 추가했습니다."
-            : "The AI image has been added to the content gallery.",
+            ? "콘텐츠 이미지 목록에 AI 이미지를 추가했습니다."
+            : "The AI image has been added to content images.",
         progress: 100,
         response: generatedImage,
         steps: {
@@ -3457,9 +3464,9 @@ export function CreatorContentStudioPage({
     const coverUploadLabel =
       locale === "ko" ? "커버 업로드" : "Upload cover";
     const contentImagesUploadLabel =
-      locale === "ko" ? "콘텐츠 이미지 추가" : "Add gallery images";
+      locale === "ko" ? "콘텐츠 이미지 추가" : "Add content images";
     const aiContentImageLabel =
-      locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI gallery image";
+      locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI content image";
     const mobilePreviewImage =
       postForm.coverImageUrl || postForm.contentImageUrls[0] || null;
     const composerBusy =
@@ -4048,7 +4055,7 @@ export function CreatorContentStudioPage({
                 <div className="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
                   {locale === "ko"
                     ? `상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지 생성할 수 있습니다.`
-                    : `Add gallery images for the swipeable detail page. You can upload your own or generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} with AI.`}
+                    : `Add content images for the swipeable detail page. You can upload your own or generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} with AI.`}
                 </div>
               )}
             </div>
@@ -5409,19 +5416,21 @@ function CoverGenerationDialog({
 
           {shouldShowConfirm ? (
             <div className="mt-5 space-y-4">
-              <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                  {labels.preparing_prompt.label}
-                </p>
-                <p className="mt-3 line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">
-                  {title.trim() || summary.trim() || labels.title}
-                </p>
-                {summary.trim() ? (
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
-                    {summary.trim()}
+              {!hasPromptInput ? (
+                <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    {labels.preparing_prompt.label}
                   </p>
-                ) : null}
-              </div>
+                  <p className="mt-3 line-clamp-2 text-lg font-semibold tracking-tight text-slate-950">
+                    {title.trim() || summary.trim() || labels.title}
+                  </p>
+                  {summary.trim() ? (
+                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                      {summary.trim()}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               {hasPromptInput ? (
                 <div className="rounded-[24px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">

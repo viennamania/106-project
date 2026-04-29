@@ -1307,7 +1307,7 @@ function buildAutomationGalleryVisualBrief(
 
   return [
     draft.suggestedCoverPrompt,
-    `Gallery image ${index + 1}: ${variant}`,
+    `Content image ${index + 1}: ${variant}`,
     draft.topic ? `Topic: ${draft.topic}.` : null,
     draft.title ? `Title: ${draft.title}.` : null,
     draft.summary ? `Summary: ${draft.summary}.` : null,
@@ -1342,7 +1342,6 @@ async function maybeGenerateAutomationContentImages(options: {
   for (let index = 0; index < AUTOMATION_CONTENT_IMAGE_COUNT; index += 1) {
     try {
       const generatedImage = await generateAndUploadContentGalleryImage({
-        body: options.body,
         referralCode: options.member.referralCode,
         summary: options.draft.summary,
         title: options.draft.title,
@@ -1693,8 +1692,8 @@ export async function runContentAutomationForMember(
       "running",
       86,
       storedProfile.language === "ko"
-        ? "상세 페이지 갤러리에 사용할 AI 콘텐츠 이미지 3장을 생성하고 있습니다."
-        : "Generating three AI gallery images for the detail page.",
+        ? "상세 페이지에 사용할 AI 콘텐츠 이미지 3장을 생성하고 있습니다."
+        : "Generating three AI content images for the detail page.",
     );
     const { contentImageError, contentImageUrls } =
       await maybeGenerateAutomationContentImages({

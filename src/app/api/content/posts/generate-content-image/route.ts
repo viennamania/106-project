@@ -12,10 +12,7 @@ export const runtime = "nodejs";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const BODY_LIMIT = 480;
-
 type GenerateContentImageRequest = {
-  body?: string | null;
   email?: string | null;
   locale?: string | null;
   summary?: string | null;
@@ -123,15 +120,14 @@ export async function POST(request: Request) {
 
   const title = trimToLength(body?.title, TITLE_LIMIT);
   const summary = trimToLength(body?.summary, SUMMARY_LIMIT);
-  const contentBody = trimToLength(body?.body, BODY_LIMIT);
   const visualBrief = trimToLength(
     body?.visualBrief,
     CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   );
 
-  if (!title && !summary && !contentBody && !visualBrief) {
+  if (!visualBrief) {
     return jsonError(
-      "Provide title, summary, body, or visual direction to generate a content image.",
+      "Provide an image prompt to generate a content image.",
       400,
     );
   }
@@ -190,7 +186,6 @@ export async function POST(request: Request) {
       });
 
       const generatedImage = await generateAndUploadContentGalleryImage({
-        body: contentBody,
         onProgress(progress) {
           emit({
             progress,
@@ -253,7 +248,6 @@ export async function POST(request: Request) {
 
   try {
     const generatedImage = await generateAndUploadContentGalleryImage({
-      body: contentBody,
       referralCode: member.referralCode,
       summary,
       title,

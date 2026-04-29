@@ -11,7 +11,6 @@ import {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const BODY_LIMIT = 220;
 const DEFAULT_MODEL = "black-forest-labs/flux-schnell-lora";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
@@ -46,7 +45,6 @@ type FluxSchnellLoraInput = {
 };
 
 export type GenerateContentGalleryImageInput = {
-  body?: string | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
@@ -75,7 +73,7 @@ function sanitizeBaseName(name: string) {
     .replace(/^-|-$/g, "")
     .slice(0, 48);
 
-  return normalized || "ai-gallery-image";
+  return normalized || "ai-content-image";
 }
 
 function resolveFileExtension(contentType: string, sourceUrl: string | null) {
@@ -114,33 +112,6 @@ function resolveFileExtension(contentType: string, sourceUrl: string | null) {
   }
 
   return ".png";
-}
-
-function buildGalleryImagePrompt(input: {
-  body: string;
-  summary: string;
-  title: string;
-  visualBrief: string;
-}) {
-  return [
-    "Create one premium editorial gallery image for a creator content detail page.",
-    "This image should feel like a polished magazine still: high-end, cinematic, photoreal, elegant, and visually focused.",
-    "Follow the creator visual request as the highest priority when it specifies framing, subject distance, pose, or composition.",
-    "Use a single dominant subject or a very clear focal composition. Avoid cluttered storytelling, collage layouts, split panels, tiny background characters, or trying to visualize every sentence literally.",
-    "Use a clear, polished editorial composition with the requested subject fully represented.",
-    "Do not crop important subject details requested by the creator, such as full body, hands, feet, clothing, props, or background.",
-    "Lighting should be refined and believable with rich materials, strong texture fidelity, realistic anatomy, premium depth, and controlled contrast.",
-    "Do not include any text, typography, letters, numbers, logos, watermarks, borders, frames, UI chrome, subtitles, or poster layout elements.",
-    "Avoid low-detail faces, duplicate people, extra limbs, distorted hands, blurry eyes, warped anatomy, muddy lighting, oversaturated colors, cheap CGI feel, or generic stock-photo composition.",
-    input.title ? `Primary concept: ${input.title}.` : null,
-    input.summary ? `Tone and scene direction: ${input.summary}.` : null,
-    input.visualBrief ? `Creator visual request: ${input.visualBrief}.` : null,
-    input.body
-      ? `Background thematic context only, not literal scene instructions: ${input.body}.`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
 }
 
 function isFileOutputLike(value: unknown): value is FileOutput {
@@ -225,41 +196,35 @@ export async function generateAndUploadContentGalleryImage(
 
   const title = trimToLength(input.title, TITLE_LIMIT);
   const summary = trimToLength(input.summary, SUMMARY_LIMIT);
-  const body = trimToLength(input.body, BODY_LIMIT);
   const visualBrief = trimToLength(
     input.visualBrief,
     CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   );
 
-  if (!title && !summary && !body && !visualBrief) {
+  if (!visualBrief) {
     throw new Error(
-      "Provide title, summary, body, or visual brief to generate a content image.",
+      "Provide an image prompt to generate a content image.",
     );
   }
 
   await reportProgress(input.onProgress, {
-    message: "Preparing the visual direction for the gallery image.",
+    message: "Preparing the image prompt for content image generation.",
     progress: 18,
     status: "running",
     step: "preparing_prompt",
   });
 
-  const prompt = buildGalleryImagePrompt({
-    body,
-    summary,
-    title,
-    visualBrief,
-  });
+  const prompt = visualBrief;
 
   await reportProgress(input.onProgress, {
-    message: "Creative brief is ready. Starting gallery image generation.",
+    message: "Image prompt is ready. Starting content image generation.",
     progress: 28,
     status: "completed",
     step: "preparing_prompt",
   });
 
   await reportProgress(input.onProgress, {
-    message: "Generating the AI gallery image with Replicate.",
+    message: "Generating the AI content image with Replicate.",
     progress: 42,
     status: "running",
     step: "generating_image",
@@ -290,14 +255,14 @@ export async function generateAndUploadContentGalleryImage(
   const pathname = [
     "content-posts",
     input.referralCode,
-    "generated-gallery",
+    "generated-content-images",
     `${Date.now()}-${sanitizeBaseName(
-      title || summary || visualBrief || "ai-gallery-image",
+      title || summary || visualBrief || "ai-content-image",
     )}${extension}`,
   ].join("/");
 
   await reportProgress(input.onProgress, {
-    message: "Uploading the gallery image to your studio assets.",
+    message: "Uploading the content image to your studio assets.",
     progress: 84,
     status: "running",
     step: "uploading_cover",
@@ -311,7 +276,7 @@ export async function generateAndUploadContentGalleryImage(
   });
 
   await reportProgress(input.onProgress, {
-    message: "Gallery image uploaded. Finalizing the result.",
+    message: "Content image uploaded. Finalizing the result.",
     progress: 94,
     status: "completed",
     step: "uploading_cover",
