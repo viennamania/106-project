@@ -12,11 +12,34 @@ import {
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 220;
-const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
+const DEFAULT_MODEL = "black-forest-labs/flux-1.1-pro-ultra";
 const DEFAULT_ASPECT_RATIO = "4:5";
 const DEFAULT_OUTPUT_FORMAT = "png";
-const DEFAULT_OUTPUT_QUALITY = 100;
-const DEFAULT_MEGAPIXELS = "2";
+const DEFAULT_SAFETY_TOLERANCE = 6;
+
+type FluxProUltraAspectRatio =
+  | "21:9"
+  | "16:9"
+  | "3:2"
+  | "4:3"
+  | "5:4"
+  | "1:1"
+  | "4:5"
+  | "3:4"
+  | "2:3"
+  | "9:16"
+  | "9:21";
+
+type FluxProUltraInput = {
+  aspect_ratio?: FluxProUltraAspectRatio;
+  image_prompt?: string;
+  image_prompt_strength?: number;
+  output_format?: "jpg" | "png";
+  prompt: string;
+  raw?: boolean;
+  safety_tolerance?: 1 | 2 | 3 | 4 | 5 | 6;
+  seed?: number;
+};
 
 export type GenerateContentGalleryImageInput = {
   body?: string | null;
@@ -239,16 +262,15 @@ export async function generateAndUploadContentGalleryImage(
   });
 
   const replicate = new Replicate({ auth: replicateToken });
+  const modelInput = {
+    aspect_ratio: DEFAULT_ASPECT_RATIO,
+    output_format: DEFAULT_OUTPUT_FORMAT,
+    prompt,
+    safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
+  } satisfies FluxProUltraInput;
+
   const rawOutput = await replicate.run(DEFAULT_MODEL, {
-    input: {
-      aspect_ratio: DEFAULT_ASPECT_RATIO,
-      disable_safety_checker: true,
-      go_fast: false,
-      megapixels: DEFAULT_MEGAPIXELS,
-      output_format: DEFAULT_OUTPUT_FORMAT,
-      output_quality: DEFAULT_OUTPUT_QUALITY,
-      prompt,
-    },
+    input: modelInput,
   });
 
   await reportProgress(input.onProgress, {

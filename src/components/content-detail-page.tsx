@@ -1600,15 +1600,13 @@ export function ContentDetailPage({
               <div className="mb-4 hidden items-center justify-between gap-3 sm:flex">
                 <div>
                   <p className="eyebrow">{contentCopy.labels.imageGallery}</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {isPaidGalleryPinLocked
-                      ? locale === "ko"
+                  {isPaidGalleryPinLocked ? (
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {locale === "ko"
                         ? "결제 완료된 이미지 갤러리는 PIN 확인 후 열립니다."
-                        : "The paid gallery opens after PIN confirmation."
-                      : locale === "ko"
-                        ? "모바일에서 좌우로 넘기며 이미지 중심으로 콘텐츠를 볼 수 있습니다."
-                        : "Swipe through the visual gallery on mobile."}
-                  </p>
+                        : "The paid gallery opens after PIN confirmation."}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
@@ -3028,9 +3026,6 @@ function ContentImageCarousel({
             <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-4 py-4 sm:px-5">
               <span className="rounded-full bg-white/14 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/86 backdrop-blur-md">
                 {activeIndex + 1} / {images.length}
-              </span>
-              <span className="rounded-full bg-slate-950/42 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.22em] text-white/80 backdrop-blur-md sm:hidden">
-                {locale === "ko" ? "스와이프" : "Swipe"}
               </span>
             </div>
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
