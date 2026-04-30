@@ -10,6 +10,8 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
   const rawWalletAddress = url.searchParams.get("walletAddress");
+  const rawPage = url.searchParams.get("page");
+  const rawPageSize = url.searchParams.get("pageSize");
 
   if (!rawEmail) {
     return jsonError("email query parameter is required.", 400);
@@ -30,7 +32,10 @@ export async function GET(request: Request) {
     }
 
     const response: ContentSalesDashboardResponse =
-      await getCreatorSalesDashboardForMember(authorization.normalizedEmail);
+      await getCreatorSalesDashboardForMember(authorization.normalizedEmail, {
+        page: rawPage ? Number(rawPage) : undefined,
+        pageSize: rawPageSize ? Number(rawPageSize) : undefined,
+      });
 
     return Response.json(response);
   } catch (error) {

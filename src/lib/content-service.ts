@@ -99,6 +99,11 @@ type NetworkFeedQueryOptions = {
   viewerEmail?: string | null;
 };
 
+type CreatorSalesDashboardQueryOptions = {
+  page?: number;
+  pageSize?: number;
+};
+
 type ContentFeedActivityCursor = {
   contentId: string;
   sortAt: string;
@@ -117,7 +122,8 @@ const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
 const CONTENT_COMMENT_BODY_LIMIT = 500;
 const CONTENT_COMMENTS_PAGE_SIZE = 30;
 const CONTENT_ORDER_PAYMENT_WINDOW_MS = 1000 * 60 * 30;
-const CONTENT_SALES_HISTORY_LIMIT = 50;
+const CONTENT_SALES_DEFAULT_PAGE_SIZE = 10;
+const CONTENT_SALES_MAX_PAGE_SIZE = 60;
 const CONTENT_SELLER_WITHDRAW_TIMEOUT_SECONDS = 20;
 const contentUsdtContract = getContract({
   address: BSC_USDT_ADDRESS,
@@ -319,6 +325,14 @@ function clampPageSize(value: number | undefined) {
   }
 
   return Math.min(CREATOR_STUDIO_MAX_PAGE_SIZE, Math.max(1, Math.round(value)));
+}
+
+function clampSalesPageSize(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return CONTENT_SALES_DEFAULT_PAGE_SIZE;
+  }
+
+  return Math.min(CONTENT_SALES_MAX_PAGE_SIZE, Math.max(1, Math.round(value)));
 }
 
 function buildCreatorStudioPostsFilter(
@@ -2225,17 +2239,23 @@ async function getSellerWalletBalance(
 
 export async function getCreatorSalesDashboardForMember(
   email: string,
+  options?: CreatorSalesDashboardQueryOptions,
 ): Promise<ContentSalesDashboardResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const profile = await getCreatorProfileForMember(member.email);
   const sellerWalletAddress = profile.payoutWalletAddress?.trim() || null;
   const ordersCollection = await getContentOrdersCollection();
-  const [recentOrders, confirmedOrders, pendingSalesCount, totalSalesCount] =
+  const page = clampPageNumber(options?.page);
+  const pageSize = clampSalesPageSize(options?.pageSize);
+  const cursor = (page - 1) * pageSize;
+  const salesFilter = { sellerEmail: member.email };
+  const [pageOrders, confirmedOrders, pendingSalesCount, totalSalesCount] =
     await Promise.all([
       ordersCollection
-        .find({ sellerEmail: member.email })
+        .find(salesFilter)
         .sort({ createdAt: -1 })
-        .limit(CONTENT_SALES_HISTORY_LIMIT)
+        .skip(cursor)
+        .limit(pageSize)
         .toArray(),
       ordersCollection
         .find(
@@ -2254,14 +2274,14 @@ export async function getCreatorSalesDashboardForMember(
         sellerEmail: member.email,
         status: "pending_payment",
       }),
-      ordersCollection.countDocuments({ sellerEmail: member.email }),
+      ordersCollection.countDocuments(salesFilter),
     ]);
   const confirmedSalesCount = confirmedOrders.length;
   const totalSalesUsdt = confirmedOrders.reduce(
     (total, order) => addDecimalStrings(total, order.amountUsdt),
     "0",
   );
-  const contentIds = [...new Set(recentOrders.map((order) => order.contentId))];
+  const contentIds = [...new Set(pageOrders.map((order) => order.contentId))];
   const postsCollection = await getContentPostsCollection();
   const posts = contentIds.length
     ? await postsCollection
@@ -2283,12 +2303,21 @@ export async function getCreatorSalesDashboardForMember(
     posts.map((post) => [post.contentId, post]),
   );
   const balance = await getSellerWalletBalance(sellerWalletAddress);
+  const totalPages = Math.max(1, Math.ceil(totalSalesCount / pageSize));
 
   return {
     balance,
     member: serializeMember(member),
+    pageInfo: {
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      page,
+      pageSize,
+      totalCount: totalSalesCount,
+      totalPages,
+    },
     profile,
-    sales: recentOrders.map((order) =>
+    sales: pageOrders.map((order) =>
       serializeContentSaleOrder(order, postByContentId.get(order.contentId)),
     ),
     sellerWalletAddress,

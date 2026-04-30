@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
   Coins,
   Copy,
@@ -53,6 +55,8 @@ type SalesPageState = {
   notice: string | null;
   status: "idle" | "loading" | "ready" | "error";
 };
+
+const SALES_PAGE_SIZE = 10;
 
 function getSalesCopy(locale: Locale) {
   if (locale === "ko") {
@@ -148,6 +152,28 @@ function isPositiveWei(value: string | null | undefined) {
   }
 }
 
+function normalizePageValue(value: string | null) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
+  }
+
+  return Math.max(1, Math.floor(parsed));
+}
+
+function formatSalesCountLabel(count: number, locale: Locale) {
+  const formatted = count.toLocaleString(locale);
+
+  return locale === "ko" ? `${formatted}건` : `${formatted} sales`;
+}
+
+function formatSalesPageLabel(page: number, totalPages: number, locale: Locale) {
+  return locale === "ko"
+    ? `${page}/${totalPages}페이지`
+    : `Page ${page}/${totalPages}`;
+}
+
 export function CreatorStudioSalesPage({
   dictionary,
   locale,
@@ -161,11 +187,14 @@ export function CreatorStudioSalesPage({
 }) {
   const contentCopy = getContentCopy(locale);
   const salesCopy = getSalesCopy(locale);
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
+  const appliedPage = normalizePageValue(searchParams.get("page"));
   const studioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
     { returnTo: returnToHref },
@@ -182,10 +211,21 @@ export function CreatorStudioSalesPage({
     buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
     { returnTo: returnToHref },
   );
-  const salesManagerHref = setPathSearchParams(
+  const salesManagerBaseHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/sales`, referralCode),
     { returnTo: returnToHref },
   );
+  const buildSalesHref = useCallback(
+    (options?: { page?: number }) => {
+      const page = options?.page ?? appliedPage;
+
+      return setPathSearchParams(salesManagerBaseHref, {
+        page: page > 1 ? String(page) : null,
+      });
+    },
+    [appliedPage, salesManagerBaseHref],
+  );
+  const salesManagerHref = useMemo(() => buildSalesHref(), [buildSalesHref]);
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const [state, setState] = useState<SalesPageState>({
     dashboard: null,
@@ -237,6 +277,8 @@ export function CreatorStudioSalesPage({
       const response = await fetch(
         `/api/content/sales?${new URLSearchParams({
           email,
+          page: String(appliedPage),
+          pageSize: String(SALES_PAGE_SIZE),
           walletAddress: accountAddress,
         }).toString()}`,
       );
@@ -250,6 +292,20 @@ export function CreatorStudioSalesPage({
             ? data.error
             : contentCopy.messages.studioLoadFailed,
         );
+      }
+
+      if (data.pageInfo.totalCount > 0 && data.pageInfo.totalPages < appliedPage) {
+        router.replace(
+          buildSalesHref({
+            page: data.pageInfo.totalPages,
+          }),
+        );
+        return;
+      }
+
+      if (data.pageInfo.totalCount === 0 && appliedPage > 1) {
+        router.replace(buildSalesHref({ page: 1 }));
+        return;
       }
 
       setState((current) => ({
@@ -268,7 +324,14 @@ export function CreatorStudioSalesPage({
         status: "error",
       }));
     }
-  }, [accountAddress, contentCopy.messages.studioLoadFailed, resolveMemberEmail]);
+  }, [
+    accountAddress,
+    appliedPage,
+    buildSalesHref,
+    contentCopy.messages.studioLoadFailed,
+    resolveMemberEmail,
+    router,
+  ]);
 
   useEffect(() => {
     if (isDisconnected) {
@@ -466,6 +529,7 @@ export function CreatorStudioSalesPage({
   ) : null;
   const dashboard = state.dashboard;
   const sales = dashboard?.sales ?? [];
+  const pageInfo = dashboard?.pageInfo ?? null;
   const balanceLabel = formatUsdt(dashboard?.balance?.amountUsdt ?? "0", locale);
 
   return (
@@ -613,7 +677,10 @@ export function CreatorStudioSalesPage({
               </MessageCard>
             ) : null}
             <SalesHistoryPanel
+              buildPageHref={buildSalesHref}
+              contentCopy={contentCopy}
               locale={locale}
+              pageInfo={pageInfo}
               sales={sales}
               salesCopy={salesCopy}
             />
@@ -760,11 +827,17 @@ function WalletManagementCard({
 }
 
 function SalesHistoryPanel({
+  buildPageHref,
+  contentCopy,
   locale,
+  pageInfo,
   sales,
   salesCopy,
 }: {
+  buildPageHref: (options?: { page?: number }) => string;
+  contentCopy: ReturnType<typeof getContentCopy>;
   locale: Locale;
+  pageInfo: ContentSalesDashboardResponse["pageInfo"] | null;
   sales: ContentSaleOrderRecord[];
   salesCopy: ReturnType<typeof getSalesCopy>;
 }) {
@@ -781,6 +854,16 @@ function SalesHistoryPanel({
           <Coins className="size-5" />
         </div>
       </div>
+      {pageInfo ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <StatusBadge status="paid">
+            {formatSalesCountLabel(pageInfo.totalCount, locale)}
+          </StatusBadge>
+          <StatusBadge status="page">
+            {formatSalesPageLabel(pageInfo.page, pageInfo.totalPages, locale)}
+          </StatusBadge>
+        </div>
+      ) : null}
 
       {sales.length === 0 ? (
         <MessageCard>{salesCopy.emptyHistory}</MessageCard>
@@ -794,6 +877,38 @@ function SalesHistoryPanel({
               salesCopy={salesCopy}
             />
           ))}
+          {pageInfo ? (
+            <div className="flex flex-col gap-3 border-t border-slate-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-slate-500">
+                {formatSalesCountLabel(pageInfo.totalCount, locale)} ·{" "}
+                {formatSalesPageLabel(pageInfo.page, pageInfo.totalPages, locale)}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {pageInfo.hasPreviousPage ? (
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                    href={buildPageHref({
+                      page: pageInfo.page - 1,
+                    })}
+                  >
+                    <ArrowLeft className="size-4" />
+                    {contentCopy.actions.previousPage}
+                  </Link>
+                ) : null}
+                {pageInfo.hasNextPage ? (
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                    href={buildPageHref({
+                      page: pageInfo.page + 1,
+                    })}
+                  >
+                    {contentCopy.actions.nextPage}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

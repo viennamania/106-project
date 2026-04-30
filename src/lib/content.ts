@@ -260,6 +260,14 @@ export type ContentSalesSummaryRecord = {
 export type ContentSalesDashboardResponse = {
   balance: ContentSellerWalletBalanceRecord | null;
   member: MemberRecord;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
   profile: CreatorProfileRecord;
   sales: ContentSaleOrderRecord[];
   sellerWalletAddress: string | null;
