@@ -227,6 +227,7 @@ export function NetworkFeedDetailPage({
   dictionary,
   feedView = "network",
   initialPublicFeed = null,
+  initialTargetItem = null,
   locale,
   referralCode = null,
   returnToHref = null,
@@ -236,6 +237,7 @@ export function NetworkFeedDetailPage({
   dictionary: Dictionary;
   feedView?: ContentFeedView;
   initialPublicFeed?: InitialPublicFeed;
+  initialTargetItem?: ContentFeedItemRecord | null;
   locale: Locale;
   referralCode?: string | null;
   returnToHref?: string | null;
@@ -253,8 +255,17 @@ export function NetworkFeedDetailPage({
       ? memberSession.email
       : null;
   const hasReferralCode = Boolean(referralCode);
-  const hasInitialPublicFeed =
-    feedView === "network" && hasReferralCode && Boolean(initialPublicFeed);
+  const initialItems = useMemo(
+    () =>
+      initialTargetItem
+        ? mergeItems([initialTargetItem], initialPublicFeed?.items ?? [])
+        : initialPublicFeed?.items ?? [],
+    [initialPublicFeed?.items, initialTargetItem],
+  );
+  const hasInitialPublicContent =
+    feedView === "network" &&
+    hasReferralCode &&
+    (Boolean(initialPublicFeed) || Boolean(initialTargetItem));
   const {
     isConnected: isWalletConnected,
     isResolving: isWalletConnectionResolving,
@@ -262,13 +273,13 @@ export function NetworkFeedDetailPage({
   const isFeedModeResolving =
     feedView === "network" &&
     hasReferralCode &&
-    !hasInitialPublicFeed &&
+    !hasInitialPublicContent &&
     isWalletConnectionResolving;
   const isPublicReferralFeed =
     feedView === "network" &&
     hasReferralCode &&
     !isWalletConnected &&
-    (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
+    (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicContent);
   const isMemberSessionRestorePending =
     !isPublicReferralFeed &&
     status === "connected" &&
@@ -306,11 +317,12 @@ export function NetworkFeedDetailPage({
   const initialPublicTargetRef = useRef(
     Boolean(initialPublicFeed?.items.some((item) => item.contentId === contentId)),
   );
+  const initialTargetItemRef = useRef(initialTargetItem);
   const [state, setState] = useState<DetailFeedState>({
     error: null,
-    items: initialPublicFeed?.items ?? [],
+    items: initialItems,
     member: null,
-    status: initialPublicFeed ? "ready" : "idle",
+    status: initialItems.length > 0 ? "ready" : "idle",
   });
   const [nextCursor, setNextCursor] = useState<string | null>(
     initialPublicFeed?.nextCursor ?? null,
@@ -322,6 +334,10 @@ export function NetworkFeedDetailPage({
     Record<string, DetailLoadState>
   >({});
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    initialTargetItemRef.current = initialTargetItem;
+  }, [initialTargetItem]);
 
   const targetIndex = useMemo(
     () => state.items.findIndex((item) => item.contentId === contentId),
@@ -414,7 +430,7 @@ export function NetworkFeedDetailPage({
         if (!response) {
           setState({
             error: null,
-            items: [],
+            items: initialTargetItemRef.current ? [initialTargetItemRef.current] : [],
             member: null,
             status: "ready",
           });
@@ -473,14 +489,16 @@ export function NetworkFeedDetailPage({
           return;
         }
 
+        const nextItems = "items" in data ? data.items : [];
+
         setState((current) => ({
           error: null,
-          items:
-            append && "items" in data
-              ? mergeItems(current.items, data.items)
-              : "items" in data
-                ? data.items
-                : [],
+          items: append
+            ? mergeItems(current.items, nextItems)
+            : mergeItems(
+                initialTargetItemRef.current ? [initialTargetItemRef.current] : [],
+                nextItems,
+              ),
           member,
           status: "ready",
         }));

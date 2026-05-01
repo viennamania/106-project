@@ -5,6 +5,7 @@ import { NetworkFeedDetailPage } from "@/components/network-feed-detail-page";
 import { getContentCopy } from "@/lib/content-copy";
 import {
   getPublicNetworkFeedForReferralCode,
+  getPublicNetworkFeedItemForReferralCode,
   getPublishedContentShareMetadata,
 } from "@/lib/content-service";
 import {
@@ -109,12 +110,19 @@ export default async function LocalizedNetworkFeedDetailPage({
   );
   const returnToHref = normalizeReturnToPath(query.returnTo, locale);
   const feedView = normalizeFeedView(query.view);
-  const initialPublicFeed =
+  const [initialPublicFeed, initialTargetItem] =
     feedView === "network" && referralCode
-      ? await getPublicNetworkFeedForReferralCode(referralCode, locale).catch(
-          () => null,
-        )
-      : null;
+      ? await Promise.all([
+          getPublicNetworkFeedForReferralCode(referralCode, locale).catch(
+            () => null,
+          ),
+          getPublicNetworkFeedItemForReferralCode(
+            contentId,
+            referralCode,
+            locale,
+          ).catch(() => null),
+        ])
+      : [null, null];
 
   return (
     <NetworkFeedDetailPage
@@ -122,6 +130,7 @@ export default async function LocalizedNetworkFeedDetailPage({
       dictionary={dictionary}
       feedView={feedView}
       initialPublicFeed={initialPublicFeed}
+      initialTargetItem={initialTargetItem}
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}

@@ -1445,6 +1445,38 @@ export async function getPublicNetworkFeedForReferralCode(
   };
 }
 
+export async function getPublicNetworkFeedItemForReferralCode(
+  contentId: string,
+  referralCode: string,
+  locale: Locale,
+) {
+  const ancestors = await resolveNetworkAncestorsFromReferralCode(referralCode);
+
+  if (ancestors.length === 0) {
+    return null;
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
+  const post = await postsCollection.findOne({
+    ...getPublishedContentLocaleFilter(locale),
+    authorReferralCode: { $in: referralCodes },
+    contentId,
+    status: "published",
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  const [item] = await buildFeedItemsFromPosts({
+    ancestors,
+    posts: [post],
+  });
+
+  return item ?? null;
+}
+
 function orderPostsByContentIds(
   posts: ContentPostDocument[],
   contentIds: string[],
