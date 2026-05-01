@@ -1138,6 +1138,7 @@ export function NetworkFeedPage({
                 <Fragment key={item.contentId}>
                   <SocialFeedPost
                     accountAddress={accountAddress ?? null}
+                    feedView={feedView}
                     freeLabel={contentCopy.labels.free}
                     item={item}
                     levelLabel={contentCopy.labels.level}
@@ -1469,6 +1470,7 @@ function CreatorStoryButton({
 
 function SocialFeedPost({
   accountAddress,
+  feedView,
   freeLabel,
   item,
   levelLabel,
@@ -1485,6 +1487,7 @@ function SocialFeedPost({
   viewDetailLabel,
 }: {
   accountAddress: string | null;
+  feedView: ContentFeedView;
   freeLabel: string;
   item: ContentFeedItemRecord;
   levelLabel: string;
@@ -1527,10 +1530,14 @@ function SocialFeedPost({
       ? `${item.summary.slice(0, 96).trimEnd()}...`
       : item.summary;
   const href = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
+    buildPathWithReferral(
+      `/${locale}/network-feed/${item.contentId}`,
+      referralCode,
+    ),
     {
       returnTo: returnToHref,
       shareId,
+      view: feedView === "network" ? null : feedView,
     },
   );
   const bridgeHref = buildPathWithReferral(
