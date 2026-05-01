@@ -6,12 +6,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Bookmark,
+  ChevronLeft,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   ExternalLink,
   FileText,
   Heart,
+  Images,
   LoaderCircle,
+  LockKeyhole,
   MessageCircle,
   RefreshCcw,
   Share2,
@@ -198,6 +202,22 @@ function getReadableBodyText(
   return detailState?.content?.body?.trim() || item.previewText?.trim() || item.summary;
 }
 
+function getReadableContentImages(
+  item: ContentFeedItemRecord,
+  detailState: DetailLoadState | null,
+) {
+  const detailImages = detailState?.content?.contentImageUrls ?? [];
+
+  return detailImages.length > 0 ? detailImages : item.contentImageUrls;
+}
+
+function canViewContentImages(
+  item: ContentFeedItemRecord,
+  detailState: DetailLoadState | null,
+) {
+  return item.canAccess || Boolean(detailState?.content?.canAccess);
+}
+
 function mergeItems(
   currentItems: ContentFeedItemRecord[],
   nextItems: ContentFeedItemRecord[],
@@ -372,6 +392,7 @@ export function NetworkFeedDetailPage({
     Record<string, DetailLoadState>
   >({});
   const [bodySheetContentId, setBodySheetContentId] = useState<string | null>(null);
+  const [galleryContentId, setGalleryContentId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -412,6 +433,20 @@ export function NetworkFeedDetailPage({
       ),
     [locale, referralCode, returnToHref, shareId, viewParam],
   );
+  const buildFullContentHref = useCallback(
+    (nextContentId: string) => {
+      const networkDetailHref = buildNetworkDetailHref(nextContentId);
+
+      return setPathSearchParams(
+        buildPathWithReferral(`/${locale}/content/${nextContentId}`, referralCode),
+        {
+          returnTo: networkDetailHref,
+          shareId,
+        },
+      );
+    },
+    [buildNetworkDetailHref, locale, referralCode, shareId],
+  );
   const bodySheetItem = useMemo(
     () =>
       bodySheetContentId
@@ -424,16 +459,22 @@ export function NetworkFeedDetailPage({
       return null;
     }
 
-    const networkDetailHref = buildNetworkDetailHref(bodySheetItem.contentId);
+    return buildFullContentHref(bodySheetItem.contentId);
+  }, [bodySheetItem, buildFullContentHref]);
+  const galleryItem = useMemo(
+    () =>
+      galleryContentId
+        ? state.items.find((item) => item.contentId === galleryContentId) ?? null
+        : null,
+    [galleryContentId, state.items],
+  );
+  const galleryFullContentHref = useMemo(() => {
+    if (!galleryItem) {
+      return null;
+    }
 
-    return setPathSearchParams(
-      buildPathWithReferral(`/${locale}/content/${bodySheetItem.contentId}`, referralCode),
-      {
-        returnTo: networkDetailHref,
-        shareId,
-      },
-    );
-  }, [bodySheetItem, buildNetworkDetailHref, locale, referralCode, shareId]);
+    return buildFullContentHref(galleryItem.contentId);
+  }, [buildFullContentHref, galleryItem]);
 
   const loadFeed = useCallback(
     async (options?: { append?: boolean; cursor?: string | null }) => {
@@ -846,12 +887,26 @@ export function NetworkFeedDetailPage({
   }, [bodySheetContentId, state.items]);
 
   useEffect(() => {
-    if (!bodySheetContentId) {
+    if (
+      galleryContentId &&
+      !state.items.some((item) => item.contentId === galleryContentId)
+    ) {
+      setGalleryContentId(null);
+    }
+  }, [galleryContentId, state.items]);
+
+  useEffect(() => {
+    if (!bodySheetContentId && !galleryContentId) {
       return;
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (galleryContentId) {
+          setGalleryContentId(null);
+          return;
+        }
+
         setBodySheetContentId(null);
       }
     }
@@ -861,7 +916,7 @@ export function NetworkFeedDetailPage({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [bodySheetContentId]);
+  }, [bodySheetContentId, galleryContentId]);
 
   useEffect(() => {
     if (
@@ -1335,14 +1390,7 @@ export function NetworkFeedDetailPage({
         >
           {state.items.map((item, index) => {
             const detailState = detailByContentId[item.contentId] ?? null;
-            const networkDetailHref = buildNetworkDetailHref(item.contentId);
-            const fullContentHref = setPathSearchParams(
-              buildPathWithReferral(`/${locale}/content/${item.contentId}`, referralCode),
-              {
-                returnTo: networkDetailHref,
-                shareId,
-              },
-            );
+            const fullContentHref = buildFullContentHref(item.contentId);
 
             return (
               <NetworkFeedDetailSlide
@@ -1355,6 +1403,10 @@ export function NetworkFeedDetailPage({
                 locale={locale}
                 onLike={() => toggleLike(item)}
                 onNext={() => scrollToIndex(index + 1)}
+                onOpenGallery={() => {
+                  setBodySheetContentId(null);
+                  setGalleryContentId(item.contentId);
+                }}
                 onOpenBody={() => {
                   setBodySheetContentId(item.contentId);
                 }}
@@ -1376,6 +1428,19 @@ export function NetworkFeedDetailPage({
             </div>
           ) : null}
         </div>
+
+        {galleryItem && galleryFullContentHref ? (
+          <NetworkFeedImageViewer
+            detailState={detailByContentId[galleryItem.contentId] ?? null}
+            fullContentHref={galleryFullContentHref}
+            item={galleryItem}
+            key={galleryItem.contentId}
+            locale={locale}
+            onClose={() => {
+              setGalleryContentId(null);
+            }}
+          />
+        ) : null}
 
         {bodySheetItem && bodySheetFullContentHref ? (
           <NetworkFeedBodySheet
@@ -1437,6 +1502,7 @@ function NetworkFeedDetailSlide({
   locale,
   onLike,
   onNext,
+  onOpenGallery,
   onOpenBody,
   onPrevious,
   onSave,
@@ -1453,6 +1519,7 @@ function NetworkFeedDetailSlide({
   locale: Locale;
   onLike: () => void;
   onNext: () => void;
+  onOpenGallery: () => void;
   onOpenBody: () => void;
   onPrevious: () => void;
   onSave: () => void;
@@ -1465,6 +1532,7 @@ function NetworkFeedDetailSlide({
   const displayName = getDisplayName(item);
   const avatarFallback = getAvatarFallback(displayName);
   const bodyPreview = truncateText(getReadableBodyText(item, detailState), 260);
+  const contentImages = getReadableContentImages(item, detailState);
   const isPaid = item.priceType === "paid";
   const accessLabel = isPaid
     ? locale === "ko"
@@ -1625,6 +1693,21 @@ function NetworkFeedDetailSlide({
           ) : null}
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
+            {contentImages.length > 0 ? (
+              <button
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/18 bg-white px-4 py-2 text-sm font-semibold text-slate-950 shadow-xl transition hover:bg-white/92"
+                onClick={onOpenGallery}
+                type="button"
+              >
+                <Images className="size-4" />
+                {locale === "ko" ? "이미지 보기" : "View images"}
+                {contentImages.length > 1 ? (
+                  <span className="rounded-full bg-slate-950/10 px-1.5 py-0.5 text-[0.65rem]">
+                    {contentImages.length}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
             <button
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/18 bg-white/12 px-4 py-2 text-sm font-semibold text-white shadow-xl backdrop-blur transition hover:bg-white/18"
               onClick={onOpenBody}
@@ -1642,6 +1725,246 @@ function NetworkFeedDetailSlide({
         </div>
       </div>
     </article>
+  );
+}
+
+function NetworkFeedImageViewer({
+  detailState,
+  fullContentHref,
+  item,
+  locale,
+  onClose,
+}: {
+  detailState: DetailLoadState | null;
+  fullContentHref: string;
+  item: ContentFeedItemRecord;
+  locale: Locale;
+  onClose: () => void;
+}) {
+  const images = getReadableContentImages(item, detailState);
+  const canViewImages = canViewContentImages(item, detailState);
+  const displayName = getDisplayName(item);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const boundedActiveIndex = Math.max(
+    0,
+    Math.min(activeIndex, Math.max(0, images.length - 1)),
+  );
+  const activeImage = images[boundedActiveIndex] ?? images[0] ?? null;
+  const isPaid = item.priceType === "paid";
+  const lockedTitle = isPaid
+    ? locale === "ko"
+      ? "결제 후 이미지 열람"
+      : "Unlock images"
+    : locale === "ko"
+      ? "권한 확인 후 이미지 열람"
+      : "Verify access to view images";
+  const lockedDescription = isPaid
+    ? locale === "ko"
+      ? `${item.priceUsdt ?? "1"} USDT 결제 후 콘텐츠 이미지를 바로 볼 수 있습니다.`
+      : `Pay ${item.priceUsdt ?? "1"} USDT to view this image gallery.`
+    : locale === "ko"
+      ? "네트워크 권한을 확인하면 콘텐츠 이미지를 볼 수 있습니다."
+      : "Verify your network access to view this image gallery.";
+  const lockedActionLabel = isPaid
+    ? locale === "ko"
+      ? "결제하고 이미지 보기"
+      : "Pay and view images"
+    : locale === "ko"
+      ? "권한 확인하기"
+      : "Verify access";
+
+  useEffect(() => {
+    trackRef.current?.scrollTo({ left: 0 });
+  }, [images]);
+
+  const scrollToIndex = useCallback(
+    (nextIndex: number) => {
+      const track = trackRef.current;
+      const clampedIndex = Math.max(0, Math.min(images.length - 1, nextIndex));
+
+      if (!track) {
+        setActiveIndex(clampedIndex);
+        return;
+      }
+
+      track.scrollTo({
+        behavior: "smooth",
+        left: track.clientWidth * clampedIndex,
+      });
+      setActiveIndex(clampedIndex);
+    },
+    [images.length],
+  );
+
+  if (!activeImage) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-slate-950 text-white">
+      <div className="relative mx-auto flex h-full w-full max-w-[560px] flex-col overflow-hidden bg-slate-950 shadow-2xl sm:border-x sm:border-white/10">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-[linear-gradient(180deg,rgba(2,6,23,0.82),rgba(2,6,23,0))] px-3 pb-12 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              aria-label={locale === "ko" ? "이미지 닫기" : "Close images"}
+              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full bg-black/42 text-white shadow-[0_12px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-black/58"
+              onClick={onClose}
+              type="button"
+            >
+              <X className="size-5" />
+            </button>
+            <div className="min-w-0 flex-1 text-center">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/62">
+                {locale === "ko" ? "콘텐츠 이미지" : "content images"}
+              </p>
+              <p className="truncate text-sm font-semibold leading-5 text-white">
+                {boundedActiveIndex + 1} / {images.length}
+              </p>
+            </div>
+            <Link
+              aria-label={locale === "ko" ? "상세 페이지 열기" : "Open detail page"}
+              className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full bg-black/42 !text-white shadow-[0_12px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-black/58"
+              href={fullContentHref}
+            >
+              <ExternalLink className="size-5 text-white" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative min-h-0 flex-1">
+          <div
+            className="flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [touch-action:pan-x_pan-y] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
+            onScroll={(event) => {
+              const target = event.currentTarget;
+
+              if (!target.clientWidth) {
+                return;
+              }
+
+              const nextIndex = Math.round(target.scrollLeft / target.clientWidth);
+              setActiveIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
+            }}
+            ref={trackRef}
+          >
+            {images.map((imageUrl, index) => (
+              <div
+                className="flex h-full w-full shrink-0 snap-center items-center justify-center"
+                key={`${imageUrl}-${index}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`${item.title} ${index + 1}`}
+                  className={cn(
+                    "max-h-full w-full select-none object-contain",
+                    !canViewImages
+                      ? "scale-[1.04] blur-xl brightness-75 saturate-75"
+                      : "",
+                  )}
+                  draggable={false}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  src={imageUrl}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0)_24%,rgba(2,6,23,0.18)_58%,rgba(2,6,23,0.78)_100%)]" />
+
+          {images.length > 1 ? (
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
+              <button
+                aria-label={locale === "ko" ? "이전 이미지" : "Previous image"}
+                className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
+                disabled={boundedActiveIndex === 0}
+                onClick={() => {
+                  scrollToIndex(boundedActiveIndex - 1);
+                }}
+                type="button"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                aria-label={locale === "ko" ? "다음 이미지" : "Next image"}
+                className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
+                disabled={boundedActiveIndex === images.length - 1}
+                onClick={() => {
+                  scrollToIndex(boundedActiveIndex + 1);
+                }}
+                type="button"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
+          ) : null}
+
+          {!canViewImages ? (
+            <div className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 rounded-lg border border-white/16 bg-slate-950/72 p-4 text-white shadow-[0_22px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-950">
+                  <LockKeyhole className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-semibold leading-6">
+                    {lockedTitle}
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-white/72">
+                    {lockedDescription}
+                  </p>
+                </div>
+              </div>
+              {detailState?.status === "loading" ? (
+                <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-white/58">
+                  <LoaderCircle className="size-3.5 animate-spin" />
+                  {locale === "ko" ? "회원 권한 확인 중" : "Checking member access"}
+                </p>
+              ) : null}
+              <Link
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold !text-slate-950 transition hover:bg-white/92"
+                href={fullContentHref}
+              >
+                <ExternalLink className="size-4 shrink-0 text-slate-950" />
+                <span className="truncate text-slate-950">{lockedActionLabel}</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-16">
+              <p className="line-clamp-2 text-sm font-semibold leading-5 text-white">
+                {item.title}
+              </p>
+              <p className="mt-1 truncate text-xs font-medium text-white/64">
+                {displayName}
+              </p>
+            </div>
+          )}
+
+          {images.length > 1 ? (
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-x-0 z-30 flex justify-center px-4",
+                canViewImages
+                  ? "bottom-[calc(env(safe-area-inset-bottom)+4.6rem)]"
+                  : "bottom-[calc(env(safe-area-inset-bottom)+14.5rem)]",
+              )}
+            >
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/50 px-3 py-2 backdrop-blur-md">
+                {images.map((imageUrl, index) => (
+                  <span
+                    className={cn(
+                      "h-1.5 rounded-full transition",
+                      index === boundedActiveIndex
+                        ? "w-6 bg-white"
+                        : "w-1.5 bg-white/45",
+                    )}
+                    key={`${imageUrl}-detail-dot-${index}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
