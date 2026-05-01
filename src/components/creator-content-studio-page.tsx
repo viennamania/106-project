@@ -29,6 +29,7 @@ import {
 } from "thirdweb/react";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
+import { useMemberSession } from "@/components/member-session-provider";
 import { getContentCopy } from "@/lib/content-copy";
 import { contentAutomationRunProgressSteps } from "@/lib/content-automation";
 import type {
@@ -64,7 +65,8 @@ import {
 } from "@/lib/landing-branding";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
   hasThirdwebClientId,
@@ -487,6 +489,13 @@ export function CreatorContentStudioPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const { updateMemberSession } = memberSession;
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const studioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
@@ -1158,7 +1167,9 @@ export function CreatorContentStudioPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -1290,46 +1301,36 @@ export function CreatorContentStudioPage({
         | { error?: string };
 
       if (!profileResponse.ok && profileResponse.status === 404) {
-        const memberResponse = await fetch("/api/members", {
-          body: JSON.stringify({
-            chainId: chain.id,
-            chainName: chain.name ?? "BSC",
-            email,
-            locale,
-            syncMode: "light",
-            walletAddress: accountAddress,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        const memberData = await syncServerMemberRegistration({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          syncMode: "light",
+          walletAddress: accountAddress,
         });
-        const memberData = (await memberResponse.json()) as
-          | SyncMemberResponse
-          | { error?: string };
-        const validationError =
-          "validationError" in memberData &&
-          typeof memberData.validationError === "string"
-            ? memberData.validationError
-            : null;
 
-        if (!memberResponse.ok) {
+        if (!memberData.ok) {
           throw new Error(
-            "error" in memberData && memberData.error
-              ? memberData.error
-              : contentCopy.messages.studioLoadFailed,
+            memberData.error || contentCopy.messages.studioLoadFailed,
           );
         }
 
-        const member = "member" in memberData ? memberData.member : null;
+        const member = memberData.member;
 
         if (!member) {
           throw new Error(contentCopy.messages.memberMissing);
         }
 
-        if (validationError) {
+        updateMemberSession({
+          email,
+          member,
+          walletAddress: accountAddress,
+        });
+
+        if (memberData.validationError) {
           setState({
-            error: validationError,
+            error: memberData.validationError,
             member,
             notice: null,
             posts: [],
@@ -1551,6 +1552,8 @@ export function CreatorContentStudioPage({
     contentCopy.messages.studioLoadFailed,
     dictionary.member.errors.missingEmail,
     locale,
+    memberSessionEmail,
+    updateMemberSession,
     view,
   ]);
 
@@ -1669,7 +1672,9 @@ export function CreatorContentStudioPage({
   }, [accountAddress, isConnectionResolving, loadStudio, status]);
 
   async function resolveMemberEmail() {
-    const email = await getThirdwebUserEmail({ client: thirdwebClient });
+    const email =
+      memberSessionEmail ??
+      (await getThirdwebUserEmail({ client: thirdwebClient }));
 
     if (!email) {
       throw new Error(dictionary.member.errors.missingEmail);

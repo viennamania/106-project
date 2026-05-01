@@ -84,6 +84,7 @@ import {
   type ReferralTreeNodeRecord,
   type SyncMemberResponse,
 } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { cn } from "@/lib/utils";
 import {
   BSC_EXPLORER,
@@ -597,7 +598,7 @@ export function SmartWalletApp({
         return;
       }
 
-      let response = await fetch(
+      const response = await fetch(
         `/api/members?email=${encodeURIComponent(email)}`,
       );
       let data = (await response.json()) as
@@ -617,30 +618,21 @@ export function SmartWalletApp({
           loadedMember.referredByCode === preferredReferralCode);
 
       if (!canUseLoadedMember) {
-        response = await fetch("/api/members", {
-          body: JSON.stringify({
-            chainId: chain.id,
-            chainName: chain.name ?? "BSC",
-            email,
-            locale,
-            referredByCode: preferredReferralCode,
-            syncMode: options?.mode ?? "full",
-            walletAddress: accountAddress,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        const syncData = await syncServerMemberRegistration({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          referredByCode: preferredReferralCode,
+          syncMode: options?.mode ?? "full",
+          walletAddress: accountAddress,
         });
-        data = (await response.json()) as SyncMemberResponse | { error?: string };
-      }
 
-      if (!response.ok) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : dictionary.member.errors.syncFailed,
-        );
+        if (!syncData.ok) {
+          throw new Error(syncData.error || dictionary.member.errors.syncFailed);
+        }
+
+        data = syncData;
       }
 
       if ("validationError" in data && data.validationError) {

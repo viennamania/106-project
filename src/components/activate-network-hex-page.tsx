@@ -23,6 +23,7 @@ import {
 } from "thirdweb/react";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -33,8 +34,8 @@ import {
   type ManagedReferralTreeNodeRecord,
   type MemberRecord,
   REFERRAL_SIGNUP_LIMIT,
-  type SyncMemberResponse,
 } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
@@ -621,6 +622,12 @@ export function ActivateNetworkHexPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const copy = getHexCopy(locale);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [focusedEmail, setFocusedEmail] = useState<string | null>(null);
@@ -655,7 +662,9 @@ export function ActivateNetworkHexPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setState({
@@ -671,32 +680,21 @@ export function ActivateNetworkHexPage({
         return;
       }
 
-      const syncResponse = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const syncData = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        walletAddress: accountAddress,
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
-        | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!syncData.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
-            : dictionary.activateNetworkPage.errors.loadFailed,
+          syncData.error || dictionary.activateNetworkPage.errors.loadFailed,
         );
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (syncData.validationError) {
         setState({
           error: syncData.validationError,
           levelCounts: [],
@@ -710,7 +708,7 @@ export function ActivateNetworkHexPage({
         return;
       }
 
-      if (!("member" in syncData) || !syncData.member) {
+      if (!syncData.member) {
         throw new Error(dictionary.activateNetworkPage.errors.loadFailed);
       }
 
@@ -772,7 +770,7 @@ export function ActivateNetworkHexPage({
         totalReferrals: 0,
       });
     }
-  }, [accountAddress, chain.id, chain.name, dictionary, locale]);
+  }, [accountAddress, chain.id, chain.name, dictionary, locale, memberSessionEmail]);
 
   useEffect(() => {
     if (status === "connected") {

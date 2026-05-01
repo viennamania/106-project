@@ -33,6 +33,7 @@ import {
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { useMemberSession } from "@/components/member-session-provider";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import {
@@ -50,8 +51,8 @@ import {
   type ManagedReferralTreeNodeRecord,
   type MemberRecord,
   type ServiceSuspensionScope,
-  type SyncMemberResponse,
 } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -161,6 +162,12 @@ export function ActivateNetworkPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const [state, setState] = useState<ActivateNetworkState>({
     error: null,
     levelCounts: [],
@@ -346,7 +353,9 @@ export function ActivateNetworkPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setState({
@@ -362,32 +371,21 @@ export function ActivateNetworkPage({
         return;
       }
 
-      const syncResponse = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const syncData = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        walletAddress: accountAddress,
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
-        | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!syncData.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
-            : dictionary.activateNetworkPage.errors.loadFailed,
+          syncData.error || dictionary.activateNetworkPage.errors.loadFailed,
         );
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (syncData.validationError) {
         setState({
           error: syncData.validationError,
           levelCounts: [],
@@ -401,7 +399,7 @@ export function ActivateNetworkPage({
         return;
       }
 
-      if (!("member" in syncData) || !syncData.member) {
+      if (!syncData.member) {
         throw new Error(dictionary.activateNetworkPage.errors.loadFailed);
       }
 
@@ -464,7 +462,7 @@ export function ActivateNetworkPage({
         totalReferrals: 0,
       });
     }
-  }, [accountAddress, chain.id, chain.name, dictionary, locale]);
+  }, [accountAddress, chain.id, chain.name, dictionary, locale, memberSessionEmail]);
 
   const updateMemberServiceStatus = useCallback(
     async (action: "release" | "suspend") => {
@@ -479,7 +477,9 @@ export function ActivateNetworkPage({
       });
 
       try {
-        const email = await getThirdwebUserEmail({ client: thirdwebClient });
+        const email =
+          memberSessionEmail ??
+          (await getThirdwebUserEmail({ client: thirdwebClient }));
 
         if (!email) {
           throw new Error(dictionary.activateNetworkPage.errors.missingEmail);
@@ -548,6 +548,7 @@ export function ActivateNetworkPage({
       accountAddress,
       dictionary.activateNetworkPage.errors.loadFailed,
       dictionary.activateNetworkPage.errors.missingEmail,
+      memberSessionEmail,
       selectedMember,
       serviceCopy.releaseNoticeMember,
       serviceCopy.releaseNoticeSubtree,
