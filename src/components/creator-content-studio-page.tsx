@@ -29,6 +29,12 @@ import {
 } from "thirdweb/react";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
+import {
+  CreatorStudioHeader,
+  CreatorStudioTabs,
+  type CreatorStudioHeaderStat,
+  type CreatorStudioTabItem,
+} from "@/components/creator-studio-shell";
 import { useMemberSession } from "@/components/member-session-provider";
 import { getContentCopy } from "@/lib/content-copy";
 import { contentAutomationRunProgressSteps } from "@/lib/content-automation";
@@ -4151,7 +4157,7 @@ export function CreatorContentStudioPage({
   }
 
   function renderStudioTabs() {
-    const tabs = [
+    const tabs: CreatorStudioTabItem[] = [
       {
         href: studioHomeHref,
         isActive: view === "hub",
@@ -4179,23 +4185,7 @@ export function CreatorContentStudioPage({
       },
     ];
 
-    return (
-      <nav className="hidden gap-2 sm:flex sm:overflow-x-auto sm:pb-1">
-        {tabs.map((tab) => (
-          <Link
-            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
-              tab.isActive
-                ? "border border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.22)] [text-shadow:0_1px_12px_rgba(255,255,255,0.12)]"
-                : "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
-            }`}
-            href={tab.href}
-            key={tab.href}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
-    );
+    return <CreatorStudioTabs items={tabs} />;
   }
 
   function renderWorkspaceOverviewCard() {
@@ -4732,88 +4722,55 @@ export function CreatorContentStudioPage({
         { returnTo: profileHref },
       )
     : null;
+  const headerDescription =
+    isConnectionResolving || state.status === "loading"
+      ? contentCopy.messages.detailLoadingDescription
+      : isDisconnected
+        ? contentCopy.messages.connectRequired
+        : pageDescription;
+  const headerStats: CreatorStudioHeaderStat[] =
+    view === "hub"
+      ? [
+          {
+            label: contentCopy.labels.posts,
+            value: String(state.summary.all),
+          },
+          {
+            label: contentCopy.labels.published,
+            value: String(publishedCount),
+          },
+          {
+            label: contentCopy.labels.draft,
+            value: String(draftCount),
+          },
+          {
+            label: contentCopy.labels.author,
+            value: state.profile.displayName || "-",
+          },
+        ]
+      : [];
 
   return (
     <>
       <main
-        className={`mx-auto flex min-h-screen w-full flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8 ${
-          view === "hub" ? "max-w-6xl" : "max-w-5xl"
-        }`}
+        className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8"
       >
 
-      <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.58),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.26),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.91))] sm:px-6 sm:py-5 sm:shadow-[0_20px_48px_rgba(15,23,42,0.12)] lg:static lg:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] lg:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
-        <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />
-        <div className="relative flex flex-col gap-2 sm:gap-4">
-          <div className="flex items-center justify-between gap-3 sm:items-start">
-            <div className="flex min-w-0 items-center gap-2 sm:items-start sm:gap-3">
-              <Link
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-none transition hover:bg-slate-50 sm:size-12 sm:rounded-2xl sm:border-white/80 sm:bg-white/92 sm:shadow-[0_14px_28px_rgba(15,23,42,0.10)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
-                href={backHref}
-              >
-                <ArrowLeft className="size-4 sm:size-5" />
-              </Link>
-              <div className="min-w-0">
-                <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
-                <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
-                  {pageTitle}
-                </h1>
-                <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
-                  {isConnectionResolving || state.status === "loading"
-                    ? contentCopy.messages.detailLoadingDescription
-                    : isDisconnected
-                      ? contentCopy.messages.connectRequired
-                      : pageDescription}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {headerShortcutHref && headerShortcutLabel ? (
-                <Link
-                  className="hidden h-11 items-center justify-center rounded-full border border-white/80 bg-white/92 px-4 text-sm font-semibold text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white sm:inline-flex"
-                  href={headerShortcutHref}
-                >
-                  {headerShortcutLabel}
-                </Link>
-              ) : null}
-              <button
-                className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
-                disabled={state.status === "loading"}
-                onClick={() => {
-                  void loadStudio();
-                }}
-                type="button"
-              >
-                <RefreshCcw
-                  className={cn("size-4", state.status === "loading" && "animate-spin")}
-                />
-                <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
-              </button>
-            </div>
-          </div>
-
-          {view === "hub" ? (
-            <div className="hidden grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <HeaderStatChip
-                label={contentCopy.labels.posts}
-                value={String(state.summary.all)}
-              />
-              <HeaderStatChip
-                label={contentCopy.labels.published}
-                value={String(publishedCount)}
-              />
-              <HeaderStatChip
-                label={contentCopy.labels.draft}
-                value={String(draftCount)}
-              />
-              <HeaderStatChip
-                label={contentCopy.labels.author}
-                value={state.profile.displayName || "-"}
-              />
-            </div>
-          ) : null}
-        </div>
-      </header>
+      <CreatorStudioHeader
+        backHref={backHref}
+        description={headerDescription}
+        eyebrow={contentCopy.page.studioEyebrow}
+        refreshDisabled={state.status === "loading"}
+        refreshLabel={contentCopy.actions.refresh}
+        refreshLoading={state.status === "loading"}
+        shortcutHref={headerShortcutHref}
+        shortcutLabel={headerShortcutLabel}
+        stats={headerStats}
+        title={pageTitle}
+        onRefresh={() => {
+          void loadStudio();
+        }}
+      />
 
       {renderStudioTabs()}
 
@@ -5059,25 +5016,6 @@ function WorkspaceMetric({
         {label}
       </p>
       <p className="mt-2 truncate text-lg font-semibold tracking-tight text-slate-950">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function HeaderStatChip({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[20px] border border-white/80 bg-white/88 px-3 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:min-w-[128px] sm:px-4">
-      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
         {value}
       </p>
     </div>

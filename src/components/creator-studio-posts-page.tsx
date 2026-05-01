@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Check,
   LayoutGrid,
-  RefreshCcw,
   Search,
 } from "lucide-react";
 import {
@@ -18,6 +17,10 @@ import {
 } from "thirdweb/react";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
+import {
+  CreatorStudioHeader,
+  CreatorStudioTabs,
+} from "@/components/creator-studio-shell";
 import type {
   CreatorStudioPostsLoadResponse,
   ContentPostMutationResponse,
@@ -486,123 +489,81 @@ export function CreatorStudioPostsPage({
       label: contentCopy.labels.archived,
     },
   ];
+  const tabs = [
+    {
+      href: studioHomeHref,
+      isActive: false,
+      label: contentCopy.labels.studioHome,
+    },
+    {
+      href: profileHref,
+      isActive: false,
+      label: contentCopy.labels.creatorSettings,
+    },
+    {
+      href: newPostHref,
+      isActive: false,
+      label: contentCopy.actions.createPost,
+    },
+    {
+      href: postsManagerBaseHref,
+      isActive: true,
+      label: contentCopy.actions.managePosts,
+    },
+    {
+      href: salesManagerHref,
+      isActive: false,
+      label: salesManagerLabel,
+    },
+  ];
 
   return (
     <>
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
 
-      <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] sm:px-6 sm:py-5 sm:shadow-[0_24px_60px_rgba(15,23,42,0.10)] lg:static">
-        <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />
-        <div className="relative flex flex-col gap-2 sm:gap-4">
-          <div className="flex items-center justify-between gap-3 sm:items-start">
-            <div className="flex min-w-0 items-center gap-2 sm:items-start sm:gap-3">
-              <Link
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-none transition hover:bg-slate-50 sm:size-12 sm:rounded-2xl sm:border-white/80 sm:bg-white/92 sm:shadow-[0_14px_28px_rgba(15,23,42,0.10)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
-                href={studioHomeHref}
-              >
-                <ArrowLeft className="size-4 sm:size-5" />
-              </Link>
-              <div className="min-w-0">
-                <p className="eyebrow hidden sm:block">{contentCopy.page.studioEyebrow}</p>
-                <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.45rem]">
-                  {contentCopy.actions.managePosts}
-                </h1>
-                <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
-                  {isDisconnected
-                    ? contentCopy.messages.connectRequired
-                    : isInitialLoading
-                      ? contentCopy.messages.postsLoading
-                      : contentCopy.page.postsDescription}
-                </p>
-              </div>
-            </div>
-            <button
-              className="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-950 shadow-none transition hover:bg-slate-50 sm:h-11 sm:w-auto sm:border-white/80 sm:bg-white/92 sm:px-4 sm:shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:hover:-translate-y-0.5 sm:hover:border-slate-200 sm:hover:bg-white"
-              onClick={() => {
-                void loadPosts();
-              }}
-              type="button"
-            >
-              <RefreshCcw className="size-4" />
-              <span className="hidden sm:inline">{contentCopy.actions.refresh}</span>
-            </button>
-          </div>
+      <CreatorStudioHeader
+        backHref={studioHomeHref}
+        description={
+          isDisconnected
+            ? contentCopy.messages.connectRequired
+            : isInitialLoading
+              ? contentCopy.messages.postsLoading
+              : contentCopy.page.postsDescription
+        }
+        eyebrow={contentCopy.page.studioEyebrow}
+        refreshLabel={contentCopy.actions.refresh}
+        refreshLoading={isInitialLoading}
+        shortcutHref={newPostHref}
+        shortcutLabel={contentCopy.actions.createPost}
+        stats={[
+          {
+            label: contentCopy.labels.posts,
+            loading: isInitialLoading,
+            value: String(state.summary.all),
+          },
+          {
+            label: contentCopy.labels.published,
+            loading: isInitialLoading,
+            value: String(state.summary.published),
+          },
+          {
+            label: contentCopy.labels.draft,
+            loading: isInitialLoading,
+            value: String(state.summary.draft),
+          },
+          {
+            label: contentCopy.labels.author,
+            loading: isInitialLoading,
+            value: state.profile?.displayName || "-",
+          },
+        ]}
+        title={contentCopy.actions.managePosts}
+        onRefresh={() => {
+          void loadPosts();
+        }}
+      />
 
-          <div className="hidden grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-            <HeaderStatChip
-              label={contentCopy.labels.posts}
-              loading={isInitialLoading}
-              value={String(state.summary.all)}
-            />
-            <HeaderStatChip
-              label={contentCopy.labels.published}
-              loading={isInitialLoading}
-              value={String(state.summary.published)}
-            />
-            <HeaderStatChip
-              label={contentCopy.labels.draft}
-              loading={isInitialLoading}
-              value={String(state.summary.draft)}
-            />
-            <HeaderStatChip
-              label={contentCopy.labels.author}
-              loading={isInitialLoading}
-              value={state.profile?.displayName || "-"}
-            />
-          </div>
-
-          <div className="hidden gap-2 sm:flex sm:flex-wrap">
-            <Link
-              className="inline-flex h-11 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 [text-shadow:0_1px_14px_rgba(255,255,255,0.18)]"
-              href={newPostHref}
-            >
-              {contentCopy.actions.createPost}
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <nav className="hidden gap-2 sm:flex sm:overflow-x-auto sm:pb-1">
-        {[
-          {
-            href: studioHomeHref,
-            isActive: false,
-            label: contentCopy.labels.studioHome,
-          },
-          {
-            href: profileHref,
-            isActive: false,
-            label: contentCopy.labels.creatorSettings,
-          },
-          {
-            href: newPostHref,
-            isActive: false,
-            label: contentCopy.actions.createPost,
-          },
-          {
-            href: postsManagerBaseHref,
-            isActive: true,
-            label: contentCopy.actions.managePosts,
-          },
-          {
-            href: salesManagerHref,
-            isActive: false,
-            label: salesManagerLabel,
-          },
-        ].map((tab) => (
-          <Link
-            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
-              tab.isActive
-                ? "border border-slate-950 bg-slate-950 !text-white shadow-[0_16px_36px_rgba(15,23,42,0.22)] [text-shadow:0_1px_12px_rgba(255,255,255,0.12)]"
-                : "border border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50"
-            }`}
-            href={tab.href}
-            key={tab.href}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
+      <CreatorStudioTabs items={tabs} />
 
       <section className="grid gap-3 sm:gap-5 xl:grid-cols-[0.82fr_1.18fr]">
         <div className="order-2 space-y-3 sm:space-y-5 xl:order-1">
@@ -868,31 +829,6 @@ export function CreatorStudioPostsPage({
       returnToHref={returnToHref}
     />
     </>
-  );
-}
-
-function HeaderStatChip({
-  label,
-  loading = false,
-  value,
-}: {
-  label: string;
-  loading?: boolean;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[20px] border border-white/80 bg-white/88 px-3 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:min-w-[128px] sm:px-4">
-      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
-        {label}
-      </p>
-      {loading ? (
-        <div className="mt-2 h-7 w-16 rounded-full bg-slate-200/80 motion-safe:animate-pulse" />
-      ) : (
-        <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-          {value}
-        </p>
-      )}
-    </div>
   );
 }
 
