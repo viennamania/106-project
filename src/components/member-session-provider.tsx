@@ -24,6 +24,11 @@ import {
   writeCachedMemberSession,
 } from "@/lib/member-session-cache";
 import {
+  clearServerMemberSession,
+  readServerMemberSession,
+  validateServerMemberSession,
+} from "@/lib/member-session-client";
+import {
   getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
@@ -108,7 +113,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
 
       clearCachedMemberSession(resolvedWalletAddress);
       serverSessionKeyRef.current = null;
-      void fetch("/api/session/member", { method: "DELETE" });
+      void clearServerMemberSession();
       setSession({
         ...emptyMemberSession,
         accountAddress: accountAddress ?? null,
@@ -142,18 +147,12 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       serverSessionKeyRef.current = serverSessionKey;
 
       try {
-        const response = await fetch("/api/session/member", {
-          body: JSON.stringify({
-            email: normalizedEmail,
-            walletAddress: normalizedWalletAddress,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        const result = await validateServerMemberSession({
+          email: normalizedEmail,
+          walletAddress: normalizedWalletAddress,
         });
 
-        if (!response.ok) {
+        if (!result.ok) {
           serverSessionKeyRef.current = null;
         }
       } catch {
@@ -217,7 +216,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       if (accountAddress && status === "disconnected") {
         clearCachedMemberSession(accountAddress);
         serverSessionKeyRef.current = null;
-        void fetch("/api/session/member", { method: "DELETE" });
+        void clearServerMemberSession();
       }
 
       setSession({
@@ -310,51 +309,40 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const serverSessionResponse = await fetch("/api/session/member", {
-          cache: "no-store",
-        });
+        const serverSessionResult = await readServerMemberSession();
 
         if (cancelled) {
           return;
         }
 
-        if (serverSessionResponse.ok) {
-          const serverSessionData = (await serverSessionResponse.json()) as {
-            email?: string | null;
-            member?: MemberRecord | null;
-          };
-          const serverSessionEmail = normalizeEmail(serverSessionData.email);
-          const serverSessionMember = serverSessionData.member ?? null;
-
+        if (serverSessionResult.ok) {
           if (
-            serverSessionEmail &&
-            serverSessionMember &&
-            isMemberSessionWalletMatch(serverSessionMember, accountAddress)
+            isMemberSessionWalletMatch(serverSessionResult.member, accountAddress)
           ) {
             writeCachedMemberSession({
-              email: serverSessionEmail,
-              member: serverSessionMember,
+              email: serverSessionResult.email,
+              member: serverSessionResult.member,
               walletAddress: accountAddress,
             });
             setSession({
               accountAddress,
-              email: serverSessionEmail,
+              email: serverSessionResult.email,
               error: null,
               isFromCache: false,
               isValidating: false,
-              member: serverSessionMember,
+              member: serverSessionResult.member,
               source: "server",
               status: "ready",
             });
-            serverSessionKeyRef.current = `${serverSessionEmail}:${normalizeWalletAddress(accountAddress)}:${serverSessionMember.updatedAt}`;
+            serverSessionKeyRef.current = `${serverSessionResult.email}:${normalizeWalletAddress(accountAddress)}:${serverSessionResult.member.updatedAt}`;
             return;
           }
 
           serverSessionKeyRef.current = null;
-          await fetch("/api/session/member", { method: "DELETE" });
-        } else if (serverSessionResponse.status === 403) {
+          await clearServerMemberSession();
+        } else if (serverSessionResult.status === 403) {
           serverSessionKeyRef.current = null;
-          await fetch("/api/session/member", { method: "DELETE" });
+          await clearServerMemberSession();
         }
 
         const email = await getThirdwebUserEmail({ client: thirdwebClient });
@@ -375,27 +363,21 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const response = await fetch(
-          `/api/members?email=${encodeURIComponent(normalizedEmail)}`,
-          { cache: "no-store" },
-        );
-        const data = (await response.json()) as
-          | { member?: MemberRecord | null }
-          | { error?: string };
+        const validatedSession = await validateServerMemberSession({
+          email: normalizedEmail,
+          walletAddress: accountAddress,
+        });
 
         if (cancelled) {
           return;
         }
 
-        if (!response.ok || !("member" in data) || !data.member) {
+        if (!validatedSession.ok) {
           clearCachedMemberSession(accountAddress);
           setSession({
             accountAddress,
             email: normalizedEmail,
-            error:
-              "error" in data && data.error
-                ? data.error
-                : "Member not found.",
+            error: validatedSession.error,
             isFromCache: false,
             isValidating: false,
             member: null,
@@ -405,7 +387,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (!isMemberSessionWalletMatch(data.member, accountAddress)) {
+        if (!isMemberSessionWalletMatch(validatedSession.member, accountAddress)) {
           clearCachedMemberSession(accountAddress);
           setSession({
             accountAddress,
@@ -421,22 +403,18 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
         }
 
         writeCachedMemberSession({
-          email: normalizedEmail,
-          member: data.member,
+          email: validatedSession.email,
+          member: validatedSession.member,
           walletAddress: accountAddress,
         });
-        void persistServerMemberSession({
-          email: normalizedEmail,
-          member: data.member,
-          walletAddress: accountAddress,
-        });
+        serverSessionKeyRef.current = `${validatedSession.email}:${normalizeWalletAddress(accountAddress)}:${validatedSession.member.updatedAt}`;
         setSession({
           accountAddress,
-          email: normalizedEmail,
+          email: validatedSession.email,
           error: null,
           isFromCache: false,
           isValidating: false,
-          member: data.member,
+          member: validatedSession.member,
           source: "server",
           status: "ready",
         });
