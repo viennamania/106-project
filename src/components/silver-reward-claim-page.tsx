@@ -24,7 +24,8 @@ import {
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
 import { type Dictionary, type Locale } from "@/lib/i18n";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import type { RewardRedemptionRecord } from "@/lib/points";
 import type {
@@ -129,33 +130,23 @@ export function SilverRewardClaimPage({
           throw new Error(dictionary.rewardsPage.errors.missingEmail);
         }
 
-        const syncResponse = await fetch("/api/members", {
-          body: JSON.stringify({
-            chainId: chain.id,
-            chainName: chain.name ?? "BSC",
-            email,
-            locale,
-            syncMode: "light",
-            walletAddress: accountAddress,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        const syncData = await syncServerMemberRegistration({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          syncMode: "light",
+          walletAddress: accountAddress,
         });
-        const syncData = (await syncResponse.json()) as
-          | SyncMemberResponse
-          | { error?: string };
 
-        if (!syncResponse.ok) {
+        if (!syncData.ok) {
           throw new Error(
-            "error" in syncData && syncData.error
-              ? syncData.error
-              : dictionary.rewardsPage.silverClaim.errors.loadFailed,
+            syncData.error ||
+              dictionary.rewardsPage.silverClaim.errors.loadFailed,
           );
         }
 
-        if ("validationError" in syncData && syncData.validationError) {
+        if (syncData.validationError) {
           throw new Error(syncData.validationError);
         }
 

@@ -44,7 +44,8 @@ import type {
   ActivityTapSessionStartResponse,
 } from "@/lib/activity";
 import { createEmptyActivitySummary } from "@/lib/activity";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
@@ -145,37 +146,24 @@ export function PlayPage({
           throw new Error(dictionary.playPage.errors.missingEmail);
         }
 
-        const syncResponse = await fetch("/api/members", {
-          body: JSON.stringify({
-            chainId: chain.id,
-            chainName: chain.name ?? "BSC",
-            email,
-            locale,
-            syncMode: "light",
-            walletAddress: accountAddress,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
+        const syncData = await syncServerMemberRegistration({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          syncMode: "light",
+          walletAddress: accountAddress,
         });
-        const syncData = (await syncResponse.json()) as
-          | SyncMemberResponse
-          | { error?: string };
 
-        if (!syncResponse.ok) {
-          throw new Error(
-            "error" in syncData && syncData.error
-              ? syncData.error
-              : dictionary.playPage.errors.loadFailed,
-          );
+        if (!syncData.ok) {
+          throw new Error(syncData.error || dictionary.playPage.errors.loadFailed);
         }
 
-        if ("validationError" in syncData && syncData.validationError) {
+        if (syncData.validationError) {
           throw new Error(syncData.validationError);
         }
 
-        const member = "member" in syncData ? syncData.member : null;
+        const member = syncData.member;
 
         if (!member) {
           throw new Error(dictionary.playPage.errors.loadFailed);

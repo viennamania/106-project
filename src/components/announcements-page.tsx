@@ -34,7 +34,8 @@ import type {
   MemberAnnouncementsResponse,
   MemberAnnouncementRecipientSummary,
 } from "@/lib/announcements";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
@@ -246,28 +247,21 @@ export function AnnouncementsPage({
         return;
       }
 
-      const response = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const data = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        syncMode: "light",
+        walletAddress: accountAddress,
       });
-      const data = (await response.json()) as
-        | SyncMemberResponse
-        | { error?: string };
 
-      if (!response.ok || !("member" in data)) {
-        throw new Error(
-          "error" in data && data.error ? data.error : copy.errors.loadFailed,
-        );
+      if (!data.ok) {
+        throw new Error(data.error || copy.errors.loadFailed);
+      }
+
+      if (!data.member) {
+        throw new Error(copy.errors.loadFailed);
       }
 
       setMemberSync({

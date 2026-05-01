@@ -1,6 +1,10 @@
 "use client";
 
-import type { MemberRecord } from "@/lib/member";
+import type {
+  MemberRecord,
+  SyncMemberRequest,
+  SyncMemberResponse,
+} from "@/lib/member";
 
 export type ServerMemberSession = {
   email: string;
@@ -20,6 +24,15 @@ const serverSessionValidationRequests = new Map<
   string,
   Promise<ServerMemberSessionResult>
 >();
+const memberSyncRequests = new Map<string, Promise<ServerMemberSyncResult>>();
+
+export type ServerMemberSyncResult =
+  | (SyncMemberResponse & { ok: true })
+  | {
+      error: string;
+      ok: false;
+      status: number;
+    };
 
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() ?? "";
@@ -27,6 +40,18 @@ function normalizeEmail(email?: string | null) {
 
 function normalizeWalletAddress(walletAddress?: string | null) {
   return walletAddress?.trim().toLowerCase() ?? "";
+}
+
+function getMemberSyncRequestKey(input: SyncMemberRequest) {
+  return JSON.stringify({
+    chainId: input.chainId,
+    chainName: input.chainName?.trim() ?? "",
+    email: normalizeEmail(input.email),
+    locale: input.locale?.trim() ?? "",
+    referredByCode: input.referredByCode?.trim() ?? "",
+    syncMode: input.syncMode ?? "full",
+    walletAddress: normalizeWalletAddress(input.walletAddress),
+  });
 }
 
 async function parseServerMemberSessionResponse(
@@ -127,4 +152,58 @@ export async function validateServerMemberSession({
 
 export async function clearServerMemberSession() {
   await fetch("/api/session/member", { method: "DELETE" }).catch(() => null);
+}
+
+export async function syncServerMemberRegistration(input: SyncMemberRequest) {
+  const requestKey = getMemberSyncRequestKey(input);
+  const existingRequest = memberSyncRequests.get(requestKey);
+
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = fetch("/api/members", {
+    body: JSON.stringify(input),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  }).then(async (response): Promise<ServerMemberSyncResult> => {
+    const data = (await response.json().catch(() => null)) as
+      | Partial<SyncMemberResponse>
+      | { error?: string }
+      | null;
+
+    if (!response.ok) {
+      return {
+        error:
+          data && "error" in data && data.error
+            ? data.error
+            : "Failed to sync member.",
+        ok: false,
+        status: response.status,
+      };
+    }
+
+    return {
+      justCompleted:
+        data && "justCompleted" in data ? Boolean(data.justCompleted) : false,
+      member: data && "member" in data ? data.member ?? null : null,
+      ok: true,
+      validationError:
+        data &&
+        "validationError" in data &&
+        typeof data.validationError === "string"
+          ? data.validationError
+          : null,
+    };
+  });
+
+  memberSyncRequests.set(requestKey, request);
+
+  try {
+    return await request;
+  } finally {
+    memberSyncRequests.delete(requestKey);
+  }
 }

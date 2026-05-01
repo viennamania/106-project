@@ -42,7 +42,7 @@ import {
   smartWalletChain,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import type { SyncMemberResponse } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { cn } from "@/lib/utils";
 
 type BrandingStudioMember = {
@@ -152,32 +152,21 @@ export function BrandingStudioPage({
         return;
       }
 
-      const syncResponse = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const syncData = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        walletAddress: accountAddress,
       });
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
-        | { error?: string };
 
-      if (!syncResponse.ok) {
+      if (!syncData.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
-            : studioCopy.messages.loadFailed,
+          syncData.error || studioCopy.messages.loadFailed,
         );
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (syncData.validationError) {
         setState({
           ...emptyState,
           error: syncData.validationError,
@@ -194,7 +183,7 @@ export function BrandingStudioPage({
         return;
       }
 
-      if (!("member" in syncData) || !syncData.member) {
+      if (!syncData.member) {
         throw new Error(studioCopy.messages.memberMissing);
       }
 

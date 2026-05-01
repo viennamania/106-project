@@ -32,8 +32,8 @@ import type {
 } from "@/lib/notifications";
 import type {
   MemberRecord,
-  SyncMemberResponse,
 } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   hasThirdwebClientId,
@@ -246,33 +246,22 @@ export function NotificationsPage({
         return;
       }
 
-      const response = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const data = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        syncMode: "light",
+        walletAddress: accountAddress,
       });
-      const data = (await response.json()) as
-        | SyncMemberResponse
-        | { error?: string };
 
-      if (!response.ok) {
+      if (!data.ok) {
         throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : dictionary.activateNetworkPage.errors.loadFailed,
+          data.error || dictionary.activateNetworkPage.errors.loadFailed,
         );
       }
 
-      if (!("member" in data) || !data.member) {
+      if (!data.member) {
         throw new Error(dictionary.activateNetworkPage.errors.loadFailed);
       }
 
