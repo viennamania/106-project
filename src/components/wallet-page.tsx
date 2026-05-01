@@ -737,38 +737,82 @@ export function WalletPage({
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:gap-4 sm:rounded-[28px] sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-2.5 sm:gap-3">
+        <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 -mx-4 flex flex-col gap-3 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-[28px] lg:border-x lg:px-5 lg:py-4">
+          <div className="flex items-center gap-3">
             <Link
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12"
               href={backHref}
             >
               <ArrowLeft className="size-4 sm:size-5" />
             </Link>
-            <div className="space-y-1">
+            <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.16)] sm:size-12">
+              <WalletMinimal className="size-4 sm:size-5" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1">
               <p className="eyebrow hidden sm:block">{dictionary.walletPage.eyebrow}</p>
-              <div>
-                <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                   {dictionary.walletPage.title}
                 </h1>
-                <p className="hidden text-sm text-slate-600 sm:block">
+                <p className="hidden max-w-2xl text-sm leading-6 text-slate-600 lg:block">
                   {dictionary.walletPage.description}
                 </p>
               </div>
+              <div className="sm:hidden">
+                <StatusChip labels={dictionary.common.status} status={status} />
+              </div>
+            </div>
+
+            <div className="ml-auto hidden min-w-0 flex-wrap items-center justify-end gap-2 sm:flex">
+              <Link
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+                href={bnbWalletHref}
+              >
+                <Coins className="size-4" />
+                <span>{dictionary.bnbPage.title}</span>
+              </Link>
+              <StatusChip labels={dictionary.common.status} status={status} />
+              <button
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isRefreshing}
+                onClick={() => {
+                  void runWalletSync({ background: true });
+                }}
+                type="button"
+              >
+                <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
+                <span>{dictionary.walletPage.actions.refresh}</span>
+              </button>
+              {hasThirdwebClientId ? (
+                isDisconnected ? (
+                  <button
+                    className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.common.connectWallet}
+                  </button>
+                ) : null
+              ) : (
+                <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                  {dictionary.common.clientIdRequired}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:hidden">
             <Link
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
+              className="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
               href={bnbWalletHref}
             >
               <Coins className="size-4" />
-              <span className="sr-only sm:not-sr-only">{dictionary.bnbPage.title}</span>
+              <span className="truncate">{dictionary.bnbPage.title}</span>
             </Link>
-            <StatusChip labels={dictionary.common.status} status={status} />
             <button
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:w-auto sm:gap-2 sm:px-4 sm:text-sm sm:font-medium"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isRefreshing}
               onClick={() => {
                 void runWalletSync({ background: true });
@@ -776,12 +820,12 @@ export function WalletPage({
               type="button"
             >
               <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
-              <span className="sr-only sm:not-sr-only">{dictionary.walletPage.actions.refresh}</span>
+              <span className="sr-only">{dictionary.walletPage.actions.refresh}</span>
             </button>
             {hasThirdwebClientId ? (
               isDisconnected ? (
                 <button
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-3 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:h-11 sm:px-4"
+                  className="col-span-2 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
                   onClick={() => {
                     setIsLoginDialogOpen(true);
                   }}
@@ -791,7 +835,7 @@ export function WalletPage({
                 </button>
               ) : null
             ) : (
-              <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+              <div className="col-span-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
               </div>
             )}
