@@ -69,14 +69,13 @@ import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { cn } from "@/lib/utils";
 
 type StudioState = {
@@ -977,7 +976,7 @@ export function CreatorContentStudioPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
   const backHref = view === "hub" ? returnToHref ?? homeHref : studioHomeHref;
   const pageTitle =
     view === "profile"

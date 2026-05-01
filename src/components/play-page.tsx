@@ -46,11 +46,10 @@ import type {
 } from "@/lib/activity";
 import { createEmptyActivitySummary } from "@/lib/activity";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -105,7 +104,7 @@ export function PlayPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

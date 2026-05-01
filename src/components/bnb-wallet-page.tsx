@@ -29,10 +29,10 @@ import {
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -219,7 +219,7 @@ export function BnbWalletPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

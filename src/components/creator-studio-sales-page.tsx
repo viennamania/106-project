@@ -41,14 +41,13 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 
 type SalesPageState = {
   dashboard: ContentSalesDashboardResponse | null;
@@ -242,7 +241,7 @@ export function CreatorStudioSalesPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status: connectionStatus,
   });

@@ -34,11 +34,11 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
+import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -87,7 +87,7 @@ export function AssetManagementPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

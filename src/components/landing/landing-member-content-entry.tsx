@@ -13,10 +13,9 @@ import {
 import { getContentCopy } from "@/lib/content-copy";
 import type { Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -44,7 +43,7 @@ export function LandingMemberContentEntry({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const { isResolving: isConnectionResolving } = getThirdwebConnectionState({
+  const { isResolving: isConnectionResolving } = useThirdwebConnectionState({
     accountAddress,
     status: connectionStatus,
   });

@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import type { RewardRedemptionRecord } from "@/lib/points";
 import type {
   SilverRewardClaimEligibilityReason,
@@ -39,7 +39,6 @@ import type {
 import {
   BSC_EXPLORER,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -103,7 +102,7 @@ export function SilverRewardClaimPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

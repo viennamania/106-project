@@ -30,7 +30,7 @@ import {
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   createEmptyPointsSummary,
   type PointLedgerRecord,
@@ -52,7 +52,6 @@ import type {
 import {
   BSC_EXPLORER,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -124,7 +123,7 @@ export function RewardsPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

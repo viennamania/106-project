@@ -70,14 +70,13 @@ import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import type { Dictionary, Locale } from "@/lib/i18n";
 
 type FeedState = {
@@ -329,7 +328,7 @@ export function NetworkFeedPage({
   const {
     isConnected: isWalletConnected,
     isResolving: isWalletConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
   const isFeedModeResolving =
     feedView === "network" &&
     hasReferralCode &&

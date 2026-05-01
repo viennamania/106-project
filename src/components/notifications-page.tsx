@@ -25,7 +25,7 @@ import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { setPathSearchParams } from "@/lib/landing-branding";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -38,7 +38,6 @@ import type {
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -132,7 +131,7 @@ export function NotificationsPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
   const isCompletedMember = memberSync.member?.status === "completed";
 
   const loadNotifications = useCallback(

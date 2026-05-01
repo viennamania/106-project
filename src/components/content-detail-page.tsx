@@ -73,12 +73,11 @@ import {
 } from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import { normalizeEmail, type MemberRecord } from "@/lib/member";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -453,7 +452,7 @@ export function ContentDetailPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
   const isModalPresentation = presentation === "modal";
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {

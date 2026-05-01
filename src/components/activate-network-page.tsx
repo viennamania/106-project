@@ -55,10 +55,9 @@ import {
 } from "@/lib/member";
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -206,7 +205,7 @@ export function ActivateNetworkPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status,
   });

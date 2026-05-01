@@ -35,14 +35,13 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 
 type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
@@ -157,7 +156,7 @@ export function CreatorStudioPostsPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({
+  } = useThirdwebConnectionState({
     accountAddress,
     status: connectionStatus,
   });

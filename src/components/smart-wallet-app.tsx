@@ -89,14 +89,13 @@ import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 
 type NoticeTone = "info" | "success" | "error";
@@ -257,7 +256,7 @@ export function SmartWalletApp({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
   const accountLabel = formatAddressLabel(accountAddress);
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`

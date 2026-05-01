@@ -46,14 +46,13 @@ import type {
 import { cn } from "@/lib/utils";
 import {
   getAppMetadata,
-  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
-import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { BSC_EXPLORER } from "@/lib/thirdweb";
 
@@ -134,7 +133,7 @@ export function ReferralsPage({
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
-  } = getThirdwebConnectionState({ accountAddress, status });
+  } = useThirdwebConnectionState({ accountAddress, status });
 
   async function loadReferrals() {
     if (!accountAddress) {
