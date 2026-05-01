@@ -19,8 +19,17 @@ type MemberServerSessionPayload = {
 };
 
 function getMemberSessionSecret() {
+  const dedicatedSecret = process.env.MEMBER_SESSION_SECRET?.trim();
+
+  if (dedicatedSecret) {
+    return dedicatedSecret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("MEMBER_SESSION_SECRET is required in production.");
+  }
+
   return (
-    process.env.MEMBER_SESSION_SECRET?.trim() ||
     process.env.NEXTAUTH_SECRET?.trim() ||
     process.env.THIRDWEB_SECRET_KEY?.trim() ||
     ""
