@@ -103,6 +103,7 @@ export function BrandingStudioPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const memberSession = useMemberSession();
+  const { updateMemberSession } = memberSession;
   const memberSessionEmail =
     accountAddress &&
     memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
@@ -196,6 +197,12 @@ export function BrandingStudioPage({
         throw new Error(studioCopy.messages.memberMissing);
       }
 
+      updateMemberSession({
+        email: syncData.member.email,
+        member: syncData.member,
+        walletAddress: accountAddress,
+      });
+
       const syncedMember: BrandingStudioMember = {
         email: syncData.member.email,
         locale: syncData.member.locale,
@@ -216,7 +223,11 @@ export function BrandingStudioPage({
       }
 
       const response = await fetch(
-        `/api/members/landing-branding?lang=${locale}`,
+        `/api/members/landing-branding?${new URLSearchParams({
+          email: syncedMember.email,
+          lang: locale,
+          walletAddress: accountAddress,
+        }).toString()}`,
       );
       const data = (await response.json()) as
         | BrandingStudioResponse
@@ -260,6 +271,10 @@ export function BrandingStudioPage({
   }, [status]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState(emptyState);
       setForm(null);
@@ -268,7 +283,14 @@ export function BrandingStudioPage({
     }
 
     void syncAndLoadStudio();
-  }, [accountAddress, chain.id, chain.name, locale, status]);
+  }, [
+    accountAddress,
+    chain.id,
+    chain.name,
+    isConnectionResolving,
+    locale,
+    status,
+  ]);
 
   async function saveStudio() {
     if (!form || !state.member?.email) {
@@ -495,9 +517,26 @@ export function BrandingStudioPage({
               </button>
             </div>
           </MessageCard>
-        ) : state.status === "loading" && !form ? (
+        ) : (state.status === "idle" || state.status === "loading") && !form ? (
           <MessageCard>{studioCopy.messages.loading}</MessageCard>
-        ) : state.member?.status !== "completed" ? (
+        ) : state.status === "error" && !form ? (
+          <MessageCard tone="error">
+            <div className="space-y-4">
+              <p>{state.error ?? studioCopy.messages.loadFailed}</p>
+              <button
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
+                onClick={() => {
+                  void loadStudio();
+                }}
+                type="button"
+              >
+                {studioCopy.actions.refresh}
+              </button>
+            </div>
+          </MessageCard>
+        ) : state.status === "ready" &&
+          state.member &&
+          state.member.status !== "completed" ? (
           <MessageCard tone="error">
             <div className="space-y-4">
               <p>{studioCopy.messages.paymentRequired}</p>
@@ -517,10 +556,10 @@ export function BrandingStudioPage({
               </div>
             </div>
           </MessageCard>
-        ) : state.status === "error" && !form ? (
+        ) : state.status === "ready" && !state.member ? (
           <MessageCard tone="error">
             <div className="space-y-4">
-              <p>{state.error ?? studioCopy.messages.loadFailed}</p>
+              <p>{studioCopy.messages.memberMissing}</p>
               <button
                 className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
                 onClick={() => {
