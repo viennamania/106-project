@@ -241,6 +241,12 @@ function resolveStudioPostPreviewImage(
   return post.coverImageUrl ?? post.contentImageUrls[0] ?? null;
 }
 
+function resolveStudioPostPreviewVideo(
+  post: Pick<ContentPostRecord, "contentVideoUrls">,
+) {
+  return post.contentVideoUrls[0] ?? null;
+}
+
 function createEmptyAutomationProgress(): AutomationProgressState {
   return {
     active: false,
@@ -5194,19 +5200,42 @@ export function CreatorContentStudioPage({
                 </button>
               </div>
             </div>
-            {posts.map((post) => (
-              <article
-                className="rounded-[24px] border border-white/80 bg-white/90 p-4"
-                key={post.contentId}
-              >
-                {resolveStudioPostPreviewImage(post) ? (
-                  <div className="mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
-                    <div
-                      className="h-36 w-full bg-cover bg-center"
-                      style={{
-                        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${resolveStudioPostPreviewImage(post)})`,
-                      }}
-                    />
+            {posts.map((post) => {
+              const previewImageUrl = resolveStudioPostPreviewImage(post);
+              const previewVideoUrl = previewImageUrl
+                ? null
+                : resolveStudioPostPreviewVideo(post);
+              const hasVideo = post.contentVideoUrls.length > 0;
+
+              return (
+                <article
+                  className="rounded-[24px] border border-white/80 bg-white/90 p-4"
+                  key={post.contentId}
+                >
+                {previewImageUrl || previewVideoUrl ? (
+                  <div className="relative mb-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-900/90">
+                    {previewImageUrl ? (
+                      <div
+                        className="h-36 w-full bg-cover bg-center"
+                        style={{
+                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${previewImageUrl})`,
+                        }}
+                      />
+                    ) : (
+                      <video
+                        className="h-36 w-full bg-black object-cover"
+                        muted
+                        playsInline
+                        preload="metadata"
+                        src={previewVideoUrl ?? undefined}
+                      />
+                    )}
+                    {hasVideo ? (
+                      <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-slate-950/78 px-3 text-xs font-semibold text-white shadow-sm backdrop-blur">
+                        <Film className="size-3.5" />
+                        {locale === "ko" ? "동영상" : "Video"}
+                      </span>
+                    ) : null}
                   </div>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-2">
@@ -5257,8 +5286,9 @@ export function CreatorContentStudioPage({
                   </button>
                 ) : null}
                 </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
 
             {!compact && state.summary.all > HUB_FULL_POST_PAGE_SIZE ? (
               <div className="flex flex-wrap gap-2 pt-2">

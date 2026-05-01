@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Film,
   LayoutGrid,
   Search,
 } from "lucide-react";
@@ -67,6 +68,12 @@ function resolveManagerPostPreviewImage(
   post: Pick<ContentPostRecord, "coverImageUrl" | "contentImageUrls">,
 ) {
   return post.coverImageUrl ?? post.contentImageUrls[0] ?? null;
+}
+
+function resolveManagerPostPreviewVideo(
+  post: Pick<ContentPostRecord, "contentVideoUrls">,
+) {
+  return post.contentVideoUrls[0] ?? null;
 }
 
 function isPostVisibilityFilter(value: string | null): value is PostVisibilityFilter {
@@ -714,19 +721,42 @@ export function CreatorStudioPostsPage({
             <MessageCard>{contentCopy.messages.noMatchingPosts}</MessageCard>
           ) : (
             <div className="mt-5 space-y-3">
-              {state.posts.map((post) => (
-                <article
-                  className="overflow-hidden rounded-[26px] border border-white/80 bg-white/94 shadow-[0_18px_42px_rgba(15,23,42,0.06)]"
-                  key={post.contentId}
-                >
-                  {resolveManagerPostPreviewImage(post) ? (
-                    <div className="overflow-hidden border-b border-slate-200/80 bg-slate-900/90">
-                      <div
-                        className="h-44 w-full bg-cover bg-center sm:h-40"
-                        style={{
-                          backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${resolveManagerPostPreviewImage(post)})`,
-                        }}
-                      />
+              {state.posts.map((post) => {
+                const previewImageUrl = resolveManagerPostPreviewImage(post);
+                const previewVideoUrl = previewImageUrl
+                  ? null
+                  : resolveManagerPostPreviewVideo(post);
+                const hasVideo = post.contentVideoUrls.length > 0;
+
+                return (
+                  <article
+                    className="overflow-hidden rounded-[26px] border border-white/80 bg-white/94 shadow-[0_18px_42px_rgba(15,23,42,0.06)]"
+                    key={post.contentId}
+                  >
+                  {previewImageUrl || previewVideoUrl ? (
+                    <div className="relative overflow-hidden border-b border-slate-200/80 bg-slate-900/90">
+                      {previewImageUrl ? (
+                        <div
+                          className="h-44 w-full bg-cover bg-center sm:h-40"
+                          style={{
+                            backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${previewImageUrl})`,
+                          }}
+                        />
+                      ) : (
+                        <video
+                          className="h-44 w-full bg-black object-cover sm:h-40"
+                          muted
+                          playsInline
+                          preload="metadata"
+                          src={previewVideoUrl ?? undefined}
+                        />
+                      )}
+                      {hasVideo ? (
+                        <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-slate-950/78 px-3 text-xs font-semibold text-white shadow-sm backdrop-blur">
+                          <Film className="size-3.5" />
+                          {locale === "ko" ? "동영상" : "Video"}
+                        </span>
+                      ) : null}
                     </div>
                   ) : null}
                   <div className="p-4 sm:p-5">
@@ -782,8 +812,9 @@ export function CreatorStudioPostsPage({
                       ) : null}
                     </div>
                   </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
 
               {state.pageInfo ? (
                 <div className="flex flex-col gap-3 border-t border-slate-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
