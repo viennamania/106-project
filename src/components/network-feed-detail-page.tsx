@@ -229,6 +229,45 @@ function canViewContentImages(
   return item.canAccess || Boolean(detailState?.content?.canAccess);
 }
 
+function LockedContentMediaPlaceholder({
+  imageCount,
+  locale,
+  priceLabel,
+}: {
+  imageCount: number;
+  locale: Locale;
+  priceLabel: string;
+}) {
+  const imageCountLabel =
+    locale === "ko"
+      ? `${imageCount.toLocaleString(locale)}장`
+      : `${imageCount.toLocaleString(locale)} images`;
+
+  return (
+    <div className="relative size-full overflow-hidden bg-[radial-gradient(circle_at_50%_30%,rgba(148,163,184,0.22),transparent_34%),linear-gradient(145deg,#020617,#0f172a_48%,#111827)]">
+      <div className="absolute inset-0 opacity-55 [background-image:linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:36px_36px]" />
+      <div className="absolute inset-x-6 top-[22%] flex flex-col items-center text-center text-white">
+        <span className="inline-flex size-16 items-center justify-center rounded-full border border-white/14 bg-white/10 shadow-[0_24px_80px_rgba(15,23,42,0.5)] backdrop-blur-md">
+          <LockKeyhole className="size-7" />
+        </span>
+        <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/55">
+          {locale === "ko" ? "잠긴 콘텐츠 이미지" : "Locked content images"}
+        </p>
+        <p className="mt-2 text-lg font-semibold tracking-normal text-white">
+          {locale === "ko"
+            ? `콘텐츠 이미지 ${imageCountLabel}`
+            : imageCountLabel}
+        </p>
+        <p className="mt-1 text-sm font-medium text-white/64">
+          {locale === "ko"
+            ? `${priceLabel} 결제 후 열람`
+            : `Unlock with ${priceLabel}`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function getFullContentActionLabel(
   item: ContentFeedItemRecord,
   detailState: DetailLoadState | null,
@@ -1568,6 +1607,11 @@ function NetworkFeedDetailSlide({
   const bodyPreview = truncateText(getReadableBodyText(item, detailState), 260);
   const contentImageCount = getReadableContentImageCount(item, detailState);
   const isPaid = item.priceType === "paid";
+  const showLockedMediaPlaceholder =
+    !imageUrl &&
+    isPaid &&
+    contentImageCount > 0 &&
+    !canViewContentImages(item, detailState);
   const accessLabel = isPaid
     ? locale === "ko"
       ? `${item.priceUsdt ?? "1"} USDT`
@@ -1601,6 +1645,12 @@ function NetworkFeedDetailSlide({
             priority={priority}
             sizes={DETAIL_IMAGE_SIZES}
             src={imageUrl}
+          />
+        ) : showLockedMediaPlaceholder ? (
+          <LockedContentMediaPlaceholder
+            imageCount={contentImageCount}
+            locale={locale}
+            priceLabel={accessLabel}
           />
         ) : (
           <div className="size-full bg-[radial-gradient(circle_at_28%_20%,rgba(56,189,248,0.32),transparent_30%),linear-gradient(145deg,#020617,#111827_45%,#0f172a)]" />

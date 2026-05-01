@@ -1518,6 +1518,13 @@ function SocialFeedPost({
   const priceLabel = isPaidContent
     ? `${item.priceUsdt ?? "1"} USDT`
     : null;
+  const contentImageCount =
+    item.contentImageCount ?? item.contentImageUrls.length;
+  const showLockedMediaPlaceholder =
+    !previewImageUrl &&
+    isPaidContent &&
+    contentImageCount > 0 &&
+    !item.canAccess;
   const metaItems = [
     priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel,
     ...(showNetworkLevel
@@ -2311,6 +2318,27 @@ function SocialFeedPost({
               sizes={POST_IMAGE_SIZES}
               src={previewImageUrl}
             />
+          </div>
+        ) : showLockedMediaPlaceholder ? (
+          <div className="flex aspect-square w-full items-center justify-center bg-[radial-gradient(circle_at_50%_28%,rgba(148,163,184,0.24),transparent_34%),linear-gradient(145deg,#020617,#0f172a_48%,#111827)] px-8 text-center text-white">
+            <div>
+              <span className="mx-auto inline-flex size-14 items-center justify-center rounded-full border border-white/14 bg-white/10 shadow-[0_20px_60px_rgba(15,23,42,0.38)] backdrop-blur-md">
+                <Coins className="size-6" />
+              </span>
+              <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/56">
+                {locale === "ko" ? "잠긴 콘텐츠 이미지" : "Locked images"}
+              </p>
+              <p className="mt-2 text-lg font-semibold tracking-normal text-white">
+                {locale === "ko"
+                  ? `이미지 ${contentImageCount.toLocaleString(locale)}장`
+                  : `${contentImageCount.toLocaleString(locale)} images`}
+              </p>
+              <p className="mt-1 text-sm font-medium text-white/62">
+                {locale === "ko"
+                  ? `${priceLabel} 결제 후 열람`
+                  : `Unlock with ${priceLabel}`}
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex aspect-square w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.22),transparent_34%),#f8fafc] px-8 text-center">
