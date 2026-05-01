@@ -341,8 +341,17 @@ export function NetworkFeedPage({
     hasReferralCode &&
     !isWalletConnected &&
     (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
+  const isMemberSessionRestorePending =
+    !isPublicReferralFeed &&
+    status === "connected" &&
+    Boolean(accountAddress) &&
+    !memberSessionEmail &&
+    (memberSession.status === "idle" ||
+      memberSession.status === "validating" ||
+      memberSession.isValidating);
   const isPrivateFeedConnectionResolving =
-    !isPublicReferralFeed && isWalletConnectionResolving;
+    !isPublicReferralFeed &&
+    (isWalletConnectionResolving || isMemberSessionRestorePending);
   const usesReferralHomeNavigation = isPublicReferralFeed && !returnToHref;
   const headerBackLabel = usesReferralHomeNavigation
     ? locale === "ko"
@@ -947,39 +956,40 @@ export function NetworkFeedPage({
           ? "결제 완료 피드"
           : "Paid feed"
         : contentCopy.page.feedTitle;
-  const feedHeaderDescription = isInitialLoading || isFeedModeResolving
-    ? contentCopy.messages.feedLoadingTitle
-    : isPublicReferralFeed
-      ? locale === "ko"
-        ? "공개 네트워크 콘텐츠"
-        : "Public network content"
-      : isDisconnected
-        ? feedView === "saved"
-          ? locale === "ko"
-            ? "로그인 후 저장한 피드 보기"
-            : "Sign in to view saved posts"
-          : feedView === "purchases"
-            ? locale === "ko"
-              ? "로그인 후 결제 완료 피드 보기"
-              : "Sign in to view paid posts"
-            : locale === "ko"
-              ? "로그인 후 맞춤 피드 보기"
-              : "Sign in for your feed"
-        : state.member?.status === "completed"
+  const feedHeaderDescription =
+    isInitialLoading || isFeedModeResolving || isPrivateFeedConnectionResolving
+      ? contentCopy.messages.feedLoadingTitle
+      : isPublicReferralFeed
+        ? locale === "ko"
+          ? "공개 네트워크 콘텐츠"
+          : "Public network content"
+        : isDisconnected
           ? feedView === "saved"
             ? locale === "ko"
-              ? "내가 다시 보려고 저장한 콘텐츠"
-              : "Posts you saved to revisit"
+              ? "로그인 후 저장한 피드 보기"
+              : "Sign in to view saved posts"
             : feedView === "purchases"
               ? locale === "ko"
-                ? "1 USDT 결제를 완료한 콘텐츠"
-                : "Content you unlocked with payment"
+                ? "로그인 후 결제 완료 피드 보기"
+                : "Sign in to view paid posts"
               : locale === "ko"
-                ? "상위 네트워크 콘텐츠"
-                : "Upstream network content"
-          : locale === "ko"
-            ? "활성화 후 이용 가능"
-            : "Available after activation";
+                ? "로그인 후 맞춤 피드 보기"
+                : "Sign in for your feed"
+          : state.member?.status === "completed"
+            ? feedView === "saved"
+              ? locale === "ko"
+                ? "내가 다시 보려고 저장한 콘텐츠"
+                : "Posts you saved to revisit"
+              : feedView === "purchases"
+                ? locale === "ko"
+                  ? "1 USDT 결제를 완료한 콘텐츠"
+                  : "Content you unlocked with payment"
+                : locale === "ko"
+                  ? "상위 네트워크 콘텐츠"
+                  : "Upstream network content"
+            : locale === "ko"
+              ? "활성화 후 이용 가능"
+              : "Available after activation";
   const emptyFeedMessage =
     feedView === "saved"
       ? locale === "ko"

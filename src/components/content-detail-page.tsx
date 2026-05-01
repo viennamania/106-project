@@ -393,6 +393,13 @@ export function ContentDetailPage({
     memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
       ? memberSession.email
       : null;
+  const isMemberSessionRestorePending =
+    status === "connected" &&
+    Boolean(accountAddress) &&
+    !memberSessionEmail &&
+    (memberSession.status === "idle" ||
+      memberSession.status === "validating" ||
+      memberSession.isValidating);
   const { data: usdtBalance } = useWalletBalance({
     address: accountAddress,
     chain: smartWalletChain,
@@ -567,7 +574,7 @@ export function ContentDetailPage({
   ]);
 
   useEffect(() => {
-    if (isConnectionResolving) {
+    if (isConnectionResolving || isMemberSessionRestorePending) {
       return;
     }
 
@@ -584,7 +591,14 @@ export function ContentDetailPage({
     }
 
     void loadDetail();
-  }, [accountAddress, initialPreview, isConnectionResolving, loadDetail, status]);
+  }, [
+    accountAddress,
+    initialPreview,
+    isConnectionResolving,
+    isMemberSessionRestorePending,
+    loadDetail,
+    status,
+  ]);
 
   useEffect(() => {
     paidOrderRef.current = null;
@@ -687,6 +701,11 @@ export function ContentDetailPage({
     [spawnLikeBurst],
   );
   const isPreviewLocked = Boolean(state.content && !state.content.canAccess);
+  const shouldShowDetailLoading =
+    (state.status === "loading" ||
+      isConnectionResolving ||
+      isMemberSessionRestorePending) &&
+    (!state.content || isPreviewLocked);
   const isPaidLocked =
     isPreviewLocked &&
     state.gateReason === "paid" &&
@@ -1360,7 +1379,7 @@ export function ContentDetailPage({
 
       {!isModalPresentation ? <AndroidInstallBanner locale={locale} /> : null}
 
-      {(state.status === "loading" || isConnectionResolving) && !state.content ? (
+      {shouldShowDetailLoading ? (
         <ContentDetailLoadingState
           backHref={backHref}
           locale={locale}
