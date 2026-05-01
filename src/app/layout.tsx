@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { ThirdwebAppProvider } from "@/components/thirdweb-app-provider";
 import { PwaServiceWorker } from "@/components/pwa-service-worker";
 import type { ReactNode } from "react";
 
@@ -68,7 +67,7 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <ThirdwebAppProvider>{children}</ThirdwebAppProvider>
+        {children}
         <PwaServiceWorker />
       </body>
     </html>

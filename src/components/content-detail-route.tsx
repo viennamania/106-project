@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ContentDetailPage } from "@/components/content-detail-page";
+import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
@@ -55,28 +56,30 @@ export async function ContentDetailRoute({
   const initialTeaser = await getPublishedContentShareMetadata(contentId);
 
   return (
-    <ContentDetailPage
-      contentId={contentId}
-      dictionary={dictionary}
-      initialTeaser={
-        initialTeaser
-          ? {
-              authorAvatarImageUrl: initialTeaser.authorAvatarImageUrl,
-              authorDisplayName: initialTeaser.authorDisplayName,
-              coverImageUrl: initialTeaser.coverImageUrl,
-              priceType: initialTeaser.priceType,
-              priceUsdt: initialTeaser.priceUsdt,
-              publishedAt: initialTeaser.publishedAt?.toISOString() ?? null,
-              summary: initialTeaser.summary,
-              title: initialTeaser.title,
-            }
-          : null
-      }
-      locale={locale}
-      presentation={presentation}
-      referralCode={referralCode}
-      returnToHref={returnToHref}
-      shareId={shareId}
-    />
+    <ThirdwebRuntimeLayout>
+      <ContentDetailPage
+        contentId={contentId}
+        dictionary={dictionary}
+        initialTeaser={
+          initialTeaser
+            ? {
+                authorAvatarImageUrl: initialTeaser.authorAvatarImageUrl,
+                authorDisplayName: initialTeaser.authorDisplayName,
+                coverImageUrl: initialTeaser.coverImageUrl,
+                priceType: initialTeaser.priceType,
+                priceUsdt: initialTeaser.priceUsdt,
+                publishedAt: initialTeaser.publishedAt?.toISOString() ?? null,
+                summary: initialTeaser.summary,
+                title: initialTeaser.title,
+              }
+            : null
+        }
+        locale={locale}
+        presentation={presentation}
+        referralCode={referralCode}
+        returnToHref={returnToHref}
+        shareId={shareId}
+      />
+    </ThirdwebRuntimeLayout>
   );
 }
