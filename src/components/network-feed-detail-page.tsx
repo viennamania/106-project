@@ -243,7 +243,7 @@ function getReadableContentVideoCount(
   );
 }
 
-function canViewContentImages(
+function canViewContentMedia(
   item: ContentFeedItemRecord,
   detailState: DetailLoadState | null,
 ) {
@@ -296,7 +296,7 @@ function getFullContentActionLabel(
 ) {
   if (
     detailState?.gateReason === "paid" ||
-    (item.priceType === "paid" && !canViewContentImages(item, detailState))
+    (item.priceType === "paid" && !canViewContentMedia(item, detailState))
   ) {
     return locale === "ko" ? "결제하고 전체 보기" : "Pay and view full post";
   }
@@ -1524,7 +1524,7 @@ export function NetworkFeedDetailPage({
         </div>
 
         {galleryItem && galleryFullContentHref ? (
-          <NetworkFeedImageViewer
+          <NetworkFeedMediaViewer
             detailState={detailByContentId[galleryItem.contentId] ?? null}
             fullContentHref={galleryFullContentHref}
             item={galleryItem}
@@ -1630,13 +1630,25 @@ function NetworkFeedDetailSlide({
   const contentImageCount = getReadableContentImageCount(item, detailState);
   const contentVideoCount = getReadableContentVideoCount(item, detailState);
   const contentMediaCount = contentImageCount + contentVideoCount;
+  const mediaActionLabel =
+    contentVideoCount > 0 && contentImageCount > 0
+      ? locale === "ko"
+        ? "미디어 보기"
+        : "View media"
+      : contentVideoCount > 0
+        ? locale === "ko"
+          ? "동영상 보기"
+          : "View video"
+        : locale === "ko"
+          ? "이미지 보기"
+          : "View images";
   const isPaid = item.priceType === "paid";
   const showLockedMediaPlaceholder =
     !imageUrl &&
     !videoUrl &&
     isPaid &&
     contentMediaCount > 0 &&
-    !canViewContentImages(item, detailState);
+    !canViewContentMedia(item, detailState);
   const accessLabel = isPaid
     ? locale === "ko"
       ? `${item.priceUsdt ?? "1"} USDT`
@@ -1821,17 +1833,21 @@ function NetworkFeedDetailSlide({
           ) : null}
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            {contentImageCount > 0 ? (
+            {contentMediaCount > 0 ? (
               <button
                 className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/18 bg-white px-4 py-2 text-sm font-semibold text-slate-950 shadow-xl transition hover:bg-white/92"
                 onClick={onOpenGallery}
                 type="button"
               >
-                <Images className="size-4" />
-                {locale === "ko" ? "이미지 보기" : "View images"}
-                {contentImageCount > 1 ? (
+                {contentVideoCount > 0 ? (
+                  <Film className="size-4" />
+                ) : (
+                  <Images className="size-4" />
+                )}
+                {mediaActionLabel}
+                {contentMediaCount > 1 ? (
                   <span className="rounded-full bg-slate-950/10 px-1.5 py-0.5 text-[0.65rem]">
-                    {contentImageCount}
+                    {contentMediaCount}
                   </span>
                 ) : null}
               </button>
@@ -1856,7 +1872,7 @@ function NetworkFeedDetailSlide({
   );
 }
 
-function NetworkFeedImageViewer({
+function NetworkFeedMediaViewer({
   detailState,
   fullContentHref,
   item,
@@ -1873,61 +1889,129 @@ function NetworkFeedImageViewer({
     () => getReadableContentImages(item, detailState),
     [detailState, item],
   );
+  const videos = useMemo(
+    () => getReadableContentVideos(item, detailState),
+    [detailState, item],
+  );
   const imageCount = getReadableContentImageCount(item, detailState);
-  const canViewImages = canViewContentImages(item, detailState);
+  const videoCount = getReadableContentVideoCount(item, detailState);
+  const mediaCount = imageCount + videoCount;
+  const hasImages = imageCount > 0;
+  const hasVideos = videoCount > 0;
+  const canViewMedia = canViewContentMedia(item, detailState);
   const displayName = getDisplayName(item);
   const previewImageUrl = item.coverImageUrl ?? images[0] ?? null;
-  const displayImages = useMemo(
-    () =>
-      canViewImages
-        ? images
-        : previewImageUrl
-          ? [previewImageUrl]
-          : [],
-    [canViewImages, images, previewImageUrl],
+  const displayMedia = useMemo(
+    () => {
+      if (!canViewMedia) {
+        return previewImageUrl
+          ? [{ kind: "image" as const, url: previewImageUrl }]
+          : [];
+      }
+
+      return [
+        ...images.map((url) => ({ kind: "image" as const, url })),
+        ...videos.map((url) => ({ kind: "video" as const, url })),
+      ];
+    },
+    [canViewMedia, images, previewImageUrl, videos],
   );
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const boundedActiveIndex = Math.max(
     0,
-    Math.min(activeIndex, Math.max(0, displayImages.length - 1)),
+    Math.min(activeIndex, Math.max(0, displayMedia.length - 1)),
   );
   const isPaid = item.priceType === "paid";
-  const lockedImageCountLabel =
+  const mediaTypeLabel =
+    hasVideos && hasImages
+      ? locale === "ko"
+        ? "콘텐츠 미디어"
+        : "content media"
+      : hasVideos
+        ? locale === "ko"
+          ? "콘텐츠 동영상"
+          : "content video"
+        : locale === "ko"
+          ? "콘텐츠 이미지"
+          : "content images";
+  const lockedMediaNoun =
+    hasVideos && hasImages
+      ? locale === "ko"
+        ? "미디어"
+        : "media"
+      : hasVideos
+        ? locale === "ko"
+          ? "동영상"
+          : "video"
+        : locale === "ko"
+          ? "이미지"
+          : "images";
+  const mediaCountLabel =
     locale === "ko"
-      ? `${imageCount.toLocaleString(locale)}장`
-      : `${imageCount.toLocaleString(locale)} images`;
+      ? hasVideos
+        ? `${mediaCount.toLocaleString(locale)}개`
+        : `${imageCount.toLocaleString(locale)}장`
+      : hasVideos && hasImages
+        ? `${mediaCount.toLocaleString(locale)} media items`
+        : hasVideos
+          ? `${videoCount.toLocaleString(locale)} ${videoCount === 1 ? "video" : "videos"}`
+          : `${imageCount.toLocaleString(locale)} ${imageCount === 1 ? "image" : "images"}`;
   const lockedTitle = isPaid
     ? locale === "ko"
-      ? "결제 후 이미지 열람"
-      : "Unlock images"
+      ? `결제 후 ${lockedMediaNoun} 열람`
+      : `Unlock ${lockedMediaNoun}`
     : locale === "ko"
-      ? "권한 확인 후 이미지 열람"
-      : "Verify access to view images";
+      ? `권한 확인 후 ${lockedMediaNoun} 열람`
+      : `Verify access to view ${lockedMediaNoun}`;
   const lockedDescription = isPaid
     ? locale === "ko"
-      ? `${item.priceUsdt ?? "1"} USDT 결제 후 콘텐츠 이미지 ${lockedImageCountLabel}을 바로 볼 수 있습니다.`
-      : `Pay ${item.priceUsdt ?? "1"} USDT to view ${lockedImageCountLabel}.`
+      ? `${item.priceUsdt ?? "1"} USDT 결제 후 ${mediaTypeLabel} ${mediaCountLabel}을 바로 볼 수 있습니다.`
+      : `Pay ${item.priceUsdt ?? "1"} USDT to view ${mediaCountLabel}.`
     : locale === "ko"
-      ? "네트워크 권한을 확인하면 콘텐츠 이미지를 볼 수 있습니다."
-      : "Verify your network access to view this image gallery.";
+      ? `네트워크 권한을 확인하면 ${mediaTypeLabel}를 볼 수 있습니다.`
+      : `Verify your network access to view this ${lockedMediaNoun}.`;
   const lockedActionLabel = isPaid
     ? locale === "ko"
-      ? "결제하고 이미지 보기"
-      : "Pay and view images"
+      ? `결제하고 ${lockedMediaNoun} 보기`
+      : `Pay and view ${lockedMediaNoun}`
     : locale === "ko"
       ? "권한 확인하기"
       : "Verify access";
+  const closeLabel =
+    hasVideos
+      ? locale === "ko"
+        ? "미디어 닫기"
+        : "Close media"
+      : locale === "ko"
+        ? "이미지 닫기"
+        : "Close images";
+  const previousLabel =
+    hasVideos
+      ? locale === "ko"
+        ? "이전 미디어"
+        : "Previous media"
+      : locale === "ko"
+        ? "이전 이미지"
+        : "Previous image";
+  const nextLabel =
+    hasVideos
+      ? locale === "ko"
+        ? "다음 미디어"
+        : "Next media"
+      : locale === "ko"
+        ? "다음 이미지"
+        : "Next image";
 
   useEffect(() => {
     trackRef.current?.scrollTo({ left: 0 });
-  }, [displayImages]);
+  }, [displayMedia]);
 
   function scrollToIndex(nextIndex: number) {
     const track = trackRef.current;
     const clampedIndex = Math.max(
       0,
-      Math.min(displayImages.length - 1, nextIndex),
+      Math.min(displayMedia.length - 1, nextIndex),
     );
 
     if (!track) {
@@ -1942,7 +2026,7 @@ function NetworkFeedImageViewer({
     setActiveIndex(clampedIndex);
   }
 
-  if (imageCount <= 0) {
+  if (mediaCount <= 0) {
     return null;
   }
 
@@ -1952,7 +2036,7 @@ function NetworkFeedImageViewer({
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-[linear-gradient(180deg,rgba(2,6,23,0.82),rgba(2,6,23,0))] px-3 pb-12 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
           <div className="flex items-center justify-between gap-3">
             <button
-              aria-label={locale === "ko" ? "이미지 닫기" : "Close images"}
+              aria-label={closeLabel}
               className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full bg-black/42 text-white shadow-[0_12px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-black/58"
               onClick={onClose}
               type="button"
@@ -1961,12 +2045,12 @@ function NetworkFeedImageViewer({
             </button>
             <div className="min-w-0 flex-1 text-center">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/62">
-                {locale === "ko" ? "콘텐츠 이미지" : "content images"}
+                {mediaTypeLabel}
               </p>
               <p className="truncate text-sm font-semibold leading-5 text-white">
-                {canViewImages
-                  ? `${boundedActiveIndex + 1} / ${displayImages.length}`
-                  : lockedImageCountLabel}
+                {canViewMedia && displayMedia.length > 0
+                  ? `${boundedActiveIndex + 1} / ${displayMedia.length}`
+                  : mediaCountLabel}
               </p>
             </div>
             <Link
@@ -1990,29 +2074,40 @@ function NetworkFeedImageViewer({
               }
 
               const nextIndex = Math.round(target.scrollLeft / target.clientWidth);
-              setActiveIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
+              setActiveIndex(Math.max(0, Math.min(displayMedia.length - 1, nextIndex)));
             }}
             ref={trackRef}
           >
-            {displayImages.length > 0 ? (
-              displayImages.map((imageUrl, index) => (
+            {displayMedia.length > 0 ? (
+              displayMedia.map((media, index) => (
                 <div
                   className="flex h-full w-full shrink-0 snap-center items-center justify-center"
-                  key={`${imageUrl}-${index}`}
+                  key={`${media.kind}-${media.url}-${index}`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt={`${item.title} ${index + 1}`}
-                    className={cn(
-                      "max-h-full w-full select-none object-contain",
-                      !canViewImages
-                        ? "scale-[1.04] blur-xl brightness-75 saturate-75"
-                        : "",
-                    )}
-                    draggable={false}
-                    loading={index === 0 ? "eager" : "lazy"}
-                    src={imageUrl}
-                  />
+                  {media.kind === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt={`${item.title} ${index + 1}`}
+                      className={cn(
+                        "max-h-full w-full select-none object-contain",
+                        !canViewMedia
+                          ? "scale-[1.04] blur-xl brightness-75 saturate-75"
+                          : "",
+                      )}
+                      draggable={false}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      src={media.url}
+                    />
+                  ) : (
+                    <video
+                      aria-label={`${item.title} ${index + 1}`}
+                      className="max-h-full w-full bg-black object-contain"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      src={media.url}
+                    />
+                  )}
                 </div>
               ))
             ) : (
@@ -2022,10 +2117,10 @@ function NetworkFeedImageViewer({
 
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0)_24%,rgba(2,6,23,0.18)_58%,rgba(2,6,23,0.78)_100%)]" />
 
-          {canViewImages && displayImages.length > 1 ? (
+          {canViewMedia && displayMedia.length > 1 ? (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
               <button
-                aria-label={locale === "ko" ? "이전 이미지" : "Previous image"}
+                aria-label={previousLabel}
                 className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
                 disabled={boundedActiveIndex === 0}
                 onClick={() => {
@@ -2036,9 +2131,9 @@ function NetworkFeedImageViewer({
                 <ChevronLeft className="size-5" />
               </button>
               <button
-                aria-label={locale === "ko" ? "다음 이미지" : "Next image"}
+                aria-label={nextLabel}
                 className="pointer-events-auto inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-slate-950/46 text-white backdrop-blur-md transition hover:bg-slate-950/64 disabled:opacity-35"
-                disabled={boundedActiveIndex === displayImages.length - 1}
+                disabled={boundedActiveIndex === displayMedia.length - 1}
                 onClick={() => {
                   scrollToIndex(boundedActiveIndex + 1);
                 }}
@@ -2049,7 +2144,7 @@ function NetworkFeedImageViewer({
             </div>
           ) : null}
 
-          {!canViewImages ? (
+          {!canViewMedia ? (
             <div className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 rounded-lg border border-white/16 bg-slate-950/72 p-4 text-white shadow-[0_22px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl">
               <div className="flex items-start gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-950">
@@ -2089,17 +2184,17 @@ function NetworkFeedImageViewer({
             </div>
           )}
 
-          {canViewImages && displayImages.length > 1 ? (
+          {canViewMedia && displayMedia.length > 1 ? (
             <div
               className={cn(
                 "pointer-events-none absolute inset-x-0 z-30 flex justify-center px-4",
-                canViewImages
+                canViewMedia
                   ? "bottom-[calc(env(safe-area-inset-bottom)+4.6rem)]"
                   : "bottom-[calc(env(safe-area-inset-bottom)+14.5rem)]",
               )}
             >
               <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/50 px-3 py-2 backdrop-blur-md">
-                {displayImages.map((imageUrl, index) => (
+                {displayMedia.map((media, index) => (
                   <span
                     className={cn(
                       "h-1.5 rounded-full transition",
@@ -2107,7 +2202,7 @@ function NetworkFeedImageViewer({
                         ? "w-6 bg-white"
                         : "w-1.5 bg-white/45",
                     )}
-                    key={`${imageUrl}-detail-dot-${index}`}
+                    key={`${media.kind}-${media.url}-detail-dot-${index}`}
                   />
                 ))}
               </div>
