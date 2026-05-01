@@ -418,6 +418,30 @@ function applyCoverGenerationProgressEvent(
   };
 }
 
+function getGenerationErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function applyCoverGenerationFailure(
+  current: CoverGenerationProgressState,
+  message: string,
+  fallbackStep: ContentCoverGenerationProgressStep = "generating_image",
+): CoverGenerationProgressState {
+  const failedStep = current.currentStep ?? fallbackStep;
+
+  return {
+    ...current,
+    active: false,
+    currentStep: failedStep,
+    error: message,
+    message,
+    steps: {
+      ...current.steps,
+      [failedStep]: "error",
+    },
+  };
+}
+
 async function readAutomationRunStream(
   response: Response,
   onEvent: (event: ContentAutomationRunStreamEvent) => void,
@@ -2606,26 +2630,19 @@ export function CreatorContentStudioPage({
         },
       }));
     } catch (error) {
+      const errorMessage = getGenerationErrorMessage(
+        error,
+        contentCopy.messages.uploadFailed,
+      );
+
       setState((current) => ({
         ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
+        error: errorMessage,
         notice: null,
       }));
-      setCoverGenerationProgress((current) => ({
-        ...current,
-        active: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-        message:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-      }));
+      setCoverGenerationProgress((current) =>
+        applyCoverGenerationFailure(current, errorMessage),
+      );
     } finally {
       setIsGeneratingPostImage(false);
     }
@@ -2769,32 +2786,30 @@ export function CreatorContentStudioPage({
         },
       }));
     } catch (error) {
+      const errorMessage = getGenerationErrorMessage(
+        error,
+        contentCopy.messages.uploadFailed,
+      );
+
       setState((current) => ({
         ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
+        error: errorMessage,
         notice: null,
       }));
-      setContentImageGenerationProgress((current) => ({
-        ...current,
-        active: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-        message:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-      }));
+      setContentImageGenerationProgress((current) =>
+        applyCoverGenerationFailure(current, errorMessage),
+      );
     } finally {
       setIsGeneratingPostImage(false);
     }
   }
 
   async function generatePostContentVideo() {
+    const videoGenerationFailedMessage =
+      locale === "ko"
+        ? "AI 콘텐츠 동영상 생성에 실패했습니다."
+        : "Failed to generate the AI content video.";
+
     try {
       if (!contentVideoPrompt.trim()) {
         throw new Error(
@@ -2848,7 +2863,7 @@ export function CreatorContentStudioPage({
           | { error?: string }
           | null;
 
-        throw new Error(payload?.error || contentCopy.messages.uploadFailed);
+        throw new Error(payload?.error || videoGenerationFailedMessage);
       }
 
       if (
@@ -2876,14 +2891,14 @@ export function CreatorContentStudioPage({
           | { error?: string };
 
         if (!("url" in payload)) {
-          throw new Error(payload.error || contentCopy.messages.uploadFailed);
+          throw new Error(payload.error || videoGenerationFailedMessage);
         }
 
         data = payload;
       }
 
       if (!data) {
-        throw new Error(streamError || contentCopy.messages.uploadFailed);
+        throw new Error(streamError || videoGenerationFailedMessage);
       }
 
       const generatedVideo = data;
@@ -2918,26 +2933,19 @@ export function CreatorContentStudioPage({
         },
       }));
     } catch (error) {
+      const errorMessage = getGenerationErrorMessage(
+        error,
+        videoGenerationFailedMessage,
+      );
+
       setState((current) => ({
         ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
+        error: errorMessage,
         notice: null,
       }));
-      setContentVideoGenerationProgress((current) => ({
-        ...current,
-        active: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-        message:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-      }));
+      setContentVideoGenerationProgress((current) =>
+        applyCoverGenerationFailure(current, errorMessage),
+      );
     } finally {
       setIsGeneratingPostImage(false);
     }
