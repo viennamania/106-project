@@ -46,6 +46,7 @@ import {
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { InAppBrowserExitBanner } from "@/components/in-app-browser-exit-banner";
+import { useMemberSession } from "@/components/member-session-provider";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   ContentCommentCreateResponse,
@@ -279,6 +280,10 @@ export function NetworkFeedPage({
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
+  const {
+    email: memberSessionEmail,
+    updateMemberSession,
+  } = useMemberSession();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
@@ -605,7 +610,9 @@ export function NetworkFeedPage({
             )
           : accountAddress
             ? await (async () => {
-                const email = await getThirdwebUserEmail({ client: thirdwebClient });
+                const email =
+                  memberSessionEmail ??
+                  (await getThirdwebUserEmail({ client: thirdwebClient }));
 
                 if (!email) {
                   throw new Error(dictionary.member.errors.missingEmail);
@@ -647,6 +654,14 @@ export function NetworkFeedPage({
         }
 
         const member = "member" in data ? data.member : null;
+
+        if (member && accountAddress) {
+          updateMemberSession({
+            email: member.email,
+            member,
+            walletAddress: accountAddress,
+          });
+        }
 
         if (!member && !isPublicReferralFeed) {
           throw new Error(contentCopy.messages.memberMissing);
@@ -734,7 +749,9 @@ export function NetworkFeedPage({
       isPublicReferralFeed,
       locale,
       mergeItems,
+      memberSessionEmail,
       referralCode,
+      updateMemberSession,
     ],
   );
 

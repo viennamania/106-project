@@ -39,6 +39,7 @@ import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
+import { useMemberSession } from "@/components/member-session-provider";
 import {
   useWalletUnlockGate,
   WalletUnlockAction,
@@ -388,6 +389,10 @@ export function ContentDetailPage({
         };
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
+  const {
+    email: memberSessionEmail,
+    updateMemberSession,
+  } = useMemberSession();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const { data: usdtBalance } = useWalletBalance({
@@ -466,7 +471,9 @@ export function ContentDetailPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -492,6 +499,15 @@ export function ContentDetailPage({
       }
 
       const member = "member" in data ? data.member : null;
+
+      if (member) {
+        updateMemberSession({
+          email: member.email,
+          member,
+          walletAddress: accountAddress,
+        });
+      }
+
       setSocialSummary(
         "social" in data && data.social
           ? data.social
@@ -548,6 +564,8 @@ export function ContentDetailPage({
     dictionary.member.errors.missingEmail,
     initialPreview,
     locale,
+    memberSessionEmail,
+    updateMemberSession,
   ]);
 
   useEffect(() => {

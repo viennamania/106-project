@@ -47,6 +47,7 @@ import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { useMemberSession } from "@/components/member-session-provider";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import { NotificationPushCard } from "@/components/notification-push-card";
@@ -200,6 +201,7 @@ export function SmartWalletApp({
   const pathname = usePathname();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
+  const memberSession = useMemberSession();
   const { data: balance } = useWalletBalance({
     client: thirdwebClient,
     chain: smartWalletChain,
@@ -253,6 +255,13 @@ export function SmartWalletApp({
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const accountAddress = account?.address;
+  const cachedSessionMember =
+    accountAddress &&
+    memberSession.member &&
+    isMemberWalletKnown(memberSession.member, accountAddress)
+      ? memberSession.member
+      : null;
+  const cachedSessionEmail = cachedSessionMember ? memberSession.email : null;
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
@@ -562,13 +571,17 @@ export function SmartWalletApp({
     if (!options?.background) {
       setMemberSync((current) => ({
         ...current,
+        email: current.email ?? cachedSessionEmail,
         error: null,
-        status: "syncing",
+        member: current.member ?? cachedSessionMember,
+        status: current.member || cachedSessionMember ? "ready" : "syncing",
       }));
     }
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        cachedSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setMemberSync({
@@ -638,6 +651,13 @@ export function SmartWalletApp({
 
       if ("validationError" in data && data.validationError) {
         const hasPendingMember = data.member?.status === "pending_payment";
+        if (data.member) {
+          memberSession.updateMemberSession({
+            email,
+            member: data.member,
+            walletAddress: accountAddress,
+          });
+        }
         setMemberSync({
           email,
           error: data.validationError,
@@ -663,6 +683,12 @@ export function SmartWalletApp({
 
       const syncedMember = data.member;
       let shouldCelebrate = "justCompleted" in data ? data.justCompleted : false;
+
+      memberSession.updateMemberSession({
+        email: syncedMember.email,
+        member: syncedMember,
+        walletAddress: accountAddress,
+      });
 
       setMemberSync((current) => {
         if (
@@ -1046,6 +1072,38 @@ export function SmartWalletApp({
   });
 
   useEffect(() => {
+    if (!cachedSessionEmail || !cachedSessionMember) {
+      return;
+    }
+
+    setMemberSync((current) => {
+      if (
+        current.member?.email === cachedSessionMember.email &&
+        current.member?.updatedAt === cachedSessionMember.updatedAt &&
+        current.status === "ready"
+      ) {
+        return current;
+      }
+
+      if (current.member && memberSession.isFromCache) {
+        return current;
+      }
+
+      return {
+        email: cachedSessionEmail,
+        error: null,
+        justCompleted: current.justCompleted,
+        member: cachedSessionMember,
+        status: "ready",
+      };
+    });
+  }, [
+    cachedSessionEmail,
+    cachedSessionMember,
+    memberSession.isFromCache,
+  ]);
+
+  useEffect(() => {
     if (isConnectionResolving) {
       return;
     }
@@ -1383,6 +1441,7 @@ export function SmartWalletApp({
     }
 
     setIsLogoutDialogOpen(false);
+    memberSession.clearMemberSession(accountAddress);
     disconnect(wallet);
   }
 
