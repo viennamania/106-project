@@ -326,19 +326,23 @@ export function NetworkFeedPage({
   const hasInitialPublicFeed =
     feedView === "network" && hasReferralCode && Boolean(initialPublicFeed);
   const isWalletConnected = status === "connected" && Boolean(accountAddress);
-  const isFeedModeResolving =
-    feedView === "network" &&
-    hasReferralCode &&
+  const isWalletConnectionResolving =
     hasThirdwebClientId &&
-    !hasInitialPublicFeed &&
     (status === "unknown" ||
       status === "connecting" ||
       (status === "connected" && !accountAddress));
+  const isFeedModeResolving =
+    feedView === "network" &&
+    hasReferralCode &&
+    !hasInitialPublicFeed &&
+    isWalletConnectionResolving;
   const isPublicReferralFeed =
     feedView === "network" &&
     hasReferralCode &&
     !isWalletConnected &&
     (status === "disconnected" || !hasThirdwebClientId || hasInitialPublicFeed);
+  const isPrivateFeedConnectionResolving =
+    !isPublicReferralFeed && isWalletConnectionResolving;
   const usesReferralHomeNavigation = isPublicReferralFeed && !returnToHref;
   const headerBackLabel = usesReferralHomeNavigation
     ? locale === "ko"
@@ -737,7 +741,7 @@ export function NetworkFeedPage({
   );
 
   useEffect(() => {
-    if (isFeedModeResolving) {
+    if (isFeedModeResolving || isPrivateFeedConnectionResolving) {
       setState({
         error: null,
         items: [],
@@ -797,6 +801,7 @@ export function NetworkFeedPage({
     feedRestoreKey,
     initialPublicFeed,
     isFeedModeResolving,
+    isPrivateFeedConnectionResolving,
     isPublicReferralFeed,
     loadFeed,
     status,
@@ -1093,7 +1098,7 @@ export function NetworkFeedPage({
         ) : null}
 
         <section className="flex flex-col">
-          {isFeedModeResolving ? (
+          {isFeedModeResolving || isPrivateFeedConnectionResolving ? (
             <FeedLoadingSkeleton />
           ) : !isPublicReferralFeed && isDisconnected ? (
             <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
