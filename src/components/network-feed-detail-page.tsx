@@ -332,6 +332,9 @@ export function NetworkFeedDetailPage({
   const viewParam = getViewParam(feedView);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const activeIndexRef = useRef(0);
+  const detailStatusByContentIdRef = useRef<
+    Record<string, DetailLoadState["status"]>
+  >({});
   const isLoadingMoreRef = useRef(false);
   const restoredFeedKeyRef = useRef<string | null>(null);
   const alignedContentIdRef = useRef<string | null>(null);
@@ -370,6 +373,7 @@ export function NetworkFeedDetailPage({
     [contentId, state.items],
   );
   const activeItem = state.items[activeIndex] ?? state.items[targetIndex] ?? null;
+  const activeContentId = activeItem?.contentId ?? null;
 
   const updateItemSocial = useCallback(
     (nextContentId: string, social: ContentSocialSummaryRecord) => {
@@ -802,17 +806,18 @@ export function NetworkFeedDetailPage({
 
   useEffect(() => {
     if (
-      !activeItem ||
+      !activeContentId ||
       isPublicReferralFeed ||
       !accountAddress ||
       isPrivateFeedConnectionResolving ||
-      detailByContentId[activeItem.contentId]?.status
+      detailStatusByContentIdRef.current[activeContentId]
     ) {
       return;
     }
 
-    const activeContentId = activeItem.contentId;
     let cancelled = false;
+    const detailStatusByContentId = detailStatusByContentIdRef.current;
+    detailStatusByContentId[activeContentId] = "loading";
 
     setDetailByContentId((current) => ({
       ...current,
@@ -858,6 +863,8 @@ export function NetworkFeedDetailPage({
           return;
         }
 
+        detailStatusByContentId[activeContentId] = "ready";
+
         const member = "member" in data ? data.member : null;
 
         if (member && accountAddress) {
@@ -886,6 +893,8 @@ export function NetworkFeedDetailPage({
           return;
         }
 
+        detailStatusByContentId[activeContentId] = "error";
+
         setDetailByContentId((current) => ({
           ...current,
           [activeContentId]: {
@@ -905,12 +914,15 @@ export function NetworkFeedDetailPage({
 
     return () => {
       cancelled = true;
+
+      if (detailStatusByContentId[activeContentId] === "loading") {
+        delete detailStatusByContentId[activeContentId];
+      }
     };
   }, [
     accountAddress,
-    activeItem,
+    activeContentId,
     contentCopy.messages.detailLoadFailed,
-    detailByContentId,
     dictionary.member.errors.missingEmail,
     isPrivateFeedConnectionResolving,
     isPublicReferralFeed,
