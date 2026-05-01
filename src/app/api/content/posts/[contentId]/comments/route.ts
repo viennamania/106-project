@@ -7,6 +7,7 @@ import {
   getContentCommentsForContent,
 } from "@/lib/content-service";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -23,11 +24,19 @@ export async function GET(
 
   try {
     let viewerEmail: string | null = null;
+    const session =
+      rawEmail && rawWalletAddress ? null : await readMemberServerSession();
+    const viewerCredentials =
+      rawEmail && rawWalletAddress
+        ? { email: rawEmail, walletAddress: rawWalletAddress }
+        : session
+          ? { email: session.email, walletAddress: session.walletAddress }
+          : null;
 
-    if (rawEmail && rawWalletAddress) {
+    if (viewerCredentials) {
       const authorization = await validateMemberWalletOwner({
-        email: rawEmail,
-        walletAddress: rawWalletAddress,
+        email: viewerCredentials.email,
+        walletAddress: viewerCredentials.walletAddress,
       });
 
       if (authorization.error) {

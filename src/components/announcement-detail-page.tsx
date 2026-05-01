@@ -179,7 +179,7 @@ export function AnnouncementDetailPage({
 
   const loadAnnouncementDetail = useCallback(
     async (memberEmail: string) => {
-      if (!accountAddress) {
+      if (!memberEmail || !accountAddress) {
         return;
       }
 
@@ -190,12 +190,8 @@ export function AnnouncementDetailPage({
       }));
 
       try {
-        const searchParams = new URLSearchParams({
-          email: memberEmail,
-          walletAddress: accountAddress,
-        });
         const response = await fetch(
-          `/api/announcements/${encodeURIComponent(announcementId)}?${searchParams.toString()}`,
+          `/api/announcements/${encodeURIComponent(announcementId)}`,
         );
         const data = (await response.json()) as
           | MemberAnnouncementDetailResponse

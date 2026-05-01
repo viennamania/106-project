@@ -32,14 +32,6 @@ export async function GET(request: Request) {
   const rawRecipientScope = url.searchParams.get("recipientScope");
   const walletAddress = url.searchParams.get("walletAddress");
 
-  if (!email) {
-    return jsonError("email query parameter is required.", 400);
-  }
-
-  if (!walletAddress) {
-    return jsonError("walletAddress query parameter is required.", 400);
-  }
-
   if (
     rawRecipientFilter &&
     !isMemberAnnouncementRecipientFilter(rawRecipientFilter)

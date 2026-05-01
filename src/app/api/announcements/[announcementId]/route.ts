@@ -18,14 +18,6 @@ export async function GET(
     return jsonError("announcementId is required.", 400);
   }
 
-  if (!email) {
-    return jsonError("email query parameter is required.", 400);
-  }
-
-  if (!walletAddress) {
-    return jsonError("walletAddress query parameter is required.", 400);
-  }
-
   try {
     const authorization = await validateNotificationOwner({
       allowedStatuses: ["completed", "pending_payment"],

@@ -17,6 +17,7 @@ import {
 } from "@/lib/member-service";
 import type { SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { setMemberServerSessionCookie } from "@/lib/member-server-session";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -133,6 +134,13 @@ export async function POST(request: Request) {
       ...body,
       syncMode: "light",
     });
+
+    if (sync.member) {
+      await setMemberServerSessionCookie({
+        email: sync.member.email,
+        walletAddress: sync.member.lastWalletAddress,
+      });
+    }
 
     if (!sync.member) {
       return jsonError("Member not found.", 404);

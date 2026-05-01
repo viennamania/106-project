@@ -8,7 +8,10 @@ import {
 } from "@/lib/mongodb";
 import type { SyncMemberRequest } from "@/lib/member";
 import { normalizeEmail, serializeMember } from "@/lib/member";
-import { readMemberServerSession } from "@/lib/member-server-session";
+import {
+  readMemberServerSession,
+  setMemberServerSessionCookie,
+} from "@/lib/member-server-session";
 import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 
 function jsonError(message: string, status: number) {
@@ -66,7 +69,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    return Response.json(await syncMemberRegistration(payload));
+    const response = await syncMemberRegistration(payload);
+
+    if (response.member) {
+      await setMemberServerSessionCookie({
+        email: response.member.email,
+        walletAddress: response.member.lastWalletAddress,
+      });
+    }
+
+    return Response.json(response);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to sync member.";

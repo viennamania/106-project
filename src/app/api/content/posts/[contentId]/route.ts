@@ -10,6 +10,7 @@ import {
 } from "@/lib/member-service";
 import { serializeMember, type SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { setMemberServerSessionCookie } from "@/lib/member-server-session";
 import {
   getPublicContentPreview,
   getContentDetailForMember,
@@ -172,6 +173,13 @@ export async function POST(
       ...body,
       syncMode: "light",
     });
+
+    if (sync.member) {
+      await setMemberServerSessionCookie({
+        email: sync.member.email,
+        walletAddress: sync.member.lastWalletAddress,
+      });
+    }
 
     if (!sync.member) {
       const response: ContentDetailLoadResponse = {

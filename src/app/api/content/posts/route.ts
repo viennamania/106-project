@@ -22,14 +22,6 @@ export async function GET(request: Request) {
   const rawQuery = url.searchParams.get("q");
   const rawStatus = url.searchParams.get("status");
 
-  if (!rawEmail) {
-    return jsonError("email query parameter is required.", 400);
-  }
-
-  if (!rawWalletAddress) {
-    return jsonError("walletAddress query parameter is required.", 400);
-  }
-
   try {
     const authorization = await validateMemberWalletOwner({
       email: rawEmail,

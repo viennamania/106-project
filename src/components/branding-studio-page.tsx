@@ -218,7 +218,7 @@ export function BrandingStudioPage({
       }
 
       const response = await fetch(
-        `/api/members/landing-branding?email=${encodeURIComponent(email)}&lang=${locale}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        `/api/members/landing-branding?lang=${locale}`,
       );
       const data = (await response.json()) as
         | BrandingStudioResponse

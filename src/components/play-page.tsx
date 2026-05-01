@@ -183,9 +183,7 @@ export function PlayPage({
 
         const summary = member.status === "completed"
           ? await (async () => {
-              const response = await fetch(
-                `/api/activity/summary?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-              );
+              const response = await fetch("/api/activity/summary");
               const data = (await response.json()) as
                 | ActivitySummaryResponse
                 | { error?: string };

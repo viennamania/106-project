@@ -6,6 +6,7 @@ import {
 } from "@/lib/member-service";
 import { serializeMember, type SyncMemberRequest } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { setMemberServerSessionCookie } from "@/lib/member-server-session";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -43,21 +44,7 @@ export async function GET(request: Request) {
   const query = url.searchParams.get("q");
   const status = url.searchParams.get("status");
 
-  if (!email) {
-    return jsonError("email query parameter is required.", 400);
-  }
-
-  if (!walletAddress) {
-    return jsonError("walletAddress query parameter is required.", 400);
-  }
-
   try {
-    const member = await getMemberRegistrationStatus(email);
-
-    if (!member) {
-      return jsonError("Member not found.", 404);
-    }
-
     const authorization = await validateMemberWalletOwner({
       allowedStatuses: ["completed", "pending_payment"],
       email,
@@ -66,6 +53,12 @@ export async function GET(request: Request) {
 
     if (authorization.error) {
       return authorization.error;
+    }
+
+    const member = authorization.member;
+
+    if (!member) {
+      return jsonError("Member not found.", 404);
     }
 
     if (member.status !== "completed") {
@@ -161,6 +154,13 @@ export async function POST(request: Request) {
       ...body,
       syncMode: "light",
     });
+
+    if (sync.member) {
+      await setMemberServerSessionCookie({
+        email: sync.member.email,
+        walletAddress: sync.member.lastWalletAddress,
+      });
+    }
 
     if (!sync.member) {
       return jsonError("Member not found.", 404);

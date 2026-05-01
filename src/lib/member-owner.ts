@@ -2,7 +2,10 @@ import "server-only";
 
 import type { MemberStatus } from "@/lib/member";
 import { normalizeEmail } from "@/lib/member";
-import { readMemberServerSession } from "@/lib/member-server-session";
+import {
+  readMemberServerSession,
+  setMemberServerSessionCookie,
+} from "@/lib/member-server-session";
 import {
   getMemberServiceSuspensionStatus,
   SERVICE_SUSPENDED_ERROR_MESSAGE,
@@ -95,6 +98,11 @@ export async function validateMemberWalletOwner({
       normalizedEmail,
     };
   }
+
+  await setMemberServerSessionCookie({
+    email: normalizedEmail,
+    walletAddress: normalizedWalletAddress,
+  });
 
   return {
     error: null,

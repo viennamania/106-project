@@ -159,9 +159,7 @@ export function SilverRewardClaimPage({
           throw new Error(syncData.validationError);
         }
 
-        const response = await fetch(
-          `/api/rewards/silver-claim?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-        );
+        const response = await fetch("/api/rewards/silver-claim");
         const data = (await response.json()) as
           | SilverRewardClaimSummaryResponse
           | { error?: string };

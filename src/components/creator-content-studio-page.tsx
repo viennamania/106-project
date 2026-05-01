@@ -1448,12 +1448,8 @@ export function CreatorContentStudioPage({
 
       const [automationProfileResponse, automationJobsResponse] =
         await Promise.all([
-          fetch(
-            `/api/content/automation/profile?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-          ),
-          fetch(
-            `/api/content/automation/jobs?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-          ),
+          fetch("/api/content/automation/profile"),
+          fetch("/api/content/automation/jobs"),
         ]);
 
       const automationProfileData = (await automationProfileResponse.json()) as

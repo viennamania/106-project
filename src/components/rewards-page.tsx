@@ -213,9 +213,7 @@ export function RewardsPage({
 
         const summaryTask = member.status === "completed"
           ? (async () => {
-              const response = await fetch(
-                `/api/points/summary?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-              );
+              const response = await fetch("/api/points/summary");
               const data = (await response.json()) as
                 | PointsSummaryResponse
                 | { error?: string };
@@ -236,9 +234,7 @@ export function RewardsPage({
 
         const redemptionsTask = member.status === "completed"
           ? (async () => {
-              const response = await fetch(
-                `/api/rewards/redemptions?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-              );
+              const response = await fetch("/api/rewards/redemptions");
               const data = (await response.json()) as
                 | RewardRedemptionsResponse
                 | { error?: string };
@@ -267,9 +263,7 @@ export function RewardsPage({
 
         const silverClaimTask = member.status === "completed"
           ? (async () => {
-              const response = await fetch(
-                `/api/rewards/silver-claim?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(accountAddress)}`,
-              );
+              const response = await fetch("/api/rewards/silver-claim");
               const data = (await response.json()) as
                 | SilverRewardClaimSummaryResponse
                 | { error?: string };

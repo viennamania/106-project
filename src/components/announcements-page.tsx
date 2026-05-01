@@ -183,10 +183,8 @@ export function AnnouncementsPage({
 
       try {
         const searchParams = new URLSearchParams({
-          email: memberEmail,
           recipientFilter,
           recipientScope,
-          walletAddress: accountAddress,
         });
         const response = await fetch(`/api/announcements?${searchParams.toString()}`);
         const data = (await response.json()) as

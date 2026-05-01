@@ -16,14 +16,6 @@ export async function GET(request: Request) {
   const localeInput = url.searchParams.get("lang") ?? "ko";
   const locale = (hasLocale(localeInput) ? localeInput : "ko") as Locale;
 
-  if (!email.trim()) {
-    return jsonError("email query parameter is required.", 400);
-  }
-
-  if (!walletAddress.trim()) {
-    return jsonError("walletAddress query parameter is required.", 400);
-  }
-
   try {
     const authorization = await validateMemberWalletOwner({
       email,
