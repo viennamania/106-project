@@ -9,11 +9,13 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  FileText,
   Heart,
   LoaderCircle,
   MessageCircle,
   RefreshCcw,
   Share2,
+  X,
 } from "lucide-react";
 import {
   useActiveAccount,
@@ -189,6 +191,13 @@ function truncateText(value: string, maxLength: number) {
   return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
+function getReadableBodyText(
+  item: ContentFeedItemRecord,
+  detailState: DetailLoadState | null,
+) {
+  return detailState?.content?.body?.trim() || item.previewText?.trim() || item.summary;
+}
+
 function mergeItems(
   currentItems: ContentFeedItemRecord[],
   nextItems: ContentFeedItemRecord[],
@@ -362,6 +371,7 @@ export function NetworkFeedDetailPage({
   const [detailByContentId, setDetailByContentId] = useState<
     Record<string, DetailLoadState>
   >({});
+  const [bodySheetContentId, setBodySheetContentId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -402,6 +412,28 @@ export function NetworkFeedDetailPage({
       ),
     [locale, referralCode, returnToHref, shareId, viewParam],
   );
+  const bodySheetItem = useMemo(
+    () =>
+      bodySheetContentId
+        ? state.items.find((item) => item.contentId === bodySheetContentId) ?? null
+        : null,
+    [bodySheetContentId, state.items],
+  );
+  const bodySheetFullContentHref = useMemo(() => {
+    if (!bodySheetItem) {
+      return null;
+    }
+
+    const networkDetailHref = buildNetworkDetailHref(bodySheetItem.contentId);
+
+    return setPathSearchParams(
+      buildPathWithReferral(`/${locale}/content/${bodySheetItem.contentId}`, referralCode),
+      {
+        returnTo: networkDetailHref,
+        shareId,
+      },
+    );
+  }, [bodySheetItem, buildNetworkDetailHref, locale, referralCode, shareId]);
 
   const loadFeed = useCallback(
     async (options?: { append?: boolean; cursor?: string | null }) => {
@@ -803,6 +835,33 @@ export function NetworkFeedDetailPage({
       window.clearTimeout(timeout);
     };
   }, [toast]);
+
+  useEffect(() => {
+    if (
+      bodySheetContentId &&
+      !state.items.some((item) => item.contentId === bodySheetContentId)
+    ) {
+      setBodySheetContentId(null);
+    }
+  }, [bodySheetContentId, state.items]);
+
+  useEffect(() => {
+    if (!bodySheetContentId) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setBodySheetContentId(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [bodySheetContentId]);
 
   useEffect(() => {
     if (
@@ -1296,6 +1355,9 @@ export function NetworkFeedDetailPage({
                 locale={locale}
                 onLike={() => toggleLike(item)}
                 onNext={() => scrollToIndex(index + 1)}
+                onOpenBody={() => {
+                  setBodySheetContentId(item.contentId);
+                }}
                 onPrevious={() => scrollToIndex(index - 1)}
                 onSave={() => toggleSave(item)}
                 onShare={() => {
@@ -1314,6 +1376,19 @@ export function NetworkFeedDetailPage({
             </div>
           ) : null}
         </div>
+
+        {bodySheetItem && bodySheetFullContentHref ? (
+          <NetworkFeedBodySheet
+            contentCopy={contentCopy}
+            detailState={detailByContentId[bodySheetItem.contentId] ?? null}
+            fullContentHref={bodySheetFullContentHref}
+            item={bodySheetItem}
+            locale={locale}
+            onClose={() => {
+              setBodySheetContentId(null);
+            }}
+          />
+        ) : null}
 
         {toast ? (
           <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-50 mx-auto flex max-w-[560px] justify-center px-4">
@@ -1362,6 +1437,7 @@ function NetworkFeedDetailSlide({
   locale,
   onLike,
   onNext,
+  onOpenBody,
   onPrevious,
   onSave,
   onShare,
@@ -1377,6 +1453,7 @@ function NetworkFeedDetailSlide({
   locale: Locale;
   onLike: () => void;
   onNext: () => void;
+  onOpenBody: () => void;
   onPrevious: () => void;
   onSave: () => void;
   onShare: () => void;
@@ -1387,11 +1464,7 @@ function NetworkFeedDetailSlide({
   const imageUrl = resolveFeedPreviewImage(item);
   const displayName = getDisplayName(item);
   const avatarFallback = getAvatarFallback(displayName);
-  const detailBody = detailState?.content?.body?.trim();
-  const bodyPreview = truncateText(
-    detailBody || item.previewText?.trim() || item.summary,
-    520,
-  );
+  const bodyPreview = truncateText(getReadableBodyText(item, detailState), 260);
   const isPaid = item.priceType === "paid";
   const accessLabel = isPaid
     ? locale === "ko"
@@ -1529,10 +1602,10 @@ function NetworkFeedDetailSlide({
             </div>
           </div>
 
-          <h2 className="mt-4 text-[1.65rem] font-semibold leading-[1.08] tracking-normal text-white sm:text-[1.9rem]">
+          <h2 className="mt-4 text-[1.42rem] font-semibold leading-[1.1] tracking-normal text-white sm:text-[1.9rem]">
             {item.title}
           </h2>
-          <p className="mt-3 whitespace-pre-line text-sm font-medium leading-6 text-white/86">
+          <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm font-medium leading-6 text-white/86">
             {bodyPreview}
           </p>
 
@@ -1552,13 +1625,14 @@ function NetworkFeedDetailSlide({
           ) : null}
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Link
+            <button
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/18 bg-white/12 px-4 py-2 text-sm font-semibold text-white shadow-xl backdrop-blur transition hover:bg-white/18"
-              href={fullContentHref}
+              onClick={onOpenBody}
+              type="button"
             >
-              <ExternalLink className="size-4" />
-              {contentCopy.actions.viewDetail}
-            </Link>
+              <FileText className="size-4" />
+              {locale === "ko" ? "본문 보기" : "Read post"}
+            </button>
             {item.networkLevel !== null ? (
               <span className="inline-flex min-h-10 items-center rounded-full border border-white/18 bg-white/10 px-3 py-2 text-xs font-semibold text-white/82 backdrop-blur">
                 {contentCopy.labels.level} {item.networkLevel}
@@ -1568,6 +1642,156 @@ function NetworkFeedDetailSlide({
         </div>
       </div>
     </article>
+  );
+}
+
+function NetworkFeedBodySheet({
+  contentCopy,
+  detailState,
+  fullContentHref,
+  item,
+  locale,
+  onClose,
+}: {
+  contentCopy: ContentCopy;
+  detailState: DetailLoadState | null;
+  fullContentHref: string;
+  item: ContentFeedItemRecord;
+  locale: Locale;
+  onClose: () => void;
+}) {
+  const displayName = getDisplayName(item);
+  const avatarFallback = getAvatarFallback(displayName);
+  const bodyText = getReadableBodyText(item, detailState);
+  const isPaid = item.priceType === "paid";
+  const accessLabel = isPaid
+    ? `${item.priceUsdt ?? "1"} USDT`
+    : contentCopy.labels.free;
+  const dateLabel = formatDate(item.publishedAt ?? item.createdAt, locale);
+  const gateLabel =
+    detailState?.gateReason === "paid"
+      ? locale === "ko"
+        ? "결제 후 전체 본문을 볼 수 있습니다."
+        : "Unlock this post to read the full body."
+      : detailState?.gateReason === "network"
+        ? locale === "ko"
+          ? "네트워크 권한이 필요합니다."
+          : "Network access is required."
+        : detailState?.gateReason === "signup"
+          ? contentCopy.messages.paymentRequired
+          : null;
+  const titleId = `network-body-sheet-${item.contentId}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/54 px-0 sm:px-4"
+      onClick={onClose}
+    >
+      <section
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="flex max-h-[82dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-t-lg bg-white text-slate-950 shadow-[0_-18px_60px_rgba(0,0,0,0.32)] sm:mb-4 sm:rounded-lg"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        role="dialog"
+      >
+        <div className="mx-auto mt-2 h-1.5 w-12 shrink-0 rounded-full bg-slate-200" />
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {contentCopy.fields.body}
+            </p>
+            <h3
+              className="mt-1 line-clamp-2 text-base font-semibold leading-6 text-slate-950"
+              id={titleId}
+            >
+              {item.title}
+            </h3>
+          </div>
+          <button
+            aria-label={locale === "ko" ? "닫기" : "Close"}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            {item.authorProfile?.avatarImageUrl ? (
+              <Image
+                alt=""
+                className="size-10 rounded-full border border-slate-200 object-cover"
+                height={40}
+                src={item.authorProfile.avatarImageUrl}
+                width={40}
+              />
+            ) : (
+              <span className="inline-flex size-10 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-700">
+                {avatarFallback}
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-950">
+                {displayName}
+              </p>
+              <p className="truncate text-xs font-medium text-slate-500">
+                {[accessLabel, dateLabel].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          </div>
+
+          {detailState?.status === "loading" ? (
+            <p className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500">
+              <LoaderCircle className="size-4 animate-spin" />
+              {locale === "ko" ? "회원 권한 확인 중" : "Checking member access"}
+            </p>
+          ) : null}
+
+          {detailState?.error ? (
+            <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+              {detailState.error}
+            </p>
+          ) : gateLabel ? (
+            <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+              {gateLabel}
+            </p>
+          ) : null}
+
+          <p className="mt-4 whitespace-pre-line text-[0.95rem] leading-7 text-slate-800">
+            {bodyText}
+          </p>
+
+          {item.tags.length > 0 ? (
+            <div className="mt-5 flex flex-wrap gap-1.5">
+              {item.tags.slice(0, 5).map((tag) => (
+                <span
+                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600"
+                  key={tag}
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="shrink-0 border-t border-slate-200 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
+          <Link
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-slate-800"
+            href={fullContentHref}
+          >
+            <ExternalLink className="size-4 shrink-0 text-white" />
+            <span className="truncate text-white">
+              {locale === "ko" ? "댓글·결제 페이지 열기" : "Open comments / payment"}
+            </span>
+          </Link>
+        </div>
+      </section>
+    </div>
   );
 }
 
