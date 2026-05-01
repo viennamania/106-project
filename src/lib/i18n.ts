@@ -4,7 +4,7 @@ export type Locale = (typeof supportedLocales)[number];
 type BuiltInLocale = "ko" | "en" | "ja" | "zh";
 
 export const defaultLocale: Locale = "ko";
-export const localeCookieName = "preferred-locale";
+export { localeCookieName } from "@/lib/locale-constants";
 
 export const localeLabels: Record<Locale, string> = {
   ko: "한국어",

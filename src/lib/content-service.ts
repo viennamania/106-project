@@ -2249,7 +2249,7 @@ export async function getCreatorSalesDashboardForMember(
   const pageSize = clampSalesPageSize(options?.pageSize);
   const cursor = (page - 1) * pageSize;
   const salesFilter = { sellerEmail: member.email };
-  const [pageOrders, confirmedOrders, pendingSalesCount, totalSalesCount] =
+  const [pageOrders, confirmedSalesSummary, pendingSalesCount, totalSalesCount] =
     await Promise.all([
       ordersCollection
         .find(salesFilter)
@@ -2258,17 +2258,24 @@ export async function getCreatorSalesDashboardForMember(
         .limit(pageSize)
         .toArray(),
       ordersCollection
-        .find(
+        .aggregate<{
+          confirmedSalesCount: number;
+          totalSalesUsdt?: { toString(): string } | null;
+        }>([
           {
-            sellerEmail: member.email,
-            status: "confirmed",
-          },
-          {
-            projection: {
-              amountUsdt: 1,
+            $match: {
+              sellerEmail: member.email,
+              status: "confirmed",
             },
           },
-        )
+          {
+            $group: {
+              _id: null,
+              confirmedSalesCount: { $sum: 1 },
+              totalSalesUsdt: { $sum: { $toDecimal: "$amountUsdt" } },
+            },
+          },
+        ])
         .toArray(),
       ordersCollection.countDocuments({
         sellerEmail: member.email,
@@ -2276,11 +2283,9 @@ export async function getCreatorSalesDashboardForMember(
       }),
       ordersCollection.countDocuments(salesFilter),
     ]);
-  const confirmedSalesCount = confirmedOrders.length;
-  const totalSalesUsdt = confirmedOrders.reduce(
-    (total, order) => addDecimalStrings(total, order.amountUsdt),
-    "0",
-  );
+  const confirmedSalesCount = confirmedSalesSummary[0]?.confirmedSalesCount ?? 0;
+  const totalSalesUsdt =
+    confirmedSalesSummary[0]?.totalSalesUsdt?.toString() ?? "0";
   const contentIds = [...new Set(pageOrders.map((order) => order.contentId))];
   const postsCollection = await getContentPostsCollection();
   const posts = contentIds.length

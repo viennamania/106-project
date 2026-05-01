@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 
-import { localeCookieName, type Locale } from "@/lib/i18n";
+import { localeCookieName } from "@/lib/locale-constants";
+import type { Locale } from "@/lib/i18n";
 
 export function LocaleSync({ locale }: { locale: Locale }) {
   useEffect(() => {
