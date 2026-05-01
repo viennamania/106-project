@@ -19,6 +19,7 @@ import {
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
 } from "@/lib/landing-branding";
@@ -86,6 +87,12 @@ export function SilverRewardClaimPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const [state, setState] = useState<SilverRewardClaimPageState>(
     createEmptyState(),
   );
@@ -124,7 +131,9 @@ export function SilverRewardClaimPage({
       }
 
       try {
-        const email = await getThirdwebUserEmail({ client: thirdwebClient });
+        const email =
+          memberSessionEmail ??
+          (await getThirdwebUserEmail({ client: thirdwebClient }));
 
         if (!email) {
           throw new Error(dictionary.rewardsPage.errors.missingEmail);
@@ -188,7 +197,7 @@ export function SilverRewardClaimPage({
         setIsRefreshing(false);
       }
     },
-    [accountAddress, chain.id, chain.name, dictionary, locale],
+    [accountAddress, chain.id, chain.name, dictionary, locale, memberSessionEmail],
   );
 
   useEffect(() => {

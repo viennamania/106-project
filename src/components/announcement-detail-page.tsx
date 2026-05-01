@@ -15,6 +15,7 @@ import {
 } from "thirdweb/react";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import type {
   MemberAnnouncementDetailRecord,
   MemberAnnouncementDetailResponse,
@@ -92,6 +93,12 @@ export function AnnouncementDetailPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const copy = dictionary.announcementsPage;
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
@@ -126,7 +133,9 @@ export function AnnouncementDetailPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setMemberSync({
@@ -169,7 +178,15 @@ export function AnnouncementDetailPage({
         status: "error",
       });
     }
-  }, [accountAddress, chain.id, chain.name, copy.errors.loadFailed, copy.errors.missingEmail, locale]);
+  }, [
+    accountAddress,
+    chain.id,
+    chain.name,
+    copy.errors.loadFailed,
+    copy.errors.missingEmail,
+    locale,
+    memberSessionEmail,
+  ]);
 
   const loadAnnouncementDetail = useCallback(
     async (memberEmail: string) => {

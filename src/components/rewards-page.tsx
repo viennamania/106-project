@@ -23,6 +23,7 @@ import {
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -88,6 +89,12 @@ export function RewardsPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const [state, setState] = useState<RewardsPageState>({
     catalog: [],
     catalogError: null,
@@ -157,7 +164,9 @@ export function RewardsPage({
       }
 
       try {
-        const email = await getThirdwebUserEmail({ client: thirdwebClient });
+        const email =
+          memberSessionEmail ??
+          (await getThirdwebUserEmail({ client: thirdwebClient }));
 
         if (!email) {
           throw new Error(dictionary.rewardsPage.errors.missingEmail);
@@ -312,7 +321,7 @@ export function RewardsPage({
         setIsRefreshing(false);
       }
     },
-    [accountAddress, chain.id, chain.name, dictionary, locale],
+    [accountAddress, chain.id, chain.name, dictionary, locale, memberSessionEmail],
   );
 
   useEffect(() => {

@@ -21,6 +21,7 @@ import {
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import { useMemberSession } from "@/components/member-session-provider";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { setPathSearchParams } from "@/lib/landing-branding";
@@ -104,6 +105,12 @@ export function NotificationsPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
@@ -234,7 +241,9 @@ export function NotificationsPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setMemberSync({
@@ -282,7 +291,7 @@ export function NotificationsPage({
         status: "error",
       });
     }
-  }, [accountAddress, chain.id, chain.name, dictionary, locale]);
+  }, [accountAddress, chain.id, chain.name, dictionary, locale, memberSessionEmail]);
 
   const markAllNotificationsAsRead = useCallback(async () => {
     const memberEmail = memberSync.member?.email;

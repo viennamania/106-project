@@ -24,6 +24,7 @@ import {
 
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import {
   buildPathWithReferral,
@@ -101,6 +102,12 @@ export function BrandingStudioPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
@@ -141,7 +148,9 @@ export function BrandingStudioPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setState({

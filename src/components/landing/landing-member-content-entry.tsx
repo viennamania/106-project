@@ -9,9 +9,11 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { useMemberSession } from "@/components/member-session-provider";
 import { getContentCopy } from "@/lib/content-copy";
 import type { Locale } from "@/lib/i18n";
-import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import type { MemberRecord } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   smartWalletChain,
@@ -38,6 +40,12 @@ export function LandingMemberContentEntry({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const { isResolving: isConnectionResolving } = useThirdwebConnectionState({
     accountAddress,
     status: connectionStatus,
@@ -65,7 +73,9 @@ export function LandingMemberContentEntry({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setState({
@@ -76,31 +86,24 @@ export function LandingMemberContentEntry({
         return;
       }
 
-      const response = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          syncMode: "light",
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const data = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        syncMode: "light",
+        walletAddress: accountAddress,
       });
-      const data = (await response.json()) as SyncMemberResponse | { error?: string };
 
-      if (!response.ok) {
+      if (!data.ok) {
         throw new Error(
-          "error" in data && data.error ? data.error : contentCopy.messages.memberMissing,
+          data.error || contentCopy.messages.memberMissing,
         );
       }
 
       setState({
         error: null,
-        member: "member" in data ? data.member : null,
+        member: data.member,
         status: "ready",
       });
     } catch (error) {
@@ -111,7 +114,14 @@ export function LandingMemberContentEntry({
         status: "error",
       });
     }
-  }, [accountAddress, chain.id, chain.name, contentCopy.messages.memberMissing, locale]);
+  }, [
+    accountAddress,
+    chain.id,
+    chain.name,
+    contentCopy.messages.memberMissing,
+    locale,
+    memberSessionEmail,
+  ]);
 
   useEffect(() => {
     if (isConnectionResolving) {

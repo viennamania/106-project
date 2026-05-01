@@ -22,6 +22,7 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
 import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
@@ -40,8 +41,8 @@ import type {
   MemberRecord,
   ReferralRewardsSummaryRecord,
   ReferralTreeNodeRecord,
-  SyncMemberResponse,
 } from "@/lib/member";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { cn } from "@/lib/utils";
 import {
   hasThirdwebClientId,
@@ -77,6 +78,12 @@ export function ReferralsPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const brandingCopy = getLandingBrandingCopy(locale);
   const contentCopy = getContentCopy(locale);
   const [state, setState] = useState<ReferralsState>({
@@ -142,7 +149,9 @@ export function ReferralsPage({
     }));
 
     try {
-      const email = await getThirdwebUserEmail({ client: thirdwebClient });
+      const email =
+        memberSessionEmail ??
+        (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!email) {
         setState({
@@ -157,33 +166,21 @@ export function ReferralsPage({
         return;
       }
 
-      const syncResponse = await fetch("/api/members", {
-        body: JSON.stringify({
-          chainId: chain.id,
-          chainName: chain.name ?? "BSC",
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const syncData = await syncServerMemberRegistration({
+        chainId: chain.id,
+        chainName: chain.name ?? "BSC",
+        email,
+        locale,
+        walletAddress: accountAddress,
       });
 
-      const syncData = (await syncResponse.json()) as
-        | SyncMemberResponse
-        | { error?: string };
-
-      if (!syncResponse.ok) {
+      if (!syncData.ok) {
         throw new Error(
-          "error" in syncData && syncData.error
-            ? syncData.error
-            : dictionary.referralsPage.errors.loadFailed,
+          syncData.error || dictionary.referralsPage.errors.loadFailed,
         );
       }
 
-      if ("validationError" in syncData && syncData.validationError) {
+      if (syncData.validationError) {
         setState({
           error: syncData.validationError,
           levelCounts: [],
@@ -196,7 +193,7 @@ export function ReferralsPage({
         return;
       }
 
-      if (!("member" in syncData) || !syncData.member) {
+      if (!syncData.member) {
         throw new Error(dictionary.referralsPage.errors.loadFailed);
       }
 

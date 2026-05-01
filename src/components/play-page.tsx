@@ -32,6 +32,7 @@ import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
+import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -78,6 +79,12 @@ export function PlayPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const [state, setState] = useState<PlayPageState>({
     email: null,
     error: null,
@@ -140,7 +147,9 @@ export function PlayPage({
       }
 
       try {
-        const email = await getThirdwebUserEmail({ client: thirdwebClient });
+        const email =
+          memberSessionEmail ??
+          (await getThirdwebUserEmail({ client: thirdwebClient }));
 
         if (!email) {
           throw new Error(dictionary.playPage.errors.missingEmail);
@@ -219,6 +228,7 @@ export function PlayPage({
       dictionary.playPage.errors.loadFailed,
       dictionary.playPage.errors.missingEmail,
       locale,
+      memberSessionEmail,
     ],
   );
 
