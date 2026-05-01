@@ -21,7 +21,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
@@ -31,6 +30,7 @@ import {
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   createEmptyPointsSummary,
   type PointLedgerRecord,
@@ -52,6 +52,7 @@ import type {
 import {
   BSC_EXPLORER,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -120,7 +121,13 @@ export function RewardsPage({
     `/${locale}/rewards/silver-claim`,
     referralCode,
   );
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const historyPageCount = Math.max(
     1,
     Math.ceil(state.summary.history.length / HISTORY_PAGE_SIZE),
@@ -155,7 +162,7 @@ export function RewardsPage({
       }
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!email) {
           throw new Error(dictionary.rewardsPage.errors.missingEmail);
@@ -527,6 +534,8 @@ export function RewardsPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">

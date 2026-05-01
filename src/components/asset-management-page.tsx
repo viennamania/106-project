@@ -38,6 +38,7 @@ import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -83,7 +84,13 @@ export function AssetManagementPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const assetPageHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate/assets`, referralCode),
     {
@@ -373,6 +380,8 @@ export function AssetManagementPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard tone="warning">{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{copy.loading}</MessageCard>
         ) : isDisconnected ? (
           <LandingReveal variant="soft">
             <section className="glass-card rounded-[24px] p-4 sm:p-6">
@@ -507,7 +516,7 @@ export function AssetManagementPage({
                           className="h-11 w-full justify-center rounded-2xl sm:w-auto"
                           copiedLabel={dictionary.common.copied}
                           copyLabel={dictionary.common.copyAddress}
-                          text={accountAddress}
+                          text={accountAddress ?? ""}
                         />
                         <a
                           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"

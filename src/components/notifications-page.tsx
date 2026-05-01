@@ -19,13 +19,13 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { setPathSearchParams } from "@/lib/landing-branding";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -38,6 +38,7 @@ import type {
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -128,6 +129,10 @@ export function NotificationsPage({
       unreadCount: 0,
     });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
   const isCompletedMember = memberSync.member?.status === "completed";
 
   const loadNotifications = useCallback(
@@ -235,7 +240,7 @@ export function NotificationsPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setMemberSync({
@@ -517,6 +522,10 @@ export function NotificationsPage({
   );
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setMemberSync({
         email: null,
@@ -538,7 +547,7 @@ export function NotificationsPage({
     }
 
     void runMemberSync();
-  }, [accountAddress, runMemberSync, status]);
+  }, [accountAddress, isConnectionResolving, runMemberSync, status]);
 
   useEffect(() => {
     if (!isCompletedMember || !memberSync.member?.email) {
@@ -642,7 +651,7 @@ export function NotificationsPage({
                 <span className="sr-only sm:not-sr-only">{notificationCopy.dismiss}</span>
               </Link>
 
-              {status !== "connected" || !accountAddress ? (
+              {isDisconnected ? (
                 hasThirdwebClientId ? (
                   <button
                     className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:hidden"
@@ -693,7 +702,9 @@ export function NotificationsPage({
               ) : null}
             </div>
 
-            {status !== "connected" || !accountAddress ? (
+            {isConnectionResolving ? (
+              <MessageCard>{dictionary.member.syncing}</MessageCard>
+            ) : isDisconnected ? (
               <MessageCard>{dictionary.member.disconnected}</MessageCard>
             ) : memberSync.status === "syncing" ? (
               <MessageCard>{dictionary.member.syncing}</MessageCard>
@@ -725,7 +736,7 @@ export function NotificationsPage({
                     void updateNotificationPreference(key, value);
                   }}
                   preferences={notificationsState.preferences}
-                  walletAddress={accountAddress}
+                  walletAddress={accountAddress ?? null}
                 />
               ) : (
                 <div className="space-y-4">
@@ -734,7 +745,7 @@ export function NotificationsPage({
                     copy={notificationCopy.push}
                     locale={locale}
                     memberEmail={memberSync.member.email}
-                    walletAddress={accountAddress}
+                    walletAddress={accountAddress ?? null}
                   />
                   <MessageCard>{notificationCopy.availableAfterSignup}</MessageCard>
                 </div>

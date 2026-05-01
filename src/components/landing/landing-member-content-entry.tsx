@@ -9,13 +9,14 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { getContentCopy } from "@/lib/content-copy";
 import type { Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -43,6 +44,10 @@ export function LandingMemberContentEntry({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
+  const { isResolving: isConnectionResolving } = getThirdwebConnectionState({
+    accountAddress,
+    status: connectionStatus,
+  });
   const [state, setState] = useState<MemberAccessState>({
     error: null,
     member: null,
@@ -66,7 +71,7 @@ export function LandingMemberContentEntry({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setState({
@@ -115,6 +120,10 @@ export function LandingMemberContentEntry({
   }, [accountAddress, chain.id, chain.name, contentCopy.messages.memberMissing, locale]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (connectionStatus !== "connected" || !accountAddress) {
       setState({
         error: null,
@@ -125,7 +134,7 @@ export function LandingMemberContentEntry({
     }
 
     void loadMember();
-  }, [accountAddress, connectionStatus, loadMember]);
+  }, [accountAddress, connectionStatus, isConnectionResolving, loadMember]);
 
   const member = state.member;
   const isKorean = locale === "ko";

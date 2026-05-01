@@ -22,7 +22,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import {
@@ -38,8 +37,10 @@ import {
   type SyncMemberResponse,
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -639,7 +640,13 @@ export function ActivateNetworkHexPage({
     summary: createEmptyReferralNetworkSummary(),
     totalReferrals: 0,
   });
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const [isMobileCompact, setIsMobileCompact] = useState(false);
 
   const loadNetwork = useCallback(async () => {
@@ -654,7 +661,7 @@ export function ActivateNetworkHexPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setState({
@@ -1061,6 +1068,8 @@ export function ActivateNetworkHexPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <MessageCard>{dictionary.activateNetworkPage.disconnected}</MessageCard>
         ) : state.status === "loading" && !state.member ? (

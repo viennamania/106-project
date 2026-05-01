@@ -17,7 +17,6 @@ import {
   useActiveWalletConnectionStatus,
   useDisconnect,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
@@ -27,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import type { RewardRedemptionRecord } from "@/lib/points";
 import type {
   SilverRewardClaimEligibilityReason,
@@ -39,6 +39,7 @@ import type {
 import {
   BSC_EXPLORER,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -99,7 +100,13 @@ export function SilverRewardClaimPage({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -122,7 +129,7 @@ export function SilverRewardClaimPage({
       }
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!email) {
           throw new Error(dictionary.rewardsPage.errors.missingEmail);
@@ -446,6 +453,8 @@ export function SilverRewardClaimPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">

@@ -28,7 +28,6 @@ import {
   useActiveWalletConnectionStatus,
   useDisconnect,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
@@ -47,9 +46,11 @@ import type {
 } from "@/lib/activity";
 import { createEmptyActivitySummary } from "@/lib/activity";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -101,7 +102,13 @@ export function PlayPage({
   const [countdownNow, setCountdownNow] = useState(Date.now());
   const autoFinishRequestedRef = useRef(false);
   const activeSession = state.summary.activeSession;
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
@@ -138,7 +145,7 @@ export function PlayPage({
       }
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!email) {
           throw new Error(dictionary.playPage.errors.missingEmail);
@@ -682,7 +689,9 @@ export function PlayPage({
         {actionError ? <MessageCard tone="error">{actionError}</MessageCard> : null}
         {state.error ? <MessageCard tone="error">{state.error}</MessageCard> : null}
 
-        {isDisconnected ? (
+        {isConnectionResolving ? (
+          <MessageCard>{dictionary.playPage.loading}</MessageCard>
+        ) : isDisconnected ? (
           <MessageCard>{dictionary.playPage.disconnected}</MessageCard>
         ) : state.status === "loading" ? (
           <MessageCard>{dictionary.playPage.loading}</MessageCard>

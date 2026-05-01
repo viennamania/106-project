@@ -42,7 +42,6 @@ import {
   useActiveWalletConnectionStatus,
   useWalletBalance,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { AnimatedNumberText } from "@/components/animated-number-text";
@@ -90,12 +89,14 @@ import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 
 type NoticeTone = "info" | "success" | "error";
@@ -253,6 +254,10 @@ export function SmartWalletApp({
 
   const appMetadata = getAppMetadata(dictionary.meta.description);
   const accountAddress = account?.address;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
   const accountLabel = formatAddressLabel(accountAddress);
   const projectWalletUrl = projectWallet
     ? `${BSC_EXPLORER}/address/${projectWallet}`
@@ -564,7 +569,7 @@ export function SmartWalletApp({
     }
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setMemberSync({
@@ -1042,6 +1047,10 @@ export function SmartWalletApp({
   });
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setMemberSync({
         email: null,
@@ -1065,11 +1074,12 @@ export function SmartWalletApp({
     void syncMemberRegistration();
   }, [
     accountAddress,
-    status,
-    locale,
     chain.id,
     chain.name,
+    isConnectionResolving,
+    locale,
     preferredReferralCode,
+    status,
   ]);
 
   useEffect(() => {
@@ -1749,6 +1759,8 @@ export function SmartWalletApp({
                             )
                           : status === "connected" && accountAddress
                             ? dictionary.member.pending
+                            : isConnectionResolving
+                              ? dictionary.member.syncing
                             : dictionary.member.disconnected}
                     </p>
                   </div>
@@ -1765,7 +1777,11 @@ export function SmartWalletApp({
                     <div className="rounded-[22px] border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-950 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
                       {dictionary.common.clientIdRequired}
                     </div>
-                  ) : status !== "connected" || !accountAddress ? (
+                  ) : isConnectionResolving ? (
+                    <div className="rounded-[22px] border border-slate-200 bg-white/86 px-4 py-4 text-sm leading-6 text-slate-700 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+                      {dictionary.member.syncing}
+                    </div>
+                  ) : isDisconnected ? (
                     <div className="grid gap-2.5 sm:grid-cols-[0.92fr_1.08fr] sm:gap-3">
                       <div className="order-2 relative overflow-hidden rounded-[24px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-3.5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:order-1 sm:rounded-[26px] sm:p-5">
                         <div className="pointer-events-none absolute -right-8 top-0 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),transparent_68%)] blur-3xl" />

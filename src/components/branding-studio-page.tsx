@@ -22,7 +22,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CopyTextButton } from "@/components/copy-text-button";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
@@ -38,8 +37,10 @@ import {
   type LandingPageBranding,
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -106,7 +107,13 @@ export function BrandingStudioPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const appMetadata = getAppMetadata(dictionary.meta.description);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const [state, setState] = useState<StudioState>(emptyState);
   const [form, setForm] = useState<LandingBrandingRecord | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -140,7 +147,7 @@ export function BrandingStudioPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setState({
@@ -489,6 +496,8 @@ export function BrandingStudioPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{studioCopy.messages.loading}</MessageCard>
         ) : isDisconnected ? (
           <MessageCard>
             <div className="space-y-3">

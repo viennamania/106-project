@@ -11,11 +11,11 @@ import {
   useActiveWalletConnectionStatus,
   useDisconnect,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildReferralLandingPath } from "@/lib/landing-branding";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
   supportedWallets,
@@ -143,7 +143,7 @@ export function WalletUnlockPage({
     setError(null);
 
     try {
-      const nextEmail = await getUserEmail({ client: thirdwebClient });
+      const nextEmail = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!nextEmail) {
         throw new Error(dictionary.member.errors.missingEmail);

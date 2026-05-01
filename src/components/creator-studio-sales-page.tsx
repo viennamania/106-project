@@ -20,7 +20,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
 import {
@@ -42,12 +41,14 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 
 type SalesPageState = {
   dashboard: ContentSalesDashboardResponse | null;
@@ -238,7 +239,13 @@ export function CreatorStudioSalesPage({
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [lastWithdrawal, setLastWithdrawal] =
     useState<ContentSellerWithdrawalResponse | null>(null);
-  const isDisconnected = connectionStatus !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status: connectionStatus,
+  });
   const canUseWorkspace =
     !isDisconnected && state.dashboard?.member.status === "completed";
   const hasSellerWallet = Boolean(state.dashboard?.sellerWalletAddress);
@@ -252,7 +259,7 @@ export function CreatorStudioSalesPage({
   });
 
   const resolveMemberEmail = useCallback(async () => {
-    const email = await getUserEmail({ client: thirdwebClient });
+    const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
     if (!email) {
       throw new Error(dictionary.member.errors.missingEmail);
@@ -334,6 +341,10 @@ export function CreatorStudioSalesPage({
   ]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (isDisconnected) {
       setState({
         dashboard: null,
@@ -345,7 +356,7 @@ export function CreatorStudioSalesPage({
     }
 
     void loadSales();
-  }, [isDisconnected, loadSales]);
+  }, [isConnectionResolving, isDisconnected, loadSales]);
 
   useEffect(() => {
     if (!copied) {
@@ -513,7 +524,9 @@ export function CreatorStudioSalesPage({
       label: salesCopy.sales,
     },
   ];
-  const blockedState = isDisconnected ? (
+  const blockedState = isConnectionResolving ? (
+    <MessageCard>{contentCopy.messages.postsLoading}</MessageCard>
+  ) : isDisconnected ? (
     <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
   ) : state.status === "loading" && !state.dashboard ? (
     <MessageCard>{contentCopy.messages.postsLoading}</MessageCard>
@@ -564,10 +577,10 @@ export function CreatorStudioSalesPage({
                   {salesCopy.title}
                 </h1>
                 <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
-                  {isDisconnected
-                    ? contentCopy.messages.connectRequired
-                    : state.status === "loading"
-                      ? contentCopy.messages.postsLoading
+                  {isConnectionResolving || state.status === "loading"
+                    ? contentCopy.messages.postsLoading
+                    : isDisconnected
+                      ? contentCopy.messages.connectRequired
                       : salesCopy.description}
                 </p>
               </div>

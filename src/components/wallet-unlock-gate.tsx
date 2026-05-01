@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { LockKeyhole } from "lucide-react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import type { Locale } from "@/lib/i18n";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import { buildWalletUnlockHref, getWalletUnlockCopy } from "@/lib/wallet-unlock";
 import { isWalletUnlockedForSession } from "@/lib/wallet-unlock-session";
 import { thirdwebClient } from "@/lib/thirdweb";
@@ -57,7 +57,7 @@ export function useWalletUnlockGate({
 
     void (async () => {
       try {
-        const nextEmail = await getUserEmail({ client: thirdwebClient });
+        const nextEmail = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!cancelled) {
           setResolvedEmail(nextEmail ?? null);

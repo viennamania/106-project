@@ -43,7 +43,6 @@ import {
   useActiveAccount,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
 import { InAppBrowserExitBanner } from "@/components/in-app-browser-exit-banner";
@@ -71,12 +70,14 @@ import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import type { Dictionary, Locale } from "@/lib/i18n";
 
 type FeedState = {
@@ -325,12 +326,10 @@ export function NetworkFeedPage({
   const hasReferralCode = Boolean(referralCode);
   const hasInitialPublicFeed =
     feedView === "network" && hasReferralCode && Boolean(initialPublicFeed);
-  const isWalletConnected = status === "connected" && Boolean(accountAddress);
-  const isWalletConnectionResolving =
-    hasThirdwebClientId &&
-    (status === "unknown" ||
-      status === "connecting" ||
-      (status === "connected" && !accountAddress));
+  const {
+    isConnected: isWalletConnected,
+    isResolving: isWalletConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
   const isFeedModeResolving =
     feedView === "network" &&
     hasReferralCode &&
@@ -607,7 +606,7 @@ export function NetworkFeedPage({
             )
           : accountAddress
             ? await (async () => {
-                const email = await getUserEmail({ client: thirdwebClient });
+                const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
                 if (!email) {
                   throw new Error(dictionary.member.errors.missingEmail);
@@ -1803,7 +1802,7 @@ function SocialFeedPost({
       }
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!email) {
           throw new Error(missingEmailMessage);
@@ -2071,7 +2070,7 @@ function SocialFeedPost({
       const searchParams = new URLSearchParams();
 
       if (accountAddress) {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (email) {
           searchParams.set("email", email);
@@ -2127,7 +2126,7 @@ function SocialFeedPost({
     setCommentsError(null);
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         throw new Error(missingEmailMessage);

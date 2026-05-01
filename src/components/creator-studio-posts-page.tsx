@@ -17,7 +17,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
 import type {
@@ -36,12 +35,14 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 
 type PostVisibilityFilter = "all" | "archived" | "draft" | "published";
 
@@ -153,7 +154,13 @@ export function CreatorStudioPostsPage({
     status: "idle",
     summary: EMPTY_SUMMARY,
   });
-  const isDisconnected = connectionStatus !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status: connectionStatus,
+  });
 
   useEffect(() => {
     setSearchInput(appliedQuery);
@@ -195,7 +202,7 @@ export function CreatorStudioPostsPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -344,6 +351,10 @@ export function CreatorStudioPostsPage({
   ]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (connectionStatus !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -359,10 +370,10 @@ export function CreatorStudioPostsPage({
     }
 
     void loadPosts();
-  }, [accountAddress, connectionStatus, loadPosts]);
+  }, [accountAddress, connectionStatus, isConnectionResolving, loadPosts]);
 
   async function resolveMemberEmail() {
-    const email = await getUserEmail({ client: thirdwebClient });
+    const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
     if (!email) {
       throw new Error(dictionary.member.errors.missingEmail);
@@ -422,6 +433,10 @@ export function CreatorStudioPostsPage({
   }
 
   function renderBlockedState() {
+    if (isConnectionResolving) {
+      return <MessageCard>{contentCopy.messages.postsLoading}</MessageCard>;
+    }
+
     if (isDisconnected) {
       return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
     }

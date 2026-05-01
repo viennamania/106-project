@@ -36,7 +36,6 @@ import {
   useWalletBalance,
 } from "thirdweb/react";
 import { toUnits } from "thirdweb/utils";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { CopyTextButton } from "@/components/copy-text-button";
@@ -58,10 +57,12 @@ import {
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -367,7 +368,7 @@ export function WalletPage({
 
         const memberTask = (async () => {
           try {
-            const email = await getUserEmail({ client: thirdwebClient });
+            const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
             if (!email) {
               throw new Error(dictionary.walletPage.errors.missingEmail);
@@ -700,7 +701,13 @@ export function WalletPage({
   const formattedBalance = balance?.displayValue
     ? `${formatTokenDisplay(balance.displayValue, locale)} USDT`
     : "0 USDT";
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const selectedRecipientAddress = selectedRecipient?.walletAddress
     ? normalizeAddress(selectedRecipient.walletAddress)
     : null;
@@ -809,6 +816,8 @@ export function WalletPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.walletPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">

@@ -37,7 +37,6 @@ import {
 } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AndroidInstallBanner } from "@/components/android-install-banner";
 import {
@@ -74,10 +73,12 @@ import {
 } from "@/lib/share-tracking";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import { normalizeEmail, type MemberRecord } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -449,7 +450,10 @@ export function ContentDetailPage({
   );
   const heroRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
   const isModalPresentation = presentation === "modal";
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
@@ -463,7 +467,7 @@ export function ContentDetailPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -548,6 +552,10 @@ export function ContentDetailPage({
   ]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         content: initialPreview,
@@ -561,7 +569,7 @@ export function ContentDetailPage({
     }
 
     void loadDetail();
-  }, [accountAddress, initialPreview, loadDetail, status]);
+  }, [accountAddress, initialPreview, isConnectionResolving, loadDetail, status]);
 
   useEffect(() => {
     paidOrderRef.current = null;
@@ -863,7 +871,7 @@ export function ContentDetailPage({
 
       if (!isDisconnected && accountAddress) {
         try {
-          const email = await getUserEmail({ client: thirdwebClient });
+          const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
           if (email) {
             searchParams.set("email", email);
@@ -933,7 +941,7 @@ export function ContentDetailPage({
     setCommentsError(null);
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -1024,7 +1032,7 @@ export function ContentDetailPage({
       txHash: null,
     }));
 
-    const email = await getUserEmail({ client: thirdwebClient });
+    const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
     if (!email) {
       throw new Error(dictionary.member.errors.missingEmail);
@@ -1195,7 +1203,7 @@ export function ContentDetailPage({
         }));
 
         try {
-          const email = await getUserEmail({ client: thirdwebClient });
+          const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
           if (!email) {
             throw new Error(dictionary.member.errors.missingEmail);
@@ -1322,7 +1330,7 @@ export function ContentDetailPage({
 
       {!isModalPresentation ? <AndroidInstallBanner locale={locale} /> : null}
 
-      {state.status === "loading" && !state.content ? (
+      {(state.status === "loading" || isConnectionResolving) && !state.content ? (
         <ContentDetailLoadingState
           backHref={backHref}
           locale={locale}
@@ -2712,7 +2720,8 @@ function PaidGalleryPinGate({
     setError(null);
 
     try {
-      const resolvedEmail = email ?? (await getUserEmail({ client: thirdwebClient }));
+      const resolvedEmail =
+        email ?? (await getThirdwebUserEmail({ client: thirdwebClient }));
 
       if (!resolvedEmail) {
         throw new Error(

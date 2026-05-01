@@ -28,7 +28,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { CreatorStudioMobileNav } from "@/components/creator-studio-mobile-nav";
 import { getContentCopy } from "@/lib/content-copy";
@@ -70,12 +69,14 @@ import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import { cn } from "@/lib/utils";
 
 type StudioState = {
@@ -973,7 +974,10 @@ export function CreatorContentStudioPage({
   const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
   const backHref = view === "hub" ? returnToHref ?? homeHref : studioHomeHref;
   const pageTitle =
     view === "profile"
@@ -1160,7 +1164,7 @@ export function CreatorContentStudioPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         throw new Error(dictionary.member.errors.missingEmail);
@@ -1646,6 +1650,10 @@ export function CreatorContentStudioPage({
   ]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -1668,10 +1676,10 @@ export function CreatorContentStudioPage({
     }
 
     void loadStudio();
-  }, [accountAddress, loadStudio, status]);
+  }, [accountAddress, isConnectionResolving, loadStudio, status]);
 
   async function resolveMemberEmail() {
-    const email = await getUserEmail({ client: thirdwebClient });
+    const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
     if (!email) {
       throw new Error(dictionary.member.errors.missingEmail);
@@ -2790,6 +2798,10 @@ export function CreatorContentStudioPage({
   }
 
   function renderBlockedState() {
+    if (isConnectionResolving) {
+      return <MessageCard>{contentCopy.messages.postsLoading}</MessageCard>;
+    }
+
     if (isDisconnected) {
       return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
     }
@@ -4192,7 +4204,9 @@ export function CreatorContentStudioPage({
   }
 
   function renderWorkspaceOverviewCard() {
-    const workspaceMessage = isDisconnected
+    const workspaceMessage = isConnectionResolving
+      ? contentCopy.messages.postsLoading
+      : isDisconnected
       ? contentCopy.messages.connectRequired
       : state.status === "loading"
         ? contentCopy.messages.detailLoadingDescription
@@ -4514,7 +4528,9 @@ export function CreatorContentStudioPage({
           </div>
         </div>
 
-        {isDisconnected ? (
+        {isConnectionResolving ? (
+          <StudioLoadingCard />
+        ) : isDisconnected ? (
           <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
         ) : state.status === "loading" ? (
           <StudioLoadingCard />
@@ -4756,10 +4772,10 @@ export function CreatorContentStudioPage({
                   {pageTitle}
                 </h1>
                 <p className="mt-0.5 line-clamp-1 max-w-2xl text-xs leading-5 text-slate-500 sm:mt-1 sm:line-clamp-none sm:text-sm sm:leading-6 sm:text-slate-600">
-                  {isDisconnected
-                    ? contentCopy.messages.connectRequired
-                    : state.status === "loading"
-                      ? contentCopy.messages.detailLoadingDescription
+                  {isConnectionResolving || state.status === "loading"
+                    ? contentCopy.messages.detailLoadingDescription
+                    : isDisconnected
+                      ? contentCopy.messages.connectRequired
                       : pageDescription}
                 </p>
               </div>

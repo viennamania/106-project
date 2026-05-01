@@ -14,7 +14,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import type {
@@ -23,8 +22,10 @@ import type {
 } from "@/lib/announcements";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -110,7 +111,13 @@ export function AnnouncementDetailPage({
   });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const isMemberReady = memberSync.status === "ready" && Boolean(memberSync.member);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
 
   const runMemberSync = useCallback(async () => {
     if (!accountAddress) {
@@ -124,7 +131,7 @@ export function AnnouncementDetailPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setMemberSync({
@@ -331,6 +338,8 @@ export function AnnouncementDetailPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{copy.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[28px] p-5">
             <div className="rounded-[24px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">

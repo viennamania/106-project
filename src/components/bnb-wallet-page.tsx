@@ -32,6 +32,7 @@ import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -215,7 +216,13 @@ export function BnbWalletPage({
   const connectedAccountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const backHref = returnTo ?? homeHref;
   const walletUnlock = useWalletUnlockGate({
@@ -309,6 +316,8 @@ export function BnbWalletPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.bnbPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">

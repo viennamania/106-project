@@ -18,7 +18,6 @@ import {
   useActiveWalletConnectionStatus,
   useDisconnect,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
@@ -47,12 +46,14 @@ import type {
 import { cn } from "@/lib/utils";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
   supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { BSC_EXPLORER } from "@/lib/thirdweb";
 
@@ -130,7 +131,10 @@ export function ReferralsPage({
   const accountUrl = accountAddress
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({ accountAddress, status });
 
   async function loadReferrals() {
     if (!accountAddress) {
@@ -144,7 +148,7 @@ export function ReferralsPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setState({
@@ -276,6 +280,10 @@ export function ReferralsPage({
   }, [status]);
 
   useEffect(() => {
+    if (isConnectionResolving) {
+      return;
+    }
+
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
       setState({
         error: null,
@@ -290,7 +298,14 @@ export function ReferralsPage({
     }
 
     void syncAndLoadReferrals();
-  }, [accountAddress, status, locale, chain.id, chain.name]);
+  }, [
+    accountAddress,
+    chain.id,
+    chain.name,
+    isConnectionResolving,
+    locale,
+    status,
+  ]);
 
   function confirmLogout() {
     if (!wallet) {
@@ -417,7 +432,9 @@ export function ReferralsPage({
         <section
           className={cn(
             "grid gap-5",
-            !isDisconnected && "lg:grid-cols-[0.95fr_1.05fr]",
+            !isDisconnected &&
+              !isConnectionResolving &&
+              "lg:grid-cols-[0.95fr_1.05fr]",
           )}
         >
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
@@ -430,6 +447,8 @@ export function ReferralsPage({
 
             {!hasThirdwebClientId ? (
               <MessageCard>{dictionary.env.description}</MessageCard>
+            ) : isConnectionResolving ? (
+              <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
             ) : isDisconnected ? (
               <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
                 <div className="space-y-3">
@@ -627,7 +646,7 @@ export function ReferralsPage({
             ) : null}
           </section>
 
-          {!isDisconnected ? (
+          {!isDisconnected && !isConnectionResolving ? (
             <section className="glass-card rounded-[30px] p-5 sm:p-6">
               <div className="mb-4 space-y-1">
                 <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
@@ -658,7 +677,7 @@ export function ReferralsPage({
           ) : null}
         </section>
 
-        {!isDisconnected ? (
+        {!isDisconnected && !isConnectionResolving ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             {state.status === "loading" ? (
               <MessageCard>{dictionary.referralsPage.loading}</MessageCard>

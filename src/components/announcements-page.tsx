@@ -23,11 +23,11 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import { setPathSearchParams } from "@/lib/landing-branding";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import type {
   MemberAnnouncementRecipientFilter,
   MemberAnnouncementRecipientScope,
@@ -241,7 +241,7 @@ export function AnnouncementsPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setMemberSync({

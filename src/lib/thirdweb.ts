@@ -52,3 +52,33 @@ export const supportedWallets = [emailWallet];
 export const BSC_EXPLORER = "https://bscscan.com";
 export const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
 export const BSC_USDT_URL = `${BSC_EXPLORER}/token/${BSC_USDT_ADDRESS}`;
+
+type ThirdwebWalletConnectionStatus =
+  | "connected"
+  | "connecting"
+  | "disconnected"
+  | "unknown"
+  | (string & {});
+
+export function getThirdwebConnectionState({
+  accountAddress,
+  clientConfigured = hasThirdwebClientId,
+  status,
+}: {
+  accountAddress?: string | null;
+  clientConfigured?: boolean;
+  status: ThirdwebWalletConnectionStatus;
+}) {
+  const isConnected = status === "connected" && Boolean(accountAddress);
+  const isResolving =
+    clientConfigured &&
+    (status === "unknown" ||
+      status === "connecting" ||
+      (status === "connected" && !accountAddress));
+
+  return {
+    isConnected,
+    isDisconnected: !isResolving && !isConnected,
+    isResolving,
+  };
+}

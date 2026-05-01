@@ -30,7 +30,6 @@ import {
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
-import { getUserEmail } from "thirdweb/wallets/in-app";
 
 import { AnimatedNumberText } from "@/components/animated-number-text";
 import { EmailLoginDialog } from "@/components/email-login-dialog";
@@ -56,8 +55,10 @@ import {
 } from "@/lib/member";
 import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import {
   getAppMetadata,
+  getThirdwebConnectionState,
   hasThirdwebClientId,
   smartWalletChain,
   smartWalletOptions,
@@ -202,7 +203,13 @@ export function ActivateNetworkPage({
     null,
   );
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const isDisconnected = status !== "connected" || !accountAddress;
+  const {
+    isDisconnected,
+    isResolving: isConnectionResolving,
+  } = getThirdwebConnectionState({
+    accountAddress,
+    status,
+  });
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const serviceCopy = getServiceManagementCopy(locale);
   const isCompletedMember = state.member?.status === "completed";
@@ -345,7 +352,7 @@ export function ActivateNetworkPage({
     }));
 
     try {
-      const email = await getUserEmail({ client: thirdwebClient });
+      const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
       if (!email) {
         setState({
@@ -478,7 +485,7 @@ export function ActivateNetworkPage({
       });
 
       try {
-        const email = await getUserEmail({ client: thirdwebClient });
+        const email = await getThirdwebUserEmail({ client: thirdwebClient });
 
         if (!email) {
           throw new Error(dictionary.activateNetworkPage.errors.missingEmail);
@@ -1159,6 +1166,8 @@ export function ActivateNetworkPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
+        ) : isConnectionResolving ? (
+          <MessageCard>{dictionary.activateNetworkPage.loading}</MessageCard>
         ) : isDisconnected ? (
           <section className="glass-card rounded-[30px] p-5 sm:p-6">
             <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
