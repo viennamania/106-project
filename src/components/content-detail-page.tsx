@@ -748,7 +748,17 @@ export function ContentDetailPage({
     ? locale === "ko"
       ? "유료 콘텐츠입니다"
       : "This is paid content"
+    : state.gateReason === "network" && !shouldEncourageSignup
+      ? locale === "ko"
+        ? "네트워크 범위 밖 콘텐츠입니다"
+        : "Outside your network"
     : contentCopy.messages.previewLocked;
+  const lockedPreviewDescription =
+    state.gateReason === "network" && !shouldEncourageSignup
+      ? locale === "ko"
+        ? "이 콘텐츠는 작성자의 레퍼럴 네트워크 안에서만 전체 열람할 수 있습니다."
+        : "Full access is available within the author's referral network."
+      : contentCopy.messages.previewLocked;
   const detailShareActionLabel =
     shareState === "sharing"
       ? locale === "ko"
@@ -1694,7 +1704,7 @@ export function ContentDetailPage({
                         : `Unlock the full gallery and body for ${paidUnlockAmount} USDT.`
                       : shouldEncourageSignup
                         ? contentCopy.messages.paymentRequired
-                        : contentCopy.messages.previewLocked}
+                        : lockedPreviewDescription}
                   </p>
                   {isPaidLocked ? (
                     <div className="mt-3">

@@ -8,7 +8,7 @@ import {
   hasThirdwebClientId,
 } from "@/lib/thirdweb";
 
-const THIRDWEB_EMAIL_RETRY_DELAYS_MS = [0, 120, 260, 420];
+const THIRDWEB_EMAIL_RETRY_DELAYS_MS = [0, 250, 500, 1000, 1500];
 const THIRDWEB_CONNECTION_RESOLVE_GRACE_MS = 3000;
 
 type ThirdwebWalletConnectionStatus =
