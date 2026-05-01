@@ -385,11 +385,14 @@ export function ContentDetailPage({
         };
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
-  const {
-    email: memberSessionEmail,
-    updateMemberSession,
-  } = useMemberSession();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const { updateMemberSession } = memberSession;
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const { data: usdtBalance } = useWalletBalance({
     address: accountAddress,
     chain: smartWalletChain,

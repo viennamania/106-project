@@ -275,11 +275,14 @@ export function NetworkFeedPage({
   const contentCopy = getContentCopy(locale);
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
-  const {
-    email: memberSessionEmail,
-    updateMemberSession,
-  } = useMemberSession();
   const accountAddress = account?.address;
+  const memberSession = useMemberSession();
+  const { updateMemberSession } = memberSession;
+  const memberSessionEmail =
+    accountAddress &&
+    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSession.email
+      : null;
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const feedPath =
     feedView === "saved"
