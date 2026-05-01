@@ -4040,27 +4040,7 @@ export function CreatorContentStudioPage({
                   type="button"
                 >
                   <LayoutGrid className="size-4" />
-                  {locale === "ko" ? "여러 장" : "Gallery"}
-                </button>
-                <button
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-950 disabled:opacity-50"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
-                  }
-                  onClick={() => {
-                    postVideoInputRef.current?.click();
-                  }}
-                  type="button"
-                >
-                  <Film className="size-4" />
-                  {isUploadingPostVideo
-                    ? `${Math.round(postVideoUploadProgress)}%`
-                    : locale === "ko"
-                      ? "동영상"
-                      : "Video"}
+                  {locale === "ko" ? "이미지 추가" : "Add images"}
                 </button>
                 <button
                   className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-950 disabled:opacity-50"
@@ -4081,22 +4061,53 @@ export function CreatorContentStudioPage({
                   <Sparkles className="size-4" />
                   {locale === "ko" ? "AI 이미지" : "AI image"}
                 </button>
-                <button
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2 text-xs font-semibold text-sky-950 disabled:opacity-50"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
-                  }
-                  onClick={() => {
-                    openContentVideoGenerationDialog();
-                  }}
-                  type="button"
-                >
-                  <WandSparkles className="size-4" />
-                  {locale === "ko" ? "AI 동영상" : "AI video"}
-                </button>
+              </div>
+
+              <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {locale === "ko" ? "콘텐츠 동영상" : "Content video"}
+                  </p>
+                  <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-sky-800">
+                    {postForm.contentVideoUrls.length}/{CONTENT_VIDEO_LIMIT}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-white px-2 text-xs font-semibold text-slate-950 disabled:opacity-50"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                    }
+                    onClick={() => {
+                      postVideoInputRef.current?.click();
+                    }}
+                    type="button"
+                  >
+                    <Film className="size-4" />
+                    {isUploadingPostVideo
+                      ? `${Math.round(postVideoUploadProgress)}%`
+                      : contentVideoUploadLabel}
+                  </button>
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-100 px-2 text-xs font-semibold text-sky-950 disabled:opacity-50"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                    }
+                    onClick={() => {
+                      openContentVideoGenerationDialog();
+                    }}
+                    type="button"
+                  >
+                    <WandSparkles className="size-4" />
+                    {locale === "ko" ? "AI 동영상 생성" : "Generate AI video"}
+                  </button>
+                </div>
               </div>
 
               {postForm.contentImageUrls.length > 0 ? (
