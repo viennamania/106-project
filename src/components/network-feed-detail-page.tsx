@@ -206,6 +206,22 @@ function mergeItems(
   return merged;
 }
 
+function prioritizeItem(
+  items: ContentFeedItemRecord[],
+  contentId: string,
+) {
+  const targetIndex = items.findIndex((item) => item.contentId === contentId);
+
+  if (targetIndex <= 0) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [targetItem] = nextItems.splice(targetIndex, 1);
+
+  return targetItem ? [targetItem, ...nextItems] : items;
+}
+
 function getViewParam(feedView: ContentFeedView) {
   return feedView === "network" ? null : feedView;
 }
@@ -256,11 +272,14 @@ export function NetworkFeedDetailPage({
       : null;
   const hasReferralCode = Boolean(referralCode);
   const initialItems = useMemo(
-    () =>
-      initialTargetItem
+    () => {
+      const items = initialTargetItem
         ? mergeItems([initialTargetItem], initialPublicFeed?.items ?? [])
-        : initialPublicFeed?.items ?? [],
-    [initialPublicFeed?.items, initialTargetItem],
+        : initialPublicFeed?.items ?? [];
+
+      return prioritizeItem(items, contentId);
+    },
+    [contentId, initialPublicFeed?.items, initialTargetItem],
   );
   const hasInitialPublicContent =
     feedView === "network" &&
@@ -315,7 +334,10 @@ export function NetworkFeedDetailPage({
   const restoredFeedKeyRef = useRef<string | null>(null);
   const alignedContentIdRef = useRef<string | null>(null);
   const initialPublicTargetRef = useRef(
-    Boolean(initialPublicFeed?.items.some((item) => item.contentId === contentId)),
+    Boolean(
+      initialTargetItem ??
+        initialPublicFeed?.items.some((item) => item.contentId === contentId),
+    ),
   );
   const initialTargetItemRef = useRef(initialTargetItem);
   const [state, setState] = useState<DetailFeedState>({
@@ -430,7 +452,9 @@ export function NetworkFeedDetailPage({
         if (!response) {
           setState({
             error: null,
-            items: initialTargetItemRef.current ? [initialTargetItemRef.current] : [],
+            items: initialTargetItemRef.current
+              ? [initialTargetItemRef.current]
+              : [],
             member: null,
             status: "ready",
           });
@@ -493,12 +517,17 @@ export function NetworkFeedDetailPage({
 
         setState((current) => ({
           error: null,
-          items: append
-            ? mergeItems(current.items, nextItems)
-            : mergeItems(
-                initialTargetItemRef.current ? [initialTargetItemRef.current] : [],
-                nextItems,
-              ),
+          items: prioritizeItem(
+            append
+              ? mergeItems(current.items, nextItems)
+              : mergeItems(
+                  initialTargetItemRef.current
+                    ? [initialTargetItemRef.current]
+                    : [],
+                  nextItems,
+                ),
+            contentId,
+          ),
           member,
           status: "ready",
         }));
@@ -535,6 +564,7 @@ export function NetworkFeedDetailPage({
     },
     [
       accountAddress,
+      contentId,
       contentCopy.messages.feedLoadFailed,
       contentCopy.messages.memberMissing,
       contentCopy.messages.paymentRequired,
@@ -563,15 +593,23 @@ export function NetworkFeedDetailPage({
       restoredFeedKeyRef.current = feedRestoreKey;
 
       if (snapshot?.items.length) {
+        const restoredItems = prioritizeItem(
+          mergeItems(
+            initialTargetItemRef.current ? [initialTargetItemRef.current] : [],
+            snapshot.items,
+          ),
+          contentId,
+        );
+
         setState({
           error: null,
-          items: snapshot.items,
+          items: restoredItems,
           member: snapshot.member,
           status: "ready",
         });
         setNextCursor(snapshot.nextCursor);
 
-        if (snapshot.items.some((item) => item.contentId === contentId)) {
+        if (restoredItems.some((item) => item.contentId === contentId)) {
           return;
         }
       }
