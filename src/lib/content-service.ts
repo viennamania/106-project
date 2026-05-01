@@ -815,13 +815,15 @@ export async function getPublicContentPreview(contentId: string) {
       url: source.url,
     }));
   const previewBody = `${post.body.slice(0, 1600).trim()}${post.body.length > 1600 ? "\n\n..." : ""}`;
+  const serializedPost = serializeContentPost(post);
 
   return {
-    ...serializeContentPost(post),
+    ...serializedPost,
     assets: [],
     authorProfile,
     body: previewBody,
     canAccess: false,
+    contentImageUrls: [],
     entitlementSource: null,
     sources,
   };
@@ -967,10 +969,14 @@ function buildFeedItem({
   networkLevel: number | null;
   social?: ContentSocialSummaryRecord;
 }): ContentFeedItemRecord {
+  const resolvedCanAccess = canAccess ?? content.priceType === "free";
+  const serializedContent = serializeContentPost(content);
+
   return {
-    ...serializeContentPost(content),
+    ...serializedContent,
     authorProfile,
-    canAccess: canAccess ?? content.priceType === "free",
+    canAccess: resolvedCanAccess,
+    contentImageUrls: resolvedCanAccess ? serializedContent.contentImageUrls : [],
     networkLevel,
     previewAssets: [],
     social: social ?? createEmptyContentSocialSummary(),

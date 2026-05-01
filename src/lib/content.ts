@@ -168,6 +168,7 @@ export type ContentPostRecord = {
   authorEmail: string;
   authorReferralCode: string;
   contentId: string;
+  contentImageCount: number;
   contentImageUrls: string[];
   coverImageUrl: string | null;
   createdAt: string;
@@ -518,6 +519,7 @@ export function serializeContentPost(
     authorEmail: content.authorEmail,
     authorReferralCode: content.authorReferralCode,
     contentId: content.contentId,
+    contentImageCount: content.contentImageUrls?.length ?? 0,
     contentImageUrls: content.contentImageUrls ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
