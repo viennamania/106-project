@@ -12,6 +12,7 @@ import {
   type ReferralRewardsSummaryRecord,
   type ReferralTreeNodeRecord,
 } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -176,14 +177,16 @@ async function buildReferralRewardsSummary(
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const session = rawEmail ? null : await readMemberServerSession();
+  const effectiveEmail = rawEmail ?? session?.email ?? null;
 
-  if (!rawEmail) {
-    return jsonError("email query parameter is required.", 400);
+  if (!effectiveEmail) {
+    return jsonError("email query parameter or member session is required.", 401);
   }
 
   try {
     const collection = await getMembersCollection();
-    const member = await collection.findOne({ email: normalizeEmail(rawEmail) });
+    const member = await collection.findOne({ email: normalizeEmail(effectiveEmail) });
 
     if (!member) {
       return jsonError("Member not found.", 404);

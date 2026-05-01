@@ -2,6 +2,7 @@ import "server-only";
 
 import type { MemberStatus } from "@/lib/member";
 import { normalizeEmail } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import {
   getMemberServiceSuspensionStatus,
   SERVICE_SUSPENDED_ERROR_MESSAGE,
@@ -19,11 +20,36 @@ export async function validateMemberWalletOwner({
   walletAddress,
 }: {
   allowedStatuses?: MemberStatus[];
-  email: string;
-  walletAddress: string;
+  email?: string | null;
+  walletAddress?: string | null;
 }) {
-  const normalizedEmail = normalizeEmail(email);
-  const normalizedWalletAddress = normalizeAddress(walletAddress);
+  const session =
+    !email || !walletAddress ? await readMemberServerSession() : null;
+  const normalizedEmail = normalizeEmail(email ?? session?.email ?? "");
+  const normalizedWalletAddress = normalizeAddress(
+    walletAddress ?? session?.walletAddress ?? "",
+  );
+
+  if (!normalizedEmail || !normalizedWalletAddress) {
+    return {
+      error: jsonError("Member session is required.", 401),
+      member: null,
+      normalizedEmail,
+    };
+  }
+
+  if (
+    session &&
+    ((email && normalizedEmail !== session.email) ||
+      (walletAddress && normalizedWalletAddress !== session.walletAddress))
+  ) {
+    return {
+      error: jsonError("Member session does not match this request.", 403),
+      member: null,
+      normalizedEmail,
+    };
+  }
+
   const collection = await getMembersCollection();
   const member = await collection.findOne({ email: normalizedEmail });
 

@@ -8,6 +8,7 @@ import {
 } from "@/lib/mongodb";
 import type { SyncMemberRequest } from "@/lib/member";
 import { normalizeEmail, serializeMember } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 
 function jsonError(message: string, status: number) {
@@ -17,15 +18,17 @@ function jsonError(message: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
+  const session = rawEmail ? null : await readMemberServerSession();
+  const effectiveEmail = rawEmail ?? session?.email ?? null;
 
-  if (!rawEmail) {
-    return jsonError("email query parameter is required.", 400);
+  if (!effectiveEmail) {
+    return jsonError("email query parameter or member session is required.", 401);
   }
 
   try {
     const membersCollection = await getMembersCollection();
     const member = await membersCollection.findOne({
-      email: normalizeEmail(rawEmail),
+      email: normalizeEmail(effectiveEmail),
     });
 
     if (!member) {

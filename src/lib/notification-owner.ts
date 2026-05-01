@@ -9,8 +9,8 @@ export async function validateNotificationOwner({
   walletAddress,
 }: {
   allowedStatuses?: MemberStatus[];
-  email: string;
-  walletAddress: string;
+  email?: string | null;
+  walletAddress?: string | null;
 }) {
   return validateMemberWalletOwner({
     allowedStatuses,

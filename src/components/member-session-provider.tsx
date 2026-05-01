@@ -80,6 +80,10 @@ function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() ?? "";
 }
 
+function normalizeWalletAddress(walletAddress?: string | null) {
+  return walletAddress?.trim().toLowerCase() ?? "";
+}
+
 export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
@@ -91,6 +95,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] =
     useState<MemberSessionState>(emptyMemberSession);
   const sessionRef = useRef<MemberSessionState>(emptyMemberSession);
+  const serverSessionKeyRef = useRef<string | null>(null);
   const validationKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -102,12 +107,60 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       const resolvedWalletAddress = walletAddress ?? accountAddress;
 
       clearCachedMemberSession(resolvedWalletAddress);
+      serverSessionKeyRef.current = null;
+      void fetch("/api/session/member", { method: "DELETE" });
       setSession({
         ...emptyMemberSession,
         accountAddress: accountAddress ?? null,
       });
     },
     [accountAddress],
+  );
+
+  const persistServerMemberSession = useCallback(
+    async ({
+      email,
+      member,
+      walletAddress,
+    }: {
+      email: string;
+      member: MemberRecord;
+      walletAddress?: string | null;
+    }) => {
+      const normalizedEmail = normalizeEmail(email);
+      const normalizedWalletAddress = normalizeWalletAddress(walletAddress);
+      const serverSessionKey = `${normalizedEmail}:${normalizedWalletAddress}:${member.updatedAt}`;
+
+      if (
+        !normalizedEmail ||
+        !normalizedWalletAddress ||
+        serverSessionKeyRef.current === serverSessionKey
+      ) {
+        return;
+      }
+
+      serverSessionKeyRef.current = serverSessionKey;
+
+      try {
+        const response = await fetch("/api/session/member", {
+          body: JSON.stringify({
+            email: normalizedEmail,
+            walletAddress: normalizedWalletAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+
+        if (!response.ok) {
+          serverSessionKeyRef.current = null;
+        }
+      } catch {
+        serverSessionKeyRef.current = null;
+      }
+    },
+    [],
   );
 
   const updateMemberSession = useCallback(
@@ -139,6 +192,11 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
         member,
         walletAddress: resolvedWalletAddress,
       });
+      void persistServerMemberSession({
+        email: resolvedEmail,
+        member,
+        walletAddress: resolvedWalletAddress,
+      });
 
       setSession({
         accountAddress: resolvedWalletAddress ?? null,
@@ -151,13 +209,15 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
         status: "ready",
       });
     },
-    [accountAddress],
+    [accountAddress, persistServerMemberSession],
   );
 
   useEffect(() => {
     if (!accountAddress || status === "disconnected" || !hasThirdwebClientId) {
       if (accountAddress && status === "disconnected") {
         clearCachedMemberSession(accountAddress);
+        serverSessionKeyRef.current = null;
+        void fetch("/api/session/member", { method: "DELETE" });
       }
 
       setSession({
@@ -250,6 +310,53 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        const serverSessionResponse = await fetch("/api/session/member", {
+          cache: "no-store",
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        if (serverSessionResponse.ok) {
+          const serverSessionData = (await serverSessionResponse.json()) as {
+            email?: string | null;
+            member?: MemberRecord | null;
+          };
+          const serverSessionEmail = normalizeEmail(serverSessionData.email);
+          const serverSessionMember = serverSessionData.member ?? null;
+
+          if (
+            serverSessionEmail &&
+            serverSessionMember &&
+            isMemberSessionWalletMatch(serverSessionMember, accountAddress)
+          ) {
+            writeCachedMemberSession({
+              email: serverSessionEmail,
+              member: serverSessionMember,
+              walletAddress: accountAddress,
+            });
+            setSession({
+              accountAddress,
+              email: serverSessionEmail,
+              error: null,
+              isFromCache: false,
+              isValidating: false,
+              member: serverSessionMember,
+              source: "server",
+              status: "ready",
+            });
+            serverSessionKeyRef.current = `${serverSessionEmail}:${normalizeWalletAddress(accountAddress)}:${serverSessionMember.updatedAt}`;
+            return;
+          }
+
+          serverSessionKeyRef.current = null;
+          await fetch("/api/session/member", { method: "DELETE" });
+        } else if (serverSessionResponse.status === 403) {
+          serverSessionKeyRef.current = null;
+          await fetch("/api/session/member", { method: "DELETE" });
+        }
+
         const email = await getThirdwebUserEmail({ client: thirdwebClient });
         const normalizedEmail = normalizeEmail(email);
 
@@ -318,6 +425,11 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           member: data.member,
           walletAddress: accountAddress,
         });
+        void persistServerMemberSession({
+          email: normalizedEmail,
+          member: data.member,
+          walletAddress: accountAddress,
+        });
         setSession({
           accountAddress,
           email: normalizedEmail,
@@ -351,7 +463,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [accountAddress, isResolving, status]);
+  }, [accountAddress, isResolving, persistServerMemberSession, status]);
 
   const value = useMemo<MemberSessionContextValue>(
     () => ({
