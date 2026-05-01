@@ -21,7 +21,6 @@ import {
   Zap,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWallet,
   useActiveWalletChain,
@@ -49,11 +48,8 @@ import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -81,7 +77,6 @@ export function PlayPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const [state, setState] = useState<PlayPageState>({
     email: null,
     error: null,
@@ -500,16 +495,6 @@ export function PlayPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-4 py-4 pb-24 sm:px-6 sm:py-6 lg:px-8">
         <LandingReveal delay={10} variant="soft">

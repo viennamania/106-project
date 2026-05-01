@@ -10,6 +10,7 @@ import {
 
 const THIRDWEB_EMAIL_RETRY_DELAYS_MS = [0, 250, 500, 1000, 1500];
 const THIRDWEB_CONNECTION_RESOLVE_GRACE_MS = 3000;
+let thirdwebEmailPromise: Promise<string | null> | null = null;
 
 type ThirdwebWalletConnectionStatus =
   | "connected"
@@ -19,6 +20,20 @@ type ThirdwebWalletConnectionStatus =
   | (string & {});
 
 export async function getThirdwebUserEmail(
+  options: Parameters<typeof getUserEmail>[0],
+) {
+  if (thirdwebEmailPromise) {
+    return thirdwebEmailPromise;
+  }
+
+  thirdwebEmailPromise = resolveThirdwebUserEmail(options).finally(() => {
+    thirdwebEmailPromise = null;
+  });
+
+  return thirdwebEmailPromise;
+}
+
+async function resolveThirdwebUserEmail(
   options: Parameters<typeof getUserEmail>[0],
 ) {
   let lastEmail: string | null | undefined = null;

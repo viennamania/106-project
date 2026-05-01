@@ -15,9 +15,7 @@ import {
   WalletMinimal,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
-  useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
@@ -40,11 +38,6 @@ import {
 import type { Dictionary, Locale } from "@/lib/i18n";
 import {
   BSC_EXPLORER,
-  getAppMetadata,
-  hasThirdwebClientId,
-  smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -190,10 +183,8 @@ export function CreatorStudioSalesPage({
   const searchParams = useSearchParams();
   const router = useRouter();
   const account = useActiveAccount();
-  const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const appliedPage = normalizePageValue(searchParams.get("page"));
   const studioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
@@ -547,15 +538,6 @@ export function CreatorStudioSalesPage({
   return (
     <>
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={chain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] sm:px-6 sm:py-5 sm:shadow-[0_24px_60px_rgba(15,23,42,0.10)] lg:static">
         <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />

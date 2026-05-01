@@ -23,7 +23,6 @@ import {
   UserRound,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -68,11 +67,8 @@ import type { Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -491,7 +487,6 @@ export function CreatorContentStudioPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const studioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
@@ -4744,15 +4739,6 @@ export function CreatorContentStudioPage({
           view === "hub" ? "max-w-6xl" : "max-w-5xl"
         }`}
       >
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <header className="sticky top-0 z-30 overflow-hidden border-b border-slate-200/80 bg-white/94 px-3 py-2 shadow-none backdrop-blur-xl sm:top-[calc(env(safe-area-inset-top)+0.75rem)] sm:rounded-[28px] sm:border sm:border-white/80 sm:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.58),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.26),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.91))] sm:px-6 sm:py-5 sm:shadow-[0_20px_48px_rgba(15,23,42,0.12)] lg:static lg:bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.72),transparent_34%),radial-gradient(circle_at_right,rgba(254,240,138,0.34),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] lg:shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
         <div className="pointer-events-none absolute inset-x-6 top-0 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(148,163,184,0.6),transparent)] sm:block" />

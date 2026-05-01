@@ -17,7 +17,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -39,11 +38,8 @@ import {
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import type { SyncMemberResponse } from "@/lib/member";
@@ -105,7 +101,6 @@ export function BrandingStudioPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
@@ -410,16 +405,6 @@ export function BrandingStudioPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-[radial-gradient(circle_at_top_left,rgba(254,240,138,0.22),transparent_24%),radial-gradient(circle_at_right,rgba(191,219,254,0.36),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] px-4 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:px-6 sm:py-5">

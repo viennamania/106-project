@@ -14,7 +14,6 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -37,11 +36,8 @@ import type {
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -109,7 +105,6 @@ export function NotificationsPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
     error: null,
@@ -585,16 +580,6 @@ export function NotificationsPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <LandingReveal delay={10} variant="soft">

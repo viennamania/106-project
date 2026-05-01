@@ -33,7 +33,6 @@ import {
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
 import {
-  AutoConnect,
   TransactionButton,
   useActiveAccount,
   useDisconnect,
@@ -89,11 +88,8 @@ import { cn } from "@/lib/utils";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -252,8 +248,6 @@ export function SmartWalletApp({
   const copiedTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
-
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const accountAddress = account?.address;
   const cachedSessionMember =
     accountAddress &&
@@ -1472,16 +1466,6 @@ export function SmartWalletApp({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       {isServiceSuspended ? (
         <div className="fixed inset-0 z-[80] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.18),transparent_26%),linear-gradient(180deg,rgba(15,23,42,0.62),rgba(15,23,42,0.8))] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-xl sm:px-6">

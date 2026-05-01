@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, CheckCircle2, Rss } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -15,11 +14,7 @@ import type { Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
-  hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 
@@ -149,30 +144,12 @@ export function LandingMemberContentEntry({
   if (!accountAddress || !member) {
     return (
       <>
-        {hasThirdwebClientId ? (
-          <AutoConnect
-            accountAbstraction={smartWalletOptions}
-            appMetadata={getAppMetadata(contentCopy.meta.feedDescription)}
-            chain={smartWalletChain}
-            client={thirdwebClient}
-            wallets={supportedWallets}
-          />
-        ) : null}
       </>
     );
   }
 
   return (
     <>
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={getAppMetadata(contentCopy.meta.feedDescription)}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <section>
         {member.status === "completed" ? (

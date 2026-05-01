@@ -39,7 +39,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
@@ -70,11 +69,7 @@ import {
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberRecord } from "@/lib/member";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
-  smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -285,7 +280,6 @@ export function NetworkFeedPage({
     updateMemberSession,
   } = useMemberSession();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const homeHref = buildReferralLandingPath(locale, referralCode);
   const feedPath =
     feedView === "saved"
@@ -1008,15 +1002,6 @@ export function NetworkFeedPage({
 
   return (
     <main className="min-h-screen bg-[#fafafa] text-slate-950">
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <div className="mx-auto flex w-full max-w-[470px] flex-col pb-8 sm:max-w-[520px]">
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#fafafa]/94 px-3 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.65rem)] backdrop-blur-xl sm:px-0 sm:pb-3 sm:pt-[calc(env(safe-area-inset-top)+0.75rem)]">

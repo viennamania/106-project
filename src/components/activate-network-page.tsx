@@ -25,7 +25,6 @@ import {
   Users,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -57,11 +56,8 @@ import { type Dictionary, localeLabels, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -165,7 +161,6 @@ export function ActivateNetworkPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const [state, setState] = useState<ActivateNetworkState>({
     error: null,
     levelCounts: [],
@@ -1003,16 +998,6 @@ export function ActivateNetworkPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 -mx-4 flex flex-col gap-3 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-[28px] lg:border-x lg:px-5 lg:py-4">

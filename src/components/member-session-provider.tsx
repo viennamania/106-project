@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  AutoConnect,
   useActiveAccount,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
@@ -23,7 +24,11 @@ import {
   writeCachedMemberSession,
 } from "@/lib/member-session-cache";
 import {
+  getAppMetadata,
   hasThirdwebClientId,
+  smartWalletChain,
+  smartWalletOptions,
+  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import {
@@ -65,6 +70,7 @@ const emptyMemberSession: MemberSessionState = {
   source: null,
   status: "idle",
 };
+const MEMBER_SESSION_VALIDATION_DEDUPE_DELAY_MS = 180;
 
 const MemberSessionContext = createContext<MemberSessionContextValue | null>(
   null,
@@ -84,7 +90,12 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   });
   const [session, setSession] =
     useState<MemberSessionState>(emptyMemberSession);
+  const sessionRef = useRef<MemberSessionState>(emptyMemberSession);
   const validationKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   const clearMemberSession = useCallback(
     (walletAddress?: string | null) => {
@@ -222,6 +233,23 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       }));
 
       try {
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, MEMBER_SESSION_VALIDATION_DEDUPE_DELAY_MS);
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        const latestSession = sessionRef.current;
+
+        if (
+          latestSession.source === "server" &&
+          isMemberSessionWalletMatch(latestSession.member, accountAddress)
+        ) {
+          return;
+        }
+
         const email = await getThirdwebUserEmail({ client: thirdwebClient });
         const normalizedEmail = normalizeEmail(email);
 
@@ -336,6 +364,15 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <MemberSessionContext.Provider value={value}>
+      {hasThirdwebClientId ? (
+        <AutoConnect
+          accountAbstraction={smartWalletOptions}
+          appMetadata={getAppMetadata("1066friend+ member session")}
+          chain={smartWalletChain}
+          client={thirdwebClient}
+          wallets={supportedWallets}
+        />
+      ) : null}
       {children}
     </MemberSessionContext.Provider>
   );

@@ -15,7 +15,6 @@ import {
   WalletMinimal,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletConnectionStatus,
   useWalletBalance,
@@ -38,11 +37,8 @@ import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import type {
@@ -83,7 +79,6 @@ export function AssetManagementPage({
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
@@ -322,16 +317,6 @@ export function AssetManagementPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8">
         <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">

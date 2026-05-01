@@ -29,7 +29,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  AutoConnect,
   TransactionButton,
   useActiveAccount,
   useActiveWalletConnectionStatus,
@@ -76,13 +75,10 @@ import { trackFunnelEvent } from "@/lib/funnel-client";
 import { normalizeEmail, type MemberRecord } from "@/lib/member";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
   BSC_EXPLORER,
   BSC_USDT_ADDRESS,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { WALLET_UNLOCK_PIN_LENGTH } from "@/lib/wallet-unlock";
@@ -394,7 +390,6 @@ export function ContentDetailPage({
     updateMemberSession,
   } = useMemberSession();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const { data: usdtBalance } = useWalletBalance({
     address: accountAddress,
     chain: smartWalletChain,
@@ -1359,15 +1354,6 @@ export function ContentDetailPage({
           : "min-h-screen max-w-5xl px-3 py-4 sm:px-6 sm:py-6 lg:px-8",
       )}
     >
-      {hasThirdwebClientId && !isModalPresentation ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       {!isModalPresentation ? <AndroidInstallBanner locale={locale} /> : null}
 

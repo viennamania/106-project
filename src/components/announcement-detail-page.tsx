@@ -9,7 +9,6 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -24,11 +23,8 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord, SyncMemberResponse } from "@/lib/member";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -96,7 +92,6 @@ export function AnnouncementDetailPage({
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
   const copy = dictionary.announcementsPage;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const [memberSync, setMemberSync] = useState<MemberSyncState>({
     email: null,
     error: null,
@@ -279,16 +274,6 @@ export function AnnouncementDetailPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

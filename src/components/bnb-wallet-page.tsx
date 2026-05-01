@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { getAddress, isAddress, prepareTransaction } from "thirdweb";
 import {
-  AutoConnect,
   TransactionButton,
   useActiveAccount,
   useActiveWalletConnectionStatus,
@@ -32,11 +31,8 @@ import { type Dictionary, type Locale } from "@/lib/i18n";
 import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -78,7 +74,6 @@ export function BnbWalletPage({
   const account = useActiveAccount();
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const {
     data: balance,
     error: balanceError,
@@ -247,16 +242,6 @@ export function BnbWalletPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

@@ -17,7 +17,6 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
@@ -39,11 +38,8 @@ import {
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
-  getAppMetadata,
   hasThirdwebClientId,
   smartWalletChain,
-  smartWalletOptions,
-  supportedWallets,
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
@@ -625,7 +621,6 @@ export function ActivateNetworkHexPage({
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const status = useActiveWalletConnectionStatus();
   const accountAddress = account?.address;
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const copy = getHexCopy(locale);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [focusedEmail, setFocusedEmail] = useState<string | null>(null);
@@ -978,16 +973,6 @@ export function ActivateNetworkHexPage({
         open={isLoginDialogOpen}
         title={dictionary.common.connectModalTitle}
       />
-
-      {hasThirdwebClientId ? (
-        <AutoConnect
-          accountAbstraction={smartWalletOptions}
-          appMetadata={appMetadata}
-          chain={smartWalletChain}
-          client={thirdwebClient}
-          wallets={supportedWallets}
-        />
-      ) : null}
 
       <main className="mx-auto flex min-h-screen w-full max-w-[110rem] flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <header className="glass-card sticky top-[calc(env(safe-area-inset-top)+0.65rem)] z-30 -mx-4 rounded-none border-x-0 px-4 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-[24px] lg:border-x lg:px-5">

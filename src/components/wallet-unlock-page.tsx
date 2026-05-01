@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Delete, LoaderCircle, LockKeyhole } from "lucide-react";
 import {
-  AutoConnect,
   useActiveAccount,
   useActiveWallet,
   useActiveWalletConnectionStatus,
@@ -16,11 +15,7 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildReferralLandingPath } from "@/lib/landing-branding";
 import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
-import {
-  getAppMetadata,
-  supportedWallets,
-  thirdwebClient,
-} from "@/lib/thirdweb";
+import { thirdwebClient } from "@/lib/thirdweb";
 import {
   getWalletUnlockCopy,
   WALLET_UNLOCK_PIN_LENGTH,
@@ -60,7 +55,6 @@ export function WalletUnlockPage({
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address ?? null;
   const copy = getWalletUnlockCopy(locale);
-  const appMetadata = getAppMetadata(dictionary.meta.description);
   const fallbackHref = buildReferralLandingPath(locale, referralCode);
   const [email, setEmail] = useState<string | null>(null);
   const [mode, setMode] = useState<WalletUnlockMode>("checking");
@@ -320,11 +314,6 @@ export function WalletUnlockPage({
 
   return (
     <main className="min-h-dvh overflow-y-auto bg-[#f8f7f4] text-slate-950">
-      <AutoConnect
-        appMetadata={appMetadata}
-        client={thirdwebClient}
-        wallets={supportedWallets}
-      />
       <div className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col bg-white px-6 pb-[max(48px,calc(env(safe-area-inset-bottom)+24px))] pt-[max(16px,env(safe-area-inset-top))] [@media(max-height:760px)]:pb-[max(24px,calc(env(safe-area-inset-bottom)+12px))]">
         <div className="flex h-10 items-center justify-between sm:h-12">
           <Link
