@@ -9,6 +9,7 @@ import {
 import {
   getContentFeedForMember,
   getPublicNetworkFeedForReferralCode,
+  getPublicNetworkFeedItemForReferralCode,
 } from "@/lib/content-service";
 import { defaultLocale, hasLocale } from "@/lib/i18n";
 import {
@@ -36,10 +37,26 @@ export async function GET(request: Request) {
   const rawReferralCode = url.searchParams.get("referralCode");
   const rawWalletAddress = url.searchParams.get("walletAddress");
   const rawCursor = url.searchParams.get("cursor");
+  const rawContentId = url.searchParams.get("contentId");
   const feedView = normalizeFeedView(url.searchParams.get("view"));
 
   if (rawReferralCode && feedView === "network") {
     try {
+      if (rawContentId) {
+        const item = await getPublicNetworkFeedItemForReferralCode(
+          rawContentId,
+          rawReferralCode,
+          rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,
+        );
+
+        return Response.json({
+          items: item ? [item] : [],
+          member: null,
+          nextCursor: null,
+          validationError: null,
+        } satisfies ContentFeedLoadResponse);
+      }
+
       const response = await getPublicNetworkFeedForReferralCode(
         rawReferralCode,
         rawLocale && hasLocale(rawLocale) ? rawLocale : defaultLocale,

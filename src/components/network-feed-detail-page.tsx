@@ -63,6 +63,8 @@ type DetailLoadState = {
   status: "loading" | "ready" | "error";
 };
 
+type TargetFallbackStatus = "failed" | "idle" | "loading" | "ready";
+
 type FeedRestoreSnapshot = {
   items: ContentFeedItemRecord[];
   member: MemberRecord | null;
@@ -352,6 +354,8 @@ export function NetworkFeedDetailPage({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [targetSearchAttempts, setTargetSearchAttempts] = useState(0);
+  const [targetFallbackStatus, setTargetFallbackStatus] =
+    useState<TargetFallbackStatus>("idle");
   const [detailByContentId, setDetailByContentId] = useState<
     Record<string, DetailLoadState>
   >({});
@@ -649,8 +653,89 @@ export function NetworkFeedDetailPage({
 
   useEffect(() => {
     setTargetSearchAttempts(0);
+    setTargetFallbackStatus("idle");
     alignedContentIdRef.current = null;
   }, [contentId]);
+
+  useEffect(() => {
+    if (
+      targetIndex >= 0 ||
+      feedView !== "network" ||
+      !referralCode ||
+      targetFallbackStatus === "loading" ||
+      targetFallbackStatus === "ready"
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    setTargetFallbackStatus("loading");
+
+    async function loadTargetItem() {
+      try {
+        const response = await fetch(
+          `/api/content/feed?${new URLSearchParams({
+            contentId,
+            locale,
+            referralCode: referralCode ?? "",
+          }).toString()}`,
+          { cache: "no-store" },
+        );
+        const data = (await response.json()) as
+          | ContentFeedLoadResponse
+          | { error?: string };
+
+        if (!response.ok || !("items" in data)) {
+          throw new Error(
+            "error" in data && data.error
+              ? data.error
+              : contentCopy.messages.feedLoadFailed,
+          );
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        const [targetItem] = data.items;
+
+        if (!targetItem) {
+          setTargetFallbackStatus("failed");
+          return;
+        }
+
+        initialTargetItemRef.current = targetItem;
+        setState((current) => ({
+          ...current,
+          error: null,
+          items: prioritizeItem(
+            mergeItems([targetItem], current.items),
+            contentId,
+          ),
+          status: "ready",
+        }));
+        setTargetFallbackStatus("ready");
+      } catch {
+        if (!cancelled) {
+          setTargetFallbackStatus("failed");
+        }
+      }
+    }
+
+    void loadTargetItem();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    contentCopy.messages.feedLoadFailed,
+    contentId,
+    feedView,
+    locale,
+    referralCode,
+    targetFallbackStatus,
+    targetIndex,
+  ]);
 
   useEffect(() => {
     if (targetIndex < 0 || alignedContentIdRef.current === contentId) {
@@ -1066,7 +1151,9 @@ export function NetworkFeedDetailPage({
       <DetailStatusScreen backHref={backHref} contentCopy={contentCopy}>
         <LoaderCircle className="size-6 animate-spin" />
         <div>
-          <p className="text-sm font-semibold">{contentCopy.messages.detailLoadingTitle}</p>
+          <p className="text-sm font-semibold">
+            {locale === "ko" ? "네트워크 콘텐츠 확인 중" : "Checking network content"}
+          </p>
           <p className="mt-1 text-xs text-white/62">
             {contentCopy.messages.detailLoadingDescription}
           </p>
@@ -1109,7 +1196,9 @@ export function NetworkFeedDetailPage({
 
   if (targetIndex < 0) {
     const isSearchingTarget =
-      isLoadingMore || (Boolean(nextCursor) && targetSearchAttempts < 4);
+      targetFallbackStatus === "loading" ||
+      isLoadingMore ||
+      (Boolean(nextCursor) && targetSearchAttempts < 4);
 
     return (
       <DetailStatusScreen backHref={backHref} contentCopy={contentCopy}>
@@ -1117,7 +1206,9 @@ export function NetworkFeedDetailPage({
         <div>
           <p className="text-sm font-semibold">
             {isSearchingTarget
-              ? contentCopy.messages.detailLoadingTitle
+              ? locale === "ko"
+                ? "선택한 콘텐츠 확인 중"
+                : "Finding selected content"
               : locale === "ko"
                 ? "피드에서 콘텐츠를 찾을 수 없습니다."
                 : "This post is not available in the feed."}
@@ -1436,7 +1527,7 @@ function NetworkFeedDetailSlide({
           {detailState?.status === "loading" ? (
             <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-white/58">
               <LoaderCircle className="size-3.5 animate-spin" />
-              {contentCopy.messages.detailLoadingTitle}
+              {locale === "ko" ? "회원 권한 확인 중" : "Checking member access"}
             </p>
           ) : null}
 
