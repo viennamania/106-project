@@ -46,6 +46,7 @@ export async function generateMetadata({
     buildPathWithReferral(`/${locale}/content/bridge/${contentId}`, referralCode),
     { shareId },
   );
+  const openGraphType = content?.hasVideo ? "video.other" : "website";
 
   return {
     title,
@@ -61,6 +62,7 @@ export async function generateMetadata({
         },
       ],
       title,
+      type: openGraphType,
       url,
     },
     twitter: {

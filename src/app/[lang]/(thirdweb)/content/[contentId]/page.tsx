@@ -25,6 +25,7 @@ export async function generateMetadata({
   const description = content?.summary ?? copy.meta.detailDescription;
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const url = `/${locale}/content/${contentId}`;
+  const openGraphType = content?.hasVideo ? "video.other" : "website";
 
   return {
     title,
@@ -40,6 +41,7 @@ export async function generateMetadata({
         },
       ],
       title,
+      type: openGraphType,
       url,
     },
     twitter: {

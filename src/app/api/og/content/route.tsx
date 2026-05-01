@@ -33,13 +33,19 @@ export async function GET(request: Request) {
   }
 
   const summary = content.summary.trim() || copy.meta.detailDescription;
-  const eyebrow = content.authorDisplayName
-    ? `${content.authorDisplayName} · ${copy.meta.detailTitle}`
-    : copy.meta.detailTitle;
   const accessLabel =
     content.priceType === "paid"
       ? `${copy.labels.paid} · ${content.priceUsdt ?? "1"} USDT`
       : copy.labels.free;
+  const mediaLabel = content.hasVideo
+    ? locale === "ko"
+      ? "동영상 콘텐츠"
+      : "Video content"
+    : copy.meta.detailTitle;
+  const eyebrow = content.authorDisplayName
+    ? `${content.authorDisplayName} · ${mediaLabel}`
+    : mediaLabel;
+  const hasVisualPanel = Boolean(content.coverImageUrl || content.hasVideo);
 
   return new ImageResponse(
     (
@@ -81,7 +87,7 @@ export async function GET(request: Request) {
               flex: 1,
               flexDirection: "column",
               justifyContent: "space-between",
-              maxWidth: content.coverImageUrl ? 640 : 980,
+              maxWidth: hasVisualPanel ? 640 : 980,
             }}
           >
             <div
@@ -115,7 +121,7 @@ export async function GET(request: Request) {
                   display: "flex",
                   fontSize: 64,
                   fontWeight: 700,
-                  letterSpacing: "-0.05em",
+                  letterSpacing: 0,
                   lineHeight: 1.04,
                   whiteSpace: "pre-wrap",
                 }}
@@ -176,31 +182,135 @@ export async function GET(request: Request) {
             </div>
           </div>
 
-          {content.coverImageUrl ? (
+          {hasVisualPanel ? (
             <div
               style={{
+                background:
+                  "linear-gradient(145deg, rgba(15,23,42,0.96), rgba(2,6,23,0.98))",
                 border: "1px solid rgba(255,255,255,0.16)",
                 borderRadius: 32,
                 display: "flex",
                 height: "100%",
                 maxHeight: 538,
                 overflow: "hidden",
+                position: "relative",
                 width: 372,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-              <img
-                alt={content.title}
-                height="538"
-                src={content.coverImageUrl}
-                style={{
-                  display: "flex",
-                  height: "100%",
-                  objectFit: "cover",
-                  width: "100%",
-                }}
-                width="372"
-              />
+              {content.coverImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets.
+                <img
+                  alt={content.title}
+                  height="538"
+                  src={content.coverImageUrl}
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
+                  width="372"
+                />
+              ) : (
+                <div
+                  style={{
+                    alignItems: "center",
+                    background:
+                      "radial-gradient(circle at 50% 36%, rgba(255,255,255,0.16), transparent 34%), linear-gradient(160deg, #020617 0%, #0f172a 100%)",
+                    color: "rgba(255,255,255,0.74)",
+                    display: "flex",
+                    fontSize: 24,
+                    fontWeight: 700,
+                    height: "100%",
+                    justifyContent: "center",
+                    textTransform: "uppercase",
+                    width: "100%",
+                  }}
+                >
+                  1066friend+
+                </div>
+              )}
+
+              {content.hasVideo ? (
+                <div
+                  style={{
+                    alignItems: "center",
+                    background:
+                      "linear-gradient(180deg, rgba(2,6,23,0.16), rgba(2,6,23,0.52))",
+                    bottom: 0,
+                    display: "flex",
+                    height: "100%",
+                    justifyContent: "center",
+                    left: 0,
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    style={{
+                      alignItems: "center",
+                      backdropFilter: "blur(12px)",
+                      background: "rgba(15,23,42,0.74)",
+                      border: "2px solid rgba(255,255,255,0.74)",
+                      borderRadius: 999,
+                      boxShadow: "0 24px 80px rgba(0,0,0,0.36)",
+                      display: "flex",
+                      height: 118,
+                      justifyContent: "center",
+                      width: 118,
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "white",
+                        display: "flex",
+                        fontSize: 52,
+                        lineHeight: 1,
+                        marginLeft: 6,
+                      }}
+                    >
+                      ▶
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+
+              {content.hasVideo ? (
+                <div
+                  style={{
+                    alignItems: "center",
+                    background: "rgba(255,255,255,0.92)",
+                    borderRadius: 999,
+                    color: "#020617",
+                    display: "flex",
+                    fontSize: 20,
+                    fontWeight: 800,
+                    left: 22,
+                    padding: "10px 16px",
+                    position: "absolute",
+                    top: 22,
+                  }}
+                >
+                  {mediaLabel}
+                </div>
+              ) : null}
+
+              {content.hasVideo ? (
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(90deg, rgba(56,189,248,0.94), rgba(244,114,182,0.94))",
+                    bottom: 0,
+                    display: "flex",
+                    height: 10,
+                    left: 0,
+                    position: "absolute",
+                    right: 0,
+                  }}
+                />
+              ) : null}
             </div>
           ) : null}
         </div>

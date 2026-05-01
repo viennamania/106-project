@@ -291,8 +291,14 @@ function addDecimalStrings(left: string, right: string) {
     .replace(/\.?0+$/, "");
 }
 
-function resolvePrimaryContentImageUrl(post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">) {
+function resolvePrimaryContentImageUrl(
+  post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">,
+) {
   return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+}
+
+function hasContentVideo(post: Pick<ContentPostDocument, "contentVideoUrls">) {
+  return (post.contentVideoUrls?.length ?? 0) > 0;
 }
 
 function buildSummaryFromContent(options: {
@@ -783,6 +789,7 @@ async function getPublishedContentShareMetadata(contentId: string) {
     authorDisplayName,
     contentId: post.contentId,
     coverImageUrl: resolvePrimaryContentImageUrl(post),
+    hasVideo: hasContentVideo(post),
     locale: normalizeContentLocale(post.locale),
     priceType: post.priceType,
     priceUsdt: post.priceUsdt ?? null,
