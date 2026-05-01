@@ -76,6 +76,19 @@ const emptyMemberSession: MemberSessionState = {
   status: "idle",
 };
 const MEMBER_SESSION_VALIDATION_DEDUPE_DELAY_MS = 180;
+const MEMBER_SESSION_BROADCAST_CHANNEL = "member-session";
+
+type MemberSessionBroadcastMessage =
+  | {
+      type: "clear";
+      walletAddress: string | null;
+    }
+  | {
+      email: string;
+      member: MemberRecord;
+      type: "update";
+      walletAddress: string;
+    };
 
 const MemberSessionContext = createContext<MemberSessionContextValue | null>(
   null,
@@ -87,6 +100,43 @@ function normalizeEmail(email?: string | null) {
 
 function normalizeWalletAddress(walletAddress?: string | null) {
   return walletAddress?.trim().toLowerCase() ?? "";
+}
+
+function getServerSessionKey({
+  email,
+  member,
+  walletAddress,
+}: {
+  email: string;
+  member: MemberRecord;
+  walletAddress: string;
+}) {
+  return `${normalizeEmail(email)}:${normalizeWalletAddress(walletAddress)}:${member.updatedAt}`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isMemberSessionBroadcastMessage(
+  value: unknown,
+): value is MemberSessionBroadcastMessage {
+  if (!isRecord(value) || typeof value.type !== "string") {
+    return false;
+  }
+
+  if (value.type === "clear") {
+    return (
+      typeof value.walletAddress === "string" || value.walletAddress === null
+    );
+  }
+
+  return (
+    value.type === "update" &&
+    typeof value.email === "string" &&
+    typeof value.walletAddress === "string" &&
+    isRecord(value.member)
+  );
 }
 
 export function MemberSessionProvider({ children }: { children: ReactNode }) {
@@ -102,10 +152,111 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const sessionRef = useRef<MemberSessionState>(emptyMemberSession);
   const serverSessionKeyRef = useRef<string | null>(null);
   const validationKeyRef = useRef<string | null>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  const broadcastMemberSession = useCallback(
+    (message: MemberSessionBroadcastMessage) => {
+      broadcastChannelRef.current?.postMessage(message);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") {
+      return;
+    }
+
+    const channel = new BroadcastChannel(MEMBER_SESSION_BROADCAST_CHANNEL);
+    broadcastChannelRef.current = channel;
+
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      const message = event.data;
+
+      if (!isMemberSessionBroadcastMessage(message)) {
+        return;
+      }
+
+      if (message.type === "clear") {
+        const messageWalletAddress = normalizeWalletAddress(
+          message.walletAddress,
+        );
+        const currentAccountAddress = normalizeWalletAddress(accountAddress);
+        const currentSessionWalletAddress = normalizeWalletAddress(
+          sessionRef.current.accountAddress,
+        );
+
+        if (messageWalletAddress) {
+          clearCachedMemberSession(messageWalletAddress);
+        } else {
+          clearCachedMemberSession(accountAddress);
+        }
+
+        if (
+          !messageWalletAddress ||
+          messageWalletAddress === currentAccountAddress ||
+          messageWalletAddress === currentSessionWalletAddress
+        ) {
+          serverSessionKeyRef.current = null;
+          validationKeyRef.current = null;
+          setSession({
+            ...emptyMemberSession,
+            accountAddress,
+          });
+        }
+
+        return;
+      }
+
+      const messageWalletAddress = normalizeWalletAddress(message.walletAddress);
+      const messageEmail = normalizeEmail(message.email);
+
+      if (
+        !messageEmail ||
+        !messageWalletAddress ||
+        !isMemberSessionWalletMatch(message.member, messageWalletAddress)
+      ) {
+        return;
+      }
+
+      writeCachedMemberSession({
+        email: messageEmail,
+        member: message.member,
+        walletAddress: messageWalletAddress,
+      });
+
+      if (messageWalletAddress !== normalizeWalletAddress(accountAddress)) {
+        return;
+      }
+
+      serverSessionKeyRef.current = getServerSessionKey({
+        email: messageEmail,
+        member: message.member,
+        walletAddress: messageWalletAddress,
+      });
+      setSession({
+        accountAddress: messageWalletAddress,
+        email: messageEmail,
+        error: null,
+        isFromCache: false,
+        isValidating: false,
+        member: message.member,
+        source: "server",
+        status: "ready",
+      });
+    };
+
+    return () => {
+      if (broadcastChannelRef.current === channel) {
+        broadcastChannelRef.current = null;
+      }
+
+      channel.close();
+    };
+  }, [accountAddress]);
 
   const clearMemberSession = useCallback(
     (walletAddress?: string | null) => {
@@ -114,12 +265,16 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       clearCachedMemberSession(resolvedWalletAddress);
       serverSessionKeyRef.current = null;
       void clearServerMemberSession();
+      broadcastMemberSession({
+        type: "clear",
+        walletAddress: normalizeWalletAddress(resolvedWalletAddress) || null,
+      });
       setSession({
         ...emptyMemberSession,
         accountAddress: accountAddress ?? null,
       });
     },
-    [accountAddress],
+    [accountAddress, broadcastMemberSession],
   );
 
   const persistServerMemberSession = useCallback(
@@ -175,8 +330,10 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       walletAddress?: string | null;
     }) => {
       const resolvedWalletAddress = walletAddress ?? accountAddress;
+      const normalizedWalletAddress =
+        normalizeWalletAddress(resolvedWalletAddress);
 
-      if (!member || !isMemberSessionWalletMatch(member, resolvedWalletAddress)) {
+      if (!member || !isMemberSessionWalletMatch(member, normalizedWalletAddress)) {
         return;
       }
 
@@ -189,16 +346,16 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       writeCachedMemberSession({
         email: resolvedEmail,
         member,
-        walletAddress: resolvedWalletAddress,
+        walletAddress: normalizedWalletAddress,
       });
       void persistServerMemberSession({
         email: resolvedEmail,
         member,
-        walletAddress: resolvedWalletAddress,
+        walletAddress: normalizedWalletAddress,
       });
 
       setSession({
-        accountAddress: resolvedWalletAddress ?? null,
+        accountAddress: normalizedWalletAddress,
         email: resolvedEmail,
         error: null,
         isFromCache: source === "cache",
@@ -207,8 +364,16 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
         source,
         status: "ready",
       });
+      if (source !== "cache") {
+        broadcastMemberSession({
+          email: resolvedEmail,
+          member,
+          type: "update",
+          walletAddress: normalizedWalletAddress,
+        });
+      }
     },
-    [accountAddress, persistServerMemberSession],
+    [accountAddress, broadcastMemberSession, persistServerMemberSession],
   );
 
   useEffect(() => {
@@ -217,6 +382,10 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
         clearCachedMemberSession(accountAddress);
         serverSessionKeyRef.current = null;
         void clearServerMemberSession();
+        broadcastMemberSession({
+          type: "clear",
+          walletAddress: normalizeWalletAddress(accountAddress) || null,
+        });
       }
 
       setSession({
@@ -258,7 +427,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       source: "cache",
       status: "ready",
     });
-  }, [accountAddress, isResolving, status]);
+  }, [accountAddress, broadcastMemberSession, isResolving, status]);
 
   useEffect(() => {
     if (
@@ -334,7 +503,17 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
               source: "server",
               status: "ready",
             });
-            serverSessionKeyRef.current = `${serverSessionResult.email}:${normalizeWalletAddress(accountAddress)}:${serverSessionResult.member.updatedAt}`;
+            serverSessionKeyRef.current = getServerSessionKey({
+              email: serverSessionResult.email,
+              member: serverSessionResult.member,
+              walletAddress: normalizeWalletAddress(accountAddress),
+            });
+            broadcastMemberSession({
+              email: serverSessionResult.email,
+              member: serverSessionResult.member,
+              type: "update",
+              walletAddress: normalizeWalletAddress(accountAddress),
+            });
             return;
           }
 
@@ -407,7 +586,11 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           member: validatedSession.member,
           walletAddress: accountAddress,
         });
-        serverSessionKeyRef.current = `${validatedSession.email}:${normalizeWalletAddress(accountAddress)}:${validatedSession.member.updatedAt}`;
+        serverSessionKeyRef.current = getServerSessionKey({
+          email: validatedSession.email,
+          member: validatedSession.member,
+          walletAddress: normalizeWalletAddress(accountAddress),
+        });
         setSession({
           accountAddress,
           email: validatedSession.email,
@@ -417,6 +600,12 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
           member: validatedSession.member,
           source: "server",
           status: "ready",
+        });
+        broadcastMemberSession({
+          email: validatedSession.email,
+          member: validatedSession.member,
+          type: "update",
+          walletAddress: normalizeWalletAddress(accountAddress),
         });
       } catch (error) {
         if (cancelled) {
@@ -441,7 +630,13 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [accountAddress, isResolving, persistServerMemberSession, status]);
+  }, [
+    accountAddress,
+    broadcastMemberSession,
+    isResolving,
+    persistServerMemberSession,
+    status,
+  ]);
 
   const value = useMemo<MemberSessionContextValue>(
     () => ({
