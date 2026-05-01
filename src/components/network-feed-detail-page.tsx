@@ -1010,6 +1010,7 @@ export function NetworkFeedDetailPage({
 
   const isInitialLoading =
     state.status === "loading" && state.items.length === 0 && !state.error;
+  const hasRenderableItems = state.items.length > 0;
   const showConnectionMessage =
     !isPublicReferralFeed &&
     !isFeedModeResolving &&
@@ -1017,7 +1018,12 @@ export function NetworkFeedDetailPage({
     isDisconnected &&
     state.items.length === 0;
 
-  if (isFeedModeResolving || isPrivateFeedConnectionResolving || isInitialLoading) {
+  if (
+    (isFeedModeResolving ||
+      isPrivateFeedConnectionResolving ||
+      isInitialLoading) &&
+    !hasRenderableItems
+  ) {
     return (
       <DetailStatusScreen backHref={backHref} contentCopy={contentCopy}>
         <LoaderCircle className="size-6 animate-spin" />
