@@ -4,6 +4,12 @@ import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 
 export default function ThirdwebRouteGroupLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
-  return <ThirdwebRuntimeLayout>{children}</ThirdwebRuntimeLayout>;
+  contentModal,
+}: Readonly<{ children: ReactNode; contentModal: ReactNode }>) {
+  return (
+    <ThirdwebRuntimeLayout>
+      {children}
+      {contentModal}
+    </ThirdwebRuntimeLayout>
+  );
 }

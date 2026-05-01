@@ -1,7 +1,6 @@
 import { ContentDetailRoute } from "@/components/content-detail-route";
 import { ContentModalFrame } from "@/components/content-modal-frame";
 import type { ContentDetailRouteSearchParams } from "@/components/content-detail-route";
-import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 import { hasLocale } from "@/lib/i18n";
 
 export default async function InterceptedContentDetailModalPage({
@@ -17,14 +16,12 @@ export default async function InterceptedContentDetailModalPage({
 
   return (
     <ContentModalFrame closeLabel={closeLabel}>
-      <ThirdwebRuntimeLayout>
-        <ContentDetailRoute
-          contentId={contentId}
-          lang={lang}
-          presentation="modal"
-          searchParams={query}
-        />
-      </ThirdwebRuntimeLayout>
+      <ContentDetailRoute
+        contentId={contentId}
+        lang={lang}
+        presentation="modal"
+        searchParams={query}
+      />
     </ContentModalFrame>
   );
 }

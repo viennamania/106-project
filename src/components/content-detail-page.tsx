@@ -759,6 +759,20 @@ export function ContentDetailPage({
         ? "이 콘텐츠는 작성자의 레퍼럴 네트워크 안에서만 전체 열람할 수 있습니다."
         : "Full access is available within the author's referral network."
       : contentCopy.messages.previewLocked;
+  const membershipGatePrimaryMessage =
+    state.gateReason === "connect" || isDisconnected
+      ? contentCopy.messages.connectRequired
+      : state.gateReason === "network"
+        ? locale === "ko"
+          ? "네트워크 범위 밖 콘텐츠입니다"
+          : "Outside your network"
+        : contentCopy.messages.paymentRequired;
+  const membershipGateSecondaryMessage =
+    state.gateReason === "network"
+      ? locale === "ko"
+        ? "이 콘텐츠는 작성자의 레퍼럴 네트워크 안에서만 전체 열람할 수 있습니다."
+        : "Full access is available within the author's referral network."
+      : contentCopy.messages.connectRequired;
   const detailShareActionLabel =
     shareState === "sharing"
       ? locale === "ko"
@@ -1406,8 +1420,8 @@ export function ContentDetailPage({
             homeHref={homeHref}
             locale={locale}
             onSignupClick={trackSignupCtaClick}
-            primaryMessage={contentCopy.messages.paymentRequired}
-            secondaryMessage={contentCopy.messages.connectRequired}
+            primaryMessage={membershipGatePrimaryMessage}
+            secondaryMessage={membershipGateSecondaryMessage}
           />
           {isPaidDetail && !isPaidLocked ? (
             <PaidProofPanel
