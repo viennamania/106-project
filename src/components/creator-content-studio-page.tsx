@@ -178,6 +178,7 @@ const EMPTY_POST_FORM = {
   contentVideoUrls: [] as string[],
   coverImageUrl: "",
   generatedContentImageUrls: [] as string[],
+  generatedContentVideoUrls: [] as string[],
   priceType: "free" as ContentPriceType,
   summary: "",
   title: "",
@@ -594,6 +595,11 @@ export function CreatorContentStudioPage({
   const [isContentImageGenerationDialogOpen, setIsContentImageGenerationDialogOpen] =
     useState(false);
   const [contentImagePrompt, setContentImagePrompt] = useState("");
+  const [contentVideoGenerationProgress, setContentVideoGenerationProgress] =
+    useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
+  const [isContentVideoGenerationDialogOpen, setIsContentVideoGenerationDialogOpen] =
+    useState(false);
+  const [contentVideoPrompt, setContentVideoPrompt] = useState("");
   const [automationCelebration, setAutomationCelebration] =
     useState<AutomationCelebrationState | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -999,6 +1005,124 @@ export function CreatorContentStudioPage({
             label: "Asset upload",
           },
         };
+  const contentVideoGenerationLabels =
+    locale === "ko"
+      ? {
+          authorizing: {
+            description: "같은 회원 이메일과 지갑 권한을 먼저 확인합니다.",
+            label: "회원 확인",
+          },
+          completed: "완료",
+          confirmBody:
+            "동영상 프롬프트 내용만 사용해 AI 콘텐츠 동영상을 생성합니다.",
+          confirmHint:
+            "AI 콘텐츠 동영상은 최대 1개까지 추가할 수 있고, 생성에는 몇 분이 걸릴 수 있습니다.",
+          promptHint:
+            "여기에 적은 내용이 동영상 생성 프롬프트로 그대로 적용됩니다.",
+          promptLabel: "동영상 프롬프트",
+          promptPlaceholder:
+            "예: 세로형 숏폼, 해변 위를 천천히 걷는 모델, 자연스러운 카메라 무빙, 따뜻한 석양",
+          confirmPrimary: "동영상 생성",
+          confirmSecondary: "나중에",
+          error: "오류",
+          finalizing: {
+            description: "생성된 동영상을 콘텐츠 동영상 슬롯에 추가합니다.",
+            label: "콘텐츠 동영상 반영",
+          },
+          generating_image: {
+            description: "상세 페이지에 사용할 AI 콘텐츠 동영상을 생성합니다.",
+            label: "동영상 생성",
+          },
+          preparing_prompt: {
+            description: "동영상 프롬프트를 생성 요청으로 준비합니다.",
+            label: "동영상 프롬프트",
+          },
+          progress: "진행률",
+          running: "진행 중",
+          successPrimary: "콘텐츠 동영상에 추가 완료",
+          successSecondary: "계속 편집하기",
+          successTitle: "AI 콘텐츠 동영상이 준비되었습니다.",
+          title: "AI 콘텐츠 동영상 생성",
+          uploading_cover: {
+            description: "생성한 동영상을 스튜디오 자산으로 업로드합니다.",
+            label: "자산 업로드",
+          },
+        }
+      : {
+          authorizing: {
+            description: "Verifying wallet ownership and member access.",
+            label: "Authorization",
+          },
+          completed: "Completed",
+          confirmBody:
+            "The AI will generate a content video using only the video prompt.",
+          confirmHint:
+            "AI content video is limited to one slot and can take a few minutes to generate.",
+          promptHint:
+            "This text is used directly as the video prompt.",
+          promptLabel: "Video prompt",
+          promptPlaceholder:
+            "Example: vertical short-form shot, a model walking slowly on a beach, natural camera movement, warm sunset",
+          confirmPrimary: "Generate video",
+          confirmSecondary: "Later",
+          error: "Error",
+          finalizing: {
+            description: "Adding the generated result into the content video slot.",
+            label: "Content video",
+          },
+          generating_image: {
+            description: "Creating an AI content video for the detail page.",
+            label: "Video generation",
+          },
+          preparing_prompt: {
+            description: "Preparing the video prompt for generation.",
+            label: "Video prompt",
+          },
+          progress: "Progress",
+          running: "Running",
+          successPrimary: "Added to content video",
+          successSecondary: "Keep editing",
+          successTitle: "Your AI content video is ready.",
+          title: "AI content video generation",
+          uploading_cover: {
+            description: "Uploading the generated video to studio assets.",
+            label: "Asset upload",
+          },
+        };
+  const contentVideoGenerationStepMeta: Record<
+    ContentCoverGenerationProgressStep,
+    {
+      description: string;
+      icon: typeof UserRound;
+      label: string;
+    }
+  > = {
+    authorizing: {
+      description: contentVideoGenerationLabels.authorizing.description,
+      icon: UserRound,
+      label: contentVideoGenerationLabels.authorizing.label,
+    },
+    finalizing: {
+      description: contentVideoGenerationLabels.finalizing.description,
+      icon: Check,
+      label: contentVideoGenerationLabels.finalizing.label,
+    },
+    generating_image: {
+      description: contentVideoGenerationLabels.generating_image.description,
+      icon: Film,
+      label: contentVideoGenerationLabels.generating_image.label,
+    },
+    preparing_prompt: {
+      description: contentVideoGenerationLabels.preparing_prompt.description,
+      icon: PenSquare,
+      label: contentVideoGenerationLabels.preparing_prompt.label,
+    },
+    uploading_cover: {
+      description: contentVideoGenerationLabels.uploading_cover.description,
+      icon: Film,
+      label: contentVideoGenerationLabels.uploading_cover.label,
+    },
+  };
   const completedAutomationStepCount = contentAutomationRunProgressSteps.filter(
     (step) => automationProgress.steps[step] === "done",
   ).length;
@@ -1011,6 +1135,10 @@ export function CreatorContentStudioPage({
   const completedContentImageGenerationStepCount =
     contentCoverGenerationProgressSteps.filter(
       (step) => contentImageGenerationProgress.steps[step] === "done",
+    ).length;
+  const completedContentVideoGenerationStepCount =
+    contentCoverGenerationProgressSteps.filter(
+      (step) => contentVideoGenerationProgress.steps[step] === "done",
     ).length;
   const profileAvatarInputRef = useRef<HTMLInputElement | null>(null);
   const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -2281,6 +2409,7 @@ export function CreatorContentStudioPage({
       setPostForm((current) => ({
         ...current,
         contentVideoUrls: [uploaded.url].slice(0, CONTENT_VIDEO_LIMIT),
+        generatedContentVideoUrls: [],
       }));
       setState((current) => ({
         ...current,
@@ -2348,6 +2477,22 @@ export function CreatorContentStudioPage({
     setIsContentImageGenerationDialogOpen(false);
     setContentImagePrompt("");
     setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
+  }
+
+  function openContentVideoGenerationDialog() {
+    setContentVideoGenerationProgress(createEmptyCoverGenerationProgress());
+    setContentVideoPrompt("");
+    setIsContentVideoGenerationDialogOpen(true);
+  }
+
+  function closeContentVideoGenerationDialog() {
+    if (isGeneratingPostImage) {
+      return;
+    }
+
+    setIsContentVideoGenerationDialogOpen(false);
+    setContentVideoPrompt("");
+    setContentVideoGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
   async function generatePostCoverImage() {
@@ -2627,6 +2772,155 @@ export function CreatorContentStudioPage({
         notice: null,
       }));
       setContentImageGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        message:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+      }));
+    } finally {
+      setIsGeneratingPostImage(false);
+    }
+  }
+
+  async function generatePostContentVideo() {
+    try {
+      if (!contentVideoPrompt.trim()) {
+        throw new Error(
+          locale === "ko"
+            ? "AI 콘텐츠 동영상을 생성하려면 동영상 프롬프트를 입력하세요."
+            : "Enter a video prompt to generate an AI content video.",
+        );
+      }
+
+      if (postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT) {
+        throw new Error(
+          locale === "ko"
+            ? "콘텐츠 동영상은 최대 1개까지 추가할 수 있습니다."
+            : "You can add one content video.",
+        );
+      }
+
+      setIsGeneratingPostImage(true);
+      setContentVideoGenerationProgress({
+        ...createEmptyCoverGenerationProgress(),
+        active: true,
+        currentStep: "authorizing",
+        message: contentVideoGenerationLabels.authorizing.description,
+        progress: 4,
+        steps: {
+          ...createEmptyCoverGenerationProgress().steps,
+          authorizing: "active",
+        },
+      });
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/posts/generate-content-video", {
+        body: JSON.stringify({
+          email,
+          locale,
+          summary: postForm.summary,
+          title: postForm.title,
+          visualBrief: contentVideoPrompt,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          Accept: "application/x-ndjson",
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      let data: ContentPostGenerateCoverResponse | null = null;
+      let streamError: string | null = null;
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+
+        throw new Error(payload?.error || contentCopy.messages.uploadFailed);
+      }
+
+      if (
+        response.headers
+          .get("content-type")
+          ?.includes("application/x-ndjson")
+      ) {
+        await readCoverGenerationStream(response, (event) => {
+          setContentVideoGenerationProgress((current) =>
+            applyCoverGenerationProgressEvent(current, event),
+          );
+
+          if (event.type === "result") {
+            data = event.response;
+            return;
+          }
+
+          if (event.type === "error") {
+            streamError = event.error;
+          }
+        });
+      } else {
+        const payload = (await response.json()) as
+          | ContentPostGenerateCoverResponse
+          | { error?: string };
+
+        if (!("url" in payload)) {
+          throw new Error(payload.error || contentCopy.messages.uploadFailed);
+        }
+
+        data = payload;
+      }
+
+      if (!data) {
+        throw new Error(streamError || contentCopy.messages.uploadFailed);
+      }
+
+      const generatedVideo = data;
+
+      setPostForm((current) => ({
+        ...current,
+        contentVideoUrls: [generatedVideo.url].slice(0, CONTENT_VIDEO_LIMIT),
+        generatedContentVideoUrls: [generatedVideo.url],
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "AI 콘텐츠 동영상을 생성해 콘텐츠 동영상에 추가했습니다."
+            : "Generated an AI content video and added it to content video.",
+      }));
+      setContentVideoGenerationProgress((current) => ({
+        ...current,
+        active: false,
+        currentStep: "finalizing",
+        error: null,
+        message:
+          locale === "ko"
+            ? "콘텐츠 동영상 슬롯에 AI 동영상을 추가했습니다."
+            : "The AI video has been added to the content video slot.",
+        progress: 100,
+        response: generatedVideo,
+        steps: {
+          ...current.steps,
+          finalizing: "done",
+        },
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.uploadFailed,
+        notice: null,
+      }));
+      setContentVideoGenerationProgress((current) => ({
         ...current,
         active: false,
         error:
@@ -3607,6 +3901,8 @@ export function CreatorContentStudioPage({
       locale === "ko" ? "동영상 추가" : "Add video";
     const aiContentImageLabel =
       locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI content image";
+    const aiContentVideoLabel =
+      locale === "ko" ? "AI 콘텐츠 동영상 생성" : "Generate AI content video";
     const mobilePreviewImage =
       postForm.coverImageUrl || postForm.contentImageUrls[0] || null;
     const composerBusy =
@@ -3730,7 +4026,7 @@ export function CreatorContentStudioPage({
                 </span>
               </button>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-950"
                   disabled={
@@ -3785,6 +4081,22 @@ export function CreatorContentStudioPage({
                   <Sparkles className="size-4" />
                   {locale === "ko" ? "AI 이미지" : "AI image"}
                 </button>
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2 text-xs font-semibold text-sky-950 disabled:opacity-50"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage ||
+                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                  }
+                  onClick={() => {
+                    openContentVideoGenerationDialog();
+                  }}
+                  type="button"
+                >
+                  <WandSparkles className="size-4" />
+                  {locale === "ko" ? "AI 동영상" : "AI video"}
+                </button>
               </div>
 
               {postForm.contentImageUrls.length > 0 ? (
@@ -3829,6 +4141,7 @@ export function CreatorContentStudioPage({
                       setPostForm((current) => ({
                         ...current,
                         contentVideoUrls: [],
+                        generatedContentVideoUrls: [],
                       }));
                     }}
                     type="button"
@@ -4138,7 +4451,9 @@ export function CreatorContentStudioPage({
                   type="button"
                 >
                   <Sparkles className="size-4" />
-                  {isGeneratingPostImage
+                  {isGeneratingPostImage &&
+                  isCoverGenerationDialogOpen &&
+                  coverGenerationProgress.active
                     ? contentCopy.actions.generatingAiCover
                     : contentCopy.actions.generateAiCover}
                 </button>
@@ -4317,6 +4632,28 @@ export function CreatorContentStudioPage({
                     ? `${Math.round(postVideoUploadProgress)}%`
                     : contentVideoUploadLabel}
                 </button>
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 text-sm font-medium text-sky-950 transition hover:border-sky-300 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage ||
+                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                  }
+                  onClick={() => {
+                    openContentVideoGenerationDialog();
+                  }}
+                  type="button"
+                >
+                  <WandSparkles className="size-4" />
+                  {isGeneratingPostImage &&
+                  isContentVideoGenerationDialogOpen &&
+                  contentVideoGenerationProgress.active
+                    ? locale === "ko"
+                      ? "AI 동영상 생성 중..."
+                      : "Generating AI video..."
+                    : aiContentVideoLabel}
+                </button>
                 {postForm.contentVideoUrls.length > 0 ? (
                   <button
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
@@ -4324,6 +4661,7 @@ export function CreatorContentStudioPage({
                       setPostForm((current) => ({
                         ...current,
                         contentVideoUrls: [],
+                        generatedContentVideoUrls: [],
                       }));
                     }}
                     type="button"
@@ -4333,7 +4671,14 @@ export function CreatorContentStudioPage({
                 ) : null}
               </div>
               {postForm.contentVideoUrls.length > 0 ? (
-                <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                <div className="relative mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                  {postForm.generatedContentVideoUrls.includes(
+                    postForm.contentVideoUrls[0] ?? "",
+                  ) ? (
+                    <span className="absolute left-2 top-2 z-10 inline-flex h-8 items-center justify-center rounded-full bg-sky-100/95 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-900 shadow-sm">
+                      AI
+                    </span>
+                  ) : null}
                   <video
                     className="aspect-video w-full bg-black object-contain"
                     controls
@@ -5148,6 +5493,27 @@ export function CreatorContentStudioPage({
           onPromptValueChange={setContentImagePrompt}
         />
       ) : null}
+      {isContentVideoGenerationDialogOpen ? (
+        <CoverGenerationDialog
+          canClose={!isGeneratingPostImage}
+          labels={contentVideoGenerationLabels}
+          onClose={closeContentVideoGenerationDialog}
+          onConfirm={() => {
+            void generatePostContentVideo();
+          }}
+          promptHint={contentVideoGenerationLabels.promptHint}
+          promptLabel={contentVideoGenerationLabels.promptLabel}
+          promptPlaceholder={contentVideoGenerationLabels.promptPlaceholder}
+          promptValue={contentVideoPrompt}
+          progress={contentVideoGenerationProgress}
+          stepCount={completedContentVideoGenerationStepCount}
+          stepMeta={contentVideoGenerationStepMeta}
+          stepOrder={contentCoverGenerationProgressSteps}
+          summary={postForm.summary}
+          title={postForm.title}
+          onPromptValueChange={setContentVideoPrompt}
+        />
+      ) : null}
       <CreatorStudioMobileNav
         active={view}
         locale={locale}
@@ -5588,6 +5954,10 @@ function CoverGenerationDialog({
   const currentStepMeta = progress.currentStep ? stepMeta[progress.currentStep] : null;
   const shouldShowConfirm = !showProgress && !isSuccess;
   const hasPromptInput = typeof onPromptValueChange === "function";
+  const responseUrl = progress.response?.url ?? "";
+  const isVideoResponse =
+    progress.response?.contentType.startsWith("video/") ||
+    /\.(mp4|mov|webm)(?:$|\?)/i.test(responseUrl);
 
   return (
     <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
@@ -5697,12 +6067,22 @@ function CoverGenerationDialog({
             <div className="mt-5">
               {isSuccess && progress.response?.url ? (
                 <div className="overflow-hidden rounded-[26px] border border-slate-200/90 bg-slate-950 shadow-[0_22px_60px_rgba(15,23,42,0.16)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt={isSuccess ? labels.successTitle : labels.title}
-                    className="block h-64 w-full object-contain sm:h-[min(68vh,560px)]"
-                    src={progress.response.url}
-                  />
+                  {isVideoResponse ? (
+                    <video
+                      className="block h-64 w-full object-contain sm:h-[min(68vh,560px)]"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      src={progress.response.url}
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt={isSuccess ? labels.successTitle : labels.title}
+                      className="block h-64 w-full object-contain sm:h-[min(68vh,560px)]"
+                      src={progress.response.url}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="rounded-[26px] border border-slate-200/90 bg-white/92 p-4 shadow-sm">
