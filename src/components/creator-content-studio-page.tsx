@@ -5223,7 +5223,9 @@ export function CreatorContentStudioPage({
                       />
                     ) : (
                       <video
+                        autoPlay
                         className="h-36 w-full bg-black object-cover"
+                        loop
                         muted
                         playsInline
                         preload="metadata"

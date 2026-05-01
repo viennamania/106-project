@@ -744,7 +744,9 @@ export function CreatorStudioPostsPage({
                         />
                       ) : (
                         <video
+                          autoPlay
                           className="h-44 w-full bg-black object-cover sm:h-40"
+                          loop
                           muted
                           playsInline
                           preload="metadata"
