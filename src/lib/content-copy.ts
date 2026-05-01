@@ -235,9 +235,9 @@ const englishCopy: ContentCopy = {
     automationPersonaPrompt: "Rules for tone, audience, and what the AI editor should avoid.",
     automationPublishScoreThreshold: "Only applies when auto publish is enabled.",
     automationTopics: "Comma-separated topics the AI editor should focus on.",
-    body: "Write the main text your network members will read. You can add a cover image below for the feed card and detail header.",
+    body: "Write the main text your network members will read. You can add images or video below for the feed and detail pages.",
     contentImages:
-      "Optional gallery shown in the content detail page. Upload up to 10 PNG, JPG, or WEBP images.",
+      "Optional gallery shown in the content detail page. Upload up to 10 PNG, JPG, or WEBP images, and add one video in the video section.",
     coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
     displayName: "This name appears across the network feed and content detail pages.",
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
@@ -415,9 +415,9 @@ const koreanCopy: ContentCopy = {
     automationPersonaPrompt: "톤, 금지 표현, 대상 독자, 다뤄야 할 방식 등을 적어주세요.",
     automationPublishScoreThreshold: "자동 게시를 켰을 때만 적용됩니다.",
     automationTopics: "쉼표로 구분해서 AI 에디터가 집중할 주제를 입력하세요.",
-    body: "네트워크 회원이 읽게 될 본문을 작성하세요. 커버 이미지는 아래에서 함께 올릴 수 있습니다.",
+    body: "네트워크 회원이 읽게 될 본문을 작성하세요. 이미지나 동영상은 아래에서 함께 올릴 수 있습니다.",
     contentImages:
-      "상세 페이지에서 스와이프로 보여줄 이미지입니다. PNG, JPG, WEBP 형식 최대 10장까지 업로드할 수 있습니다.",
+      "상세 페이지에서 스와이프로 보여줄 이미지입니다. PNG, JPG, WEBP 형식 최대 10장까지 업로드할 수 있고, 동영상 섹션에서 동영상 1개를 추가할 수 있습니다.",
     coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
     heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",

@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronUp,
   ExternalLink,
+  Film,
   FileText,
   Heart,
   Images,
@@ -86,7 +87,7 @@ type InitialPublicFeed = {
   nextCursor: string | null;
 } | null;
 
-const FEED_RESTORE_VERSION = 8;
+const FEED_RESTORE_VERSION = 9;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const DETAIL_IMAGE_SIZES = "(max-width: 640px) 100vw, 560px";
 
@@ -222,6 +223,26 @@ function getReadableContentImageCount(
   );
 }
 
+function getReadableContentVideos(
+  item: ContentFeedItemRecord,
+  detailState: DetailLoadState | null,
+) {
+  const detailVideos = detailState?.content?.contentVideoUrls ?? [];
+
+  return detailVideos.length > 0 ? detailVideos : item.contentVideoUrls ?? [];
+}
+
+function getReadableContentVideoCount(
+  item: ContentFeedItemRecord,
+  detailState: DetailLoadState | null,
+) {
+  return (
+    detailState?.content?.contentVideoCount ??
+    item.contentVideoCount ??
+    getReadableContentVideos(item, detailState).length
+  );
+}
+
 function canViewContentImages(
   item: ContentFeedItemRecord,
   detailState: DetailLoadState | null,
@@ -238,10 +259,10 @@ function LockedContentMediaPlaceholder({
   locale: Locale;
   priceLabel: string;
 }) {
-  const imageCountLabel =
+  const mediaCountLabel =
     locale === "ko"
-      ? `${imageCount.toLocaleString(locale)}장`
-      : `${imageCount.toLocaleString(locale)} images`;
+      ? `${imageCount.toLocaleString(locale)}개`
+      : `${imageCount.toLocaleString(locale)} media items`;
 
   return (
     <div className="relative size-full overflow-hidden bg-[radial-gradient(circle_at_50%_30%,rgba(148,163,184,0.22),transparent_34%),linear-gradient(145deg,#020617,#0f172a_48%,#111827)]">
@@ -251,12 +272,12 @@ function LockedContentMediaPlaceholder({
           <LockKeyhole className="size-7" />
         </span>
         <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/55">
-          {locale === "ko" ? "잠긴 콘텐츠 이미지" : "Locked content images"}
+          {locale === "ko" ? "잠긴 콘텐츠 미디어" : "Locked content media"}
         </p>
         <p className="mt-2 text-lg font-semibold tracking-normal text-white">
           {locale === "ko"
-            ? `콘텐츠 이미지 ${imageCountLabel}`
-            : imageCountLabel}
+            ? `콘텐츠 미디어 ${mediaCountLabel}`
+            : mediaCountLabel}
         </p>
         <p className="mt-1 text-sm font-medium text-white/64">
           {locale === "ko"
@@ -1602,15 +1623,19 @@ function NetworkFeedDetailSlide({
   showPrevious: boolean;
 }) {
   const imageUrl = resolveFeedPreviewImage(item);
+  const videoUrl = getReadableContentVideos(item, detailState)[0] ?? null;
   const displayName = getDisplayName(item);
   const avatarFallback = getAvatarFallback(displayName);
   const bodyPreview = truncateText(getReadableBodyText(item, detailState), 260);
   const contentImageCount = getReadableContentImageCount(item, detailState);
+  const contentVideoCount = getReadableContentVideoCount(item, detailState);
+  const contentMediaCount = contentImageCount + contentVideoCount;
   const isPaid = item.priceType === "paid";
   const showLockedMediaPlaceholder =
     !imageUrl &&
+    !videoUrl &&
     isPaid &&
-    contentImageCount > 0 &&
+    contentMediaCount > 0 &&
     !canViewContentImages(item, detailState);
   const accessLabel = isPaid
     ? locale === "ko"
@@ -1646,9 +1671,28 @@ function NetworkFeedDetailSlide({
             sizes={DETAIL_IMAGE_SIZES}
             src={imageUrl}
           />
+        ) : videoUrl ? (
+          <div className="relative size-full bg-slate-950">
+            <video
+              autoPlay
+              className={cn(
+                "h-full w-full object-cover transition duration-500",
+                active ? "scale-100 opacity-100" : "scale-[1.02] opacity-82",
+              )}
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              src={videoUrl}
+            />
+            <div className="absolute left-4 top-[calc(env(safe-area-inset-top)+6.2rem)] inline-flex items-center gap-2 rounded-full bg-black/42 px-3 py-2 text-xs font-semibold text-white shadow-[0_12px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+              <Film className="size-3.5" />
+              {locale === "ko" ? "동영상 콘텐츠" : "Video content"}
+            </div>
+          </div>
         ) : showLockedMediaPlaceholder ? (
           <LockedContentMediaPlaceholder
-            imageCount={contentImageCount}
+            imageCount={contentMediaCount}
             locale={locale}
             priceLabel={accessLabel}
           />

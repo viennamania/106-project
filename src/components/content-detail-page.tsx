@@ -17,6 +17,7 @@ import {
   Coins,
   Copy,
   ExternalLink,
+  Film,
   Heart,
   LoaderCircle,
   LockKeyhole,
@@ -755,11 +756,14 @@ export function ContentDetailPage({
     isPaidDetail &&
     state.content?.canAccess === true &&
     state.content.entitlementSource === "purchase";
+  const detailMediaCount =
+    (state.content?.contentImageUrls.length ?? 0) +
+    (state.content?.contentVideoUrls.length ?? 0);
   const shouldRequirePaidGalleryPin =
     isPaidPurchaseUnlocked &&
     Boolean(accountAddress) &&
     Boolean(state.member?.email) &&
-    Boolean(state.content?.contentImageUrls.length);
+    detailMediaCount > 0;
   const isPaidGalleryPinLocked =
     shouldRequirePaidGalleryPin && !isGalleryPinUnlocked;
   const paidProofTier = getPaidProofTier(socialSummary);
@@ -1645,7 +1649,7 @@ export function ContentDetailPage({
             />
           ) : null}
 
-          {state.content.contentImageUrls.length > 0 ? (
+          {detailMediaCount > 0 ? (
             <section
               className={cn(
                 "mx-[-0.75rem] overflow-hidden rounded-[32px] border shadow-[0_28px_70px_rgba(15,23,42,0.18)] sm:mx-0 sm:rounded-[32px]",
@@ -1656,18 +1660,24 @@ export function ContentDetailPage({
             >
               <div className="mb-4 hidden items-center justify-between gap-3 sm:flex">
                 <div>
-                  <p className="eyebrow">{contentCopy.labels.imageGallery}</p>
+                  <p className="eyebrow">
+                    {state.content.contentVideoUrls.length > 0
+                      ? locale === "ko"
+                        ? "콘텐츠 미디어"
+                        : "Content media"
+                      : contentCopy.labels.imageGallery}
+                  </p>
                   {isPaidGalleryPinLocked ? (
                     <p className="mt-1 text-sm leading-6 text-slate-600">
                       {locale === "ko"
-                        ? "결제 완료된 이미지 갤러리는 PIN 확인 후 열립니다."
-                        : "The paid gallery opens after PIN confirmation."}
+                        ? "결제 완료된 미디어는 PIN 확인 후 열립니다."
+                        : "The paid media opens after PIN confirmation."}
                     </p>
                   ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                    {state.content.contentImageUrls.length}
+                    {detailMediaCount}
                   </span>
                   {shouldRequirePaidGalleryPin && isGalleryPinUnlocked ? (
                     <button
@@ -1676,7 +1686,7 @@ export function ContentDetailPage({
                       type="button"
                     >
                       <LockKeyhole className="size-3.5" />
-                      {locale === "ko" ? "갤러리 잠그기" : "Lock gallery"}
+                      {locale === "ko" ? "미디어 잠그기" : "Lock media"}
                     </button>
                   ) : null}
                 </div>
@@ -1685,7 +1695,7 @@ export function ContentDetailPage({
                 <PaidGalleryPinGate
                   contentId={contentId}
                   email={state.member?.email ?? null}
-                  imageCount={state.content.contentImageUrls.length}
+                  imageCount={detailMediaCount}
                   locale={locale}
                   onUnlocked={() => {
                     setIsGalleryPinUnlocked(true);
@@ -1698,17 +1708,28 @@ export function ContentDetailPage({
                 <>
                   {shouldRequirePaidGalleryPin && isGalleryPinUnlocked ? (
                     <PaidGalleryLockBar
-                      imageCount={state.content.contentImageUrls.length}
+                      imageCount={detailMediaCount}
                       locale={locale}
                       onLock={lockPaidGallery}
                     />
                   ) : null}
-                  <ContentImageCarousel
-                    images={state.content.contentImageUrls}
-                    isPreviewLocked={isPreviewLocked}
-                    locale={locale}
-                    title={state.content.title}
-                  />
+                  <div className="space-y-3 sm:space-y-4">
+                    {state.content.contentVideoUrls.length > 0 ? (
+                      <ContentVideoList
+                        locale={locale}
+                        title={state.content.title}
+                        videos={state.content.contentVideoUrls}
+                      />
+                    ) : null}
+                    {state.content.contentImageUrls.length > 0 ? (
+                      <ContentImageCarousel
+                        images={state.content.contentImageUrls}
+                        isPreviewLocked={isPreviewLocked}
+                        locale={locale}
+                        title={state.content.title}
+                      />
+                    ) : null}
+                  </div>
                 </>
               )}
             </section>
@@ -2672,12 +2693,12 @@ function PaidGalleryLockBar({
     <div className="m-3 flex items-center justify-between gap-3 rounded-[24px] border border-white/12 bg-white/10 px-3.5 py-3 text-white backdrop-blur-md sm:hidden">
       <div className="min-w-0">
         <p className="text-sm font-semibold">
-          {locale === "ko" ? "갤러리가 열려 있습니다" : "Gallery is open"}
+          {locale === "ko" ? "콘텐츠가 열려 있습니다" : "Content is open"}
         </p>
         <p className="mt-0.5 text-xs text-white/62">
           {locale === "ko"
-            ? `이미지 ${imageCount.toLocaleString(locale)}개`
-            : `${imageCount.toLocaleString(locale)} images`}
+            ? `미디어 ${imageCount.toLocaleString(locale)}개`
+            : `${imageCount.toLocaleString(locale)} media items`}
         </p>
       </div>
       <button
@@ -2707,8 +2728,8 @@ function mapGalleryPinError(message: string, locale: Locale) {
 
   if (message === "Wallet PIN is not configured.") {
     return locale === "ko"
-      ? "지갑 PIN 설정이 필요합니다. PIN 설정 후 갤러리를 열 수 있습니다."
-      : "Wallet PIN setup is required before opening the gallery.";
+      ? "지갑 PIN 설정이 필요합니다. PIN 설정 후 미디어를 열 수 있습니다."
+      : "Wallet PIN setup is required before opening the media.";
   }
 
   return message;
@@ -2844,15 +2865,15 @@ function PaidGalleryPinGate({
         <LockKeyhole className="size-6" />
       </div>
       <p className="relative mt-5 text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-emerald-700">
-        {locale === "ko" ? "결제 완료 갤러리" : "Paid gallery"}
+        {locale === "ko" ? "결제 완료 콘텐츠" : "Paid content"}
       </p>
       <h2 className="relative mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-        {locale === "ko" ? "PIN으로 이미지 갤러리 열기" : "Open gallery with PIN"}
+        {locale === "ko" ? "PIN으로 콘텐츠 미디어 열기" : "Open media with PIN"}
       </h2>
       <p className="relative mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
         {locale === "ko"
-          ? "결제가 완료된 콘텐츠입니다. 이미지 갤러리는 지갑 PIN 확인 후 이 세션에서 열립니다."
-          : "Payment is complete. The image gallery opens in this session after wallet PIN confirmation."}
+          ? "결제가 완료된 콘텐츠입니다. 이미지와 동영상은 지갑 PIN 확인 후 이 세션에서 열립니다."
+          : "Payment is complete. Images and videos open in this session after wallet PIN confirmation."}
       </p>
 
       <div className="relative mt-5 grid gap-2 sm:grid-cols-2">
@@ -2866,7 +2887,7 @@ function PaidGalleryPinGate({
         </div>
         <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-3 py-3 text-left">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-            {locale === "ko" ? "이미지" : "Images"}
+            {locale === "ko" ? "미디어" : "Media"}
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-950">
             {imageCountLabel}
@@ -2885,7 +2906,7 @@ function PaidGalleryPinGate({
           className="sr-only"
           htmlFor={`paid-gallery-pin-${contentId}`}
         >
-          {locale === "ko" ? "갤러리 PIN" : "Gallery PIN"}
+          {locale === "ko" ? "미디어 PIN" : "Media PIN"}
         </label>
         <input
           autoComplete="one-time-code"
@@ -2931,7 +2952,7 @@ function PaidGalleryPinGate({
                 {locale === "ko" ? "확인 중" : "Verifying"}
               </>
             ) : (
-              locale === "ko" ? "갤러리 열기" : "Open gallery"
+              locale === "ko" ? "미디어 열기" : "Open media"
             )}
           </button>
           <WalletUnlockAction
@@ -2942,6 +2963,51 @@ function PaidGalleryPinGate({
           </WalletUnlockAction>
         </div>
       </form>
+    </div>
+  );
+}
+
+function ContentVideoList({
+  locale,
+  title,
+  videos,
+}: {
+  locale: Locale;
+  title: string;
+  videos: string[];
+}) {
+  return (
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between gap-3 px-3 pt-3 sm:px-0 sm:pt-0">
+        <div className="min-w-0">
+          <p className="eyebrow text-white/60 sm:text-slate-500">
+            {locale === "ko" ? "콘텐츠 동영상" : "Content video"}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-white sm:text-slate-950">
+            {title}
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white sm:border-slate-200 sm:bg-slate-50 sm:text-slate-600">
+          <Film className="size-3.5" />
+          {videos.length.toLocaleString(locale)}
+        </span>
+      </div>
+      <div className="space-y-3">
+        {videos.map((videoUrl, index) => (
+          <div
+            className="overflow-hidden bg-black sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
+            key={`${videoUrl}-${index}`}
+          >
+            <video
+              className="aspect-video w-full bg-black object-contain"
+              controls
+              playsInline
+              preload="metadata"
+              src={videoUrl}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

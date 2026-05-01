@@ -7,6 +7,13 @@ export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
 export const CONTENT_PAID_USDT_AMOUNT = "1";
 export const CONTENT_PAID_USDT_AMOUNT_WEI = "1000000000000000000";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
+export const CONTENT_VIDEO_LIMIT = 1;
+export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
+export const contentVideoMimeTypes = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+] as const;
 export const contentCoverGenerationProgressSteps = [
   "authorizing",
   "preparing_prompt",
@@ -41,6 +48,7 @@ export const contentEntitlementSources = [
 export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
 export type ContentPostStatus = (typeof contentPostStatuses)[number];
 export type ContentPriceType = (typeof contentPriceTypes)[number];
+export type ContentVideoMimeType = (typeof contentVideoMimeTypes)[number];
 export type ContentFeedView = (typeof contentFeedViews)[number];
 export type ContentAssetKind = (typeof contentAssetKinds)[number];
 export type ContentOrderStatus = (typeof contentOrderStatuses)[number];
@@ -86,6 +94,7 @@ export type ContentPostDocument = {
   body: string;
   contentId: string;
   contentImageUrls?: string[];
+  contentVideoUrls?: string[];
   coverImageUrl: string | null;
   createdAt: Date;
   locale?: Locale | null;
@@ -170,6 +179,8 @@ export type ContentPostRecord = {
   contentId: string;
   contentImageCount: number;
   contentImageUrls: string[];
+  contentVideoCount: number;
+  contentVideoUrls: string[];
   coverImageUrl: string | null;
   createdAt: string;
   locale: Locale;
@@ -412,6 +423,7 @@ export type CreatorProfileUpsertRequest = {
 export type ContentPostCreateRequest = {
   body: string;
   contentImageUrls?: string[];
+  contentVideoUrls?: string[];
   coverImageUrl?: string | null;
   email: string;
   locale?: Locale | null;
@@ -521,6 +533,8 @@ export function serializeContentPost(
     contentId: content.contentId,
     contentImageCount: content.contentImageUrls?.length ?? 0,
     contentImageUrls: content.contentImageUrls ?? [],
+    contentVideoCount: content.contentVideoUrls?.length ?? 0,
+    contentVideoUrls: content.contentVideoUrls ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
     locale: normalizeContentLocale(content.locale),

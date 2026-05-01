@@ -24,6 +24,7 @@ import {
   Copy,
   EyeOff,
   ExternalLink,
+  Film,
   Heart,
   House,
   LoaderCircle,
@@ -117,7 +118,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 7;
+const FEED_RESTORE_VERSION = 8;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -125,6 +126,12 @@ function resolveFeedPreviewImage(
   item: Pick<ContentFeedItemRecord, "coverImageUrl" | "contentImageUrls">,
 ) {
   return item.coverImageUrl ?? item.contentImageUrls[0] ?? null;
+}
+
+function resolveFeedPreviewVideo(
+  item: Pick<ContentFeedItemRecord, "contentVideoUrls">,
+) {
+  return item.contentVideoUrls?.[0] ?? null;
 }
 
 function getDisplayName(item: ContentFeedItemRecord) {
@@ -1508,6 +1515,7 @@ function SocialFeedPost({
 }) {
   const router = useRouter();
   const previewImageUrl = resolveFeedPreviewImage(item);
+  const previewVideoUrl = resolveFeedPreviewVideo(item);
   const displayName = getDisplayName(item);
   const isPaidContent = item.priceType === "paid";
   const accessLabel = isPaidContent
@@ -1520,10 +1528,14 @@ function SocialFeedPost({
     : null;
   const contentImageCount =
     item.contentImageCount ?? item.contentImageUrls.length;
+  const contentVideoCount =
+    item.contentVideoCount ?? item.contentVideoUrls?.length ?? 0;
+  const contentMediaCount = contentImageCount + contentVideoCount;
   const showLockedMediaPlaceholder =
     !previewImageUrl &&
+    !previewVideoUrl &&
     isPaidContent &&
-    contentImageCount > 0 &&
+    contentMediaCount > 0 &&
     !item.canAccess;
   const metaItems = [
     priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel,
@@ -2319,6 +2331,20 @@ function SocialFeedPost({
               src={previewImageUrl}
             />
           </div>
+        ) : previewVideoUrl ? (
+          <div className="relative aspect-square w-full overflow-hidden bg-slate-950">
+            <video
+              className="h-full w-full object-cover"
+              muted
+              playsInline
+              preload="metadata"
+              src={previewVideoUrl}
+            />
+            <span className="pointer-events-none absolute left-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/58 px-3 py-1.5 text-[0.7rem] font-semibold text-white backdrop-blur-md">
+              <Film className="size-3.5" />
+              {locale === "ko" ? "동영상" : "Video"}
+            </span>
+          </div>
         ) : showLockedMediaPlaceholder ? (
           <div className="flex aspect-square w-full items-center justify-center bg-[radial-gradient(circle_at_50%_28%,rgba(148,163,184,0.24),transparent_34%),linear-gradient(145deg,#020617,#0f172a_48%,#111827)] px-8 text-center text-white">
             <div>
@@ -2326,12 +2352,12 @@ function SocialFeedPost({
                 <Coins className="size-6" />
               </span>
               <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/56">
-                {locale === "ko" ? "잠긴 콘텐츠 이미지" : "Locked images"}
+                {locale === "ko" ? "잠긴 콘텐츠 미디어" : "Locked media"}
               </p>
               <p className="mt-2 text-lg font-semibold tracking-normal text-white">
                 {locale === "ko"
-                  ? `이미지 ${contentImageCount.toLocaleString(locale)}장`
-                  : `${contentImageCount.toLocaleString(locale)} images`}
+                  ? `미디어 ${contentMediaCount.toLocaleString(locale)}개`
+                  : `${contentMediaCount.toLocaleString(locale)} media items`}
               </p>
               <p className="mt-1 text-sm font-medium text-white/62">
                 {locale === "ko"

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { upload as uploadBlob } from "@vercel/blob/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -9,6 +10,7 @@ import {
   Check,
   Coins,
   Copy,
+  Film,
   ImagePlus,
   LayoutGrid,
   LoaderCircle,
@@ -49,6 +51,8 @@ import type {
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
+  CONTENT_VIDEO_LIMIT,
+  CONTENT_VIDEO_MAX_BYTES,
   contentCoverGenerationProgressSteps,
 } from "@/lib/content";
 import type {
@@ -171,6 +175,7 @@ const EMPTY_PROFILE = {
 const EMPTY_POST_FORM = {
   body: "",
   contentImageUrls: [] as string[],
+  contentVideoUrls: [] as string[],
   coverImageUrl: "",
   generatedContentImageUrls: [] as string[],
   priceType: "free" as ContentPriceType,
@@ -197,6 +202,32 @@ const EMPTY_STUDIO_SUMMARY = {
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;
 const SERVER_BODY_REQUIRED_ERROR = "body is required.";
+
+function sanitizeUploadBaseName(name: string) {
+  const baseName = name.replace(/\.[^.]+$/u, "");
+  const normalized = baseName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/-+/gu, "-")
+    .replace(/^-|-$/gu, "")
+    .slice(0, 48);
+
+  return normalized || "content-video";
+}
+
+function resolveVideoExtension(file: File) {
+  const fileName = file.name.toLowerCase();
+
+  if (fileName.endsWith(".webm")) {
+    return ".webm";
+  }
+
+  if (fileName.endsWith(".mov")) {
+    return ".mov";
+  }
+
+  return ".mp4";
+}
 
 const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
@@ -576,6 +607,8 @@ export function CreatorContentStudioPage({
   const [isUploadingProfileAvatar, setIsUploadingProfileAvatar] = useState(false);
   const [isUploadingProfileHeroImage, setIsUploadingProfileHeroImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
+  const [isUploadingPostVideo, setIsUploadingPostVideo] = useState(false);
+  const [postVideoUploadProgress, setPostVideoUploadProgress] = useState(0);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
   const [feedShareState, setFeedShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
@@ -983,6 +1016,7 @@ export function CreatorContentStudioPage({
   const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
+  const postVideoInputRef = useRef<HTMLInputElement | null>(null);
   const {
     isDisconnected,
     isResolving: isConnectionResolving,
@@ -1124,8 +1158,10 @@ export function CreatorContentStudioPage({
   const canShareCreatorFeed = canUseWorkspace && Boolean(creatorFeedShareUrl);
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
-  const hasPostImages = Boolean(
-    postForm.coverImageUrl || postForm.contentImageUrls.length > 0,
+  const hasPostMedia = Boolean(
+    postForm.coverImageUrl ||
+      postForm.contentImageUrls.length > 0 ||
+      postForm.contentVideoUrls.length > 0,
   );
   const postBodyRequiredMessage =
     locale === "ko"
@@ -1133,8 +1169,8 @@ export function CreatorContentStudioPage({
       : "Enter the content body before saving or publishing.";
   const postImageRequiredMessage =
     locale === "ko"
-      ? "이미지를 1장 이상 추가해야 바로 게시할 수 있습니다."
-      : "Add at least one image before publishing.";
+      ? "이미지 또는 동영상을 1개 이상 추가해야 바로 게시할 수 있습니다."
+      : "Add at least one image or video before publishing.";
   const postSaveProgressCopy =
     locale === "ko"
       ? {
@@ -1819,7 +1855,7 @@ export function CreatorContentStudioPage({
       return;
     }
 
-    if (statusToSave === "published" && !hasPostImages) {
+    if (statusToSave === "published" && !hasPostMedia) {
       setState((current) => ({
         ...current,
         error: postImageRequiredMessage,
@@ -1849,6 +1885,7 @@ export function CreatorContentStudioPage({
         body: JSON.stringify({
           body: normalizedBody,
           contentImageUrls: postForm.contentImageUrls,
+          contentVideoUrls: postForm.contentVideoUrls,
           coverImageUrl: postForm.coverImageUrl || null,
           email,
           locale,
@@ -2178,6 +2215,94 @@ export function CreatorContentStudioPage({
       }));
     } finally {
       setIsUploadingPostImage(false);
+    }
+  }
+
+  async function uploadPostVideo(file: File) {
+    try {
+      if (postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT) {
+        throw new Error(
+          locale === "ko"
+            ? "콘텐츠 동영상은 1개까지 업로드할 수 있습니다."
+            : "You can upload one content video.",
+        );
+      }
+
+      if (!["video/mp4", "video/quicktime", "video/webm"].includes(file.type)) {
+        throw new Error(
+          locale === "ko"
+            ? "MP4, MOV, WEBM 동영상만 업로드할 수 있습니다."
+            : "Only MP4, MOV, and WEBM videos are supported.",
+        );
+      }
+
+      if (file.size > CONTENT_VIDEO_MAX_BYTES) {
+        throw new Error(
+          locale === "ko"
+            ? "동영상은 200MB 이하로 업로드해주세요."
+            : "Video must be 200MB or smaller.",
+        );
+      }
+
+      const email = await resolveMemberEmail();
+      const uploadReferralCode = state.member?.referralCode;
+
+      if (!uploadReferralCode) {
+        throw new Error(
+          locale === "ko"
+            ? "회원 추천 코드를 확인하지 못했습니다."
+            : "Could not find the member referral code.",
+        );
+      }
+
+      setIsUploadingPostVideo(true);
+      setPostVideoUploadProgress(0);
+
+      const pathname = [
+        "content-posts",
+        uploadReferralCode,
+        "videos",
+        `${Date.now()}-${sanitizeUploadBaseName(file.name)}${resolveVideoExtension(file)}`,
+      ].join("/");
+      const uploaded = await uploadBlob(pathname, file, {
+        access: "public",
+        clientPayload: JSON.stringify({
+          email,
+          walletAddress: accountAddress ?? "",
+        }),
+        contentType: file.type,
+        handleUploadUrl: "/api/content/posts/video-upload",
+        multipart: true,
+        onUploadProgress: (progress) => {
+          setPostVideoUploadProgress(progress.percentage);
+        },
+      });
+
+      setPostForm((current) => ({
+        ...current,
+        contentVideoUrls: [uploaded.url].slice(0, CONTENT_VIDEO_LIMIT),
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "동영상을 업로드했습니다."
+            : "Video uploaded.",
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : locale === "ko"
+              ? "동영상 업로드에 실패했습니다."
+              : "Failed to upload video.",
+        notice: null,
+      }));
+    } finally {
+      setIsUploadingPostVideo(false);
     }
   }
 
@@ -3478,6 +3603,8 @@ export function CreatorContentStudioPage({
       locale === "ko" ? "커버 업로드" : "Upload cover";
     const contentImagesUploadLabel =
       locale === "ko" ? "콘텐츠 이미지 추가" : "Add content images";
+    const contentVideoUploadLabel =
+      locale === "ko" ? "동영상 추가" : "Add video";
     const aiContentImageLabel =
       locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI content image";
     const mobilePreviewImage =
@@ -3487,6 +3614,7 @@ export function CreatorContentStudioPage({
       isCreatingSellerWallet ||
       isDisconnected ||
       isUploadingPostImage ||
+      isUploadingPostVideo ||
       isGeneratingPostImage;
 
     return (
@@ -3545,10 +3673,29 @@ export function CreatorContentStudioPage({
               ref={postGalleryInputRef}
               type="file"
             />
+            <input
+              accept="video/mp4,video/quicktime,video/webm"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (file) {
+                  void uploadPostVideo(file);
+                }
+
+                event.target.value = "";
+              }}
+              ref={postVideoInputRef}
+              type="file"
+            />
             <section className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_42px_rgba(15,23,42,0.07)] sm:hidden">
               <button
                 className="group relative block aspect-square w-full overflow-hidden rounded-[26px] border border-dashed border-slate-300 bg-slate-100 text-left"
-                disabled={isUploadingPostImage || isGeneratingPostImage}
+                disabled={
+                  isUploadingPostImage ||
+                  isUploadingPostVideo ||
+                  isGeneratingPostImage
+                }
                 onClick={() => {
                   postImageInputRef.current?.click();
                 }}
@@ -3583,10 +3730,14 @@ export function CreatorContentStudioPage({
                 </span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950"
-                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-950"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage
+                  }
                   onClick={() => {
                     postGalleryInputRef.current?.click();
                   }}
@@ -3596,9 +3747,30 @@ export function CreatorContentStudioPage({
                   {locale === "ko" ? "여러 장" : "Gallery"}
                 </button>
                 <button
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 text-sm font-semibold text-amber-950 disabled:opacity-50"
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-950 disabled:opacity-50"
                   disabled={
                     isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage ||
+                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                  }
+                  onClick={() => {
+                    postVideoInputRef.current?.click();
+                  }}
+                  type="button"
+                >
+                  <Film className="size-4" />
+                  {isUploadingPostVideo
+                    ? `${Math.round(postVideoUploadProgress)}%`
+                    : locale === "ko"
+                      ? "동영상"
+                      : "Video"}
+                </button>
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-950 disabled:opacity-50"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
                     isGeneratingPostImage ||
                     !canGeneratePostCover ||
                     postForm.generatedContentImageUrls.length >=
@@ -3639,6 +3811,30 @@ export function CreatorContentStudioPage({
                       </span>
                     </button>
                   ))}
+                </div>
+              ) : null}
+
+              {postForm.contentVideoUrls.length > 0 ? (
+                <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-slate-950">
+                  <video
+                    className="aspect-video w-full bg-black object-contain"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    src={postForm.contentVideoUrls[0]}
+                  />
+                  <button
+                    className="flex h-10 w-full items-center justify-center bg-white text-sm font-semibold text-slate-950"
+                    onClick={() => {
+                      setPostForm((current) => ({
+                        ...current,
+                        contentVideoUrls: [],
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {locale === "ko" ? "동영상 제거" : "Remove video"}
+                  </button>
                 </div>
               ) : null}
 
@@ -3724,11 +3920,11 @@ export function CreatorContentStudioPage({
                   aria-busy={savingPostStatus === "published"}
                   className={cn(
                     "inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed",
-                    !hasPostImages && savingPostStatus !== "published"
+                    !hasPostMedia && savingPostStatus !== "published"
                       ? "bg-slate-200 text-slate-500 shadow-none"
                       : "bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
                   )}
-                  disabled={composerBusy || !hasPostImages}
+                  disabled={composerBusy || !hasPostMedia}
                   onClick={() => {
                     void createPost("published");
                   }}
@@ -3744,7 +3940,7 @@ export function CreatorContentStudioPage({
                   )}
                 </button>
               </div>
-              {!hasPostImages ? (
+              {!hasPostMedia ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
                   {postImageRequiredMessage}
                 </p>
@@ -3913,7 +4109,11 @@ export function CreatorContentStudioPage({
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage
+                  }
                   onClick={() => {
                     postImageInputRef.current?.click();
                   }}
@@ -3928,6 +4128,7 @@ export function CreatorContentStudioPage({
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   disabled={
                     isUploadingPostImage ||
+                    isUploadingPostVideo ||
                     isGeneratingPostImage ||
                     !canGeneratePostCover
                   }
@@ -3989,7 +4190,11 @@ export function CreatorContentStudioPage({
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingPostImage || isGeneratingPostImage}
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage
+                  }
                   onClick={() => {
                     postGalleryInputRef.current?.click();
                   }}
@@ -4004,6 +4209,7 @@ export function CreatorContentStudioPage({
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   disabled={
                     isUploadingPostImage ||
+                    isUploadingPostVideo ||
                     isGeneratingPostImage ||
                     !canGeneratePostCover ||
                     postForm.generatedContentImageUrls.length >=
@@ -4072,6 +4278,72 @@ export function CreatorContentStudioPage({
                 </div>
               )}
             </div>
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {locale === "ko" ? "콘텐츠 동영상" : "Content video"}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {locale === "ko"
+                      ? "상세 페이지에서 재생할 MP4, MOV, WEBM 동영상입니다. 최대 1개, 200MB 이하로 업로드할 수 있습니다."
+                      : "Upload one MP4, MOV, or WEBM video for the detail page. Maximum size is 200MB."}
+                  </p>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                  {postForm.contentVideoUrls.length}/{CONTENT_VIDEO_LIMIT}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage ||
+                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                  }
+                  onClick={() => {
+                    postVideoInputRef.current?.click();
+                  }}
+                  type="button"
+                >
+                  {isUploadingPostVideo ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <Film className="size-4" />
+                  )}
+                  {isUploadingPostVideo
+                    ? `${Math.round(postVideoUploadProgress)}%`
+                    : contentVideoUploadLabel}
+                </button>
+                {postForm.contentVideoUrls.length > 0 ? (
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                    onClick={() => {
+                      setPostForm((current) => ({
+                        ...current,
+                        contentVideoUrls: [],
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {locale === "ko" ? "동영상 제거" : "Remove video"}
+                  </button>
+                ) : null}
+              </div>
+              {postForm.contentVideoUrls.length > 0 ? (
+                <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+                  <video
+                    className="aspect-video w-full bg-black object-contain"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    src={postForm.contentVideoUrls[0]}
+                  />
+                </div>
+              ) : null}
+            </div>
             <TextAreaField
               error={postBodyError}
               hint={contentCopy.hints.body}
@@ -4097,6 +4369,7 @@ export function CreatorContentStudioPage({
                   isCreatingSellerWallet ||
                   isDisconnected ||
                   isUploadingPostImage ||
+                  isUploadingPostVideo ||
                   isGeneratingPostImage
                 }
                 onClick={() => {
@@ -4117,7 +4390,7 @@ export function CreatorContentStudioPage({
                 aria-busy={savingPostStatus === "published"}
                 className={cn(
                   "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed sm:w-auto",
-                  !hasPostImages && savingPostStatus !== "published"
+                  !hasPostMedia && savingPostStatus !== "published"
                     ? "bg-slate-200 text-slate-500 shadow-none"
                     : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
                 )}
@@ -4126,8 +4399,9 @@ export function CreatorContentStudioPage({
                   isCreatingSellerWallet ||
                   isDisconnected ||
                   isUploadingPostImage ||
+                  isUploadingPostVideo ||
                   isGeneratingPostImage ||
-                  !hasPostImages
+                  !hasPostMedia
                 }
                 onClick={() => {
                   void createPost("published");
@@ -4144,7 +4418,7 @@ export function CreatorContentStudioPage({
                 )}
               </button>
             </div>
-            {!hasPostImages ? (
+            {!hasPostMedia ? (
               <p className="text-sm font-medium leading-6 text-slate-500">
                 {postImageRequiredMessage}
               </p>

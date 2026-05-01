@@ -9,6 +9,7 @@ import {
   CONTENT_NETWORK_LEVEL_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
+  CONTENT_VIDEO_LIMIT,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
   serializeContentOrder,
@@ -245,6 +246,16 @@ function normalizeContentImageUrls(urls?: string[]) {
         .filter((url): url is string => Boolean(url)),
     ),
   ).slice(0, CONTENT_IMAGE_LIMIT);
+}
+
+function normalizeContentVideoUrls(urls?: string[]) {
+  return Array.from(
+    new Set(
+      (urls ?? [])
+        .map((url) => normalizeOptionalText(url, 500))
+        .filter((url): url is string => Boolean(url)),
+    ),
+  ).slice(0, CONTENT_VIDEO_LIMIT);
 }
 
 function normalizePriceType(priceType?: ContentPriceType | null) {
@@ -824,6 +835,7 @@ export async function getPublicContentPreview(contentId: string) {
     body: previewBody,
     canAccess: false,
     contentImageUrls: [],
+    contentVideoUrls: [],
     entitlementSource: null,
     sources,
   };
@@ -977,6 +989,7 @@ function buildFeedItem({
     authorProfile,
     canAccess: resolvedCanAccess,
     contentImageUrls: resolvedCanAccess ? serializedContent.contentImageUrls : [],
+    contentVideoUrls: resolvedCanAccess ? serializedContent.contentVideoUrls : [],
     networkLevel,
     previewAssets: [],
     social: social ?? createEmptyContentSocialSummary(),
@@ -1772,10 +1785,16 @@ export async function createContentPostForMember(
   const status = input.status === "published" ? "published" : "draft";
   const priceType = normalizePriceType(input.priceType);
   const contentImageUrls = normalizeContentImageUrls(input.contentImageUrls);
+  const contentVideoUrls = normalizeContentVideoUrls(input.contentVideoUrls);
   const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
 
-  if (status === "published" && !coverImageUrl && contentImageUrls.length === 0) {
-    throw new Error("image is required.");
+  if (
+    status === "published" &&
+    !coverImageUrl &&
+    contentImageUrls.length === 0 &&
+    contentVideoUrls.length === 0
+  ) {
+    throw new Error("media is required.");
   }
 
   if (priceType === "paid") {
@@ -1789,6 +1808,7 @@ export async function createContentPostForMember(
     body,
     contentId: randomUUID(),
     contentImageUrls,
+    contentVideoUrls,
     coverImageUrl,
     createdAt: now,
     locale: normalizeContentLocale(input.locale),
@@ -1853,6 +1873,10 @@ export async function updateContentPostForMember(
     input.contentImageUrls !== undefined
       ? normalizeContentImageUrls(input.contentImageUrls)
       : post.contentImageUrls ?? [];
+  const nextContentVideoUrls =
+    input.contentVideoUrls !== undefined
+      ? normalizeContentVideoUrls(input.contentVideoUrls)
+      : post.contentVideoUrls ?? [];
   const nextCoverImageUrl =
     input.coverImageUrl !== undefined
       ? normalizeOptionalText(input.coverImageUrl, 500)
@@ -1861,9 +1885,10 @@ export async function updateContentPostForMember(
   if (
     nextStatus === "published" &&
     !nextCoverImageUrl &&
-    nextContentImageUrls.length === 0
+    nextContentImageUrls.length === 0 &&
+    nextContentVideoUrls.length === 0
   ) {
-    throw new Error("image is required.");
+    throw new Error("media is required.");
   }
 
   if (nextPriceType === "paid") {
@@ -1896,6 +1921,7 @@ export async function updateContentPostForMember(
       $set: {
         body: nextBody,
         contentImageUrls: nextContentImageUrls,
+        contentVideoUrls: nextContentVideoUrls,
         coverImageUrl: nextCoverImageUrl,
         locale:
           input.locale !== undefined
