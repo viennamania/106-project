@@ -1,6 +1,12 @@
 import "server-only";
 
-import { createFalClient, type QueueStatus } from "@fal-ai/client";
+import {
+  ApiError,
+  createFalClient,
+  ValidationError,
+  type QueueStatus,
+  type ValidationErrorInfo,
+} from "@fal-ai/client";
 import { put } from "@vercel/blob";
 
 import {
@@ -58,6 +64,22 @@ type FalVideoOutput = {
   actual_prompt?: string | null;
   prompt?: string | null;
   video?: FalVideoFile;
+};
+
+type FalFailureKind =
+  | "provider_rejection"
+  | "safety"
+  | "timeout"
+  | "unknown"
+  | "validation";
+
+type FalFailureDiagnostic = {
+  bodyText: string | null;
+  fieldErrors: ValidationErrorInfo[];
+  kind: FalFailureKind;
+  message: string;
+  requestId: string | null;
+  status: number | null;
 };
 
 export type GenerateContentGalleryVideoInput = {
@@ -346,6 +368,178 @@ function getFalRevisedPrompt(output: unknown, prompt: string) {
   return revisedPrompt && revisedPrompt !== prompt ? revisedPrompt : null;
 }
 
+function stringifyForDiagnostic(value: unknown, limit = 1_200) {
+  if (value == null) {
+    return null;
+  }
+
+  let text: string;
+
+  if (typeof value === "string") {
+    text = value;
+  } else {
+    try {
+      text = JSON.stringify(value);
+    } catch {
+      text = String(value);
+    }
+  }
+
+  return text.length > limit ? `${text.slice(0, limit)}...` : text;
+}
+
+function getValidationFieldErrors(error: unknown) {
+  if (!(error instanceof ValidationError)) {
+    return [];
+  }
+
+  try {
+    return error.fieldErrors;
+  } catch {
+    return [];
+  }
+}
+
+function resolveFalFailureKind(
+  error: unknown,
+  bodyText: string | null,
+  fieldErrors: ValidationErrorInfo[],
+): FalFailureKind {
+  const messageText = error instanceof Error ? error.message : "";
+  const fieldErrorText = fieldErrors
+    .map((fieldError) =>
+      [
+        fieldError.loc.join("."),
+        fieldError.msg,
+        fieldError.type,
+      ].join(" "),
+    )
+    .join(" ");
+  const diagnosticText = [
+    messageText,
+    bodyText ?? "",
+    fieldErrorText,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    error instanceof ApiError &&
+    (error.isUserTimeout || error.status === 504)
+  ) {
+    return "timeout";
+  }
+
+  if (/\b(timeout|timed out)\b/.test(diagnosticText)) {
+    return "timeout";
+  }
+
+  if (
+    /\b(safety|unsafe|nsfw|nudity|sexual|explicit|moderation|policy|blocked|prohibited|disallowed|violation)\b/.test(
+      diagnosticText,
+    )
+  ) {
+    return "safety";
+  }
+
+  if (error instanceof ValidationError) {
+    return "validation";
+  }
+
+  if (error instanceof ApiError && error.status === 422) {
+    return "validation";
+  }
+
+  if (
+    error instanceof ApiError &&
+    error.status >= 400 &&
+    error.status < 500
+  ) {
+    return "provider_rejection";
+  }
+
+  return "unknown";
+}
+
+function createFalFailureDiagnostic(
+  error: unknown,
+  fallbackRequestId: string | null,
+): FalFailureDiagnostic {
+  const apiError = error instanceof ApiError ? error : null;
+  const bodyText = stringifyForDiagnostic(apiError?.body);
+  const fieldErrors = getValidationFieldErrors(error);
+  const message =
+    error instanceof Error
+      ? error.message
+      : "fal video generation failed.";
+
+  return {
+    bodyText,
+    fieldErrors,
+    kind: resolveFalFailureKind(error, bodyText, fieldErrors),
+    message,
+    requestId: apiError?.requestId || fallbackRequestId,
+    status: apiError?.status ?? null,
+  };
+}
+
+function createFalFailureMessage(diagnostic: FalFailureDiagnostic) {
+  const status = diagnostic.status ? ` status=${diagnostic.status}` : "";
+  const requestId = diagnostic.requestId
+    ? ` requestId=${diagnostic.requestId}`
+    : "";
+  const bodyDetail = diagnostic.bodyText ? ` ${diagnostic.bodyText}` : "";
+
+  return [
+    `fal video generation failed (${diagnostic.kind}).`,
+    `${diagnostic.message}${bodyDetail}`,
+    `${status}${requestId}`.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function createFalInputDiagnostic(input: FalVideoInput) {
+  const {
+    negative_prompt: negativePrompt,
+    prompt,
+    ...options
+  } = input;
+
+  return {
+    ...options,
+    negativePromptLength: negativePrompt?.length ?? 0,
+    negativePromptPreview: negativePrompt
+      ? negativePrompt.slice(0, 240)
+      : null,
+    promptLength: prompt.length,
+    promptPreview: prompt.slice(0, 600),
+  };
+}
+
+function createFalGenerationError({
+  error,
+  model,
+  modelInput,
+  requestId,
+}: {
+  error: unknown;
+  model: FalModelName;
+  modelInput: FalVideoInput;
+  requestId: string | null;
+}) {
+  const diagnostic = createFalFailureDiagnostic(error, requestId);
+
+  console.error("[content-video] fal video generation failed", {
+    diagnostic,
+    model,
+    modelFamily: resolveModelFamily(model),
+    modelInput: createFalInputDiagnostic(modelInput),
+  });
+
+  return new Error(createFalFailureMessage(diagnostic));
+}
+
 async function readFalOutputFile(
   output: unknown,
 ): Promise<{ blob: Blob; sourceUrl: string | null }> {
@@ -470,17 +664,41 @@ export async function generateAndUploadContentGalleryVideo(
 
   const modelInput = createModelInput(model, prompt);
   const fal = createFalClient({ credentials: falKey });
+  let falRequestId: string | null = null;
 
-  const result = await fal.subscribe(model, {
-    input: modelInput,
-    logs: true,
-    mode: "polling",
-    onQueueUpdate(status) {
-      reportFalQueueStatus(input.onProgress, status);
-    },
-    pollInterval: 1000,
-    timeout: getFalTimeoutMs(),
-  });
+  let result: { data: unknown };
+
+  try {
+    result = await fal.subscribe(model, {
+      input: modelInput,
+      logs: true,
+      mode: "polling",
+      onEnqueue(requestId) {
+        falRequestId = requestId;
+      },
+      onQueueUpdate(status) {
+        reportFalQueueStatus(input.onProgress, status);
+      },
+      pollInterval: 1000,
+      timeout: getFalTimeoutMs(),
+    });
+  } catch (error) {
+    const generationError = createFalGenerationError({
+      error,
+      model,
+      modelInput,
+      requestId: falRequestId,
+    });
+
+    await reportProgress(input.onProgress, {
+      message: generationError.message,
+      progress: 62,
+      status: "failed",
+      step: "generating_image",
+    });
+
+    throw generationError;
+  }
 
   await reportProgress(input.onProgress, {
     message: "AI video created. Preparing upload.",
