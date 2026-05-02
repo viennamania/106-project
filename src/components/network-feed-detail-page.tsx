@@ -1711,8 +1711,8 @@ function NetworkFeedDetailSlide({
         ) : (
           <div className="size-full bg-[radial-gradient(circle_at_28%_20%,rgba(56,189,248,0.32),transparent_30%),linear-gradient(145deg,#020617,#111827_45%,#0f172a)]" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/62 via-black/10 to-black/92" />
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/76 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/36 via-black/0 to-black/50" />
+        <div className="absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black/86 via-black/38 to-transparent" />
       </div>
 
       <div className="absolute right-3 top-[calc(env(safe-area-inset-top)+4.4rem)] z-20 hidden flex-col gap-2 sm:flex">
@@ -2115,7 +2115,7 @@ function NetworkFeedMediaViewer({
             )}
           </div>
 
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0)_24%,rgba(2,6,23,0.18)_58%,rgba(2,6,23,0.78)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.04)_0%,rgba(2,6,23,0)_24%,rgba(2,6,23,0.1)_62%,rgba(2,6,23,0.5)_100%)]" />
 
           {canViewMedia && displayMedia.length > 1 ? (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-3 sm:flex">
