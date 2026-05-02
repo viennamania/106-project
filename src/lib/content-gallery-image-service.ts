@@ -15,10 +15,13 @@ import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-pr
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
+const DEFAULT_FAL_TEXT_MODEL = "fal-ai/flux-pro/v1.1-ultra";
 const DEFAULT_FAL_REFERENCE_MODEL = "fal-ai/nano-banana-2/edit";
 const DEFAULT_ASPECT_RATIO = "4:5";
+const DEFAULT_FAL_TEXT_ASPECT_RATIO = "3:4";
 const DEFAULT_FAL_REFERENCE_ASPECT_RATIO = "4:5";
 const DEFAULT_FAL_REFERENCE_RESOLUTION = "1K";
+const DEFAULT_FAL_TEXT_IMAGE_PROMPT_STRENGTH = 0.2;
 const DEFAULT_MEGAPIXELS = "2";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
@@ -26,8 +29,16 @@ const DEFAULT_DISABLE_SAFETY_CHECKER = true;
 const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
 const DEFAULT_FAL_TIMEOUT_MS = 90_000;
 const DEFAULT_REPLICATE_TIMEOUT_MS = 90_000;
+const STRUCTURED_PROMPT_SEGMENT_LIMIT = 48;
 
 type ContentImageProviderPriority = "fal" | "replicate";
+type StructuredPromptValue =
+  | boolean
+  | null
+  | number
+  | string
+  | StructuredPromptValue[]
+  | { [key: string]: StructuredPromptValue };
 
 type Flux2KleinAspectRatio =
   | "1:1"
@@ -81,6 +92,30 @@ type FalNanoBananaAspectRatio =
 type FalNanoBananaResolution = "0.5K" | "1K" | "2K" | "4K";
 
 type FalImageSafetyTolerance = "1" | "2" | "3" | "4" | "5" | "6";
+
+type FalFluxProUltraAspectRatio =
+  | "21:9"
+  | "16:9"
+  | "4:3"
+  | "3:2"
+  | "1:1"
+  | "2:3"
+  | "3:4"
+  | "9:16"
+  | "9:21";
+
+type FalFluxProUltraInput = {
+  aspect_ratio: FalFluxProUltraAspectRatio;
+  enhance_prompt: boolean;
+  image_prompt_strength?: number;
+  image_url?: string;
+  num_images: number;
+  output_format: "jpeg" | "png";
+  prompt: string;
+  raw: boolean;
+  safety_tolerance: FalImageSafetyTolerance;
+  sync_mode: boolean;
+};
 
 type FalNanoBananaEditInput = {
   aspect_ratio: FalNanoBananaAspectRatio;
@@ -152,6 +187,261 @@ export type GeneratedContentGalleryImage = {
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
+}
+
+function normalizePromptSpacing(value: string) {
+  return value
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function stripPromptWrapper(value: string) {
+  const fenced = value
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  if (
+    ((fenced.startsWith('"') && fenced.endsWith('"')) ||
+      (fenced.startsWith("'") && fenced.endsWith("'"))) &&
+    ["{", "["].includes(fenced.slice(1).trimStart()[0] ?? "")
+  ) {
+    return fenced.slice(1, -1).trim();
+  }
+
+  return fenced;
+}
+
+function parseStructuredPrompt(value: string): StructuredPromptValue | null {
+  const normalized = stripPromptWrapper(value);
+
+  if (!["{", "["].includes(normalized[0] ?? "")) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(normalized) as StructuredPromptValue;
+
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function isStructuredPromptRecord(
+  value: StructuredPromptValue,
+): value is { [key: string]: StructuredPromptValue } {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function humanizePromptKey(key: string) {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function structuredPromptPrimitiveToText(value: StructuredPromptValue) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  return "";
+}
+
+function structuredPromptValueToText(value: StructuredPromptValue): string {
+  const primitive = structuredPromptPrimitiveToText(value);
+
+  if (primitive) {
+    return primitive;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => structuredPromptValueToText(item))
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (isStructuredPromptRecord(value)) {
+    return Object.entries(value)
+      .map(([key, child]) => {
+        const text = structuredPromptValueToText(child);
+
+        return text ? `${humanizePromptKey(key)} ${text}` : "";
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  return "";
+}
+
+function shouldSkipStructuredPromptPath(path: string[], hasPersona: boolean) {
+  if (!hasPersona) {
+    return false;
+  }
+
+  const key = path[path.length - 1]?.toLowerCase() ?? "";
+  const pathName = path.join(".").toLowerCase();
+
+  if (
+    [
+      "age",
+      "age_range",
+      "body",
+      "body_type",
+      "build",
+      "ethnicity",
+      "eye_color",
+      "eyes",
+      "face",
+      "facial_features",
+      "figure",
+      "gender",
+      "hair",
+      "hair_color",
+      "race",
+      "skin",
+      "skin_tone",
+    ].includes(key)
+  ) {
+    return true;
+  }
+
+  return (
+    pathName.startsWith("appearance.hair") ||
+    pathName.startsWith("appearance.face") ||
+    pathName.startsWith("subject.appearance")
+  );
+}
+
+function collectStructuredPromptSegments({
+  hasPersona,
+  path,
+  segments,
+  value,
+}: {
+  hasPersona: boolean;
+  path: string[];
+  segments: string[];
+  value: StructuredPromptValue;
+}) {
+  if (segments.length >= STRUCTURED_PROMPT_SEGMENT_LIMIT) {
+    return;
+  }
+
+  if (shouldSkipStructuredPromptPath(path, hasPersona)) {
+    return;
+  }
+
+  const primitive = structuredPromptPrimitiveToText(value);
+
+  if (primitive) {
+    const label = path.map(humanizePromptKey).filter(Boolean).join(" ");
+    segments.push(label ? `${label}: ${primitive}` : primitive);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    const text = structuredPromptValueToText(value);
+
+    if (text) {
+      const label = path.map(humanizePromptKey).filter(Boolean).join(" ");
+      segments.push(label ? `${label}: ${text}` : text);
+    }
+
+    return;
+  }
+
+  if (!isStructuredPromptRecord(value)) {
+    return;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    collectStructuredPromptSegments({
+      hasPersona,
+      path: [...path, key],
+      segments,
+      value: child,
+    });
+  }
+}
+
+function rewriteSensitiveImagePromptTerms(value: string) {
+  const replacements = [
+    [/\b(?:slightly\s+)?seductive\b/gi, "confident editorial"],
+    [/\bprovocative\b/gi, "bold editorial"],
+    [/\blustful\b/gi, "expressive"],
+    [/\b(?:super\s+)?sexy\b/gi, "fashion-forward"],
+    [/\bdeep\s+plunge\s+neckline\b/gi, "clean fashion neckline"],
+    [/\bplunging\s+neckline\b/gi, "fashion neckline"],
+    [/\bcleavage\b/gi, "neckline detail"],
+    [/\b(?:strikingly\s+large|very\s+large|huge|big)\s+(?:bust|breasts|chest|hips)\b/gi, "balanced silhouette"],
+    [/\bbusty\b/gi, "balanced"],
+  ] satisfies Array<[RegExp, string]>;
+
+  return replacements.reduce(
+    (normalized, [pattern, replacement]) =>
+      normalized.replace(pattern, replacement),
+    value,
+  );
+}
+
+function normalizeContentImagePromptForModel(
+  visualBrief: string,
+  hasPersona: boolean,
+) {
+  const structuredPrompt = parseStructuredPrompt(visualBrief);
+
+  if (!structuredPrompt) {
+    return trimToLength(
+      rewriteSensitiveImagePromptTerms(normalizePromptSpacing(visualBrief)),
+      CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+    );
+  }
+
+  const segments: string[] = [];
+  collectStructuredPromptSegments({
+    hasPersona,
+    path: [],
+    segments,
+    value: structuredPrompt,
+  });
+
+  if (segments.length === 0) {
+    return trimToLength(
+      rewriteSensitiveImagePromptTerms(normalizePromptSpacing(visualBrief)),
+      CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+    );
+  }
+
+  const identityInstruction = hasPersona
+    ? "Use the selected creator persona and avatar as the only identity source for the main person."
+    : "Use the described main person.";
+  const normalized = [
+    "Generate one realistic vertical editorial content image.",
+    identityInstruction,
+    ...segments,
+  ].join(" ");
+
+  return trimToLength(
+    rewriteSensitiveImagePromptTerms(normalizePromptSpacing(normalized)),
+    CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  );
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean) {
@@ -250,6 +540,21 @@ function resolveFalReferenceModelName(): FalImageModelName {
   return model as FalImageModelName;
 }
 
+function resolveFalTextModelName(): FalImageModelName {
+  const model =
+    process.env.FAL_CONTENT_IMAGE_TEXT_MODEL?.trim() ||
+    process.env.FAL_CONTENT_IMAGE_FALLBACK_MODEL?.trim() ||
+    DEFAULT_FAL_TEXT_MODEL;
+
+  if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
+    throw new Error(
+      "FAL_CONTENT_IMAGE_TEXT_MODEL must use owner/model or owner/model/path format.",
+    );
+  }
+
+  return model as FalImageModelName;
+}
+
 function resolveFalImageModelFamily(
   model: FalImageModelName,
 ): FalImageModelFamily {
@@ -270,6 +575,81 @@ function createReferenceIdentityPrompt(prompt: string) {
     "Create a new content image from the scene prompt. Do not copy the avatar background, crop, pose, or clothing unless the scene prompt explicitly asks for it.",
     prompt,
   ].join("\n\n");
+}
+
+function parseNumberInRange(
+  value: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+) {
+  const parsed = Number(value?.trim());
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function createFalTextImageInput({
+  avatarImageUrl,
+  prompt,
+}: {
+  avatarImageUrl?: string | null;
+  prompt: string;
+}): FalFluxProUltraInput {
+  const outputFormat = parseEnum(
+    process.env.FAL_CONTENT_IMAGE_OUTPUT_FORMAT,
+    ["jpeg", "png"] as const,
+    "png",
+  );
+  const aspectRatio = parseEnum(
+    process.env.FAL_CONTENT_IMAGE_TEXT_ASPECT_RATIO ||
+      process.env.FAL_CONTENT_IMAGE_ASPECT_RATIO,
+    [
+      "21:9",
+      "16:9",
+      "4:3",
+      "3:2",
+      "1:1",
+      "2:3",
+      "3:4",
+      "9:16",
+      "9:21",
+    ] as const,
+    DEFAULT_FAL_TEXT_ASPECT_RATIO,
+  );
+  const input: FalFluxProUltraInput = {
+    aspect_ratio: aspectRatio,
+    enhance_prompt: parseBoolean(
+      process.env.FAL_CONTENT_IMAGE_ENHANCE_PROMPT,
+      false,
+    ),
+    num_images: 1,
+    output_format: outputFormat,
+    prompt,
+    raw: parseBoolean(process.env.FAL_CONTENT_IMAGE_RAW, true),
+    safety_tolerance: parseEnum(
+      process.env.FAL_CONTENT_IMAGE_SAFETY_TOLERANCE ||
+        process.env.FAL_CONTENT_VIDEO_SAFETY_TOLERANCE,
+      ["1", "2", "3", "4", "5", "6"] as const,
+      DEFAULT_FAL_SAFETY_TOLERANCE,
+    ),
+    sync_mode: false,
+  };
+
+  if (avatarImageUrl) {
+    input.image_url = avatarImageUrl;
+    input.image_prompt_strength = parseNumberInRange(
+      process.env.FAL_CONTENT_IMAGE_PROMPT_STRENGTH,
+      DEFAULT_FAL_TEXT_IMAGE_PROMPT_STRENGTH,
+      0,
+      1,
+    );
+  }
+
+  return input;
 }
 
 function createFalReferenceImageInput({
@@ -580,10 +960,109 @@ async function generateFalReferenceImageFile({
   );
 }
 
+async function generateFalTextImageFile({
+  avatarImageUrl,
+  falKey,
+  prompt,
+}: {
+  avatarImageUrl?: string | null;
+  falKey: string;
+  prompt: string;
+}) {
+  try {
+    const model = resolveFalTextModelName();
+    const fal = createFalClient({ credentials: falKey });
+    const modelInput = createFalTextImageInput({
+      avatarImageUrl,
+      prompt,
+    });
+    const result = await fal.subscribe(model, {
+      input: modelInput,
+      logs: true,
+      mode: "polling",
+      pollInterval: 1000,
+      timeout: getFalImageTimeoutMs(),
+    });
+
+    return await withTimeout(
+      readFalImageOutputFile(result.data),
+      30_000,
+      "fal text image download",
+    );
+  } catch (error) {
+    throw normalizeImageGenerationError(error);
+  }
+}
+
 function getImageGenerationErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "AI content image generation failed.";
+}
+
+function getProviderErrorStatus(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const candidate = error as {
+    response?: { status?: unknown };
+    status?: unknown;
+    statusCode?: unknown;
+  };
+  const status =
+    typeof candidate.status === "number"
+      ? candidate.status
+      : typeof candidate.statusCode === "number"
+        ? candidate.statusCode
+        : typeof candidate.response?.status === "number"
+          ? candidate.response.status
+          : null;
+
+  return status;
+}
+
+function isProviderAccessDeniedError(error: unknown) {
+  const status = getProviderErrorStatus(error);
+  const message = getImageGenerationErrorMessage(error).toLowerCase();
+
+  return (
+    status === 401 ||
+    status === 403 ||
+    message === "forbidden" ||
+    message.includes("403") ||
+    message.includes("unauthorized") ||
+    message.includes("access denied")
+  );
+}
+
+function isProviderSafetyError(error: unknown) {
+  const message = getImageGenerationErrorMessage(error).toLowerCase();
+
+  return (
+    message.includes("content policy") ||
+    message.includes("content_policy") ||
+    message.includes("safety") ||
+    message.includes("nsfw")
+  );
+}
+
+function normalizeImageGenerationError(error: unknown) {
+  if (isProviderAccessDeniedError(error)) {
+    return new Error(
+      "AI image provider access was denied (403 Forbidden). Check REPLICATE_API_TOKEN/FAL_KEY permissions, model access, and public access to the persona avatar image.",
+    );
+  }
+
+  if (isProviderSafetyError(error)) {
+    return new Error(
+      "AI image provider rejected this prompt with its content safety filter. Try a more neutral editorial description and avoid explicit body or sexual wording.",
+    );
+  }
+
+  return error instanceof Error
+    ? error
+    : new Error("AI content image generation failed.");
 }
 
 async function reportProgress(
@@ -613,7 +1092,7 @@ export async function generateAndUploadContentGalleryImage(
   const falKey = process.env.FAL_KEY?.trim();
   const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
 
-  if (!replicateToken && !(avatarImageUrl && falKey)) {
+  if (!replicateToken && !falKey) {
     throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
   }
 
@@ -637,8 +1116,12 @@ export async function generateAndUploadContentGalleryImage(
     step: "preparing_prompt",
   });
 
-  const prompt = applyCreatorCharacterPersonaToPrompt(
+  const modelVisualBrief = normalizeContentImagePromptForModel(
     visualBrief,
+    Boolean(input.characterPersona?.identityPrompt),
+  );
+  const prompt = applyCreatorCharacterPersonaToPrompt(
+    modelVisualBrief,
     input.characterPersona,
   );
 
@@ -653,6 +1136,7 @@ export async function generateAndUploadContentGalleryImage(
   const providerPriority = resolveImageProviderPriority();
   const canUseReplicate = Boolean(replicateToken);
   const canUseFalReference = Boolean(avatarImageUrl && falKey);
+  const canUseFalText = Boolean(falKey);
 
   if (providerPriority === "fal" && canUseFalReference) {
     await reportProgress(input.onProgress, {
@@ -670,11 +1154,93 @@ export async function generateAndUploadContentGalleryImage(
       });
     } catch (error) {
       if (!replicateToken) {
-        throw error;
+        console.warn(
+          "[content-image] fal reference image generation failed; falling back to fal text image",
+          {
+            message: getImageGenerationErrorMessage(error),
+          },
+        );
+
+        await reportProgress(input.onProgress, {
+          message: "fal reference image generation failed. Trying fal text image generation.",
+          progress: 58,
+          status: "running",
+          step: "generating_image",
+        });
+        generatedFile = await generateFalTextImageFile({
+          avatarImageUrl,
+          falKey: falKey ?? "",
+          prompt,
+        });
+      } else {
+        console.warn(
+          "[content-image] fal image generation failed; falling back to Replicate",
+          {
+            message: getImageGenerationErrorMessage(error),
+          },
+        );
+
+        await reportProgress(input.onProgress, {
+          message: "fal image generation failed. Trying Replicate.",
+          progress: 58,
+          status: "running",
+          step: "generating_image",
+        });
+        try {
+          generatedFile = await generateReplicateImageFile({
+            avatarImageUrl,
+            prompt,
+            replicateToken: replicateToken ?? "",
+          });
+        } catch (replicateError) {
+          if (!canUseFalText) {
+            throw normalizeImageGenerationError(replicateError);
+          }
+
+          console.warn(
+            "[content-image] Replicate image generation failed; falling back to fal text image",
+            {
+              message: getImageGenerationErrorMessage(replicateError),
+            },
+          );
+
+          await reportProgress(input.onProgress, {
+            message: "Replicate image generation failed. Trying fal text image generation.",
+            progress: 64,
+            status: "running",
+            step: "generating_image",
+          });
+          generatedFile = await generateFalTextImageFile({
+            avatarImageUrl,
+            falKey: falKey ?? "",
+            prompt,
+          });
+        }
+      }
+    }
+  } else if (providerPriority === "fal" && canUseFalText) {
+    await reportProgress(input.onProgress, {
+      message: avatarImageUrl
+        ? "Generating the AI content image with fal and the persona avatar."
+        : "Generating the AI content image with fal.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
+    });
+
+    try {
+      generatedFile = await generateFalTextImageFile({
+        avatarImageUrl,
+        falKey: falKey ?? "",
+        prompt,
+      });
+    } catch (error) {
+      if (!replicateToken) {
+        throw normalizeImageGenerationError(error);
       }
 
       console.warn(
-        "[content-image] fal image generation failed; falling back to Replicate",
+        "[content-image] fal text image generation failed; falling back to Replicate",
         {
           message: getImageGenerationErrorMessage(error),
         },
@@ -690,6 +1256,8 @@ export async function generateAndUploadContentGalleryImage(
         avatarImageUrl,
         prompt,
         replicateToken: replicateToken ?? "",
+      }).catch((replicateError: unknown) => {
+        throw normalizeImageGenerationError(replicateError);
       });
     }
   } else if (canUseReplicate) {
@@ -709,8 +1277,8 @@ export async function generateAndUploadContentGalleryImage(
         replicateToken: replicateToken ?? "",
       });
     } catch (error) {
-      if (!canUseFalReference) {
-        throw error;
+      if (!canUseFalReference && !canUseFalText) {
+        throw normalizeImageGenerationError(error);
       }
 
       console.warn(
@@ -720,17 +1288,57 @@ export async function generateAndUploadContentGalleryImage(
         },
       );
 
-      await reportProgress(input.onProgress, {
-        message: "Replicate image generation failed. Trying persona avatar reference with fal.",
-        progress: 58,
-        status: "running",
-        step: "generating_image",
-      });
-      generatedFile = await generateFalReferenceImageFile({
-        avatarImageUrl,
-        falKey: falKey ?? "",
-        prompt,
-      });
+      if (canUseFalReference) {
+        await reportProgress(input.onProgress, {
+          message: "Replicate image generation failed. Trying persona avatar reference with fal.",
+          progress: 58,
+          status: "running",
+          step: "generating_image",
+        });
+
+        try {
+          generatedFile = await generateFalReferenceImageFile({
+            avatarImageUrl,
+            falKey: falKey ?? "",
+            prompt,
+          });
+        } catch (falReferenceError) {
+          if (!canUseFalText) {
+            throw normalizeImageGenerationError(falReferenceError);
+          }
+
+          console.warn(
+            "[content-image] fal reference image generation failed; falling back to fal text image",
+            {
+              message: getImageGenerationErrorMessage(falReferenceError),
+            },
+          );
+
+          await reportProgress(input.onProgress, {
+            message: "fal reference image generation failed. Trying fal text image generation.",
+            progress: 64,
+            status: "running",
+            step: "generating_image",
+          });
+          generatedFile = await generateFalTextImageFile({
+            avatarImageUrl,
+            falKey: falKey ?? "",
+            prompt,
+          });
+        }
+      } else {
+        await reportProgress(input.onProgress, {
+          message: "Replicate image generation failed. Trying fal text image generation.",
+          progress: 58,
+          status: "running",
+          step: "generating_image",
+        });
+        generatedFile = await generateFalTextImageFile({
+          avatarImageUrl,
+          falKey: falKey ?? "",
+          prompt,
+        });
+      }
     }
   } else if (canUseFalReference) {
     await reportProgress(input.onProgress, {
@@ -743,6 +1351,43 @@ export async function generateAndUploadContentGalleryImage(
       avatarImageUrl,
       falKey: falKey ?? "",
       prompt,
+    }).catch(async (falReferenceError: unknown) => {
+      if (!canUseFalText) {
+        throw normalizeImageGenerationError(falReferenceError);
+      }
+
+      console.warn(
+        "[content-image] fal reference image generation failed; falling back to fal text image",
+        {
+          message: getImageGenerationErrorMessage(falReferenceError),
+        },
+      );
+
+      await reportProgress(input.onProgress, {
+        message: "fal reference image generation failed. Trying fal text image generation.",
+        progress: 58,
+        status: "running",
+        step: "generating_image",
+      });
+
+      return generateFalTextImageFile({
+        avatarImageUrl,
+        falKey: falKey ?? "",
+        prompt,
+      });
+    });
+  } else if (canUseFalText) {
+    await reportProgress(input.onProgress, {
+      message: "Generating the AI content image with fal.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
+    });
+    generatedFile = await generateFalTextImageFile({
+      falKey: falKey ?? "",
+      prompt,
+    }).catch((error: unknown) => {
+      throw normalizeImageGenerationError(error);
     });
   } else {
     throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
