@@ -25,6 +25,8 @@ const DEFAULT_OUTPUT_QUALITY = 100;
 const DEFAULT_DISABLE_SAFETY_CHECKER = true;
 const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
 
+type ContentImageProviderPriority = "fal" | "replicate";
+
 type Flux2KleinAspectRatio =
   | "1:1"
   | "16:9"
@@ -197,6 +199,14 @@ function resolveFalImageModelFamily(
   model: FalImageModelName,
 ): FalImageModelFamily {
   return model.includes("flux-kontext") ? "flux-kontext" : "nano-banana-edit";
+}
+
+function resolveImageProviderPriority(): ContentImageProviderPriority {
+  const value =
+    process.env.CONTENT_IMAGE_PROVIDER_PRIORITY?.trim().toLowerCase() ||
+    process.env.FAL_CONTENT_IMAGE_PROVIDER_PRIORITY?.trim().toLowerCase();
+
+  return value === "fal" ? "fal" : "replicate";
 }
 
 function createReferenceIdentityPrompt(prompt: string) {
@@ -448,6 +458,66 @@ async function readFalImageOutputFile(
   };
 }
 
+async function generateReplicateImageFile({
+  avatarImageUrl,
+  prompt,
+  replicateToken,
+}: {
+  avatarImageUrl: string;
+  prompt: string;
+  replicateToken: string;
+}) {
+  const replicate = new Replicate({ auth: replicateToken });
+  const modelInput = {
+    aspect_ratio: DEFAULT_ASPECT_RATIO,
+    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
+    go_fast: false,
+    ...(avatarImageUrl ? { images: [avatarImageUrl] } : {}),
+    megapixels: DEFAULT_MEGAPIXELS,
+    output_format: DEFAULT_OUTPUT_FORMAT,
+    output_quality: DEFAULT_OUTPUT_QUALITY,
+    prompt,
+  } satisfies Flux2KleinInput;
+
+  const rawOutput = await replicate.run(DEFAULT_MODEL, {
+    input: modelInput,
+  });
+
+  return readReplicateOutputFile(rawOutput);
+}
+
+async function generateFalReferenceImageFile({
+  avatarImageUrl,
+  falKey,
+  prompt,
+}: {
+  avatarImageUrl: string;
+  falKey: string;
+  prompt: string;
+}) {
+  const model = resolveFalReferenceModelName();
+  const fal = createFalClient({ credentials: falKey });
+  const modelInput = createFalReferenceImageInput({
+    avatarImageUrl,
+    model,
+    prompt,
+  });
+  const result = await fal.subscribe(model, {
+    input: modelInput,
+    logs: true,
+    mode: "polling",
+    pollInterval: 1000,
+  });
+
+  return readFalImageOutputFile(result.data);
+}
+
+function getImageGenerationErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "AI content image generation failed.";
+}
+
 async function reportProgress(
   onProgress:
     | ((
@@ -511,12 +581,12 @@ export async function generateAndUploadContentGalleryImage(
     step: "preparing_prompt",
   });
 
-  let blob: Blob;
-  let sourceUrl: string | null;
+  let generatedFile: { blob: Blob; sourceUrl: string | null };
+  const providerPriority = resolveImageProviderPriority();
+  const canUseReplicate = Boolean(replicateToken);
+  const canUseFalReference = Boolean(avatarImageUrl && falKey);
 
-  if (avatarImageUrl && falKey) {
-    const model = resolveFalReferenceModelName();
-
+  if (providerPriority === "fal" && canUseFalReference) {
     await reportProgress(input.onProgress, {
       message: "Generating the AI content image with a persona avatar reference.",
       progress: 42,
@@ -524,48 +594,90 @@ export async function generateAndUploadContentGalleryImage(
       step: "generating_image",
     });
 
-    const fal = createFalClient({ credentials: falKey });
-    const modelInput = createFalReferenceImageInput({
-      avatarImageUrl,
-      model,
-      prompt,
-    });
-    const result = await fal.subscribe(model, {
-      input: modelInput,
-      logs: true,
-      mode: "polling",
-      pollInterval: 1000,
-    });
-    const falOutput = await readFalImageOutputFile(result.data);
+    try {
+      generatedFile = await generateFalReferenceImageFile({
+        avatarImageUrl,
+        falKey: falKey ?? "",
+        prompt,
+      });
+    } catch (error) {
+      if (!replicateToken) {
+        throw error;
+      }
 
-    blob = falOutput.blob;
-    sourceUrl = falOutput.sourceUrl;
-  } else {
+      console.warn(
+        "[content-image] fal image generation failed; falling back to Replicate",
+        {
+          message: getImageGenerationErrorMessage(error),
+        },
+      );
+
+      await reportProgress(input.onProgress, {
+        message: "fal image generation failed. Trying Replicate.",
+        progress: 58,
+        status: "running",
+        step: "generating_image",
+      });
+      generatedFile = await generateReplicateImageFile({
+        avatarImageUrl,
+        prompt,
+        replicateToken: replicateToken ?? "",
+      });
+    }
+  } else if (canUseReplicate) {
     await reportProgress(input.onProgress, {
-      message: "Generating the AI content image with Replicate.",
+      message: avatarImageUrl
+        ? "Generating the AI content image with Replicate and the persona avatar reference."
+        : "Generating the AI content image with Replicate.",
       progress: 42,
       status: "running",
       step: "generating_image",
     });
 
-    const replicate = new Replicate({ auth: replicateToken });
-    const modelInput = {
-      aspect_ratio: DEFAULT_ASPECT_RATIO,
-      disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
-      go_fast: false,
-      megapixels: DEFAULT_MEGAPIXELS,
-      output_format: DEFAULT_OUTPUT_FORMAT,
-      output_quality: DEFAULT_OUTPUT_QUALITY,
-      prompt,
-    } satisfies Flux2KleinInput;
+    try {
+      generatedFile = await generateReplicateImageFile({
+        avatarImageUrl,
+        prompt,
+        replicateToken: replicateToken ?? "",
+      });
+    } catch (error) {
+      if (!canUseFalReference) {
+        throw error;
+      }
 
-    const rawOutput = await replicate.run(DEFAULT_MODEL, {
-      input: modelInput,
+      console.warn(
+        "[content-image] Replicate image generation failed; falling back to fal",
+        {
+          message: getImageGenerationErrorMessage(error),
+        },
+      );
+
+      await reportProgress(input.onProgress, {
+        message: "Replicate image generation failed. Trying persona avatar reference with fal.",
+        progress: 58,
+        status: "running",
+        step: "generating_image",
+      });
+      generatedFile = await generateFalReferenceImageFile({
+        avatarImageUrl,
+        falKey: falKey ?? "",
+        prompt,
+      });
+    }
+  } else if (canUseFalReference) {
+    await reportProgress(input.onProgress, {
+      message: "Generating the AI content image with a persona avatar reference.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
     });
-    const replicateOutput = await readReplicateOutputFile(rawOutput);
-
-    blob = replicateOutput.blob;
-    sourceUrl = replicateOutput.sourceUrl;
+    generatedFile = await generateFalReferenceImageFile({
+      avatarImageUrl,
+      falKey: falKey ?? "",
+      prompt,
+    });
+  } else {
+    throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
   }
 
   await reportProgress(input.onProgress, {
@@ -575,6 +687,7 @@ export async function generateAndUploadContentGalleryImage(
     step: "generating_image",
   });
 
+  const { blob, sourceUrl } = generatedFile;
   const contentType = blob.type || "image/png";
   const extension = resolveFileExtension(contentType, sourceUrl);
   const pathname = [
