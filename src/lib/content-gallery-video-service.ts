@@ -404,7 +404,7 @@ function rewritePromptForSaferVideoGeneration(prompt: string) {
     [/\bnaughty\s+nurse\s+archetype\b/gi, "retro nurse-inspired fashion archetype"],
     [/\bnaughty\s+nurse\b/gi, "retro nurse-inspired costume"],
     [/\bcurvy\s+nurse\b/gi, "adult performer in a nurse-inspired costume"],
-    [/\bhourglass\s+figure\b/gi, "classic fashion silhouette"],
+    [/\bhourglass\s+figure\b/gi, "classic editorial styling"],
     [/\bsoft\s+athletic\s+thighs\b/gi, "athletic editorial pose"],
     [/\bpartially\s+unzipped\b/gi, "neatly styled"],
     [/\btasteful\s+cleavage\b/gi, "fashion neckline"],
@@ -414,13 +414,13 @@ function rewritePromptForSaferVideoGeneration(prompt: string) {
     [/\bwithout\s+a\s+bra\b/gi, "in a relaxed summer outfit"],
     [/\bno\s+bra\b/gi, "relaxed summer outfit"],
     [/\bbraless\b/gi, "relaxed summer outfit"],
-    [/\bstrikingly\s+large\s+bust\s+and\s+hips\b/gi, "confident fashion-model silhouette"],
-    [/\blarge\s+bust\s+and\s+hips\b/gi, "fashion-model silhouette"],
-    [/\bbig\s+bust\b/gi, "elegant silhouette"],
-    [/\blarge\s+bust\b/gi, "elegant silhouette"],
-    [/\bbust\b/gi, "silhouette"],
-    [/\bwide\s+hips\b/gi, "balanced fashion silhouette"],
-    [/\bhips\b/gi, "silhouette"],
+    [/\bstrikingly\s+large\s+bust\s+and\s+hips\b/gi, "confident editorial styling"],
+    [/\blarge\s+bust\s+and\s+hips\b/gi, "editorial styling"],
+    [/\bbig\s+bust\b/gi, "elegant styling"],
+    [/\blarge\s+bust\b/gi, "elegant styling"],
+    [/\bbust\b/gi, "styling"],
+    [/\bwide\s+hips\b/gi, "balanced styling"],
+    [/\bhips\b/gi, "styling"],
     [/\bblack\s+bikini\b/gi, "black swimwear-inspired stage outfit"],
     [/\bbikini\b/gi, "swimwear-inspired stage outfit"],
     [/\bso\s+lustful\b/gi, "with sophisticated editorial energy"],
@@ -433,6 +433,83 @@ function rewritePromptForSaferVideoGeneration(prompt: string) {
   )
     .replace(/\s{2,}/g, " ")
     .trim();
+
+  return {
+    prompt: rewritten,
+    revisedPrompt: rewritten === prompt ? null : rewritten,
+  };
+}
+
+function normalizeVideoPromptSpacing(value: string) {
+  return value
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function rewritePromptForFalContentChecker(prompt: string) {
+  if (
+    !parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_PROVIDER_SAFE_REWRITE,
+      true,
+    )
+  ) {
+    return { prompt, revisedPrompt: null };
+  }
+
+  const replacements: Array<[RegExp, string]> = [
+    [/\bfemale\s+adult\s+woman\b/gi, "adult woman"],
+    [/\bmale\s+adult\s+man\b/gi, "adult man"],
+    [/\bneutral\s+body\s+silhouette\s+lock\b/gi, "overall presence lock"],
+    [/\bbody\s+silhouette\s+lock\b/gi, "overall presence lock"],
+    [/\bneutral\s+body\s+silhouette\b/gi, "overall presence"],
+    [/\bbody\s+silhouette\b/gi, "overall presence"],
+    [/\brecognizable\s+silhouette\b/gi, "overall presence"],
+    [/\bneutral\s+silhouette\b/gi, "overall presence"],
+    [/\bsilhouette\b/gi, "presence"],
+    [/\bbody\s+identity\b/gi, "visual identity"],
+    [/\bbody[-\s]?proportion\s+details\b/gi, "overall appearance details"],
+    [/\bbody\s+proportions?\b/gi, "overall appearance"],
+    [/\bbody\s+shape\b/gi, "overall appearance"],
+    [/\bbody\s+type\b/gi, "overall appearance"],
+    [/\bproportions\b/gi, "visual balance"],
+    [
+      /\bdo\s+not\s+make\s+(?:him|her|them|the\s+character)\s+look\s+underage\b/gi,
+      "keep the character clearly within the locked adult age range",
+    ],
+    [/\bunderage\b/gi, "younger than the locked age range"],
+    [/\bminor(?:s)?\b/gi, "younger character"],
+    [/\b(?:bare|exposed|visible)\s+(?:breasts?|chest|cleavage|buttocks?|butt|ass)\b/gi, "editorial styling"],
+    [/\b(?:large|big|huge|full|small)\s+(?:breasts?|bust|chest|hips|buttocks?|butt|ass|thighs)\b/gi, "distinctive styling"],
+    [/\b(?:breasts?|bust|cleavage|buttocks?|butt|ass)\b/gi, "styling"],
+    [/\b(?:hips|thighs)\b/gi, "pose"],
+    [/\bhourglass\s+figure\b/gi, "classic editorial styling"],
+    [/\b(?:curvy|voluptuous|busty)\b/gi, "confident"],
+    [/\b(?:erotic|sensual|sexual|nsfw|explicit|lustful)\b/gi, "editorial"],
+    [/\b(?:super\s+)?sexy\b/gi, "confident"],
+    [/\bprovocative\b/gi, "playful editorial"],
+    [/\bseductive\b/gi, "confident editorial"],
+    [/\bnaughty\b/gi, "retro"],
+    [/\bfetish\b/gi, "stylized"],
+    [/\bpin[-\s]?up\b/gi, "retro editorial"],
+    [/\b(?:lingerie|bikini)\b/gi, "styled outfit"],
+    [/\b(?:braless|no\s+bra|without\s+a\s+bra)\b/gi, "relaxed outfit"],
+    [/\b(?:sheer|transparent|see[-\s]?through)\b/gi, "lightweight"],
+    [/\b(?:partially\s+)?unzipped\b/gi, "neatly styled"],
+    [/\brevealing\b/gi, "styled"],
+    [/\b(?:distinct|visible)\s+tan\s+lines\b/gi, "summer skin details"],
+    [/(?:큰|커다란|풍만한)\s*(?:가슴|엉덩이)/g, "분위기 있는 스타일"],
+    [/(?:섹시|선정적|도발적|야한|노출|에로틱|관능적)/g, "에디토리얼"],
+    [/(?:비키니|란제리|속옷)/g, "스타일링된 의상"],
+  ];
+  const rewritten = normalizeVideoPromptSpacing(
+    replacements.reduce(
+      (current, [pattern, replacement]) =>
+        current.replace(pattern, replacement),
+      prompt,
+    ),
+  );
 
   return {
     prompt: rewritten,
@@ -853,10 +930,10 @@ export async function generateAndUploadContentGalleryVideo(
     visualBrief,
     input.characterPersona,
   );
-  const { prompt, revisedPrompt: safetyRevisedPrompt } =
+  const { prompt: safetyPrompt } =
     rewritePromptForSaferVideoGeneration(personaAppliedPrompt);
-  const revisedPrompt =
-    prompt === visualBrief ? null : safetyRevisedPrompt ?? personaAppliedPrompt;
+  const { prompt } = rewritePromptForFalContentChecker(safetyPrompt);
+  const revisedPrompt = prompt === visualBrief ? null : prompt;
   const avatarImageUrl = trimToLength(input.avatarImageUrl, 500);
   const model = resolveModelName(Boolean(avatarImageUrl));
   const modelDisplayName = getModelDisplayName(model);

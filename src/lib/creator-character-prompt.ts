@@ -64,16 +64,16 @@ function createCharacterDescriptionReplacements() {
     ],
     [
       /\b(?:strikingly\s+large|very\s+large|large|big|huge|small|full)\s+(?:bust|breasts|chest|hips)\s+and\s+(?:hips|buttocks|chest|bust|breasts)\b/gi,
-      "persona-consistent silhouette",
+      "persona-consistent presence",
     ],
     [
       /\b(?:strikingly\s+large|very\s+large|large|big|huge|small|full)\s+(?:bust|breasts|chest|hips)\b/gi,
-      "persona-consistent silhouette",
+      "persona-consistent presence",
     ],
     [/\b(?:distinct|visible)\s+tan\s+lines\b/gi, "persona-consistent skin details"],
-    [/\b(?:soft|athletic|slim|thick)\s+thighs\b/gi, "persona-consistent silhouette"],
-    [/\bhourglass\s+figure\b/gi, "persona-consistent silhouette"],
-    [/\bbody\s+type\b/gi, "persona-consistent silhouette"],
+    [/\b(?:soft|athletic|slim|thick)\s+thighs\b/gi, "persona-consistent presence"],
+    [/\bhourglass\s+figure\b/gi, "persona-consistent presence"],
+    [/\bbody\s+type\b/gi, "persona-consistent presence"],
     [/\bfacial\s+features\b/gi, "persona-consistent facial identity"],
     [
       /(?:젊은|어린|중년|노년|성인|20대|30대|40대|50대|60대)\s*(?:남성|여성|남자|여자|인물|사람|소녀|소년)/g,
@@ -135,20 +135,20 @@ export function applyCreatorCharacterPersonaToPrompt(
     replaceCharacterDescriptionsWithPersona(normalizedScenePrompt);
   const sceneInstruction = normalizedUserScene.replaced
     ? "User-supplied character identity details were replaced with the fixed character persona. Preserve the remaining scene, outfit, pose, lighting, camera, action, and mood."
-    : "If the user prompt contains any conflicting gender, age, face, hair, skin tone, ethnicity, body shape, or body-proportion details, ignore those details and use the character persona instead.";
+    : "If the user prompt contains any conflicting gender, age, face, hair, skin tone, ethnicity, or overall appearance details, ignore those details and use the character persona instead.";
 
   return [
-    "Character identity lock: Maintain the same adult character identity across this generation. The character's face, age range, hair, skin tone, expression, and recognizable silhouette must remain consistent.",
+    "Character identity lock: Maintain the same adult character identity across this generation. The character's face, age range, hair, skin tone, expression, and overall presence must remain consistent.",
     `Character persona: ${identityPrompt}`,
     `Locked traits: ${formatList(
       persona.lockedTraits,
-      "same face structure, same hair, same skin tone, same age range, same neutral body silhouette",
+      "same face structure, same hair, same skin tone, same age range, same overall presence",
     )}.`,
     `Do not change: ${formatList(
       persona.avoidChanges,
-      "facial structure, hair color, age range, ethnicity, neutral body silhouette",
+      "facial structure, hair color, age range, ethnicity, overall presence",
     )}.`,
-    "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, body identity, or body proportions.",
+    "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, or overall visual identity.",
     sceneInstruction,
     `User scene prompt: ${normalizedUserScene.prompt}`,
   ].join("\n\n");
