@@ -20,6 +20,8 @@ import {
   MessageCircle,
   RefreshCcw,
   Share2,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
 import {
@@ -486,6 +488,7 @@ export function NetworkFeedDetailPage({
     Record<string, DetailLoadState>
   >({});
   const [bodySheetContentId, setBodySheetContentId] = useState<string | null>(null);
+  const [isFeedAudioMuted, setIsFeedAudioMuted] = useState(true);
   const [galleryContentId, setGalleryContentId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -1494,6 +1497,7 @@ export function NetworkFeedDetailPage({
                 fullContentHref={fullContentHref}
                 item={item}
                 key={item.contentId}
+                isAudioMuted={isFeedAudioMuted}
                 locale={locale}
                 onLike={() => toggleLike(item)}
                 onNext={() => scrollToIndex(index + 1)}
@@ -1508,6 +1512,9 @@ export function NetworkFeedDetailPage({
                 onSave={() => toggleSave(item)}
                 onShare={() => {
                   void shareItem(item);
+                }}
+                onToggleAudio={() => {
+                  setIsFeedAudioMuted((current) => !current);
                 }}
                 priority={index === targetIndex || index < 2}
                 showNext={index < state.items.length - 1}
@@ -1592,6 +1599,7 @@ function NetworkFeedDetailSlide({
   contentCopy,
   detailState,
   fullContentHref,
+  isAudioMuted,
   item,
   locale,
   onLike,
@@ -1601,6 +1609,7 @@ function NetworkFeedDetailSlide({
   onPrevious,
   onSave,
   onShare,
+  onToggleAudio,
   priority,
   showNext,
   showPrevious,
@@ -1609,6 +1618,7 @@ function NetworkFeedDetailSlide({
   contentCopy: ContentCopy;
   detailState: DetailLoadState | null;
   fullContentHref: string;
+  isAudioMuted: boolean;
   item: ContentFeedItemRecord;
   locale: Locale;
   onLike: () => void;
@@ -1618,6 +1628,7 @@ function NetworkFeedDetailSlide({
   onPrevious: () => void;
   onSave: () => void;
   onShare: () => void;
+  onToggleAudio: () => void;
   priority: boolean;
   showNext: boolean;
   showPrevious: boolean;
@@ -1667,6 +1678,14 @@ function NetworkFeedDetailSlide({
           ? contentCopy.messages.paymentRequired
           : null;
   const dateLabel = formatDate(item.publishedAt ?? item.createdAt, locale);
+  const shouldMuteVideo = !active || isAudioMuted;
+  const audioToggleLabel = isAudioMuted
+    ? locale === "ko"
+      ? "소리 켜기"
+      : "Sound on"
+    : locale === "ko"
+      ? "소리 끄기"
+      : "Mute";
 
   return (
     <article className="relative flex min-h-[100dvh] snap-start snap-always items-end overflow-hidden bg-slate-950">
@@ -1692,7 +1711,7 @@ function NetworkFeedDetailSlide({
                 active ? "scale-100 opacity-100" : "scale-[1.02] opacity-82",
               )}
               loop
-              muted
+              muted={shouldMuteVideo}
               playsInline
               preload="metadata"
               src={videoUrl}
@@ -1714,6 +1733,22 @@ function NetworkFeedDetailSlide({
         <div className="absolute inset-0 bg-gradient-to-b from-black/36 via-black/0 to-black/50" />
         <div className="absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black/86 via-black/38 to-transparent" />
       </div>
+
+      {videoUrl ? (
+        <button
+          aria-label={audioToggleLabel}
+          className="absolute left-4 top-[calc(env(safe-area-inset-top)+8.95rem)] z-20 inline-flex min-h-10 items-center gap-2 rounded-full bg-black/42 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_12px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-black/58"
+          onClick={onToggleAudio}
+          type="button"
+        >
+          {isAudioMuted ? (
+            <VolumeX className="size-3.5" />
+          ) : (
+            <Volume2 className="size-3.5" />
+          )}
+          {audioToggleLabel}
+        </button>
+      ) : null}
 
       <div className="absolute right-3 top-[calc(env(safe-area-inset-top)+4.4rem)] z-20 hidden flex-col gap-2 sm:flex">
         <button
