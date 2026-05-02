@@ -13,7 +13,7 @@ const DEFAULT_ASPECT_RATIO = "1:1";
 const DEFAULT_MEGAPIXELS = "1";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 96;
-const CANDIDATE_COUNT = 4;
+const CANDIDATE_COUNT = 2;
 const CHARACTER_PROMPT_LIMIT = 1_800;
 
 type Flux2KleinInput = {
@@ -254,7 +254,7 @@ export async function generateCreatorAvatarCandidates({
   }
 
   const replicate = new Replicate({ auth: replicateToken });
-  const candidates = await Promise.all(
+  const results = await Promise.allSettled(
     Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
       generateAvatarCandidate({
         displayName,
@@ -265,6 +265,24 @@ export async function generateCreatorAvatarCandidates({
       }),
     ),
   );
+  const candidates = results
+    .filter(
+      (result): result is PromiseFulfilledResult<CreatorProfileAvatarCandidate> =>
+        result.status === "fulfilled",
+    )
+    .map((result) => result.value);
+
+  if (candidates.length === 0) {
+    const firstFailure = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected",
+    );
+    const message =
+      firstFailure?.reason instanceof Error
+        ? firstFailure.reason.message
+        : "Failed to generate avatar candidates.";
+
+    throw new Error(message);
+  }
 
   return { candidates };
 }

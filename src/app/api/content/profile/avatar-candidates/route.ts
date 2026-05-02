@@ -92,6 +92,11 @@ export async function POST(request: Request) {
             ? 400
             : 500;
 
+    console.error("[creator-avatar] avatar candidate generation failed", {
+      message,
+      status,
+    });
+
     return jsonError(message, status);
   }
 }

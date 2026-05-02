@@ -299,6 +299,36 @@ function createEditableCreatorProfile(
   };
 }
 
+function summarizeNonJsonApiResponse(text: string) {
+  const normalized = text
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized ? normalized.slice(0, 180) : null;
+}
+
+async function readApiJson<T>(
+  response: Response,
+  fallbackMessage: string,
+): Promise<T | { error: string }> {
+  const text = await response.text();
+
+  if (!text) {
+    return { error: fallbackMessage };
+  }
+
+  try {
+    return JSON.parse(text) as T | { error: string };
+  } catch {
+    const summary = summarizeNonJsonApiResponse(text);
+
+    return {
+      error: summary ? `${fallbackMessage} (${summary})` : fallbackMessage,
+    };
+  }
+}
+
 function createEmptyCoverGenerationProgress(): CoverGenerationProgressState {
   return {
     active: false,
@@ -2239,17 +2269,18 @@ export function CreatorContentStudioPage({
         },
         method: "POST",
       });
-      const data = (await response.json()) as
-        | CreatorProfileAvatarGenerateResponse
-        | { error?: string };
+      const fallbackMessage =
+        locale === "ko"
+          ? "AI 아바타 후보를 만들지 못했습니다."
+          : "Failed to generate avatar candidates.";
+      const data = await readApiJson<CreatorProfileAvatarGenerateResponse>(
+        response,
+        fallbackMessage,
+      );
 
       if (!response.ok || !("candidates" in data)) {
         throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : locale === "ko"
-              ? "AI 아바타 후보를 만들지 못했습니다."
-              : "Failed to generate avatar candidates.",
+          "error" in data && data.error ? data.error : fallbackMessage,
         );
       }
 
