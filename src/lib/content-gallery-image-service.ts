@@ -24,6 +24,8 @@ const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
 const DEFAULT_DISABLE_SAFETY_CHECKER = true;
 const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
+const DEFAULT_FAL_TIMEOUT_MS = 90_000;
+const DEFAULT_REPLICATE_TIMEOUT_MS = 90_000;
 
 type ContentImageProviderPriority = "fal" | "replicate";
 
@@ -178,6 +180,59 @@ function parseEnum<T extends string>(
   const normalized = value?.trim();
 
   return allowed.includes(normalized as T) ? (normalized as T) : fallback;
+}
+
+function parseTimeoutMs(value: string | undefined, fallback: number) {
+  const parsed = Number(value?.trim());
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(30_000, Math.min(180_000, Math.round(parsed)));
+}
+
+function getFalImageTimeoutMs() {
+  return parseTimeoutMs(
+    process.env.CONTENT_IMAGE_FAL_TIMEOUT_MS ||
+      process.env.FAL_CONTENT_IMAGE_TIMEOUT_MS,
+    DEFAULT_FAL_TIMEOUT_MS,
+  );
+}
+
+function getReplicateImageTimeoutMs() {
+  return parseTimeoutMs(
+    process.env.CONTENT_IMAGE_REPLICATE_TIMEOUT_MS ||
+      process.env.REPLICATE_CONTENT_IMAGE_TIMEOUT_MS,
+    DEFAULT_REPLICATE_TIMEOUT_MS,
+  );
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string,
+) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(
+            new Error(
+              `${label} timed out after ${Math.round(timeoutMs / 1000)} seconds.`,
+            ),
+          );
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 function resolveFalReferenceModelName(): FalImageModelName {
@@ -479,11 +534,19 @@ async function generateReplicateImageFile({
     prompt,
   } satisfies Flux2KleinInput;
 
-  const rawOutput = await replicate.run(DEFAULT_MODEL, {
-    input: modelInput,
-  });
+  const rawOutput = await withTimeout(
+    replicate.run(DEFAULT_MODEL, {
+      input: modelInput,
+    }),
+    getReplicateImageTimeoutMs(),
+    "Replicate image generation",
+  );
 
-  return readReplicateOutputFile(rawOutput);
+  return withTimeout(
+    readReplicateOutputFile(rawOutput),
+    30_000,
+    "Replicate image download",
+  );
 }
 
 async function generateFalReferenceImageFile({
@@ -507,9 +570,14 @@ async function generateFalReferenceImageFile({
     logs: true,
     mode: "polling",
     pollInterval: 1000,
+    timeout: getFalImageTimeoutMs(),
   });
 
-  return readFalImageOutputFile(result.data);
+  return withTimeout(
+    readFalImageOutputFile(result.data),
+    30_000,
+    "fal image download",
+  );
 }
 
 function getImageGenerationErrorMessage(error: unknown) {

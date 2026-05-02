@@ -10,6 +10,7 @@ import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 export const runtime = "nodejs";
+export const maxDuration = 240;
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
