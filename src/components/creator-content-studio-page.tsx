@@ -153,8 +153,10 @@ type AutomationCelebrationState = {
 };
 
 type PersonaGenerationState = {
+  ageRange: "" | "20s" | "30s" | "40s" | "50s_plus";
   candidates: CreatorCharacterPersona[];
   error: string | null;
+  gender: "" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
 };
 
@@ -691,8 +693,10 @@ export function CreatorContentStudioPage({
   );
   const [personaGeneration, setPersonaGeneration] =
     useState<PersonaGenerationState>({
+      ageRange: "",
       candidates: [],
       error: null,
+      gender: "",
       status: "idle",
     });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
@@ -2083,6 +2087,21 @@ export function CreatorContentStudioPage({
   }
 
   async function generateCharacterPersonaCandidates() {
+    if (!personaGeneration.gender || !personaGeneration.ageRange) {
+      const message =
+        locale === "ko"
+          ? "성별과 연령대를 먼저 선택하세요."
+          : "Select gender and age range first.";
+
+      setPersonaGeneration((current) => ({
+        ...current,
+        candidates: [],
+        error: message,
+        status: "error",
+      }));
+      return;
+    }
+
     try {
       setPersonaGeneration((current) => ({
         ...current,
@@ -2095,6 +2114,8 @@ export function CreatorContentStudioPage({
           avatarImageUrl: state.profile.avatarImageUrl || null,
           displayName: state.profile.displayName,
           email,
+          ageRange: personaGeneration.ageRange,
+          gender: personaGeneration.gender,
           intro: state.profile.intro,
           locale,
           walletAddress: accountAddress,
@@ -2119,8 +2140,10 @@ export function CreatorContentStudioPage({
       }
 
       setPersonaGeneration({
+        ageRange: personaGeneration.ageRange,
         candidates: data.candidates,
         error: null,
+        gender: personaGeneration.gender,
         status: "ready",
       });
       setState((current) => ({
@@ -2140,8 +2163,10 @@ export function CreatorContentStudioPage({
             : "Failed to generate character personas.";
 
       setPersonaGeneration({
+        ageRange: personaGeneration.ageRange,
         candidates: [],
         error: message,
+        gender: personaGeneration.gender,
         status: "error",
       });
       setState((current) => ({
@@ -3458,34 +3483,65 @@ export function CreatorContentStudioPage({
         ? {
             apply: "선택하고 저장",
             applied: "적용 중",
+            age20s: "20대",
+            age30s: "30대",
+            age40s: "40대",
+            age50sPlus: "50대+",
+            ageLabel: "연령대",
             avoid: "변경 금지",
             body:
               "인물만 고정하는 페르소나를 선택하면 AI 이미지와 동영상 생성에서 같은 인물을 더 강하게 유지합니다.",
             clear: "페르소나 사용 안 함",
+            female: "여성",
             generate: "AI가 페르소나 추천",
             generating: "추천 생성 중...",
+            genderLabel: "성별",
             locked: "고정 특징",
+            male: "남성",
+            requiredHint: "성별과 연령대를 선택하면 추천을 시작할 수 있습니다.",
             selectedTitle: "현재 인물 페르소나",
             title: "인물 페르소나",
           }
         : {
             apply: "Select and save",
             applied: "Applied",
+            age20s: "20s",
+            age30s: "30s",
+            age40s: "40s",
+            age50sPlus: "50s+",
+            ageLabel: "Age range",
             avoid: "Do not change",
             body:
               "Choose a character-only persona to keep the same person stronger in AI image and video generation.",
             clear: "Disable persona",
+            female: "Female",
             generate: "Suggest personas",
             generating: "Generating...",
+            genderLabel: "Gender",
             locked: "Locked traits",
+            male: "Male",
+            requiredHint: "Select gender and age range to start suggestions.",
             selectedTitle: "Current character persona",
             title: "Character persona",
           };
+    const personaGenderOptions = [
+      { label: personaCopy.female, value: "female" as const },
+      { label: personaCopy.male, value: "male" as const },
+    ];
+    const personaAgeRangeOptions = [
+      { label: personaCopy.age20s, value: "20s" as const },
+      { label: personaCopy.age30s, value: "30s" as const },
+      { label: personaCopy.age40s, value: "40s" as const },
+      { label: personaCopy.age50sPlus, value: "50s_plus" as const },
+    ];
+    const canGeneratePersonaCandidates = Boolean(
+      personaGeneration.gender && personaGeneration.ageRange,
+    );
 
     return (
-      <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+      <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="flex flex-col gap-4">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-950">
               {personaCopy.title}
             </p>
@@ -3493,26 +3549,110 @@ export function CreatorContentStudioPage({
               {personaCopy.body}
             </p>
           </div>
-          <button
-            className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            disabled={isGenerating || isSavingProfile || isDisconnected}
-            onClick={() => {
-              void generateCharacterPersonaCandidates();
-            }}
-            type="button"
-          >
-            {isGenerating ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <Sparkles className="size-4" />
-            )}
-            {isGenerating ? personaCopy.generating : personaCopy.generate}
-          </button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {personaCopy.genderLabel}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {personaGenderOptions.map((option) => {
+                  const selected = personaGeneration.gender === option.value;
+
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        selected
+                          ? "border-slate-950 bg-slate-950 text-white"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      }`}
+                      disabled={isGenerating}
+                      key={option.value}
+                      onClick={() => {
+                        setPersonaGeneration((current) => ({
+                          ...current,
+                          candidates: [],
+                          error: null,
+                          gender: option.value,
+                          status: "idle",
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {personaCopy.ageLabel}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {personaAgeRangeOptions.map((option) => {
+                  const selected = personaGeneration.ageRange === option.value;
+
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        selected
+                          ? "border-slate-950 bg-slate-950 text-white"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      }`}
+                      disabled={isGenerating}
+                      key={option.value}
+                      onClick={() => {
+                        setPersonaGeneration((current) => ({
+                          ...current,
+                          ageRange: option.value,
+                          candidates: [],
+                          error: null,
+                          status: "idle",
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          {!canGeneratePersonaCandidates ? (
+            <p className="text-xs leading-5 text-slate-500">
+              {personaCopy.requiredHint}
+            </p>
+          ) : null}
+          <div className="flex justify-end">
+            <button
+              className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+              disabled={
+                isGenerating ||
+                isSavingProfile ||
+                isDisconnected ||
+                !canGeneratePersonaCandidates
+              }
+              onClick={() => {
+                void generateCharacterPersonaCandidates();
+              }}
+              type="button"
+            >
+              {isGenerating ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {isGenerating ? personaCopy.generating : personaCopy.generate}
+            </button>
+          </div>
         </div>
 
         {selectedPersona ? (
           <div className="mt-4 rounded-[20px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -3530,7 +3670,7 @@ export function CreatorContentStudioPage({
                 </p>
               </div>
               <button
-                className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 disabled={isSavingProfile}
                 onClick={() => {
                   void saveCharacterPersona(null);
@@ -3548,13 +3688,13 @@ export function CreatorContentStudioPage({
         ) : null}
 
         {personaGeneration.candidates.length > 0 ? (
-          <div className="-mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
             {personaGeneration.candidates.map((persona) => {
               const selected = selectedPersona?.id === persona.id;
 
               return (
                 <article
-                  className={`min-w-[82%] snap-start rounded-[22px] border bg-white p-4 shadow-sm sm:min-w-0 ${
+                  className={`min-w-0 rounded-[22px] border bg-white p-4 shadow-sm ${
                     selected
                       ? "border-slate-950 ring-2 ring-slate-950/10"
                       : "border-slate-200"

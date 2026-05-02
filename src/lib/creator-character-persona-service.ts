@@ -8,6 +8,9 @@ const DEFAULT_MODEL = "gpt-5.4";
 const DEFAULT_TIMEOUT_MS = 60_000;
 const CANDIDATE_COUNT = 4;
 
+export type CreatorPersonaAgeRange = "20s" | "30s" | "40s" | "50s_plus";
+export type CreatorPersonaGender = "female" | "male";
+
 type OpenAiResponsesApiResponse = {
   error?: {
     message?: string;
@@ -33,8 +36,10 @@ type PersonaCandidatePayload = {
 };
 
 export type GenerateCreatorCharacterPersonasInput = {
+  ageRange: CreatorPersonaAgeRange;
   avatarImageUrl?: string | null;
   displayName?: string | null;
+  gender: CreatorPersonaGender;
   intro?: string | null;
   locale?: string | null;
 };
@@ -67,6 +72,20 @@ function getCreatorPersonaReasoningEffort() {
     value === "xhigh"
     ? value
     : "low";
+}
+
+function getGenderInstruction(gender: CreatorPersonaGender) {
+  return gender === "female"
+    ? "female adult woman"
+    : "male adult man";
+}
+
+function getAgeRangeInstruction(ageRange: CreatorPersonaAgeRange) {
+  if (ageRange === "50s_plus") {
+    return "50s or older";
+  }
+
+  return ageRange;
 }
 
 function createPersonaSchema() {
@@ -257,6 +276,8 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
   const intro = trimToLength(input.intro, 400) || "No intro provided.";
   const avatarImageUrl = trimToLength(input.avatarImageUrl, 500);
   const language = input.locale === "ko" ? "Korean" : "English";
+  const genderInstruction = getGenderInstruction(input.gender);
+  const ageRangeInstruction = getAgeRangeInstruction(input.ageRange);
 
   return {
     model: getCreatorPersonaModel(),
@@ -267,6 +288,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
         content: [
           "You create stable character identity personas for AI image and video generation.",
           "The persona must only describe a consistent adult person's identity: face, hair, skin tone, age range, expression, silhouette, and signature details.",
+          "Every candidate must match the required gender and required adult age range exactly.",
           "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, or content topics.",
           "Write user-facing name and summary in Korean when requested. Write identityPrompt, lockedTraits, and avoidChanges in concise English for generation models.",
         ].join(" "),
@@ -277,10 +299,12 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           `Language for name/summary: ${language}.`,
           `Creator display name: ${displayName}.`,
           `Creator intro: ${intro}.`,
+          `Required gender: ${genderInstruction}.`,
+          `Required adult age range: ${ageRangeInstruction}.`,
           avatarImageUrl
             ? `A creator avatar URL is available for high-level context: ${avatarImageUrl}. Do not claim exact biometric analysis.`
             : "No avatar image is available.",
-          `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates. Keep each useful for maintaining the same person across varied content prompts.`,
+          `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates. Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}. Keep each useful for maintaining the same person across varied content prompts.`,
         ].join(" "),
       },
     ],
