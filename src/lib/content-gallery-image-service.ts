@@ -14,7 +14,7 @@ import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-pr
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
+const DEFAULT_MODEL = "black-forest-labs/flux-2-dev";
 const DEFAULT_FAL_TEXT_MODEL = "fal-ai/flux-pro/v1.1-ultra";
 const DEFAULT_FAL_REFERENCE_MODEL = "fal-ai/nano-banana-2/edit";
 const DEFAULT_ASPECT_RATIO = "4:5";
@@ -22,7 +22,6 @@ const DEFAULT_FAL_TEXT_ASPECT_RATIO = "3:4";
 const DEFAULT_FAL_REFERENCE_ASPECT_RATIO = "4:5";
 const DEFAULT_FAL_REFERENCE_RESOLUTION = "1K";
 const DEFAULT_FAL_TEXT_IMAGE_PROMPT_STRENGTH = 0.2;
-const DEFAULT_MEGAPIXELS = "2";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
 const DEFAULT_DISABLE_SAFETY_CHECKER = true;
@@ -40,7 +39,7 @@ type StructuredPromptValue =
   | StructuredPromptValue[]
   | { [key: string]: StructuredPromptValue };
 
-type Flux2KleinAspectRatio =
+type ReplicateContentImageAspectRatio =
   | "1:1"
   | "16:9"
   | "9:16"
@@ -54,18 +53,17 @@ type Flux2KleinAspectRatio =
   | "9:21"
   | "match_input_image";
 
-type Flux2KleinMegapixels = "0.25" | "0.5" | "1" | "2" | "4";
-
-type Flux2KleinInput = {
-  aspect_ratio?: Flux2KleinAspectRatio;
+type ReplicateContentImageInput = {
+  aspect_ratio?: ReplicateContentImageAspectRatio;
   disable_safety_checker?: boolean;
   go_fast?: boolean;
-  images?: string[];
-  megapixels?: Flux2KleinMegapixels;
+  height?: number;
+  input_images?: string[];
   output_format?: "webp" | "jpg" | "png";
   output_quality?: number;
   prompt: string;
   seed?: number;
+  width?: number;
 };
 
 type FalImageModelFamily = "flux-kontext" | "nano-banana-edit";
@@ -907,12 +905,11 @@ async function generateReplicateImageFile({
     aspect_ratio: DEFAULT_ASPECT_RATIO,
     disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
     go_fast: false,
-    ...(avatarImageUrl ? { images: [avatarImageUrl] } : {}),
-    megapixels: DEFAULT_MEGAPIXELS,
+    ...(avatarImageUrl ? { input_images: [avatarImageUrl] } : {}),
     output_format: DEFAULT_OUTPUT_FORMAT,
     output_quality: DEFAULT_OUTPUT_QUALITY,
     prompt,
-  } satisfies Flux2KleinInput;
+  } satisfies ReplicateContentImageInput;
 
   const rawOutput = await withTimeout(
     replicate.run(DEFAULT_MODEL, {
