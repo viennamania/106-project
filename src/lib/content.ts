@@ -63,6 +63,7 @@ export type ContentCoverGenerationProgressStep =
   (typeof contentCoverGenerationProgressSteps)[number];
 
 export type CreatorProfileDocument = {
+  avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
   avatarImageUrl?: string | null;
   characterPersona?: CreatorCharacterPersona | null;
   configuredAt?: Date | null;
@@ -164,6 +165,7 @@ export type ContentCommentDocument = {
 };
 
 export type CreatorProfileRecord = {
+  avatarImageSet: CreatorProfileAvatarCandidate[];
   avatarImageUrl: string | null;
   characterPersona: CreatorCharacterPersona | null;
   displayName: string;
@@ -358,6 +360,8 @@ export type CreatorProfileUploadResponse = {
 
 export type CreatorProfileAvatarCandidate = {
   contentType: string;
+  expression?: "default" | "serious" | "smile";
+  label?: string;
   pathname: string;
   url: string;
 };
@@ -473,6 +477,7 @@ export type CreatorStudioPostsLoadResponse = {
 };
 
 export type CreatorProfileUpsertRequest = {
+  avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
   avatarImageUrl?: string | null;
   characterPersona?: CreatorCharacterPersona | null;
   displayName: string;
@@ -563,6 +568,7 @@ export function serializeCreatorProfile(
   profile: CreatorProfileDocument,
 ): CreatorProfileRecord {
   return {
+    avatarImageSet: profile.avatarImageSet ?? [],
     avatarImageUrl: profile.avatarImageUrl ?? null,
     characterPersona: profile.characterPersona ?? null,
     displayName: profile.displayName,

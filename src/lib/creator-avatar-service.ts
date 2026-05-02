@@ -13,8 +13,31 @@ const DEFAULT_ASPECT_RATIO = "1:1";
 const DEFAULT_MEGAPIXELS = "1";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 96;
-const CANDIDATE_COUNT = 1;
 const CHARACTER_PROMPT_LIMIT = 1_800;
+
+type AvatarExpressionSpec = {
+  expression: NonNullable<CreatorProfileAvatarCandidate["expression"]>;
+  label: string;
+  prompt: string;
+};
+
+const AVATAR_EXPRESSION_SET = [
+  {
+    expression: "default",
+    label: "기본",
+    prompt: "neutral studio background, direct friendly expression",
+  },
+  {
+    expression: "smile",
+    label: "미소",
+    prompt: "soft gray studio background, gentle natural smile",
+  },
+  {
+    expression: "serious",
+    label: "진지함",
+    prompt: "clean editorial background, calm focused serious expression",
+  },
+] satisfies AvatarExpressionSpec[];
 
 type OpenAiImageGenerationResponse = {
   data?: Array<{
@@ -144,31 +167,27 @@ async function readReplicateOutputFile(
 
 function createAvatarPrompt({
   displayName,
+  expression,
   persona,
-  variant,
 }: {
   displayName?: string | null;
+  expression: AvatarExpressionSpec;
   persona: CreatorCharacterPersona;
-  variant: number;
 }) {
   const identityPrompt = trimToLength(
     persona.identityPrompt,
     CHARACTER_PROMPT_LIMIT,
   );
   const name = trimToLength(displayName, 80) || "creator";
-  const variations = [
-    "neutral studio background, direct friendly expression",
-    "soft gray studio background, subtle confident expression",
-    "warm off-white studio background, relaxed natural expression",
-    "clean editorial background, calm approachable expression",
-  ];
 
   return [
     "Create a square creator profile avatar using the fixed character persona.",
     `Creator label: ${name}. Do not render text or logos.`,
+    `Avatar set expression: ${expression.label}.`,
     `Fixed character persona: ${identityPrompt}`,
     "Head-and-shoulders portrait, centered composition, professional social profile avatar, high-quality digital realism, natural skin texture, clean lighting.",
-    variations[variant % variations.length],
+    expression.prompt,
+    "Keep the same exact character identity as the other avatars in this expression set.",
     "Do not change the persona's gender, age range, face, hair, skin tone, ethnicity, or recognizable identity.",
     "No full-body pose, no busy background, no extra people, no text, no watermark, no explicit styling.",
   ].join(" ");
@@ -204,14 +223,14 @@ function getOpenAiAvatarSize() {
 
 async function generateOpenAiAvatarCandidate({
   displayName,
+  expression,
   persona,
   referralCode,
-  variant,
 }: {
   displayName?: string | null;
+  expression: AvatarExpressionSpec;
   persona: CreatorCharacterPersona;
   referralCode: string;
-  variant: number;
 }): Promise<CreatorProfileAvatarCandidate> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
 
@@ -219,7 +238,7 @@ async function generateOpenAiAvatarCandidate({
     throw new Error("OPENAI_API_KEY is not configured.");
   }
 
-  const prompt = createAvatarPrompt({ displayName, persona, variant });
+  const prompt = createAvatarPrompt({ displayName, expression, persona });
   const response = await fetch("https://api.openai.com/v1/images/generations", {
     body: JSON.stringify({
       background: "opaque",
@@ -258,7 +277,7 @@ async function generateOpenAiAvatarCandidate({
     "content-creator",
     referralCode,
     "avatar-candidates",
-    `${Date.now()}-${variant + 1}-${sanitizeBaseName(displayName || persona.name)}.png`,
+    `${Date.now()}-${expression.expression}-${sanitizeBaseName(displayName || persona.name)}.png`,
   ].join("/");
   const uploaded = await put(
     pathname,
@@ -273,6 +292,8 @@ async function generateOpenAiAvatarCandidate({
 
   return {
     contentType: uploaded.contentType,
+    expression: expression.expression,
+    label: expression.label,
     pathname: uploaded.pathname,
     url: uploaded.url,
   };
@@ -280,18 +301,18 @@ async function generateOpenAiAvatarCandidate({
 
 async function generateAvatarCandidate({
   displayName,
+  expression,
   persona,
   referralCode,
   replicate,
-  variant,
 }: {
   displayName?: string | null;
+  expression: AvatarExpressionSpec;
   persona: CreatorCharacterPersona;
   referralCode: string;
   replicate: Replicate;
-  variant: number;
 }): Promise<CreatorProfileAvatarCandidate> {
-  const prompt = createAvatarPrompt({ displayName, persona, variant });
+  const prompt = createAvatarPrompt({ displayName, expression, persona });
   const modelInput = {
     aspect_ratio: DEFAULT_ASPECT_RATIO,
     disable_safety_checker: true,
@@ -311,7 +332,7 @@ async function generateAvatarCandidate({
     "content-creator",
     referralCode,
     "avatar-candidates",
-    `${Date.now()}-${variant + 1}-${sanitizeBaseName(displayName || persona.name)}${extension}`,
+    `${Date.now()}-${expression.expression}-${sanitizeBaseName(displayName || persona.name)}${extension}`,
   ].join("/");
   const uploaded = await put(pathname, blob, {
     access: "public",
@@ -322,9 +343,36 @@ async function generateAvatarCandidate({
 
   return {
     contentType: uploaded.contentType,
+    expression: expression.expression,
+    label: expression.label,
     pathname: uploaded.pathname,
     url: uploaded.url,
   };
+}
+
+function collectGeneratedAvatarCandidates(
+  results: Array<PromiseSettledResult<CreatorProfileAvatarCandidate>>,
+) {
+  const candidates = results
+    .filter(
+      (result): result is PromiseFulfilledResult<CreatorProfileAvatarCandidate> =>
+        result.status === "fulfilled",
+    )
+    .map((result) => result.value);
+
+  if (candidates.length === 0) {
+    const firstFailure = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected",
+    );
+    const message =
+      firstFailure?.reason instanceof Error
+        ? firstFailure.reason.message
+        : "Failed to generate avatar candidates.";
+
+    throw new Error(message);
+  }
+
+  return candidates;
 }
 
 export async function generateCreatorAvatarCandidates({
@@ -350,18 +398,18 @@ export async function generateCreatorAvatarCandidates({
   }
 
   if (process.env.OPENAI_API_KEY?.trim()) {
-    const candidates = await Promise.all(
-      Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
+    const results = await Promise.allSettled(
+      AVATAR_EXPRESSION_SET.map((expression) =>
         generateOpenAiAvatarCandidate({
           displayName,
+          expression,
           persona,
           referralCode,
-          variant: index,
         }),
       ),
     );
 
-    return { candidates };
+    return { candidates: collectGeneratedAvatarCandidates(results) };
   }
 
   const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
@@ -372,34 +420,16 @@ export async function generateCreatorAvatarCandidates({
 
   const replicate = new Replicate({ auth: replicateToken });
   const results = await Promise.allSettled(
-    Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
+    AVATAR_EXPRESSION_SET.map((expression) =>
       generateAvatarCandidate({
         displayName,
+        expression,
         persona,
         referralCode,
         replicate,
-        variant: index,
       }),
     ),
   );
-  const candidates = results
-    .filter(
-      (result): result is PromiseFulfilledResult<CreatorProfileAvatarCandidate> =>
-        result.status === "fulfilled",
-    )
-    .map((result) => result.value);
 
-  if (candidates.length === 0) {
-    const firstFailure = results.find(
-      (result): result is PromiseRejectedResult => result.status === "rejected",
-    );
-    const message =
-      firstFailure?.reason instanceof Error
-        ? firstFailure.reason.message
-        : "Failed to generate avatar candidates.";
-
-    throw new Error(message);
-  }
-
-  return { candidates };
+  return { candidates: collectGeneratedAvatarCandidates(results) };
 }

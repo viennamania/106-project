@@ -43,6 +43,7 @@ import {
   type ContentSocialResponse,
   type ContentSocialSummaryRecord,
   type CreatorProfileDocument,
+  type CreatorProfileAvatarCandidate,
   type CreatorProfileRecord,
   type CreatorProfileUpsertRequest,
   type CreatorCharacterPersona,
@@ -118,6 +119,7 @@ const CHARACTER_PERSONA_SUMMARY_LIMIT = 220;
 const CHARACTER_PERSONA_PROMPT_LIMIT = 1_200;
 const CHARACTER_PERSONA_TRAIT_LIMIT = 160;
 const CHARACTER_PERSONA_TRAIT_COUNT_LIMIT = 8;
+const CREATOR_AVATAR_SET_LIMIT = 6;
 const CONTENT_TITLE_LIMIT = 88;
 const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
@@ -279,6 +281,45 @@ function normalizeCharacterPersona(
     name,
     summary: trimToLength(persona.summary, CHARACTER_PERSONA_SUMMARY_LIMIT),
   };
+}
+
+function normalizeAvatarExpression(
+  value: string | null | undefined,
+): CreatorProfileAvatarCandidate["expression"] | undefined {
+  return value === "default" || value === "serious" || value === "smile"
+    ? value
+    : undefined;
+}
+
+function normalizeCreatorAvatarSet(
+  values: CreatorProfileAvatarCandidate[] | null | undefined,
+) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values
+    .map((item) => {
+      const url = normalizeOptionalText(item?.url, 500);
+      const pathname = normalizeOptionalText(item?.pathname, 500);
+      const contentType = normalizeOptionalText(item?.contentType, 80);
+
+      if (!url || !pathname || !contentType) {
+        return null;
+      }
+
+      const expression = normalizeAvatarExpression(item.expression);
+
+      return {
+        contentType,
+        ...(expression ? { expression } : {}),
+        ...(item.label ? { label: trimToLength(item.label, 40) } : {}),
+        pathname,
+        url,
+      } satisfies CreatorProfileAvatarCandidate;
+    })
+    .filter((item): item is CreatorProfileAvatarCandidate => Boolean(item))
+    .slice(0, CREATOR_AVATAR_SET_LIMIT);
 }
 
 function normalizeTags(tags?: string[]) {
@@ -479,6 +520,7 @@ function createDefaultCreatorProfile(member: MemberDocument): CreatorProfileReco
   const now = member.updatedAt.toISOString();
 
   return {
+    avatarImageSet: [],
     avatarImageUrl: member.landingBranding?.heroImageUrl ?? null,
     characterPersona: null,
     displayName: inferDisplayName(member),
@@ -504,6 +546,8 @@ function isStoredCreatorProfileConfigured(
   }
 
   return (
+    (stored.avatarImageSet?.length ?? 0) !==
+      defaultProfile.avatarImageSet.length ||
     normalizeProfileComparisonValue(stored.avatarImageUrl) !==
       normalizeProfileComparisonValue(defaultProfile.avatarImageUrl) ||
     Boolean(stored.characterPersona) ||
@@ -555,6 +599,7 @@ export async function ensureCreatorPaidWalletForMember(
     { email: member.email },
     {
       $set: {
+        avatarImageSet: stored?.avatarImageSet ?? defaultProfile.avatarImageSet,
         avatarImageUrl:
           stored?.avatarImageUrl ?? defaultProfile.avatarImageUrl ?? null,
         configuredAt: stored?.configuredAt ?? null,
@@ -992,6 +1037,7 @@ export async function upsertCreatorProfileForMember(
   const now = new Date();
 
   const nextProfile: CreatorProfileDocument = {
+    avatarImageSet: normalizeCreatorAvatarSet(input.avatarImageSet),
     avatarImageUrl: normalizeOptionalText(input.avatarImageUrl, 500),
     characterPersona: normalizeCharacterPersona(input.characterPersona),
     createdAt: now,

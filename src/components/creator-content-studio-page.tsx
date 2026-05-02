@@ -97,6 +97,7 @@ type StudioState = {
   notice: string | null;
   posts: ContentPostRecord[];
   profile: {
+    avatarImageSet: CreatorProfileAvatarCandidate[];
     avatarImageUrl: string;
     characterPersona: CreatorCharacterPersona | null;
     displayName: string;
@@ -194,6 +195,7 @@ type CoverGenerationProgressState = {
 type StudioView = "hub" | "new" | "profile";
 
 const EMPTY_PROFILE = {
+  avatarImageSet: [] as CreatorProfileAvatarCandidate[],
   avatarImageUrl: "",
   characterPersona: null as CreatorCharacterPersona | null,
   displayName: "",
@@ -298,6 +300,7 @@ function createEditableCreatorProfile(
   }
 
   return {
+    avatarImageSet: profile.avatarImageSet ?? [],
     avatarImageUrl: profile.avatarImageUrl ?? "",
     characterPersona: profile.characterPersona ?? null,
     displayName: profile.displayName,
@@ -2035,6 +2038,7 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile", {
         body: JSON.stringify({
+          avatarImageSet: profileToSave.avatarImageSet,
           avatarImageUrl: profileToSave.avatarImageUrl || null,
           characterPersona: profileToSave.characterPersona,
           displayName: profileToSave.displayName,
@@ -2235,6 +2239,8 @@ export function CreatorContentStudioPage({
   async function saveCharacterPersona(persona: CreatorCharacterPersona | null) {
     const nextProfile = {
       ...state.profile,
+      avatarImageSet: [],
+      avatarImageUrl: "",
       characterPersona: persona,
     };
 
@@ -2310,8 +2316,8 @@ export function CreatorContentStudioPage({
         error: null,
         notice:
           locale === "ko"
-            ? "AI 아바타 후보를 만들었습니다. 하나를 선택하면 프로필에 저장됩니다."
-            : "AI avatar candidates are ready. Select one to save it to your profile.",
+            ? "AI 아바타 표정 세트를 만들었습니다. 대표 이미지를 선택하면 프로필에 저장됩니다."
+            : "AI avatar expression set is ready. Select a representative image to save it to your profile.",
       }));
     } catch (error) {
       const message =
@@ -2337,8 +2343,13 @@ export function CreatorContentStudioPage({
   async function saveGeneratedProfileAvatar(
     candidate: CreatorProfileAvatarCandidate,
   ) {
+    const avatarImageSet =
+      avatarGeneration.candidates.length > 0
+        ? avatarGeneration.candidates
+        : state.profile.avatarImageSet;
     const nextProfile = {
       ...state.profile,
+      avatarImageSet,
       avatarImageUrl: candidate.url,
     };
 
@@ -3905,13 +3916,17 @@ export function CreatorContentStudioPage({
     const hasDisplayName = Boolean(state.profile.displayName.trim());
     const hasPersona = Boolean(state.profile.characterPersona);
     const hasAvatar = Boolean(state.profile.avatarImageUrl);
+    const displayedAvatarSet =
+      avatarGeneration.candidates.length > 0
+        ? avatarGeneration.candidates
+        : state.profile.avatarImageSet;
     const setupProgress = [hasDisplayName, hasPersona, hasAvatar].filter(
       Boolean,
     ).length;
     const setupCopy =
       locale === "ko"
         ? {
-            avatarBody: "페르소나를 고른 뒤 프로필 사진 후보를 만들고 하나를 저장하세요.",
+            avatarBody: "페르소나를 고른 뒤 표정별 아바타 세트를 만들고 대표 이미지를 저장하세요.",
             avatarTitle: "AI 아바타 선택",
             displayBody: "피드와 콘텐츠 상세에 표시될 이름입니다.",
             displayTitle: "표시 이름 입력",
@@ -3923,7 +3938,7 @@ export function CreatorContentStudioPage({
           }
         : {
             avatarBody:
-              "After choosing a persona, generate profile photo options and save one.",
+              "After choosing a persona, generate an expression avatar set and save a representative image.",
             avatarTitle: "Choose AI Avatar",
             displayBody: "This name appears in the feed and content detail pages.",
             displayTitle: "Enter Display Name",
@@ -3939,24 +3954,49 @@ export function CreatorContentStudioPage({
       locale === "ko"
         ? {
             body:
-              "선택한 인물 페르소나를 기준으로 프로필용 정사각형 아바타 후보를 생성합니다.",
+              "선택한 인물 페르소나를 기준으로 기본, 미소, 진지함 표정 세트를 생성합니다.",
             disabledHint: "인물 페르소나를 먼저 선택하면 AI 아바타를 만들 수 있습니다.",
-            generate: "AI 아바타 생성",
-            generating: "아바타 생성 중...",
+            generate: "AI 아바타 세트 생성",
+            generating: "아바타 세트 생성 중...",
+            labelDefault: "기본",
+            labelSerious: "진지함",
+            labelSmile: "미소",
             select: "선택하고 저장",
             selected: "저장됨",
+            setTitle: "표정 세트",
             title: "AI 아바타",
           }
         : {
             body:
-              "Generate square profile avatar options from the selected character persona.",
+              "Generate default, smiling, and serious avatar expressions from the selected character persona.",
             disabledHint: "Select a character persona first to generate AI avatars.",
-            generate: "Generate AI Avatar",
-            generating: "Generating avatars...",
+            generate: "Generate Avatar Set",
+            generating: "Generating avatar set...",
+            labelDefault: "Default",
+            labelSerious: "Serious",
+            labelSmile: "Smile",
             select: "Select and save",
             selected: "Saved",
+            setTitle: "Expression set",
             title: "AI Avatar",
           };
+    const getAvatarExpressionLabel = (
+      candidate: CreatorProfileAvatarCandidate,
+    ) => {
+      if (candidate.expression === "smile") {
+        return avatarGeneratorCopy.labelSmile;
+      }
+
+      if (candidate.expression === "serious") {
+        return avatarGeneratorCopy.labelSerious;
+      }
+
+      if (candidate.expression === "default") {
+        return avatarGeneratorCopy.labelDefault;
+      }
+
+      return candidate.label ?? avatarGeneratorCopy.setTitle;
+    };
 
     return (
       <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
@@ -4112,6 +4152,7 @@ export function CreatorContentStudioPage({
                           notice: null,
                           profile: {
                             ...current.profile,
+                            avatarImageSet: [],
                             avatarImageUrl: "",
                           },
                         }));
@@ -4131,9 +4172,9 @@ export function CreatorContentStudioPage({
               {avatarGeneration.error ? (
                 <MessageCard tone="error">{avatarGeneration.error}</MessageCard>
               ) : null}
-              {avatarGeneration.candidates.length > 0 ? (
-                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {avatarGeneration.candidates.map((candidate) => {
+              {displayedAvatarSet.length > 0 ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {displayedAvatarSet.map((candidate) => {
                     const selected =
                       state.profile.avatarImageUrl === candidate.url;
 
@@ -4155,6 +4196,9 @@ export function CreatorContentStudioPage({
                           />
                         </div>
                         <div className="p-2">
+                          <p className="mb-2 truncate text-center text-[11px] font-semibold text-slate-500">
+                            {getAvatarExpressionLabel(candidate)}
+                          </p>
                           <button
                             className="inline-flex h-9 w-full items-center justify-center rounded-full bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={
