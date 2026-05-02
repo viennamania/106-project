@@ -1098,12 +1098,12 @@ export function CreatorContentStudioPage({
           },
           completed: "완료",
           confirmBody:
-            "이미지 프롬프트 내용만 사용해 AI 콘텐츠 이미지를 생성합니다.",
+            "입력한 설명을 바탕으로 AI 콘텐츠 이미지를 생성합니다.",
           confirmHint:
             `AI 콘텐츠 이미지는 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지만 만들 수 있고, 완료되면 콘텐츠 이미지 목록에 바로 추가됩니다.`,
           promptHint:
-            "여기에 적은 내용이 이미지 생성 프롬프트로 그대로 적용됩니다.",
-          promptLabel: "이미지 프롬프트",
+            "어떤 장면, 분위기, 배경, 의상으로 만들지 적어주세요. 선택한 인물 페르소나와 아바타가 있으면 같은 인물을 유지해 생성합니다.",
+          promptLabel: "만들 이미지 설명",
           promptPlaceholder:
             "예: 해변의 황금빛 석양, 역동적인 모래 질감, 하이패션 에디토리얼 무드",
           confirmPrimary: "이미지 생성",
@@ -1118,8 +1118,8 @@ export function CreatorContentStudioPage({
             label: "이미지 생성",
           },
           preparing_prompt: {
-            description: "이미지 프롬프트를 생성 요청으로 준비합니다.",
-            label: "이미지 프롬프트",
+            description: "입력한 이미지 설명을 생성 요청으로 준비합니다.",
+            label: "이미지 설명",
           },
           progress: "진행률",
           running: "진행 중",
@@ -1139,12 +1139,12 @@ export function CreatorContentStudioPage({
           },
           completed: "Completed",
           confirmBody:
-            "The AI will generate a content image using only the image prompt.",
+            "The AI will generate a content image from your description.",
           confirmHint:
             `AI content images are limited to ${GENERATED_CONTENT_IMAGE_LIMIT} and will be added directly into your content image list.`,
           promptHint:
-            "This text is used directly as the image prompt.",
-          promptLabel: "Image prompt",
+            "Describe the scene, mood, background, and styling. If a persona and avatar are selected, they will be used to keep the same person.",
+          promptLabel: "Image description",
           promptPlaceholder:
             "Example: golden sunset on a beach, dynamic sand texture, high-fashion editorial mood",
           confirmPrimary: "Generate image",
@@ -1159,8 +1159,8 @@ export function CreatorContentStudioPage({
             label: "Image generation",
           },
           preparing_prompt: {
-            description: "Preparing the image prompt for generation.",
-            label: "Image prompt",
+            description: "Preparing your image description for generation.",
+            label: "Image description",
           },
           progress: "Progress",
           running: "Running",
@@ -2917,8 +2917,8 @@ export function CreatorContentStudioPage({
       if (!contentImagePrompt.trim()) {
         throw new Error(
           locale === "ko"
-            ? "AI 콘텐츠 이미지를 생성하려면 이미지 프롬프트를 입력하세요."
-            : "Enter an image prompt to generate an AI content image.",
+            ? "AI 콘텐츠 이미지를 생성하려면 만들 이미지 설명을 입력하세요."
+            : "Enter an image description to generate an AI content image.",
         );
       }
 
