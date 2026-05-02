@@ -3933,8 +3933,11 @@ export function CreatorContentStudioPage({
             personaBody: "성별과 연령대를 선택하고 같은 인물을 유지할 페르소나를 저장하세요.",
             personaTitle: "인물 페르소나 선택",
             progress: `필수 설정 ${setupProgress}/3`,
-            saveBody: "위 3가지를 완료한 뒤 프로필을 저장하면 바로 사용할 수 있습니다.",
-            saveTitle: "프로필 저장",
+            saveButton: "변경사항 저장",
+            saveButtonSaving: "저장 중...",
+            saveBody:
+              "표시 이름을 바꾸거나 이미지를 제거한 경우에만 수동 저장이 필요합니다. 페르소나와 아바타 선택은 즉시 저장됩니다.",
+            saveTitle: "수동 변경 저장",
           }
         : {
             avatarBody:
@@ -3946,9 +3949,11 @@ export function CreatorContentStudioPage({
               "Select gender and age range, then save a persona to keep the same person.",
             personaTitle: "Choose Character Persona",
             progress: `Required setup ${setupProgress}/3`,
+            saveButton: "Save changes",
+            saveButtonSaving: "Saving...",
             saveBody:
-              "After completing the three steps above, save the profile to use it.",
-            saveTitle: "Save Profile",
+              "Manual save is only needed after editing the display name or removing an image. Persona and avatar selections are saved immediately.",
+            saveTitle: "Save Manual Changes",
           };
     const avatarGeneratorCopy =
       locale === "ko"
@@ -4226,7 +4231,7 @@ export function CreatorContentStudioPage({
             <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
               <div className="flex items-start gap-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
-                  4
+                  <Save className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-950">
@@ -4236,7 +4241,7 @@ export function CreatorContentStudioPage({
                     {setupCopy.saveBody}
                   </p>
                   <button
-                    className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                     disabled={
                       isSavingProfile ||
                       isDisconnected ||
@@ -4247,9 +4252,14 @@ export function CreatorContentStudioPage({
                     }}
                     type="button"
                   >
+                    {isSavingProfile ? (
+                      <LoaderCircle className="size-4 animate-spin" />
+                    ) : (
+                      <Save className="size-4" />
+                    )}
                     {isSavingProfile
-                      ? `${contentCopy.actions.saveProfile}...`
-                      : contentCopy.actions.saveProfile}
+                      ? setupCopy.saveButtonSaving
+                      : setupCopy.saveButton}
                   </button>
                 </div>
               </div>
