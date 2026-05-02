@@ -56,6 +56,7 @@ import {
   contentCoverGenerationProgressSteps,
 } from "@/lib/content";
 import type {
+  ContentGenerationFailureDiagnostic,
   ContentCoverGenerationProgressStep,
   ContentPriceType,
   ContentPostGenerateCoverResponse,
@@ -152,6 +153,7 @@ type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
 type CoverGenerationProgressState = {
   active: boolean;
   currentStep: ContentCoverGenerationProgressStep | null;
+  diagnostic: ContentGenerationFailureDiagnostic | null;
   error: string | null;
   message: string | null;
   progress: number;
@@ -264,6 +266,7 @@ function createEmptyCoverGenerationProgress(): CoverGenerationProgressState {
   return {
     active: false,
     currentStep: null,
+    diagnostic: null,
     error: null,
     message: null,
     progress: 0,
@@ -374,6 +377,7 @@ function applyCoverGenerationProgressEvent(
       ...current,
       active: false,
       currentStep: failedStep,
+      diagnostic: event.diagnostic ?? null,
       error: event.error,
       message: event.error,
       steps: {
@@ -388,6 +392,7 @@ function applyCoverGenerationProgressEvent(
       ...current,
       active: false,
       currentStep: "finalizing",
+      diagnostic: null,
       error: null,
       message: event.response.revisedPrompt ?? current.message,
       progress: 100,
@@ -403,6 +408,8 @@ function applyCoverGenerationProgressEvent(
     ...current,
     active: event.progress.status === "running",
     currentStep: event.progress.step,
+    diagnostic:
+      event.progress.status === "failed" ? current.diagnostic : null,
     error: event.progress.status === "failed" ? event.progress.message : null,
     message: event.progress.message,
     progress: Math.max(current.progress, event.progress.progress),
@@ -422,10 +429,48 @@ function getGenerationErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+function formatDiagnosticValue(value: boolean | number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  return String(value);
+}
+
+function createGenerationDiagnosticCopyText(
+  diagnostic: ContentGenerationFailureDiagnostic,
+) {
+  return JSON.stringify(diagnostic, null, 2);
+}
+
+function createGenerationDiagnosticOptionText(
+  diagnostic: ContentGenerationFailureDiagnostic,
+) {
+  return [
+    ["aspect_ratio", diagnostic.modelInput.aspectRatio],
+    ["duration", diagnostic.modelInput.duration],
+    ["resolution", diagnostic.modelInput.resolution],
+    ["prompt_expansion", diagnostic.modelInput.enablePromptExpansion],
+    ["safety_checker", diagnostic.modelInput.enableSafetyChecker],
+    ["generate_audio", diagnostic.modelInput.generateAudio],
+    ["safety_tolerance", diagnostic.modelInput.safetyTolerance],
+    ["prompt_length", diagnostic.modelInput.promptLength],
+    ["negative_prompt_length", diagnostic.modelInput.negativePromptLength],
+  ]
+    .map(([label, value]) => {
+      const formatted = formatDiagnosticValue(value);
+
+      return formatted ? `${label}: ${formatted}` : null;
+    })
+    .filter(Boolean)
+    .join(" · ");
+}
+
 function applyCoverGenerationFailure(
   current: CoverGenerationProgressState,
   message: string,
   fallbackStep: ContentCoverGenerationProgressStep = "generating_image",
+  diagnostic: ContentGenerationFailureDiagnostic | null = current.diagnostic,
 ): CoverGenerationProgressState {
   const failedStep = current.currentStep ?? fallbackStep;
 
@@ -433,6 +478,7 @@ function applyCoverGenerationFailure(
     ...current,
     active: false,
     currentStep: failedStep,
+    diagnostic,
     error: message,
     message,
     steps: {
@@ -1054,6 +1100,19 @@ export function CreatorContentStudioPage({
             "예: 세로형 숏폼, 해변 위를 천천히 걷는 모델, 자연스러운 카메라 무빙, 따뜻한 석양",
           confirmPrimary: "동영상 생성",
           confirmSecondary: "나중에",
+          diagnostic: {
+            copy: "진단 정보 복사",
+            copied: "복사됨",
+            fieldErrors: "필드 오류",
+            kind: "원인",
+            model: "모델",
+            modelOptions: "모델 옵션",
+            requestId: "fal requestId",
+            response: "응답 요약",
+            status: "상태 코드",
+            title: "실패 원인 보기",
+            unavailable: "없음",
+          },
           error: "오류",
           finalizing: {
             description: "생성된 동영상을 콘텐츠 동영상 슬롯에 추가합니다.",
@@ -1095,6 +1154,19 @@ export function CreatorContentStudioPage({
             "Example: vertical short-form shot, a model walking slowly on a beach, natural camera movement, warm sunset",
           confirmPrimary: "Generate video",
           confirmSecondary: "Later",
+          diagnostic: {
+            copy: "Copy diagnostics",
+            copied: "Copied",
+            fieldErrors: "Field errors",
+            kind: "Cause",
+            model: "Model",
+            modelOptions: "Model options",
+            requestId: "fal requestId",
+            response: "Response summary",
+            status: "Status code",
+            title: "Failure details",
+            unavailable: "None",
+          },
           error: "Error",
           finalizing: {
             description: "Adding the generated result into the content video slot.",
@@ -2809,6 +2881,7 @@ export function CreatorContentStudioPage({
       locale === "ko"
         ? "AI 콘텐츠 동영상 생성에 실패했습니다."
         : "Failed to generate the AI content video.";
+    let failureDiagnostic: ContentGenerationFailureDiagnostic | null = null;
 
     try {
       if (!contentVideoPrompt.trim()) {
@@ -2856,13 +2929,18 @@ export function CreatorContentStudioPage({
         method: "POST",
       });
       let data: ContentPostGenerateCoverResponse | null = null;
+      let streamDiagnostic: ContentGenerationFailureDiagnostic | null = null;
       let streamError: string | null = null;
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
+          | {
+              diagnostic?: ContentGenerationFailureDiagnostic | null;
+              error?: string;
+            }
           | null;
 
+        failureDiagnostic = payload?.diagnostic ?? null;
         throw new Error(payload?.error || videoGenerationFailedMessage);
       }
 
@@ -2882,15 +2960,20 @@ export function CreatorContentStudioPage({
           }
 
           if (event.type === "error") {
+            streamDiagnostic = event.diagnostic ?? null;
             streamError = event.error;
           }
         });
       } else {
         const payload = (await response.json()) as
           | ContentPostGenerateCoverResponse
-          | { error?: string };
+          | {
+              diagnostic?: ContentGenerationFailureDiagnostic | null;
+              error?: string;
+            };
 
         if (!("url" in payload)) {
+          failureDiagnostic = payload.diagnostic ?? null;
           throw new Error(payload.error || videoGenerationFailedMessage);
         }
 
@@ -2898,6 +2981,7 @@ export function CreatorContentStudioPage({
       }
 
       if (!data) {
+        failureDiagnostic = streamDiagnostic;
         throw new Error(streamError || videoGenerationFailedMessage);
       }
 
@@ -2920,6 +3004,7 @@ export function CreatorContentStudioPage({
         ...current,
         active: false,
         currentStep: "finalizing",
+        diagnostic: null,
         error: null,
         message:
           locale === "ko"
@@ -2944,7 +3029,12 @@ export function CreatorContentStudioPage({
         notice: null,
       }));
       setContentVideoGenerationProgress((current) =>
-        applyCoverGenerationFailure(current, errorMessage),
+        applyCoverGenerationFailure(
+          current,
+          errorMessage,
+          "generating_image",
+          failureDiagnostic,
+        ),
       );
     } finally {
       setIsGeneratingPostImage(false);
@@ -5965,6 +6055,19 @@ function CoverGenerationDialog({
     confirmHint: string;
     confirmPrimary: string;
     confirmSecondary: string;
+    diagnostic?: {
+      copy: string;
+      copied: string;
+      fieldErrors: string;
+      kind: string;
+      model: string;
+      modelOptions: string;
+      requestId: string;
+      response: string;
+      status: string;
+      title: string;
+      unavailable: string;
+    };
     error: string;
     finalizing: { description: string; label: string };
     generating_image: { description: string; label: string };
@@ -6009,6 +6112,54 @@ function CoverGenerationDialog({
   const isVideoResponse =
     progress.response?.contentType.startsWith("video/") ||
     /\.(mp4|mov|webm)(?:$|\?)/i.test(responseUrl);
+  const [diagnosticCopied, setDiagnosticCopied] = useState(false);
+  const diagnosticLabels = labels.diagnostic;
+  const failureDiagnostic =
+    progress.error && diagnosticLabels ? progress.diagnostic : null;
+  const diagnosticOptionText = failureDiagnostic
+    ? createGenerationDiagnosticOptionText(failureDiagnostic)
+    : "";
+  const diagnosticRows =
+    failureDiagnostic && diagnosticLabels
+      ? [
+          {
+            label: diagnosticLabels.kind,
+            value: failureDiagnostic.kind,
+          },
+          {
+            label: diagnosticLabels.status,
+            value: formatDiagnosticValue(failureDiagnostic.status),
+          },
+          {
+            label: diagnosticLabels.requestId,
+            value: failureDiagnostic.requestId,
+          },
+          {
+            label: diagnosticLabels.model,
+            value: failureDiagnostic.model,
+          },
+          {
+            label: diagnosticLabels.modelOptions,
+            value: diagnosticOptionText,
+          },
+        ]
+      : [];
+
+  function copyFailureDiagnostic() {
+    if (!failureDiagnostic || !navigator.clipboard) {
+      return;
+    }
+
+    void navigator.clipboard
+      .writeText(createGenerationDiagnosticCopyText(failureDiagnostic))
+      .then(() => {
+        setDiagnosticCopied(true);
+        window.setTimeout(() => setDiagnosticCopied(false), 1600);
+      })
+      .catch(() => {
+        setDiagnosticCopied(false);
+      });
+  }
 
   return (
     <div className="fixed inset-0 z-[130] flex items-end justify-center bg-slate-950/48 p-3 backdrop-blur-md sm:items-center sm:p-6">
@@ -6239,6 +6390,74 @@ function CoverGenerationDialog({
                   );
                 })}
               </div>
+
+              {failureDiagnostic && diagnosticLabels ? (
+                <details
+                  className="mt-4 rounded-[22px] border border-rose-200/80 bg-white/92 p-4 shadow-sm"
+                  open
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-950">
+                    <span>{diagnosticLabels.title}</span>
+                    <button
+                      className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        copyFailureDiagnostic();
+                      }}
+                      type="button"
+                    >
+                      <Copy className="mr-1.5 size-3.5" />
+                      {diagnosticCopied
+                        ? diagnosticLabels.copied
+                        : diagnosticLabels.copy}
+                    </button>
+                  </summary>
+                  <div className="mt-4 space-y-3">
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {diagnosticRows.map((row) => (
+                        <div
+                          className="rounded-2xl border border-slate-200/80 bg-slate-50/85 px-3 py-2"
+                          key={row.label}
+                        >
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            {row.label}
+                          </p>
+                          <p className="mt-1 break-words text-xs font-semibold leading-5 text-slate-800">
+                            {row.value || diagnosticLabels.unavailable}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {failureDiagnostic.responseSummary ? (
+                      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/85 px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          {diagnosticLabels.response}
+                        </p>
+                        <p className="mt-1 max-h-32 overflow-y-auto break-words text-xs leading-5 text-slate-700">
+                          {failureDiagnostic.responseSummary}
+                        </p>
+                      </div>
+                    ) : null}
+                    {failureDiagnostic.fieldErrors.length > 0 ? (
+                      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/85 px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          {diagnosticLabels.fieldErrors}
+                        </p>
+                        <div className="mt-1 space-y-1">
+                          {failureDiagnostic.fieldErrors.map((fieldError, index) => (
+                            <p
+                              className="break-words text-xs leading-5 text-slate-700"
+                              key={`${fieldError.loc.join(".")}-${index}`}
+                            >
+                              {fieldError.loc.join(".")}: {fieldError.msg}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </details>
+              ) : null}
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {isSuccess ? (

@@ -1,9 +1,13 @@
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  type ContentGenerationFailureDiagnostic,
   type ContentPostGenerateCoverResponse,
   type ContentPostGenerateCoverStreamEvent,
 } from "@/lib/content";
-import { generateAndUploadContentGalleryVideo } from "@/lib/content-gallery-video-service";
+import {
+  ContentVideoGenerationError,
+  generateAndUploadContentGalleryVideo,
+} from "@/lib/content-gallery-video-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
@@ -23,8 +27,37 @@ type GenerateContentVideoRequest = {
   walletAddress?: string | null;
 };
 
-function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+type GenerateContentVideoErrorPayload = {
+  diagnostic?: ContentGenerationFailureDiagnostic | null;
+  error: string;
+};
+
+function createGenerationErrorPayload(
+  error: unknown,
+  fallback = "Failed to generate the AI content video.",
+): GenerateContentVideoErrorPayload {
+  const message = error instanceof Error ? error.message : fallback;
+
+  return {
+    ...(error instanceof ContentVideoGenerationError
+      ? { diagnostic: error.diagnostic }
+      : {}),
+    error: message,
+  };
+}
+
+function jsonError(
+  message: string,
+  status: number,
+  diagnostic?: ContentGenerationFailureDiagnostic | null,
+) {
+  return Response.json(
+    {
+      ...(diagnostic ? { diagnostic } : {}),
+      error: message,
+    },
+    { status },
+  );
 }
 
 function trimToLength(value: string | null | undefined, limit: number) {
@@ -68,11 +101,11 @@ function createStreamResponse(
         try {
           await run(emit);
         } catch (error) {
+          const payload = createGenerationErrorPayload(error);
+
           emit({
-            error:
-              error instanceof Error
-                ? error.message
-                : "Failed to generate the AI content video.",
+            ...(payload.diagnostic ? { diagnostic: payload.diagnostic } : {}),
+            error: payload.error,
             type: "error",
           });
         } finally {
@@ -265,11 +298,8 @@ export async function POST(request: Request) {
 
     return Response.json(response);
   } catch (error) {
-    return jsonError(
-      error instanceof Error
-        ? error.message
-        : "Failed to generate the AI content video.",
-      500,
-    );
+    const payload = createGenerationErrorPayload(error);
+
+    return jsonError(payload.error, 500, payload.diagnostic);
   }
 }

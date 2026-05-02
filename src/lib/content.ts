@@ -358,6 +358,41 @@ export type ContentPostGenerateCoverResponse = {
   url: string;
 };
 
+export type ContentGenerationFailureKind =
+  | "provider_rejection"
+  | "safety"
+  | "timeout"
+  | "unknown"
+  | "validation";
+
+export type ContentGenerationFailureFieldError = {
+  loc: Array<number | string>;
+  msg: string;
+  type: string;
+};
+
+export type ContentGenerationFailureDiagnostic = {
+  fieldErrors: ContentGenerationFailureFieldError[];
+  kind: ContentGenerationFailureKind;
+  message: string;
+  model: string | null;
+  modelFamily: string | null;
+  modelInput: {
+    aspectRatio: string | null;
+    duration: number | string | null;
+    enablePromptExpansion: boolean | null;
+    enableSafetyChecker: boolean | null;
+    generateAudio: boolean | null;
+    negativePromptLength: number;
+    promptLength: number;
+    resolution: string | null;
+    safetyTolerance: string | null;
+  };
+  requestId: string | null;
+  responseSummary: string | null;
+  status: number | null;
+};
+
 export type ContentPostGenerateCoverProgressEvent = {
   message: string;
   progress: number;
@@ -375,6 +410,7 @@ export type ContentPostGenerateCoverStreamEvent =
       type: "result";
     }
   | {
+      diagnostic?: ContentGenerationFailureDiagnostic | null;
       error: string;
       type: "error";
     };

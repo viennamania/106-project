@@ -13,6 +13,8 @@ import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   CONTENT_VIDEO_MAX_BYTES,
   type ContentCoverGenerationProgressStep,
+  type ContentGenerationFailureDiagnostic,
+  type ContentGenerationFailureKind,
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
 
@@ -66,21 +68,24 @@ type FalVideoOutput = {
   video?: FalVideoFile;
 };
 
-type FalFailureKind =
-  | "provider_rejection"
-  | "safety"
-  | "timeout"
-  | "unknown"
-  | "validation";
-
 type FalFailureDiagnostic = {
   bodyText: string | null;
   fieldErrors: ValidationErrorInfo[];
-  kind: FalFailureKind;
+  kind: ContentGenerationFailureKind;
   message: string;
   requestId: string | null;
   status: number | null;
 };
+
+export class ContentVideoGenerationError extends Error {
+  readonly diagnostic: ContentGenerationFailureDiagnostic;
+
+  constructor(message: string, diagnostic: ContentGenerationFailureDiagnostic) {
+    super(message);
+    this.name = "ContentVideoGenerationError";
+    this.diagnostic = diagnostic;
+  }
+}
 
 export type GenerateContentGalleryVideoInput = {
   onProgress?: (
@@ -404,7 +409,7 @@ function resolveFalFailureKind(
   error: unknown,
   bodyText: string | null,
   fieldErrors: ValidationErrorInfo[],
-): FalFailureKind {
+): ContentGenerationFailureKind {
   const messageText = error instanceof Error ? error.message : "";
   const fieldErrorText = fieldErrors
     .map((fieldError) =>
@@ -517,6 +522,50 @@ function createFalInputDiagnostic(input: FalVideoInput) {
   };
 }
 
+function createPublicFalInputDiagnostic(input: FalVideoInput) {
+  const negativePrompt = input.negative_prompt ?? "";
+
+  return {
+    aspectRatio: input.aspect_ratio ?? null,
+    duration: input.duration ?? null,
+    enablePromptExpansion:
+      "enable_prompt_expansion" in input
+        ? input.enable_prompt_expansion
+        : null,
+    enableSafetyChecker:
+      "enable_safety_checker" in input ? input.enable_safety_checker : null,
+    generateAudio:
+      "generate_audio" in input ? input.generate_audio : null,
+    negativePromptLength: negativePrompt.length,
+    promptLength: input.prompt.length,
+    resolution: input.resolution ?? null,
+    safetyTolerance:
+      "safety_tolerance" in input ? input.safety_tolerance : null,
+  } satisfies ContentGenerationFailureDiagnostic["modelInput"];
+}
+
+function createPublicFalFailureDiagnostic({
+  diagnostic,
+  model,
+  modelInput,
+}: {
+  diagnostic: FalFailureDiagnostic;
+  model: FalModelName;
+  modelInput: FalVideoInput;
+}): ContentGenerationFailureDiagnostic {
+  return {
+    fieldErrors: diagnostic.fieldErrors,
+    kind: diagnostic.kind,
+    message: diagnostic.message,
+    model,
+    modelFamily: resolveModelFamily(model),
+    modelInput: createPublicFalInputDiagnostic(modelInput),
+    requestId: diagnostic.requestId,
+    responseSummary: diagnostic.bodyText,
+    status: diagnostic.status,
+  };
+}
+
 function createFalGenerationError({
   error,
   model,
@@ -529,6 +578,11 @@ function createFalGenerationError({
   requestId: string | null;
 }) {
   const diagnostic = createFalFailureDiagnostic(error, requestId);
+  const publicDiagnostic = createPublicFalFailureDiagnostic({
+    diagnostic,
+    model,
+    modelInput,
+  });
 
   console.error("[content-video] fal video generation failed", {
     diagnostic,
@@ -537,7 +591,10 @@ function createFalGenerationError({
     modelInput: createFalInputDiagnostic(modelInput),
   });
 
-  return new Error(createFalFailureMessage(diagnostic));
+  return new ContentVideoGenerationError(
+    createFalFailureMessage(diagnostic),
+    publicDiagnostic,
+  );
 }
 
 async function readFalOutputFile(
