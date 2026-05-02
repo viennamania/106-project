@@ -2995,11 +2995,11 @@ function ContentVideoList({
       <div className="space-y-3">
         {videos.map((videoUrl, index) => (
           <div
-            className="overflow-hidden bg-black sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
+            className="mx-auto flex w-fit max-w-full justify-center overflow-hidden bg-black sm:rounded-[26px] sm:border sm:border-slate-200 sm:shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
             key={`${videoUrl}-${index}`}
           >
             <video
-              className="aspect-video w-full bg-black object-contain"
+              className="block max-h-[76dvh] w-auto max-w-full bg-black object-contain sm:max-h-[min(78vh,820px)]"
               controls
               playsInline
               preload="metadata"
