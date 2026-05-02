@@ -225,6 +225,7 @@ export async function POST(request: Request) {
       });
 
       const generatedVideo = await generateAndUploadContentGalleryVideo({
+        avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
         characterPersona: profileSnapshot.profile.characterPersona,
         onProgress(progress) {
           emit({
@@ -291,6 +292,7 @@ export async function POST(request: Request) {
       member,
     );
     const generatedVideo = await generateAndUploadContentGalleryVideo({
+      avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       characterPersona: profileSnapshot.profile.characterPersona,
       referralCode: member.referralCode,
       summary,

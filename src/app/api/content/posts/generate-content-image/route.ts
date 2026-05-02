@@ -94,8 +94,11 @@ export async function POST(request: Request) {
     return jsonError("BLOB_READ_WRITE_TOKEN is not configured.", 500);
   }
 
-  if (!process.env.REPLICATE_API_TOKEN?.trim()) {
-    return jsonError("REPLICATE_API_TOKEN is not configured.", 500);
+  if (
+    !process.env.FAL_KEY?.trim() &&
+    !process.env.REPLICATE_API_TOKEN?.trim()
+  ) {
+    return jsonError("FAL_KEY or REPLICATE_API_TOKEN is not configured.", 500);
   }
 
   let body: GenerateContentImageRequest | null = null;
@@ -190,6 +193,7 @@ export async function POST(request: Request) {
       });
 
       const generatedImage = await generateAndUploadContentGalleryImage({
+        avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
         characterPersona: profileSnapshot.profile.characterPersona,
         onProgress(progress) {
           emit({
@@ -256,6 +260,7 @@ export async function POST(request: Request) {
       member,
     );
     const generatedImage = await generateAndUploadContentGalleryImage({
+      avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       characterPersona: profileSnapshot.profile.characterPersona,
       referralCode: member.referralCode,
       summary,

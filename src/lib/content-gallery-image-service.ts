@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createFalClient } from "@fal-ai/client";
 import { put } from "@vercel/blob";
 import Replicate, { type FileOutput } from "replicate";
 
@@ -14,11 +15,15 @@ import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-pr
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
+const DEFAULT_FAL_REFERENCE_MODEL = "fal-ai/nano-banana-2/edit";
 const DEFAULT_ASPECT_RATIO = "4:5";
+const DEFAULT_FAL_REFERENCE_ASPECT_RATIO = "4:5";
+const DEFAULT_FAL_REFERENCE_RESOLUTION = "1K";
 const DEFAULT_MEGAPIXELS = "2";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
 const DEFAULT_DISABLE_SAFETY_CHECKER = true;
+const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
 
 type Flux2KleinAspectRatio =
   | "1:1"
@@ -48,7 +53,82 @@ type Flux2KleinInput = {
   seed?: number;
 };
 
+type FalImageModelFamily = "flux-kontext" | "nano-banana-edit";
+
+type FalImageModelName = `${string}/${string}${string}`;
+
+type FalNanoBananaAspectRatio =
+  | "auto"
+  | "21:9"
+  | "16:9"
+  | "3:2"
+  | "4:3"
+  | "5:4"
+  | "1:1"
+  | "4:5"
+  | "3:4"
+  | "2:3"
+  | "9:16"
+  | "4:1"
+  | "1:4"
+  | "8:1"
+  | "1:8";
+
+type FalNanoBananaResolution = "0.5K" | "1K" | "2K" | "4K";
+
+type FalImageSafetyTolerance = "1" | "2" | "3" | "4" | "5" | "6";
+
+type FalNanoBananaEditInput = {
+  aspect_ratio: FalNanoBananaAspectRatio;
+  image_urls: string[];
+  limit_generations: boolean;
+  num_images: number;
+  output_format: "jpeg" | "png" | "webp";
+  prompt: string;
+  resolution: FalNanoBananaResolution;
+  safety_tolerance: FalImageSafetyTolerance;
+};
+
+type FalFluxKontextResolutionMode =
+  | "auto"
+  | "match_input"
+  | "1:1"
+  | "16:9"
+  | "21:9"
+  | "3:2"
+  | "2:3"
+  | "4:5"
+  | "5:4"
+  | "3:4"
+  | "4:3"
+  | "9:16"
+  | "9:21";
+
+type FalFluxKontextInput = {
+  acceleration: "none" | "regular" | "high";
+  enable_safety_checker: boolean;
+  image_url: string;
+  num_images: number;
+  output_format: "jpeg" | "png";
+  prompt: string;
+  resolution_mode: FalFluxKontextResolutionMode;
+};
+
+type FalReferenceImageInput = FalFluxKontextInput | FalNanoBananaEditInput;
+
+type FalImageFile = {
+  content_type?: string;
+  url: string;
+};
+
+type FalImageOutput = {
+  description?: string | null;
+  images?: FalImageFile[];
+  prompt?: string | null;
+};
+
 export type GenerateContentGalleryImageInput = {
+  avatarImageUrl?: string | null;
   characterPersona?: CreatorCharacterPersona | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
@@ -68,6 +148,164 @@ export type GeneratedContentGalleryImage = {
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
+}
+
+function parseBoolean(value: string | undefined, fallback: boolean) {
+  const normalized = value?.trim().toLowerCase();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+}
+
+function parseEnum<T extends string>(
+  value: string | undefined,
+  allowed: readonly T[],
+  fallback: T,
+) {
+  const normalized = value?.trim();
+
+  return allowed.includes(normalized as T) ? (normalized as T) : fallback;
+}
+
+function resolveFalReferenceModelName(): FalImageModelName {
+  const model =
+    process.env.FAL_CONTENT_IMAGE_REFERENCE_MODEL?.trim() ||
+    process.env.FAL_CONTENT_IMAGE_MODEL?.trim() ||
+    DEFAULT_FAL_REFERENCE_MODEL;
+
+  if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
+    throw new Error(
+      "FAL_CONTENT_IMAGE_REFERENCE_MODEL must use owner/model or owner/model/path format.",
+    );
+  }
+
+  return model as FalImageModelName;
+}
+
+function resolveFalImageModelFamily(
+  model: FalImageModelName,
+): FalImageModelFamily {
+  return model.includes("flux-kontext") ? "flux-kontext" : "nano-banana-edit";
+}
+
+function createReferenceIdentityPrompt(prompt: string) {
+  return [
+    "Use the reference avatar only as the identity anchor for the main person: preserve the same face, facial structure, hair identity, skin tone, and overall presence.",
+    "Create a new content image from the scene prompt. Do not copy the avatar background, crop, pose, or clothing unless the scene prompt explicitly asks for it.",
+    prompt,
+  ].join("\n\n");
+}
+
+function createFalReferenceImageInput({
+  avatarImageUrl,
+  model,
+  prompt,
+}: {
+  avatarImageUrl: string;
+  model: FalImageModelName;
+  prompt: string;
+}): FalReferenceImageInput {
+  const modelFamily = resolveFalImageModelFamily(model);
+  const referencePrompt = createReferenceIdentityPrompt(prompt);
+
+  if (modelFamily === "flux-kontext") {
+    const outputFormat = parseEnum(
+      process.env.FAL_CONTENT_IMAGE_OUTPUT_FORMAT,
+      ["jpeg", "png"] as const,
+      "png",
+    );
+    const resolutionMode = parseEnum(
+      process.env.FAL_CONTENT_IMAGE_ASPECT_RATIO,
+      [
+        "auto",
+        "match_input",
+        "1:1",
+        "16:9",
+        "21:9",
+        "3:2",
+        "2:3",
+        "4:5",
+        "5:4",
+        "3:4",
+        "4:3",
+        "9:16",
+        "9:21",
+      ] as const,
+      DEFAULT_FAL_REFERENCE_ASPECT_RATIO,
+    );
+
+    return {
+      acceleration: parseEnum(
+        process.env.FAL_CONTENT_IMAGE_ACCELERATION,
+        ["none", "regular", "high"] as const,
+        "none",
+      ),
+      enable_safety_checker: parseBoolean(
+        process.env.FAL_CONTENT_IMAGE_ENABLE_SAFETY_CHECKER,
+        false,
+      ),
+      image_url: avatarImageUrl,
+      num_images: 1,
+      output_format: outputFormat,
+      prompt: referencePrompt,
+      resolution_mode: resolutionMode,
+    };
+  }
+
+  return {
+    aspect_ratio: parseEnum(
+      process.env.FAL_CONTENT_IMAGE_ASPECT_RATIO,
+      [
+        "auto",
+        "21:9",
+        "16:9",
+        "3:2",
+        "4:3",
+        "5:4",
+        "1:1",
+        "4:5",
+        "3:4",
+        "2:3",
+        "9:16",
+        "4:1",
+        "1:4",
+        "8:1",
+        "1:8",
+      ] as const,
+      DEFAULT_FAL_REFERENCE_ASPECT_RATIO,
+    ),
+    image_urls: [avatarImageUrl],
+    limit_generations: true,
+    num_images: 1,
+    output_format: parseEnum(
+      process.env.FAL_CONTENT_IMAGE_OUTPUT_FORMAT,
+      ["jpeg", "png", "webp"] as const,
+      DEFAULT_OUTPUT_FORMAT,
+    ),
+    prompt: referencePrompt,
+    resolution: parseEnum(
+      process.env.FAL_CONTENT_IMAGE_RESOLUTION,
+      ["0.5K", "1K", "2K", "4K"] as const,
+      DEFAULT_FAL_REFERENCE_RESOLUTION,
+    ),
+    safety_tolerance: parseEnum(
+      process.env.FAL_CONTENT_IMAGE_SAFETY_TOLERANCE ||
+        process.env.FAL_CONTENT_VIDEO_SAFETY_TOLERANCE,
+      ["1", "2", "3", "4", "5", "6"] as const,
+      DEFAULT_FAL_SAFETY_TOLERANCE,
+    ),
+  };
 }
 
 function sanitizeBaseName(name: string) {
@@ -170,6 +408,46 @@ async function readReplicateOutputFile(
   throw new Error("Replicate returned an unsupported image payload.");
 }
 
+function isFalImageFile(value: unknown): value is FalImageFile {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "url" in value && typeof (value as FalImageFile).url === "string";
+}
+
+function getFalImageFile(output: unknown): FalImageFile {
+  if (isFalImageFile(output)) {
+    return output;
+  }
+
+  if (output && typeof output === "object" && "images" in output) {
+    const [image] = (output as FalImageOutput).images ?? [];
+
+    if (isFalImageFile(image)) {
+      return image;
+    }
+  }
+
+  throw new Error("fal returned an unsupported image payload.");
+}
+
+async function readFalImageOutputFile(
+  output: unknown,
+): Promise<{ blob: Blob; sourceUrl: string | null }> {
+  const image = getFalImageFile(output);
+  const response = await fetch(image.url, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error(`fal returned an unreadable output URL (${response.status}).`);
+  }
+
+  return {
+    blob: await response.blob(),
+    sourceUrl: image.url,
+  };
+}
+
 async function reportProgress(
   onProgress:
     | ((
@@ -193,10 +471,12 @@ export async function generateAndUploadContentGalleryImage(
     throw new Error("BLOB_READ_WRITE_TOKEN is not configured.");
   }
 
+  const avatarImageUrl = trimToLength(input.avatarImageUrl, 500);
+  const falKey = process.env.FAL_KEY?.trim();
   const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
 
-  if (!replicateToken) {
-    throw new Error("REPLICATE_API_TOKEN is not configured.");
+  if (!replicateToken && !(avatarImageUrl && falKey)) {
+    throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
   }
 
   const title = trimToLength(input.title, TITLE_LIMIT);
@@ -231,27 +511,62 @@ export async function generateAndUploadContentGalleryImage(
     step: "preparing_prompt",
   });
 
-  await reportProgress(input.onProgress, {
-    message: "Generating the AI content image with Replicate.",
-    progress: 42,
-    status: "running",
-    step: "generating_image",
-  });
+  let blob: Blob;
+  let sourceUrl: string | null;
 
-  const replicate = new Replicate({ auth: replicateToken });
-  const modelInput = {
-    aspect_ratio: DEFAULT_ASPECT_RATIO,
-    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
-    go_fast: false,
-    megapixels: DEFAULT_MEGAPIXELS,
-    output_format: DEFAULT_OUTPUT_FORMAT,
-    output_quality: DEFAULT_OUTPUT_QUALITY,
-    prompt,
-  } satisfies Flux2KleinInput;
+  if (avatarImageUrl && falKey) {
+    const model = resolveFalReferenceModelName();
 
-  const rawOutput = await replicate.run(DEFAULT_MODEL, {
-    input: modelInput,
-  });
+    await reportProgress(input.onProgress, {
+      message: "Generating the AI content image with a persona avatar reference.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
+    });
+
+    const fal = createFalClient({ credentials: falKey });
+    const modelInput = createFalReferenceImageInput({
+      avatarImageUrl,
+      model,
+      prompt,
+    });
+    const result = await fal.subscribe(model, {
+      input: modelInput,
+      logs: true,
+      mode: "polling",
+      pollInterval: 1000,
+    });
+    const falOutput = await readFalImageOutputFile(result.data);
+
+    blob = falOutput.blob;
+    sourceUrl = falOutput.sourceUrl;
+  } else {
+    await reportProgress(input.onProgress, {
+      message: "Generating the AI content image with Replicate.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
+    });
+
+    const replicate = new Replicate({ auth: replicateToken });
+    const modelInput = {
+      aspect_ratio: DEFAULT_ASPECT_RATIO,
+      disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
+      go_fast: false,
+      megapixels: DEFAULT_MEGAPIXELS,
+      output_format: DEFAULT_OUTPUT_FORMAT,
+      output_quality: DEFAULT_OUTPUT_QUALITY,
+      prompt,
+    } satisfies Flux2KleinInput;
+
+    const rawOutput = await replicate.run(DEFAULT_MODEL, {
+      input: modelInput,
+    });
+    const replicateOutput = await readReplicateOutputFile(rawOutput);
+
+    blob = replicateOutput.blob;
+    sourceUrl = replicateOutput.sourceUrl;
+  }
 
   await reportProgress(input.onProgress, {
     message: "AI image created. Preparing upload.",
@@ -260,7 +575,6 @@ export async function generateAndUploadContentGalleryImage(
     step: "generating_image",
   });
 
-  const { blob, sourceUrl } = await readReplicateOutputFile(rawOutput);
   const contentType = blob.type || "image/png";
   const extension = resolveFileExtension(contentType, sourceUrl);
   const pathname = [

@@ -22,7 +22,8 @@ import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-pr
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "fal-ai/wan/v2.7/text-to-video";
+const DEFAULT_TEXT_MODEL = "fal-ai/wan/v2.7/text-to-video";
+const DEFAULT_REFERENCE_MODEL = "fal-ai/wan/v2.7/reference-to-video";
 const DEFAULT_ASPECT_RATIO = "9:16";
 const DEFAULT_DURATION = "8s";
 const DEFAULT_GENERATE_AUDIO = true;
@@ -30,7 +31,11 @@ const DEFAULT_RESOLUTION = "720p";
 const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
-type FalModelFamily = "veo" | "wan-v2.7";
+type FalModelFamily =
+  | "veo"
+  | "veo-reference"
+  | "wan-v2.7"
+  | "wan-v2.7-reference";
 
 type FalVeoVideoInput = {
   aspect_ratio: "16:9" | "9:16";
@@ -41,6 +46,10 @@ type FalVeoVideoInput = {
   prompt: string;
   resolution: "720p" | "1080p";
   safety_tolerance: "1" | "2" | "3" | "4" | "5" | "6";
+};
+
+type FalVeoReferenceVideoInput = FalVeoVideoInput & {
+  image_urls: string[];
 };
 
 type FalWanVideoInput = {
@@ -54,7 +63,22 @@ type FalWanVideoInput = {
   resolution: "720p" | "1080p";
 };
 
-type FalVideoInput = FalVeoVideoInput | FalWanVideoInput;
+type FalWanReferenceVideoInput = {
+  aspect_ratio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+  duration: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+  enable_safety_checker: boolean;
+  multi_shots: boolean;
+  negative_prompt?: string;
+  prompt: string;
+  reference_image_urls: string[];
+  resolution: "720p" | "1080p";
+};
+
+type FalVideoInput =
+  | FalVeoReferenceVideoInput
+  | FalVeoVideoInput
+  | FalWanReferenceVideoInput
+  | FalWanVideoInput;
 
 type FalModelName = `${string}/${string}${string}`;
 
@@ -90,6 +114,7 @@ export class ContentVideoGenerationError extends Error {
 }
 
 export type GenerateContentGalleryVideoInput = {
+  avatarImageUrl?: string | null;
   characterPersona?: CreatorCharacterPersona | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
@@ -150,17 +175,19 @@ function parseEnum<T extends string>(
   return allowed.includes(normalized as T) ? (normalized as T) : fallback;
 }
 
-function parseWanDuration(value: string | undefined) {
+function parseWanDuration(value: string | undefined, maximum = 15) {
   const normalized = value?.trim().replace(/s$/i, "");
   const parsed = Number(normalized);
   const duration = Number.isFinite(parsed) ? Math.round(parsed) : 8;
-  const clamped = Math.max(2, Math.min(15, duration));
+  const clamped = Math.max(2, Math.min(maximum, duration));
 
   return clamped as FalWanVideoInput["duration"];
 }
 
-function resolveModelName(): FalModelName {
-  const model = process.env.FAL_CONTENT_VIDEO_MODEL?.trim() || DEFAULT_MODEL;
+function resolveModelName(hasAvatarReference: boolean): FalModelName {
+  const model =
+    process.env.FAL_CONTENT_VIDEO_MODEL?.trim() ||
+    (hasAvatarReference ? DEFAULT_REFERENCE_MODEL : DEFAULT_TEXT_MODEL);
 
   if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
     throw new Error(
@@ -176,12 +203,30 @@ function resolveModelFamily(model: FalModelName): FalModelFamily {
     return "wan-v2.7";
   }
 
+  if (model === "fal-ai/wan/v2.7/reference-to-video") {
+    return "wan-v2.7-reference";
+  }
+
+  if (model === "fal-ai/veo3.1/reference-to-video") {
+    return "veo-reference";
+  }
+
   return "veo";
 }
 
 function getModelDisplayName(model: FalModelName) {
-  if (resolveModelFamily(model) === "wan-v2.7") {
+  const family = resolveModelFamily(model);
+
+  if (family === "wan-v2.7-reference") {
+    return "fal Wan 2.7 Reference";
+  }
+
+  if (family === "wan-v2.7") {
     return "fal Wan 2.7";
+  }
+
+  if (family === "veo-reference") {
+    return "fal Veo 3.1 Reference";
   }
 
   if (model === "fal-ai/veo3.1/lite") {
@@ -191,7 +236,10 @@ function getModelDisplayName(model: FalModelName) {
   return model;
 }
 
-function createVeoModelInput(prompt: string): FalVeoVideoInput {
+function createVeoModelInput(
+  prompt: string,
+  avatarImageUrl?: string | null,
+): FalVeoReferenceVideoInput | FalVeoVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
     ["16:9", "9:16"] as const,
@@ -226,6 +274,7 @@ function createVeoModelInput(prompt: string): FalVeoVideoInput {
     prompt,
     resolution,
     safety_tolerance: safetyTolerance,
+    ...(avatarImageUrl ? { image_urls: [avatarImageUrl] } : {}),
   };
 }
 
@@ -261,9 +310,76 @@ function createWanModelInput(prompt: string): FalWanVideoInput {
   };
 }
 
-function createModelInput(model: FalModelName, prompt: string): FalVideoInput {
-  if (resolveModelFamily(model) === "wan-v2.7") {
+function createWanReferenceModelInput(
+  prompt: string,
+  avatarImageUrl: string,
+): FalWanReferenceVideoInput {
+  const aspectRatio = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
+    ["16:9", "9:16", "1:1", "4:3", "3:4"] as const,
+    DEFAULT_ASPECT_RATIO,
+  );
+  const resolution = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
+    ["720p", "1080p"] as const,
+    DEFAULT_RESOLUTION,
+  );
+  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
+
+  return {
+    aspect_ratio: aspectRatio,
+    duration: parseWanDuration(
+      process.env.FAL_CONTENT_VIDEO_DURATION,
+      10,
+    ) as FalWanReferenceVideoInput["duration"],
+    enable_safety_checker: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_ENABLE_SAFETY_CHECKER,
+      true,
+    ),
+    multi_shots: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_MULTI_SHOTS,
+      false,
+    ),
+    ...(negativePrompt ? { negative_prompt: negativePrompt } : {}),
+    prompt,
+    reference_image_urls: [avatarImageUrl],
+    resolution,
+  };
+}
+
+function createModelInput({
+  avatarImageUrl,
+  model,
+  prompt,
+}: {
+  avatarImageUrl: string | null;
+  model: FalModelName;
+  prompt: string;
+}): FalVideoInput {
+  const family = resolveModelFamily(model);
+
+  if (family === "wan-v2.7-reference") {
+    if (!avatarImageUrl) {
+      throw new Error(
+        "A creator avatar image is required for fal reference-to-video generation.",
+      );
+    }
+
+    return createWanReferenceModelInput(prompt, avatarImageUrl);
+  }
+
+  if (family === "wan-v2.7") {
     return createWanModelInput(prompt);
+  }
+
+  if (family === "veo-reference") {
+    if (!avatarImageUrl) {
+      throw new Error(
+        "A creator avatar image is required for fal reference-to-video generation.",
+      );
+    }
+
+    return createVeoModelInput(prompt, avatarImageUrl);
   }
 
   return createVeoModelInput(prompt);
@@ -566,6 +682,12 @@ function createPublicFalInputDiagnostic(input: FalVideoInput) {
       "generate_audio" in input ? input.generate_audio : null,
     negativePromptLength: negativePrompt.length,
     promptLength: input.prompt.length,
+    referenceImageCount:
+      "reference_image_urls" in input
+        ? input.reference_image_urls.length
+        : "image_urls" in input
+          ? input.image_urls.length
+          : 0,
     resolution: input.resolution ?? null,
     safetyTolerance:
       "safety_tolerance" in input ? input.safety_tolerance : null,
@@ -735,7 +857,8 @@ export async function generateAndUploadContentGalleryVideo(
     rewritePromptForSaferVideoGeneration(personaAppliedPrompt);
   const revisedPrompt =
     prompt === visualBrief ? null : safetyRevisedPrompt ?? personaAppliedPrompt;
-  const model = resolveModelName();
+  const avatarImageUrl = trimToLength(input.avatarImageUrl, 500);
+  const model = resolveModelName(Boolean(avatarImageUrl));
   const modelDisplayName = getModelDisplayName(model);
 
   await reportProgress(input.onProgress, {
@@ -752,7 +875,11 @@ export async function generateAndUploadContentGalleryVideo(
     step: "generating_image",
   });
 
-  const modelInput = createModelInput(model, prompt);
+  const modelInput = createModelInput({
+    avatarImageUrl: avatarImageUrl || null,
+    model,
+    prompt,
+  });
   const fal = createFalClient({ credentials: falKey });
   let falRequestId: string | null = null;
 

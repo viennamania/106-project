@@ -521,6 +521,7 @@ function createGenerationDiagnosticOptionText(
     ["safety_checker", diagnostic.modelInput.enableSafetyChecker],
     ["generate_audio", diagnostic.modelInput.generateAudio],
     ["safety_tolerance", diagnostic.modelInput.safetyTolerance],
+    ["reference_images", diagnostic.modelInput.referenceImageCount],
     ["prompt_length", diagnostic.modelInput.promptLength],
     ["negative_prompt_length", diagnostic.modelInput.negativePromptLength],
   ]

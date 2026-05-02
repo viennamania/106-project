@@ -410,6 +410,7 @@ export type ContentGenerationFailureDiagnostic = {
     generateAudio: boolean | null;
     negativePromptLength: number;
     promptLength: number;
+    referenceImageCount?: number | null;
     resolution: string | null;
     safetyTolerance: string | null;
   };
