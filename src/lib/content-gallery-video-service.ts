@@ -1,7 +1,7 @@
 import "server-only";
 
+import { createFalClient, type QueueStatus } from "@fal-ai/client";
 import { put } from "@vercel/blob";
-import Replicate, { type FileOutput } from "replicate";
 
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
@@ -12,14 +12,36 @@ import {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "bytedance/seedance-1-pro";
+const DEFAULT_MODEL = "fal-ai/veo3.1/lite";
 const DEFAULT_ASPECT_RATIO = "9:16";
-const DEFAULT_DURATION_SECONDS = 5;
-const DEFAULT_FPS = 24;
-const DEFAULT_RESOLUTION = "1080p";
+const DEFAULT_DURATION = "8s";
+const DEFAULT_GENERATE_AUDIO = false;
+const DEFAULT_RESOLUTION = "720p";
+const DEFAULT_SAFETY_TOLERANCE = "6";
+const DEFAULT_TIMEOUT_MS = 290_000;
 
-type ReplicateVideoInput = Record<string, boolean | number | string>;
-type ReplicateModelName = `${string}/${string}` | `${string}/${string}:${string}`;
+type FalVideoInput = {
+  aspect_ratio: "16:9" | "9:16";
+  auto_fix: boolean;
+  duration: "4s" | "6s" | "8s";
+  generate_audio: boolean;
+  negative_prompt?: string;
+  prompt: string;
+  resolution: "720p" | "1080p";
+  safety_tolerance: "1" | "2" | "3" | "4" | "5" | "6";
+};
+
+type FalModelName = `${string}/${string}${string}`;
+
+type FalVideoFile = {
+  content_type?: string;
+  file_size?: number;
+  url: string;
+};
+
+type FalVideoOutput = {
+  video?: FalVideoFile;
+};
 
 export type GenerateContentGalleryVideoInput = {
   onProgress?: (
@@ -53,62 +75,82 @@ function sanitizeBaseName(name: string) {
   return normalized || "ai-content-video";
 }
 
-function parseDurationSeconds(value: string | undefined) {
-  const parsed = Number(value);
+function parseBoolean(value: string | undefined, fallback: boolean) {
+  const normalized = value?.trim().toLowerCase();
 
-  if (!Number.isFinite(parsed)) {
-    return DEFAULT_DURATION_SECONDS;
+  if (!normalized) {
+    return fallback;
   }
 
-  return Math.max(2, Math.min(12, Math.round(parsed)));
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
 }
 
-function resolveModelName(): ReplicateModelName {
-  const model =
-    process.env.REPLICATE_CONTENT_VIDEO_MODEL?.trim() || DEFAULT_MODEL;
+function parseEnum<T extends string>(
+  value: string | undefined,
+  allowed: readonly T[],
+  fallback: T,
+) {
+  const normalized = value?.trim();
 
-  if (!/^[^/\s]+\/[^/\s]+(?::[^/\s]+)?$/.test(model)) {
+  return allowed.includes(normalized as T) ? (normalized as T) : fallback;
+}
+
+function resolveModelName(): FalModelName {
+  const model = process.env.FAL_CONTENT_VIDEO_MODEL?.trim() || DEFAULT_MODEL;
+
+  if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
     throw new Error(
-      "REPLICATE_CONTENT_VIDEO_MODEL must use owner/model or owner/model:version format.",
+      "FAL_CONTENT_VIDEO_MODEL must use owner/model or owner/model/path format.",
     );
   }
 
-  return model as ReplicateModelName;
+  return model as FalModelName;
 }
 
-function createModelInput(model: string, prompt: string): ReplicateVideoInput {
-  const aspectRatio =
-    process.env.REPLICATE_CONTENT_VIDEO_ASPECT_RATIO?.trim() ||
-    DEFAULT_ASPECT_RATIO;
-  const duration = parseDurationSeconds(
-    process.env.REPLICATE_CONTENT_VIDEO_DURATION?.trim(),
+function createModelInput(prompt: string): FalVideoInput {
+  const aspectRatio = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
+    ["16:9", "9:16"] as const,
+    DEFAULT_ASPECT_RATIO,
   );
-  const resolution =
-    process.env.REPLICATE_CONTENT_VIDEO_RESOLUTION?.trim() ||
-    DEFAULT_RESOLUTION;
+  const duration = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_DURATION,
+    ["4s", "6s", "8s"] as const,
+    DEFAULT_DURATION,
+  );
+  const resolution = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
+    ["720p", "1080p"] as const,
+    DEFAULT_RESOLUTION,
+  );
+  const safetyTolerance = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_SAFETY_TOLERANCE,
+    ["1", "2", "3", "4", "5", "6"] as const,
+    DEFAULT_SAFETY_TOLERANCE,
+  );
+  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
 
-  if (model.includes("google/veo-3")) {
-    return {
-      aspect_ratio: aspectRatio,
-      duration,
-      generate_audio: true,
-      prompt,
-      resolution,
-    };
-  }
-
-  if (model.includes("seedance")) {
-    return {
-      aspect_ratio: aspectRatio,
-      camera_fixed: false,
-      duration,
-      fps: DEFAULT_FPS,
-      prompt,
-      resolution,
-    };
-  }
-
-  return { prompt };
+  return {
+    aspect_ratio: aspectRatio,
+    auto_fix: parseBoolean(process.env.FAL_CONTENT_VIDEO_AUTO_FIX, true),
+    duration,
+    generate_audio: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_GENERATE_AUDIO,
+      DEFAULT_GENERATE_AUDIO,
+    ),
+    ...(negativePrompt ? { negative_prompt: negativePrompt } : {}),
+    prompt,
+    resolution,
+    safety_tolerance: safetyTolerance,
+  };
 }
 
 function resolveFileExtension(contentType: string, sourceUrl: string | null) {
@@ -145,55 +187,47 @@ function resolveFileExtension(contentType: string, sourceUrl: string | null) {
   return ".mp4";
 }
 
-function isFileOutputLike(value: unknown): value is FileOutput {
+function isFalVideoFile(value: unknown): value is FalVideoFile {
   if (!value || typeof value !== "object") {
     return false;
   }
 
   return (
-    "blob" in value &&
-    typeof (value as FileOutput).blob === "function" &&
     "url" in value &&
-    typeof (value as FileOutput).url === "function"
+    typeof (value as FalVideoFile).url === "string"
   );
 }
 
-async function readReplicateOutputFile(
+function getFalVideoFile(output: unknown): FalVideoFile {
+  if (isFalVideoFile(output)) {
+    return output;
+  }
+
+  if (output && typeof output === "object" && "video" in output) {
+    const video = (output as FalVideoOutput).video;
+
+    if (isFalVideoFile(video)) {
+      return video;
+    }
+  }
+
+  throw new Error("fal returned an unsupported video payload.");
+}
+
+async function readFalOutputFile(
   output: unknown,
 ): Promise<{ blob: Blob; sourceUrl: string | null }> {
-  if (Array.isArray(output)) {
-    const [firstOutput] = output;
+  const video = getFalVideoFile(output);
+  const response = await fetch(video.url, { method: "GET" });
 
-    if (!firstOutput) {
-      throw new Error("Replicate returned no video output.");
-    }
-
-    return readReplicateOutputFile(firstOutput);
+  if (!response.ok) {
+    throw new Error(`fal returned an unreadable output URL (${response.status}).`);
   }
 
-  if (typeof output === "string") {
-    const response = await fetch(output, { method: "GET" });
-
-    if (!response.ok) {
-      throw new Error(
-        `Replicate returned an unreadable output URL (${response.status}).`,
-      );
-    }
-
-    return {
-      blob: await response.blob(),
-      sourceUrl: output,
-    };
-  }
-
-  if (isFileOutputLike(output)) {
-    return {
-      blob: await output.blob(),
-      sourceUrl: output.url().toString(),
-    };
-  }
-
-  throw new Error("Replicate returned an unsupported video payload.");
+  return {
+    blob: await response.blob(),
+    sourceUrl: video.url,
+  };
 }
 
 async function reportProgress(
@@ -212,6 +246,43 @@ async function reportProgress(
   await onProgress?.(event);
 }
 
+function getFalTimeoutMs() {
+  const parsed = Number(process.env.FAL_CONTENT_VIDEO_TIMEOUT_MS?.trim());
+
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_TIMEOUT_MS;
+  }
+
+  return Math.max(60_000, Math.min(600_000, Math.round(parsed)));
+}
+
+function reportFalQueueStatus(
+  onProgress: GenerateContentGalleryVideoInput["onProgress"],
+  status: QueueStatus,
+) {
+  if (status.status === "IN_QUEUE") {
+    void onProgress?.({
+      message:
+        status.queue_position > 0
+          ? `fal video generation is queued (${status.queue_position} ahead).`
+          : "fal video generation is queued.",
+      progress: 42,
+      status: "running",
+      step: "generating_image",
+    });
+    return;
+  }
+
+  if (status.status === "IN_PROGRESS") {
+    void onProgress?.({
+      message: "fal is rendering the AI content video.",
+      progress: 58,
+      status: "running",
+      step: "generating_image",
+    });
+  }
+}
+
 export async function generateAndUploadContentGalleryVideo(
   input: GenerateContentGalleryVideoInput,
 ): Promise<GeneratedContentGalleryVideo> {
@@ -219,10 +290,10 @@ export async function generateAndUploadContentGalleryVideo(
     throw new Error("BLOB_READ_WRITE_TOKEN is not configured.");
   }
 
-  const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
+  const falKey = process.env.FAL_KEY?.trim();
 
-  if (!replicateToken) {
-    throw new Error("REPLICATE_API_TOKEN is not configured.");
+  if (!falKey) {
+    throw new Error("FAL_KEY is not configured.");
   }
 
   const title = trimToLength(input.title, TITLE_LIMIT);
@@ -255,18 +326,25 @@ export async function generateAndUploadContentGalleryVideo(
   });
 
   await reportProgress(input.onProgress, {
-    message: "Generating the AI content video with Replicate.",
+    message: "Generating the AI content video with fal Veo 3.1 Lite.",
     progress: 42,
     status: "running",
     step: "generating_image",
   });
 
-  const replicate = new Replicate({ auth: replicateToken });
   const model = resolveModelName();
-  const modelInput = createModelInput(model, prompt);
+  const modelInput = createModelInput(prompt);
+  const fal = createFalClient({ credentials: falKey });
 
-  const rawOutput = await replicate.run(model, {
+  const result = await fal.subscribe(model, {
     input: modelInput,
+    logs: true,
+    mode: "polling",
+    onQueueUpdate(status) {
+      reportFalQueueStatus(input.onProgress, status);
+    },
+    pollInterval: 1000,
+    timeout: getFalTimeoutMs(),
   });
 
   await reportProgress(input.onProgress, {
@@ -276,11 +354,13 @@ export async function generateAndUploadContentGalleryVideo(
     step: "generating_image",
   });
 
-  const { blob, sourceUrl } = await readReplicateOutputFile(rawOutput);
+  const falVideo = getFalVideoFile(result.data);
+  const { blob, sourceUrl } = await readFalOutputFile(result.data);
   const contentType =
-    blob.type && blob.type !== "application/octet-stream"
+    falVideo.content_type ??
+    (blob.type && blob.type !== "application/octet-stream"
       ? blob.type
-      : "video/mp4";
+      : "video/mp4");
 
   if (blob.size > CONTENT_VIDEO_MAX_BYTES) {
     throw new Error("Generated video is larger than the 200MB limit.");

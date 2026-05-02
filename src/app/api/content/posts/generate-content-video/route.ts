@@ -95,8 +95,8 @@ export async function POST(request: Request) {
     return jsonError("BLOB_READ_WRITE_TOKEN is not configured.", 500);
   }
 
-  if (!process.env.REPLICATE_API_TOKEN?.trim()) {
-    return jsonError("REPLICATE_API_TOKEN is not configured.", 500);
+  if (!process.env.FAL_KEY?.trim()) {
+    return jsonError("FAL_KEY is not configured.", 500);
   }
 
   let body: GenerateContentVideoRequest | null = null;
