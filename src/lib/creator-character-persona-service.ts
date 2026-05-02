@@ -7,6 +7,8 @@ import type { CreatorCharacterPersona } from "@/lib/content";
 const DEFAULT_MODEL = "gpt-5.4";
 const DEFAULT_TIMEOUT_MS = 60_000;
 const CANDIDATE_COUNT = 4;
+const IDENTITY_PROMPT_LIMIT = 1_600;
+const TRAIT_LIMIT = 180;
 
 export type CreatorPersonaAgeRange = "20s" | "30s" | "40s" | "50s_plus";
 export type CreatorPersonaGender = "female" | "male";
@@ -105,14 +107,14 @@ function createPersonaSchema() {
             lockedTraits: {
               type: "array",
               items: { type: "string" },
-              minItems: 4,
-              maxItems: 6,
+              minItems: 6,
+              maxItems: 8,
             },
             avoidChanges: {
               type: "array",
               items: { type: "string" },
-              minItems: 3,
-              maxItems: 5,
+              minItems: 5,
+              maxItems: 7,
             },
           },
           required: [
@@ -177,7 +179,10 @@ function normalizeCandidate(
   index: number,
 ): CreatorCharacterPersona | null {
   const name = trimToLength(candidate.name, 80);
-  const identityPrompt = trimToLength(candidate.identityPrompt, 1_200);
+  const identityPrompt = trimToLength(
+    candidate.identityPrompt,
+    IDENTITY_PROMPT_LIMIT,
+  );
 
   if (!name || !identityPrompt) {
     return null;
@@ -185,17 +190,17 @@ function normalizeCandidate(
 
   return {
     avoidChanges: candidate.avoidChanges
-      .map((item) => trimToLength(item, 160))
+      .map((item) => trimToLength(item, TRAIT_LIMIT))
       .filter(Boolean)
-      .slice(0, 5),
+      .slice(0, 7),
     id: `persona-${index + 1}-${randomUUID().replace(/-/g, "").slice(0, 10)}`,
     identityPrompt,
     lockedTraits: candidate.lockedTraits
-      .map((item) => trimToLength(item, 160))
+      .map((item) => trimToLength(item, TRAIT_LIMIT))
       .filter(Boolean)
-      .slice(0, 6),
+      .slice(0, 8),
     name,
-    summary: trimToLength(candidate.summary, 220),
+    summary: trimToLength(candidate.summary, 260),
   };
 }
 
@@ -281,15 +286,17 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
 
   return {
     model: getCreatorPersonaModel(),
-    max_output_tokens: 1_800,
+    max_output_tokens: 2_600,
     input: [
       {
         role: "system",
         content: [
           "You create stable character identity personas for AI image and video generation.",
-          "The persona must only describe a consistent adult person's identity: face, hair, skin tone, age range, expression, silhouette, and signature details.",
+          "The persona must only describe a consistent adult person's identity.",
+          "Make the face description concrete enough for identity consistency: face shape, jawline, cheekbones, eye shape, eyebrow style, nose bridge/tip, mouth/lip shape, skin tone/texture, hairline, hair color, length, and texture.",
+          "Describe the body only as a neutral non-sexual silhouette: height impression, shoulder line, neck length, posture, frame, proportions, and overall presence.",
           "Every candidate must match the required gender and required adult age range exactly.",
-          "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, or content topics.",
+          "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, content topics, or emphasis on breasts, hips, thighs, buttocks, cleavage, or erotic body parts.",
           "Write user-facing name and summary in Korean when requested. Write identityPrompt, lockedTraits, and avoidChanges in concise English for generation models.",
         ].join(" "),
       },
@@ -304,7 +311,12 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           avatarImageUrl
             ? `A creator avatar URL is available for high-level context: ${avatarImageUrl}. Do not claim exact biometric analysis.`
             : "No avatar image is available.",
-          `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates. Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}. Keep each useful for maintaining the same person across varied content prompts.`,
+          `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates.`,
+          `Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}.`,
+          "Each identityPrompt must be one detailed paragraph in English with: face lock, hair lock, skin lock, expression lock, neutral body silhouette lock, posture/presence lock, and a clear instruction that outfit/scene/action may change but identity must not.",
+          "Each lockedTraits item should be a concrete stable visual trait, not a vague personality trait. Include at least four face/hair/skin traits and at least two neutral silhouette/posture traits.",
+          "Each avoidChanges item should explicitly forbid changing gender, adult age range, face structure, hair color/length, skin tone, ethnic impression, and neutral body silhouette.",
+          "Keep the wording safe for image and video models: neutral, non-erotic, and suitable for varied creator content prompts.",
         ].join(" "),
       },
     ],

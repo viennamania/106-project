@@ -142,11 +142,11 @@ export function applyCreatorCharacterPersonaToPrompt(
     `Character persona: ${identityPrompt}`,
     `Locked traits: ${formatList(
       persona.lockedTraits,
-      "same face structure, same hair, same skin tone, same age range",
+      "same face structure, same hair, same skin tone, same age range, same neutral body silhouette",
     )}.`,
     `Do not change: ${formatList(
       persona.avoidChanges,
-      "facial structure, hair color, age range, ethnicity, body identity",
+      "facial structure, hair color, age range, ethnicity, neutral body silhouette",
     )}.`,
     "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, body identity, or body proportions.",
     sceneInstruction,

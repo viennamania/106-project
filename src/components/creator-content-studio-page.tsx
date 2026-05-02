@@ -3768,7 +3768,7 @@ export function CreatorContentStudioPage({
                       {personaCopy.locked}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {persona.lockedTraits.slice(0, 4).map((trait) => (
+                      {persona.lockedTraits.slice(0, 6).map((trait) => (
                         <span
                           className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700"
                           key={trait}
