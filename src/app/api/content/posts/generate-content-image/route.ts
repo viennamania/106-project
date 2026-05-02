@@ -4,6 +4,7 @@ import {
   type ContentPostGenerateCoverStreamEvent,
 } from "@/lib/content";
 import { generateAndUploadContentGalleryImage } from "@/lib/content-gallery-image-service";
+import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
@@ -175,6 +176,9 @@ export async function POST(request: Request) {
         return;
       }
 
+      const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
+        member,
+      );
       emit({
         progress: {
           message: progressCopy.authorizingCompleted,
@@ -186,6 +190,7 @@ export async function POST(request: Request) {
       });
 
       const generatedImage = await generateAndUploadContentGalleryImage({
+        characterPersona: profileSnapshot.profile.characterPersona,
         onProgress(progress) {
           emit({
             progress,
@@ -247,7 +252,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
+      member,
+    );
     const generatedImage = await generateAndUploadContentGalleryImage({
+      characterPersona: profileSnapshot.profile.characterPersona,
       referralCode: member.referralCode,
       summary,
       title,

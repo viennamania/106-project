@@ -56,6 +56,9 @@ import {
   contentCoverGenerationProgressSteps,
 } from "@/lib/content";
 import type {
+  CreatorCharacterPersona,
+  CreatorCharacterPersonaGenerateResponse,
+  CreatorProfileRecord,
   ContentGenerationFailureDiagnostic,
   ContentCoverGenerationProgressStep,
   ContentPriceType,
@@ -94,6 +97,7 @@ type StudioState = {
   posts: ContentPostRecord[];
   profile: {
     avatarImageUrl: string;
+    characterPersona: CreatorCharacterPersona | null;
     displayName: string;
     heroImageUrl: string;
     intro: string;
@@ -148,6 +152,12 @@ type AutomationCelebrationState = {
   tone: "draft" | "published";
 };
 
+type PersonaGenerationState = {
+  candidates: CreatorCharacterPersona[];
+  error: string | null;
+  status: "idle" | "loading" | "ready" | "error";
+};
+
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
 
 type CoverGenerationProgressState = {
@@ -168,6 +178,7 @@ type StudioView = "hub" | "new" | "profile";
 
 const EMPTY_PROFILE = {
   avatarImageUrl: "",
+  characterPersona: null as CreatorCharacterPersona | null,
   displayName: "",
   heroImageUrl: "",
   intro: "",
@@ -259,6 +270,23 @@ function createEmptyAutomationProgress(): AutomationProgressState {
     steps: Object.fromEntries(
       contentAutomationRunProgressSteps.map((step) => [step, "pending"]),
     ) as Record<ContentAutomationRunProgressStep, AutomationProgressStepState>,
+  };
+}
+
+function createEditableCreatorProfile(
+  profile: CreatorProfileRecord | null | undefined,
+): StudioState["profile"] {
+  if (!profile) {
+    return EMPTY_PROFILE;
+  }
+
+  return {
+    avatarImageUrl: profile.avatarImageUrl ?? "",
+    characterPersona: profile.characterPersona ?? null,
+    displayName: profile.displayName,
+    heroImageUrl: profile.heroImageUrl ?? "",
+    intro: profile.intro,
+    payoutWalletAddress: profile.payoutWalletAddress ?? "",
   };
 }
 
@@ -661,6 +689,12 @@ export function CreatorContentStudioPage({
   const [automationProgress, setAutomationProgress] = useState<AutomationProgressState>(
     createEmptyAutomationProgress(),
   );
+  const [personaGeneration, setPersonaGeneration] =
+    useState<PersonaGenerationState>({
+      candidates: [],
+      error: null,
+      status: "idle",
+    });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
@@ -1544,16 +1578,7 @@ export function CreatorContentStudioPage({
           member,
           notice: null,
           posts: postsData.posts,
-          profile: postsData.profile
-            ? {
-                avatarImageUrl: postsData.profile.avatarImageUrl ?? "",
-                displayName: postsData.profile.displayName,
-                heroImageUrl: postsData.profile.heroImageUrl ?? "",
-                intro: postsData.profile.intro,
-                payoutWalletAddress:
-                  postsData.profile.payoutWalletAddress ?? "",
-              }
-            : EMPTY_PROFILE,
+          profile: createEditableCreatorProfile(postsData.profile),
           profileConfigured: postsData.profileConfigured,
           summary: postsData.summary,
           status: "ready",
@@ -1696,13 +1721,7 @@ export function CreatorContentStudioPage({
         member,
         notice: null,
         posts: [],
-        profile: {
-          avatarImageUrl: profileData.profile.avatarImageUrl ?? "",
-          displayName: profileData.profile.displayName,
-          heroImageUrl: profileData.profile.heroImageUrl ?? "",
-          intro: profileData.profile.intro,
-          payoutWalletAddress: profileData.profile.payoutWalletAddress ?? "",
-        },
+        profile: createEditableCreatorProfile(profileData.profile),
         profileConfigured: profileData.profileConfigured,
         summary: EMPTY_STUDIO_SUMMARY,
         status: "ready",
@@ -1955,18 +1974,21 @@ export function CreatorContentStudioPage({
     return email;
   }
 
-  async function saveProfile() {
+  async function saveProfile(profileOverride?: StudioState["profile"]) {
+    const profileToSave = profileOverride ?? state.profile;
+
     try {
       setIsSavingProfile(true);
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile", {
         body: JSON.stringify({
-          avatarImageUrl: state.profile.avatarImageUrl || null,
-          displayName: state.profile.displayName,
+          avatarImageUrl: profileToSave.avatarImageUrl || null,
+          characterPersona: profileToSave.characterPersona,
+          displayName: profileToSave.displayName,
           email,
-          heroImageUrl: state.profile.heroImageUrl || null,
-          intro: state.profile.intro,
-          payoutWalletAddress: state.profile.payoutWalletAddress || null,
+          heroImageUrl: profileToSave.heroImageUrl || null,
+          intro: profileToSave.intro,
+          payoutWalletAddress: profileToSave.payoutWalletAddress || null,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -1990,13 +2012,7 @@ export function CreatorContentStudioPage({
         ...current,
         error: null,
         notice: contentCopy.messages.profileSaved,
-        profile: {
-          avatarImageUrl: data.profile.avatarImageUrl ?? "",
-          displayName: data.profile.displayName,
-          heroImageUrl: data.profile.heroImageUrl ?? "",
-          intro: data.profile.intro,
-          payoutWalletAddress: data.profile.payoutWalletAddress ?? "",
-        },
+        profile: createEditableCreatorProfile(data.profile),
         profileConfigured: data.profileConfigured,
       }));
     } catch (error) {
@@ -2046,13 +2062,7 @@ export function CreatorContentStudioPage({
           locale === "ko"
             ? "유료 판매용 thirdweb 정산 지갑을 준비했습니다."
             : "Seller wallet is ready for paid unlocks.",
-        profile: {
-          avatarImageUrl: data.profile.avatarImageUrl ?? "",
-          displayName: data.profile.displayName,
-          heroImageUrl: data.profile.heroImageUrl ?? "",
-          intro: data.profile.intro,
-          payoutWalletAddress: data.profile.payoutWalletAddress ?? "",
-        },
+        profile: createEditableCreatorProfile(data.profile),
         profileConfigured: data.profileConfigured,
       }));
 
@@ -2070,6 +2080,89 @@ export function CreatorContentStudioPage({
     } finally {
       setIsCreatingSellerWallet(false);
     }
+  }
+
+  async function generateCharacterPersonaCandidates() {
+    try {
+      setPersonaGeneration((current) => ({
+        ...current,
+        error: null,
+        status: "loading",
+      }));
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/profile/personas", {
+        body: JSON.stringify({
+          avatarImageUrl: state.profile.avatarImageUrl || null,
+          displayName: state.profile.displayName,
+          email,
+          intro: state.profile.intro,
+          locale,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as
+        | CreatorCharacterPersonaGenerateResponse
+        | { error?: string };
+
+      if (!response.ok || !("candidates" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : locale === "ko"
+              ? "인물 페르소나 후보를 만들지 못했습니다."
+              : "Failed to generate character personas.",
+        );
+      }
+
+      setPersonaGeneration({
+        candidates: data.candidates,
+        error: null,
+        status: "ready",
+      });
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "인물 페르소나 후보를 만들었습니다. 하나를 선택하면 바로 저장됩니다."
+            : "Character persona candidates are ready. Select one to save it.",
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : locale === "ko"
+            ? "인물 페르소나 후보를 만들지 못했습니다."
+            : "Failed to generate character personas.";
+
+      setPersonaGeneration({
+        candidates: [],
+        error: message,
+        status: "error",
+      });
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
+    }
+  }
+
+  async function saveCharacterPersona(persona: CreatorCharacterPersona | null) {
+    const nextProfile = {
+      ...state.profile,
+      characterPersona: persona,
+    };
+
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
+    await saveProfile(nextProfile);
   }
 
   async function createPost(statusToSave: "draft" | "published") {
@@ -3357,6 +3450,174 @@ export function CreatorContentStudioPage({
     return null;
   }
 
+  function renderCharacterPersonaPanel() {
+    const selectedPersona = state.profile.characterPersona;
+    const isGenerating = personaGeneration.status === "loading";
+    const personaCopy =
+      locale === "ko"
+        ? {
+            apply: "선택하고 저장",
+            applied: "적용 중",
+            avoid: "변경 금지",
+            body:
+              "인물만 고정하는 페르소나를 선택하면 AI 이미지와 동영상 생성에서 같은 인물을 더 강하게 유지합니다.",
+            clear: "페르소나 사용 안 함",
+            generate: "AI가 페르소나 추천",
+            generating: "추천 생성 중...",
+            locked: "고정 특징",
+            selectedTitle: "현재 인물 페르소나",
+            title: "인물 페르소나",
+          }
+        : {
+            apply: "Select and save",
+            applied: "Applied",
+            avoid: "Do not change",
+            body:
+              "Choose a character-only persona to keep the same person stronger in AI image and video generation.",
+            clear: "Disable persona",
+            generate: "Suggest personas",
+            generating: "Generating...",
+            locked: "Locked traits",
+            selectedTitle: "Current character persona",
+            title: "Character persona",
+          };
+
+    return (
+      <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">
+              {personaCopy.title}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {personaCopy.body}
+            </p>
+          </div>
+          <button
+            className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            disabled={isGenerating || isSavingProfile || isDisconnected}
+            onClick={() => {
+              void generateCharacterPersonaCandidates();
+            }}
+            type="button"
+          >
+            {isGenerating ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
+            {isGenerating ? personaCopy.generating : personaCopy.generate}
+          </button>
+        </div>
+
+        {selectedPersona ? (
+          <div className="mt-4 rounded-[20px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    {personaCopy.selectedTitle}
+                  </p>
+                  <span className="inline-flex h-6 items-center rounded-full bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700">
+                    {personaCopy.applied}
+                  </span>
+                </div>
+                <p className="mt-2 text-base font-semibold text-slate-950">
+                  {selectedPersona.name}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  {selectedPersona.summary}
+                </p>
+              </div>
+              <button
+                className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSavingProfile}
+                onClick={() => {
+                  void saveCharacterPersona(null);
+                }}
+                type="button"
+              >
+                {personaCopy.clear}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {personaGeneration.error ? (
+          <MessageCard tone="error">{personaGeneration.error}</MessageCard>
+        ) : null}
+
+        {personaGeneration.candidates.length > 0 ? (
+          <div className="-mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+            {personaGeneration.candidates.map((persona) => {
+              const selected = selectedPersona?.id === persona.id;
+
+              return (
+                <article
+                  className={`min-w-[82%] snap-start rounded-[22px] border bg-white p-4 shadow-sm sm:min-w-0 ${
+                    selected
+                      ? "border-slate-950 ring-2 ring-slate-950/10"
+                      : "border-slate-200"
+                  }`}
+                  key={persona.id}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-slate-950">
+                        {persona.name}
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {persona.summary}
+                      </p>
+                    </div>
+                    {selected ? (
+                      <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white">
+                        <Check className="size-4" />
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {personaCopy.locked}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {persona.lockedTraits.slice(0, 4).map((trait) => (
+                        <span
+                          className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700"
+                          key={trait}
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {personaCopy.avoid}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                      {persona.avoidChanges.join(", ")}
+                    </p>
+                  </div>
+                  <button
+                    className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isSavingProfile || selected}
+                    onClick={() => {
+                      void saveCharacterPersona(persona);
+                    }}
+                    type="button"
+                  >
+                    {selected ? personaCopy.applied : personaCopy.apply}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   function renderProfileCard() {
     const blockedState = renderBlockedState();
 
@@ -3395,6 +3656,7 @@ export function CreatorContentStudioPage({
               }}
               value={state.profile.displayName}
             />
+            {renderCharacterPersonaPanel()}
             <TextAreaField
               hint={contentCopy.hints.intro}
               label={contentCopy.fields.intro}

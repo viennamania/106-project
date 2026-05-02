@@ -45,6 +45,7 @@ import {
   type CreatorProfileDocument,
   type CreatorProfileRecord,
   type CreatorProfileUpsertRequest,
+  type CreatorCharacterPersona,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
@@ -112,6 +113,11 @@ type ContentFeedActivityCursor = {
 
 const PROFILE_DISPLAY_NAME_LIMIT = 40;
 const PROFILE_INTRO_LIMIT = 220;
+const CHARACTER_PERSONA_NAME_LIMIT = 80;
+const CHARACTER_PERSONA_SUMMARY_LIMIT = 220;
+const CHARACTER_PERSONA_PROMPT_LIMIT = 1_200;
+const CHARACTER_PERSONA_TRAIT_LIMIT = 160;
+const CHARACTER_PERSONA_TRAIT_COUNT_LIMIT = 8;
 const CONTENT_TITLE_LIMIT = 88;
 const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
@@ -229,6 +235,50 @@ function trimToLength(value: string | null | undefined, limit: number) {
 function normalizeOptionalText(value: string | null | undefined, limit: number) {
   const trimmed = trimToLength(value, limit);
   return trimmed || null;
+}
+
+function normalizeCharacterPersonaList(values: unknown) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values
+    .map((value) =>
+      typeof value === "string"
+        ? trimToLength(value, CHARACTER_PERSONA_TRAIT_LIMIT)
+        : "",
+    )
+    .filter(Boolean)
+    .slice(0, CHARACTER_PERSONA_TRAIT_COUNT_LIMIT);
+}
+
+function normalizeCharacterPersona(
+  persona: CreatorCharacterPersona | null | undefined,
+): CreatorCharacterPersona | null {
+  if (!persona) {
+    return null;
+  }
+
+  const name = trimToLength(persona.name, CHARACTER_PERSONA_NAME_LIMIT);
+  const identityPrompt = trimToLength(
+    persona.identityPrompt,
+    CHARACTER_PERSONA_PROMPT_LIMIT,
+  );
+
+  if (!name || !identityPrompt) {
+    return null;
+  }
+
+  return {
+    avoidChanges: normalizeCharacterPersonaList(persona.avoidChanges),
+    id:
+      trimToLength(persona.id, 80) ||
+      `persona-${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+    identityPrompt,
+    lockedTraits: normalizeCharacterPersonaList(persona.lockedTraits),
+    name,
+    summary: trimToLength(persona.summary, CHARACTER_PERSONA_SUMMARY_LIMIT),
+  };
 }
 
 function normalizeTags(tags?: string[]) {
@@ -430,6 +480,7 @@ function createDefaultCreatorProfile(member: MemberDocument): CreatorProfileReco
 
   return {
     avatarImageUrl: member.landingBranding?.heroImageUrl ?? null,
+    characterPersona: null,
     displayName: inferDisplayName(member),
     heroImageUrl: member.landingBranding?.heroImageUrl ?? null,
     intro: inferIntro(member),
@@ -455,6 +506,7 @@ function isStoredCreatorProfileConfigured(
   return (
     normalizeProfileComparisonValue(stored.avatarImageUrl) !==
       normalizeProfileComparisonValue(defaultProfile.avatarImageUrl) ||
+    Boolean(stored.characterPersona) ||
     normalizeProfileComparisonValue(stored.displayName) !==
       normalizeProfileComparisonValue(defaultProfile.displayName) ||
     normalizeProfileComparisonValue(stored.heroImageUrl) !==
@@ -941,6 +993,7 @@ export async function upsertCreatorProfileForMember(
 
   const nextProfile: CreatorProfileDocument = {
     avatarImageUrl: normalizeOptionalText(input.avatarImageUrl, 500),
+    characterPersona: normalizeCharacterPersona(input.characterPersona),
     createdAt: now,
     displayName,
     email: member.email,

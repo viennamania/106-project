@@ -16,7 +16,9 @@ import {
   type ContentGenerationFailureDiagnostic,
   type ContentGenerationFailureKind,
   type ContentPostGenerateCoverProgressEvent,
+  type CreatorCharacterPersona,
 } from "@/lib/content";
+import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
@@ -88,6 +90,7 @@ export class ContentVideoGenerationError extends Error {
 }
 
 export type GenerateContentGalleryVideoInput = {
+  characterPersona?: CreatorCharacterPersona | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
@@ -724,9 +727,14 @@ export async function generateAndUploadContentGalleryVideo(
     step: "preparing_prompt",
   });
 
-  const { prompt, revisedPrompt } = rewritePromptForSaferVideoGeneration(
+  const personaAppliedPrompt = applyCreatorCharacterPersonaToPrompt(
     visualBrief,
+    input.characterPersona,
   );
+  const { prompt, revisedPrompt: safetyRevisedPrompt } =
+    rewritePromptForSaferVideoGeneration(personaAppliedPrompt);
+  const revisedPrompt =
+    prompt === visualBrief ? null : safetyRevisedPrompt ?? personaAppliedPrompt;
   const model = resolveModelName();
   const modelDisplayName = getModelDisplayName(model);
 

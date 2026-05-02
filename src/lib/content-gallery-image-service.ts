@@ -5,9 +5,11 @@ import Replicate, { type FileOutput } from "replicate";
 
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  type CreatorCharacterPersona,
   type ContentCoverGenerationProgressStep,
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
+import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
@@ -47,6 +49,7 @@ type Flux2KleinInput = {
 };
 
 export type GenerateContentGalleryImageInput = {
+  characterPersona?: CreatorCharacterPersona | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
@@ -216,7 +219,10 @@ export async function generateAndUploadContentGalleryImage(
     step: "preparing_prompt",
   });
 
-  const prompt = visualBrief;
+  const prompt = applyCreatorCharacterPersonaToPrompt(
+    visualBrief,
+    input.characterPersona,
+  );
 
   await reportProgress(input.onProgress, {
     message: "Image prompt is ready. Starting content image generation.",
@@ -290,7 +296,7 @@ export async function generateAndUploadContentGalleryImage(
   return {
     contentType: uploaded.contentType,
     pathname: uploaded.pathname,
-    revisedPrompt: null,
+    revisedPrompt: prompt === visualBrief ? null : prompt,
     url: uploaded.url,
   };
 }

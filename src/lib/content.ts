@@ -64,6 +64,7 @@ export type ContentCoverGenerationProgressStep =
 
 export type CreatorProfileDocument = {
   avatarImageUrl?: string | null;
+  characterPersona?: CreatorCharacterPersona | null;
   configuredAt?: Date | null;
   createdAt: Date;
   displayName: string;
@@ -74,6 +75,15 @@ export type CreatorProfileDocument = {
   referralCode: string;
   status: CreatorProfileStatus;
   updatedAt: Date;
+};
+
+export type CreatorCharacterPersona = {
+  avoidChanges: string[];
+  id: string;
+  identityPrompt: string;
+  lockedTraits: string[];
+  name: string;
+  summary: string;
 };
 
 export type ContentAssetDocument = {
@@ -155,6 +165,7 @@ export type ContentCommentDocument = {
 
 export type CreatorProfileRecord = {
   avatarImageUrl: string | null;
+  characterPersona: CreatorCharacterPersona | null;
   displayName: string;
   heroImageUrl: string | null;
   intro: string;
@@ -345,6 +356,10 @@ export type CreatorProfileUploadResponse = {
   url: string;
 };
 
+export type CreatorCharacterPersonaGenerateResponse = {
+  candidates: CreatorCharacterPersona[];
+};
+
 export type ContentPostUploadResponse = {
   contentType: string;
   pathname: string;
@@ -448,6 +463,7 @@ export type CreatorStudioPostsLoadResponse = {
 
 export type CreatorProfileUpsertRequest = {
   avatarImageUrl?: string | null;
+  characterPersona?: CreatorCharacterPersona | null;
   displayName: string;
   email: string;
   heroImageUrl?: string | null;
@@ -537,6 +553,7 @@ export function serializeCreatorProfile(
 ): CreatorProfileRecord {
   return {
     avatarImageUrl: profile.avatarImageUrl ?? null,
+    characterPersona: profile.characterPersona ?? null,
     displayName: profile.displayName,
     heroImageUrl: profile.heroImageUrl ?? null,
     intro: profile.intro,
