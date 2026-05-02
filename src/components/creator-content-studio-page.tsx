@@ -58,6 +58,8 @@ import {
 import type {
   CreatorCharacterPersona,
   CreatorCharacterPersonaGenerateResponse,
+  CreatorProfileAvatarCandidate,
+  CreatorProfileAvatarGenerateResponse,
   CreatorProfileRecord,
   ContentGenerationFailureDiagnostic,
   ContentCoverGenerationProgressStep,
@@ -157,6 +159,12 @@ type PersonaGenerationState = {
   candidates: CreatorCharacterPersona[];
   error: string | null;
   gender: "" | "female" | "male";
+  status: "idle" | "loading" | "ready" | "error";
+};
+
+type AvatarGenerationState = {
+  candidates: CreatorProfileAvatarCandidate[];
+  error: string | null;
   status: "idle" | "loading" | "ready" | "error";
 };
 
@@ -699,6 +707,12 @@ export function CreatorContentStudioPage({
       gender: "",
       status: "idle",
     });
+  const [avatarGeneration, setAvatarGeneration] =
+    useState<AvatarGenerationState>({
+      candidates: [],
+      error: null,
+      status: "idle",
+    });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
@@ -724,7 +738,6 @@ export function CreatorContentStudioPage({
   >(null);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
-  const [isUploadingProfileAvatar, setIsUploadingProfileAvatar] = useState(false);
   const [isUploadingProfileHeroImage, setIsUploadingProfileHeroImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isUploadingPostVideo, setIsUploadingPostVideo] = useState(false);
@@ -1280,7 +1293,6 @@ export function CreatorContentStudioPage({
     contentCoverGenerationProgressSteps.filter(
       (step) => contentVideoGenerationProgress.steps[step] === "done",
     ).length;
-  const profileAvatarInputRef = useRef<HTMLInputElement | null>(null);
   const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
@@ -2183,6 +2195,109 @@ export function CreatorContentStudioPage({
       characterPersona: persona,
     };
 
+    setAvatarGeneration({
+      candidates: [],
+      error: null,
+      status: "idle",
+    });
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
+    await saveProfile(nextProfile);
+  }
+
+  async function generateProfileAvatarCandidates() {
+    if (!state.profile.characterPersona) {
+      const message =
+        locale === "ko"
+          ? "먼저 인물 페르소나를 선택하세요."
+          : "Select a character persona first.";
+
+      setAvatarGeneration({
+        candidates: [],
+        error: message,
+        status: "error",
+      });
+      return;
+    }
+
+    try {
+      setAvatarGeneration((current) => ({
+        ...current,
+        candidates: [],
+        error: null,
+        status: "loading",
+      }));
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/profile/avatar-candidates", {
+        body: JSON.stringify({
+          characterPersona: state.profile.characterPersona,
+          displayName: state.profile.displayName,
+          email,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as
+        | CreatorProfileAvatarGenerateResponse
+        | { error?: string };
+
+      if (!response.ok || !("candidates" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : locale === "ko"
+              ? "AI 아바타 후보를 만들지 못했습니다."
+              : "Failed to generate avatar candidates.",
+        );
+      }
+
+      setAvatarGeneration({
+        candidates: data.candidates,
+        error: null,
+        status: "ready",
+      });
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "AI 아바타 후보를 만들었습니다. 하나를 선택하면 프로필에 저장됩니다."
+            : "AI avatar candidates are ready. Select one to save it to your profile.",
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : locale === "ko"
+            ? "AI 아바타 후보를 만들지 못했습니다."
+            : "Failed to generate avatar candidates.";
+
+      setAvatarGeneration({
+        candidates: [],
+        error: message,
+        status: "error",
+      });
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
+    }
+  }
+
+  async function saveGeneratedProfileAvatar(
+    candidate: CreatorProfileAvatarCandidate,
+  ) {
+    const nextProfile = {
+      ...state.profile,
+      avatarImageUrl: candidate.url,
+    };
+
     setState((current) => ({
       ...current,
       profile: nextProfile,
@@ -2349,54 +2464,6 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.studioLoadFailed,
         notice: null,
       }));
-    }
-  }
-
-  async function uploadProfileAvatarImage(file: File) {
-    try {
-      setIsUploadingProfileAvatar(true);
-      const email = await resolveMemberEmail();
-      const body = new FormData();
-      body.set("email", email);
-      body.set("file", file);
-      body.set("walletAddress", accountAddress ?? "");
-
-      const response = await fetch("/api/content/profile/upload", {
-        body,
-        method: "POST",
-      });
-      const data = (await response.json()) as CreatorProfileUploadResponse | {
-        error?: string;
-      };
-
-      if (!response.ok || !("url" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.uploadFailed,
-        );
-      }
-
-      setState((current) => ({
-        ...current,
-        error: null,
-        notice: contentCopy.messages.uploadSuccess,
-        profile: {
-          ...current.profile,
-          avatarImageUrl: data.url,
-        },
-      }));
-    } catch (error) {
-      setState((current) => ({
-        ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-        notice: null,
-      }));
-    } finally {
-      setIsUploadingProfileAvatar(false);
     }
   }
 
@@ -3760,6 +3827,30 @@ export function CreatorContentStudioPage({
 
   function renderProfileCard() {
     const blockedState = renderBlockedState();
+    const isGeneratingProfileAvatar = avatarGeneration.status === "loading";
+    const canGenerateProfileAvatar = Boolean(state.profile.characterPersona);
+    const avatarGeneratorCopy =
+      locale === "ko"
+        ? {
+            body:
+              "선택한 인물 페르소나를 기준으로 프로필용 정사각형 아바타 후보를 생성합니다.",
+            disabledHint: "인물 페르소나를 먼저 선택하면 AI 아바타를 만들 수 있습니다.",
+            generate: "AI 아바타 생성",
+            generating: "아바타 생성 중...",
+            select: "선택하고 저장",
+            selected: "저장됨",
+            title: "AI 아바타",
+          }
+        : {
+            body:
+              "Generate square profile avatar options from the selected character persona.",
+            disabledHint: "Select a character persona first to generate AI avatars.",
+            generate: "Generate AI Avatar",
+            generating: "Generating avatars...",
+            select: "Select and save",
+            selected: "Saved",
+            title: "AI Avatar",
+          };
 
     return (
       <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
@@ -3831,24 +3922,9 @@ export function CreatorContentStudioPage({
                 {contentCopy.fields.avatarImage}
               </p>
               <p className="mt-2 text-xs leading-5 text-slate-500">
-                {contentCopy.hints.avatarImage}
+                {avatarGeneratorCopy.body}
               </p>
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-
-                  if (file) {
-                    void uploadProfileAvatarImage(file);
-                  }
-
-                  event.target.value = "";
-                }}
-                ref={profileAvatarInputRef}
-                type="file"
-              />
-              <div className="mt-4 flex items-center gap-4">
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="relative shrink-0">
                   <div className="flex size-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
                     {state.profile.avatarImageUrl ? (
@@ -3869,16 +3945,25 @@ export function CreatorContentStudioPage({
                 <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                   <button
                     className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={isUploadingProfileAvatar}
+                    disabled={
+                      isGeneratingProfileAvatar ||
+                      isSavingProfile ||
+                      isDisconnected ||
+                      !canGenerateProfileAvatar
+                    }
                     onClick={() => {
-                      profileAvatarInputRef.current?.click();
+                      void generateProfileAvatarCandidates();
                     }}
                     type="button"
                   >
-                    <ImagePlus className="size-4" />
-                    {isUploadingProfileAvatar
-                      ? contentCopy.actions.uploadingImage
-                      : contentCopy.actions.uploadImage}
+                    {isGeneratingProfileAvatar ? (
+                      <LoaderCircle className="size-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4" />
+                    )}
+                    {isGeneratingProfileAvatar
+                      ? avatarGeneratorCopy.generating
+                      : avatarGeneratorCopy.generate}
                   </button>
                   {state.profile.avatarImageUrl ? (
                     <button
@@ -3900,6 +3985,60 @@ export function CreatorContentStudioPage({
                   ) : null}
                 </div>
               </div>
+              {!canGenerateProfileAvatar ? (
+                <p className="mt-3 text-xs leading-5 text-slate-500">
+                  {avatarGeneratorCopy.disabledHint}
+                </p>
+              ) : null}
+              {avatarGeneration.error ? (
+                <MessageCard tone="error">{avatarGeneration.error}</MessageCard>
+              ) : null}
+              {avatarGeneration.candidates.length > 0 ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {avatarGeneration.candidates.map((candidate) => {
+                    const selected =
+                      state.profile.avatarImageUrl === candidate.url;
+
+                    return (
+                      <div
+                        className={`overflow-hidden rounded-[20px] border bg-white shadow-sm ${
+                          selected
+                            ? "border-slate-950 ring-2 ring-slate-950/10"
+                            : "border-slate-200"
+                        }`}
+                        key={candidate.pathname}
+                      >
+                        <div className="aspect-square overflow-hidden bg-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt={avatarGeneratorCopy.title}
+                            className="h-full w-full object-cover"
+                            src={candidate.url}
+                          />
+                        </div>
+                        <div className="p-2">
+                          <button
+                            className="inline-flex h-9 w-full items-center justify-center rounded-full bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={
+                              isSavingProfile ||
+                              isGeneratingProfileAvatar ||
+                              selected
+                            }
+                            onClick={() => {
+                              void saveGeneratedProfileAvatar(candidate);
+                            }}
+                            type="button"
+                          >
+                            {selected
+                              ? avatarGeneratorCopy.selected
+                              : avatarGeneratorCopy.select}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
             <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="text-sm font-medium text-slate-900">
@@ -3972,7 +4111,7 @@ export function CreatorContentStudioPage({
               disabled={
                 isSavingProfile ||
                 isDisconnected ||
-                isUploadingProfileAvatar ||
+                isGeneratingProfileAvatar ||
                 isUploadingProfileHeroImage
               }
               onClick={() => {

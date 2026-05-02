@@ -356,6 +356,16 @@ export type CreatorProfileUploadResponse = {
   url: string;
 };
 
+export type CreatorProfileAvatarCandidate = {
+  contentType: string;
+  pathname: string;
+  url: string;
+};
+
+export type CreatorProfileAvatarGenerateResponse = {
+  candidates: CreatorProfileAvatarCandidate[];
+};
+
 export type CreatorCharacterPersonaGenerateResponse = {
   candidates: CreatorCharacterPersona[];
 };
