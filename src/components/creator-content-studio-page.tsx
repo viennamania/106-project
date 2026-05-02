@@ -155,6 +155,14 @@ type AutomationCelebrationState = {
 
 type PersonaGenerationState = {
   ageRange: "" | "20s" | "30s" | "40s" | "50s_plus";
+  appearanceTone:
+    | "auto"
+    | "african_diaspora"
+    | "east_asian"
+    | "latin"
+    | "middle_eastern_mediterranean"
+    | "south_asian"
+    | "western";
   candidates: CreatorCharacterPersona[];
   error: string | null;
   gender: "" | "female" | "male";
@@ -732,6 +740,7 @@ export function CreatorContentStudioPage({
   const [personaGeneration, setPersonaGeneration] =
     useState<PersonaGenerationState>({
       ageRange: "",
+      appearanceTone: "auto",
       candidates: [],
       error: null,
       gender: "",
@@ -2151,6 +2160,10 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile/personas", {
         body: JSON.stringify({
+          appearanceTone:
+            personaGeneration.appearanceTone === "auto"
+              ? null
+              : personaGeneration.appearanceTone,
           avatarImageUrl: state.profile.avatarImageUrl || null,
           displayName: state.profile.displayName,
           email,
@@ -2181,6 +2194,7 @@ export function CreatorContentStudioPage({
 
       setPersonaGeneration({
         ageRange: personaGeneration.ageRange,
+        appearanceTone: personaGeneration.appearanceTone,
         candidates: data.candidates,
         error: null,
         gender: personaGeneration.gender,
@@ -2204,6 +2218,7 @@ export function CreatorContentStudioPage({
 
       setPersonaGeneration({
         ageRange: personaGeneration.ageRange,
+        appearanceTone: personaGeneration.appearanceTone,
         candidates: [],
         error: message,
         gender: personaGeneration.gender,
@@ -3536,6 +3551,16 @@ export function CreatorContentStudioPage({
             age40s: "40대",
             age50sPlus: "50대+",
             ageLabel: "연령대",
+            appearanceAfricanDiaspora: "아프리카계 인상",
+            appearanceAuto: "자동 추천",
+            appearanceEastAsian: "동아시아계 인상",
+            appearanceHint:
+              "선택 사항입니다. 선택하면 얼굴, 피부톤, 헤어 인상을 더 안정적으로 맞춥니다.",
+            appearanceLabel: "외형 톤",
+            appearanceLatin: "라틴계 인상",
+            appearanceMiddleEastern: "중동/지중해계 인상",
+            appearanceSouthAsian: "남아시아계 인상",
+            appearanceWestern: "서구권 인상",
             avoid: "변경 금지",
             body:
               "인물만 고정하는 페르소나를 선택하면 AI 이미지와 동영상 생성에서 같은 인물을 더 강하게 유지합니다.",
@@ -3558,6 +3583,16 @@ export function CreatorContentStudioPage({
             age40s: "40s",
             age50sPlus: "50s+",
             ageLabel: "Age range",
+            appearanceAfricanDiaspora: "African diaspora",
+            appearanceAuto: "Auto",
+            appearanceEastAsian: "East Asian",
+            appearanceHint:
+              "Optional. Use it to keep face, skin tone, and hair impression more stable.",
+            appearanceLabel: "Appearance tone",
+            appearanceLatin: "Latin",
+            appearanceMiddleEastern: "Middle Eastern / Mediterranean",
+            appearanceSouthAsian: "South Asian",
+            appearanceWestern: "Western",
             avoid: "Do not change",
             body:
               "Choose a character-only persona to keep the same person stronger in AI image and video generation.",
@@ -3581,6 +3616,24 @@ export function CreatorContentStudioPage({
       { label: personaCopy.age30s, value: "30s" as const },
       { label: personaCopy.age40s, value: "40s" as const },
       { label: personaCopy.age50sPlus, value: "50s_plus" as const },
+    ];
+    const personaAppearanceToneOptions = [
+      { label: personaCopy.appearanceAuto, value: "auto" as const },
+      { label: personaCopy.appearanceEastAsian, value: "east_asian" as const },
+      { label: personaCopy.appearanceWestern, value: "western" as const },
+      { label: personaCopy.appearanceLatin, value: "latin" as const },
+      {
+        label: personaCopy.appearanceSouthAsian,
+        value: "south_asian" as const,
+      },
+      {
+        label: personaCopy.appearanceMiddleEastern,
+        value: "middle_eastern_mediterranean" as const,
+      },
+      {
+        label: personaCopy.appearanceAfricanDiaspora,
+        value: "african_diaspora" as const,
+      },
     ];
     const canGeneratePersonaCandidates = Boolean(
       personaGeneration.gender && personaGeneration.ageRange,
@@ -3668,6 +3721,45 @@ export function CreatorContentStudioPage({
                 })}
               </div>
             </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {personaCopy.appearanceLabel}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {personaAppearanceToneOptions.map((option) => {
+                const selected =
+                  personaGeneration.appearanceTone === option.value;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${
+                      selected
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    }`}
+                    disabled={isGenerating}
+                    key={option.value}
+                    onClick={() => {
+                      setPersonaGeneration((current) => ({
+                        ...current,
+                        appearanceTone: option.value,
+                        candidates: [],
+                        error: null,
+                        status: "idle",
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              {personaCopy.appearanceHint}
+            </p>
           </div>
           {!canGeneratePersonaCandidates ? (
             <p className="text-xs leading-5 text-slate-500">

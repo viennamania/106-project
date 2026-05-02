@@ -3,6 +3,7 @@ import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-servi
 import {
   generateCreatorCharacterPersonas,
   type CreatorPersonaAgeRange,
+  type CreatorPersonaAppearanceTone,
   type CreatorPersonaGender,
 } from "@/lib/creator-character-persona-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
@@ -13,6 +14,7 @@ export const maxDuration = 90;
 
 type GeneratePersonasRequest = {
   ageRange?: string | null;
+  appearanceTone?: string | null;
   avatarImageUrl?: string | null;
   displayName?: string | null;
   email?: string | null;
@@ -23,6 +25,14 @@ type GeneratePersonasRequest = {
 };
 
 const creatorPersonaAgeRanges = ["20s", "30s", "40s", "50s_plus"] as const;
+const creatorPersonaAppearanceTones = [
+  "african_diaspora",
+  "east_asian",
+  "latin",
+  "middle_eastern_mediterranean",
+  "south_asian",
+  "western",
+] as const;
 const creatorPersonaGenders = ["female", "male"] as const;
 
 function jsonError(message: string, status: number) {
@@ -38,6 +48,14 @@ function parsePersonaAgeRange(value: string | null | undefined) {
 function parsePersonaGender(value: string | null | undefined) {
   return creatorPersonaGenders.includes(value as CreatorPersonaGender)
     ? (value as CreatorPersonaGender)
+    : null;
+}
+
+function parsePersonaAppearanceTone(value: string | null | undefined) {
+  return creatorPersonaAppearanceTones.includes(
+    value as CreatorPersonaAppearanceTone,
+  )
+    ? (value as CreatorPersonaAppearanceTone)
     : null;
 }
 
@@ -96,6 +114,7 @@ export async function POST(request: Request) {
     const profile = profileSnapshot.profile;
     const generated = await generateCreatorCharacterPersonas({
       ageRange,
+      appearanceTone: parsePersonaAppearanceTone(body.appearanceTone),
       avatarImageUrl: body.avatarImageUrl || profile.avatarImageUrl,
       displayName: body.displayName || profile.displayName,
       gender,

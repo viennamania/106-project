@@ -11,6 +11,13 @@ const IDENTITY_PROMPT_LIMIT = 1_600;
 const TRAIT_LIMIT = 180;
 
 export type CreatorPersonaAgeRange = "20s" | "30s" | "40s" | "50s_plus";
+export type CreatorPersonaAppearanceTone =
+  | "african_diaspora"
+  | "east_asian"
+  | "latin"
+  | "middle_eastern_mediterranean"
+  | "south_asian"
+  | "western";
 export type CreatorPersonaGender = "female" | "male";
 
 type OpenAiResponsesApiResponse = {
@@ -39,6 +46,7 @@ type PersonaCandidatePayload = {
 
 export type GenerateCreatorCharacterPersonasInput = {
   ageRange: CreatorPersonaAgeRange;
+  appearanceTone?: CreatorPersonaAppearanceTone | null;
   avatarImageUrl?: string | null;
   displayName?: string | null;
   gender: CreatorPersonaGender;
@@ -88,6 +96,27 @@ function getAgeRangeInstruction(ageRange: CreatorPersonaAgeRange) {
   }
 
   return ageRange;
+}
+
+function getAppearanceToneInstruction(
+  appearanceTone: CreatorPersonaAppearanceTone | null | undefined,
+) {
+  switch (appearanceTone) {
+    case "african_diaspora":
+      return "African diaspora-inspired facial impression, skin tone range, and hair identity";
+    case "east_asian":
+      return "East Asian-inspired facial impression, skin tone range, and hair identity";
+    case "latin":
+      return "Latin-inspired facial impression, skin tone range, and hair identity";
+    case "middle_eastern_mediterranean":
+      return "Middle Eastern or Mediterranean-inspired facial impression, skin tone range, and hair identity";
+    case "south_asian":
+      return "South Asian-inspired facial impression, skin tone range, and hair identity";
+    case "western":
+      return "Western or European-inspired facial impression, skin tone range, and hair identity";
+    default:
+      return null;
+  }
 }
 
 function createPersonaSchema() {
@@ -283,6 +312,9 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
   const language = input.locale === "ko" ? "Korean" : "English";
   const genderInstruction = getGenderInstruction(input.gender);
   const ageRangeInstruction = getAgeRangeInstruction(input.ageRange);
+  const appearanceToneInstruction = getAppearanceToneInstruction(
+    input.appearanceTone,
+  );
 
   return {
     model: getCreatorPersonaModel(),
@@ -296,6 +328,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           "Make the face description concrete enough for identity consistency: face shape, jawline, cheekbones, eye shape, eyebrow style, nose bridge/tip, mouth/lip shape, skin tone/texture, hairline, hair color, length, and texture.",
           "Describe overall presence only in neutral non-sexual terms: height impression, shoulder line, neck length, posture, frame, and camera-visible stance.",
           "Every candidate must match the required gender and required adult age range exactly.",
+          "When an appearance tone is provided, use it only as a stable visual design direction for face, skin, and hair details. Do not write stereotypes or broad claims about protected identity.",
           "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, content topics, or emphasis on breasts, hips, thighs, buttocks, cleavage, or erotic body parts.",
           "Write user-facing name and summary in Korean when requested. Write identityPrompt, lockedTraits, and avoidChanges in concise English for generation models.",
         ].join(" "),
@@ -308,11 +341,17 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           `Creator intro: ${intro}.`,
           `Required gender: ${genderInstruction}.`,
           `Required adult age range: ${ageRangeInstruction}.`,
+          appearanceToneInstruction
+            ? `Preferred appearance tone: ${appearanceToneInstruction}. Keep it consistent across all candidates.`
+            : "No fixed appearance tone was selected. Choose a coherent safe appearance for each candidate.",
           avatarImageUrl
             ? `A creator avatar URL is available for high-level context: ${avatarImageUrl}. Do not claim exact biometric analysis.`
             : "No avatar image is available.",
           `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates.`,
           `Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}.`,
+          appearanceToneInstruction
+            ? "Each identityPrompt must include concrete face, skin, and hair details consistent with the preferred appearance tone."
+            : "Each identityPrompt must include concrete face, skin, and hair details that form a stable identity.",
           "Each identityPrompt must be one detailed paragraph in English with: face lock, hair lock, skin lock, expression lock, overall presence lock, posture lock, and a clear instruction that outfit/scene/action may change but identity must not.",
           "Each lockedTraits item should be a concrete stable visual trait, not a vague personality trait. Include at least four face/hair/skin traits and at least two neutral posture/presence traits.",
           "Each avoidChanges item should explicitly forbid changing gender, adult age range, face structure, hair color/length, skin tone, ethnic impression, and overall presence.",
