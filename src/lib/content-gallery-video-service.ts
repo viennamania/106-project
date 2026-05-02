@@ -12,7 +12,7 @@ import {
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
-const DEFAULT_MODEL = "fal-ai/veo3.1/lite";
+const DEFAULT_MODEL = "fal-ai/wan/v2.7/text-to-video";
 const DEFAULT_ASPECT_RATIO = "9:16";
 const DEFAULT_DURATION = "8s";
 const DEFAULT_GENERATE_AUDIO = true;
@@ -20,7 +20,9 @@ const DEFAULT_RESOLUTION = "720p";
 const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
-type FalVideoInput = {
+type FalModelFamily = "veo" | "wan-v2.7";
+
+type FalVeoVideoInput = {
   aspect_ratio: "16:9" | "9:16";
   auto_fix: boolean;
   duration: "4s" | "6s" | "8s";
@@ -31,6 +33,19 @@ type FalVideoInput = {
   safety_tolerance: "1" | "2" | "3" | "4" | "5" | "6";
 };
 
+type FalWanVideoInput = {
+  aspect_ratio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+  audio_url?: string;
+  duration: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+  enable_prompt_expansion: boolean;
+  enable_safety_checker: boolean;
+  negative_prompt?: string;
+  prompt: string;
+  resolution: "720p" | "1080p";
+};
+
+type FalVideoInput = FalVeoVideoInput | FalWanVideoInput;
+
 type FalModelName = `${string}/${string}${string}`;
 
 type FalVideoFile = {
@@ -40,6 +55,8 @@ type FalVideoFile = {
 };
 
 type FalVideoOutput = {
+  actual_prompt?: string | null;
+  prompt?: string | null;
   video?: FalVideoFile;
 };
 
@@ -103,6 +120,15 @@ function parseEnum<T extends string>(
   return allowed.includes(normalized as T) ? (normalized as T) : fallback;
 }
 
+function parseWanDuration(value: string | undefined) {
+  const normalized = value?.trim().replace(/s$/i, "");
+  const parsed = Number(normalized);
+  const duration = Number.isFinite(parsed) ? Math.round(parsed) : 8;
+  const clamped = Math.max(2, Math.min(15, duration));
+
+  return clamped as FalWanVideoInput["duration"];
+}
+
 function resolveModelName(): FalModelName {
   const model = process.env.FAL_CONTENT_VIDEO_MODEL?.trim() || DEFAULT_MODEL;
 
@@ -115,7 +141,27 @@ function resolveModelName(): FalModelName {
   return model as FalModelName;
 }
 
-function createModelInput(prompt: string): FalVideoInput {
+function resolveModelFamily(model: FalModelName): FalModelFamily {
+  if (model === "fal-ai/wan/v2.7/text-to-video") {
+    return "wan-v2.7";
+  }
+
+  return "veo";
+}
+
+function getModelDisplayName(model: FalModelName) {
+  if (resolveModelFamily(model) === "wan-v2.7") {
+    return "fal Wan 2.7";
+  }
+
+  if (model === "fal-ai/veo3.1/lite") {
+    return "fal Veo 3.1 Lite";
+  }
+
+  return model;
+}
+
+function createVeoModelInput(prompt: string): FalVeoVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
     ["16:9", "9:16"] as const,
@@ -150,6 +196,76 @@ function createModelInput(prompt: string): FalVideoInput {
     prompt,
     resolution,
     safety_tolerance: safetyTolerance,
+  };
+}
+
+function createWanModelInput(prompt: string): FalWanVideoInput {
+  const aspectRatio = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
+    ["16:9", "9:16", "1:1", "4:3", "3:4"] as const,
+    DEFAULT_ASPECT_RATIO,
+  );
+  const resolution = parseEnum(
+    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
+    ["720p", "1080p"] as const,
+    DEFAULT_RESOLUTION,
+  );
+  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
+  const audioUrl = process.env.FAL_CONTENT_VIDEO_AUDIO_URL?.trim();
+
+  return {
+    aspect_ratio: aspectRatio,
+    ...(audioUrl ? { audio_url: audioUrl } : {}),
+    duration: parseWanDuration(process.env.FAL_CONTENT_VIDEO_DURATION),
+    enable_prompt_expansion: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_ENABLE_PROMPT_EXPANSION,
+      true,
+    ),
+    enable_safety_checker: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_ENABLE_SAFETY_CHECKER,
+      true,
+    ),
+    ...(negativePrompt ? { negative_prompt: negativePrompt } : {}),
+    prompt,
+    resolution,
+  };
+}
+
+function createModelInput(model: FalModelName, prompt: string): FalVideoInput {
+  if (resolveModelFamily(model) === "wan-v2.7") {
+    return createWanModelInput(prompt);
+  }
+
+  return createVeoModelInput(prompt);
+}
+
+function rewritePromptForSaferVideoGeneration(prompt: string) {
+  if (
+    !parseBoolean(process.env.FAL_CONTENT_VIDEO_SAFE_PROMPT_REWRITE, true)
+  ) {
+    return { prompt, revisedPrompt: null };
+  }
+
+  const replacements: Array<[RegExp, string]> = [
+    [/\bsuper\s+sexy\s+dance\b/gi, "confident high-fashion dance"],
+    [/\bsexy\s+dance\b/gi, "expressive dance"],
+    [/\bsuper\s+sexy\b/gi, "confident high-fashion"],
+    [/\bblack\s+bikini\b/gi, "black swimwear-inspired stage outfit"],
+    [/\bbikini\b/gi, "swimwear-inspired stage outfit"],
+    [/\bso\s+lustful\b/gi, "with sophisticated editorial energy"],
+    [/\blustful\b/gi, "sophisticated and expressive"],
+  ];
+  const rewritten = replacements.reduce(
+    (current, [pattern, replacement]) =>
+      current.replace(pattern, replacement),
+    prompt,
+  )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return {
+    prompt: rewritten,
+    revisedPrompt: rewritten === prompt ? null : rewritten,
   };
 }
 
@@ -212,6 +328,22 @@ function getFalVideoFile(output: unknown): FalVideoFile {
   }
 
   throw new Error("fal returned an unsupported video payload.");
+}
+
+function getFalRevisedPrompt(output: unknown, prompt: string) {
+  if (!output || typeof output !== "object") {
+    return null;
+  }
+
+  const videoOutput = output as FalVideoOutput;
+  const revisedPrompt =
+    typeof videoOutput.actual_prompt === "string"
+      ? videoOutput.actual_prompt.trim()
+      : typeof videoOutput.prompt === "string"
+        ? videoOutput.prompt.trim()
+        : "";
+
+  return revisedPrompt && revisedPrompt !== prompt ? revisedPrompt : null;
 }
 
 async function readFalOutputFile(
@@ -316,7 +448,11 @@ export async function generateAndUploadContentGalleryVideo(
     step: "preparing_prompt",
   });
 
-  const prompt = visualBrief;
+  const { prompt, revisedPrompt } = rewritePromptForSaferVideoGeneration(
+    visualBrief,
+  );
+  const model = resolveModelName();
+  const modelDisplayName = getModelDisplayName(model);
 
   await reportProgress(input.onProgress, {
     message: "Video prompt is ready. Starting content video generation.",
@@ -326,14 +462,13 @@ export async function generateAndUploadContentGalleryVideo(
   });
 
   await reportProgress(input.onProgress, {
-    message: "Generating the AI content video with fal Veo 3.1 Lite.",
+    message: `Generating the AI content video with ${modelDisplayName}.`,
     progress: 42,
     status: "running",
     step: "generating_image",
   });
 
-  const model = resolveModelName();
-  const modelInput = createModelInput(prompt);
+  const modelInput = createModelInput(model, prompt);
   const fal = createFalClient({ credentials: falKey });
 
   const result = await fal.subscribe(model, {
@@ -355,6 +490,7 @@ export async function generateAndUploadContentGalleryVideo(
   });
 
   const falVideo = getFalVideoFile(result.data);
+  const falRevisedPrompt = getFalRevisedPrompt(result.data, prompt);
   const { blob, sourceUrl } = await readFalOutputFile(result.data);
   const contentType =
     falVideo.content_type ??
@@ -400,7 +536,7 @@ export async function generateAndUploadContentGalleryVideo(
   return {
     contentType: uploaded.contentType,
     pathname: uploaded.pathname,
-    revisedPrompt: null,
+    revisedPrompt: falRevisedPrompt ?? revisedPrompt,
     url: uploaded.url,
   };
 }
