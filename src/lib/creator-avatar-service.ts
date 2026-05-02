@@ -13,8 +13,18 @@ const DEFAULT_ASPECT_RATIO = "1:1";
 const DEFAULT_MEGAPIXELS = "1";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 96;
-const CANDIDATE_COUNT = 2;
+const CANDIDATE_COUNT = 1;
 const CHARACTER_PROMPT_LIMIT = 1_800;
+
+type OpenAiImageGenerationResponse = {
+  data?: Array<{
+    b64_json?: string;
+    revised_prompt?: string;
+  }>;
+  error?: {
+    message?: string;
+  };
+};
 
 type Flux2KleinInput = {
   aspect_ratio?: "1:1";
@@ -176,6 +186,98 @@ function getAvatarModel(): ReplicateModelName {
   return model as ReplicateModelName;
 }
 
+function getOpenAiAvatarModel() {
+  return (
+    process.env.OPENAI_CREATOR_AVATAR_MODEL?.trim() ||
+    process.env.OPENAI_CONTENT_IMAGE_MODEL?.trim() ||
+    "gpt-image-1.5"
+  );
+}
+
+function getOpenAiAvatarQuality() {
+  return process.env.OPENAI_CREATOR_AVATAR_QUALITY?.trim() || "medium";
+}
+
+function getOpenAiAvatarSize() {
+  return process.env.OPENAI_CREATOR_AVATAR_SIZE?.trim() || "1024x1024";
+}
+
+async function generateOpenAiAvatarCandidate({
+  displayName,
+  persona,
+  referralCode,
+  variant,
+}: {
+  displayName?: string | null;
+  persona: CreatorCharacterPersona;
+  referralCode: string;
+  variant: number;
+}): Promise<CreatorProfileAvatarCandidate> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured.");
+  }
+
+  const prompt = createAvatarPrompt({ displayName, persona, variant });
+  const response = await fetch("https://api.openai.com/v1/images/generations", {
+    body: JSON.stringify({
+      background: "opaque",
+      model: getOpenAiAvatarModel(),
+      output_format: "png",
+      prompt,
+      quality: getOpenAiAvatarQuality(),
+      size: getOpenAiAvatarSize(),
+    }),
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+  const payload =
+    ((await response.json().catch(() => null)) as OpenAiImageGenerationResponse | null) ??
+    null;
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error?.message
+        ? `OpenAI avatar generation failed: ${payload.error.message}`
+        : `OpenAI avatar generation failed with status ${response.status}.`,
+    );
+  }
+
+  const imageBase64 = payload?.data?.[0]?.b64_json;
+
+  if (!imageBase64) {
+    throw new Error("OpenAI avatar generation returned no image data.");
+  }
+
+  const imageBytes = Buffer.from(imageBase64, "base64");
+  const pathname = [
+    "content-creator",
+    referralCode,
+    "avatar-candidates",
+    `${Date.now()}-${variant + 1}-${sanitizeBaseName(displayName || persona.name)}.png`,
+  ].join("/");
+  const uploaded = await put(
+    pathname,
+    new Blob([imageBytes], { type: "image/png" }),
+    {
+      access: "public",
+      addRandomSuffix: true,
+      cacheControlMaxAge: 60 * 60 * 24 * 365,
+      contentType: "image/png",
+    },
+  );
+
+  return {
+    contentType: uploaded.contentType,
+    pathname: uploaded.pathname,
+    url: uploaded.url,
+  };
+}
+
 async function generateAvatarCandidate({
   displayName,
   persona,
@@ -238,12 +340,6 @@ export async function generateCreatorAvatarCandidates({
     throw new Error("BLOB_READ_WRITE_TOKEN is not configured.");
   }
 
-  const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
-
-  if (!replicateToken) {
-    throw new Error("REPLICATE_API_TOKEN is not configured.");
-  }
-
   const identityPrompt = trimToLength(
     persona.identityPrompt,
     CHARACTER_PROMPT_LIMIT,
@@ -251,6 +347,27 @@ export async function generateCreatorAvatarCandidates({
 
   if (!identityPrompt) {
     throw new Error("characterPersona.identityPrompt is required.");
+  }
+
+  if (process.env.OPENAI_API_KEY?.trim()) {
+    const candidates = await Promise.all(
+      Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
+        generateOpenAiAvatarCandidate({
+          displayName,
+          persona,
+          referralCode,
+          variant: index,
+        }),
+      ),
+    );
+
+    return { candidates };
+  }
+
+  const replicateToken = process.env.REPLICATE_API_TOKEN?.trim();
+
+  if (!replicateToken) {
+    throw new Error("OPENAI_API_KEY or REPLICATE_API_TOKEN is not configured.");
   }
 
   const replicate = new Replicate({ auth: replicateToken });
