@@ -1064,8 +1064,8 @@ export function CreatorContentStudioPage({
             label: "동영상 생성",
           },
           preparing_prompt: {
-            description: "동영상 프롬프트를 생성 요청으로 준비합니다.",
-            label: "동영상 프롬프트",
+            description: "입력한 동영상 프롬프트를 생성 요청으로 준비합니다.",
+            label: "프롬프트 준비",
           },
           progress: "진행률",
           running: "진행 중",
@@ -1105,8 +1105,8 @@ export function CreatorContentStudioPage({
             label: "Video generation",
           },
           preparing_prompt: {
-            description: "Preparing the video prompt for generation.",
-            label: "Video prompt",
+            description: "Preparing your video prompt for the generation request.",
+            label: "Prompt setup",
           },
           progress: "Progress",
           running: "Running",

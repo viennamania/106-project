@@ -310,7 +310,7 @@ export async function generateAndUploadContentGalleryVideo(
   }
 
   await reportProgress(input.onProgress, {
-    message: "Preparing the video prompt for content video generation.",
+    message: "Preparing your video prompt for the generation request.",
     progress: 18,
     status: "running",
     step: "preparing_prompt",
