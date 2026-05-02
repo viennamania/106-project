@@ -70,7 +70,6 @@ import type {
   ContentPostRecord,
   ContentPostUploadResponse,
   CreatorProfileResponse,
-  CreatorProfileUploadResponse,
   CreatorStudioPostsLoadResponse,
 } from "@/lib/content";
 import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
@@ -738,7 +737,6 @@ export function CreatorContentStudioPage({
   >(null);
   const [isSavingAutomation, setIsSavingAutomation] = useState(false);
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
-  const [isUploadingProfileHeroImage, setIsUploadingProfileHeroImage] = useState(false);
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isUploadingPostVideo, setIsUploadingPostVideo] = useState(false);
   const [postVideoUploadProgress, setPostVideoUploadProgress] = useState(0);
@@ -1293,7 +1291,6 @@ export function CreatorContentStudioPage({
     contentCoverGenerationProgressSteps.filter(
       (step) => contentVideoGenerationProgress.steps[step] === "done",
     ).length;
-  const profileHeroImageInputRef = useRef<HTMLInputElement | null>(null);
   const postImageInputRef = useRef<HTMLInputElement | null>(null);
   const postGalleryInputRef = useRef<HTMLInputElement | null>(null);
   const postVideoInputRef = useRef<HTMLInputElement | null>(null);
@@ -2464,54 +2461,6 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.studioLoadFailed,
         notice: null,
       }));
-    }
-  }
-
-  async function uploadProfileHeroImage(file: File) {
-    try {
-      setIsUploadingProfileHeroImage(true);
-      const email = await resolveMemberEmail();
-      const body = new FormData();
-      body.set("email", email);
-      body.set("file", file);
-      body.set("walletAddress", accountAddress ?? "");
-
-      const response = await fetch("/api/content/profile/upload", {
-        body,
-        method: "POST",
-      });
-      const data = (await response.json()) as CreatorProfileUploadResponse | {
-        error?: string;
-      };
-
-      if (!response.ok || !("url" in data)) {
-        throw new Error(
-          "error" in data && data.error
-            ? data.error
-            : contentCopy.messages.uploadFailed,
-        );
-      }
-
-      setState((current) => ({
-        ...current,
-        error: null,
-        notice: contentCopy.messages.uploadSuccess,
-        profile: {
-          ...current.profile,
-          heroImageUrl: data.url,
-        },
-      }));
-    } catch (error) {
-      setState((current) => ({
-        ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : contentCopy.messages.uploadFailed,
-        notice: null,
-      }));
-    } finally {
-      setIsUploadingProfileHeroImage(false);
     }
   }
 
@@ -3829,6 +3778,39 @@ export function CreatorContentStudioPage({
     const blockedState = renderBlockedState();
     const isGeneratingProfileAvatar = avatarGeneration.status === "loading";
     const canGenerateProfileAvatar = Boolean(state.profile.characterPersona);
+    const hasDisplayName = Boolean(state.profile.displayName.trim());
+    const hasPersona = Boolean(state.profile.characterPersona);
+    const hasAvatar = Boolean(state.profile.avatarImageUrl);
+    const setupProgress = [hasDisplayName, hasPersona, hasAvatar].filter(
+      Boolean,
+    ).length;
+    const setupCopy =
+      locale === "ko"
+        ? {
+            avatarBody: "페르소나를 고른 뒤 프로필 사진 후보를 만들고 하나를 저장하세요.",
+            avatarTitle: "AI 아바타 선택",
+            displayBody: "피드와 콘텐츠 상세에 표시될 이름입니다.",
+            displayTitle: "표시 이름 입력",
+            personaBody: "성별과 연령대를 선택하고 같은 인물을 유지할 페르소나를 저장하세요.",
+            personaTitle: "인물 페르소나 선택",
+            progress: `필수 설정 ${setupProgress}/3`,
+            saveBody: "위 3가지를 완료한 뒤 프로필을 저장하면 바로 사용할 수 있습니다.",
+            saveTitle: "프로필 저장",
+          }
+        : {
+            avatarBody:
+              "After choosing a persona, generate profile photo options and save one.",
+            avatarTitle: "Choose AI Avatar",
+            displayBody: "This name appears in the feed and content detail pages.",
+            displayTitle: "Enter Display Name",
+            personaBody:
+              "Select gender and age range, then save a persona to keep the same person.",
+            personaTitle: "Choose Character Persona",
+            progress: `Required setup ${setupProgress}/3`,
+            saveBody:
+              "After completing the three steps above, save the profile to use it.",
+            saveTitle: "Save Profile",
+          };
     const avatarGeneratorCopy =
       locale === "ko"
         ? {
@@ -3863,6 +3845,11 @@ export function CreatorContentStudioPage({
             <h2 className="text-xl font-semibold tracking-tight text-slate-950">
               {contentCopy.labels.creatorProfile}
             </h2>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="inline-flex h-7 items-center rounded-full bg-slate-950 px-3 text-xs font-semibold text-white">
+                {setupCopy.progress}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -3873,57 +3860,87 @@ export function CreatorContentStudioPage({
             {recoverableStudioError ? (
               <MessageCard tone="error">{recoverableStudioError}</MessageCard>
             ) : null}
-            <InputField
-              hint={contentCopy.hints.displayName}
-              label={contentCopy.fields.displayName}
-              onChange={(value) => {
-                setState((current) => ({
-                  ...current,
-                  profile: {
-                    ...current.profile,
-                    displayName: value,
-                  },
-                }));
-              }}
-              value={state.profile.displayName}
-            />
-            {renderCharacterPersonaPanel()}
-            <TextAreaField
-              hint={contentCopy.hints.intro}
-              label={contentCopy.fields.intro}
-              onChange={(value) => {
-                setState((current) => ({
-                  ...current,
-                  profile: {
-                    ...current.profile,
-                    intro: value,
-                  },
-                }));
-              }}
-              rows={4}
-              value={state.profile.intro}
-            />
-            <InputField
-              hint={contentCopy.hints.payoutWalletAddress}
-              label={contentCopy.fields.payoutWalletAddress}
-              onChange={(value) => {
-                setState((current) => ({
-                  ...current,
-                  profile: {
-                    ...current.profile,
-                    payoutWalletAddress: value,
-                  },
-                }));
-              }}
-              value={state.profile.payoutWalletAddress}
-            />
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
-              <p className="text-sm font-medium text-slate-900">
-                {contentCopy.fields.avatarImage}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                {avatarGeneratorCopy.body}
-              </p>
+            <section className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-start gap-3">
+                <span
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                    hasDisplayName
+                      ? "bg-emerald-500 text-white"
+                      : "bg-slate-950 text-white"
+                  }`}
+                >
+                  {hasDisplayName ? <Check className="size-4" /> : "1"}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {setupCopy.displayTitle}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {setupCopy.displayBody}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <InputField
+                  hint={contentCopy.hints.displayName}
+                  label={contentCopy.fields.displayName}
+                  onChange={(value) => {
+                    setState((current) => ({
+                      ...current,
+                      profile: {
+                        ...current.profile,
+                        displayName: value,
+                      },
+                    }));
+                  }}
+                  value={state.profile.displayName}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+              <div className="flex items-start gap-3">
+                <span
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                    hasPersona
+                      ? "bg-emerald-500 text-white"
+                      : "bg-slate-950 text-white"
+                  }`}
+                >
+                  {hasPersona ? <Check className="size-4" /> : "2"}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {setupCopy.personaTitle}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {setupCopy.personaBody}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">{renderCharacterPersonaPanel()}</div>
+            </section>
+
+            <section className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-start gap-3">
+                <span
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                    hasAvatar
+                      ? "bg-emerald-500 text-white"
+                      : "bg-slate-950 text-white"
+                  }`}
+                >
+                  {hasAvatar ? <Check className="size-4" /> : "3"}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {setupCopy.avatarTitle}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {setupCopy.avatarBody}
+                  </p>
+                </div>
+              </div>
               <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="relative shrink-0">
                   <div className="flex size-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
@@ -3938,9 +3955,6 @@ export function CreatorContentStudioPage({
                       <UserRound className="size-8 text-slate-300" />
                     )}
                   </div>
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-white bg-slate-950 px-2 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_18px_rgba(15,23,42,0.18)]">
-                    avatar
-                  </span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                   <button
@@ -4039,90 +4053,39 @@ export function CreatorContentStudioPage({
                   })}
                 </div>
               ) : null}
-            </div>
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
-              <p className="text-sm font-medium text-slate-900">
-                {contentCopy.fields.heroImage}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                {contentCopy.hints.heroImage}
-              </p>
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
+            </section>
 
-                  if (file) {
-                    void uploadProfileHeroImage(file);
-                  }
-
-                  event.target.value = "";
-                }}
-                ref={profileHeroImageInputRef}
-                type="file"
-              />
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={isUploadingProfileHeroImage}
-                  onClick={() => {
-                    profileHeroImageInputRef.current?.click();
-                  }}
-                  type="button"
-                >
-                  <ImagePlus className="size-4" />
-                  {isUploadingProfileHeroImage
-                    ? contentCopy.actions.uploadingImage
-                    : contentCopy.actions.uploadImage}
-                </button>
-                {state.profile.heroImageUrl ? (
+            <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+              <div className="flex items-start gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
+                  4
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {setupCopy.saveTitle}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {setupCopy.saveBody}
+                  </p>
                   <button
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                    className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={
+                      isSavingProfile ||
+                      isDisconnected ||
+                      isGeneratingProfileAvatar
+                    }
                     onClick={() => {
-                      setState((current) => ({
-                        ...current,
-                        notice: null,
-                        profile: {
-                          ...current.profile,
-                          heroImageUrl: "",
-                        },
-                      }));
+                      void saveProfile();
                     }}
                     type="button"
                   >
-                    {contentCopy.actions.removeImage}
+                    {isSavingProfile
+                      ? `${contentCopy.actions.saveProfile}...`
+                      : contentCopy.actions.saveProfile}
                   </button>
-                ) : null}
-              </div>
-              {state.profile.heroImageUrl ? (
-                <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
-                  <div
-                    className="h-44 w-full bg-cover bg-center sm:h-56"
-                    style={{
-                      backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${state.profile.heroImageUrl})`,
-                    }}
-                  />
                 </div>
-              ) : null}
-            </div>
-            <button
-              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-              disabled={
-                isSavingProfile ||
-                isDisconnected ||
-                isGeneratingProfileAvatar ||
-                isUploadingProfileHeroImage
-              }
-              onClick={() => {
-                void saveProfile();
-              }}
-              type="button"
-            >
-              {isSavingProfile
-                ? `${contentCopy.actions.saveProfile}...`
-                : contentCopy.actions.saveProfile}
-            </button>
+              </div>
+            </section>
           </div>
         )}
       </div>
