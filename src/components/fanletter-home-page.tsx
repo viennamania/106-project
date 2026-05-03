@@ -12,7 +12,10 @@ import {
   WalletCards,
 } from "lucide-react";
 
-import { FanletterMobileHeroCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import {
+  FanletterDesktopHeroCardCarousel,
+  FanletterMobileHeroCarousel,
+} from "@/components/fanletter-mobile-hero-carousel";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterFeaturedVideo,
@@ -387,7 +390,7 @@ export function FanletterHomePage({
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const loginHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const heroVideo = featuredVideos[0] ?? null;
-  const mobileHeroSlides = featuredVideos.slice(0, 3).map((video) => ({
+  const heroSlides = featuredVideos.slice(0, 3).map((video) => ({
     authorName: video.authorName,
     coverImageUrl: video.coverImageUrl,
     title: video.title,
@@ -477,7 +480,7 @@ export function FanletterHomePage({
               : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
           }}
         />
-        <FanletterMobileHeroCarousel slides={mobileHeroSlides} />
+        <FanletterMobileHeroCarousel slides={heroSlides} />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
@@ -547,34 +550,7 @@ export function FanletterHomePage({
             </div>
 
             <div className="hidden lg:flex min-w-0 flex-col gap-3">
-              <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-white/14 bg-[#07100b] shadow-[0_34px_90px_rgba(0,0,0,0.42)]">
-                {heroVideo ? (
-                  <>
-                    <video
-                      aria-hidden="true"
-                      autoPlay
-                      className="absolute inset-0 h-full w-full object-contain"
-                      loop
-                      muted
-                      playsInline
-                      poster={heroVideo.coverImageUrl ?? undefined}
-                      preload="metadata"
-                      src={heroVideo.videoUrl}
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.06)_48%,rgba(0,0,0,0.62)_100%)]" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {heroVideo.authorName}
-                      </p>
-                      <p className="mt-1 line-clamp-2 text-lg font-semibold leading-tight text-white">
-                        {heroVideo.title}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(68,242,110,0.22),transparent_34%),linear-gradient(160deg,#07100b,#030504)]" />
-                )}
-              </div>
+              <FanletterDesktopHeroCardCarousel slides={heroSlides} />
 
               <div className="grid grid-cols-3 gap-2">
                 {heroStats.map((stat) => (
