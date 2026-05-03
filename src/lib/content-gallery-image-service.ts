@@ -32,6 +32,7 @@ const DEFAULT_DISABLE_SAFETY_CHECKER = true;
 const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
 const DEFAULT_FAL_TIMEOUT_MS = 90_000;
 const DEFAULT_REPLICATE_TIMEOUT_MS = 90_000;
+const DEFAULT_REPLICATE_COMPACT_PROMPT_LIMIT = 1_600;
 const STRUCTURED_PROMPT_SEGMENT_LIMIT = 48;
 
 type ContentImageProviderPriority = "fal" | "replicate";
@@ -610,6 +611,91 @@ function parseNumberInRange(
   return Math.max(min, Math.min(max, parsed));
 }
 
+function getReplicateCompactPromptLimit() {
+  return parseNumberInRange(
+    process.env.CONTENT_IMAGE_REPLICATE_PROMPT_LIMIT ||
+      process.env.REPLICATE_CONTENT_IMAGE_PROMPT_LIMIT,
+    DEFAULT_REPLICATE_COMPACT_PROMPT_LIMIT,
+    600,
+    2_400,
+  );
+}
+
+function extractUserScenePrompt(prompt: string) {
+  const marker = "User scene prompt:";
+  const markerIndex = prompt.lastIndexOf(marker);
+
+  return markerIndex >= 0
+    ? prompt.slice(markerIndex + marker.length).trim()
+    : prompt.trim();
+}
+
+function createReplicateCompactPrompt({
+  avatarImageUrl,
+  characterPersona,
+  finalPrompt,
+  normalizedPrompt,
+}: {
+  avatarImageUrl: string;
+  characterPersona?: CreatorCharacterPersona | null;
+  finalPrompt: string;
+  normalizedPrompt: string;
+}) {
+  const scenePrompt =
+    extractUserScenePrompt(finalPrompt) || normalizedPrompt || finalPrompt;
+  const personaName = trimToLength(characterPersona?.name, 80);
+  const identityPrompt = trimToLength(characterPersona?.identityPrompt, 520);
+  const compactPromptLimit = getReplicateCompactPromptLimit();
+  const identityInstruction = avatarImageUrl
+    ? "Use the input image only as the identity reference for the main adult character. Preserve the same face, hair identity, skin tone, and overall presence."
+    : "Use the selected adult creator persona as the identity source for the main character. Preserve the same gender, age range, face, hair, skin tone, and overall presence.";
+  const promptParts = [
+    identityInstruction,
+    "Create a new editorial content image from the scene. Do not copy avatar background, crop, pose, or clothing unless the scene asks for it.",
+    personaName ? `Persona: ${personaName}.` : null,
+    !avatarImageUrl && identityPrompt
+      ? `Persona identity: ${identityPrompt}`
+      : null,
+    `Scene: ${scenePrompt}`,
+  ].filter(Boolean);
+
+  return trimToLength(
+    normalizePromptSpacing(promptParts.join("\n\n")),
+    compactPromptLimit,
+  );
+}
+
+function createReplicateModelPrompt({
+  avatarImageUrl,
+  characterPersona,
+  finalPrompt,
+  normalizedPrompt,
+}: {
+  avatarImageUrl: string;
+  characterPersona?: CreatorCharacterPersona | null;
+  finalPrompt: string;
+  normalizedPrompt: string;
+}) {
+  const compactPrompt = createReplicateCompactPrompt({
+    avatarImageUrl,
+    characterPersona,
+    finalPrompt,
+    normalizedPrompt,
+  });
+  const compactPromptLimit = getReplicateCompactPromptLimit();
+  const shouldUseCompactPrompt =
+    Boolean(avatarImageUrl || characterPersona?.identityPrompt) ||
+    finalPrompt.length > compactPromptLimit;
+
+  return {
+    compactPrompt,
+    prompt: shouldUseCompactPrompt
+      ? compactPrompt
+      : trimToLength(finalPrompt, compactPromptLimit),
+    strategy: shouldUseCompactPrompt ? "compact" : "default",
+  };
+}
+
 function createFalTextImageInput({
   avatarImageUrl,
   prompt,
@@ -1013,6 +1099,15 @@ function getImageGenerationErrorMessage(error: unknown) {
     : "AI content image generation failed.";
 }
 
+function isReplicateInternalShapeError(error: unknown) {
+  const message = getImageGenerationErrorMessage(error).toLowerCase();
+
+  return (
+    message.includes("q_descale must have shape") ||
+    message.includes("batch_size, num_heads_k")
+  );
+}
+
 function getProviderErrorStatus(error: unknown) {
   if (!error || typeof error !== "object") {
     return null;
@@ -1167,6 +1262,7 @@ async function runRecordedImageGenerationAttempt<T extends object>({
   generationId,
   model,
   modelInput,
+  promptStrategy,
   provider,
   run,
 }: {
@@ -1174,6 +1270,7 @@ async function runRecordedImageGenerationAttempt<T extends object>({
   generationId: string | null;
   model: string;
   modelInput: T;
+  promptStrategy?: string;
   provider: ContentImageGenerationProvider;
   run: () => Promise<GeneratedImageFile>;
 }) {
@@ -1181,6 +1278,7 @@ async function runRecordedImageGenerationAttempt<T extends object>({
     attemptId: randomUUID(),
     model,
     modelInput: toRecordableModelInput(modelInput),
+    promptStrategy: promptStrategy ?? null,
     provider,
     startedAt: new Date(),
     status: "running",
@@ -1293,23 +1391,65 @@ export async function generateAndUploadContentGalleryImage(
   });
 
   async function runReplicateAttempt() {
+    const replicatePrompt = createReplicateModelPrompt({
+      avatarImageUrl,
+      characterPersona: input.characterPersona,
+      finalPrompt: prompt,
+      normalizedPrompt: modelVisualBrief,
+    });
     const modelInput = createReplicateImageInput({
       avatarImageUrl,
-      prompt,
+      prompt: replicatePrompt.prompt,
     });
+    const runAttempt = (
+      attemptInput: ReplicateContentImageInput,
+      strategy: string,
+    ) =>
+      runRecordedImageGenerationAttempt({
+        attempts,
+        generationId,
+        model: DEFAULT_MODEL,
+        modelInput: attemptInput,
+        promptStrategy: `replicate-${strategy}`,
+        provider: "replicate",
+        run: () =>
+          generateReplicateImageFile({
+            modelInput: attemptInput,
+            replicateToken: replicateToken ?? "",
+          }),
+      });
 
-    return runRecordedImageGenerationAttempt({
-      attempts,
-      generationId,
-      model: DEFAULT_MODEL,
-      modelInput,
-      provider: "replicate",
-      run: () =>
-        generateReplicateImageFile({
-          modelInput,
-          replicateToken: replicateToken ?? "",
-        }),
-    });
+    try {
+      return await runAttempt(modelInput, replicatePrompt.strategy);
+    } catch (error) {
+      if (
+        !isReplicateInternalShapeError(error) ||
+        modelInput.prompt === replicatePrompt.compactPrompt
+      ) {
+        throw error;
+      }
+
+      console.warn(
+        "[content-image] Replicate internal shape error; retrying with compact prompt",
+        {
+          message: getImageGenerationErrorMessage(error),
+        },
+      );
+
+      await reportProgress(input.onProgress, {
+        message: "Replicate image generation hit an internal prompt error. Retrying with a shorter prompt.",
+        progress: 52,
+        status: "running",
+        step: "generating_image",
+      });
+
+      const retryModelInput = createReplicateImageInput({
+        avatarImageUrl,
+        prompt: replicatePrompt.compactPrompt,
+      });
+
+      return runAttempt(retryModelInput, "compact-retry");
+    }
   }
 
   async function runFalReferenceAttempt() {

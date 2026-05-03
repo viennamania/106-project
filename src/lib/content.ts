@@ -74,6 +74,7 @@ export type ContentImageGenerationAttemptDocument = {
   errorStatus?: number | null;
   model: string;
   modelInput: Record<string, unknown>;
+  promptStrategy?: string | null;
   provider: ContentImageGenerationProvider;
   resultContentType?: string | null;
   resultSourceUrl?: string | null;
