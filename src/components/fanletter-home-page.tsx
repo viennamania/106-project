@@ -583,12 +583,19 @@ export function FanletterHomePage({
                             }}
                           />
                         ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
-                            <Clapperboard className="size-12 text-[#44f26e]" />
-                            <span className="text-xs font-semibold uppercase tracking-[0.22em]">
-                              Video
-                            </span>
-                          </div>
+                          <>
+                            <video
+                              aria-hidden="true"
+                              autoPlay
+                              className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.03]"
+                              loop
+                              muted
+                              playsInline
+                              preload="metadata"
+                              src={video.videoUrl}
+                            />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(68,242,110,0.18),transparent_36%)]" />
+                          </>
                         )}
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.24)_54%,rgba(0,0,0,0.78)_100%)]" />
                         <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
