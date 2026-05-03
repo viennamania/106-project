@@ -416,7 +416,7 @@ export function FanletterHomePage({
           <video
             aria-hidden="true"
             autoPlay
-            className="absolute inset-0 h-full w-full object-cover opacity-[0.56]"
+            className="absolute inset-y-0 right-0 h-full w-full object-contain object-right opacity-[0.58]"
             loop
             muted
             playsInline
@@ -576,18 +576,26 @@ export function FanletterHomePage({
                     <article>
                       <div className="relative aspect-[9/16] overflow-hidden bg-[#07100b]">
                         {video.coverImageUrl ? (
-                          <div
-                            className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
-                            style={{
-                              backgroundImage: `url(${video.coverImageUrl})`,
-                            }}
-                          />
+                          <>
+                            <div
+                              className="absolute inset-0 scale-110 bg-cover bg-center opacity-[0.62] blur-xl"
+                              style={{
+                                backgroundImage: `url(${video.coverImageUrl})`,
+                              }}
+                            />
+                            <div
+                              className="absolute inset-0 bg-contain bg-center bg-no-repeat transition duration-500 group-hover:scale-[1.01]"
+                              style={{
+                                backgroundImage: `url(${video.coverImageUrl})`,
+                              }}
+                            />
+                          </>
                         ) : (
                           <>
                             <video
                               aria-hidden="true"
                               autoPlay
-                              className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.03]"
+                              className="absolute inset-0 h-full w-full object-contain opacity-95"
                               loop
                               muted
                               playsInline
