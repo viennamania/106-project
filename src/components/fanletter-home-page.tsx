@@ -678,33 +678,38 @@ export function FanletterHomePage({
 
                 return (
                   <Link
-                    className="group flex h-[34rem] min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:h-[36rem] sm:min-w-[18rem] lg:min-w-[19rem]"
+                    className="group flex min-h-[31rem] min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:min-h-[34rem] sm:min-w-[18rem] lg:min-w-[19rem]"
                     href={videoHref}
                     key={video.contentId}
                   >
                     <article className="flex h-full min-h-0 w-full flex-col">
                       <div className="relative h-[18.5rem] shrink-0 overflow-hidden bg-[#07100b] sm:h-[20rem]">
                         {video.coverImageUrl ? (
-                          <>
-                            <div
-                              className="absolute inset-0 scale-110 bg-cover bg-center opacity-[0.62] blur-xl"
-                              style={{
-                                backgroundImage: `url(${video.coverImageUrl})`,
-                              }}
-                            />
-                            <div
-                              className="absolute inset-0 bg-contain bg-center bg-no-repeat transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
-                              style={{
-                                backgroundImage: `url(${video.coverImageUrl})`,
-                              }}
-                            />
-                          </>
+                          <div
+                            className="absolute inset-0 scale-110 bg-cover bg-center opacity-[0.54] blur-xl"
+                            style={{
+                              backgroundImage: `url(${video.coverImageUrl})`,
+                            }}
+                          />
+                        ) : null}
+                        {video.coverImageUrl ? (
+                          <video
+                            aria-hidden="true"
+                            autoPlay
+                            className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
+                            loop
+                            muted
+                            playsInline
+                            poster={video.coverImageUrl}
+                            preload="metadata"
+                            src={video.videoUrl}
+                          />
                         ) : (
                           <>
                             <video
                               aria-hidden="true"
                               autoPlay
-                              className="absolute inset-0 h-full w-full object-contain opacity-95 transition duration-500 group-hover:brightness-110"
+                              className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
                               loop
                               muted
                               playsInline
