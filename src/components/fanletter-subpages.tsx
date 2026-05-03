@@ -56,9 +56,16 @@ type FanletterSubpageCopy = {
     titleSuffix: string;
   };
   feed: {
+    allContent: string;
     empty: string;
     eyebrow: string;
+    featured: string;
+    freePublic: string;
+    latest: string;
+    suggestedCreators: string;
     title: string;
+    trending: string;
+    videos: string;
   };
   languageLabel: string;
   metrics: {
@@ -104,9 +111,16 @@ const koCopy: FanletterSubpageCopy = {
     titleSuffix: "의 FanLetter",
   },
   feed: {
+    allContent: "전체 공개 콘텐츠",
     empty: "공개 콘텐츠가 준비되면 이곳에 표시됩니다.",
     eyebrow: "FanLetter Feed",
+    featured: "추천 콘텐츠",
+    freePublic: "무료 공개",
+    latest: "최신 공개",
+    suggestedCreators: "추천 크리에이터",
     title: "공개된 AI 콘텐츠를 FanLetter 흐름 안에서 둘러보세요.",
+    trending: "트렌딩",
+    videos: "동영상",
   },
   languageLabel: "언어",
   metrics: {
@@ -162,9 +176,16 @@ const enCopy: FanletterSubpageCopy = {
     titleSuffix: "'s FanLetter",
   },
   feed: {
+    allContent: "All public content",
     empty: "Public content will appear here when it is ready.",
     eyebrow: "FanLetter Feed",
+    featured: "Featured content",
+    freePublic: "Free public",
+    latest: "Latest public",
+    suggestedCreators: "Suggested creators",
     title: "Browse public AI content inside the FanLetter experience.",
+    trending: "Trending",
+    videos: "Videos",
   },
   languageLabel: "Language",
   metrics: {
@@ -213,6 +234,48 @@ function formatNumber(value: number, locale: Locale) {
 
 function getAvatarInitial(name: string) {
   return name.trim().charAt(0).toUpperCase() || "F";
+}
+
+function getContentHref({
+  item,
+  locale,
+  referralCode,
+}: {
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/content/${item.contentId}`,
+    referralCode ?? item.authorReferralCode,
+  );
+}
+
+function getCreatorHref({
+  item,
+  locale,
+  referralCode,
+}: {
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  if (!item.authorReferralCode) {
+    return null;
+  }
+
+  return buildPathWithReferral(
+    `/${locale}/fanletter/creator/${item.authorReferralCode}`,
+    referralCode ?? item.authorReferralCode,
+  );
+}
+
+function getContentEngagementScore(item: FanletterPublicContentItem) {
+  return (
+    item.social.likeCount * 3 +
+    item.social.saveCount * 2 +
+    item.social.commentCount * 4
+  );
 }
 
 function FanletterShell({
@@ -328,12 +391,14 @@ function Avatar({
 
 function MediaCard({
   alt,
+  controls = true,
   imageUrl,
   mediaType,
   title,
   videoUrl,
 }: {
   alt: string;
+  controls?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
   title: string;
@@ -344,7 +409,7 @@ function MediaCard({
       <video
         autoPlay
         className="h-full w-full object-cover"
-        controls
+        controls={controls}
         loop
         muted
         playsInline
@@ -390,17 +455,8 @@ function ContentCard({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const effectiveReferralCode = referralCode ?? item.authorReferralCode;
-  const href = buildPathWithReferral(
-    `/${locale}/fanletter/content/${item.contentId}`,
-    effectiveReferralCode,
-  );
-  const creatorHref = item.authorReferralCode
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/creator/${item.authorReferralCode}`,
-        effectiveReferralCode,
-      )
-    : null;
+  const href = getContentHref({ item, locale, referralCode });
+  const creatorHref = getCreatorHref({ item, locale, referralCode });
 
   return (
     <article className="overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
@@ -420,7 +476,8 @@ function ContentCard({
               imageUrl={null}
               mediaType={item.mediaType}
               title={item.title}
-              videoUrl={null}
+              videoUrl={item.primaryVideoUrl}
+              controls={false}
             />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.76)_100%)]" />
@@ -465,7 +522,7 @@ function ContentCard({
             <span />
           )}
           <Link
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold text-white"
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white"
             href={href}
           >
             {copy.actions.openContent}
@@ -507,6 +564,143 @@ function ContentGrid({
         />
       ))}
     </div>
+  );
+}
+
+function FeaturedFeedCard({
+  item,
+  locale,
+  referralCode,
+}: {
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const href = getContentHref({ item, locale, referralCode });
+  const creatorHref = getCreatorHref({ item, locale, referralCode });
+  const publishedAt = formatDate(item.publishedAt, locale);
+  const engagementScore = getContentEngagementScore(item);
+
+  return (
+    <article className="overflow-hidden rounded-lg border border-black/10 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]">
+      <Link className="group block" href={href}>
+        <div className="relative min-h-[28rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
+          {item.primaryVideoUrl ? (
+            <video
+              aria-hidden="true"
+              autoPlay
+              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              loop
+              muted
+              playsInline
+              poster={item.coverImageUrl ?? undefined}
+              preload="metadata"
+              src={item.primaryVideoUrl}
+            />
+          ) : item.coverImageUrl ? (
+            <Image
+              alt={item.title}
+              className="object-cover transition duration-500 group-hover:scale-[1.03]"
+              fill
+              sizes="(max-width: 1024px) 100vw, 46vw"
+              src={item.coverImageUrl}
+            />
+          ) : (
+            <MediaCard
+              alt={item.title}
+              imageUrl={null}
+              mediaType={item.mediaType}
+              title={item.title}
+              videoUrl={null}
+            />
+          )}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.22)_42%,rgba(0,0,0,0.86)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
+                {copy.feed.featured}
+              </span>
+              <span className="inline-flex rounded-full border border-white/16 bg-white/12 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white">
+                {item.mediaType === "video" ? copy.feed.videos : copy.feed.freePublic}
+              </span>
+            </div>
+            <h2 className="mt-4 line-clamp-3 text-[2rem] font-semibold leading-[1.02] tracking-normal sm:text-[2.6rem]">
+              {item.title}
+            </h2>
+            <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-medium leading-6 text-white/72 sm:text-base sm:leading-7">
+              {item.summary}
+            </p>
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <Avatar
+                  imageUrl={item.authorAvatarImageUrl}
+                  name={item.authorName}
+                  sizeClassName="size-9"
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {item.authorName}
+                  </p>
+                  <p className="text-xs font-medium text-white/58">
+                    {publishedAt ?? "FanLetter"}
+                  </p>
+                </div>
+              </div>
+              <span className="hidden rounded-full border border-white/14 bg-white/10 px-3 py-1 text-xs font-semibold text-white/72 sm:inline-flex">
+                {formatNumber(engagementScore, locale)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+      {creatorHref ? (
+        <div className="border-t border-white/10 p-4">
+          <Link
+            className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
+            href={creatorHref}
+          >
+            {item.authorName}
+            <ArrowRight className="ml-2 size-4" />
+          </Link>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function CreatorDiscoveryCard({
+  item,
+  locale,
+  referralCode,
+}: {
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const href = getCreatorHref({ item, locale, referralCode }) ?? getContentHref({
+    item,
+    locale,
+    referralCode,
+  });
+
+  return (
+    <Link
+      className="flex min-w-[13rem] snap-start items-center gap-3 rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] sm:min-w-0"
+      href={href}
+    >
+      <Avatar
+        imageUrl={item.authorAvatarImageUrl}
+        name={item.authorName}
+        sizeClassName="size-12"
+      />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold">{item.authorName}</p>
+        <p className="mt-1 truncate text-xs font-medium text-black/48">
+          {item.title}
+        </p>
+      </div>
+    </Link>
   );
 }
 
@@ -570,6 +764,49 @@ export function FanletterFeedPage({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
+  const rankedItems = [...items].sort((a, b) => {
+    const scoreDelta = getContentEngagementScore(b) - getContentEngagementScore(a);
+
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return (
+      new Date(b.publishedAt ?? 0).getTime() -
+      new Date(a.publishedAt ?? 0).getTime()
+    );
+  });
+  const featuredItem = rankedItems[0] ?? items[0] ?? null;
+  const videoItems = items.filter((item) => item.mediaType === "video").slice(0, 6);
+  const latestItems = [...items]
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt ?? 0).getTime() -
+        new Date(a.publishedAt ?? 0).getTime(),
+    )
+    .slice(0, 8);
+  const creatorItems = Array.from(
+    new Map(
+      items.map((item) => [
+        item.authorReferralCode ?? item.authorName,
+        item,
+      ]),
+    ).values(),
+  ).slice(0, 6);
+  const feedStats = [
+    {
+      label: copy.feed.freePublic,
+      value: formatNumber(items.length, locale),
+    },
+    {
+      label: copy.feed.videos,
+      value: formatNumber(videoItems.length, locale),
+    },
+    {
+      label: copy.feed.suggestedCreators,
+      value: formatNumber(creatorItems.length, locale),
+    },
+  ];
 
   return (
     <FanletterShell
@@ -580,7 +817,126 @@ export function FanletterFeedPage({
       title="FanLetter Feed"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[92rem]">
+          <div className="mb-8 flex snap-x gap-2 overflow-x-auto pb-1">
+            {[copy.feed.trending, copy.feed.latest, copy.feed.videos, copy.feed.freePublic].map(
+              (filter, index) => (
+                <span
+                  className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full border px-4 text-sm font-semibold ${
+                    index === 0
+                      ? "border-black bg-black text-white"
+                      : "border-black/10 bg-white text-black/62"
+                  }`}
+                  key={filter}
+                >
+                  {filter}
+                </span>
+              ),
+            )}
+          </div>
+
+          {featuredItem ? (
+            <div className="mb-10 grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
+              <FeaturedFeedCard
+                item={featuredItem}
+                locale={locale}
+                referralCode={referralCode}
+              />
+
+              <div className="grid gap-4">
+                <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)]">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#1f7c38]">
+                    Discover
+                  </p>
+                  <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all]">
+                    {copy.feed.title}
+                  </h2>
+                  <div className="mt-5 grid grid-cols-3 gap-2">
+                    {feedStats.map((stat) => (
+                      <div
+                        className="rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
+                        key={stat.label}
+                      >
+                        <p className="text-2xl font-semibold leading-none">
+                          {stat.value}
+                        </p>
+                        <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-black/46">
+                          {stat.label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {creatorItems.length > 0 ? (
+                  <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h2 className="text-xl font-semibold">
+                        {copy.feed.suggestedCreators}
+                      </h2>
+                    </div>
+                    <div className="flex snap-x gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-2 lg:overflow-visible">
+                      {creatorItems.map((item) => (
+                        <CreatorDiscoveryCard
+                          item={item}
+                          key={item.authorReferralCode ?? item.authorName}
+                          locale={locale}
+                          referralCode={referralCode}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {videoItems.length > 0 ? (
+            <section className="mb-10">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-2xl font-semibold tracking-normal">
+                  {copy.feed.videos}
+                </h2>
+              </div>
+              <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                {videoItems.map((item) => (
+                  <div className="min-w-[17rem] snap-start sm:min-w-[20rem]" key={item.contentId}>
+                    <ContentCard
+                      item={item}
+                      locale={locale}
+                      referralCode={referralCode}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {latestItems.length > 0 ? (
+            <section className="mb-10">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-2xl font-semibold tracking-normal">
+                  {copy.feed.latest}
+                </h2>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {latestItems.slice(0, 4).map((item) => (
+                  <ContentCard
+                    item={item}
+                    key={item.contentId}
+                    locale={locale}
+                    referralCode={referralCode}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold tracking-normal">
+              {copy.feed.allContent}
+            </h2>
+          </div>
           <ContentGrid
             empty={copy.feed.empty}
             items={items}
