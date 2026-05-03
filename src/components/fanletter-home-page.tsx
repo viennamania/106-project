@@ -37,6 +37,7 @@ type FanletterCopy = {
     creator: string;
     fan: string;
     login: string;
+    studio: string;
   };
   creatorWall: {
     count: string;
@@ -114,6 +115,7 @@ const koCopy: FanletterCopy = {
     creator: "크리에이터로 시작",
     fan: "팬 피드 보기",
     login: "계정 연결",
+    studio: "나의 스튜디오",
   },
   creatorWall: {
     count: "201,548",
@@ -226,6 +228,7 @@ const enCopy: FanletterCopy = {
     creator: "Become a creator",
     fan: "Explore the feed",
     login: "Connect account",
+    studio: "My studio",
   },
   creatorWall: {
     count: "201,548",
@@ -563,6 +566,12 @@ export function FanletterHomePage({
                   href={feedHref}
                 >
                   {copy.cta.fan}
+                </Link>
+                <Link
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/14 bg-white/10 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-white/14 sm:h-[3.25rem] sm:px-7"
+                  href={studioHref}
+                >
+                  {copy.cta.studio}
                 </Link>
               </div>
             </div>

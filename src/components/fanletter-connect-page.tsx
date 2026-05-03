@@ -72,7 +72,7 @@ function getCopy(locale: Locale) {
           "FanLetter 전용 온보딩에서 이메일 지갑과 회원 상태를 먼저 확인합니다.",
         back: "온보딩으로 돌아가기",
         completedBody:
-          "가입 완료 회원으로 확인되었습니다. 이제 프로필과 첫 콘텐츠를 이어서 준비하세요.",
+          "가입 완료 회원으로 확인되었습니다. 스튜디오에서 프로필, 콘텐츠, 공개 상태를 이어서 관리하세요.",
         completedTitle: "FanLetter 시작 준비가 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
@@ -96,6 +96,7 @@ function getCopy(locale: Locale) {
         restoring: "기존 계정 연결을 복원하고 있습니다.",
         secondary: "첫 콘텐츠 만들기",
         signOut: "연결 해제",
+        studio: "나의 스튜디오로 이동",
         steps: ["이메일 로그인", "스마트 지갑 연결", "회원 상태 동기화"],
         syncErrorTitle: "회원 상태 확인이 필요합니다.",
         syncing: "회원 상태를 동기화하고 있습니다.",
@@ -108,7 +109,7 @@ function getCopy(locale: Locale) {
           "Confirm the email wallet and member status inside the FanLetter onboarding flow.",
         back: "Back to onboarding",
         completedBody:
-          "This member is completed. Continue with profile setup and first content.",
+          "This member is completed. Manage profile, content, and publishing from the studio.",
         completedTitle: "Your FanLetter account is ready.",
         connect: "Connect with email",
         connectBody:
@@ -132,6 +133,7 @@ function getCopy(locale: Locale) {
         restoring: "Restoring the existing account connection.",
         secondary: "Create first content",
         signOut: "Disconnect",
+        studio: "Go to my studio",
         steps: ["Email login", "Smart wallet", "Member sync"],
         syncErrorTitle: "Member status needs attention.",
         syncing: "Syncing member status.",
@@ -265,6 +267,10 @@ export function FanletterConnectPage({
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: returnToHref || onboardingHref },
+  );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
   );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
@@ -607,17 +613,25 @@ export function FanletterConnectPage({
                   <>
                     <Link
                       className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
-                      href={profileHref}
+                      href={studioHref}
                     >
-                      {copy.primary}
+                      {copy.studio}
                       <ArrowRight className="size-4" />
                     </Link>
-                    <Link
-                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
-                      href={createHref}
-                    >
-                      {copy.secondary}
-                    </Link>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Link
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                        href={profileHref}
+                      >
+                        {copy.primary}
+                      </Link>
+                      <Link
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                        href={createHref}
+                      >
+                        {copy.secondary}
+                      </Link>
+                    </div>
                   </>
                 ) : memberNeedsPayment ? (
                   <Link

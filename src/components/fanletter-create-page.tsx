@@ -118,6 +118,7 @@ function getCopy(locale: Locale) {
         result: "미리보기",
         summary: "요약",
         summaryPlaceholder: "짧은 소개 문구",
+        studio: "나의 스튜디오",
         title: "제목",
         titlePlaceholder: "첫 콘텐츠 제목",
         titleText: "첫 콘텐츠를 FanLetter 흐름에서 바로 만드세요.",
@@ -171,6 +172,7 @@ function getCopy(locale: Locale) {
         result: "Preview",
         summary: "Summary",
         summaryPlaceholder: "Short intro",
+        studio: "My studio",
         title: "Title",
         titlePlaceholder: "First content title",
         titleText: "Create your first content inside FanLetter.",
@@ -289,7 +291,14 @@ export function FanletterCreatePage({
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
-  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
+    referralCode,
+  );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
@@ -643,9 +652,9 @@ export function FanletterCreatePage({
             </Link>
             <Link
               className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-              href={profileHref}
+              href={studioHref}
             >
-              {copy.back}
+              {copy.studio}
             </Link>
             <span className="size-11 sm:hidden" />
           </header>
@@ -942,7 +951,7 @@ export function FanletterCreatePage({
                 </div>
 
                 {contentHref ? (
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
                     <Link
                       className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90"
                       href={contentHref}
@@ -955,6 +964,12 @@ export function FanletterCreatePage({
                       href={feedHref}
                     >
                       {copy.feed}
+                    </Link>
+                    <Link
+                      className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
+                      href={studioHref}
+                    >
+                      {copy.studio}
                     </Link>
                   </div>
                 ) : null}

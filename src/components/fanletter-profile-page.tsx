@@ -163,6 +163,7 @@ function getCopy(locale: Locale) {
         selectedPersona: "선택된 페르소나",
         setupBody:
           "처음에는 필요한 것만 설정합니다. 표시 이름, 인물 페르소나, AI 아바타를 순서대로 끝내면 콘텐츠 생성으로 바로 이어집니다.",
+        studio: "나의 스튜디오",
         title: "FanLetter 프로필을 빠르게 준비하세요.",
       }
     : {
@@ -226,6 +227,7 @@ function getCopy(locale: Locale) {
         selectedPersona: "Selected persona",
         setupBody:
           "Keep setup light at first: display name, character persona, and AI avatar. Then continue to content creation.",
+        studio: "My studio",
         title: "Prepare your FanLetter profile quickly.",
       };
 }
@@ -336,6 +338,10 @@ export function FanletterProfilePage({
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: returnToHref || onboardingHref },
+  );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
   );
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
@@ -779,9 +785,9 @@ export function FanletterProfilePage({
             </Link>
             <Link
               className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-              href={returnToHref || onboardingHref}
+              href={studioHref}
             >
-              {copy.back}
+              {copy.studio}
             </Link>
             <span className="size-11 sm:hidden" />
           </header>
@@ -1188,13 +1194,21 @@ export function FanletterProfilePage({
           </section>
 
           <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-white/10 bg-[#030504]/92 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-            <Link
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90 sm:w-fit"
-              href={createHref}
-            >
-              {copy.contentCta}
-              <ArrowRight className="size-4" />
-            </Link>
+            <div className="grid gap-2 sm:flex sm:flex-wrap">
+              <Link
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90 sm:w-fit"
+                href={createHref}
+              >
+                {copy.contentCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-fit"
+                href={studioHref}
+              >
+                {copy.studio}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
