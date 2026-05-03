@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 
 import { FanletterHomePage } from "@/components/fanletter-home-page";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
+import {
+  buildFanletterOgImagePath,
+  FANLETTER_OG_IMAGE_SIZE,
+  getFanletterOgAlt,
+} from "@/lib/fanletter-og";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
@@ -40,18 +45,40 @@ export async function generateMetadata({
   const referralCode = readReferralCode(query.ref);
   const meta = getFanletterMeta(locale);
   const url = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const ogImagePath = buildFanletterOgImagePath({
+    description: meta.description,
+    locale,
+    referralCode,
+    title: meta.title,
+    variant: "home",
+    version: "fanletter-home-v2",
+  });
+  const ogImage = {
+    alt: getFanletterOgAlt(locale, "home"),
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    type: "image/png",
+    url: ogImagePath,
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title: meta.title,
     description: meta.description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description: meta.description,
+      images: [ogImage],
+      siteName: "FanLetter",
       title: meta.title,
+      type: "website",
       url,
     },
     twitter: {
       card: "summary_large_image",
       description: meta.description,
+      images: [ogImage],
       title: meta.title,
     },
   };

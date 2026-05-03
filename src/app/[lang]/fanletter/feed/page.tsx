@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 
 import { FanletterFeedPage } from "@/components/fanletter-subpages";
 import { getFanletterFeedPageData } from "@/lib/fanletter-content-service";
+import {
+  buildFanletterOgImagePath,
+  FANLETTER_OG_IMAGE_SIZE,
+  getFanletterOgAlt,
+} from "@/lib/fanletter-og";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
@@ -34,18 +39,41 @@ export async function generateMetadata({
     locale === "ko"
       ? "FanLetter에서 공개된 AI 이미지와 동영상 콘텐츠를 확인하세요."
       : "Browse public AI image and video content on FanLetter.";
+  const url = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const ogImagePath = buildFanletterOgImagePath({
+    description,
+    locale,
+    referralCode,
+    title,
+    variant: "feed",
+    version: "fanletter-feed-v1",
+  });
+  const ogImage = {
+    alt: getFanletterOgAlt(locale, "feed"),
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    type: "image/png",
+    url: ogImagePath,
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description,
+      images: [ogImage],
+      siteName: "FanLetter",
       title,
-      url: buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode),
+      type: "website",
+      url,
     },
     twitter: {
       card: "summary_large_image",
       description,
+      images: [ogImage],
       title,
     },
   };

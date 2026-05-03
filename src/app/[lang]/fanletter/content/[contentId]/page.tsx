@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { FanletterContentDetailPage } from "@/components/fanletter-subpages";
 import { getFanletterPublicContentDetail } from "@/lib/fanletter-content-service";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
+import { FANLETTER_OG_IMAGE_SIZE } from "@/lib/fanletter-og";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -53,28 +54,33 @@ export async function generateMetadata({
       : "A public FanLetter content detail page.");
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const openGraphType = content?.hasVideo ? "video.other" : "website";
+  const url = `/${locale}/fanletter/content/${contentId}`;
+  const ogImage = {
+    alt: content?.title ?? "FanLetter",
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    type: "image/png",
+    url: ogImagePath,
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description,
-      images: [
-        {
-          alt: content?.title ?? "FanLetter",
-          height: 630,
-          url: ogImagePath,
-          width: 1200,
-        },
-      ],
+      images: [ogImage],
+      siteName: "FanLetter",
       title,
       type: openGraphType,
-      url: `/${locale}/fanletter/content/${contentId}`,
+      url,
     },
     twitter: {
       card: "summary_large_image",
       description,
-      images: [ogImagePath],
+      images: [ogImage],
       title,
     },
   };

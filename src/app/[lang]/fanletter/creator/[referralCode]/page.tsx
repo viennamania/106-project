@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 
 import { FanletterCreatorPage } from "@/components/fanletter-subpages";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
+import {
+  buildFanletterOgImagePath,
+  FANLETTER_OG_IMAGE_SIZE,
+  getFanletterOgAlt,
+} from "@/lib/fanletter-og";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
@@ -32,18 +37,42 @@ export async function generateMetadata({
     (locale === "ko"
       ? "FanLetter 크리에이터 공개 채널입니다."
       : "A public FanLetter creator channel.");
+  const normalizedReferralCode = normalizeReferralCode(referralCode);
+  const url = `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}`;
+  const ogImagePath = buildFanletterOgImagePath({
+    description,
+    locale,
+    referralCode: normalizedReferralCode,
+    title,
+    variant: "creator",
+    version: normalizedReferralCode ?? referralCode,
+  });
+  const ogImage = {
+    alt: getFanletterOgAlt(locale, "creator"),
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    type: "image/png",
+    url: ogImagePath,
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description,
+      images: [ogImage],
+      siteName: "FanLetter",
       title,
-      url: `/${locale}/fanletter/creator/${referralCode}`,
+      type: "profile",
+      url,
     },
     twitter: {
       card: "summary_large_image",
       description,
+      images: [ogImage],
       title,
     },
   };
