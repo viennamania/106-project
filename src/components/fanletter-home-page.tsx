@@ -559,49 +559,57 @@ export function FanletterHomePage({
       </section>
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#1f7c38]">
                 {copy.liveVideos.eyebrow}
               </p>
-              <h2 className="mt-4 text-[2.35rem] font-semibold leading-[1] tracking-normal text-[#07100b] sm:text-[3.8rem]">
+              <h2 className="mt-4 text-[2.35rem] font-semibold leading-[1] tracking-normal text-[#07100b] [word-break:keep-all] sm:text-[3.8rem]">
                 {copy.liveVideos.title}
               </h2>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-lg border border-black/10 bg-white p-3">
-                <p className="text-xl font-semibold leading-none">
-                  {formatCompactNumber(liveStats.publishedContentCount, locale)}
-                </p>
-                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                  {copy.liveStats.content}
-                </p>
+            <div className="flex flex-col gap-3 md:items-end">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
+                  <p className="text-xl font-semibold leading-none">
+                    {formatCompactNumber(liveStats.publishedContentCount, locale)}
+                  </p>
+                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                    {copy.liveStats.content}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
+                  <p className="text-xl font-semibold leading-none">
+                    {formatCompactNumber(liveStats.publicVideoCount, locale)}
+                  </p>
+                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                    {copy.liveStats.videos}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
+                  <p className="text-xl font-semibold leading-none">
+                    {formatCompactNumber(liveStats.confirmedSalesCount, locale)}
+                  </p>
+                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                    {copy.liveStats.sales}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
+                  <p className="text-xl font-semibold leading-none">
+                    {formatUsdt(liveStats.totalSalesUsdt, locale)}
+                  </p>
+                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                    {copy.liveStats.totalSales}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-lg border border-black/10 bg-white p-3">
-                <p className="text-xl font-semibold leading-none">
-                  {formatCompactNumber(liveStats.publicVideoCount, locale)}
-                </p>
-                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                  {copy.liveStats.videos}
-                </p>
-              </div>
-              <div className="rounded-lg border border-black/10 bg-white p-3">
-                <p className="text-xl font-semibold leading-none">
-                  {formatCompactNumber(liveStats.confirmedSalesCount, locale)}
-                </p>
-                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                  {copy.liveStats.sales}
-                </p>
-              </div>
-              <div className="rounded-lg border border-black/10 bg-white p-3">
-                <p className="text-xl font-semibold leading-none">
-                  {formatUsdt(liveStats.totalSalesUsdt, locale)}
-                </p>
-                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                  {copy.liveStats.totalSales}
-                </p>
-              </div>
+              <Link
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#07100b] px-5 text-sm font-semibold !text-white transition hover:bg-[#132018] sm:w-fit"
+                href={feedHref}
+              >
+                {copy.cta.fan}
+              </Link>
             </div>
           </div>
 
@@ -616,12 +624,12 @@ export function FanletterHomePage({
 
                 return (
                   <Link
-                    className="group block min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:min-w-[18rem] lg:min-w-0 lg:flex-1"
+                    className="group flex h-[34rem] min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:h-[36rem] sm:min-w-[18rem] lg:min-w-[19rem]"
                     href={videoHref}
                     key={video.contentId}
                   >
-                    <article>
-                      <div className="relative aspect-[9/16] overflow-hidden bg-[#07100b]">
+                    <article className="flex h-full min-h-0 w-full flex-col">
+                      <div className="relative h-[18.5rem] shrink-0 overflow-hidden bg-[#07100b] sm:h-[20rem]">
                         {video.coverImageUrl ? (
                           <>
                             <div
@@ -631,7 +639,7 @@ export function FanletterHomePage({
                               }}
                             />
                             <div
-                              className="absolute inset-0 bg-contain bg-center bg-no-repeat transition duration-500 group-hover:scale-[1.01]"
+                              className="absolute inset-0 bg-contain bg-center bg-no-repeat transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
                               style={{
                                 backgroundImage: `url(${video.coverImageUrl})`,
                               }}
@@ -642,7 +650,7 @@ export function FanletterHomePage({
                             <video
                               aria-hidden="true"
                               autoPlay
-                              className="absolute inset-0 h-full w-full object-contain opacity-95"
+                              className="absolute inset-0 h-full w-full object-contain opacity-95 transition duration-500 group-hover:brightness-110"
                               loop
                               muted
                               playsInline
@@ -652,7 +660,7 @@ export function FanletterHomePage({
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(68,242,110,0.18),transparent_36%)]" />
                           </>
                         )}
-                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.24)_54%,rgba(0,0,0,0.78)_100%)]" />
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.16)_48%,rgba(0,0,0,0.82)_100%)]" />
                         <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
                           {copy.liveVideos.free}
                         </div>
@@ -685,14 +693,14 @@ export function FanletterHomePage({
                           </div>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-xl font-semibold leading-tight tracking-normal text-black">
+                      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                        <h3 className="line-clamp-3 text-xl font-semibold leading-tight tracking-normal text-black">
                           {video.title}
                         </h3>
-                        <p className="mt-2 min-h-[3rem] text-sm font-medium leading-6 text-black/58">
+                        <p className="mt-3 line-clamp-4 text-sm font-medium leading-6 text-black/58">
                           {video.summary}
                         </p>
-                        <div className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
+                        <div className="mt-auto inline-flex h-10 w-fit items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
                           <Clapperboard className="size-4" />
                           {copy.liveVideos.open}
                         </div>
