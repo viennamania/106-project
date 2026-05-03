@@ -22,7 +22,10 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 
 type FanletterCopy = {
   announcement: {
@@ -109,7 +112,7 @@ const koCopy: FanletterCopy = {
   cta: {
     creator: "크리에이터로 시작",
     fan: "팬 피드 보기",
-    login: "로그인",
+    login: "계정 연결",
   },
   creatorWall: {
     count: "201,548",
@@ -220,7 +223,7 @@ const enCopy: FanletterCopy = {
   cta: {
     creator: "Become a creator",
     fan: "Explore the feed",
-    login: "Login",
+    login: "Connect account",
   },
   creatorWall: {
     count: "201,548",
@@ -388,7 +391,14 @@ export function FanletterHomePage({
   );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
-  const loginHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const onboardingHref = buildPathWithReferral(
+    `/${locale}/fanletter/onboarding`,
+    referralCode,
+  );
+  const connectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+    { returnTo: onboardingHref },
+  );
   const heroVideo = featuredVideos[0] ?? null;
   const heroSlides = featuredVideos.slice(0, 3).map((video) => ({
     authorName: video.authorName,
@@ -444,7 +454,7 @@ export function FanletterHomePage({
   const footerLabels =
     locale === "ko"
       ? {
-          activate: "가입",
+          activate: "계정 연결",
           aiContent: "AI 콘텐츠",
           creatorGrowth: "크리에이터 성장",
           feed: "피드",
@@ -456,7 +466,7 @@ export function FanletterHomePage({
           usdtReady: "USDT 결제",
         }
       : {
-          activate: "Activate",
+          activate: "Connect account",
           aiContent: "AI Content",
           creatorGrowth: "Creator growth",
           feed: "Feed",
@@ -515,7 +525,7 @@ export function FanletterHomePage({
               </div>
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/40"
-                href={loginHref}
+                href={connectHref}
               >
                 {copy.cta.login}
               </Link>
@@ -1098,7 +1108,7 @@ export function FanletterHomePage({
                 <Link className="block" href={feedHref}>
                   {footerLabels.feed}
                 </Link>
-                <Link className="block" href={loginHref}>
+                <Link className="block" href={connectHref}>
                   {footerLabels.activate}
                 </Link>
               </div>
