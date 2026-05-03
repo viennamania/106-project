@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterHomePage } from "@/components/fanletter-home-page";
+import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
@@ -69,11 +70,15 @@ export default async function FanletterRoutePage({
   if (!hasLocale(lang)) {
     notFound();
   }
+  const referralCode = readReferralCode(query.ref);
+  const landingData = await getFanletterLandingData(lang, referralCode);
 
   return (
     <FanletterHomePage
+      featuredVideos={landingData.featuredVideos}
       locale={lang}
-      referralCode={readReferralCode(query.ref)}
+      liveStats={landingData.liveStats}
+      referralCode={referralCode}
     />
   );
 }

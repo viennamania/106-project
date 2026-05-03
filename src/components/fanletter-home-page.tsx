@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import type {
+  FanletterFeaturedVideo,
+  FanletterLiveStats,
+} from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
@@ -62,6 +66,20 @@ type FanletterCopy = {
     description: string;
   };
   languageLabel: string;
+  liveStats: {
+    content: string;
+    creators: string;
+    sales: string;
+    totalSales: string;
+    videos: string;
+  };
+  liveVideos: {
+    empty: string;
+    eyebrow: string;
+    free: string;
+    open: string;
+    title: string;
+  };
   nav: {
     creators: string;
     faq: string;
@@ -158,6 +176,20 @@ const koCopy: FanletterCopy = {
       "FanLetter는 크리에이터 프로필, 인물 페르소나, AI 이미지와 동영상 생성, 팬 전용 피드, 판매 흐름을 모바일 중심으로 묶은 크리에이터 수익화 홈입니다.",
   },
   languageLabel: "언어",
+  liveStats: {
+    content: "공개 콘텐츠",
+    creators: "활성 크리에이터",
+    sales: "확정 판매",
+    totalSales: "누적 판매",
+    videos: "공개 동영상",
+  },
+  liveVideos: {
+    empty: "공개 동영상 콘텐츠가 준비되면 이 영역에 바로 노출됩니다.",
+    eyebrow: "Live Creator Videos",
+    free: "무료 공개",
+    open: "콘텐츠 보기",
+    title: "실제 공개 동영상 콘텐츠로 팬이 바로 확인합니다.",
+  },
   nav: {
     creators: "크리에이터",
     faq: "FAQ",
@@ -255,6 +287,20 @@ const enCopy: FanletterCopy = {
       "FanLetter combines creator profiles, character personas, AI image and video generation, fan-only feeds, and sales flows into one mobile-first monetisation home.",
   },
   languageLabel: "Language",
+  liveStats: {
+    content: "public content",
+    creators: "active creators",
+    sales: "confirmed sales",
+    totalSales: "sales volume",
+    videos: "public videos",
+  },
+  liveVideos: {
+    empty: "Public creator videos will appear here as soon as they are available.",
+    eyebrow: "Live Creator Videos",
+    free: "Free public",
+    open: "View content",
+    title: "Real public creator videos make the fan experience tangible.",
+  },
   nav: {
     creators: "Creators",
     faq: "FAQ",
@@ -292,11 +338,47 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function formatCompactNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: value >= 1000 ? 1 : 0,
+    notation: value >= 10000 ? "compact" : "standard",
+  }).format(value);
+}
+
+function formatUsdt(value: number, locale: Locale) {
+  if (value <= 0) {
+    return "0 USDT";
+  }
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: value >= 100 ? 0 : 2,
+  }).format(value)} USDT`;
+}
+
+function formatDate(value: string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(value));
+}
+
+function getAuthorInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || "F";
+}
+
 export function FanletterHomePage({
+  featuredVideos,
   locale,
+  liveStats,
   referralCode,
 }: {
+  featuredVideos: FanletterFeaturedVideo[];
   locale: Locale;
+  liveStats: FanletterLiveStats;
   referralCode: string | null;
 }) {
   const copy = getFanletterCopy(locale);
@@ -304,18 +386,47 @@ export function FanletterHomePage({
     `/${locale}/creator/studio/profile`,
     referralCode,
   );
+  const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
   const loginHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const heroVideo = featuredVideos[0] ?? null;
+  const heroStats = [
+    {
+      label: copy.liveStats.videos,
+      value: formatCompactNumber(liveStats.publicVideoCount, locale),
+    },
+    {
+      label: copy.liveStats.creators,
+      value: formatCompactNumber(liveStats.activeCreatorCount, locale),
+    },
+    {
+      label: copy.liveStats.sales,
+      value: formatCompactNumber(liveStats.confirmedSalesCount, locale),
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="relative min-h-[88svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.64]"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.52]"
           style={{
-            backgroundImage: `url(${FANLETTER_PHONE_IMAGE})`,
+            backgroundImage: `url(${heroVideo?.coverImageUrl ?? FANLETTER_PHONE_IMAGE})`,
           }}
         />
+        {heroVideo ? (
+          <video
+            aria-hidden="true"
+            autoPlay
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.56]"
+            loop
+            muted
+            playsInline
+            poster={heroVideo.coverImageUrl ?? undefined}
+            preload="metadata"
+            src={heroVideo.videoUrl}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.42)_0%,rgba(3,5,4,0.54)_42%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[88svh] w-full max-w-7xl flex-col px-4 pb-8 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
@@ -330,7 +441,7 @@ export function FanletterHomePage({
           </div>
 
           <header className="mt-4 flex items-center justify-between gap-4">
-            <Link className="flex items-center gap-2" href={`/${locale}/fanletter`}>
+            <Link className="flex items-center gap-2" href={homeHref}>
               <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
               </span>
@@ -384,7 +495,7 @@ export function FanletterHomePage({
             </div>
 
             <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
-              {copy.proof.stats.map((stat) => (
+              {heroStats.map((stat) => (
                 <div
                   className="rounded-lg border border-white/12 bg-black/38 p-3 backdrop-blur-md sm:p-4"
                   key={stat.label}
@@ -399,6 +510,143 @@ export function FanletterHomePage({
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#1f7c38]">
+                {copy.liveVideos.eyebrow}
+              </p>
+              <h2 className="mt-4 text-[2.35rem] font-semibold leading-[1] tracking-normal text-[#07100b] sm:text-[3.8rem]">
+                {copy.liveVideos.title}
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-lg border border-black/10 bg-white p-3">
+                <p className="text-xl font-semibold leading-none">
+                  {formatCompactNumber(liveStats.publishedContentCount, locale)}
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                  {copy.liveStats.content}
+                </p>
+              </div>
+              <div className="rounded-lg border border-black/10 bg-white p-3">
+                <p className="text-xl font-semibold leading-none">
+                  {formatCompactNumber(liveStats.publicVideoCount, locale)}
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                  {copy.liveStats.videos}
+                </p>
+              </div>
+              <div className="rounded-lg border border-black/10 bg-white p-3">
+                <p className="text-xl font-semibold leading-none">
+                  {formatCompactNumber(liveStats.confirmedSalesCount, locale)}
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                  {copy.liveStats.sales}
+                </p>
+              </div>
+              <div className="rounded-lg border border-black/10 bg-white p-3">
+                <p className="text-xl font-semibold leading-none">
+                  {formatUsdt(liveStats.totalSalesUsdt, locale)}
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                  {copy.liveStats.totalSales}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {featuredVideos.length > 0 ? (
+            <div className="mt-10 flex snap-x gap-3 overflow-x-auto pb-4 sm:gap-4">
+              {featuredVideos.map((video) => {
+                const publishedDate = formatDate(video.publishedAt, locale);
+                const videoHref = buildPathWithReferral(
+                  `/${locale}/content/${video.contentId}`,
+                  referralCode,
+                );
+
+                return (
+                  <Link
+                    className="group block min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:min-w-[18rem] lg:min-w-0 lg:flex-1"
+                    href={videoHref}
+                    key={video.contentId}
+                  >
+                    <article>
+                      <div className="relative aspect-[9/16] overflow-hidden bg-[#07100b]">
+                        {video.coverImageUrl ? (
+                          <div
+                            className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
+                            style={{
+                              backgroundImage: `url(${video.coverImageUrl})`,
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+                            <Clapperboard className="size-12 text-[#44f26e]" />
+                            <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                              Video
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.24)_54%,rgba(0,0,0,0.78)_100%)]" />
+                        <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
+                          {copy.liveVideos.free}
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e] bg-cover bg-center text-xs font-semibold text-black ring-2 ring-white/70"
+                              style={
+                                video.authorAvatarImageUrl
+                                  ? {
+                                      backgroundImage: `url(${video.authorAvatarImageUrl})`,
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {video.authorAvatarImageUrl
+                                ? null
+                                : getAuthorInitial(video.authorName)}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-white">
+                                {video.authorName}
+                              </p>
+                              {publishedDate ? (
+                                <p className="text-xs font-medium text-white/64">
+                                  {publishedDate}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-xl font-semibold leading-tight tracking-normal text-black">
+                          {video.title}
+                        </h3>
+                        <p className="mt-2 min-h-[3rem] text-sm font-medium leading-6 text-black/58">
+                          {video.summary}
+                        </p>
+                        <div className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
+                          <Clapperboard className="size-4" />
+                          {copy.liveVideos.open}
+                        </div>
+                      </div>
+                    </article>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-10 rounded-lg border border-black/10 bg-white p-6 text-sm font-semibold text-black/58">
+              {copy.liveVideos.empty}
+            </div>
+          )}
         </div>
       </section>
 
