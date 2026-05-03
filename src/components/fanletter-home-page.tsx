@@ -12,6 +12,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterMobileHeroCarousel } from "@/components/fanletter-mobile-hero-carousel";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterFeaturedVideo,
@@ -386,6 +387,12 @@ export function FanletterHomePage({
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const loginHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const heroVideo = featuredVideos[0] ?? null;
+  const mobileHeroSlides = featuredVideos.slice(0, 3).map((video) => ({
+    authorName: video.authorName,
+    coverImageUrl: video.coverImageUrl,
+    title: video.title,
+    videoUrl: video.videoUrl,
+  }));
   const heroStats = [
     {
       label: copy.liveStats.videos,
@@ -469,19 +476,7 @@ export function FanletterHomePage({
               : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
           }}
         />
-        {heroVideo ? (
-          <video
-            aria-hidden="true"
-            autoPlay
-            className="absolute inset-0 h-full w-full scale-[1.03] object-cover object-center opacity-[0.68] saturate-[1.12] lg:hidden"
-            loop
-            muted
-            playsInline
-            poster={heroVideo.coverImageUrl ?? undefined}
-            preload="metadata"
-            src={heroVideo.videoUrl}
-          />
-        ) : null}
+        <FanletterMobileHeroCarousel slides={mobileHeroSlides} />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(68,242,110,0.14),transparent_28%),linear-gradient(180deg,rgba(3,5,4,0.24)_0%,rgba(3,5,4,0.52)_42%,rgba(3,5,4,0.82)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
