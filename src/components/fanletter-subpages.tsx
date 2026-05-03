@@ -216,6 +216,8 @@ function getAvatarInitial(name: string) {
 }
 
 function FanletterShell({
+  actions,
+  aside,
   children,
   description,
   eyebrow,
@@ -223,6 +225,8 @@ function FanletterShell({
   referralCode,
   title,
 }: {
+  actions?: ReactNode;
+  aside?: ReactNode;
   children: ReactNode;
   description?: string;
   eyebrow: string;
@@ -260,7 +264,7 @@ function FanletterShell({
                 <LanguageSwitcher label={copy.languageLabel} locale={locale} />
               </div>
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold text-white"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36"
                 href={startHref}
               >
                 {copy.actions.start}
@@ -268,18 +272,32 @@ function FanletterShell({
             </div>
           </header>
 
-          <div className="pt-16 sm:pt-24">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
-              {eyebrow}
-            </p>
-            <h1 className="mt-4 max-w-5xl text-[2.65rem] font-semibold leading-[0.98] tracking-normal text-white sm:text-[4.7rem]">
-              {title}
-            </h1>
-            {description ? (
-              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
-                {description}
+          <div
+            className={`pt-14 sm:pt-24 ${
+              aside
+                ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,25rem)] lg:items-end"
+                : ""
+            }`}
+          >
+            <div className="min-w-0">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
+                {eyebrow}
               </p>
-            ) : null}
+              <h1 className="mt-4 max-w-5xl text-[2.65rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.7rem]">
+                {title}
+              </h1>
+              {description ? (
+                <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+                  {description}
+                </p>
+              ) : null}
+              {actions ? (
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  {actions}
+                </div>
+              ) : null}
+            </div>
+            {aside ? <div className="min-w-0">{aside}</div> : null}
           </div>
         </div>
       </section>
@@ -866,9 +884,94 @@ export function FanletterStartPage({
     `/${locale}/creator/studio/profile`,
     referralCode,
   );
+  const startLabels =
+    locale === "ko"
+      ? {
+          flowEyebrow: "Quick setup",
+          flowTitle: "3단계만 끝내면 FanLetter 홈을 바로 시작할 수 있습니다.",
+          primary: "가입하고 시작하기",
+          secondary: "프로필 설정하기",
+          previewTitle: "오늘 할 일",
+          previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
+          nextLabel: "다음 단계",
+          readyLabel: "시작 준비",
+          readyValue: "3 steps",
+          stepMeta: ["계정 확인", "AI 생성 준비", "공개와 판매"],
+        }
+      : {
+          flowEyebrow: "Quick setup",
+          flowTitle: "Complete three steps to launch your FanLetter home.",
+          primary: "Start with signup",
+          secondary: "Set up profile",
+          previewTitle: "Today’s path",
+          previewBody: "New creators can follow the flow in order.",
+          nextLabel: "Next step",
+          readyLabel: "Ready path",
+          readyValue: "3 steps",
+          stepMeta: ["Account check", "AI creation setup", "Publish and sell"],
+        };
+  const startIcons = [User, Sparkles, WalletCards] as const;
+  const heroAside = (
+    <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.28)] backdrop-blur-md sm:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-white">
+            {startLabels.previewTitle}
+          </p>
+          <p className="mt-1 text-xs font-medium leading-5 text-white/52">
+            {startLabels.previewBody}
+          </p>
+        </div>
+        <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase text-black">
+          {startLabels.readyValue}
+        </span>
+      </div>
+      <div className="mt-5 space-y-3">
+        {copy.start.steps.map((step, index) => {
+          const Icon = startIcons[index] ?? Sparkles;
+
+          return (
+            <div
+              className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/34 p-3"
+              key={step.title}
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {step.title}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <FanletterShell
+      actions={
+        <>
+          <Link
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
+            href={activateHref}
+          >
+            {startLabels.primary}
+          </Link>
+          <Link
+            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
+            href={studioHref}
+          >
+            {startLabels.secondary}
+          </Link>
+        </>
+      }
+      aside={heroAside}
       description={copy.start.body}
       eyebrow={copy.start.eyebrow}
       locale={locale}
@@ -876,41 +979,87 @@ export function FanletterStartPage({
       title={copy.start.title}
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <div className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {startLabels.flowEyebrow}
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[2.8rem]">
+              {startLabels.flowTitle}
+            </h2>
+            <p className="mt-4 text-sm font-medium leading-6 text-white/62">
+              {copy.start.body}
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+                <p className="text-2xl font-semibold leading-none">
+                  {copy.start.steps.length}
+                </p>
+                <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/48">
+                  {startLabels.readyLabel}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-[#44f26e] p-3 text-black">
+                <p className="text-2xl font-semibold leading-none">01</p>
+                <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-black/58">
+                  {startLabels.nextLabel}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
           {copy.start.steps.map((step, index) => {
-            const icons = [User, Sparkles, WalletCards] as const;
-            const Icon = icons[index] ?? Sparkles;
+            const Icon = startIcons[index] ?? Sparkles;
 
             return (
               <article
-                className="rounded-lg border border-black/10 bg-white p-5"
+                className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
                 key={step.title}
               >
-                <div className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                  <Icon className="size-6" />
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                      <Icon className="size-6" />
+                    </span>
+                    {index < copy.start.steps.length - 1 ? (
+                      <span className="mt-3 hidden h-12 w-px bg-black/10 sm:block" />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/46">
+                        {startLabels.stepMeta[index]}
+                      </span>
+                    </div>
+                    <p className="mt-4 text-2xl font-semibold leading-tight">
+                      {step.title}
+                    </p>
+                    <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+                      {step.body}
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-5 text-2xl font-semibold leading-tight">
-                  {step.title}
-                </p>
-                <p className="mt-3 text-sm font-medium leading-6 text-black/58">
-                  {step.body}
-                </p>
               </article>
             );
           })}
+          </div>
         </div>
-        <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-3 sm:flex-row">
+        <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-3 sm:flex-row lg:justify-end">
           <Link
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-black px-5 text-sm font-semibold text-white"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82 sm:min-w-[12rem]"
             href={activateHref}
           >
-            {copy.actions.start}
+            {startLabels.primary}
           </Link>
           <Link
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-black/12 bg-white px-5 text-sm font-semibold text-black"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-black/12 bg-white px-5 text-sm font-semibold !text-black transition hover:bg-black/[0.03] sm:min-w-[12rem]"
             href={studioHref}
           >
-            {copy.actions.creatorStudio}
+            {startLabels.secondary}
           </Link>
         </div>
       </section>
