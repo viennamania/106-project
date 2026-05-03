@@ -253,7 +253,7 @@ export function FanletterConnectPage({
     referralCode,
   );
   const profileHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
   const createHref = setPathSearchParams(

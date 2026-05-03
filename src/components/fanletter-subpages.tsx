@@ -1247,7 +1247,7 @@ export function FanletterOnboardingPage({
     { returnTo: onboardingHref },
   );
   const profileHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
     { returnTo: onboardingHref },
   );
   const createHref = setPathSearchParams(
@@ -1555,7 +1555,7 @@ export function FanletterStartPage({
     referralCode,
   );
   const studioHref = buildPathWithReferral(
-    `/${locale}/creator/studio/profile`,
+    `/${locale}/fanletter/profile`,
     referralCode,
   );
   const startLabels =
