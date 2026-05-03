@@ -1242,8 +1242,8 @@ export function FanletterOnboardingPage({
     referralCode,
   );
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
-  const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
+  const connectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: onboardingHref },
   );
   const profileHref = setPathSearchParams(
@@ -1283,7 +1283,7 @@ export function FanletterOnboardingPage({
             {
               body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
               cta: "계정 연결하기",
-              href: activateHref,
+              href: connectHref,
               Icon: User,
               meta: "01 · Account",
               title: "계정과 지갑 연결",
@@ -1329,7 +1329,7 @@ export function FanletterOnboardingPage({
             {
               body: "Confirm membership and wallet connection. After completion, return to this onboarding page.",
               cta: "Connect account",
-              href: activateHref,
+              href: connectHref,
               Icon: User,
               meta: "01 · Account",
               title: "Connect account and wallet",
@@ -1400,7 +1400,7 @@ export function FanletterOnboardingPage({
         <>
           <Link
             className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
-            href={activateHref}
+            href={connectHref}
           >
             {labels.primary}
           </Link>
