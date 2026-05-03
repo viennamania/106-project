@@ -1118,8 +1118,8 @@ export function CreatorContentStudioPage({
             label: "이미지 생성",
           },
           preparing_prompt: {
-            description: "입력한 이미지 설명을 생성 요청으로 준비합니다.",
-            label: "이미지 설명",
+            description: "이미지 설명과 페르소나를 AI 생성 요청으로 정리합니다.",
+            label: "생성 요청 준비",
           },
           progress: "진행률",
           running: "진행 중",
@@ -1159,8 +1159,8 @@ export function CreatorContentStudioPage({
             label: "Image generation",
           },
           preparing_prompt: {
-            description: "Preparing your image description for generation.",
-            label: "Image description",
+            description: "Preparing the image description and persona for the AI request.",
+            label: "Generation setup",
           },
           progress: "Progress",
           running: "Running",
@@ -1173,6 +1173,40 @@ export function CreatorContentStudioPage({
             label: "Asset upload",
           },
         };
+  const contentImageGenerationStepMeta: Record<
+    ContentCoverGenerationProgressStep,
+    {
+      description: string;
+      icon: typeof UserRound;
+      label: string;
+    }
+  > = {
+    authorizing: {
+      description: contentImageGenerationLabels.authorizing.description,
+      icon: UserRound,
+      label: contentImageGenerationLabels.authorizing.label,
+    },
+    finalizing: {
+      description: contentImageGenerationLabels.finalizing.description,
+      icon: Check,
+      label: contentImageGenerationLabels.finalizing.label,
+    },
+    generating_image: {
+      description: contentImageGenerationLabels.generating_image.description,
+      icon: WandSparkles,
+      label: contentImageGenerationLabels.generating_image.label,
+    },
+    preparing_prompt: {
+      description: contentImageGenerationLabels.preparing_prompt.description,
+      icon: PenSquare,
+      label: contentImageGenerationLabels.preparing_prompt.label,
+    },
+    uploading_cover: {
+      description: contentImageGenerationLabels.uploading_cover.description,
+      icon: ImagePlus,
+      label: contentImageGenerationLabels.uploading_cover.label,
+    },
+  };
   const contentVideoGenerationLabels =
     locale === "ko"
       ? {
@@ -6309,7 +6343,7 @@ export function CreatorContentStudioPage({
           promptValue={contentImagePrompt}
           progress={contentImageGenerationProgress}
           stepCount={completedContentImageGenerationStepCount}
-          stepMeta={coverGenerationStepMeta}
+          stepMeta={contentImageGenerationStepMeta}
           stepOrder={contentCoverGenerationProgressSteps}
           summary={postForm.summary}
           title={postForm.title}

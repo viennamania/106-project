@@ -1342,6 +1342,7 @@ async function maybeGenerateAutomationContentImages(options: {
   for (let index = 0; index < AUTOMATION_CONTENT_IMAGE_COUNT; index += 1) {
     try {
       const generatedImage = await generateAndUploadContentGalleryImage({
+        memberEmail: options.member.email,
         referralCode: options.member.referralCode,
         summary: options.draft.summary,
         title: options.draft.title,

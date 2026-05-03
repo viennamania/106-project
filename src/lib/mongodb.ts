@@ -35,6 +35,7 @@ import type { MemberAnnouncementDocument } from "@/lib/announcements";
 import type {
   ContentCommentDocument,
   ContentEntitlementDocument,
+  ContentImageGenerationDocument,
   ContentOrderDocument,
   ContentPostDocument,
   ContentSocialActionDocument,
@@ -122,6 +123,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoContentCommentsCollectionPromise?: Promise<
     Collection<ContentCommentDocument>
+  >;
+  mongoContentImageGenerationsCollectionPromise?: Promise<
+    Collection<ContentImageGenerationDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -956,6 +960,32 @@ export async function getContentCommentsCollection() {
   }
 
   return globalForMongo.mongoContentCommentsCollectionPromise;
+}
+
+export async function getContentImageGenerationsCollection() {
+  if (!globalForMongo.mongoContentImageGenerationsCollectionPromise) {
+    globalForMongo.mongoContentImageGenerationsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_CONTENT_IMAGE_GENERATIONS_COLLECTION ??
+        "contentImageGenerations";
+      const collection = client
+        .db(dbName)
+        .collection<ContentImageGenerationDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ generationId: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ referralCode: 1, createdAt: -1 }),
+        collection.createIndex({ status: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoContentImageGenerationsCollectionPromise;
 }
 
 export async function getCreatorAutomationProfilesCollection() {

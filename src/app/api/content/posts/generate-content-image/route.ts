@@ -196,6 +196,7 @@ export async function POST(request: Request) {
       const generatedImage = await generateAndUploadContentGalleryImage({
         avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
         characterPersona: profileSnapshot.profile.characterPersona,
+        memberEmail: member.email,
         onProgress(progress) {
           emit({
             progress,
@@ -263,6 +264,7 @@ export async function POST(request: Request) {
     const generatedImage = await generateAndUploadContentGalleryImage({
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       characterPersona: profileSnapshot.profile.characterPersona,
+      memberEmail: member.email,
       referralCode: member.referralCode,
       summary,
       title,

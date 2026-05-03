@@ -1,16 +1,20 @@
 import "server-only";
 
+import { randomUUID } from "crypto";
 import { createFalClient } from "@fal-ai/client";
 import { put } from "@vercel/blob";
 import Replicate, { type FileOutput } from "replicate";
 
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  type ContentImageGenerationAttemptDocument,
+  type ContentImageGenerationProvider,
   type CreatorCharacterPersona,
   type ContentCoverGenerationProgressStep,
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
 import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
+import { getContentImageGenerationsCollection } from "@/lib/mongodb";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
@@ -164,9 +168,25 @@ type FalImageOutput = {
   prompt?: string | null;
 };
 
+type GeneratedImageFile = { blob: Blob; sourceUrl: string | null };
+
+type ContentImageGenerationAttempt = ContentImageGenerationAttemptDocument;
+
+type ContentImageGenerationRecordPatch = {
+  attempts?: ContentImageGenerationAttempt[];
+  completedAt?: Date | null;
+  contentType?: string | null;
+  errorMessage?: string | null;
+  pathname?: string | null;
+  resultUrl?: string | null;
+  sourceUrl?: string | null;
+  status?: "failed" | "running" | "succeeded";
+};
+
 export type GenerateContentGalleryImageInput = {
   avatarImageUrl?: string | null;
   characterPersona?: CreatorCharacterPersona | null;
+  memberEmail: string;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
@@ -650,6 +670,24 @@ function createFalTextImageInput({
   return input;
 }
 
+function createReplicateImageInput({
+  avatarImageUrl,
+  prompt,
+}: {
+  avatarImageUrl: string;
+  prompt: string;
+}): ReplicateContentImageInput {
+  return {
+    aspect_ratio: DEFAULT_ASPECT_RATIO,
+    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
+    go_fast: false,
+    ...(avatarImageUrl ? { input_images: [avatarImageUrl] } : {}),
+    output_format: DEFAULT_OUTPUT_FORMAT,
+    output_quality: DEFAULT_OUTPUT_QUALITY,
+    prompt,
+  };
+}
+
 function createFalReferenceImageInput({
   avatarImageUrl,
   model,
@@ -892,24 +930,13 @@ async function readFalImageOutputFile(
 }
 
 async function generateReplicateImageFile({
-  avatarImageUrl,
-  prompt,
+  modelInput,
   replicateToken,
 }: {
-  avatarImageUrl: string;
-  prompt: string;
+  modelInput: ReplicateContentImageInput;
   replicateToken: string;
-}) {
+}): Promise<GeneratedImageFile> {
   const replicate = new Replicate({ auth: replicateToken });
-  const modelInput = {
-    aspect_ratio: DEFAULT_ASPECT_RATIO,
-    disable_safety_checker: DEFAULT_DISABLE_SAFETY_CHECKER,
-    go_fast: false,
-    ...(avatarImageUrl ? { input_images: [avatarImageUrl] } : {}),
-    output_format: DEFAULT_OUTPUT_FORMAT,
-    output_quality: DEFAULT_OUTPUT_QUALITY,
-    prompt,
-  } satisfies ReplicateContentImageInput;
 
   const rawOutput = await withTimeout(
     replicate.run(DEFAULT_MODEL, {
@@ -927,21 +954,15 @@ async function generateReplicateImageFile({
 }
 
 async function generateFalReferenceImageFile({
-  avatarImageUrl,
   falKey,
-  prompt,
+  model,
+  modelInput,
 }: {
-  avatarImageUrl: string;
   falKey: string;
-  prompt: string;
-}) {
-  const model = resolveFalReferenceModelName();
+  model: FalImageModelName;
+  modelInput: FalReferenceImageInput;
+}): Promise<GeneratedImageFile> {
   const fal = createFalClient({ credentials: falKey });
-  const modelInput = createFalReferenceImageInput({
-    avatarImageUrl,
-    model,
-    prompt,
-  });
   const result = await fal.subscribe(model, {
     input: modelInput,
     logs: true,
@@ -958,21 +979,16 @@ async function generateFalReferenceImageFile({
 }
 
 async function generateFalTextImageFile({
-  avatarImageUrl,
   falKey,
-  prompt,
+  model,
+  modelInput,
 }: {
-  avatarImageUrl?: string | null;
   falKey: string;
-  prompt: string;
-}) {
+  model: FalImageModelName;
+  modelInput: FalFluxProUltraInput;
+}): Promise<GeneratedImageFile> {
   try {
-    const model = resolveFalTextModelName();
     const fal = createFalClient({ credentials: falKey });
-    const modelInput = createFalTextImageInput({
-      avatarImageUrl,
-      prompt,
-    });
     const result = await fal.subscribe(model, {
       input: modelInput,
       logs: true,
@@ -1062,6 +1078,136 @@ function normalizeImageGenerationError(error: unknown) {
     : new Error("AI content image generation failed.");
 }
 
+function toRecordableModelInput(input: object) {
+  return JSON.parse(JSON.stringify(input)) as Record<string, unknown>;
+}
+
+async function createContentImageGenerationRecord({
+  avatarImageUrl,
+  finalPrompt,
+  input,
+  normalizedPrompt,
+  originalPrompt,
+  providerPriority,
+  summary,
+  title,
+}: {
+  avatarImageUrl: string;
+  finalPrompt: string;
+  input: GenerateContentGalleryImageInput;
+  normalizedPrompt: string;
+  originalPrompt: string;
+  providerPriority: "fal" | "replicate";
+  summary: string;
+  title: string;
+}) {
+  const generationId = randomUUID();
+  const now = new Date();
+
+  try {
+    const collection = await getContentImageGenerationsCollection();
+    await collection.insertOne({
+      attempts: [],
+      avatarImageUrl: avatarImageUrl || null,
+      createdAt: now,
+      finalPrompt,
+      generationId,
+      memberEmail: input.memberEmail,
+      normalizedPrompt,
+      originalPrompt,
+      personaId: input.characterPersona?.id ?? null,
+      personaName: input.characterPersona?.name ?? null,
+      providerPriority,
+      referralCode: input.referralCode,
+      status: "running",
+      summary,
+      title,
+      updatedAt: now,
+    });
+
+    return generationId;
+  } catch (error) {
+    console.warn("[content-image] failed to create generation record", {
+      message: getImageGenerationErrorMessage(error),
+    });
+
+    return null;
+  }
+}
+
+async function updateContentImageGenerationRecord(
+  generationId: string | null,
+  patch: ContentImageGenerationRecordPatch,
+) {
+  if (!generationId) {
+    return;
+  }
+
+  try {
+    const collection = await getContentImageGenerationsCollection();
+    await collection.updateOne(
+      { generationId },
+      {
+        $set: {
+          ...patch,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  } catch (error) {
+    console.warn("[content-image] failed to update generation record", {
+      generationId,
+      message: getImageGenerationErrorMessage(error),
+    });
+  }
+}
+
+async function runRecordedImageGenerationAttempt<T extends object>({
+  attempts,
+  generationId,
+  model,
+  modelInput,
+  provider,
+  run,
+}: {
+  attempts: ContentImageGenerationAttempt[];
+  generationId: string | null;
+  model: string;
+  modelInput: T;
+  provider: ContentImageGenerationProvider;
+  run: () => Promise<GeneratedImageFile>;
+}) {
+  const attempt: ContentImageGenerationAttempt = {
+    attemptId: randomUUID(),
+    model,
+    modelInput: toRecordableModelInput(modelInput),
+    provider,
+    startedAt: new Date(),
+    status: "running",
+  };
+
+  attempts.push(attempt);
+  await updateContentImageGenerationRecord(generationId, { attempts });
+
+  try {
+    const result = await run();
+    attempt.completedAt = new Date();
+    attempt.resultContentType = result.blob.type || null;
+    attempt.resultSourceUrl = result.sourceUrl;
+    attempt.status = "succeeded";
+    await updateContentImageGenerationRecord(generationId, { attempts });
+
+    return result;
+  } catch (error) {
+    attempt.completedAt = new Date();
+    attempt.errorMessage = getImageGenerationErrorMessage(error);
+    attempt.errorStatus = getProviderErrorStatus(error);
+    attempt.status = "failed";
+    await updateContentImageGenerationRecord(generationId, { attempts });
+    throw error;
+  }
+}
+
 async function reportProgress(
   onProgress:
     | ((
@@ -1107,7 +1253,7 @@ export async function generateAndUploadContentGalleryImage(
   }
 
   await reportProgress(input.onProgress, {
-    message: "Preparing the image prompt for content image generation.",
+    message: "Preparing the AI image generation request.",
     progress: 18,
     status: "running",
     step: "preparing_prompt",
@@ -1123,7 +1269,7 @@ export async function generateAndUploadContentGalleryImage(
   );
 
   await reportProgress(input.onProgress, {
-    message: "Image prompt is ready. Starting content image generation.",
+    message: "AI image generation request is ready. Starting content image generation.",
     progress: 28,
     status: "completed",
     step: "preparing_prompt",
@@ -1134,44 +1280,167 @@ export async function generateAndUploadContentGalleryImage(
   const canUseReplicate = Boolean(replicateToken);
   const canUseFalReference = Boolean(avatarImageUrl && falKey);
   const canUseFalText = Boolean(falKey);
+  const attempts: ContentImageGenerationAttempt[] = [];
+  const generationId = await createContentImageGenerationRecord({
+    avatarImageUrl,
+    finalPrompt: prompt,
+    input,
+    normalizedPrompt: modelVisualBrief,
+    originalPrompt: visualBrief,
+    providerPriority,
+    summary,
+    title,
+  });
 
-  if (providerPriority === "fal" && canUseFalReference) {
-    await reportProgress(input.onProgress, {
-      message: "Generating the AI content image with a persona avatar reference.",
-      progress: 42,
-      status: "running",
-      step: "generating_image",
+  async function runReplicateAttempt() {
+    const modelInput = createReplicateImageInput({
+      avatarImageUrl,
+      prompt,
     });
 
-    try {
-      generatedFile = await generateFalReferenceImageFile({
-        avatarImageUrl,
-        falKey: falKey ?? "",
-        prompt,
-      });
-    } catch (error) {
-      if (!replicateToken) {
-        console.warn(
-          "[content-image] fal reference image generation failed; falling back to fal text image",
-          {
-            message: getImageGenerationErrorMessage(error),
-          },
-        );
+    return runRecordedImageGenerationAttempt({
+      attempts,
+      generationId,
+      model: DEFAULT_MODEL,
+      modelInput,
+      provider: "replicate",
+      run: () =>
+        generateReplicateImageFile({
+          modelInput,
+          replicateToken: replicateToken ?? "",
+        }),
+    });
+  }
 
-        await reportProgress(input.onProgress, {
-          message: "fal reference image generation failed. Trying fal text image generation.",
-          progress: 58,
-          status: "running",
-          step: "generating_image",
-        });
-        generatedFile = await generateFalTextImageFile({
-          avatarImageUrl,
+  async function runFalReferenceAttempt() {
+    const model = resolveFalReferenceModelName();
+    const modelInput = createFalReferenceImageInput({
+      avatarImageUrl,
+      model,
+      prompt,
+    });
+
+    return runRecordedImageGenerationAttempt({
+      attempts,
+      generationId,
+      model,
+      modelInput,
+      provider: "fal-reference",
+      run: () =>
+        generateFalReferenceImageFile({
           falKey: falKey ?? "",
-          prompt,
-        });
-      } else {
+          model,
+          modelInput,
+        }),
+    });
+  }
+
+  async function runFalTextAttempt() {
+    const model = resolveFalTextModelName();
+    const modelInput = createFalTextImageInput({
+      avatarImageUrl,
+      prompt,
+    });
+
+    return runRecordedImageGenerationAttempt({
+      attempts,
+      generationId,
+      model,
+      modelInput,
+      provider: "fal-text",
+      run: () =>
+        generateFalTextImageFile({
+          falKey: falKey ?? "",
+          model,
+          modelInput,
+        }),
+    });
+  }
+
+  try {
+    if (providerPriority === "fal" && canUseFalReference) {
+      await reportProgress(input.onProgress, {
+        message: "Generating the AI content image with a persona avatar reference.",
+        progress: 42,
+        status: "running",
+        step: "generating_image",
+      });
+
+      try {
+        generatedFile = await runFalReferenceAttempt();
+      } catch (error) {
+        if (!replicateToken) {
+          console.warn(
+            "[content-image] fal reference image generation failed; falling back to fal text image",
+            {
+              message: getImageGenerationErrorMessage(error),
+            },
+          );
+
+          await reportProgress(input.onProgress, {
+            message: "fal reference image generation failed. Trying fal text image generation.",
+            progress: 58,
+            status: "running",
+            step: "generating_image",
+          });
+          generatedFile = await runFalTextAttempt();
+        } else {
+          console.warn(
+            "[content-image] fal image generation failed; falling back to Replicate",
+            {
+              message: getImageGenerationErrorMessage(error),
+            },
+          );
+
+          await reportProgress(input.onProgress, {
+            message: "fal image generation failed. Trying Replicate.",
+            progress: 58,
+            status: "running",
+            step: "generating_image",
+          });
+          try {
+            generatedFile = await runReplicateAttempt();
+          } catch (replicateError) {
+            if (!canUseFalText) {
+              throw normalizeImageGenerationError(replicateError);
+            }
+
+            console.warn(
+              "[content-image] Replicate image generation failed; falling back to fal text image",
+              {
+                message: getImageGenerationErrorMessage(replicateError),
+              },
+            );
+
+            await reportProgress(input.onProgress, {
+              message: "Replicate image generation failed. Trying fal text image generation.",
+              progress: 64,
+              status: "running",
+              step: "generating_image",
+            });
+            generatedFile = await runFalTextAttempt();
+          }
+        }
+      }
+    } else if (providerPriority === "fal" && canUseFalText) {
+      await reportProgress(input.onProgress, {
+        message: avatarImageUrl
+          ? "Generating the AI content image with fal and the persona avatar."
+          : "Generating the AI content image with fal.",
+        progress: 42,
+        status: "running",
+        step: "generating_image",
+      });
+
+      try {
+        generatedFile = await runFalTextAttempt();
+      } catch (error) {
+        if (!replicateToken) {
+          throw normalizeImageGenerationError(error);
+        }
+
         console.warn(
-          "[content-image] fal image generation failed; falling back to Replicate",
+          "[content-image] fal text image generation failed; falling back to Replicate",
           {
             message: getImageGenerationErrorMessage(error),
           },
@@ -1183,123 +1452,85 @@ export async function generateAndUploadContentGalleryImage(
           status: "running",
           step: "generating_image",
         });
-        try {
-          generatedFile = await generateReplicateImageFile({
-            avatarImageUrl,
-            prompt,
-            replicateToken: replicateToken ?? "",
-          });
-        } catch (replicateError) {
-          if (!canUseFalText) {
+        generatedFile = await runReplicateAttempt().catch(
+          (replicateError: unknown) => {
             throw normalizeImageGenerationError(replicateError);
-          }
-
-          console.warn(
-            "[content-image] Replicate image generation failed; falling back to fal text image",
-            {
-              message: getImageGenerationErrorMessage(replicateError),
-            },
-          );
-
-          await reportProgress(input.onProgress, {
-            message: "Replicate image generation failed. Trying fal text image generation.",
-            progress: 64,
-            status: "running",
-            step: "generating_image",
-          });
-          generatedFile = await generateFalTextImageFile({
-            avatarImageUrl,
-            falKey: falKey ?? "",
-            prompt,
-          });
-        }
+          },
+        );
       }
-    }
-  } else if (providerPriority === "fal" && canUseFalText) {
-    await reportProgress(input.onProgress, {
-      message: avatarImageUrl
-        ? "Generating the AI content image with fal and the persona avatar."
-        : "Generating the AI content image with fal.",
-      progress: 42,
-      status: "running",
-      step: "generating_image",
-    });
-
-    try {
-      generatedFile = await generateFalTextImageFile({
-        avatarImageUrl,
-        falKey: falKey ?? "",
-        prompt,
-      });
-    } catch (error) {
-      if (!replicateToken) {
-        throw normalizeImageGenerationError(error);
-      }
-
-      console.warn(
-        "[content-image] fal text image generation failed; falling back to Replicate",
-        {
-          message: getImageGenerationErrorMessage(error),
-        },
-      );
-
+    } else if (canUseReplicate) {
       await reportProgress(input.onProgress, {
-        message: "fal image generation failed. Trying Replicate.",
-        progress: 58,
+        message: avatarImageUrl
+          ? "Generating the AI content image with Replicate and the persona avatar reference."
+          : "Generating the AI content image with Replicate.",
+        progress: 42,
         status: "running",
         step: "generating_image",
       });
-      generatedFile = await generateReplicateImageFile({
-        avatarImageUrl,
-        prompt,
-        replicateToken: replicateToken ?? "",
-      }).catch((replicateError: unknown) => {
-        throw normalizeImageGenerationError(replicateError);
-      });
-    }
-  } else if (canUseReplicate) {
-    await reportProgress(input.onProgress, {
-      message: avatarImageUrl
-        ? "Generating the AI content image with Replicate and the persona avatar reference."
-        : "Generating the AI content image with Replicate.",
-      progress: 42,
-      status: "running",
-      step: "generating_image",
-    });
 
-    try {
-      generatedFile = await generateReplicateImageFile({
-        avatarImageUrl,
-        prompt,
-        replicateToken: replicateToken ?? "",
-      });
-    } catch (error) {
-      if (!canUseFalReference && !canUseFalText) {
-        throw normalizeImageGenerationError(error);
-      }
+      try {
+        generatedFile = await runReplicateAttempt();
+      } catch (error) {
+        if (!canUseFalReference && !canUseFalText) {
+          throw normalizeImageGenerationError(error);
+        }
 
-      console.warn(
-        "[content-image] Replicate image generation failed; falling back to fal",
-        {
-          message: getImageGenerationErrorMessage(error),
-        },
-      );
+        console.warn(
+          "[content-image] Replicate image generation failed; falling back to fal",
+          {
+            message: getImageGenerationErrorMessage(error),
+          },
+        );
 
-      if (canUseFalReference) {
-        await reportProgress(input.onProgress, {
-          message: "Replicate image generation failed. Trying persona avatar reference with fal.",
-          progress: 58,
-          status: "running",
-          step: "generating_image",
-        });
-
-        try {
-          generatedFile = await generateFalReferenceImageFile({
-            avatarImageUrl,
-            falKey: falKey ?? "",
-            prompt,
+        if (canUseFalReference) {
+          await reportProgress(input.onProgress, {
+            message: "Replicate image generation failed. Trying persona avatar reference with fal.",
+            progress: 58,
+            status: "running",
+            step: "generating_image",
           });
-        } catch (falReferenceError) {
+
+          try {
+            generatedFile = await runFalReferenceAttempt();
+          } catch (falReferenceError) {
+            if (!canUseFalText) {
+              throw normalizeImageGenerationError(falReferenceError);
+            }
+
+            console.warn(
+              "[content-image] fal reference image generation failed; falling back to fal text image",
+              {
+                message: getImageGenerationErrorMessage(falReferenceError),
+              },
+            );
+
+            await reportProgress(input.onProgress, {
+              message: "fal reference image generation failed. Trying fal text image generation.",
+              progress: 64,
+              status: "running",
+              step: "generating_image",
+            });
+            generatedFile = await runFalTextAttempt();
+          }
+        } else {
+          await reportProgress(input.onProgress, {
+            message: "Replicate image generation failed. Trying fal text image generation.",
+            progress: 58,
+            status: "running",
+            step: "generating_image",
+          });
+          generatedFile = await runFalTextAttempt();
+        }
+      }
+    } else if (canUseFalReference) {
+      await reportProgress(input.onProgress, {
+        message: "Generating the AI content image with a persona avatar reference.",
+        progress: 42,
+        status: "running",
+        step: "generating_image",
+      });
+      generatedFile = await runFalReferenceAttempt().catch(
+        async (falReferenceError: unknown) => {
           if (!canUseFalText) {
             throw normalizeImageGenerationError(falReferenceError);
           }
@@ -1313,81 +1544,33 @@ export async function generateAndUploadContentGalleryImage(
 
           await reportProgress(input.onProgress, {
             message: "fal reference image generation failed. Trying fal text image generation.",
-            progress: 64,
+            progress: 58,
             status: "running",
             step: "generating_image",
           });
-          generatedFile = await generateFalTextImageFile({
-            avatarImageUrl,
-            falKey: falKey ?? "",
-            prompt,
-          });
-        }
-      } else {
-        await reportProgress(input.onProgress, {
-          message: "Replicate image generation failed. Trying fal text image generation.",
-          progress: 58,
-          status: "running",
-          step: "generating_image",
-        });
-        generatedFile = await generateFalTextImageFile({
-          avatarImageUrl,
-          falKey: falKey ?? "",
-          prompt,
-        });
-      }
-    }
-  } else if (canUseFalReference) {
-    await reportProgress(input.onProgress, {
-      message: "Generating the AI content image with a persona avatar reference.",
-      progress: 42,
-      status: "running",
-      step: "generating_image",
-    });
-    generatedFile = await generateFalReferenceImageFile({
-      avatarImageUrl,
-      falKey: falKey ?? "",
-      prompt,
-    }).catch(async (falReferenceError: unknown) => {
-      if (!canUseFalText) {
-        throw normalizeImageGenerationError(falReferenceError);
-      }
-
-      console.warn(
-        "[content-image] fal reference image generation failed; falling back to fal text image",
-        {
-          message: getImageGenerationErrorMessage(falReferenceError),
+          return runFalTextAttempt();
         },
       );
-
+    } else if (canUseFalText) {
       await reportProgress(input.onProgress, {
-        message: "fal reference image generation failed. Trying fal text image generation.",
-        progress: 58,
+        message: "Generating the AI content image with fal.",
+        progress: 42,
         status: "running",
         step: "generating_image",
       });
-
-      return generateFalTextImageFile({
-        avatarImageUrl,
-        falKey: falKey ?? "",
-        prompt,
+      generatedFile = await runFalTextAttempt().catch((error: unknown) => {
+        throw normalizeImageGenerationError(error);
       });
+    } else {
+      throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
+    }
+  } catch (error) {
+    await updateContentImageGenerationRecord(generationId, {
+      completedAt: new Date(),
+      errorMessage: getImageGenerationErrorMessage(error),
+      status: "failed",
     });
-  } else if (canUseFalText) {
-    await reportProgress(input.onProgress, {
-      message: "Generating the AI content image with fal.",
-      progress: 42,
-      status: "running",
-      step: "generating_image",
-    });
-    generatedFile = await generateFalTextImageFile({
-      falKey: falKey ?? "",
-      prompt,
-    }).catch((error: unknown) => {
-      throw normalizeImageGenerationError(error);
-    });
-  } else {
-    throw new Error("FAL_KEY or REPLICATE_API_TOKEN is not configured.");
+    throw error;
   }
 
   await reportProgress(input.onProgress, {
@@ -1416,12 +1599,23 @@ export async function generateAndUploadContentGalleryImage(
     step: "uploading_cover",
   });
 
-  const uploaded = await put(pathname, blob, {
-    access: "public",
-    addRandomSuffix: true,
-    cacheControlMaxAge: 60 * 60 * 24 * 365,
-    contentType,
-  });
+  let uploaded: Awaited<ReturnType<typeof put>>;
+
+  try {
+    uploaded = await put(pathname, blob, {
+      access: "public",
+      addRandomSuffix: true,
+      cacheControlMaxAge: 60 * 60 * 24 * 365,
+      contentType,
+    });
+  } catch (error) {
+    await updateContentImageGenerationRecord(generationId, {
+      completedAt: new Date(),
+      errorMessage: getImageGenerationErrorMessage(error),
+      status: "failed",
+    });
+    throw error;
+  }
 
   await reportProgress(input.onProgress, {
     message: "Content image uploaded. Finalizing the result.",
@@ -1430,10 +1624,21 @@ export async function generateAndUploadContentGalleryImage(
     step: "uploading_cover",
   });
 
-  return {
+  const result = {
     contentType: uploaded.contentType,
     pathname: uploaded.pathname,
     revisedPrompt: prompt === visualBrief ? null : prompt,
     url: uploaded.url,
   };
+
+  await updateContentImageGenerationRecord(generationId, {
+    completedAt: new Date(),
+    contentType: uploaded.contentType,
+    pathname: uploaded.pathname,
+    resultUrl: uploaded.url,
+    sourceUrl,
+    status: "succeeded",
+  });
+
+  return result;
 }

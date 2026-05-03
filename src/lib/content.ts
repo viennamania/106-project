@@ -61,6 +61,50 @@ export type ContentAccessGateReason =
   | "signup";
 export type ContentCoverGenerationProgressStep =
   (typeof contentCoverGenerationProgressSteps)[number];
+export type ContentImageGenerationProvider =
+  | "fal-reference"
+  | "fal-text"
+  | "replicate";
+export type ContentImageGenerationStatus = "failed" | "running" | "succeeded";
+
+export type ContentImageGenerationAttemptDocument = {
+  attemptId: string;
+  completedAt?: Date | null;
+  errorMessage?: string | null;
+  errorStatus?: number | null;
+  model: string;
+  modelInput: Record<string, unknown>;
+  provider: ContentImageGenerationProvider;
+  resultContentType?: string | null;
+  resultSourceUrl?: string | null;
+  startedAt: Date;
+  status: ContentImageGenerationStatus;
+};
+
+export type ContentImageGenerationDocument = {
+  attempts: ContentImageGenerationAttemptDocument[];
+  avatarImageUrl?: string | null;
+  completedAt?: Date | null;
+  contentType?: string | null;
+  createdAt: Date;
+  errorMessage?: string | null;
+  finalPrompt: string;
+  generationId: string;
+  memberEmail: string;
+  normalizedPrompt: string;
+  originalPrompt: string;
+  pathname?: string | null;
+  personaId?: string | null;
+  personaName?: string | null;
+  providerPriority: "fal" | "replicate";
+  referralCode: string;
+  resultUrl?: string | null;
+  sourceUrl?: string | null;
+  status: ContentImageGenerationStatus;
+  summary: string;
+  title: string;
+  updatedAt: Date;
+};
 
 export type CreatorProfileDocument = {
   avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
