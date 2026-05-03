@@ -331,7 +331,7 @@ export function FanletterProfilePage({
     { returnTo: returnToHref || onboardingHref },
   );
   const createHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
   const [email, setEmail] = useState<string | null>(memberSession.email);

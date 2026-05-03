@@ -1251,7 +1251,7 @@ export function FanletterOnboardingPage({
     { returnTo: onboardingHref },
   );
   const createHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: onboardingHref },
   );
   const studioHref = setPathSearchParams(
