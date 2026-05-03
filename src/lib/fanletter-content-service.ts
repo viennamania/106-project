@@ -1,0 +1,355 @@
+import "server-only";
+
+import { cache } from "react";
+import type { Filter } from "mongodb";
+
+import {
+  type ContentPostDocument,
+  type ContentPriceType,
+  type ContentSocialSummaryRecord,
+  type CreatorProfileDocument,
+  createEmptyContentSocialSummary,
+  normalizeContentLocale,
+} from "@/lib/content";
+import { getContentSocialSummaryForViewer } from "@/lib/content-service";
+import { defaultLocale, type Locale } from "@/lib/i18n";
+import { normalizeReferralCode } from "@/lib/member";
+import {
+  getContentPostsCollection,
+  getCreatorProfilesCollection,
+} from "@/lib/mongodb";
+
+const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
+const SUMMARY_LIMIT = 180;
+const TITLE_LIMIT = 96;
+
+export type FanletterPublicContentItem = {
+  authorAvatarImageUrl: string | null;
+  authorName: string;
+  authorReferralCode: string | null;
+  contentId: string;
+  coverImageUrl: string | null;
+  mediaType: "image" | "text" | "video";
+  priceType: ContentPriceType;
+  priceUsdt: string | null;
+  primaryVideoUrl: string | null;
+  publishedAt: string | null;
+  social: ContentSocialSummaryRecord;
+  summary: string;
+  title: string;
+};
+
+export type FanletterPublicContentDetail = FanletterPublicContentItem & {
+  body: string;
+  canPubliclyAccess: boolean;
+  contentImageUrls: string[];
+  contentVideoUrls: string[];
+  tags: string[];
+};
+
+export type FanletterCreatorProfile = {
+  avatarImageUrl: string | null;
+  displayName: string;
+  intro: string;
+  referralCode: string;
+};
+
+export type FanletterFeedPageData = {
+  items: FanletterPublicContentItem[];
+  referralCode: string | null;
+};
+
+export type FanletterCreatorPageData = {
+  items: FanletterPublicContentItem[];
+  profile: FanletterCreatorProfile;
+  publicContentCount: number;
+};
+
+function getPublishedContentLocaleFilter(
+  locale: Locale,
+): Filter<ContentPostDocument> {
+  const contentLocale = normalizeContentLocale(locale);
+
+  return contentLocale === defaultLocale
+    ? {
+        $or: [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ],
+      }
+    : { locale: contentLocale };
+}
+
+function compactText(value: string | null | undefined, limit: number) {
+  const text = (value ?? "").replace(/\s+/g, " ").trim();
+
+  if (text.length <= limit) {
+    return text;
+  }
+
+  return `${text.slice(0, limit - 1).trimEnd()}...`;
+}
+
+function getCoverImageUrl(post: ContentPostDocument) {
+  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+}
+
+function getPrimaryVideoUrl(post: ContentPostDocument) {
+  return post.contentVideoUrls?.find((url) => Boolean(url?.trim())) ?? null;
+}
+
+function getMediaType(post: ContentPostDocument): FanletterPublicContentItem["mediaType"] {
+  if (getPrimaryVideoUrl(post)) {
+    return "video";
+  }
+
+  if (getCoverImageUrl(post)) {
+    return "image";
+  }
+
+  return "text";
+}
+
+function getAuthorName(
+  post: ContentPostDocument,
+  profile: CreatorProfileDocument | undefined | null,
+) {
+  return (
+    compactText(profile?.displayName, 36) ||
+    post.authorEmail.split("@")[0] ||
+    "FanLetter"
+  );
+}
+
+async function getProfilesByAuthorEmail(posts: ContentPostDocument[]) {
+  const emails = [...new Set(posts.map((post) => post.authorEmail).filter(Boolean))];
+
+  if (emails.length === 0) {
+    return new Map<string, CreatorProfileDocument>();
+  }
+
+  const profilesCollection = await getCreatorProfilesCollection();
+  const profiles = await profilesCollection
+    .find({
+      email: { $in: emails },
+    })
+    .toArray();
+
+  return new Map(profiles.map((profile) => [profile.email, profile]));
+}
+
+async function getSocialByContentId(posts: ContentPostDocument[]) {
+  const pairs = await Promise.all(
+    posts.map(async (post) => [
+      post.contentId,
+      await getContentSocialSummaryForViewer(post.contentId, null).catch(() =>
+        createEmptyContentSocialSummary(),
+      ),
+    ] as const),
+  );
+
+  return new Map(pairs);
+}
+
+function toPublicContentItem({
+  post,
+  profile,
+  social,
+}: {
+  post: ContentPostDocument;
+  profile: CreatorProfileDocument | null | undefined;
+  social?: ContentSocialSummaryRecord;
+}): FanletterPublicContentItem {
+  return {
+    authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
+    authorName: getAuthorName(post, profile),
+    authorReferralCode:
+      profile?.referralCode ?? post.authorReferralCode?.trim() ?? null,
+    contentId: post.contentId,
+    coverImageUrl: getCoverImageUrl(post),
+    mediaType: getMediaType(post),
+    priceType: post.priceType,
+    priceUsdt: post.priceUsdt ?? null,
+    primaryVideoUrl: getPrimaryVideoUrl(post),
+    publishedAt: post.publishedAt?.toISOString() ?? null,
+    social: social ?? createEmptyContentSocialSummary(),
+    summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
+    title: compactText(post.title, TITLE_LIMIT),
+  };
+}
+
+function getPublicContentFilter({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode?: string | null;
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    ...(referralCode ? { authorReferralCode: referralCode } : {}),
+    priceType: "free",
+    status: "published",
+  };
+}
+
+export async function getFanletterPublicContentItems({
+  locale,
+  limit = FANLETTER_PUBLIC_CONTENT_LIMIT,
+  referralCode,
+}: {
+  locale: Locale;
+  limit?: number;
+  referralCode?: string | null;
+}) {
+  const postsCollection = await getContentPostsCollection();
+  const normalizedReferralCode = normalizeReferralCode(referralCode);
+  const posts = await postsCollection
+    .find(
+      getPublicContentFilter({
+        locale,
+        referralCode: normalizedReferralCode,
+      }),
+    )
+    .sort({
+      publishedAt: -1,
+      createdAt: -1,
+      contentId: -1,
+    })
+    .limit(limit)
+    .toArray();
+  const [profileByEmail, socialByContentId] = await Promise.all([
+    getProfilesByAuthorEmail(posts),
+    getSocialByContentId(posts),
+  ]);
+
+  return posts.map((post) =>
+    toPublicContentItem({
+      post,
+      profile: profileByEmail.get(post.authorEmail),
+      social: socialByContentId.get(post.contentId),
+    }),
+  );
+}
+
+export const getFanletterFeedPageData = cache(
+  async (
+    locale: Locale,
+    referralCodeInput: string | null,
+  ): Promise<FanletterFeedPageData> => {
+    const referralCode = normalizeReferralCode(referralCodeInput);
+    let items = await getFanletterPublicContentItems({
+      locale,
+      referralCode,
+    });
+
+    if (items.length === 0 && referralCode) {
+      items = await getFanletterPublicContentItems({ locale });
+    }
+
+    return {
+      items,
+      referralCode,
+    };
+  },
+);
+
+export const getFanletterPublicContentDetail = cache(
+  async (contentId: string): Promise<FanletterPublicContentDetail | null> => {
+    const postsCollection = await getContentPostsCollection();
+    const post = await postsCollection.findOne({
+      contentId,
+      status: "published",
+    });
+
+    if (!post) {
+      return null;
+    }
+
+    const profilesCollection = await getCreatorProfilesCollection();
+    const [profile, social] = await Promise.all([
+      profilesCollection.findOne({ email: post.authorEmail }),
+      getContentSocialSummaryForViewer(post.contentId, null).catch(() =>
+        createEmptyContentSocialSummary(),
+      ),
+    ]);
+    const canPubliclyAccess = post.priceType === "free";
+
+    return {
+      ...toPublicContentItem({ post, profile, social }),
+      body: canPubliclyAccess
+        ? post.body
+        : post.previewText?.trim() || post.summary,
+      canPubliclyAccess,
+      contentImageUrls: canPubliclyAccess ? post.contentImageUrls ?? [] : [],
+      contentVideoUrls: canPubliclyAccess ? post.contentVideoUrls ?? [] : [],
+      tags: post.tags,
+    };
+  },
+);
+
+export const getFanletterCreatorPageData = cache(
+  async (
+    locale: Locale,
+    referralCodeInput: string,
+  ): Promise<FanletterCreatorPageData | null> => {
+    const referralCode = normalizeReferralCode(referralCodeInput);
+
+    if (!referralCode) {
+      return null;
+    }
+
+    const profilesCollection = await getCreatorProfilesCollection();
+    const postsCollection = await getContentPostsCollection();
+    const [storedProfile, posts, publicContentCount] = await Promise.all([
+      profilesCollection.findOne({ referralCode }),
+      postsCollection
+        .find(getPublicContentFilter({ locale, referralCode }))
+        .sort({
+          publishedAt: -1,
+          createdAt: -1,
+          contentId: -1,
+        })
+        .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
+        .toArray(),
+      postsCollection.countDocuments(getPublicContentFilter({ locale, referralCode })),
+    ]);
+    const profile =
+      storedProfile ??
+      (posts[0]?.authorEmail
+        ? await profilesCollection.findOne({ email: posts[0].authorEmail })
+        : null);
+
+    if (!profile && posts.length === 0) {
+      return null;
+    }
+
+    const socialByContentId = await getSocialByContentId(posts);
+    const displayName =
+      compactText(profile?.displayName, 48) ||
+      posts[0]?.authorEmail.split("@")[0] ||
+      "FanLetter Creator";
+
+    return {
+      items: posts.map((post) =>
+        toPublicContentItem({
+          post,
+          profile,
+          social: socialByContentId.get(post.contentId),
+        }),
+      ),
+      profile: {
+        avatarImageUrl: profile?.avatarImageUrl ?? null,
+        displayName,
+        intro:
+          compactText(profile?.intro, 220) ||
+          (locale === "ko"
+            ? "FanLetter에서 공개 콘텐츠를 운영하는 크리에이터입니다."
+            : "A creator publishing public content on FanLetter."),
+        referralCode,
+      },
+      publicContentCount,
+    };
+  },
+);

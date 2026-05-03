@@ -383,11 +383,11 @@ export function FanletterHomePage({
 }) {
   const copy = getFanletterCopy(locale);
   const creatorHref = buildPathWithReferral(
-    `/${locale}/creator/studio/profile`,
+    `/${locale}/fanletter/start`,
     referralCode,
   );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
-  const feedHref = buildPathWithReferral(`/${locale}/network-feed`, referralCode);
+  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const loginHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const heroVideo = featuredVideos[0] ?? null;
   const heroStats = [
@@ -565,7 +565,7 @@ export function FanletterHomePage({
               {featuredVideos.map((video) => {
                 const publishedDate = formatDate(video.publishedAt, locale);
                 const videoHref = buildPathWithReferral(
-                  `/${locale}/content/${video.contentId}`,
+                  `/${locale}/fanletter/content/${video.contentId}`,
                   referralCode,
                 );
 
