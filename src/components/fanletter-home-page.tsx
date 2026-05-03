@@ -87,6 +87,7 @@ type FanletterCopy = {
     creators: string;
     faq: string;
     features: string;
+    studio: string;
   };
   niche: {
     body: string;
@@ -197,6 +198,7 @@ const koCopy: FanletterCopy = {
     creators: "크리에이터",
     faq: "FAQ",
     features: "기능",
+    studio: "스튜디오",
   },
   niche: {
     body: "하나의 인물 정체성을 유지하면서 장르와 상황을 바꿔 더 많은 콘텐츠를 만듭니다.",
@@ -308,6 +310,7 @@ const enCopy: FanletterCopy = {
     creators: "Creators",
     faq: "FAQ",
     features: "Features",
+    studio: "Studio",
   },
   niche: {
     body: "Keep the same character identity while changing scenes, formats, and content categories.",
@@ -391,6 +394,10 @@ export function FanletterHomePage({
   );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
   const onboardingHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
@@ -516,6 +523,7 @@ export function FanletterHomePage({
             <nav className="hidden items-center gap-8 text-sm font-semibold text-white/82 md:flex">
               <a href="#features">{copy.nav.features}</a>
               <a href="#creators">{copy.nav.creators}</a>
+              <Link href={studioHref}>{copy.nav.studio}</Link>
               <a href="#faq">{copy.nav.faq}</a>
             </nav>
 
@@ -1102,7 +1110,7 @@ export function FanletterHomePage({
             <div>
               <p className="text-black">FanLetter</p>
               <div className="mt-4 space-y-2">
-                <Link className="block" href={creatorHref}>
+                <Link className="block" href={studioHref}>
                   {footerLabels.studio}
                 </Link>
                 <Link className="block" href={feedHref}>

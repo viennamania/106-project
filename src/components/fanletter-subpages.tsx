@@ -90,7 +90,7 @@ type FanletterSubpageCopy = {
 const koCopy: FanletterSubpageCopy = {
   actions: {
     continue: "계속 진행",
-    creatorStudio: "크리에이터 스튜디오",
+    creatorStudio: "나의 스튜디오",
     existingDetail: "지갑 연결 상세로 이동",
     feed: "피드",
     home: "홈",
@@ -155,7 +155,7 @@ const koCopy: FanletterSubpageCopy = {
 const enCopy: FanletterSubpageCopy = {
   actions: {
     continue: "Continue",
-    creatorStudio: "Creator Studio",
+    creatorStudio: "My Studio",
     existingDetail: "Open wallet detail",
     feed: "Feed",
     home: "Home",
@@ -304,6 +304,10 @@ function FanletterShell({
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const startHref = buildPathWithReferral(`/${locale}/fanletter/start`, referralCode);
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -322,6 +326,7 @@ function FanletterShell({
             <nav className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex">
               <Link href={homeHref}>{copy.actions.home}</Link>
               <Link href={feedHref}>{copy.actions.feed}</Link>
+              <Link href={studioHref}>{copy.actions.creatorStudio}</Link>
               <Link href={startHref}>{copy.actions.start}</Link>
             </nav>
 
@@ -1255,7 +1260,7 @@ export function FanletterOnboardingPage({
     { returnTo: onboardingHref },
   );
   const studioHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/studio`, referralCode),
     { returnTo: onboardingHref },
   );
   const labels =
@@ -1554,7 +1559,7 @@ export function FanletterStartPage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
-  const studioHref = buildPathWithReferral(
+  const profileHref = buildPathWithReferral(
     `/${locale}/fanletter/profile`,
     referralCode,
   );
@@ -1639,7 +1644,7 @@ export function FanletterStartPage({
           </Link>
           <Link
             className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
-            href={studioHref}
+            href={profileHref}
           >
             {startLabels.secondary}
           </Link>
@@ -1731,7 +1736,7 @@ export function FanletterStartPage({
           </Link>
           <Link
             className="inline-flex h-12 items-center justify-center rounded-full border border-black/12 bg-white px-5 text-sm font-semibold !text-black transition hover:bg-black/[0.03] sm:min-w-[12rem]"
-            href={studioHref}
+            href={profileHref}
           >
             {startLabels.secondary}
           </Link>
