@@ -481,7 +481,7 @@ export function FanletterHomePage({
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/42 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 backdrop-blur-md sm:py-2 sm:text-xs">
+          <div className="fixed left-4 right-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-50 flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:static sm:left-auto sm:right-auto sm:top-auto sm:z-auto sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
               <span className="truncate">{copy.announcement.label}</span>
@@ -492,7 +492,7 @@ export function FanletterHomePage({
             </Link>
           </div>
 
-          <header className="mt-4 flex items-center justify-between gap-4">
+          <header className="mt-16 flex items-center justify-between gap-4 sm:mt-4">
             <Link className="flex items-center gap-2" href={homeHref}>
               <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
