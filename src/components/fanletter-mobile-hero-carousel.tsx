@@ -62,7 +62,7 @@ export function FanletterMobileHeroCarousel({
       <video
         aria-hidden="true"
         autoPlay
-        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-[0.74] saturate-[1.16]"
+        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-100 saturate-[1.12]"
         key={activeSlide.videoUrl}
         loop
         muted
@@ -71,24 +71,6 @@ export function FanletterMobileHeroCarousel({
         preload="metadata"
         src={activeSlide.videoUrl}
       />
-      {playableSlides.length > 1 ? (
-        <div className="absolute bottom-5 right-4 z-10 flex items-center gap-2 rounded-full border border-white/14 bg-black/46 px-2.5 py-2 backdrop-blur-md">
-          <span className="text-[0.62rem] font-semibold tabular-nums text-white/74">
-            {activeIndex + 1}/{playableSlides.length}
-          </span>
-          <div className="flex items-center gap-1.5">
-            {playableSlides.map((slide, index) => (
-              <span
-                aria-hidden="true"
-                className={`h-1.5 rounded-full transition-all ${
-                  index === activeIndex ? "w-5 bg-[#44f26e]" : "w-1.5 bg-white/38"
-                }`}
-                key={`${slide.videoUrl}:${index}`}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

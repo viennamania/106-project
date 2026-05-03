@@ -478,7 +478,7 @@ export function FanletterHomePage({
           }}
         />
         <FanletterMobileHeroCarousel slides={mobileHeroSlides} />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(68,242,110,0.14),transparent_28%),linear-gradient(180deg,rgba(3,5,4,0.24)_0%,rgba(3,5,4,0.52)_42%,rgba(3,5,4,0.82)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/42 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 backdrop-blur-md sm:py-2 sm:text-xs">
@@ -519,18 +519,18 @@ export function FanletterHomePage({
             </div>
           </header>
 
-          <div className="grid flex-1 content-center gap-8 py-10 sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+          <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <div className="max-w-[58rem]">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
+              <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-[58rem] text-[2.76rem] font-semibold leading-[0.99] tracking-normal text-white [word-break:keep-all] sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
+              <h1 className="max-w-[58rem] text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:mt-4 sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-5 max-w-2xl text-[0.96rem] font-medium leading-7 text-white/74 [word-break:keep-all] sm:mt-6 sm:text-lg">
+              <p className="mt-5 hidden max-w-2xl text-[0.96rem] font-medium leading-7 text-white/74 [word-break:keep-all] sm:mt-6 sm:block sm:text-lg">
                 {copy.hero.description}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
                   href={creatorHref}
@@ -593,7 +593,7 @@ export function FanletterHomePage({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 self-start lg:hidden">
+            <div className="hidden grid-cols-3 gap-1.5 self-start lg:hidden">
               {heroStats.map((stat) => (
                 <div
                   className="rounded-lg border border-white/14 bg-black/42 px-2.5 py-2.5 shadow-[0_14px_28px_rgba(0,0,0,0.22)] backdrop-blur-md sm:p-4"
