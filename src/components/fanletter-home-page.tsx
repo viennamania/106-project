@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   BadgeDollarSign,
@@ -20,9 +19,6 @@ import type {
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-
-const FANLETTER_IMAGE_VERSION = "20260415";
-const FANLETTER_PHONE_IMAGE = `/landing/premium-phone.png?v=${FANLETTER_IMAGE_VERSION}`;
 
 type FanletterCopy = {
   announcement: {
@@ -411,7 +407,9 @@ export function FanletterHomePage({
         <div
           className="absolute inset-0 bg-cover bg-center opacity-[0.52]"
           style={{
-            backgroundImage: `url(${heroVideo?.coverImageUrl ?? FANLETTER_PHONE_IMAGE})`,
+            backgroundImage: heroVideo?.coverImageUrl
+              ? `url(${heroVideo.coverImageUrl})`
+              : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
           }}
         />
         {heroVideo ? (
@@ -651,19 +649,62 @@ export function FanletterHomePage({
       </section>
 
       <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="mx-auto max-w-6xl text-center">
+        <div className="mx-auto max-w-6xl">
           <p className="mx-auto max-w-3xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white sm:text-[3.5rem]">
             {copy.proof.title}
           </p>
-          <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-lg border border-white/10 bg-[#08120e]">
-            <Image
-              alt="FanLetter mobile creator experience preview"
-              className="h-auto w-full"
-              height={1088}
-              sizes="(max-width: 768px) 100vw, 768px"
-              src={FANLETTER_PHONE_IMAGE}
-              width={1920}
-            />
+          <div className="mt-10 grid gap-3 sm:grid-cols-3">
+            {copy.proof.stats.map((stat) => (
+              <div
+                className="rounded-lg border border-white/10 bg-white/[0.06] p-4 text-left"
+                key={stat.label}
+              >
+                <p className="text-3xl font-semibold leading-none text-[#44f26e]">
+                  {stat.value}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase text-white/58">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            {copy.features.items.slice(0, 3).map((feature, index) => {
+              const Icon = featureIcons[index] ?? Sparkles;
+
+              return (
+                <article
+                  className="rounded-lg border border-white/10 bg-[#07100c] p-5 text-left"
+                  key={feature.title}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                      <Icon className="size-6" />
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-semibold leading-tight tracking-normal text-white">
+                        {feature.title}
+                      </h2>
+                      <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <div className="mt-4 grid gap-3 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-5 text-left sm:grid-cols-3">
+            {heroStats.map((stat) => (
+              <div key={stat.label}>
+                <p className="text-2xl font-semibold leading-none text-white">
+                  {stat.value}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase text-[#44f26e]">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
