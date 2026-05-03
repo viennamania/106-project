@@ -15,7 +15,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-space-grotesk);
+  --font-sans: var(--font-noto-sans-kr);
+  --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-ibm-plex-mono);
 }
 
@@ -33,8 +34,16 @@ body {
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 30%),
     linear-gradient(135deg, #f6f2eb 0%, #eef6ff 48%, #fff2df 100%);
   color: var(--foreground);
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family:
+    var(--font-noto-sans-kr),
+    "Apple SD Gothic Neo",
+    "Malgun Gothic",
+    "맑은 고딕",
+    system-ui,
+    sans-serif;
+  font-feature-settings: "kern";
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
 }
 
 body::before {
