@@ -400,6 +400,63 @@ export function FanletterHomePage({
       value: formatCompactNumber(liveStats.confirmedSalesCount, locale),
     },
   ];
+  const proofSteps = copy.proof.stats.map((stat, index) => ({
+    Icon: featureIcons[index] ?? Sparkles,
+    featureDescription:
+      (copy.features.items[index] ?? copy.features.items[0])?.description ?? "",
+    featureTitle:
+      (copy.features.items[index] ?? copy.features.items[0])?.title ?? stat.label,
+    ...stat,
+  }));
+  const networkStats = [
+    {
+      Icon: MessageCircleHeart,
+      label: copy.liveStats.content,
+      value: formatCompactNumber(liveStats.publishedContentCount, locale),
+    },
+    {
+      Icon: Clapperboard,
+      label: copy.liveStats.videos,
+      value: formatCompactNumber(liveStats.publicVideoCount, locale),
+    },
+    {
+      Icon: ChartNoAxesCombined,
+      label: copy.liveStats.sales,
+      value: formatCompactNumber(liveStats.confirmedSalesCount, locale),
+    },
+    {
+      Icon: BadgeDollarSign,
+      label: copy.liveStats.totalSales,
+      value: formatUsdt(liveStats.totalSalesUsdt, locale),
+    },
+  ];
+  const nicheVideos = featuredVideos.slice(0, 3);
+  const footerLabels =
+    locale === "ko"
+      ? {
+          activate: "가입",
+          aiContent: "AI 콘텐츠",
+          creatorGrowth: "크리에이터 성장",
+          feed: "피드",
+          help: "도움말",
+          mobileFirst: "모바일 우선",
+          network: "네트워크",
+          studio: "스튜디오",
+          trust: "신뢰",
+          usdtReady: "USDT 결제",
+        }
+      : {
+          activate: "Activate",
+          aiContent: "AI Content",
+          creatorGrowth: "Creator growth",
+          feed: "Feed",
+          help: "Help",
+          mobileFirst: "Mobile first",
+          network: "Network",
+          studio: "Studio",
+          trust: "Trust",
+          usdtReady: "USDT ready",
+        };
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -457,7 +514,7 @@ export function FanletterHomePage({
                 <LanguageSwitcher label={copy.languageLabel} locale={locale} />
               </div>
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:border-white/40"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/40"
                 href={loginHref}
               >
                 {copy.cta.login}
@@ -478,13 +535,13 @@ export function FanletterHomePage({
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
                   href={creatorHref}
                 >
                   {copy.cta.creator}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/22 bg-black/34 px-5 text-sm font-semibold text-white backdrop-blur-md transition hover:border-white/42 sm:h-[3.25rem] sm:px-7"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/22 bg-black/34 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:border-white/42 sm:h-[3.25rem] sm:px-7"
                   href={feedHref}
                 >
                   {copy.cta.fan}
@@ -718,87 +775,102 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <p className="mx-auto max-w-3xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white sm:text-[3.5rem]">
-            {copy.proof.title}
-          </p>
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            {copy.proof.stats.map((stat) => (
-              <div
-                className="rounded-lg border border-white/10 bg-white/[0.06] p-4 text-left"
-                key={stat.label}
-              >
-                <p className="text-3xl font-semibold leading-none text-[#44f26e]">
-                  {stat.value}
-                </p>
-                <p className="mt-2 text-xs font-semibold uppercase text-white/58">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 grid gap-3 lg:grid-cols-3">
-            {copy.features.items.slice(0, 3).map((feature, index) => {
-              const Icon = featureIcons[index] ?? Sparkles;
+      <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
+                Creator flow
+              </p>
+              <h2 className="mt-4 max-w-2xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.4rem]">
+                {copy.proof.title}
+              </h2>
+              <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/62 sm:text-base">
+                {locale === "ko"
+                  ? "프로필 설정부터 AI 생성, 공개 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
+                  : "Profile setup, AI generation, public feeds, and sales checks are connected as one understandable creator flow."}
+              </p>
+            </div>
 
-              return (
-                <article
-                  className="rounded-lg border border-white/10 bg-[#07100c] p-5 text-left"
-                  key={feature.title}
-                >
-                  <div className="flex items-start gap-4">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                      <Icon className="size-6" />
-                    </span>
-                    <div className="min-w-0">
-                      <h2 className="text-xl font-semibold leading-tight tracking-normal text-white">
-                        {feature.title}
-                      </h2>
-                      <p className="mt-2 text-sm font-medium leading-6 text-white/62">
-                        {feature.description}
+            <div className="grid gap-3">
+              {proofSteps.map((step, index) => {
+                const Icon = step.Icon;
+
+                return (
+                  <article
+                    className="grid gap-4 rounded-lg border border-white/10 bg-white/[0.055] p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:grid-cols-[6.5rem_1fr] sm:p-5"
+                    key={step.label}
+                  >
+                    <div>
+                      <p className="text-4xl font-semibold leading-none text-[#44f26e]">
+                        {step.value}
+                      </p>
+                      <p className="mt-2 text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/46">
+                        {step.label}
                       </p>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-          <div className="mt-4 grid gap-3 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-5 text-left sm:grid-cols-3">
-            {heroStats.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-2xl font-semibold leading-none text-white">
-                  {stat.value}
-                </p>
-                <p className="mt-2 text-xs font-semibold uppercase text-[#44f26e]">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
+                    <div className="flex items-start gap-4">
+                      <span
+                        className={joinClasses(
+                          "flex size-12 shrink-0 items-center justify-center rounded-lg text-black",
+                          index === 1 ? "bg-[#e8f5ff]" : "bg-[#44f26e]",
+                        )}
+                      >
+                        <Icon className="size-6" />
+                      </span>
+                      <div className="min-w-0">
+                        <h3 className="text-xl font-semibold leading-tight tracking-normal text-white">
+                          {step.featureTitle}
+                        </h3>
+                        <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                          {step.featureDescription}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
       <section
-        className="overflow-hidden bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+        className="border-b border-white/8 bg-[#050806] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
         id="features"
       >
-        <div className="mx-auto max-w-7xl">
-          <p className="text-center text-lg font-semibold text-white">
-            {copy.features.eyebrow}
-          </p>
-          <div className="mt-10 flex snap-x gap-4 overflow-x-auto pb-6">
+        <div className="mx-auto max-w-[92rem]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
+                {copy.features.eyebrow}
+              </p>
+              <h2 className="mt-4 max-w-3xl text-[2.2rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.5rem]">
+                {locale === "ko"
+                  ? "모바일에서 바로 쓰는 크리에이터 기능"
+                  : "Creator tools that work from mobile"}
+              </h2>
+            </div>
+            <Link
+              className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/14 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
+              href={creatorHref}
+            >
+              {copy.cta.creator}
+            </Link>
+          </div>
+
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {copy.features.items.map((feature, index) => {
               const Icon = featureIcons[index] ?? Sparkles;
 
               return (
                 <article
-                  className="min-w-[17.5rem] snap-start rounded-lg border border-white/12 bg-white p-4 text-black sm:min-w-[20rem]"
+                  className="flex h-full flex-col rounded-lg border border-white/10 bg-white p-4 text-black shadow-[0_18px_42px_rgba(0,0,0,0.2)]"
                   key={feature.title}
                 >
                   <div
                     className={joinClasses(
-                      "flex aspect-square items-center justify-center rounded-lg",
+                      "flex h-28 items-center justify-center rounded-lg sm:h-32",
                       index === 0
                         ? "bg-[#44f26e]"
                         : index === 1
@@ -806,17 +878,17 @@ export function FanletterHomePage({
                           : "bg-[#f4f4f1]",
                     )}
                   >
-                    <Icon className="size-14" />
+                    <Icon className="size-11" />
                   </div>
-                  <div className="mt-4 min-h-[8.5rem]">
+                  <div className="flex flex-1 flex-col pt-4">
                     {feature.badge ? (
-                      <span className="inline-flex rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.66rem] font-semibold uppercase text-black">
+                      <span className="inline-flex w-fit rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.66rem] font-semibold uppercase text-black">
                         {feature.badge}
                       </span>
                     ) : null}
-                    <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-normal">
+                    <h3 className="mt-3 text-xl font-semibold leading-tight tracking-normal">
                       {feature.title}
-                    </h2>
+                    </h3>
                     <p className="mt-2 text-sm font-medium leading-6 text-black/58">
                       {feature.description}
                     </p>
@@ -829,73 +901,164 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="bg-black px-4 py-20 text-center sm:px-6 sm:py-28 lg:px-8"
+        className="bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
         id="creators"
       >
-        <div className="mx-auto max-w-5xl">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-            Creator network
-          </p>
-          <h2 className="mx-auto mt-5 max-w-4xl text-[2.7rem] font-semibold leading-[0.98] tracking-normal text-white sm:text-[4.4rem]">
-            {copy.economy.title}
-          </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
-            {copy.economy.body}
-          </p>
-          <Link
-            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold text-black"
-            href={creatorHref}
-          >
-            {copy.economy.cta}
-          </Link>
+        <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+          <div>
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
+              Creator network
+            </p>
+            <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]">
+              {copy.economy.title}
+            </h2>
+            <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
+              {copy.economy.body}
+            </p>
+            <Link
+              className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#63f685] sm:w-fit"
+              href={creatorHref}
+            >
+              {copy.economy.cta}
+            </Link>
+          </div>
 
-          <div className="mx-auto mt-20 max-w-md rounded-lg border border-white/10 bg-[#2f322f] p-7 text-left">
-            <div className="flex items-center justify-center">
-              <div className="flex size-20 items-center justify-center rounded-full bg-[#44f26e] text-black">
-                <Crown className="size-9" />
-              </div>
-              <div className="-ml-3 mt-16 flex size-16 items-center justify-center rounded-full border-4 border-[#2f322f] bg-white text-black">
-                <Bot className="size-7" />
-              </div>
-              <div className="-ml-5 flex size-24 items-center justify-center rounded-full border-4 border-[#2f322f] bg-black text-[#44f26e]">
-                <Network className="size-10" />
+          <div className="rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(68,242,110,0.16),rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.02))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.3)] sm:p-5">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Crown className="size-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {copy.creatorWall.label}
+                </p>
+                <p className="mt-1 text-xs font-medium text-white/50">
+                  {locale === "ko"
+                    ? "현재 공개 데이터로 서비스 움직임을 보여줍니다."
+                    : "Live public data keeps the service feel active."}
+                </p>
               </div>
             </div>
-            <p className="mt-10 text-5xl font-semibold leading-none text-white">
-              {copy.creatorWall.count}
-            </p>
-            <p className="mt-2 text-sm font-semibold text-white/78">
-              {copy.creatorWall.label}
-            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {networkStats.map((stat) => {
+                const Icon = stat.Icon;
+
+                return (
+                  <div
+                    className="rounded-lg border border-white/10 bg-black/42 p-4"
+                    key={stat.label}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/46">
+                        {stat.label}
+                      </p>
+                      <Icon className="size-4 text-[#44f26e]" />
+                    </div>
+                    <p className="mt-5 text-3xl font-semibold leading-none text-white">
+                      {stat.value}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="min-h-[110svh] bg-[#2f3f2e] px-4 py-20 text-white sm:px-6 sm:py-28 lg:px-8">
-        <div className="mx-auto max-w-6xl text-center">
-          <h2 className="mx-auto max-w-4xl text-[3rem] font-semibold leading-[0.95] tracking-normal sm:text-[5rem]">
-            {copy.niche.title}
-          </h2>
-          <p className="mx-auto mt-6 max-w-lg text-base font-semibold leading-7 text-white/82">
-            {copy.niche.body}
-          </p>
-          <Link
-            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold text-black"
-            href={creatorHref}
-          >
-            {copy.niche.cta}
-          </Link>
-
-          <div className="mt-24 flex flex-col items-center gap-2 text-[3rem] font-semibold leading-none tracking-normal sm:text-[5rem]">
-            {copy.niche.categories.map((category, index) => (
-              <span
-                className={index === 0 ? "text-white" : "text-white/28"}
-                key={category}
-              >
-                {category}
-              </span>
-            ))}
+      <section className="border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
+          <div>
+            <h2 className="max-w-4xl text-[2.7rem] font-semibold leading-[0.95] tracking-normal [word-break:keep-all] sm:text-[4.6rem]">
+              {copy.niche.title}
+            </h2>
+            <p className="mt-6 max-w-xl text-base font-semibold leading-7 text-white/82">
+              {copy.niche.body}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {copy.niche.categories.map((category, index) => (
+                <span
+                  className={joinClasses(
+                    "inline-flex h-9 items-center rounded-full border px-4 text-sm font-semibold",
+                    index === 0
+                      ? "border-[#44f26e] bg-[#44f26e] text-black"
+                      : "border-white/14 bg-white/8 text-white/78",
+                  )}
+                  key={category}
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+            <Link
+              className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#63f685] sm:w-fit"
+              href={creatorHref}
+            >
+              {copy.niche.cta}
+            </Link>
           </div>
+
+          {nicheVideos.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {nicheVideos.map((video) => {
+                const videoHref = buildPathWithReferral(
+                  `/${locale}/fanletter/content/${video.contentId}`,
+                  referralCode,
+                );
+                const publishedAt = formatDate(video.publishedAt, locale);
+
+                return (
+                  <Link
+                    className="group relative min-h-[19rem] overflow-hidden rounded-lg border border-white/12 bg-[#07100b] shadow-[0_22px_70px_rgba(0,0,0,0.24)]"
+                    href={videoHref}
+                    key={video.contentId}
+                  >
+                    {video.coverImageUrl ? (
+                      <div
+                        className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
+                        style={{
+                          backgroundImage: `url(${video.coverImageUrl})`,
+                        }}
+                      />
+                    ) : (
+                      <video
+                        aria-hidden="true"
+                        autoPlay
+                        className="absolute inset-0 h-full w-full object-cover opacity-92 transition duration-500 group-hover:scale-[1.03]"
+                        loop
+                        muted
+                        playsInline
+                        preload="metadata"
+                        src={video.videoUrl}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.18)_42%,rgba(0,0,0,0.84)_100%)]" />
+                    <div className="absolute inset-x-0 bottom-0 p-4">
+                      <p className="text-xs font-semibold text-white/62">
+                        {video.authorName}
+                        {publishedAt ? ` · ${publishedAt}` : ""}
+                      </p>
+                      <h3 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight tracking-normal text-white">
+                        {video.title}
+                      </h3>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {copy.niche.categories.map((category) => (
+                <div
+                  className="rounded-lg border border-white/12 bg-white/8 p-5"
+                  key={category}
+                >
+                  <p className="text-2xl font-semibold leading-none">
+                    {category}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -929,18 +1092,18 @@ export function FanletterHomePage({
       <footer className="bg-white px-4 py-12 text-black sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1fr_1.4fr]">
           <div>
-            <p className="max-w-lg text-4xl font-semibold leading-[1] tracking-normal">
+            <p className="max-w-lg text-4xl font-semibold leading-[1] tracking-normal [word-break:keep-all]">
               {copy.footer.title}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#44f26e] px-5 text-sm font-semibold text-black"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#44f26e] px-5 text-sm font-semibold !text-black"
                 href={creatorHref}
               >
                 {copy.cta.creator}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-black/12 px-5 text-sm font-semibold text-black"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-black/12 px-5 text-sm font-semibold !text-black"
                 href={feedHref}
               >
                 {copy.cta.fan}
@@ -952,13 +1115,13 @@ export function FanletterHomePage({
               <p className="text-black">FanLetter</p>
               <div className="mt-4 space-y-2">
                 <Link className="block" href={creatorHref}>
-                  Studio
+                  {footerLabels.studio}
                 </Link>
                 <Link className="block" href={feedHref}>
-                  Feed
+                  {footerLabels.feed}
                 </Link>
                 <Link className="block" href={loginHref}>
-                  Activate
+                  {footerLabels.activate}
                 </Link>
               </div>
             </div>
@@ -966,10 +1129,10 @@ export function FanletterHomePage({
               <p className="text-black">{copy.nav.features}</p>
               <div className="mt-4 space-y-2">
                 <a className="block" href="#features">
-                  AI Content
+                  {footerLabels.aiContent}
                 </a>
                 <a className="block" href="#creators">
-                  Network
+                  {footerLabels.network}
                 </a>
               </div>
             </div>
@@ -977,23 +1140,23 @@ export function FanletterHomePage({
               <p className="text-black">{copy.nav.faq}</p>
               <div className="mt-4 space-y-2">
                 <a className="block" href="#faq">
-                  Help
+                  {footerLabels.help}
                 </a>
               </div>
             </div>
             <div>
-              <p className="text-black">Trust</p>
+              <p className="text-black">{footerLabels.trust}</p>
               <div className="mt-4 flex items-center gap-2">
                 <ShieldCheck className="size-4" />
-                <span>Mobile first</span>
+                <span>{footerLabels.mobileFirst}</span>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <BadgeDollarSign className="size-4" />
-                <span>USDT ready</span>
+                <span>{footerLabels.usdtReady}</span>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <ChartNoAxesCombined className="size-4" />
-                <span>Creator growth</span>
+                <span>{footerLabels.creatorGrowth}</span>
               </div>
             </div>
           </div>
