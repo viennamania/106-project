@@ -4,13 +4,16 @@ import {
   ArrowLeft,
   ArrowRight,
   Clapperboard,
+  CheckCircle2,
   Grid2X2,
   Heart,
   ImageIcon,
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
+  PenLine,
   PlayCircle,
+  Rocket,
   Share2,
   Sparkles,
   User,
@@ -1227,6 +1230,318 @@ export function FanletterContentDetailPage({
   );
 }
 
+export function FanletterOnboardingPage({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const onboardingHref = buildPathWithReferral(
+    `/${locale}/fanletter/onboarding`,
+    referralCode,
+  );
+  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const activateHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const profileHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const createHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const studioHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const labels =
+    locale === "ko"
+      ? {
+          accountState: "기존 회원 세션과 지갑 연결을 그대로 사용합니다.",
+          asideBody:
+            "처음 방문한 사용자가 어디서 무엇을 해야 하는지 헷갈리지 않도록 필요한 작업만 순서대로 모았습니다.",
+          asideTitle: "오늘 끝낼 작업",
+          completeBody:
+            "가입, 프로필, 첫 콘텐츠까지 끝내면 FanLetter 피드와 크리에이터 스튜디오에서 바로 이어서 운영할 수 있습니다.",
+          completeTitle: "완료 후 바로 운영으로 이어집니다.",
+          description:
+            "FanLetter 전용 화면에서 가입 확인, 크리에이터 프로필, 첫 AI 콘텐츠 생성까지 순서대로 진행하세요.",
+          eyebrow: "FanLetter Onboarding",
+          feedCta: "팬 피드 보기",
+          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용합니다.",
+          homeCta: "스튜디오 홈",
+          primary: "계정 연결부터 시작",
+          progress: "Launch checklist",
+          requiredLabel: "필수",
+          secondary: "프로필부터 설정",
+          title: "가입부터 첫 콘텐츠까지 한 화면에서 시작하세요.",
+          steps: [
+            {
+              body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
+              cta: "계정 연결하기",
+              href: activateHref,
+              Icon: User,
+              meta: "01 · Account",
+              title: "계정과 지갑 연결",
+            },
+            {
+              body: "표시 이름, 인물 페르소나, AI 아바타를 정리해 팬에게 보이는 첫 인상을 만듭니다.",
+              cta: "프로필 설정하기",
+              href: profileHref,
+              Icon: PenLine,
+              meta: "02 · Profile",
+              title: "크리에이터 프로필 준비",
+            },
+            {
+              body: "AI 이미지나 동영상을 만들고 공개 범위와 가격을 정해 FanLetter 피드로 연결합니다.",
+              cta: "첫 콘텐츠 만들기",
+              href: createHref,
+              Icon: Clapperboard,
+              meta: "03 · Content",
+              title: "첫 AI 콘텐츠 생성",
+            },
+          ],
+        }
+      : {
+          accountState: "This keeps the existing member session and wallet flow.",
+          asideBody:
+            "A focused path for new creators so the next action is always clear.",
+          asideTitle: "Today’s setup",
+          completeBody:
+            "After signup, profile, and first content, continue directly into the FanLetter feed and creator studio.",
+          completeTitle: "Launch work continues from here.",
+          description:
+            "Move through signup verification, creator profile setup, and first AI content creation inside a FanLetter experience.",
+          eyebrow: "FanLetter Onboarding",
+          feedCta: "View fan feed",
+          helper: "Each step reuses the existing verification APIs and Creator Studio flow.",
+          homeCta: "Studio home",
+          primary: "Start with account",
+          progress: "Launch checklist",
+          requiredLabel: "Required",
+          secondary: "Set up profile",
+          title: "Start from signup to first content in one guided flow.",
+          steps: [
+            {
+              body: "Confirm membership and wallet connection. After completion, return to this onboarding page.",
+              cta: "Connect account",
+              href: activateHref,
+              Icon: User,
+              meta: "01 · Account",
+              title: "Connect account and wallet",
+            },
+            {
+              body: "Prepare display name, character persona, and AI avatar so the creator channel feels complete.",
+              cta: "Set up profile",
+              href: profileHref,
+              Icon: PenLine,
+              meta: "02 · Profile",
+              title: "Prepare creator profile",
+            },
+            {
+              body: "Create an AI image or video, then set visibility and pricing for the FanLetter feed.",
+              cta: "Create first content",
+              href: createHref,
+              Icon: Clapperboard,
+              meta: "03 · Content",
+              title: "Create first AI content",
+            },
+          ],
+        };
+  const heroAside = (
+    <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.28)] backdrop-blur-md sm:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-white">{labels.asideTitle}</p>
+          <p className="mt-1 text-xs font-medium leading-5 text-white/52">
+            {labels.asideBody}
+          </p>
+        </div>
+        <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase text-black">
+          3 steps
+        </span>
+      </div>
+      <div className="mt-5 space-y-3">
+        {labels.steps.map((step, index) => {
+          const Icon = step.Icon;
+
+          return (
+            <Link
+              className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/34 p-3 transition hover:border-[#44f26e]/54 hover:bg-black/48"
+              href={step.href}
+              key={step.title}
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-1 block truncate text-sm font-semibold text-white">
+                  {step.title}
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-white/42" />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <FanletterShell
+      actions={
+        <>
+          <Link
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
+            href={activateHref}
+          >
+            {labels.primary}
+          </Link>
+          <Link
+            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
+            href={profileHref}
+          >
+            {labels.secondary}
+          </Link>
+        </>
+      }
+      aside={heroAside}
+      description={labels.description}
+      eyebrow={labels.eyebrow}
+      locale={locale}
+      referralCode={referralCode}
+      title={labels.title}
+    >
+      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <aside className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {labels.progress}
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[2.8rem]">
+              {labels.completeTitle}
+            </h2>
+            <p className="mt-4 text-sm font-medium leading-6 text-white/62">
+              {labels.completeBody}
+            </p>
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {labels.steps.map((step, index) => (
+                <div
+                  className={`rounded-lg border p-3 ${
+                    index === 0
+                      ? "border-[#44f26e] bg-[#44f26e] text-black"
+                      : "border-white/10 bg-white/[0.06] text-white"
+                  }`}
+                  key={step.meta}
+                >
+                  <p className="text-xl font-semibold leading-none">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <p className="mt-2 text-[0.56rem] font-semibold uppercase tracking-[0.1em] opacity-70">
+                    {step.meta.split("·")[1]?.trim() ?? step.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 rounded-lg border border-white/10 bg-white/[0.055] p-3 text-xs font-medium leading-5 text-white/58">
+              {labels.accountState}
+            </p>
+          </aside>
+
+          <div className="grid gap-3">
+            {labels.steps.map((step, index) => {
+              const Icon = step.Icon;
+
+              return (
+                <article
+                  className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+                  key={step.title}
+                >
+                  <div className="grid gap-4 sm:grid-cols-[4rem_1fr_auto] sm:items-center">
+                    <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                      <Icon className="size-7" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
+                          {step.meta}
+                        </span>
+                        {index === 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f9ed] px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
+                            <CheckCircle2 className="size-3.5" />
+                            {labels.requiredLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                      <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-normal">
+                        {step.title}
+                      </h2>
+                      <p className="mt-2 text-sm font-medium leading-6 text-black/58">
+                        {step.body}
+                      </p>
+                    </div>
+                    <Link
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit"
+                      href={step.href}
+                    >
+                      {step.cta}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-8 grid max-w-6xl gap-3 md:grid-cols-2">
+          <Link
+            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_42px_rgba(8,18,12,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)]"
+            href={studioHref}
+          >
+            <span>
+              <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
+                <Rocket className="size-5" />
+              </span>
+              <span className="mt-4 block text-2xl font-semibold leading-tight">
+                {labels.homeCta}
+              </span>
+              <span className="mt-2 block text-sm font-medium leading-6 text-black/54">
+                {labels.helper}
+              </span>
+            </span>
+            <ArrowRight className="size-5 shrink-0" />
+          </Link>
+          <Link
+            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_18px_42px_rgba(8,18,12,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.18)]"
+            href={feedHref}
+          >
+            <span>
+              <span className="flex size-11 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <MessageCircleHeart className="size-5" />
+              </span>
+              <span className="mt-4 block text-2xl font-semibold leading-tight">
+                {labels.feedCta}
+              </span>
+              <span className="mt-2 block text-sm font-medium leading-6 text-white/56">
+                {labels.completeBody}
+              </span>
+            </span>
+            <ArrowRight className="size-5 shrink-0 text-[#44f26e]" />
+          </Link>
+        </div>
+      </section>
+    </FanletterShell>
+  );
+}
+
 export function FanletterStartPage({
   locale,
   referralCode,
@@ -1235,7 +1550,10 @@ export function FanletterStartPage({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const onboardingHref = buildPathWithReferral(
+    `/${locale}/fanletter/onboarding`,
+    referralCode,
+  );
   const studioHref = buildPathWithReferral(
     `/${locale}/creator/studio/profile`,
     referralCode,
@@ -1315,7 +1633,7 @@ export function FanletterStartPage({
         <>
           <Link
             className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
-            href={activateHref}
+            href={onboardingHref}
           >
             {startLabels.primary}
           </Link>
@@ -1407,7 +1725,7 @@ export function FanletterStartPage({
         <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-3 sm:flex-row lg:justify-end">
           <Link
             className="inline-flex h-12 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82 sm:min-w-[12rem]"
-            href={activateHref}
+            href={onboardingHref}
           >
             {startLabels.primary}
           </Link>
