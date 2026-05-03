@@ -430,6 +430,7 @@ export function FanletterConnectPage({
         }}
         open={isLoginDialogOpen}
         title={copy.loginTitle}
+        variant="fanletter"
       />
 
       <section className="px-4 pb-10 pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 lg:px-8">
