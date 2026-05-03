@@ -72,7 +72,10 @@ export function FanletterMobileHeroCarousel({
         src={activeSlide.videoUrl}
       />
       {playableSlides.length > 1 ? (
-        <div className="absolute bottom-20 right-4 z-10 flex items-center gap-2 rounded-full border border-white/14 bg-black/40 px-2.5 py-2 backdrop-blur-md">
+        <div className="absolute bottom-5 right-4 z-10 flex items-center gap-2 rounded-full border border-white/14 bg-black/46 px-2.5 py-2 backdrop-blur-md">
+          <span className="text-[0.62rem] font-semibold tabular-nums text-white/74">
+            {activeIndex + 1}/{playableSlides.length}
+          </span>
           <div className="flex items-center gap-1.5">
             {playableSlides.map((slide, index) => (
               <span
