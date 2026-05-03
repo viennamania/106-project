@@ -33,6 +33,7 @@ export async function generateMetadata({
       ? "FanLetter 크리에이터"
       : "FanLetter creator";
   const description =
+    data?.profile.character?.summary ??
     data?.profile.intro ??
     (locale === "ko"
       ? "FanLetter 크리에이터 공개 채널입니다."

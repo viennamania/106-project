@@ -4,9 +4,11 @@ import { cache } from "react";
 import type { Filter } from "mongodb";
 
 import {
+  type CreatorCharacterPersona,
   type ContentPostDocument,
   type ContentPriceType,
   type ContentSocialSummaryRecord,
+  type CreatorProfileAvatarCandidate,
   type CreatorProfileDocument,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
@@ -49,9 +51,24 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
 
 export type FanletterCreatorProfile = {
   avatarImageUrl: string | null;
+  character: FanletterPublicCharacter | null;
   displayName: string;
   intro: string;
   referralCode: string;
+};
+
+export type FanletterPublicCharacter = {
+  avatarImageSet: Array<{
+    expression: CreatorProfileAvatarCandidate["expression"] | null;
+    label: string | null;
+    url: string;
+  }>;
+  imageContentCount: number;
+  latestTitle: string | null;
+  name: string;
+  summary: string;
+  traits: string[];
+  videoContentCount: number;
 };
 
 export type FanletterFeedPageData = {
@@ -89,6 +106,70 @@ function compactText(value: string | null | undefined, limit: number) {
   }
 
   return `${text.slice(0, limit - 1).trimEnd()}...`;
+}
+
+function getPublicCharacterTraits(persona: CreatorCharacterPersona) {
+  return persona.lockedTraits
+    .map((trait) => compactText(trait, 44))
+    .filter(Boolean)
+    .slice(0, 6);
+}
+
+function getPublicAvatarImageSet(profile: CreatorProfileDocument) {
+  const uniqueUrls = new Set<string>();
+  const candidates = [
+    ...(profile.avatarImageUrl
+      ? [
+          {
+            expression: null,
+            label: null,
+            url: profile.avatarImageUrl,
+          },
+        ]
+      : []),
+    ...(profile.avatarImageSet ?? []).map((candidate) => ({
+      expression: candidate.expression ?? null,
+      label: candidate.label ?? null,
+      url: candidate.url,
+    })),
+  ];
+
+  return candidates
+    .filter((candidate) => {
+      const url = candidate.url.trim();
+
+      if (!url || uniqueUrls.has(url)) {
+        return false;
+      }
+
+      uniqueUrls.add(url);
+      return true;
+    })
+    .slice(0, 4);
+}
+
+function getPublicCharacter({
+  posts,
+  profile,
+}: {
+  posts: ContentPostDocument[];
+  profile: CreatorProfileDocument | null | undefined;
+}): FanletterPublicCharacter | null {
+  const persona = profile?.characterPersona;
+
+  if (!persona || !profile) {
+    return null;
+  }
+
+  return {
+    avatarImageSet: getPublicAvatarImageSet(profile),
+    imageContentCount: posts.filter((post) => getMediaType(post) === "image").length,
+    latestTitle: compactText(posts[0]?.title, 72) || null,
+    name: compactText(persona.name, 64) || profile.displayName,
+    summary: compactText(persona.summary, 220),
+    traits: getPublicCharacterTraits(persona),
+    videoContentCount: posts.filter((post) => getMediaType(post) === "video").length,
+  };
 }
 
 function getCoverImageUrl(post: ContentPostDocument) {
@@ -341,6 +422,7 @@ export const getFanletterCreatorPageData = cache(
       ),
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
+        character: getPublicCharacter({ posts, profile }),
         displayName,
         intro:
           compactText(profile?.intro, 220) ||

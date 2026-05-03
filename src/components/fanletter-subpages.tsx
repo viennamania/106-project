@@ -24,6 +24,7 @@ import type { ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
+  FanletterPublicCharacter,
   FanletterPublicContentDetail,
   FanletterPublicContentItem,
 } from "@/lib/fanletter-content-service";
@@ -53,9 +54,21 @@ type FanletterSubpageCopy = {
     public: string;
   };
   creator: {
+    characterAvatars: string;
+    characterBody: string;
+    characterEmptyTraits: string;
+    characterEvolution: string;
+    characterEyebrow: string;
+    characterImageSignal: string;
+    characterLatest: string;
+    characterPublicSignal: string;
+    characterTitle: string;
+    characterTraits: string;
+    characterVideoSignal: string;
     empty: string;
     eyebrow: string;
     publicPosts: string;
+    stage: string;
     titleSuffix: string;
   };
   feed: {
@@ -108,9 +121,22 @@ const koCopy: FanletterSubpageCopy = {
     public: "무료 공개",
   },
   creator: {
+    characterAvatars: "표정 아바타 세트",
+    characterBody:
+      "내부 생성 프롬프트는 숨기고 팬이 소비할 수 있는 캐릭터 소개와 공개 콘텐츠 흐름만 보여줍니다.",
+    characterEmptyTraits: "공개 키워드는 페르소나가 더 정리되면 표시됩니다.",
+    characterEvolution: "캐릭터 진화 로그",
+    characterEyebrow: "Public Character Persona",
+    characterImageSignal: "이미지 장면",
+    characterLatest: "최근 장면",
+    characterPublicSignal: "공개 콘텐츠",
+    characterTitle: "공개 캐릭터 카드",
+    characterTraits: "캐릭터 키워드",
+    characterVideoSignal: "동영상 장면",
     empty: "이 크리에이터의 공개 콘텐츠가 준비되면 이곳에 표시됩니다.",
     eyebrow: "Creator Channel",
     publicPosts: "공개 콘텐츠",
+    stage: "Stage",
     titleSuffix: "의 FanLetter",
   },
   feed: {
@@ -173,9 +199,22 @@ const enCopy: FanletterSubpageCopy = {
     public: "Free public",
   },
   creator: {
+    characterAvatars: "Expression avatar set",
+    characterBody:
+      "Internal generation prompts stay private. Fans see the character intro and public content signals only.",
+    characterEmptyTraits: "Public keywords will appear as the persona becomes clearer.",
+    characterEvolution: "Character evolution log",
+    characterEyebrow: "Public Character Persona",
+    characterImageSignal: "Image scenes",
+    characterLatest: "Latest scene",
+    characterPublicSignal: "Public content",
+    characterTitle: "Public character card",
+    characterTraits: "Character keywords",
+    characterVideoSignal: "Video scenes",
     empty: "This creator's public content will appear here when it is ready.",
     eyebrow: "Creator Channel",
     publicPosts: "public content",
+    stage: "Stage",
     titleSuffix: "'s FanLetter",
   },
   feed: {
@@ -233,6 +272,26 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function getAvatarExpressionLabel(
+  expression: FanletterPublicCharacter["avatarImageSet"][number]["expression"],
+  label: string | null,
+  locale: Locale,
+) {
+  if (label?.trim()) {
+    return label;
+  }
+
+  if (expression === "smile") {
+    return locale === "ko" ? "미소" : "Smile";
+  }
+
+  if (expression === "serious") {
+    return locale === "ko" ? "차분함" : "Calm";
+  }
+
+  return locale === "ko" ? "대표" : "Default";
 }
 
 function getAvatarInitial(name: string) {
@@ -957,6 +1016,163 @@ export function FanletterFeedPage({
   );
 }
 
+function CharacterPersonaShowcase({
+  character,
+  displayName,
+  locale,
+  publicContentCount,
+}: {
+  character: FanletterPublicCharacter;
+  displayName: string;
+  locale: Locale;
+  publicContentCount: number;
+}) {
+  const copy = getCopy(locale);
+  const stageLevel = Math.min(
+    4,
+    Math.max(1, Math.floor(publicContentCount / 6) + 1),
+  );
+  const evolutionItems = [
+    {
+      label: copy.creator.characterPublicSignal,
+      value: formatNumber(publicContentCount, locale),
+    },
+    {
+      label: copy.creator.characterVideoSignal,
+      value: formatNumber(character.videoContentCount, locale),
+    },
+    {
+      label: copy.creator.characterImageSignal,
+      value: formatNumber(character.imageContentCount, locale),
+    },
+    {
+      label: copy.creator.characterLatest,
+      value: character.latestTitle ?? "FanLetter",
+    },
+  ];
+
+  return (
+    <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]">
+      <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {copy.creator.characterEyebrow}
+            </p>
+            <h2 className="mt-3 text-[2rem] font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[2.65rem]">
+              {character.name}
+            </h2>
+            <p className="mt-4 text-sm font-medium leading-6 text-white/68 sm:text-base sm:leading-7">
+              {character.summary || copy.creator.characterBody}
+            </p>
+          </div>
+          <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 py-2 text-sm font-semibold text-[#b9ffc8]">
+            <Sparkles className="size-4" />
+            {copy.creator.stage} {stageLevel}
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/44">
+            {copy.creator.characterTraits}
+          </p>
+          {character.traits.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {character.traits.map((trait) => (
+                <span
+                  className="rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/72"
+                  key={trait}
+                >
+                  {trait}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm font-medium leading-6 text-white/48">
+              {copy.creator.characterEmptyTraits}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {evolutionItems.map((item) => (
+            <div
+              className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+              key={item.label}
+            >
+              <p className="line-clamp-2 text-xl font-semibold leading-tight">
+                {item.value}
+              </p>
+              <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/42">
+                {item.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <aside className="rounded-lg border border-black/10 bg-white p-4 text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-black/42">
+              {copy.creator.characterTitle}
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-normal">
+              {copy.creator.characterAvatars}
+            </h3>
+          </div>
+          <Avatar
+            imageUrl={character.avatarImageSet[0]?.url ?? null}
+            name={displayName}
+            sizeClassName="size-12"
+          />
+        </div>
+
+        {character.avatarImageSet.length > 0 ? (
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            {character.avatarImageSet.map((avatar) => (
+              <div
+                className="overflow-hidden rounded-lg border border-black/10 bg-[#eef3ec]"
+                key={avatar.url}
+              >
+                <div className="relative aspect-square">
+                  <Image
+                    alt={getAvatarExpressionLabel(
+                      avatar.expression,
+                      avatar.label,
+                      locale,
+                    )}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 40vw, 12rem"
+                    src={avatar.url}
+                  />
+                </div>
+                <p className="truncate px-3 py-2 text-xs font-semibold text-black/58">
+                  {getAvatarExpressionLabel(avatar.expression, avatar.label, locale)}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-5 rounded-lg border border-dashed border-black/12 p-4 text-sm font-medium leading-6 text-black/48">
+            {copy.creator.characterBody}
+          </p>
+        )}
+
+        <div className="mt-5 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
+          <p className="text-sm font-semibold">
+            {copy.creator.characterEvolution}
+          </p>
+          <p className="mt-2 text-sm font-medium leading-6 text-black/54">
+            {copy.creator.characterBody}
+          </p>
+        </div>
+      </aside>
+    </section>
+  );
+}
+
 export function FanletterCreatorPage({
   data,
   locale,
@@ -971,7 +1187,7 @@ export function FanletterCreatorPage({
 
   return (
     <FanletterShell
-      description={data.profile.intro}
+      description={data.profile.character?.summary ?? data.profile.intro}
       eyebrow={copy.creator.eyebrow}
       locale={locale}
       referralCode={effectiveReferralCode}
@@ -1004,6 +1220,14 @@ export function FanletterCreatorPage({
               </p>
             </div>
           </div>
+          {data.profile.character ? (
+            <CharacterPersonaShowcase
+              character={data.profile.character}
+              displayName={data.profile.displayName}
+              locale={locale}
+              publicContentCount={data.publicContentCount}
+            />
+          ) : null}
           <ContentGrid
             empty={copy.creator.empty}
             items={data.items}
