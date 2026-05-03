@@ -405,7 +405,7 @@ export function FanletterHomePage({
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="relative min-h-[88svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.52]"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.38] lg:opacity-[0.18]"
           style={{
             backgroundImage: heroVideo?.coverImageUrl
               ? `url(${heroVideo.coverImageUrl})`
@@ -416,7 +416,7 @@ export function FanletterHomePage({
           <video
             aria-hidden="true"
             autoPlay
-            className="absolute inset-y-0 right-0 h-full w-full object-contain object-right opacity-[0.58]"
+            className="absolute inset-y-0 right-0 h-full w-full object-contain object-right opacity-[0.44] lg:hidden"
             loop
             muted
             playsInline
@@ -425,7 +425,7 @@ export function FanletterHomePage({
             src={heroVideo.videoUrl}
           />
         ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.42)_0%,rgba(3,5,4,0.54)_42%,#030504_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.48)_0%,rgba(3,5,4,0.66)_42%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[88svh] w-full max-w-7xl flex-col px-4 pb-8 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/42 px-3 py-2 text-[0.68rem] font-semibold uppercase text-white/78 backdrop-blur-md sm:text-xs">
@@ -465,15 +465,15 @@ export function FanletterHomePage({
             </div>
           </header>
 
-          <div className="mt-auto grid gap-8 pb-2 pt-24 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end lg:pt-32">
-            <div className="max-w-4xl">
+          <div className="grid flex-1 gap-10 py-14 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+            <div className="max-w-[58rem]">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-4xl text-[3rem] font-semibold leading-[0.95] tracking-normal text-white sm:text-[4.9rem] lg:text-[5.8rem]">
+              <h1 className="mt-4 max-w-[58rem] text-[3rem] font-semibold leading-[1.01] tracking-normal text-white [word-break:keep-all] sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/74 sm:text-lg">
+              <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-white/74 [word-break:keep-all] sm:text-lg">
                 {copy.hero.description}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -492,7 +492,54 @@ export function FanletterHomePage({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+            <div className="hidden lg:flex min-w-0 flex-col gap-3">
+              <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-white/14 bg-[#07100b] shadow-[0_34px_90px_rgba(0,0,0,0.42)]">
+                {heroVideo ? (
+                  <>
+                    <video
+                      aria-hidden="true"
+                      autoPlay
+                      className="absolute inset-0 h-full w-full object-contain"
+                      loop
+                      muted
+                      playsInline
+                      poster={heroVideo.coverImageUrl ?? undefined}
+                      preload="metadata"
+                      src={heroVideo.videoUrl}
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.06)_48%,rgba(0,0,0,0.62)_100%)]" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {heroVideo.authorName}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-lg font-semibold leading-tight text-white">
+                        {heroVideo.title}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(68,242,110,0.22),transparent_34%),linear-gradient(160deg,#07100b,#030504)]" />
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {heroStats.map((stat) => (
+                  <div
+                    className="rounded-lg border border-white/12 bg-black/46 p-3 backdrop-blur-md"
+                    key={stat.label}
+                  >
+                    <p className="text-2xl font-semibold leading-none text-white">
+                      {stat.value}
+                    </p>
+                    <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/54">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 lg:hidden">
               {heroStats.map((stat) => (
                 <div
                   className="rounded-lg border border-white/12 bg-black/38 p-3 backdrop-blur-md sm:p-4"
