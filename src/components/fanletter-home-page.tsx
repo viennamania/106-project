@@ -460,9 +460,9 @@ export function FanletterHomePage({
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
-      <section className="relative min-h-[88svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
+      <section className="relative min-h-[100svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.38] lg:opacity-[0.18]"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.46] lg:opacity-[0.18]"
           style={{
             backgroundImage: heroVideo?.coverImageUrl
               ? `url(${heroVideo.coverImageUrl})`
@@ -473,7 +473,7 @@ export function FanletterHomePage({
           <video
             aria-hidden="true"
             autoPlay
-            className="absolute inset-y-0 right-0 h-full w-full object-contain object-right opacity-[0.44] lg:hidden"
+            className="absolute inset-0 h-full w-full scale-[1.03] object-cover object-center opacity-[0.68] saturate-[1.12] lg:hidden"
             loop
             muted
             playsInline
@@ -482,9 +482,9 @@ export function FanletterHomePage({
             src={heroVideo.videoUrl}
           />
         ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.48)_0%,rgba(3,5,4,0.66)_42%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(68,242,110,0.14),transparent_28%),linear-gradient(180deg,rgba(3,5,4,0.24)_0%,rgba(3,5,4,0.52)_42%,rgba(3,5,4,0.82)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
-        <div className="relative z-10 mx-auto flex min-h-[88svh] w-full max-w-7xl flex-col px-4 pb-8 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/42 px-3 py-2 text-[0.68rem] font-semibold uppercase text-white/78 backdrop-blur-md sm:text-xs">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
@@ -522,7 +522,7 @@ export function FanletterHomePage({
             </div>
           </header>
 
-          <div className="grid flex-1 gap-10 py-14 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+          <div className="grid flex-1 content-center gap-8 py-10 sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <div className="max-w-[58rem]">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.hero.eyebrow}
@@ -596,10 +596,10 @@ export function FanletterHomePage({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 lg:hidden">
+            <div className="grid grid-cols-3 gap-2 self-start lg:hidden">
               {heroStats.map((stat) => (
                 <div
-                  className="rounded-lg border border-white/12 bg-black/38 p-3 backdrop-blur-md sm:p-4"
+                  className="rounded-lg border border-white/14 bg-black/48 p-3 shadow-[0_16px_34px_rgba(0,0,0,0.24)] backdrop-blur-md sm:p-4"
                   key={stat.label}
                 >
                   <p className="text-2xl font-semibold leading-none text-white sm:text-3xl">
