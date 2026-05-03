@@ -54,6 +54,8 @@ type FanletterConnectSyncState = {
   validationError: string | null;
 };
 
+const FANLETTER_CONNECT_DISCONNECTED_GRACE_MS = 4500;
+
 const emptySyncState: FanletterConnectSyncState = {
   email: null,
   error: null,
@@ -91,6 +93,7 @@ function getCopy(locale: Locale) {
         paymentTitle: "가입 완료 확인이 필요합니다.",
         primary: "프로필 설정으로 이동",
         reconnect: "다시 확인",
+        restoring: "기존 계정 연결을 복원하고 있습니다.",
         secondary: "첫 콘텐츠 만들기",
         signOut: "연결 해제",
         steps: ["이메일 로그인", "스마트 지갑 연결", "회원 상태 동기화"],
@@ -126,6 +129,7 @@ function getCopy(locale: Locale) {
         paymentTitle: "Signup verification is required.",
         primary: "Go to profile setup",
         reconnect: "Check again",
+        restoring: "Restoring the existing account connection.",
         secondary: "Create first content",
         signOut: "Disconnect",
         steps: ["Email login", "Smart wallet", "Member sync"],
@@ -245,6 +249,8 @@ export function FanletterConnectPage({
   const connection = useThirdwebConnectionState({
     accountAddress,
     clientConfigured: hasThirdwebClientId,
+    disconnectedResolveGraceMs: FANLETTER_CONNECT_DISCONNECTED_GRACE_MS,
+    resolveGraceMs: FANLETTER_CONNECT_DISCONNECTED_GRACE_MS,
     status: connectionStatus,
   });
   const accountLabel = formatAddressLabel(accountAddress);
@@ -285,16 +291,20 @@ export function FanletterConnectPage({
       ? copy.paymentTitle
       : syncState.status === "error"
         ? copy.syncErrorTitle
-        : connection.isConnected
-          ? copy.syncing
-          : copy.disconnected;
+        : connection.isResolving
+          ? copy.connecting
+          : connection.isConnected
+            ? copy.syncing
+            : copy.disconnected;
   const cardBody = memberIsCompleted
     ? copy.completedBody
     : memberNeedsPayment
       ? copy.paymentBody
-      : connection.isConnected
-        ? copy.helper
-        : copy.connectBody;
+      : connection.isResolving
+        ? copy.restoring
+        : connection.isConnected
+          ? copy.helper
+          : copy.connectBody;
 
   useEffect(() => {
     if (connectionStatus === "connected") {
@@ -501,7 +511,7 @@ export function FanletterConnectPage({
                     <CheckCircle2 className="size-6" />
                   ) : memberNeedsPayment ? (
                     <ShieldCheck className="size-6" />
-                  ) : connection.isConnected ? (
+                  ) : connection.isConnected || connection.isResolving ? (
                     <Loader2 className="size-6 animate-spin" />
                   ) : (
                     <Mail className="size-6" />
@@ -573,6 +583,15 @@ export function FanletterConnectPage({
                   <div className="rounded-lg border border-amber-300/20 bg-amber-400/12 p-3 text-sm font-medium leading-6 text-amber-100">
                     {copy.missingClient}
                   </div>
+                ) : connection.isResolving ? (
+                  <button
+                    className="inline-flex h-12 w-full cursor-wait items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white/70"
+                    disabled
+                    type="button"
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                    {copy.connecting}
+                  </button>
                 ) : connection.isDisconnected ? (
                   <button
                     className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88]"

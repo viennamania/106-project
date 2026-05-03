@@ -70,6 +70,7 @@ const EMPTY_FORM: CreateForm = {
   summary: "",
   title: "",
 };
+const FANLETTER_CREATE_DISCONNECTED_GRACE_MS = 4500;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -268,6 +269,8 @@ export function FanletterCreatePage({
   const accountAddress = account?.address ?? null;
   const connection = useThirdwebConnectionState({
     accountAddress,
+    disconnectedResolveGraceMs: FANLETTER_CREATE_DISCONNECTED_GRACE_MS,
+    resolveGraceMs: FANLETTER_CREATE_DISCONNECTED_GRACE_MS,
     status: connectionStatus,
   });
   const onboardingHref = buildPathWithReferral(

@@ -56,20 +56,27 @@ async function resolveThirdwebUserEmail(
 export function useThirdwebConnectionState({
   accountAddress,
   clientConfigured = hasThirdwebClientId,
+  disconnectedResolveGraceMs = 0,
   resolveGraceMs = THIRDWEB_CONNECTION_RESOLVE_GRACE_MS,
   status,
 }: {
   accountAddress?: string | null;
   clientConfigured?: boolean;
+  disconnectedResolveGraceMs?: number;
   resolveGraceMs?: number;
   status: ThirdwebWalletConnectionStatus;
 }) {
+  const shouldGraceDisconnected =
+    clientConfigured &&
+    disconnectedResolveGraceMs > 0 &&
+    status === "disconnected" &&
+    !accountAddress;
   const shouldExpireResolving =
     clientConfigured &&
     (status === "unknown" ||
       status === "connecting" ||
       (status === "connected" && !accountAddress));
-  const resolveGraceKey = shouldExpireResolving
+  const resolveGraceKey = shouldExpireResolving || shouldGraceDisconnected
     ? `${status}:${accountAddress ?? ""}`
     : null;
   const [elapsedResolveGraceKey, setElapsedResolveGraceKey] =
@@ -82,18 +89,35 @@ export function useThirdwebConnectionState({
 
     const timeout = window.setTimeout(() => {
       setElapsedResolveGraceKey(resolveGraceKey);
-    }, resolveGraceMs);
+    }, shouldGraceDisconnected ? disconnectedResolveGraceMs : resolveGraceMs);
 
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [resolveGraceKey, resolveGraceMs]);
+  }, [
+    disconnectedResolveGraceMs,
+    resolveGraceKey,
+    resolveGraceMs,
+    shouldGraceDisconnected,
+  ]);
 
   const connectionState = getThirdwebConnectionState({
     accountAddress,
     clientConfigured,
     status,
   });
+
+  if (
+    shouldGraceDisconnected &&
+    resolveGraceKey !== null &&
+    elapsedResolveGraceKey !== resolveGraceKey
+  ) {
+    return {
+      isConnected: false,
+      isDisconnected: false,
+      isResolving: true,
+    };
+  }
 
   if (
     connectionState.isResolving &&

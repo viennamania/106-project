@@ -98,6 +98,7 @@ const EMPTY_AVATAR_GENERATION: AvatarGenerationState = {
   error: null,
   status: "idle",
 };
+const FANLETTER_PROFILE_DISCONNECTED_GRACE_MS = 4500;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -316,6 +317,8 @@ export function FanletterProfilePage({
   const accountAddress = account?.address ?? null;
   const connection = useThirdwebConnectionState({
     accountAddress,
+    disconnectedResolveGraceMs: FANLETTER_PROFILE_DISCONNECTED_GRACE_MS,
+    resolveGraceMs: FANLETTER_PROFILE_DISCONNECTED_GRACE_MS,
     status: connectionStatus,
   });
   const onboardingHref = buildPathWithReferral(

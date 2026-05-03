@@ -76,6 +76,7 @@ const emptyMemberSession: MemberSessionState = {
   status: "idle",
 };
 const MEMBER_SESSION_VALIDATION_DEDUPE_DELAY_MS = 180;
+const MEMBER_SESSION_DISCONNECTED_GRACE_MS = 4500;
 const MEMBER_SESSION_BROADCAST_CHANNEL = "member-session";
 
 type MemberSessionBroadcastMessage =
@@ -145,6 +146,8 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const accountAddress = account?.address ?? null;
   const { isResolving } = useThirdwebConnectionState({
     accountAddress,
+    disconnectedResolveGraceMs: MEMBER_SESSION_DISCONNECTED_GRACE_MS,
+    resolveGraceMs: MEMBER_SESSION_DISCONNECTED_GRACE_MS,
     status,
   });
   const [session, setSession] =
@@ -377,8 +380,23 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!accountAddress || status === "disconnected" || !hasThirdwebClientId) {
-      if (accountAddress && status === "disconnected") {
+    if (!accountAddress && isResolving && hasThirdwebClientId) {
+      setSession((current) => ({
+        ...current,
+        accountAddress,
+        error: null,
+        isValidating: true,
+        status: current.member ? current.status : "validating",
+      }));
+      return;
+    }
+
+    if (
+      !accountAddress ||
+      (status === "disconnected" && !isResolving) ||
+      !hasThirdwebClientId
+    ) {
+      if (accountAddress && status === "disconnected" && !isResolving) {
         clearCachedMemberSession(accountAddress);
         serverSessionKeyRef.current = null;
         void clearServerMemberSession();
