@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   BadgeDollarSign,
@@ -95,6 +96,10 @@ type FanletterCopy = {
     cta: string;
     title: string;
     categories: string[];
+  };
+  platformTrust: {
+    body: string;
+    eyebrow: string;
   };
   proof: {
     title: string;
@@ -215,6 +220,10 @@ const koCopy: FanletterCopy = {
     cta: "브이로그 스튜디오 열기",
     title: "캐릭터가 있으면 채널을 만들 수 있습니다.",
     categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
+  },
+  platformTrust: {
+    body: "릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, FanLetter 링크를 정리합니다.",
+    eyebrow: "숏폼 게시 패키지",
   },
   proof: {
     title: "캐릭터 설정부터 숏폼 브이로그 판매까지",
@@ -355,6 +364,10 @@ const enCopy: FanletterCopy = {
     title: "If you have a character, you can build a channel.",
     categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
   },
+  platformTrust: {
+    body: "Prepares captions, hashtags, and FanLetter links for Reels, Shorts, and TikTok posts.",
+    eyebrow: "Short-form posting package",
+  },
   proof: {
     title: "From character setup to short-form vlog sales",
     stats: [
@@ -397,6 +410,23 @@ const featureIcons = [
   MessageCircleHeart,
   Network,
   WalletCards,
+] as const;
+const platformBrandLogos = [
+  {
+    alt: "Instagram",
+    label: "Instagram Reels",
+    src: "/brand/platforms/instagram.svg",
+  },
+  {
+    alt: "YouTube Shorts",
+    label: "YouTube Shorts",
+    src: "/brand/platforms/youtube-shorts.svg",
+  },
+  {
+    alt: "TikTok",
+    label: "TikTok",
+    src: "/brand/platforms/tiktok.svg",
+  },
 ] as const;
 
 function getFanletterCopy(locale: Locale) {
@@ -633,6 +663,33 @@ export function FanletterHomePage({
                 >
                   {copy.cta.studio}
                 </Link>
+              </div>
+              <div className="mt-6 max-w-2xl sm:mt-8">
+                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/56">
+                  {copy.platformTrust.eyebrow}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {platformBrandLogos.map((platform) => (
+                    <span
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.08] px-2.5 pr-3 text-[0.72rem] font-semibold text-white/78 backdrop-blur-md"
+                      key={platform.label}
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white p-1">
+                        <Image
+                          alt={platform.alt}
+                          className="h-full w-full object-contain"
+                          height={24}
+                          src={platform.src}
+                          width={24}
+                        />
+                      </span>
+                      {platform.label}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2 hidden max-w-xl text-xs font-medium leading-5 text-white/54 sm:block">
+                  {copy.platformTrust.body}
+                </p>
               </div>
             </div>
 
