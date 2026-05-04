@@ -38,6 +38,7 @@ import type {
   CreatorProfileResponse,
   CreatorStudioPostsResponse,
   FanletterVlogPlanItem,
+  FanletterVlogPlanStatus,
   FanletterVlogPlannerResponse,
 } from "@/lib/content";
 import {
@@ -74,6 +75,10 @@ type PlannerState = {
   generatedAt: string | null;
   plans: FanletterVlogPlanItem[];
   status: PlannerStatus;
+};
+
+type PlannerPatchResponse = {
+  plan: FanletterVlogPlanItem;
 };
 
 const FANLETTER_STUDIO_DISCONNECTED_GRACE_MS = 4500;
@@ -147,7 +152,16 @@ function getCopy(locale: Locale) {
           generate: "AI가 7일 플랜 추천",
           generating: "플랜 생성 중...",
           image: "이미지",
+          markDistributed: "배포 완료",
           platform: "배포 포인트",
+          skip: "건너뛰기",
+          statuses: {
+            created: "생성 완료",
+            distributed: "배포 완료",
+            planned: "예정",
+            published: "공개 완료",
+            skipped: "건너뜀",
+          },
           title: "오늘 무엇을 만들지 고민하지 않게 합니다.",
           usePlan: "이 플랜으로 만들기",
           video: "동영상",
@@ -231,7 +245,16 @@ function getCopy(locale: Locale) {
           generate: "Suggest 7-day plan",
           generating: "Generating plans...",
           image: "Image",
+          markDistributed: "Distributed",
           platform: "Distribution angle",
+          skip: "Skip",
+          statuses: {
+            created: "Created",
+            distributed: "Distributed",
+            planned: "Planned",
+            published: "Published",
+            skipped: "Skipped",
+          },
           title: "Remove the daily question of what to make next.",
           usePlan: "Create with this plan",
           video: "Video",
@@ -463,16 +486,20 @@ function PlannerSection({
   error,
   locale,
   onGenerate,
+  onUpdateStatus,
   plans,
   status,
+  updatingPlanId,
 }: {
   copy: ReturnType<typeof getCopy>;
   createHref: string;
   error: string | null;
   locale: Locale;
   onGenerate: () => void;
+  onUpdateStatus: (planId: string, status: FanletterVlogPlanStatus) => void;
   plans: FanletterVlogPlanItem[];
   status: PlannerStatus;
+  updatingPlanId: string | null;
 }) {
   const isLoading = status === "loading";
 
@@ -516,7 +543,19 @@ function PlannerSection({
           {plans.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-2">
               {plans.map((plan) => {
+                const planStatus = plan.status ?? "planned";
+                const canMarkDistributed =
+                  planStatus !== "distributed" &&
+                  planStatus !== "skipped" &&
+                  Boolean(plan.contentId);
+                const canSkip =
+                  planStatus !== "distributed" && planStatus !== "skipped";
+                const scheduledLabel = formatDate(
+                  plan.scheduledFor ?? null,
+                  locale,
+                );
                 const href = setPathSearchParams(createHref, {
+                  planId: plan.id,
                   planBody: plan.captionHook,
                   planMode: plan.mediaMode,
                   planPrompt: plan.scenePrompt,
@@ -533,12 +572,22 @@ function PlannerSection({
                       <span className="rounded-full bg-black px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white">
                         {plan.dayLabel}
                       </span>
-                      <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/54">
-                        {plan.mediaMode === "video"
-                          ? copy.planner.video
-                          : copy.planner.image}
-                      </span>
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/54">
+                          {plan.mediaMode === "video"
+                            ? copy.planner.video
+                            : copy.planner.image}
+                        </span>
+                        <span className="rounded-full border border-[#44f26e]/30 bg-[#44f26e]/14 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
+                          {copy.planner.statuses[planStatus]}
+                        </span>
+                      </div>
                     </div>
+                    {scheduledLabel ? (
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/38">
+                        {scheduledLabel}
+                      </p>
+                    ) : null}
                     <h3 className="mt-4 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
                       {plan.title}
                     </h3>
@@ -570,6 +619,42 @@ function PlannerSection({
                       {copy.planner.usePlan}
                       <ArrowRight className="size-4" />
                     </Link>
+                    {canSkip || canMarkDistributed ? (
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {canSkip ? (
+                          <button
+                            className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold text-black/58 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={updatingPlanId === plan.id}
+                            onClick={() => {
+                              onUpdateStatus(plan.id, "skipped");
+                            }}
+                            type="button"
+                          >
+                            {updatingPlanId === plan.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              copy.planner.skip
+                            )}
+                          </button>
+                        ) : null}
+                        {canMarkDistributed ? (
+                          <button
+                            className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold text-black/58 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={updatingPlanId === plan.id}
+                            onClick={() => {
+                              onUpdateStatus(plan.id, "distributed");
+                            }}
+                            type="button"
+                          >
+                            {updatingPlanId === plan.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              copy.planner.markDistributed
+                            )}
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </article>
                 );
               })}
@@ -730,6 +815,7 @@ export function FanletterStudioPage({
     plans: [],
     status: "idle",
   });
+  const [updatingPlanId, setUpdatingPlanId] = useState<string | null>(null);
   const [state, setState] = useState<StudioState>({
     error: null,
     member: memberSession.member,
@@ -768,6 +854,11 @@ export function FanletterStudioPage({
       error: null,
       salesError: null,
       status: "loading",
+    }));
+    setPlannerState((current) => ({
+      ...current,
+      error: null,
+      status: current.plans.length > 0 ? current.status : "loading",
     }));
 
     try {
@@ -813,7 +904,8 @@ export function FanletterStudioPage({
       );
       const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=${STUDIO_POSTS_PAGE_SIZE}&status=all`;
       const salesUrl = `/api/content/sales?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=4`;
-      const [postsData, salesResult] = await Promise.all([
+      const plannerUrl = `/api/content/planner?email=${encodedEmail}&walletAddress=${encodedWallet}`;
+      const [postsData, salesResult, plannerResult] = await Promise.all([
         fetch(postsUrl, { cache: "no-store" }).then((response) =>
           readApiJson<CreatorStudioPostsResponse>(response, copy.connectRequired),
         ),
@@ -830,6 +922,23 @@ export function FanletterStudioPage({
               data: null,
               error:
                 error instanceof Error ? error.message : copy.salesFallback,
+            }),
+          ),
+        fetch(plannerUrl, { cache: "no-store" })
+          .then((response) =>
+            readApiJson<FanletterVlogPlannerResponse>(
+              response,
+              copy.planner.errorFallback,
+            ),
+          )
+          .then(
+            (data) => ({ data, error: null }),
+            (error: unknown) => ({
+              data: null,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : copy.planner.errorFallback,
             }),
           ),
       ]);
@@ -855,12 +964,22 @@ export function FanletterStudioPage({
         salesSummary: salesResult.data?.summary ?? null,
         status: "ready",
       });
+      setPlannerState({
+        error: plannerResult.error,
+        generatedAt: plannerResult.data?.generatedAt ?? null,
+        plans: plannerResult.data?.plans ?? [],
+        status: plannerResult.error ? "error" : "ready",
+      });
     } catch (error) {
       setState((current) => ({
         ...current,
         error:
           error instanceof Error ? error.message : copy.connectRequired,
         status: "error",
+      }));
+      setPlannerState((current) => ({
+        ...current,
+        status: current.plans.length > 0 ? "ready" : "idle",
       }));
     } finally {
       loadInFlightRef.current = false;
@@ -870,6 +989,7 @@ export function FanletterStudioPage({
     chain.id,
     chain.name,
     copy.connectRequired,
+    copy.planner.errorFallback,
     copy.salesFallback,
     locale,
     referralCode,
@@ -944,6 +1064,68 @@ export function FanletterStudioPage({
     locale,
     resolveEmail,
   ]);
+
+  const updatePlannerStatus = useCallback(
+    async (planId: string, status: FanletterVlogPlanStatus) => {
+      if (!accountAddress) {
+        setPlannerState((current) => ({
+          ...current,
+          error: copy.connectRequired,
+          status: "error",
+        }));
+        return;
+      }
+
+      setUpdatingPlanId(planId);
+      setPlannerState((current) => ({
+        ...current,
+        error: null,
+      }));
+
+      try {
+        const resolvedEmail = await resolveEmail();
+        const response = await fetch("/api/content/planner", {
+          body: JSON.stringify({
+            email: resolvedEmail,
+            planId,
+            status,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
+        const data = await readApiJson<PlannerPatchResponse>(
+          response,
+          copy.planner.errorFallback,
+        );
+
+        setPlannerState((current) => ({
+          ...current,
+          plans: current.plans.map((plan) =>
+            plan.id === data.plan.id ? data.plan : plan,
+          ),
+          status: "ready",
+        }));
+      } catch (error) {
+        setPlannerState((current) => ({
+          ...current,
+          error:
+            error instanceof Error ? error.message : copy.planner.errorFallback,
+          status: "error",
+        }));
+      } finally {
+        setUpdatingPlanId(null);
+      }
+    },
+    [
+      accountAddress,
+      copy.connectRequired,
+      copy.planner.errorFallback,
+      resolveEmail,
+    ],
+  );
 
   const imageCount = useMemo(
     () =>
@@ -1183,8 +1365,12 @@ export function FanletterStudioPage({
               onGenerate={() => {
                 void generatePlanner();
               }}
+              onUpdateStatus={(planId, nextStatus) => {
+                void updatePlannerStatus(planId, nextStatus);
+              }}
               plans={plannerState.plans}
               status={plannerState.status}
+              updatingPlanId={updatingPlanId}
             />
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

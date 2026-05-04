@@ -133,22 +133,56 @@ export type CreatorCharacterPersona = {
 };
 
 export type FanletterVlogPlanMediaMode = "image" | "video";
+export type FanletterVlogPlanStatus =
+  | "created"
+  | "distributed"
+  | "planned"
+  | "published"
+  | "skipped";
 
 export type FanletterVlogPlanItem = {
   captionHook: string;
   checklist: string[];
+  contentId?: string | null;
   dayLabel: string;
+  distributedAt?: string | null;
+  generatedAt?: string | null;
   id: string;
   mediaMode: FanletterVlogPlanMediaMode;
   platformAngle: string;
+  scheduledFor?: string | null;
   scenePrompt: string;
+  status?: FanletterVlogPlanStatus;
   summary: string;
   title: string;
+  updatedAt?: string | null;
 };
 
 export type FanletterVlogPlannerResponse = {
   generatedAt: string;
   plans: FanletterVlogPlanItem[];
+};
+
+export type FanletterVlogPlanDocument = {
+  captionHook: string;
+  checklist: string[];
+  contentId?: string | null;
+  createdAt: Date;
+  dayIndex: number;
+  dayLabel: string;
+  distributedAt?: Date | null;
+  generatedAt: Date;
+  generationId: string;
+  mediaMode: FanletterVlogPlanMediaMode;
+  memberEmail: string;
+  platformAngle: string;
+  planId: string;
+  scheduledFor: string;
+  scenePrompt: string;
+  status: FanletterVlogPlanStatus;
+  summary: string;
+  title: string;
+  updatedAt: Date;
 };
 
 export type ContentAssetDocument = {

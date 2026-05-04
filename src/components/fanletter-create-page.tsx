@@ -64,7 +64,9 @@ type CreateForm = {
 
 export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
->;
+> & {
+  planId?: string;
+};
 
 const EMPTY_FORM: CreateForm = {
   body: "",
@@ -334,6 +336,7 @@ export function FanletterCreatePage({
   const loadInFlightRef = useRef(false);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
+  const initialPlanId = initialPlan?.planId?.trim() || null;
   const canPublish = Boolean(generatedMedia?.url);
   const selectedModeCopy = form.mode === "image" ? copy.imageBody : copy.videoBody;
   const generatedImageUrl = form.mode === "image" ? generatedMedia?.url : null;
@@ -589,6 +592,21 @@ export function FanletterCreatePage({
       }
 
       setCreatedContent(data.content);
+      if (initialPlanId) {
+        await fetch("/api/content/planner", {
+          body: JSON.stringify({
+            contentId: data.content.contentId,
+            email: resolvedEmail,
+            planId: initialPlanId,
+            status: status === "published" ? "published" : "created",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        }).catch(() => null);
+      }
       setNotice(status === "published" ? copy.published : copy.draftSaved);
     } catch (saveError) {
       setError(getErrorMessage(saveError, copy.errorFallback));

@@ -19,6 +19,7 @@ import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterCreateSearchParams = {
   planBody?: string | string[];
+  planId?: string | string[];
   planMode?: string | string[];
   planPrompt?: string | string[];
   planSummary?: string | string[];
@@ -72,15 +73,17 @@ function readInitialPlan(
   const summary = readPlanText(query.planSummary, 180);
   const prompt = readPlanText(query.planPrompt, 1_200);
   const body = readPlanText(query.planBody, 600);
+  const planId = readPlanText(query.planId, 120);
   const mode = readFirstValue(query.planMode) === "video" ? "video" : "image";
 
-  if (!title && !summary && !prompt && !body) {
+  if (!title && !summary && !prompt && !body && !planId) {
     return undefined;
   }
 
   return {
     body,
     mode,
+    planId,
     prompt,
     summary,
     title,
