@@ -15,12 +15,9 @@ import {
   Loader2,
   MessageCircleHeart,
   RefreshCw,
-  Send,
   Share2,
   ShieldCheck,
-  Smartphone,
   Sparkles,
-  SquarePlay,
   UploadCloud,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -63,6 +60,20 @@ type ChannelState = {
 
 const FANLETTER_CHANNELS_DISCONNECTED_GRACE_MS = 4500;
 const CHANNEL_POSTS_PAGE_SIZE = 8;
+const CHANNEL_BRAND_LOGOS = [
+  {
+    alt: "Instagram",
+    src: "/brand/platforms/instagram.svg",
+  },
+  {
+    alt: "YouTube Shorts",
+    src: "/brand/platforms/youtube-shorts.svg",
+  },
+  {
+    alt: "TikTok",
+    src: "/brand/platforms/tiktok.svg",
+  },
+] as const;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -383,20 +394,28 @@ function StatusPanel({
 
 function ChannelCard({
   body,
-  Icon,
+  logoAlt,
+  logoSrc,
   meta,
   title,
 }: {
   body: string;
-  Icon: typeof Smartphone;
+  logoAlt: string;
+  logoSrc: string;
   meta: string;
   title: string;
 }) {
   return (
     <article className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
       <div className="flex items-start justify-between gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-          <Icon className="size-5" />
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white p-2 shadow-[0_14px_32px_rgba(0,0,0,0.22)]">
+          <Image
+            alt={logoAlt}
+            className="h-full w-full object-contain"
+            height={40}
+            src={logoSrc}
+            width={40}
+          />
         </span>
         <span className="rounded-full border border-white/12 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/56">
           {meta}
@@ -808,7 +827,6 @@ export function FanletterChannelsPage({
   }
 
   const isLoading = state.status === "idle" || state.status === "loading";
-  const channelIcons = [Smartphone, SquarePlay, Send];
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -904,8 +922,9 @@ export function FanletterChannelsPage({
             {copy.channels.map((channel, index) => (
               <ChannelCard
                 body={channel.body}
-                Icon={channelIcons[index] ?? Smartphone}
                 key={channel.title}
+                logoAlt={CHANNEL_BRAND_LOGOS[index]?.alt ?? channel.title}
+                logoSrc={CHANNEL_BRAND_LOGOS[index]?.src ?? CHANNEL_BRAND_LOGOS[0].src}
                 meta={channel.meta}
                 title={channel.title}
               />
