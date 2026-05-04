@@ -1,0 +1,59 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e454]: FanLetter 계정 연결
+  - main [ref=e460]:
+    - generic [ref=e462]:
+      - generic [ref=e463]:
+        - link [ref=e464] [cursor=pointer]:
+          - /url: /ko/fanletter/onboarding?ref=FXBSQ976
+          - img [ref=e465]
+        - link "FanLetter" [ref=e467] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e469]
+          - generic [ref=e472]: FanLetter
+      - generic [ref=e474]:
+        - generic [ref=e475]:
+          - paragraph [ref=e476]: FanLetter Account
+          - heading "계정 연결을 FanLetter 흐름 안에서 끝내세요." [level=1] [ref=e477]
+          - paragraph [ref=e478]: FanLetter 전용 온보딩에서 이메일 지갑과 회원 상태를 먼저 확인합니다.
+          - generic [ref=e479]:
+            - paragraph [ref=e482]: 이메일 로그인
+            - paragraph [ref=e486]: 스마트 지갑 연결
+            - paragraph [ref=e490]: 회원 상태 동기화
+        - generic [ref=e492]:
+          - generic [ref=e493]:
+            - img [ref=e495]
+            - generic [ref=e498]:
+              - paragraph [ref=e499]: 아직 연결되지 않았습니다.
+              - paragraph [ref=e500]: 기존 Pocket Smart Wallet 이메일 로그인을 사용하되 화면은 FanLetter 흐름에 맞춰 정리했습니다.
+          - generic [ref=e501]:
+            - generic [ref=e502]:
+              - generic [ref=e503]:
+                - img [ref=e504]
+                - generic [ref=e507]: 이메일
+              - paragraph [ref=e508]: "-"
+            - generic [ref=e509]:
+              - generic [ref=e510]:
+                - img [ref=e511]
+                - generic [ref=e515]: 지갑
+              - paragraph [ref=e516]: "-"
+            - generic [ref=e517]:
+              - generic [ref=e518]:
+                - img [ref=e519]
+                - generic [ref=e522]: 회원 상태
+              - paragraph [ref=e523]: 확인 전
+          - button "이메일로 계정 연결" [ref=e525] [cursor=pointer]:
+            - img [ref=e526]
+            - text: 이메일로 계정 연결
+      - generic [ref=e529]:
+        - article [ref=e530]:
+          - img [ref=e531]
+          - heading "이메일 로그인" [level=2] [ref=e534]
+          - paragraph [ref=e535]: 기존 Pocket Smart Wallet 이메일 로그인을 사용하되 화면은 FanLetter 흐름에 맞춰 정리했습니다.
+        - article [ref=e536]:
+          - img [ref=e537]
+          - heading "스마트 지갑 연결" [level=2] [ref=e541]
+          - paragraph [ref=e542]: 계정 연결 후 회원 API 동기화가 끝나야 프로필 설정과 콘텐츠 생성 단계로 이동할 수 있습니다.
+        - article [ref=e543]:
+          - img [ref=e544]
+          - heading "회원 상태 동기화" [level=2] [ref=e547]
+          - paragraph [ref=e548]: 계정 연결 후 회원 API 동기화가 끝나야 프로필 설정과 콘텐츠 생성 단계로 이동할 수 있습니다.

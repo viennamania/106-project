@@ -1,0 +1,236 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6]:
+            - generic [ref=e7]: Enter the AI Personality of the Year Awards 2026
+            - generic [ref=e9]: $90K total prize pool!
+          - generic [ref=e10]:
+            - generic [ref=e11]: Enter the AI Personality of the Year Awards 2026
+            - generic [ref=e13]: $90K total prize pool!
+          - generic [ref=e14]:
+            - generic [ref=e15]: Enter the AI Personality of the Year Awards 2026
+            - generic [ref=e17]: $90K total prize pool!
+        - generic [ref=e18]: Learn More
+        - link [ref=e19] [cursor=pointer]:
+          - /url: https://www.aipersonality.ai/?utm_source=fanvue&utm_medium=Event&utm_campaign=ai-personality
+      - generic [ref=e20]:
+        - link [ref=e21] [cursor=pointer]:
+          - /url: /
+        - link "Menu" [ref=e23] [cursor=pointer]:
+          - /url: "#"
+    - generic [ref=e27]:
+      - heading "Earn from your fanbase faster with the No1 AI monetisation platform for creators." [level=1] [ref=e29]
+      - generic [ref=e30]:
+        - link "Become a creator" [ref=e31] [cursor=pointer]:
+          - /url: /signup?type=creator
+        - link "Sign up as a fan" [ref=e32] [cursor=pointer]:
+          - /url: /signup
+    - generic [ref=e36]:
+      - generic [ref=e40]:
+        - heading "Powering over $500m in creator payouts" [level=2] [ref=e42]
+        - generic [ref=e43]:
+          - link "Become a creator" [ref=e44] [cursor=pointer]:
+            - /url: /signup?type=creator
+          - link "Sign up as a fan" [ref=e45] [cursor=pointer]:
+            - /url: /signup
+      - paragraph [ref=e49]: Features
+      - generic [ref=e50]:
+        - generic [ref=e53]:
+          - generic [ref=e60]:
+            - generic [ref=e62]: Payments, Payouts and Checkout Links
+            - generic [ref=e64]: Monetise what you create, get paid faster than ever.
+          - generic [ref=e67]:
+            - generic [ref=e71]: New
+            - generic [ref=e72]:
+              - generic [ref=e74]: AI Analytics & Earning Insights
+              - generic [ref=e76]: Get crystal-clear clarity on your fans and earnings.
+          - generic [ref=e83]:
+            - generic [ref=e85]: Monthly Subscriptions & Paywalled Content
+            - generic [ref=e87]: Build recurring income on your terms.
+          - generic [ref=e90]:
+            - generic [ref=e94]: New
+            - generic [ref=e95]:
+              - generic [ref=e97]: AI Voice Calls
+              - generic [ref=e99]: Speak to every fan like they’re the only one.
+          - generic [ref=e102]:
+            - generic [ref=e106]: New
+            - generic [ref=e107]:
+              - generic [ref=e109]: AI Voice Notes
+              - generic [ref=e111]: Build deeper fan intimacy, without hours in your inbox.
+          - generic [ref=e114]:
+            - generic [ref=e118]: Coming soon
+            - generic [ref=e119]:
+              - generic [ref=e121]: App Store & Open API
+              - generic [ref=e123]: An open platform for innovation, designed for AI builders.
+        - generic [ref=e127]:
+          - button "previous slide" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]
+          - button "previous slide" [ref=e131] [cursor=pointer]:
+            - img [ref=e132]
+    - generic [ref=e134]:
+      - generic [ref=e138]:
+        - paragraph [ref=e139]: Creators
+        - heading "Chosen by the creators redefining what’s possible." [level=2] [ref=e141]:
+          - text: Chosen by the creators
+          - text: redefining
+          - text: what’s possible.
+      - list [ref=e145]:
+        - group "9 / 11" [ref=e146]:
+          - generic [ref=e148]:
+            - generic [ref=e149]: Lottie Moss
+            - generic [ref=e150]:
+              - generic [ref=e151]: Podcaster
+              - generic [ref=e152]: 600K Followers
+        - group "10 / 11" [ref=e153]:
+          - generic [ref=e155]:
+            - generic [ref=e156]: Aitana
+            - generic [ref=e157]:
+              - generic [ref=e158]: AI Influecer
+              - generic [ref=e159]: 500k Followers
+        - group "11 / 11" [ref=e160]:
+          - generic [ref=e162]:
+            - generic [ref=e163]: Darren Till
+            - generic [ref=e164]:
+              - generic [ref=e165]: Pro Boxer
+              - generic [ref=e166]: 500k Followers
+        - group "1 / 11" [ref=e167]:
+          - generic [ref=e169]:
+            - generic [ref=e170]: Cardi B
+            - generic [ref=e171]:
+              - generic [ref=e172]: Global Music Icon
+              - generic [ref=e173]: 200M Followers
+        - group "2 / 11" [ref=e174]:
+          - generic [ref=e176]:
+            - generic [ref=e177]: Inas X
+            - generic [ref=e178]:
+              - generic [ref=e179]: Global Popstar
+              - generic [ref=e180]: 3.4M followers
+        - group "3 / 11" [ref=e181]:
+          - generic [ref=e183]:
+            - generic [ref=e184]: Alabama Barker
+            - generic [ref=e185]:
+              - generic [ref=e186]: Music Artist & Influencer
+              - generic [ref=e187]: 3M followers
+        - group "4 / 11" [ref=e188]:
+          - generic [ref=e190]:
+            - generic [ref=e191]: Alisha Lehmann
+            - generic [ref=e192]:
+              - generic [ref=e193]: International Footballer
+              - generic [ref=e194]: 15.9M Followers
+        - group "5 / 11" [ref=e195]:
+          - generic [ref=e197]:
+            - generic [ref=e198]: Priscillia Payraudeau
+            - generic [ref=e199]:
+              - generic [ref=e200]: PT & Fitness Coach
+              - generic [ref=e201]: 100k Followers
+        - group "6 / 11" [ref=e202]:
+          - generic [ref=e204]:
+            - generic [ref=e205]: Chesca
+            - generic [ref=e206]:
+              - generic [ref=e207]: Music Artist
+              - generic [ref=e208]: 500K Followers
+        - group "7 / 11" [ref=e209]:
+          - generic [ref=e211]:
+            - generic [ref=e212]: Khloë Terae
+            - generic [ref=e213]:
+              - generic [ref=e214]: Model & Travel Influencer
+              - generic [ref=e215]: 4.5M Followers
+        - group "8 / 11" [ref=e216]:
+          - generic [ref=e218]:
+            - generic [ref=e219]: Ben Morris
+            - generic [ref=e220]:
+              - generic [ref=e221]: Youtuber
+              - generic [ref=e222]: 720K Subscribers
+    - generic [ref=e225]:
+      - heading "The Creator-AI Economy has arrived, and Fanvue hands you the tools to lead it." [level=2] [ref=e227]:
+        - text: The Creator-AI Economy
+        - text: has arrived, and Fanvue hands you the tools to lead it.
+      - generic [ref=e228]:
+        - generic [ref=e230]: Weʼre powering the next era of independent success for all creators.
+        - link "Join the movement" [ref=e231] [cursor=pointer]:
+          - /url: /signup?type=creator
+    - generic [ref=e236]:
+      - generic [ref=e237]:
+        - heading "Built for every niche. Trusted by icons." [level=2] [ref=e238]:
+          - text: Built for
+          - text: every niche.
+          - text: Trusted by icons.
+        - generic [ref=e239]:
+          - generic [ref=e241]: Join 200,000+ creators scaling their success with Fanvue.
+          - link "Join the movement" [ref=e242] [cursor=pointer]:
+            - /url: /signup?type=creator
+      - generic [ref=e244]:
+        - generic [ref=e245]:
+          - generic [ref=e246]: Sport
+          - generic [ref=e247]: Music
+          - generic [ref=e248]: Art
+          - generic [ref=e249]: Fashion
+          - generic [ref=e250]: Travel
+        - generic [ref=e255]:
+          - generic [ref=e257]:
+            - generic [ref=e258]: Darren Sungh
+            - generic [ref=e259]: Jayden Brooks
+            - generic [ref=e260]: Nora Weil
+            - generic [ref=e261]: Ava Kallin
+            - generic [ref=e262]: Lana Duarte
+          - generic [ref=e263]:
+            - img [ref=e264]
+            - generic [ref=e267]:
+              - generic [ref=e268]: 230k+ followers
+              - generic [ref=e269]: 350k+ followers
+              - generic [ref=e270]: 142k+ followers
+              - generic [ref=e271]: 860k+ followers
+              - generic [ref=e272]: 430k+ followers
+    - generic [ref=e280]:
+      - generic [ref=e282]:
+        - heading "FAQ" [level=2] [ref=e283]
+        - generic [ref=e285]:
+          - button "What is Fanvue?" [ref=e287] [cursor=pointer]:
+            - generic [ref=e290]: What is Fanvue?
+          - button "Who can create on Fanvue?" [ref=e292] [cursor=pointer]:
+            - generic [ref=e295]: Who can create on Fanvue?
+          - button "How much can I make on Fanvue?" [ref=e297] [cursor=pointer]:
+            - generic [ref=e300]: How much can I make on Fanvue?
+          - button "How long does it take to become a creator?" [ref=e302] [cursor=pointer]:
+            - generic [ref=e305]: How long does it take to become a creator?
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e310]: Join the fastest growing community of creators.
+          - generic [ref=e311]:
+            - link "Become a creator" [ref=e312] [cursor=pointer]:
+              - /url: /signup?type=creator
+              - generic [ref=e313]: Become a creator
+            - link "Sign up as a fan" [ref=e314] [cursor=pointer]:
+              - /url: /signup
+              - generic [ref=e315]: Sign up as a fan
+        - generic [ref=e316]:
+          - generic [ref=e317]:
+            - generic [ref=e318]: Company
+            - generic [ref=e319]:
+              - link "Login" [ref=e321] [cursor=pointer]:
+                - /url: /signin
+              - link "Support" [ref=e323] [cursor=pointer]:
+                - /url: https://help.fanvue.com/en/
+              - link "Blog" [ref=e325] [cursor=pointer]:
+                - /url: /blog
+              - link "About" [ref=e327] [cursor=pointer]:
+                - /url: https://landing.fanvue.com/about
+              - link "Careers" [ref=e329] [cursor=pointer]:
+                - /url: https://landing.fanvue.com/careers
+          - generic [ref=e330]:
+            - generic [ref=e331]: Policy
+            - generic [ref=e332]:
+              - link "Privacy Policy" [ref=e334] [cursor=pointer]:
+                - /url: https://legal.fanvue.com/privacy-policy
+              - link "Terms & Conditions" [ref=e336] [cursor=pointer]:
+                - /url: https://legal.fanvue.com/terms-conditions
+          - generic [ref=e337]:
+            - generic [ref=e338]: Socials
+            - generic [ref=e339]:
+              - link [ref=e340] [cursor=pointer]:
+                - /url: https://www.instagram.com/fanvue
+              - link [ref=e341] [cursor=pointer]:
+                - /url: https://twitter.com/fanvue
+  - img [ref=e342]

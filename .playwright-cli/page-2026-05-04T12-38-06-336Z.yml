@@ -1,0 +1,402 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e12]: AI 캐릭터 브이로그 스튜디오 공개
+        - link "캐릭터 설정부터 숏폼 브이로그까지" [ref=e13] [cursor=pointer]:
+          - /url: /ko/fanletter/start
+      - generic [ref=e14]:
+        - link "FanLetter" [ref=e15] [cursor=pointer]:
+          - /url: /ko/fanletter
+          - img [ref=e17]
+          - generic [ref=e20]: FanLetter
+        - navigation [ref=e21]:
+          - link "기능" [ref=e22] [cursor=pointer]:
+            - /url: "#features"
+          - link "캐릭터" [ref=e23] [cursor=pointer]:
+            - /url: "#creators"
+          - link "스튜디오" [ref=e24] [cursor=pointer]:
+            - /url: /ko/fanletter/studio
+          - link "FAQ" [ref=e25] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e26]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: 언어
+            - img [ref=e30]
+            - combobox "언어" [ref=e33]:
+              - option "한국어" [selected]
+              - option "English"
+              - option "日本語"
+              - option "简体中文"
+              - option "Tiếng Việt"
+              - option "Bahasa Indonesia"
+            - img
+          - link "계정 연결" [ref=e34] [cursor=pointer]:
+            - /url: /ko/fanletter/connect?returnTo=%2Fko%2Ffanletter%2Fonboarding
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: FANLETTER
+          - heading "누구나 AI 캐릭터 브이로그 채널을 만들 수 있습니다." [level=1] [ref=e38]
+          - paragraph [ref=e39]: FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.
+          - generic [ref=e40]:
+            - link "AI 캐릭터 채널 시작" [ref=e41] [cursor=pointer]:
+              - /url: /ko/fanletter/start
+            - link "브이로그 피드 보기" [ref=e42] [cursor=pointer]:
+              - /url: /ko/fanletter/feed
+            - link "브이로그 스튜디오" [ref=e43] [cursor=pointer]:
+              - /url: /ko/fanletter/studio
+          - generic [ref=e44]:
+            - paragraph [ref=e45]: 숏폼 게시 패키지
+            - generic [ref=e46]:
+              - generic [ref=e47]:
+                - img "Instagram" [ref=e49]
+                - text: Instagram Reels
+              - generic [ref=e50]:
+                - img "YouTube Shorts" [ref=e52]
+                - text: YouTube Shorts
+              - generic [ref=e53]:
+                - img "TikTok" [ref=e55]
+                - text: TikTok
+            - paragraph [ref=e56]: 릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, FanLetter 링크를 정리합니다.
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - generic [ref=e62]: 1/3
+            - generic [ref=e67]:
+              - paragraph [ref=e68]: 섹드립
+              - paragraph [ref=e69]: Dododo
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: "113"
+              - paragraph [ref=e73]: 브이로그
+            - generic [ref=e74]:
+              - paragraph [ref=e75]: "10"
+              - paragraph [ref=e76]: 활성 캐릭터
+            - generic [ref=e77]:
+              - paragraph [ref=e78]: "71"
+              - paragraph [ref=e79]: 확정 판매
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - paragraph [ref=e84]: 실시간 AI 캐릭터 브이로그
+          - heading "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다." [level=2] [ref=e85]
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - paragraph [ref=e89]: "118"
+              - paragraph [ref=e90]: 공개 브이로그
+            - generic [ref=e91]:
+              - paragraph [ref=e92]: "113"
+              - paragraph [ref=e93]: 브이로그
+            - generic [ref=e94]:
+              - paragraph [ref=e95]: "71"
+              - paragraph [ref=e96]: 확정 판매
+            - generic [ref=e97]:
+              - paragraph [ref=e98]: 71 USDT
+              - paragraph [ref=e99]: 누적 판매
+          - link "브이로그 피드 보기" [ref=e100] [cursor=pointer]:
+            - /url: /ko/fanletter/feed
+      - generic [ref=e101]:
+        - link [ref=e102] [cursor=pointer]:
+          - /url: /ko/fanletter/content/0b004cd1-1777-49a5-9971-09c0ad4c98d4
+          - article [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e108]: 무료 공개
+              - generic [ref=e112]:
+                - paragraph [ref=e113]: 섹드립
+                - paragraph [ref=e114]: 5월 4일
+            - generic [ref=e115]:
+              - heading "Dododo" [level=3] [ref=e116]
+              - paragraph [ref=e117]: Dododo
+              - generic [ref=e118]:
+                - img [ref=e119]
+                - text: 브이로그 보기
+        - link [ref=e124] [cursor=pointer]:
+          - /url: /ko/fanletter/content/0796e971-c1ae-40e0-98fe-762898530236
+          - article [ref=e125]:
+            - generic [ref=e126]:
+              - generic [ref=e130]: 무료 공개
+              - generic [ref=e134]:
+                - paragraph [ref=e135]: 섹드립
+                - paragraph [ref=e136]: 5월 4일
+            - generic [ref=e137]:
+              - heading "Ggg" [level=3] [ref=e138]
+              - paragraph [ref=e139]: Ggg
+              - generic [ref=e140]:
+                - img [ref=e141]
+                - text: 브이로그 보기
+        - link [ref=e146] [cursor=pointer]:
+          - /url: /ko/fanletter/content/31dabd9f-1d7c-4d79-ba86-9d7af1b1e0be
+          - article [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e152]: 무료 공개
+              - generic [ref=e156]:
+                - paragraph [ref=e157]: 정아
+                - paragraph [ref=e158]: 5월 4일
+            - generic [ref=e159]:
+              - heading "ㅗㅗㅗㅗ" [level=3] [ref=e160]
+              - paragraph [ref=e161]: ㅗㅗㅗㅗ
+              - generic [ref=e162]:
+                - img [ref=e163]
+                - text: 브이로그 보기
+        - link [ref=e168] [cursor=pointer]:
+          - /url: /ko/fanletter/content/e33ac03a-e1d5-48f8-a468-1810027801fe
+          - article [ref=e169]:
+            - generic [ref=e170]:
+              - generic [ref=e174]: 무료 공개
+              - generic [ref=e178]:
+                - paragraph [ref=e179]: 성희주
+                - paragraph [ref=e180]: 5월 4일
+            - generic [ref=e181]:
+              - heading "아아구야" [level=3] [ref=e182]
+              - paragraph [ref=e183]: ㅎㅎㅎ
+              - generic [ref=e184]:
+                - img [ref=e185]
+                - text: 브이로그 보기
+        - link [ref=e190] [cursor=pointer]:
+          - /url: /ko/fanletter/content/ba197103-662a-460c-b0c7-383eabcc030a
+          - article [ref=e191]:
+            - generic [ref=e192]:
+              - generic [ref=e196]: 무료 공개
+              - generic [ref=e200]:
+                - paragraph [ref=e201]: 강심장
+                - paragraph [ref=e202]: 5월 4일
+            - generic [ref=e203]:
+              - heading "메롱" [level=3] [ref=e204]
+              - paragraph [ref=e205]: "\"POV em primeira pessoa: forte e bonita shinobu kocho de demon slayer carrega uma missão em seu coração acabar de uma vez por todas com todo"
+              - generic [ref=e206]:
+                - img [ref=e207]
+                - text: 브이로그 보기
+        - link [ref=e212] [cursor=pointer]:
+          - /url: /ko/fanletter/content/83645784-4d9e-4c16-aa70-bb5defac1b6e
+          - article [ref=e213]:
+            - generic [ref=e214]:
+              - generic [ref=e218]: 무료 공개
+              - generic [ref=e222]:
+                - paragraph [ref=e223]: 지니
+                - paragraph [ref=e224]: 5월 4일
+            - generic [ref=e225]:
+              - heading "런 잉글리시" [level=3] [ref=e226]
+              - paragraph [ref=e227]: 런 잉글리시
+              - generic [ref=e228]:
+                - img [ref=e229]
+                - text: 브이로그 보기
+    - generic [ref=e236]:
+      - generic [ref=e237]:
+        - paragraph [ref=e238]: AI 캐릭터 브이로그 흐름
+        - heading "캐릭터 설정부터 숏폼 브이로그 판매까지" [level=2] [ref=e239]
+        - paragraph [ref=e240]: 캐릭터 설정부터 숏폼 브이로그 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다.
+      - generic [ref=e241]:
+        - article [ref=e242]:
+          - generic [ref=e243]:
+            - paragraph [ref=e244]: "01"
+            - paragraph [ref=e245]: character setup
+          - generic [ref=e246]:
+            - img [ref=e248]
+            - generic [ref=e251]:
+              - heading "AI 캐릭터 설정" [level=3] [ref=e252]
+              - paragraph [ref=e253]: 얼굴 공개 없이 운영할 고정 AI 캐릭터와 아바타를 먼저 만듭니다.
+        - article [ref=e254]:
+          - generic [ref=e255]:
+            - paragraph [ref=e256]: "05"
+            - paragraph [ref=e257]: 브이로그 흐름
+          - generic [ref=e258]:
+            - img [ref=e260]
+            - generic [ref=e265]:
+              - heading "숏폼 브이로그 생성" [level=3] [ref=e266]
+              - paragraph [ref=e267]: 셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 브이로그로 생성합니다.
+        - article [ref=e268]:
+          - generic [ref=e269]:
+            - paragraph [ref=e270]: 24/7
+            - paragraph [ref=e271]: mobile channel
+          - generic [ref=e272]:
+            - img [ref=e274]
+            - generic [ref=e277]:
+              - heading "캐릭터 피드" [level=3] [ref=e278]
+              - paragraph [ref=e279]: 공개 브이로그, 유료 브이로그, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.
+    - generic [ref=e281]:
+      - generic [ref=e282]:
+        - generic [ref=e283]:
+          - paragraph [ref=e284]: Features
+          - heading "모바일에서 바로 쓰는 AI 캐릭터 브이로그 기능" [level=2] [ref=e285]
+        - link "AI 캐릭터 채널 시작" [ref=e286] [cursor=pointer]:
+          - /url: /ko/fanletter/start
+      - generic [ref=e287]:
+        - article [ref=e288]:
+          - img [ref=e290]
+          - generic [ref=e293]:
+            - generic [ref=e294]: New
+            - heading "AI 캐릭터 설정" [level=3] [ref=e295]
+            - paragraph [ref=e296]: 얼굴 공개 없이 운영할 고정 AI 캐릭터와 아바타를 먼저 만듭니다.
+        - article [ref=e297]:
+          - img [ref=e299]
+          - generic [ref=e304]:
+            - generic [ref=e305]: New
+            - heading "숏폼 브이로그 생성" [level=3] [ref=e306]
+            - paragraph [ref=e307]: 셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 브이로그로 생성합니다.
+        - article [ref=e308]:
+          - img [ref=e310]
+          - generic [ref=e313]:
+            - heading "캐릭터 피드" [level=3] [ref=e314]
+            - paragraph [ref=e315]: 공개 브이로그, 유료 브이로그, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.
+        - article [ref=e316]:
+          - img [ref=e318]
+          - generic [ref=e323]:
+            - heading "유료 커뮤니티 확장" [level=3] [ref=e324]
+            - paragraph [ref=e325]: Fanvue, Patreon 같은 유료 커뮤니티로 확장할 수 있는 팬 관계를 쌓습니다.
+        - article [ref=e326]:
+          - img [ref=e328]
+          - generic [ref=e332]:
+            - heading "브랜드와 IP 숏폼화" [level=3] [ref=e333]
+            - paragraph [ref=e334]: 브랜드 마스코트, 웹툰, 게임, 버추얼 아이돌 IP를 캐릭터 브이로그로 확장합니다.
+    - generic [ref=e336]:
+      - generic [ref=e337]:
+        - generic [ref=e338]:
+          - paragraph [ref=e339]: Who it is for
+          - heading "얼굴 공개 없이 캐릭터 채널을 키우고 싶은 사람들을 위한 플랫폼입니다." [level=2] [ref=e340]
+        - link "AI 캐릭터 채널 시작" [ref=e341] [cursor=pointer]:
+          - /url: /ko/fanletter/start
+      - generic [ref=e342]:
+        - article [ref=e343]:
+          - img [ref=e345]
+          - heading "얼굴 없는 개인 창작자" [level=3] [ref=e348]
+          - paragraph [ref=e349]: 실제 얼굴을 공개하지 않고 숏폼 채널을 시작하고 싶은 개인에게 맞습니다.
+        - article [ref=e350]:
+          - img [ref=e352]
+          - heading "AI 인플루언서 운영자" [level=3] [ref=e357]
+          - paragraph [ref=e358]: 같은 AI 인물이나 가상 캐릭터를 꾸준히 노출해 팬을 만들 수 있습니다.
+        - article [ref=e359]:
+          - img [ref=e361]
+          - heading "유료 커뮤니티 크리에이터" [level=3] [ref=e364]
+          - paragraph [ref=e365]: Fanvue, Patreon, 유료 팬 커뮤니티로 이어지는 콘텐츠 흐름을 만듭니다.
+        - article [ref=e366]:
+          - img [ref=e368]
+          - heading "브랜드와 소상공인" [level=3] [ref=e373]
+          - paragraph [ref=e374]: 브랜드 마스코트를 사람처럼 말하고 움직이는 브이로그 캐릭터로 확장합니다.
+        - article [ref=e375]:
+          - img [ref=e377]
+          - heading "웹툰·게임·버추얼 IP 팀" [level=3] [ref=e381]
+          - paragraph [ref=e382]: 기존 캐릭터 IP를 숏폼 브이로그와 팬 피드로 재활용합니다.
+    - generic [ref=e384]:
+      - generic [ref=e385]:
+        - paragraph [ref=e386]: AI character network
+        - heading "AI 캐릭터 브이로그 채널을 더 빠르게 시작하세요." [level=2] [ref=e387]
+        - paragraph [ref=e388]: 캐릭터 페르소나, 숏폼 브이로그 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.
+        - link "지금 시작하기" [ref=e389] [cursor=pointer]:
+          - /url: /ko/fanletter/start
+      - generic [ref=e390]:
+        - generic [ref=e391]:
+          - img [ref=e393]
+          - generic [ref=e395]:
+            - paragraph [ref=e396]: AI 캐릭터 브이로그 채널을 시작한 네트워크
+            - paragraph [ref=e397]: 현재 공개 데이터로 서비스 움직임을 보여줍니다.
+        - generic [ref=e398]:
+          - generic [ref=e399]:
+            - generic [ref=e400]:
+              - paragraph [ref=e401]: 공개 브이로그
+              - img [ref=e402]
+            - paragraph [ref=e405]: "118"
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - paragraph [ref=e408]: 브이로그
+              - img [ref=e409]
+            - paragraph [ref=e414]: "113"
+          - generic [ref=e415]:
+            - generic [ref=e416]:
+              - paragraph [ref=e417]: 확정 판매
+              - img [ref=e418]
+            - paragraph [ref=e420]: "71"
+          - generic [ref=e421]:
+            - generic [ref=e422]:
+              - paragraph [ref=e423]: 누적 판매
+              - img [ref=e424]
+            - paragraph [ref=e427]: 71 USDT
+    - generic [ref=e429]:
+      - generic [ref=e430]:
+        - heading "캐릭터가 있으면 채널을 만들 수 있습니다." [level=2] [ref=e431]
+        - paragraph [ref=e432]: 개인, AI 인플루언서, 브랜드 마스코트, 웹툰·게임·버추얼 아이돌 IP까지 하나의 캐릭터 채널로 숏폼화합니다.
+        - generic [ref=e433]:
+          - generic [ref=e434]: No-face
+          - generic [ref=e435]: AI Influencer
+          - generic [ref=e436]: Fan Community
+          - generic [ref=e437]: Brand Mascot
+          - generic [ref=e438]: IP Shorts
+        - link "브이로그 스튜디오 열기" [ref=e439] [cursor=pointer]:
+          - /url: /ko/fanletter/start
+      - generic [ref=e440]:
+        - link "섹드립 · 5월 4일 Dododo" [ref=e441] [cursor=pointer]:
+          - /url: /ko/fanletter/content/0b004cd1-1777-49a5-9971-09c0ad4c98d4
+          - generic [ref=e444]:
+            - paragraph [ref=e445]: 섹드립 · 5월 4일
+            - heading "Dododo" [level=3] [ref=e446]
+        - link "섹드립 · 5월 4일 Ggg" [ref=e447] [cursor=pointer]:
+          - /url: /ko/fanletter/content/0796e971-c1ae-40e0-98fe-762898530236
+          - generic [ref=e450]:
+            - paragraph [ref=e451]: 섹드립 · 5월 4일
+            - heading "Ggg" [level=3] [ref=e452]
+        - link "정아 · 5월 4일 ㅗㅗㅗㅗ" [ref=e453] [cursor=pointer]:
+          - /url: /ko/fanletter/content/31dabd9f-1d7c-4d79-ba86-9d7af1b1e0be
+          - generic [ref=e456]:
+            - paragraph [ref=e457]: 정아 · 5월 4일
+            - heading "ㅗㅗㅗㅗ" [level=3] [ref=e458]
+    - generic [ref=e459]:
+      - heading "FAQ" [level=2] [ref=e460]
+      - generic [ref=e461]:
+        - group [ref=e462]:
+          - generic "FanLetter는 무엇인가요? +" [ref=e463]:
+            - generic [ref=e464]: FanLetter는 무엇인가요?
+            - generic [ref=e465]: +
+        - group [ref=e466]:
+          - generic "누가 사용할 수 있나요? +" [ref=e467]:
+            - generic [ref=e468]: 누가 사용할 수 있나요?
+            - generic [ref=e469]: +
+        - group [ref=e470]:
+          - generic "브이로그는 어떻게 수익화하나요? +" [ref=e471]:
+            - generic [ref=e472]: 브이로그는 어떻게 수익화하나요?
+            - generic [ref=e473]: +
+        - group [ref=e474]:
+          - generic "모바일에서도 충분히 사용할 수 있나요? +" [ref=e475]:
+            - generic [ref=e476]: 모바일에서도 충분히 사용할 수 있나요?
+            - generic [ref=e477]: +
+    - generic [ref=e479]:
+      - generic [ref=e480]:
+        - paragraph [ref=e481]: 얼굴 없이 시작하는 AI 캐릭터 브이로그 채널.
+        - generic [ref=e482]:
+          - link "AI 캐릭터 채널 시작" [ref=e483] [cursor=pointer]:
+            - /url: /ko/fanletter/start
+          - link "브이로그 피드 보기" [ref=e484] [cursor=pointer]:
+            - /url: /ko/fanletter/feed
+      - generic [ref=e485]:
+        - generic [ref=e486]:
+          - paragraph [ref=e487]: FanLetter
+          - generic [ref=e488]:
+            - link "브이로그 스튜디오" [ref=e489] [cursor=pointer]:
+              - /url: /ko/fanletter/studio
+            - link "브이로그 피드" [ref=e490] [cursor=pointer]:
+              - /url: /ko/fanletter/feed
+            - link "계정 연결" [ref=e491] [cursor=pointer]:
+              - /url: /ko/fanletter/connect?returnTo=%2Fko%2Ffanletter%2Fonboarding
+        - generic [ref=e492]:
+          - paragraph [ref=e493]: 기능
+          - generic [ref=e494]:
+            - link "AI 캐릭터 브이로그" [ref=e495] [cursor=pointer]:
+              - /url: "#features"
+            - link "네트워크" [ref=e496] [cursor=pointer]:
+              - /url: "#creators"
+        - generic [ref=e497]:
+          - paragraph [ref=e498]: FAQ
+          - link "도움말" [ref=e500] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e501]:
+          - paragraph [ref=e502]: 신뢰
+          - generic [ref=e503]:
+            - img [ref=e504]
+            - generic [ref=e507]: 모바일 우선
+          - generic [ref=e508]:
+            - img [ref=e509]
+            - generic [ref=e512]: USDT 결제
+          - generic [ref=e513]:
+            - img [ref=e514]
+            - generic [ref=e516]: 팬 관계 성장
+  - alert [ref=e517]

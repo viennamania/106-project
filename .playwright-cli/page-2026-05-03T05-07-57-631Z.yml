@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "FanLetter" [ref=e6] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e8]
+          - generic [ref=e11]: FanLetter
+        - navigation [ref=e12]:
+          - link "홈" [ref=e13] [cursor=pointer]:
+            - /url: /ko/fanletter?ref=FXBSQ976
+          - link "피드" [ref=e14] [cursor=pointer]:
+            - /url: /ko/fanletter/feed?ref=FXBSQ976
+          - link "시작하기" [ref=e15] [cursor=pointer]:
+            - /url: /ko/fanletter/start?ref=FXBSQ976
+        - generic [ref=e16]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: 언어
+            - img [ref=e20]
+            - combobox "언어" [ref=e23]:
+              - option "한국어" [selected]
+              - option "English"
+              - option "日本語"
+              - option "简体中文"
+              - option "Tiếng Việt"
+              - option "Bahasa Indonesia"
+            - img
+          - link "시작하기" [ref=e24] [cursor=pointer]:
+            - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e25]:
+        - paragraph [ref=e26]: Start FanLetter
+        - heading "처음 시작하는 사람도 바로 따라갈 수 있게 정리했습니다." [level=1] [ref=e27]
+        - paragraph [ref=e28]: 가입, 프로필 설정, AI 콘텐츠 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - article [ref=e31]:
+          - img [ref=e33]
+          - paragraph [ref=e36]: 프로필 준비
+          - paragraph [ref=e37]: 가입을 완료하고 크리에이터 프로필의 표시 이름과 인물 페르소나를 정리합니다.
+        - article [ref=e38]:
+          - img [ref=e40]
+          - paragraph [ref=e43]: 콘텐츠 생성
+          - paragraph [ref=e44]: AI 이미지 또는 동영상을 만들고, 공개 범위와 가격을 정합니다.
+        - article [ref=e45]:
+          - img [ref=e47]
+          - paragraph [ref=e51]: 게시와 판매
+          - paragraph [ref=e52]: FanLetter 피드와 공유 링크로 팬에게 보여주고 판매 흐름으로 연결합니다.
+      - generic [ref=e53]:
+        - link "시작하기" [ref=e54] [cursor=pointer]:
+          - /url: /ko/activate?ref=FXBSQ976
+        - link "크리에이터 스튜디오" [ref=e55] [cursor=pointer]:
+          - /url: /ko/creator/studio/profile?ref=FXBSQ976
+  - alert [ref=e56]

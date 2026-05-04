@@ -792,7 +792,7 @@ export function FanletterStudioPage({
     { returnTo: studioHref },
   );
   const salesHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/sales`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/studio/sales`, referralCode),
     { returnTo: studioHref },
   );
   const activateHref = setPathSearchParams(

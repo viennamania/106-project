@@ -1,0 +1,560 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "FanLetter" [ref=e6] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e8]
+          - generic [ref=e11]: FanLetter
+        - link "시작하기" [ref=e13] [cursor=pointer]:
+          - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e14]:
+        - paragraph [ref=e15]: Creator Channel
+        - heading "지니의 FanLetter" [level=1] [ref=e16]
+        - paragraph [ref=e17]: 지니뮤직 전용 레퍼럴 랜딩에서 1066friend+ 가입 흐름을 시작하고, 공유 경험을 브랜드에 맞게 정리하세요.
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: 지니
+          - paragraph [ref=e25]: FXBSQ976
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: "127"
+          - paragraph [ref=e28]: 공개 콘텐츠
+      - generic [ref=e29]:
+        - article [ref=e30]:
+          - link "Close-up portrait of a woman illuminated by soft, warm afternoon light streaming through 무료 공개 지니 2026. 5. 3." [ref=e31] [cursor=pointer]:
+            - /url: /ko/fanletter/content/f684b217-1e1e-425e-ba3e-c106eb0cfea6?ref=FXBSQ976
+            - generic [ref=e32]:
+              - img "Close-up portrait of a woman illuminated by soft, warm afternoon light streaming through" [ref=e33]
+              - generic [ref=e35]: 무료 공개
+              - generic [ref=e38]:
+                - paragraph [ref=e39]: 지니
+                - paragraph [ref=e40]: 2026. 5. 3.
+          - generic [ref=e41]:
+            - heading "Close-up portrait of a woman illuminated by soft, warm afternoon light streaming through" [level=2] [ref=e42]
+            - paragraph [ref=e43]: Close-up portrait of a woman illuminated by soft, warm afternoon light streaming through window blinds, creating striking shadow patterns ac
+            - generic [ref=e44]:
+              - link "지니" [ref=e45] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e46]
+                - generic [ref=e49]: 지니
+              - link "콘텐츠 보기" [ref=e50] [cursor=pointer]:
+                - /url: /ko/fanletter/content/f684b217-1e1e-425e-ba3e-c106eb0cfea6?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e51]
+        - article [ref=e53]:
+          - link "Take the face from the input picture. An extremely mediocre iPhone front camera selfie, 무료 공개 지니 2026. 5. 3." [ref=e54] [cursor=pointer]:
+            - /url: /ko/fanletter/content/d07445cc-4fa3-41e2-aa58-c36617ad5a09?ref=FXBSQ976
+            - generic [ref=e55]:
+              - img "Take the face from the input picture. An extremely mediocre iPhone front camera selfie," [ref=e56]
+              - generic [ref=e58]: 무료 공개
+              - generic [ref=e61]:
+                - paragraph [ref=e62]: 지니
+                - paragraph [ref=e63]: 2026. 5. 3.
+          - generic [ref=e64]:
+            - heading "Take the face from the input picture. An extremely mediocre iPhone front camera selfie," [level=2] [ref=e65]
+            - paragraph [ref=e66]: Take the face from the input picture. An extremely mediocre iPhone front camera selfie, with no clear subject or proper framing — chaotic, r
+            - generic [ref=e67]:
+              - link "지니" [ref=e68] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e69]
+                - generic [ref=e72]: 지니
+              - link "콘텐츠 보기" [ref=e73] [cursor=pointer]:
+                - /url: /ko/fanletter/content/d07445cc-4fa3-41e2-aa58-c36617ad5a09?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e74]
+        - article [ref=e76]:
+          - link "A cinematic, photorealistic full-body portrait of a woman kneeling in shallow ocean wate 무료 공개 지니 2026. 5. 3." [ref=e77] [cursor=pointer]:
+            - /url: /ko/fanletter/content/087304fa-4da4-4a9a-bb60-157aa1b0f02d?ref=FXBSQ976
+            - generic [ref=e78]:
+              - img "A cinematic, photorealistic full-body portrait of a woman kneeling in shallow ocean wate" [ref=e79]
+              - generic [ref=e81]: 무료 공개
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: 지니
+                - paragraph [ref=e86]: 2026. 5. 3.
+          - generic [ref=e87]:
+            - heading "A cinematic, photorealistic full-body portrait of a woman kneeling in shallow ocean wate" [level=2] [ref=e88]
+            - paragraph [ref=e89]: A cinematic, photorealistic full-body portrait of a woman kneeling in shallow ocean water at golden hour. She is positioned in the foregroun
+            - generic [ref=e90]:
+              - link "지니" [ref=e91] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e92]
+                - generic [ref=e95]: 지니
+              - link "콘텐츠 보기" [ref=e96] [cursor=pointer]:
+                - /url: /ko/fanletter/content/087304fa-4da4-4a9a-bb60-157aa1b0f02d?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e97]
+        - article [ref=e99]:
+          - link "A cinematic, photorealistic full-body portrait of a fit woman standing on a sun-drenched 무료 공개 지니 2026. 5. 3." [ref=e100] [cursor=pointer]:
+            - /url: /ko/fanletter/content/bcd00bcc-3986-48e7-8182-7e2a717aad80?ref=FXBSQ976
+            - generic [ref=e101]:
+              - img "A cinematic, photorealistic full-body portrait of a fit woman standing on a sun-drenched" [ref=e102]
+              - generic [ref=e104]: 무료 공개
+              - generic [ref=e107]:
+                - paragraph [ref=e108]: 지니
+                - paragraph [ref=e109]: 2026. 5. 3.
+          - generic [ref=e110]:
+            - heading "A cinematic, photorealistic full-body portrait of a fit woman standing on a sun-drenched" [level=2] [ref=e111]
+            - paragraph [ref=e112]: A cinematic, photorealistic full-body portrait of a fit woman standing on a sun-drenched dirt road at golden hour, her body angled in a rela
+            - generic [ref=e113]:
+              - link "지니" [ref=e114] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e115]
+                - generic [ref=e118]: 지니
+              - link "콘텐츠 보기" [ref=e119] [cursor=pointer]:
+                - /url: /ko/fanletter/content/bcd00bcc-3986-48e7-8182-7e2a717aad80?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e120]
+        - article [ref=e122]:
+          - link "realistic cinematic image with dark shadows and high contrast, A fit 28yo woman standin 무료 공개 지니 2026. 5. 3." [ref=e123] [cursor=pointer]:
+            - /url: /ko/fanletter/content/04f0f4a4-06dc-4b31-8e06-cbf0c5efe912?ref=FXBSQ976
+            - generic [ref=e124]:
+              - img "realistic cinematic image with dark shadows and high contrast, A fit 28yo woman standin" [ref=e125]
+              - generic [ref=e127]: 무료 공개
+              - generic [ref=e130]:
+                - paragraph [ref=e131]: 지니
+                - paragraph [ref=e132]: 2026. 5. 3.
+          - generic [ref=e133]:
+            - heading "realistic cinematic image with dark shadows and high contrast, A fit 28yo woman standin" [level=2] [ref=e134]
+            - paragraph [ref=e135]: realistic cinematic image with dark shadows and high contrast, A fit 28yo woman standing on a sandy beach near a wooden structure, wearing a
+            - generic [ref=e136]:
+              - link "지니" [ref=e137] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e138]
+                - generic [ref=e141]: 지니
+              - link "콘텐츠 보기" [ref=e142] [cursor=pointer]:
+                - /url: /ko/fanletter/content/04f0f4a4-06dc-4b31-8e06-cbf0c5efe912?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e143]
+        - article [ref=e145]:
+          - link "An image of a woman with voluminous wavy hair, standing confidently and smiling at the c 무료 공개 지니 2026. 5. 3." [ref=e146] [cursor=pointer]:
+            - /url: /ko/fanletter/content/ae14ed3a-4985-429a-aef2-43a4bc5fb6e0?ref=FXBSQ976
+            - generic [ref=e147]:
+              - img "An image of a woman with voluminous wavy hair, standing confidently and smiling at the c" [ref=e148]
+              - generic [ref=e150]: 무료 공개
+              - generic [ref=e153]:
+                - paragraph [ref=e154]: 지니
+                - paragraph [ref=e155]: 2026. 5. 3.
+          - generic [ref=e156]:
+            - heading "An image of a woman with voluminous wavy hair, standing confidently and smiling at the c" [level=2] [ref=e157]
+            - paragraph [ref=e158]: An image of a woman with voluminous wavy hair, standing confidently and smiling at the camera. She is wearing a light denim jacket with roll
+            - generic [ref=e159]:
+              - link "지니" [ref=e160] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e161]
+                - generic [ref=e164]: 지니
+              - link "콘텐츠 보기" [ref=e165] [cursor=pointer]:
+                - /url: /ko/fanletter/content/ae14ed3a-4985-429a-aef2-43a4bc5fb6e0?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e166]
+        - article [ref=e168]:
+          - link "video Video 지니 2026. 5. 2." [ref=e169] [cursor=pointer]:
+            - /url: /ko/fanletter/content/d9c1db5a-e35f-4058-a925-5eb9ac35faa0?ref=FXBSQ976
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - img [ref=e172]
+                - generic [ref=e177]: video
+              - generic [ref=e179]: Video
+              - generic [ref=e182]:
+                - paragraph [ref=e183]: 지니
+                - paragraph [ref=e184]: 2026. 5. 2.
+          - generic [ref=e185]:
+            - heading "테니스" [level=2] [ref=e186]
+            - paragraph [ref=e187]: "{ \"scene\": { \"location\": \"outdoor tennis court\", \"time_of_day\": \"golden hour / late afternoon\", \"lighting\": { \"type\": \"natural sunlight\", \"d"
+            - generic [ref=e188]:
+              - link "지니" [ref=e189] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e190]
+                - generic [ref=e193]: 지니
+              - link "콘텐츠 보기" [ref=e194] [cursor=pointer]:
+                - /url: /ko/fanletter/content/d9c1db5a-e35f-4058-a925-5eb9ac35faa0?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e195]
+        - article [ref=e197]:
+          - link "video Video 지니 2026. 5. 2." [ref=e198] [cursor=pointer]:
+            - /url: /ko/fanletter/content/9e862760-a524-4180-988a-12424b15761a?ref=FXBSQ976
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - img [ref=e201]
+                - generic [ref=e206]: video
+              - generic [ref=e208]: Video
+              - generic [ref=e211]:
+                - paragraph [ref=e212]: 지니
+                - paragraph [ref=e213]: 2026. 5. 2.
+          - generic [ref=e214]:
+            - heading "강의실" [level=2] [ref=e215]
+            - paragraph [ref=e216]: A realistic smartphone-style photo of an adult beauty (early twenties) sitting at a desk in a modern classroom or lecture room. She is leani
+            - generic [ref=e217]:
+              - link "지니" [ref=e218] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e219]
+                - generic [ref=e222]: 지니
+              - link "콘텐츠 보기" [ref=e223] [cursor=pointer]:
+                - /url: /ko/fanletter/content/9e862760-a524-4180-988a-12424b15761a?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e224]
+        - article [ref=e226]:
+          - link "둘 무료 공개 지니 2026. 5. 2." [ref=e227] [cursor=pointer]:
+            - /url: /ko/fanletter/content/83f86ed1-ca3c-4e0d-a270-b75ee3ac47d4?ref=FXBSQ976
+            - generic [ref=e228]:
+              - img "둘" [ref=e229]
+              - generic [ref=e231]: 무료 공개
+              - generic [ref=e234]:
+                - paragraph [ref=e235]: 지니
+                - paragraph [ref=e236]: 2026. 5. 2.
+          - generic [ref=e237]:
+            - heading "둘" [level=2] [ref=e238]
+            - paragraph [ref=e239]: Candid iPhone front camera selfie of a young adult European-looking woman indoors. Arm’s-length selfie, slightly off-center framing, imperfe
+            - generic [ref=e240]:
+              - link "지니" [ref=e241] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e242]
+                - generic [ref=e245]: 지니
+              - link "콘텐츠 보기" [ref=e246] [cursor=pointer]:
+                - /url: /ko/fanletter/content/83f86ed1-ca3c-4e0d-a270-b75ee3ac47d4?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e247]
+        - article [ref=e249]:
+          - link "video Video 지니 2026. 5. 2." [ref=e250] [cursor=pointer]:
+            - /url: /ko/fanletter/content/608b11f6-94a1-4b77-916c-54087ff3068b?ref=FXBSQ976
+            - generic [ref=e251]:
+              - generic [ref=e252]:
+                - img [ref=e253]
+                - generic [ref=e258]: video
+              - generic [ref=e260]: Video
+              - generic [ref=e263]:
+                - paragraph [ref=e264]: 지니
+                - paragraph [ref=e265]: 2026. 5. 2.
+          - generic [ref=e266]:
+            - heading "하루" [level=2] [ref=e267]
+            - paragraph [ref=e268]: Candid iPhone front camera selfie of a young adult European-looking woman indoors. Arm’s-length selfie, slightly off-center framing, imperfe
+            - generic [ref=e269]:
+              - link "지니" [ref=e270] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e271]
+                - generic [ref=e274]: 지니
+              - link "콘텐츠 보기" [ref=e275] [cursor=pointer]:
+                - /url: /ko/fanletter/content/608b11f6-94a1-4b77-916c-54087ff3068b?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e276]
+        - article [ref=e278]:
+          - link "video Video 지니 2026. 5. 2." [ref=e279] [cursor=pointer]:
+            - /url: /ko/fanletter/content/50a933fb-b8b9-4ce6-9fee-6facbb70bcbf?ref=FXBSQ976
+            - generic [ref=e280]:
+              - generic [ref=e281]:
+                - img [ref=e282]
+                - generic [ref=e287]: video
+              - generic [ref=e289]: Video
+              - generic [ref=e292]:
+                - paragraph [ref=e293]: 지니
+                - paragraph [ref=e294]: 2026. 5. 2.
+          - generic [ref=e295]:
+            - heading "ㅎㅎㅎ" [level=2] [ref=e296]
+            - paragraph [ref=e297]: 하하하
+            - generic [ref=e298]:
+              - link "지니" [ref=e299] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e300]
+                - generic [ref=e303]: 지니
+              - link "콘텐츠 보기" [ref=e304] [cursor=pointer]:
+                - /url: /ko/fanletter/content/50a933fb-b8b9-4ce6-9fee-6facbb70bcbf?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e305]
+        - article [ref=e307]:
+          - link "video Video 지니 2026. 5. 2." [ref=e308] [cursor=pointer]:
+            - /url: /ko/fanletter/content/a7698165-14b4-4ffd-bb9e-2ff05904f904?ref=FXBSQ976
+            - generic [ref=e309]:
+              - generic [ref=e310]:
+                - img [ref=e311]
+                - generic [ref=e316]: video
+              - generic [ref=e318]: Video
+              - generic [ref=e321]:
+                - paragraph [ref=e322]: 지니
+                - paragraph [ref=e323]: 2026. 5. 2.
+          - generic [ref=e324]:
+            - heading "하하" [level=2] [ref=e325]
+            - paragraph [ref=e326]: 하하
+            - generic [ref=e327]:
+              - link "지니" [ref=e328] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e329]
+                - generic [ref=e332]: 지니
+              - link "콘텐츠 보기" [ref=e333] [cursor=pointer]:
+                - /url: /ko/fanletter/content/a7698165-14b4-4ffd-bb9e-2ff05904f904?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e334]
+        - article [ref=e336]:
+          - link "video Video 지니 2026. 5. 2." [ref=e337] [cursor=pointer]:
+            - /url: /ko/fanletter/content/cb521302-99d4-4ffa-8891-659ba62629c2?ref=FXBSQ976
+            - generic [ref=e338]:
+              - generic [ref=e339]:
+                - img [ref=e340]
+                - generic [ref=e345]: video
+              - generic [ref=e347]: Video
+              - generic [ref=e350]:
+                - paragraph [ref=e351]: 지니
+                - paragraph [ref=e352]: 2026. 5. 2.
+          - generic [ref=e353]:
+            - heading "안녕" [level=2] [ref=e354]
+            - paragraph [ref=e355]: 안녕
+            - generic [ref=e356]:
+              - link "지니" [ref=e357] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e358]
+                - generic [ref=e361]: 지니
+              - link "콘텐츠 보기" [ref=e362] [cursor=pointer]:
+                - /url: /ko/fanletter/content/cb521302-99d4-4ffa-8891-659ba62629c2?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e363]
+        - article [ref=e365]:
+          - link "video Video 지니 2026. 5. 2." [ref=e366] [cursor=pointer]:
+            - /url: /ko/fanletter/content/db63ea79-07a3-4473-9094-daba78922e38?ref=FXBSQ976
+            - generic [ref=e367]:
+              - generic [ref=e368]:
+                - img [ref=e369]
+                - generic [ref=e374]: video
+              - generic [ref=e376]: Video
+              - generic [ref=e379]:
+                - paragraph [ref=e380]: 지니
+                - paragraph [ref=e381]: 2026. 5. 2.
+          - generic [ref=e382]:
+            - heading "hello" [level=2] [ref=e383]
+            - paragraph [ref=e384]: hello
+            - generic [ref=e385]:
+              - link "지니" [ref=e386] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e387]
+                - generic [ref=e390]: 지니
+              - link "콘텐츠 보기" [ref=e391] [cursor=pointer]:
+                - /url: /ko/fanletter/content/db63ea79-07a3-4473-9094-daba78922e38?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e392]
+        - article [ref=e394]:
+          - link "video Video 지니 2026. 5. 2." [ref=e395] [cursor=pointer]:
+            - /url: /ko/fanletter/content/8e970d1b-83b1-48d2-a5e0-ecb58ea11062?ref=FXBSQ976
+            - generic [ref=e396]:
+              - generic [ref=e397]:
+                - img [ref=e398]
+                - generic [ref=e403]: video
+              - generic [ref=e405]: Video
+              - generic [ref=e408]:
+                - paragraph [ref=e409]: 지니
+                - paragraph [ref=e410]: 2026. 5. 2.
+          - generic [ref=e411]:
+            - heading "안녕" [level=2] [ref=e412]
+            - paragraph [ref=e413]: hello
+            - generic [ref=e414]:
+              - link "지니" [ref=e415] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e416]
+                - generic [ref=e419]: 지니
+              - link "콘텐츠 보기" [ref=e420] [cursor=pointer]:
+                - /url: /ko/fanletter/content/8e970d1b-83b1-48d2-a5e0-ecb58ea11062?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e421]
+        - article [ref=e423]:
+          - link "안녕 무료 공개 지니 2026. 5. 2." [ref=e424] [cursor=pointer]:
+            - /url: /ko/fanletter/content/e3a1b24a-d1bb-464f-8856-9297a127004a?ref=FXBSQ976
+            - generic [ref=e425]:
+              - img "안녕" [ref=e426]
+              - generic [ref=e428]: 무료 공개
+              - generic [ref=e431]:
+                - paragraph [ref=e432]: 지니
+                - paragraph [ref=e433]: 2026. 5. 2.
+          - generic [ref=e434]:
+            - heading "안녕" [level=2] [ref=e435]
+            - paragraph [ref=e436]: hello
+            - generic [ref=e437]:
+              - link "지니" [ref=e438] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e439]
+                - generic [ref=e442]: 지니
+              - link "콘텐츠 보기" [ref=e443] [cursor=pointer]:
+                - /url: /ko/fanletter/content/e3a1b24a-d1bb-464f-8856-9297a127004a?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e444]
+        - article [ref=e446]:
+          - link "video Video 지니 2026. 5. 2." [ref=e447] [cursor=pointer]:
+            - /url: /ko/fanletter/content/393d8c90-bf8f-4765-9115-3a4215efa5e9?ref=FXBSQ976
+            - generic [ref=e448]:
+              - generic [ref=e449]:
+                - img [ref=e450]
+                - generic [ref=e455]: video
+              - generic [ref=e457]: Video
+              - generic [ref=e460]:
+                - paragraph [ref=e461]: 지니
+                - paragraph [ref=e462]: 2026. 5. 2.
+          - generic [ref=e463]:
+            - heading "Create a selfie without changing facial features. the person from the re" [level=2] [ref=e464]
+            - paragraph [ref=e465]: Create a selfie without changing facial features. the person from the reference image with slightly tanned skin and distinct tan lines and h
+            - generic [ref=e466]:
+              - link "지니" [ref=e467] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e468]
+                - generic [ref=e471]: 지니
+              - link "콘텐츠 보기" [ref=e472] [cursor=pointer]:
+                - /url: /ko/fanletter/content/393d8c90-bf8f-4765-9115-3a4215efa5e9?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e473]
+        - article [ref=e475]:
+          - link "video Video 지니 2026. 5. 2." [ref=e476] [cursor=pointer]:
+            - /url: /ko/fanletter/content/df7b521b-c7d2-4d34-8e5c-003ccadab36e?ref=FXBSQ976
+            - generic [ref=e477]:
+              - generic [ref=e478]:
+                - img [ref=e479]
+                - generic [ref=e484]: video
+              - generic [ref=e486]: Video
+              - generic [ref=e489]:
+                - paragraph [ref=e490]: 지니
+                - paragraph [ref=e491]: 2026. 5. 2.
+          - generic [ref=e492]:
+            - heading "Mirror-selfie of a graceful woman full-body reflection in a gilded antique mirror within" [level=2] [ref=e493]
+            - paragraph [ref=e494]: Mirror-selfie of a graceful woman full-body reflection in a gilded antique mirror within a twilight apartment::1.3 diaphanous ivory silk rob
+            - generic [ref=e495]:
+              - link "지니" [ref=e496] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e497]
+                - generic [ref=e500]: 지니
+              - link "콘텐츠 보기" [ref=e501] [cursor=pointer]:
+                - /url: /ko/fanletter/content/df7b521b-c7d2-4d34-8e5c-003ccadab36e?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e502]
+        - article [ref=e504]:
+          - link "video Video 지니 2026. 5. 2." [ref=e505] [cursor=pointer]:
+            - /url: /ko/fanletter/content/e9391f58-1c23-4a2e-9b6d-ea3a331969f6?ref=FXBSQ976
+            - generic [ref=e506]:
+              - generic [ref=e507]:
+                - img [ref=e508]
+                - generic [ref=e513]: video
+              - generic [ref=e515]: Video
+              - generic [ref=e518]:
+                - paragraph [ref=e519]: 지니
+                - paragraph [ref=e520]: 2026. 5. 2.
+          - generic [ref=e521]:
+            - heading "Create a selfie without changing facial features. the person from the reference image wi" [level=2] [ref=e522]
+            - paragraph [ref=e523]: Create a selfie without changing facial features. the person from the reference image with slightly tanned skin and distinct tan lines and h
+            - generic [ref=e524]:
+              - link "지니" [ref=e525] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e526]
+                - generic [ref=e529]: 지니
+              - link "콘텐츠 보기" [ref=e530] [cursor=pointer]:
+                - /url: /ko/fanletter/content/e9391f58-1c23-4a2e-9b6d-ea3a331969f6?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e531]
+        - article [ref=e533]:
+          - link "video Video 지니 2026. 5. 2." [ref=e534] [cursor=pointer]:
+            - /url: /ko/fanletter/content/4ea17c32-ca29-4ba9-a413-30c08379fd38?ref=FXBSQ976
+            - generic [ref=e535]:
+              - generic [ref=e536]:
+                - img [ref=e537]
+                - generic [ref=e542]: video
+              - generic [ref=e544]: Video
+              - generic [ref=e547]:
+                - paragraph [ref=e548]: 지니
+                - paragraph [ref=e549]: 2026. 5. 2.
+          - generic [ref=e550]:
+            - heading "A realistic smartphone-style photo of an adult beauty (early twenties) sitting at a desk" [level=2] [ref=e551]
+            - paragraph [ref=e552]: A realistic smartphone-style photo of an adult beauty (early twenties) sitting at a desk in a modern classroom or lecture room. She is leani
+            - generic [ref=e553]:
+              - link "지니" [ref=e554] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e555]
+                - generic [ref=e558]: 지니
+              - link "콘텐츠 보기" [ref=e559] [cursor=pointer]:
+                - /url: /ko/fanletter/content/4ea17c32-ca29-4ba9-a413-30c08379fd38?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e560]
+        - article [ref=e562]:
+          - link "video Video 지니 2026. 5. 2." [ref=e563] [cursor=pointer]:
+            - /url: /ko/fanletter/content/7770c815-c79e-41d1-9ef0-12458dc82b56?ref=FXBSQ976
+            - generic [ref=e564]:
+              - generic [ref=e565]:
+                - img [ref=e566]
+                - generic [ref=e571]: video
+              - generic [ref=e573]: Video
+              - generic [ref=e576]:
+                - paragraph [ref=e577]: 지니
+                - paragraph [ref=e578]: 2026. 5. 2.
+          - generic [ref=e579]:
+            - heading "Take a slightly blurry selfie of a young man with slicked-back black hair, wearing a bla" [level=2] [ref=e580]
+            - paragraph [ref=e581]: Take a slightly blurry selfie of a young man with slicked-back black hair, wearing a black sweatshirt. Only one shoulder of the person next
+            - generic [ref=e582]:
+              - link "지니" [ref=e583] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e584]
+                - generic [ref=e587]: 지니
+              - link "콘텐츠 보기" [ref=e588] [cursor=pointer]:
+                - /url: /ko/fanletter/content/7770c815-c79e-41d1-9ef0-12458dc82b56?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e589]
+        - article [ref=e591]:
+          - link "video Video 지니 2026. 5. 2." [ref=e592] [cursor=pointer]:
+            - /url: /ko/fanletter/content/532b07e2-252a-4129-ba76-5c82a650e0d9?ref=FXBSQ976
+            - generic [ref=e593]:
+              - generic [ref=e594]:
+                - img [ref=e595]
+                - generic [ref=e600]: video
+              - generic [ref=e602]: Video
+              - generic [ref=e605]:
+                - paragraph [ref=e606]: 지니
+                - paragraph [ref=e607]: 2026. 5. 2.
+          - generic [ref=e608]:
+            - heading "A playful yet provocative scene of a curvy nurse with an hourglass figure and soft athle" [level=2] [ref=e609]
+            - paragraph [ref=e610]: A playful yet provocative scene of a curvy nurse with an hourglass figure and soft athletic thighs, her glossy chestnut hair styled in a loo
+            - generic [ref=e611]:
+              - link "지니" [ref=e612] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e613]
+                - generic [ref=e616]: 지니
+              - link "콘텐츠 보기" [ref=e617] [cursor=pointer]:
+                - /url: /ko/fanletter/content/532b07e2-252a-4129-ba76-5c82a650e0d9?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e618]
+        - article [ref=e620]:
+          - link "video Video 지니 2026. 5. 2." [ref=e621] [cursor=pointer]:
+            - /url: /ko/fanletter/content/f5a5290c-b75d-49cb-8fb5-5117d2373541?ref=FXBSQ976
+            - generic [ref=e622]:
+              - generic [ref=e623]:
+                - img [ref=e624]
+                - generic [ref=e629]: video
+              - generic [ref=e631]: Video
+              - generic [ref=e634]:
+                - paragraph [ref=e635]: 지니
+                - paragraph [ref=e636]: 2026. 5. 2.
+          - generic [ref=e637]:
+            - heading "beauty" [level=2] [ref=e638]
+            - paragraph [ref=e639]: "{ \"prompt_type\": \"descriptive_replication\", \"reference_adherence\": \"STRICT_VISUAL_FIDELITY\", \"aspect_ratio\": \"3:4\", \"identity_lock\": { \"prio"
+            - generic [ref=e640]:
+              - link "지니" [ref=e641] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e642]
+                - generic [ref=e645]: 지니
+              - link "콘텐츠 보기" [ref=e646] [cursor=pointer]:
+                - /url: /ko/fanletter/content/f5a5290c-b75d-49cb-8fb5-5117d2373541?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e647]
+        - article [ref=e649]:
+          - link "video Video 지니 2026. 5. 2." [ref=e650] [cursor=pointer]:
+            - /url: /ko/fanletter/content/5e723173-e9e2-40e3-afc5-ee7499499f9f?ref=FXBSQ976
+            - generic [ref=e651]:
+              - generic [ref=e652]:
+                - img [ref=e653]
+                - generic [ref=e658]: video
+              - generic [ref=e660]: Video
+              - generic [ref=e663]:
+                - paragraph [ref=e664]: 지니
+                - paragraph [ref=e665]: 2026. 5. 2.
+          - generic [ref=e666]:
+            - heading "Photorealistic, portrait orientation, medium close-up, medium wide shot, front view, eye" [level=2] [ref=e667]
+            - paragraph [ref=e668]: Photorealistic, portrait orientation, medium close-up, medium wide shot, front view, eye-level, blonde woman, short hair, white sleeveless t
+            - generic [ref=e669]:
+              - link "지니" [ref=e670] [cursor=pointer]:
+                - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+                - img [ref=e671]
+                - generic [ref=e674]: 지니
+              - link "콘텐츠 보기" [ref=e675] [cursor=pointer]:
+                - /url: /ko/fanletter/content/5e723173-e9e2-40e3-afc5-ee7499499f9f?ref=FXBSQ976
+                - text: 콘텐츠 보기
+                - img [ref=e676]
+  - alert [ref=e678]

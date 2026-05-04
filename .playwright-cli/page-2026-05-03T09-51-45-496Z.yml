@@ -1,0 +1,9 @@
+- main [ref=e2]:
+  - generic [ref=e4]:
+    - img [ref=e5]
+    - heading "프로필을 불러오는 중입니다." [level=1] [ref=e7]
+    - paragraph [ref=e8]: 프로필을 불러오는 중입니다.
+    - link "다시 불러오기" [ref=e9] [cursor=pointer]:
+      - /url: /ko/fanletter/profile?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+      - text: 다시 불러오기
+      - img [ref=e10]

@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e6] [cursor=pointer]:
+          - /url: /ko/fanletter/feed?ref=FXBSQ976
+          - img [ref=e7]
+        - link "FanLetter" [ref=e9] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e11]
+          - generic [ref=e14]: FanLetter
+        - link "계속 진행" [ref=e15] [cursor=pointer]:
+          - /url: /ko/content/d9c1db5a-e35f-4058-a925-5eb9ac35faa0?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fcontent%2Fd9c1db5a-e35f-4058-a925-5eb9ac35faa0%3Fref%3DFXBSQ976
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic "테니스" [ref=e19]
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - paragraph [ref=e25]: "0"
+              - paragraph [ref=e26]: 좋아요
+            - generic [ref=e27]:
+              - img [ref=e28]
+              - paragraph [ref=e30]: "0"
+              - paragraph [ref=e31]: 댓글
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - paragraph [ref=e39]: "0"
+              - paragraph [ref=e40]: 저장
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - text: 무료 공개
+            - generic [ref=e47]: 2026. 5. 2.
+          - heading "테니스" [level=1] [ref=e48]
+          - paragraph [ref=e49]: "{ \"scene\": { \"location\": \"outdoor tennis court\", \"time_of_day\": \"golden hour / late afternoon\", \"lighting\": { \"type\": \"natural sunlight\", \"d"
+          - generic [ref=e50]:
+            - link "지니 FXBSQ976" [ref=e51] [cursor=pointer]:
+              - /url: /ko/fanletter/creator/FXBSQ976?ref=FXBSQ976
+              - generic [ref=e53]:
+                - paragraph [ref=e54]: 지니
+                - paragraph [ref=e55]: FXBSQ976
+            - link "지갑 연결 상세로 이동" [ref=e56] [cursor=pointer]:
+              - /url: /ko/content/d9c1db5a-e35f-4058-a925-5eb9ac35faa0?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fcontent%2Fd9c1db5a-e35f-4058-a925-5eb9ac35faa0%3Fref%3DFXBSQ976
+              - text: 지갑 연결 상세로 이동
+              - img [ref=e57]
+          - generic [ref=e59]:
+            - paragraph [ref=e60]: 본문
+            - paragraph [ref=e61]: "{ \"scene\": { \"location\": \"outdoor tennis court\", \"time_of_day\": \"golden hour / late afternoon\", \"lighting\": { \"type\": \"natural sunlight\", \"direction\": \"backlit with soft frontal fill\", \"quality\": \"warm, cinematic, soft shadows, glowing highlights\" }, \"background\": { \"elements\": [\"tennis net\", \"court lines\", \"blurred trees\"], \"depth_of_field\": \"shallow\", \"bokeh\": \"soft, creamy\" } }, \"subject\": { \"gender\": \"female\", \"age_range\": \"mid-20s\", \"build\": \"slim, athletic, curvy\", \"skin_tone\": \"light tan\", \"pose\": { \"stance\": \"standing, one leg raised and bent\", \"hand_position\": \"one hand holding tennis racket, other resting on thigh\", \"expression\": \"confident, slightly seductive, direct eye contact\" } }, \"appearance\": { \"hair\": { \"color\": \"blonde\", \"style\": \"long, straight with soft waves\", \"movement\": \"slightly wind-swept\" }, \"makeup\": { \"style\": \"glam natural\", \"skin\": \"dewy, highlighted\", \"eyes\": \"defined with eyeliner and mascara\", \"lips\": \"neutral glossy\" } }, \"clothing\": { \"outfit\": \"white tennis dress, deep plunge neckline, fitted waist with short skirt\", \"footwear\": \"white athletic sneakers\", \"accessories\": [ \"white baseball cap\", \"small gold jewelry\" ] }, \"props\": { \"item\": \"tennis racket\", \"position\": \"held casually, resting downward\" }, \"camera\": { \"type\": \"full-frame mirrorless\", \"model\": \"Sony A1\", \"lens\": \"85mm f1.4\", \"settings\": { \"aperture\": \"f/1.6\", \"iso\": 100, \"shutter_speed\": \"1/200\" }, \"focus\": \"sharp on face, shallow depth of field\", \"framing\": \"full body portrait, centered, vertical composition\" }, \"style\": { \"genre\": \"editorial fashion / sports lifestyle\", \"color_grading\": \"warm highlights, slightly muted greens, natural skin tones\", \"detail\": \"high resolution, realistic skin texture, subtle film grain\" } }"
+  - alert [ref=e62]

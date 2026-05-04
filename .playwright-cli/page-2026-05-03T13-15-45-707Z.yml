@@ -1,0 +1,5 @@
+- main [ref=e2]:
+  - generic [ref=e4]:
+    - img [ref=e6]
+    - heading "FanLetter 스튜디오 상태를 확인하고 있습니다." [level=1] [ref=e8]
+    - paragraph [ref=e9]: FanLetter 스튜디오 상태를 확인하고 있습니다.

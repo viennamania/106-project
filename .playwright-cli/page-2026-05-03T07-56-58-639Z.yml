@@ -1,0 +1,138 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "FanLetter" [ref=e6] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e8]
+          - generic [ref=e11]: FanLetter
+        - navigation [ref=e12]:
+          - link "홈" [ref=e13] [cursor=pointer]:
+            - /url: /ko/fanletter?ref=FXBSQ976
+          - link "피드" [ref=e14] [cursor=pointer]:
+            - /url: /ko/fanletter/feed?ref=FXBSQ976
+          - link "시작하기" [ref=e15] [cursor=pointer]:
+            - /url: /ko/fanletter/start?ref=FXBSQ976
+        - generic [ref=e16]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: 언어
+            - img [ref=e20]
+            - combobox "언어" [ref=e23]:
+              - option "한국어" [selected]
+              - option "English"
+              - option "日本語"
+              - option "简体中文"
+              - option "Tiếng Việt"
+              - option "Bahasa Indonesia"
+            - img
+          - link "시작하기" [ref=e24] [cursor=pointer]:
+            - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: FanLetter Onboarding
+          - heading "가입부터 첫 콘텐츠까지 한 화면에서 시작하세요." [level=1] [ref=e28]
+          - paragraph [ref=e29]: FanLetter 전용 화면에서 가입 확인, 크리에이터 프로필, 첫 AI 콘텐츠 생성까지 순서대로 진행하세요.
+          - generic [ref=e30]:
+            - link "계정 연결부터 시작" [ref=e31] [cursor=pointer]:
+              - /url: /ko/activate?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+            - link "프로필부터 설정" [ref=e32] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]:
+              - paragraph [ref=e37]: 오늘 끝낼 작업
+              - paragraph [ref=e38]: 처음 방문한 사용자가 어디서 무엇을 해야 하는지 헷갈리지 않도록 필요한 작업만 순서대로 모았습니다.
+            - generic [ref=e39]: 3 steps
+          - generic [ref=e40]:
+            - link "01 계정과 지갑 연결" [ref=e41] [cursor=pointer]:
+              - /url: /ko/activate?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+              - img [ref=e43]
+              - generic [ref=e46]:
+                - generic [ref=e47]: "01"
+                - generic [ref=e48]: 계정과 지갑 연결
+              - img [ref=e49]
+            - link "02 크리에이터 프로필 준비" [ref=e51] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+              - img [ref=e53]
+              - generic [ref=e55]:
+                - generic [ref=e56]: "02"
+                - generic [ref=e57]: 크리에이터 프로필 준비
+              - img [ref=e58]
+            - link "03 첫 AI 콘텐츠 생성" [ref=e60] [cursor=pointer]:
+              - /url: /ko/creator/studio/new?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+              - img [ref=e62]
+              - generic [ref=e67]:
+                - generic [ref=e68]: "03"
+                - generic [ref=e69]: 첫 AI 콘텐츠 생성
+              - img [ref=e70]
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - complementary [ref=e74]:
+          - paragraph [ref=e75]: Launch checklist
+          - heading "완료 후 바로 운영으로 이어집니다." [level=2] [ref=e76]
+          - paragraph [ref=e77]: 가입, 프로필, 첫 콘텐츠까지 끝내면 FanLetter 피드와 크리에이터 스튜디오에서 바로 이어서 운영할 수 있습니다.
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - paragraph [ref=e80]: "01"
+              - paragraph [ref=e81]: Account
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: "02"
+              - paragraph [ref=e84]: Profile
+            - generic [ref=e85]:
+              - paragraph [ref=e86]: "03"
+              - paragraph [ref=e87]: Content
+          - paragraph [ref=e88]: 기존 회원 세션과 지갑 연결을 그대로 사용합니다.
+        - generic [ref=e89]:
+          - article [ref=e90]:
+            - generic [ref=e91]:
+              - img [ref=e93]
+              - generic [ref=e96]:
+                - generic [ref=e97]:
+                  - generic [ref=e98]: 01 · Account
+                  - generic [ref=e99]:
+                    - img [ref=e100]
+                    - text: 필수
+                - heading "계정과 지갑 연결" [level=2] [ref=e103]
+                - paragraph [ref=e104]: 회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.
+              - link "계정 연결하기" [ref=e105] [cursor=pointer]:
+                - /url: /ko/activate?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+                - text: 계정 연결하기
+                - img [ref=e106]
+          - article [ref=e108]:
+            - generic [ref=e109]:
+              - img [ref=e111]
+              - generic [ref=e113]:
+                - generic [ref=e115]: 02 · Profile
+                - heading "크리에이터 프로필 준비" [level=2] [ref=e116]
+                - paragraph [ref=e117]: 표시 이름, 인물 페르소나, AI 아바타를 정리해 팬에게 보이는 첫 인상을 만듭니다.
+              - link "프로필 설정하기" [ref=e118] [cursor=pointer]:
+                - /url: /ko/creator/studio/profile?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+                - text: 프로필 설정하기
+                - img [ref=e119]
+          - article [ref=e121]:
+            - generic [ref=e122]:
+              - img [ref=e124]
+              - generic [ref=e129]:
+                - generic [ref=e131]: 03 · Content
+                - heading "첫 AI 콘텐츠 생성" [level=2] [ref=e132]
+                - paragraph [ref=e133]: AI 이미지나 동영상을 만들고 공개 범위와 가격을 정해 FanLetter 피드로 연결합니다.
+              - link "첫 콘텐츠 만들기" [ref=e134] [cursor=pointer]:
+                - /url: /ko/creator/studio/new?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+                - text: 첫 콘텐츠 만들기
+                - img [ref=e135]
+      - generic [ref=e137]:
+        - link "스튜디오 홈 각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용합니다." [ref=e138] [cursor=pointer]:
+          - /url: /ko/creator/studio?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+          - generic [ref=e139]:
+            - img [ref=e141]
+            - generic [ref=e146]: 스튜디오 홈
+            - generic [ref=e147]: 각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용합니다.
+          - img [ref=e148]
+        - link "팬 피드 보기 가입, 프로필, 첫 콘텐츠까지 끝내면 FanLetter 피드와 크리에이터 스튜디오에서 바로 이어서 운영할 수 있습니다." [ref=e150] [cursor=pointer]:
+          - /url: /ko/fanletter/feed?ref=FXBSQ976
+          - generic [ref=e151]:
+            - img [ref=e153]
+            - generic [ref=e156]: 팬 피드 보기
+            - generic [ref=e157]: 가입, 프로필, 첫 콘텐츠까지 끝내면 FanLetter 피드와 크리에이터 스튜디오에서 바로 이어서 운영할 수 있습니다.
+          - img [ref=e158]
+  - alert [ref=e160]

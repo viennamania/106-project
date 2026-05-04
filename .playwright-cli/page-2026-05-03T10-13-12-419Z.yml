@@ -1,0 +1,9 @@
+- main [ref=e2]:
+  - generic [ref=e4]:
+    - img [ref=e5]
+    - heading "콘텐츠 준비 상태를 확인하고 있습니다." [level=1] [ref=e7]
+    - paragraph [ref=e8]: 콘텐츠 준비 상태를 확인하고 있습니다.
+    - link "계정 연결하기" [ref=e9] [cursor=pointer]:
+      - /url: /ko/fanletter/connect?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+      - text: 계정 연결하기
+      - img [ref=e10]

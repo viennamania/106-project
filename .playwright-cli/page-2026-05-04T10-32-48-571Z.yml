@@ -1,0 +1,9 @@
+- main [ref=e2]:
+  - generic [ref=e4]:
+    - img [ref=e5]
+    - heading "브이로그 준비 상태를 확인하고 있습니다." [level=1] [ref=e7]
+    - paragraph [ref=e8]: 브이로그 준비 상태를 확인하고 있습니다.
+    - link "계정 연결하기" [ref=e9] [cursor=pointer]:
+      - /url: /ko/fanletter/connect?returnTo=%2Fko%2Ffanletter%2Fonboarding
+      - text: 계정 연결하기
+      - img [ref=e10]

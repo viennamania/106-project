@@ -1,0 +1,7 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - img [ref=e6]
+      - heading "외부 채널 배포 상태를 확인하고 있습니다." [level=1] [ref=e8]
+      - paragraph [ref=e9]: 외부 채널 배포 상태를 확인하고 있습니다.
+  - alert [ref=e10]

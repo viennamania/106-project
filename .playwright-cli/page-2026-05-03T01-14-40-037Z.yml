@@ -1,0 +1,275 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - img [ref=e10]
+          - generic [ref=e13]: AI 크리에이터 스튜디오 공개
+        - link "콘텐츠 생성부터 판매까지 한 번에" [ref=e14] [cursor=pointer]:
+          - /url: /ko/creator/studio/profile
+      - generic [ref=e15]:
+        - link "FanLetter" [ref=e16] [cursor=pointer]:
+          - /url: /ko/fanletter
+          - img [ref=e18]
+          - generic [ref=e21]: FanLetter
+        - navigation [ref=e22]:
+          - link "기능" [ref=e23] [cursor=pointer]:
+            - /url: "#features"
+          - link "크리에이터" [ref=e24] [cursor=pointer]:
+            - /url: "#creators"
+          - link "FAQ" [ref=e25] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e26]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: 언어
+            - img [ref=e30]
+            - combobox "언어" [ref=e33]:
+              - option "한국어" [selected]
+              - option "English"
+              - option "日本語"
+              - option "简体中文"
+              - option "Tiếng Việt"
+              - option "Bahasa Indonesia"
+            - img
+          - link "로그인" [ref=e34] [cursor=pointer]:
+            - /url: /ko/activate
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: FANLETTER
+          - heading "팬에게 팔 수 있는 AI 콘텐츠를 더 빠르게 만드세요." [level=1] [ref=e38]
+          - paragraph [ref=e39]: FanLetter는 크리에이터 프로필, 인물 페르소나, AI 이미지와 동영상 생성, 팬 전용 피드, 판매 흐름을 모바일 중심으로 묶은 크리에이터 수익화 홈입니다.
+          - generic [ref=e40]:
+            - link "크리에이터로 시작" [ref=e41] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile
+            - link "팬 피드 보기" [ref=e42] [cursor=pointer]:
+              - /url: /ko/network-feed
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - paragraph [ref=e45]: "48"
+            - paragraph [ref=e46]: 공개 동영상
+          - generic [ref=e47]:
+            - paragraph [ref=e48]: "6"
+            - paragraph [ref=e49]: 활성 크리에이터
+          - generic [ref=e50]:
+            - paragraph [ref=e51]: "71"
+            - paragraph [ref=e52]: 확정 판매
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Live Creator Videos
+          - heading "실제 공개 동영상 콘텐츠로 팬이 바로 확인합니다." [level=2] [ref=e58]
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: "252"
+            - paragraph [ref=e62]: 공개 콘텐츠
+          - generic [ref=e63]:
+            - paragraph [ref=e64]: "48"
+            - paragraph [ref=e65]: 공개 동영상
+          - generic [ref=e66]:
+            - paragraph [ref=e67]: "71"
+            - paragraph [ref=e68]: 확정 판매
+          - generic [ref=e69]:
+            - paragraph [ref=e70]: 71 USDT
+            - paragraph [ref=e71]: 누적 판매
+      - generic [ref=e72]:
+        - link [ref=e73] [cursor=pointer]:
+          - /url: /ko/content/d9c1db5a-e35f-4058-a925-5eb9ac35faa0
+          - article [ref=e74]:
+            - generic [ref=e75]:
+              - generic [ref=e78]: 무료 공개
+              - generic [ref=e82]:
+                - paragraph [ref=e83]: 지니
+                - paragraph [ref=e84]: 5월 2일
+            - generic [ref=e85]:
+              - heading "테니스" [level=3] [ref=e86]
+              - paragraph [ref=e87]: "{ \"scene\": { \"location\": \"outdoor tennis court\", \"time_of_day\": \"golden hour / late afternoon\", \"lighting\": { \"type\": \"natural sunlight\", \"d"
+              - generic [ref=e88]:
+                - img [ref=e89]
+                - text: 콘텐츠 보기
+        - link [ref=e94] [cursor=pointer]:
+          - /url: /ko/content/9e862760-a524-4180-988a-12424b15761a
+          - article [ref=e95]:
+            - generic [ref=e96]:
+              - generic [ref=e99]: 무료 공개
+              - generic [ref=e103]:
+                - paragraph [ref=e104]: 지니
+                - paragraph [ref=e105]: 5월 2일
+            - generic [ref=e106]:
+              - heading "강의실" [level=3] [ref=e107]
+              - paragraph [ref=e108]: A realistic smartphone-style photo of an adult beauty (early twenties) sitting at a desk in a modern classroom or lecture room. She is leani
+              - generic [ref=e109]:
+                - img [ref=e110]
+                - text: 콘텐츠 보기
+        - link [ref=e115] [cursor=pointer]:
+          - /url: /ko/content/608b11f6-94a1-4b77-916c-54087ff3068b
+          - article [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e120]: 무료 공개
+              - generic [ref=e124]:
+                - paragraph [ref=e125]: 지니
+                - paragraph [ref=e126]: 5월 2일
+            - generic [ref=e127]:
+              - heading "하루" [level=3] [ref=e128]
+              - paragraph [ref=e129]: Candid iPhone front camera selfie of a young adult European-looking woman indoors. Arm’s-length selfie, slightly off-center framing, imperfe
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - text: 콘텐츠 보기
+        - link [ref=e136] [cursor=pointer]:
+          - /url: /ko/content/50a933fb-b8b9-4ce6-9fee-6facbb70bcbf
+          - article [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e141]: 무료 공개
+              - generic [ref=e145]:
+                - paragraph [ref=e146]: 지니
+                - paragraph [ref=e147]: 5월 2일
+            - generic [ref=e148]:
+              - heading "ㅎㅎㅎ" [level=3] [ref=e149]
+              - paragraph [ref=e150]: 하하하
+              - generic [ref=e151]:
+                - img [ref=e152]
+                - text: 콘텐츠 보기
+        - link [ref=e157] [cursor=pointer]:
+          - /url: /ko/content/a7698165-14b4-4ffd-bb9e-2ff05904f904
+          - article [ref=e158]:
+            - generic [ref=e159]:
+              - generic [ref=e162]: 무료 공개
+              - generic [ref=e166]:
+                - paragraph [ref=e167]: 지니
+                - paragraph [ref=e168]: 5월 2일
+            - generic [ref=e169]:
+              - heading "하하" [level=3] [ref=e170]
+              - paragraph [ref=e171]: 하하
+              - generic [ref=e172]:
+                - img [ref=e173]
+                - text: 콘텐츠 보기
+        - link [ref=e178] [cursor=pointer]:
+          - /url: /ko/content/cb521302-99d4-4ffa-8891-659ba62629c2
+          - article [ref=e179]:
+            - generic [ref=e180]:
+              - generic [ref=e183]: 무료 공개
+              - generic [ref=e187]:
+                - paragraph [ref=e188]: 지니
+                - paragraph [ref=e189]: 5월 2일
+            - generic [ref=e190]:
+              - heading "안녕" [level=3] [ref=e191]
+              - paragraph [ref=e192]: 안녕
+              - generic [ref=e193]:
+                - img [ref=e194]
+                - text: 콘텐츠 보기
+    - generic [ref=e200]:
+      - paragraph [ref=e201]: AI 콘텐츠 생성부터 팬 전용 판매까지
+      - img "FanLetter mobile creator experience preview" [ref=e203]
+    - generic [ref=e205]:
+      - paragraph [ref=e206]: Features
+      - generic [ref=e207]:
+        - article [ref=e208]:
+          - img [ref=e210]
+          - generic [ref=e213]:
+            - generic [ref=e214]: New
+            - heading "AI 이미지 생성" [level=2] [ref=e215]
+            - paragraph [ref=e216]: 고정 인물 페르소나와 아바타를 바탕으로 일관된 이미지 콘텐츠를 생성합니다.
+        - article [ref=e217]:
+          - img [ref=e219]
+          - generic [ref=e224]:
+            - generic [ref=e225]: New
+            - heading "AI 동영상 생성" [level=2] [ref=e226]
+            - paragraph [ref=e227]: 짧은 세로형 동영상 콘텐츠를 만들고 네트워크 피드와 상세 페이지에서 재생합니다.
+        - article [ref=e228]:
+          - img [ref=e230]
+          - generic [ref=e233]:
+            - heading "팬 전용 피드" [level=2] [ref=e234]
+            - paragraph [ref=e235]: 팬 전용 콘텐츠, 유료 콘텐츠, 저장과 공유 흐름을 하나의 피드로 운영합니다.
+        - article [ref=e236]:
+          - img [ref=e238]
+          - generic [ref=e243]:
+            - heading "네트워크 성장" [level=2] [ref=e244]
+            - paragraph [ref=e245]: 레퍼럴 코드와 공유 링크로 유입을 추적하고 네트워크 콘텐츠로 확장합니다.
+        - article [ref=e246]:
+          - img [ref=e248]
+          - generic [ref=e252]:
+            - heading "지갑과 정산" [level=2] [ref=e253]
+            - paragraph [ref=e254]: 지갑 연결, USDT 기반 결제 흐름, 판매 내역을 크리에이터 스튜디오에서 확인합니다.
+    - generic [ref=e256]:
+      - paragraph [ref=e257]: Creator network
+      - heading "Creator-AI Economy를 더 빠르게 시작하세요." [level=2] [ref=e258]
+      - paragraph [ref=e259]: 인물 페르소나, AI 이미지와 동영상, 팬 전용 콘텐츠, 레퍼럴 네트워크를 하나의 모바일 흐름으로 연결합니다.
+      - link "지금 시작하기" [ref=e260] [cursor=pointer]:
+        - /url: /ko/creator/studio/profile
+      - generic [ref=e261]:
+        - generic [ref=e262]:
+          - img [ref=e264]
+          - img [ref=e267]
+          - img [ref=e271]
+        - paragraph [ref=e276]: 201,548
+        - paragraph [ref=e277]: creator-AI economy를 시작한 네트워크
+    - generic [ref=e279]:
+      - heading "모든 니치에 맞는 AI 콘텐츠 홈." [level=2] [ref=e280]
+      - paragraph [ref=e281]: 하나의 인물 정체성을 유지하면서 장르와 상황을 바꿔 더 많은 콘텐츠를 만듭니다.
+      - link "크리에이터 스튜디오 열기" [ref=e282] [cursor=pointer]:
+        - /url: /ko/creator/studio/profile
+      - generic [ref=e283]:
+        - generic [ref=e284]: Beauty
+        - generic [ref=e285]: Fitness
+        - generic [ref=e286]: Music
+        - generic [ref=e287]: Fashion
+        - generic [ref=e288]: Travel
+    - generic [ref=e289]:
+      - heading "FAQ" [level=2] [ref=e290]
+      - generic [ref=e291]:
+        - group [ref=e292]:
+          - generic "FanLetter는 무엇인가요? +" [ref=e293]:
+            - generic [ref=e294]: FanLetter는 무엇인가요?
+            - generic [ref=e295]: +
+        - group [ref=e296]:
+          - generic "누가 사용할 수 있나요? +" [ref=e297]:
+            - generic [ref=e298]: 누가 사용할 수 있나요?
+            - generic [ref=e299]: +
+        - group [ref=e300]:
+          - generic "콘텐츠는 어떻게 수익화하나요? +" [ref=e301]:
+            - generic [ref=e302]: 콘텐츠는 어떻게 수익화하나요?
+            - generic [ref=e303]: +
+        - group [ref=e304]:
+          - generic "모바일에서도 충분히 사용할 수 있나요? +" [ref=e305]:
+            - generic [ref=e306]: 모바일에서도 충분히 사용할 수 있나요?
+            - generic [ref=e307]: +
+    - generic [ref=e309]:
+      - generic [ref=e310]:
+        - paragraph [ref=e311]: 가장 빠른 AI 크리에이터 홈을 시작하세요.
+        - generic [ref=e312]:
+          - link "크리에이터로 시작" [ref=e313] [cursor=pointer]:
+            - /url: /ko/creator/studio/profile
+          - link "팬 피드 보기" [ref=e314] [cursor=pointer]:
+            - /url: /ko/network-feed
+      - generic [ref=e315]:
+        - generic [ref=e316]:
+          - paragraph [ref=e317]: FanLetter
+          - generic [ref=e318]:
+            - link "Studio" [ref=e319] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile
+            - link "Feed" [ref=e320] [cursor=pointer]:
+              - /url: /ko/network-feed
+            - link "Activate" [ref=e321] [cursor=pointer]:
+              - /url: /ko/activate
+        - generic [ref=e322]:
+          - paragraph [ref=e323]: 기능
+          - generic [ref=e324]:
+            - link "AI Content" [ref=e325] [cursor=pointer]:
+              - /url: "#features"
+            - link "Network" [ref=e326] [cursor=pointer]:
+              - /url: "#creators"
+        - generic [ref=e327]:
+          - paragraph [ref=e328]: FAQ
+          - link "Help" [ref=e330] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e331]:
+          - paragraph [ref=e332]: Trust
+          - generic [ref=e333]:
+            - img [ref=e334]
+            - generic [ref=e337]: Mobile first
+          - generic [ref=e338]:
+            - img [ref=e339]
+            - generic [ref=e342]: USDT ready
+          - generic [ref=e343]:
+            - img [ref=e344]
+            - generic [ref=e346]: Creator growth
+  - alert [ref=e347]

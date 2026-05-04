@@ -1,0 +1,259 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: Enter the AI Personality of the Year Awards 2026
+          - generic [ref=e9]: $90K total prize pool!
+        - generic [ref=e11]: Learn More
+        - link [ref=e12] [cursor=pointer]:
+          - /url: https://www.aipersonality.ai/?utm_source=fanvue&utm_medium=Event&utm_campaign=ai-personality
+      - generic [ref=e13]:
+        - link [ref=e14] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e15]:
+          - link "Features" [ref=e17] [cursor=pointer]:
+            - /url: https://landing.fanvue.com/#features
+          - link "Support" [ref=e20] [cursor=pointer]:
+            - /url: https://help.fanvue.com/en/
+          - link "Blog" [ref=e23] [cursor=pointer]:
+            - /url: /blog
+          - link "About" [ref=e26] [cursor=pointer]:
+            - /url: https://landing.fanvue.com/about
+          - link "Careers" [ref=e29] [cursor=pointer]:
+            - /url: https://landing.fanvue.com/careers
+        - generic [ref=e31]:
+          - link "Sign up" [ref=e32] [cursor=pointer]:
+            - /url: /signup?type=creator
+            - generic [ref=e33]: Sign up
+          - link "Login" [ref=e34] [cursor=pointer]:
+            - /url: /signin
+            - generic [ref=e35]: Login
+    - generic [ref=e39]:
+      - heading "Earn from your fanbase faster with the No1 AI monetisation platform for creators." [level=1] [ref=e41]
+      - generic [ref=e42]:
+        - link "Become a creator" [ref=e43] [cursor=pointer]:
+          - /url: /signup?type=creator
+        - link "Sign up as a fan" [ref=e44] [cursor=pointer]:
+          - /url: /signup
+    - generic [ref=e48]:
+      - generic [ref=e52]:
+        - heading "Powering over $500m in creator payouts" [level=2] [ref=e54]
+        - generic [ref=e55]:
+          - link "Become a creator" [ref=e56] [cursor=pointer]:
+            - /url: /signup?type=creator
+          - link "Sign up as a fan" [ref=e57] [cursor=pointer]:
+            - /url: /signup
+      - paragraph [ref=e61]: Features
+      - generic [ref=e62]:
+        - generic [ref=e65]:
+          - generic [ref=e72]:
+            - generic [ref=e74]: Payments, Payouts and Checkout Links
+            - generic [ref=e76]: Monetise what you create, get paid faster than ever.
+          - generic [ref=e79]:
+            - generic [ref=e83]: New
+            - generic [ref=e84]:
+              - generic [ref=e86]: AI Analytics & Earning Insights
+              - generic [ref=e88]: Get crystal-clear clarity on your fans and earnings.
+          - generic [ref=e95]:
+            - generic [ref=e97]: Monthly Subscriptions & Paywalled Content
+            - generic [ref=e99]: Build recurring income on your terms.
+          - generic [ref=e102]:
+            - generic [ref=e106]: New
+            - generic [ref=e107]:
+              - generic [ref=e109]: AI Voice Calls
+              - generic [ref=e111]: Speak to every fan like they’re the only one.
+          - generic [ref=e114]:
+            - generic [ref=e118]: New
+            - generic [ref=e119]:
+              - generic [ref=e121]: AI Voice Notes
+              - generic [ref=e123]: Build deeper fan intimacy, without hours in your inbox.
+          - generic [ref=e126]:
+            - generic [ref=e130]: Coming soon
+            - generic [ref=e131]:
+              - generic [ref=e133]: App Store & Open API
+              - generic [ref=e135]: An open platform for innovation, designed for AI builders.
+        - generic [ref=e138]:
+          - button "previous slide" [ref=e139] [cursor=pointer]:
+            - img [ref=e140]
+          - button "previous slide" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+    - generic [ref=e145]:
+      - generic [ref=e149]:
+        - paragraph [ref=e150]: Creators
+        - heading "Chosen by the creators redefining what’s possible." [level=2] [ref=e152]
+      - list [ref=e156]:
+        - group "7 / 11" [ref=e157]:
+          - generic [ref=e159]:
+            - generic [ref=e160]: Khloë Terae
+            - generic [ref=e161]:
+              - generic [ref=e162]: Model & Travel Influencer
+              - generic [ref=e163]: 4.5M Followers
+        - group "8 / 11" [ref=e164]:
+          - generic [ref=e166]:
+            - generic [ref=e167]: Ben Morris
+            - generic [ref=e168]:
+              - generic [ref=e169]: Youtuber
+              - generic [ref=e170]: 720K Subscribers
+        - group "9 / 11" [ref=e171]:
+          - generic [ref=e173]:
+            - generic [ref=e174]: Lottie Moss
+            - generic [ref=e175]:
+              - generic [ref=e176]: Podcaster
+              - generic [ref=e177]: 600K Followers
+        - group "10 / 11" [ref=e178]:
+          - generic [ref=e180]:
+            - generic [ref=e181]: Aitana
+            - generic [ref=e182]:
+              - generic [ref=e183]: AI Influecer
+              - generic [ref=e184]: 500k Followers
+        - group "11 / 11" [ref=e185]:
+          - generic [ref=e187]:
+            - generic [ref=e188]: Darren Till
+            - generic [ref=e189]:
+              - generic [ref=e190]: Pro Boxer
+              - generic [ref=e191]: 500k Followers
+        - group "1 / 11" [ref=e192]:
+          - generic [ref=e194]:
+            - generic [ref=e195]: Cardi B
+            - generic [ref=e196]:
+              - generic [ref=e197]: Global Music Icon
+              - generic [ref=e198]: 200M Followers
+        - group "2 / 11" [ref=e199]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: Inas X
+            - generic [ref=e203]:
+              - generic [ref=e204]: Global Popstar
+              - generic [ref=e205]: 3.4M followers
+        - group "3 / 11" [ref=e206]:
+          - generic [ref=e208]:
+            - generic [ref=e209]: Alabama Barker
+            - generic [ref=e210]:
+              - generic [ref=e211]: Music Artist & Influencer
+              - generic [ref=e212]: 3M followers
+        - group "4 / 11" [ref=e213]:
+          - generic [ref=e215]:
+            - generic [ref=e216]: Alisha Lehmann
+            - generic [ref=e217]:
+              - generic [ref=e218]: International Footballer
+              - generic [ref=e219]: 15.9M Followers
+        - group "5 / 11" [ref=e220]:
+          - generic [ref=e222]:
+            - generic [ref=e223]: Priscillia Payraudeau
+            - generic [ref=e224]:
+              - generic [ref=e225]: PT & Fitness Coach
+              - generic [ref=e226]: 100k Followers
+        - group "6 / 11" [ref=e227]:
+          - generic [ref=e229]:
+            - generic [ref=e230]: Chesca
+            - generic [ref=e231]:
+              - generic [ref=e232]: Music Artist
+              - generic [ref=e233]: 500K Followers
+    - generic [ref=e236]:
+      - heading "The Creator-AI Economy has arrived, and Fanvue hands you the tools to lead it." [level=2] [ref=e238]:
+        - text: The Creator-AI Economy
+        - text: has arrived, and Fanvue hands
+        - text: you the tools to lead it.
+      - generic [ref=e239]:
+        - generic [ref=e241]: Weʼre powering the next era of independent success for all creators.
+        - link "Join the movement" [ref=e242] [cursor=pointer]:
+          - /url: /signup?type=creator
+    - generic [ref=e247]:
+      - generic [ref=e248]:
+        - heading "Built for every niche. Trusted by icons." [level=2] [ref=e249]:
+          - text: Built for every niche.
+          - text: Trusted by icons.
+        - generic [ref=e250]:
+          - generic [ref=e252]: Join 200,000+ creators scaling their success with Fanvue.
+          - link "Join the movement" [ref=e253] [cursor=pointer]:
+            - /url: /signup?type=creator
+      - generic [ref=e255]:
+        - generic [ref=e256]:
+          - generic [ref=e257]: Sport
+          - generic [ref=e258]: Music
+          - generic [ref=e259]: Art
+          - generic [ref=e260]: Fashion
+          - generic [ref=e261]: Travel
+        - generic [ref=e266]:
+          - generic [ref=e268]:
+            - generic [ref=e269]: Darren Sungh
+            - generic [ref=e270]: Jayden Brooks
+            - generic [ref=e271]: Nora Weil
+            - generic [ref=e272]: Ava Kallin
+            - generic [ref=e273]: Lana Duarte
+          - generic [ref=e274]:
+            - img [ref=e275]
+            - generic [ref=e278]:
+              - generic [ref=e279]: 230k+ followers
+              - generic [ref=e280]: 350k+ followers
+              - generic [ref=e281]: 142k+ followers
+              - generic [ref=e282]: 860k+ followers
+              - generic [ref=e283]: 430k+ followers
+        - generic [ref=e289]:
+          - generic [ref=e291]:
+            - generic [ref=e292]: Juliette McCarthy
+            - generic [ref=e293]: Thia Rivers
+            - generic [ref=e294]: Jasmine Patel
+            - generic [ref=e295]: Elias Moore
+            - generic [ref=e296]: Lana Scolaro
+          - generic [ref=e297]:
+            - img [ref=e298]
+            - generic [ref=e301]:
+              - generic [ref=e302]: 190k+ followers
+              - generic [ref=e303]: 134k+ followers
+              - generic [ref=e304]: 820k+ followers
+              - generic [ref=e305]: 920k+ followers
+              - generic [ref=e306]: 350k+ followers
+    - generic [ref=e314]:
+      - generic [ref=e316]:
+        - heading "FAQ" [level=2] [ref=e317]
+        - generic [ref=e319]:
+          - button "What is Fanvue?" [ref=e321] [cursor=pointer]:
+            - generic [ref=e324]: What is Fanvue?
+          - button "Who can create on Fanvue?" [ref=e326] [cursor=pointer]:
+            - generic [ref=e329]: Who can create on Fanvue?
+          - button "How much can I make on Fanvue?" [ref=e331] [cursor=pointer]:
+            - generic [ref=e334]: How much can I make on Fanvue?
+          - button "How long does it take to become a creator?" [ref=e336] [cursor=pointer]:
+            - generic [ref=e339]: How long does it take to become a creator?
+      - generic [ref=e340]:
+        - generic [ref=e341]:
+          - generic [ref=e342]:
+            - generic [ref=e344]: Join the fastest growing community of creators.
+            - generic [ref=e345]:
+              - link "Become a creator" [ref=e346] [cursor=pointer]:
+                - /url: /signup?type=creator
+                - generic [ref=e347]: Become a creator
+              - link "Sign up as a fan" [ref=e348] [cursor=pointer]:
+                - /url: /signup
+                - generic [ref=e349]: Sign up as a fan
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - generic [ref=e352]: Company
+              - generic [ref=e353]:
+                - link "Login" [ref=e355] [cursor=pointer]:
+                  - /url: /signin
+                - link "Support" [ref=e358] [cursor=pointer]:
+                  - /url: https://help.fanvue.com/en/
+                - link "Blog" [ref=e361] [cursor=pointer]:
+                  - /url: /blog
+                - link "About" [ref=e364] [cursor=pointer]:
+                  - /url: https://landing.fanvue.com/about
+                - link "Careers" [ref=e367] [cursor=pointer]:
+                  - /url: https://landing.fanvue.com/careers
+            - generic [ref=e369]:
+              - generic [ref=e370]: Policy
+              - generic [ref=e371]:
+                - link "Privacy Policy" [ref=e373] [cursor=pointer]:
+                  - /url: https://legal.fanvue.com/privacy-policy
+                - link "Terms & Conditions" [ref=e376] [cursor=pointer]:
+                  - /url: https://legal.fanvue.com/terms-conditions
+            - generic [ref=e378]:
+              - generic [ref=e379]: Socials
+              - generic [ref=e380]:
+                - link [ref=e381] [cursor=pointer]:
+                  - /url: https://www.instagram.com/fanvue
+                - link [ref=e382] [cursor=pointer]:
+                  - /url: https://twitter.com/fanvue
+        - generic [ref=e384]: © 2026 Fanvue, Shift Holdings LTD | Fanvue LLC | 2nd Floor College House, 17 King Edwards Road, Ruislip, London, United Kingdom, HA4 7AE | 8 The Green STE R, Dover, 19901, Delaware, United States
+  - img [ref=e385]

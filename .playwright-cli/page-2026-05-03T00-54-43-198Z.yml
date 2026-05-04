@@ -1,0 +1,153 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e12]: AI 크리에이터 스튜디오 공개
+        - link "콘텐츠 생성부터 판매까지 한 번에" [ref=e13] [cursor=pointer]:
+          - /url: /ko/creator/studio/profile
+      - generic [ref=e14]:
+        - link "FanLetter" [ref=e15] [cursor=pointer]:
+          - /url: /ko/fanletter
+          - img [ref=e17]
+          - generic [ref=e20]: FanLetter
+        - link "로그인" [ref=e22] [cursor=pointer]:
+          - /url: /ko/activate
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - paragraph [ref=e25]: FANLETTER
+          - heading "팬에게 팔 수 있는 AI 콘텐츠를 더 빠르게 만드세요." [level=1] [ref=e26]
+          - paragraph [ref=e27]: FanLetter는 크리에이터 프로필, 인물 페르소나, AI 이미지와 동영상 생성, 팬 전용 피드, 판매 흐름을 모바일 중심으로 묶은 크리에이터 수익화 홈입니다.
+          - generic [ref=e28]:
+            - link "크리에이터로 시작" [ref=e29] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile
+            - link "팬 피드 보기" [ref=e30] [cursor=pointer]:
+              - /url: /ko/network-feed
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - paragraph [ref=e33]: "01"
+            - paragraph [ref=e34]: creator studio
+          - generic [ref=e35]:
+            - paragraph [ref=e36]: "05"
+            - paragraph [ref=e37]: AI content flow
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: 24/7
+            - paragraph [ref=e40]: mobile first
+    - generic [ref=e42]:
+      - paragraph [ref=e43]: AI 콘텐츠 생성부터 팬 전용 판매까지
+      - img "FanLetter mobile creator experience preview" [ref=e45]
+    - generic [ref=e47]:
+      - paragraph [ref=e48]: Features
+      - generic [ref=e49]:
+        - article [ref=e50]:
+          - img [ref=e52]
+          - generic [ref=e55]:
+            - generic [ref=e56]: New
+            - heading "AI 이미지 생성" [level=2] [ref=e57]
+            - paragraph [ref=e58]: 고정 인물 페르소나와 아바타를 바탕으로 일관된 이미지 콘텐츠를 생성합니다.
+        - article [ref=e59]:
+          - img [ref=e61]
+          - generic [ref=e66]:
+            - generic [ref=e67]: New
+            - heading "AI 동영상 생성" [level=2] [ref=e68]
+            - paragraph [ref=e69]: 짧은 세로형 동영상 콘텐츠를 만들고 네트워크 피드와 상세 페이지에서 재생합니다.
+        - article [ref=e70]:
+          - img [ref=e72]
+          - generic [ref=e75]:
+            - heading "팬 전용 피드" [level=2] [ref=e76]
+            - paragraph [ref=e77]: 팬 전용 콘텐츠, 유료 콘텐츠, 저장과 공유 흐름을 하나의 피드로 운영합니다.
+        - article [ref=e78]:
+          - img [ref=e80]
+          - generic [ref=e85]:
+            - heading "네트워크 성장" [level=2] [ref=e86]
+            - paragraph [ref=e87]: 레퍼럴 코드와 공유 링크로 유입을 추적하고 네트워크 콘텐츠로 확장합니다.
+        - article [ref=e88]:
+          - img [ref=e90]
+          - generic [ref=e94]:
+            - heading "지갑과 정산" [level=2] [ref=e95]
+            - paragraph [ref=e96]: 지갑 연결, USDT 기반 결제 흐름, 판매 내역을 크리에이터 스튜디오에서 확인합니다.
+    - generic [ref=e98]:
+      - paragraph [ref=e99]: Creator network
+      - heading "Creator-AI Economy를 더 빠르게 시작하세요." [level=2] [ref=e100]
+      - paragraph [ref=e101]: 인물 페르소나, AI 이미지와 동영상, 팬 전용 콘텐츠, 레퍼럴 네트워크를 하나의 모바일 흐름으로 연결합니다.
+      - link "지금 시작하기" [ref=e102] [cursor=pointer]:
+        - /url: /ko/creator/studio/profile
+      - generic [ref=e103]:
+        - generic [ref=e104]:
+          - img [ref=e106]
+          - img [ref=e109]
+          - img [ref=e113]
+        - paragraph [ref=e118]: 201,548
+        - paragraph [ref=e119]: creator-AI economy를 시작한 네트워크
+    - generic [ref=e121]:
+      - heading "모든 니치에 맞는 AI 콘텐츠 홈." [level=2] [ref=e122]
+      - paragraph [ref=e123]: 하나의 인물 정체성을 유지하면서 장르와 상황을 바꿔 더 많은 콘텐츠를 만듭니다.
+      - link "크리에이터 스튜디오 열기" [ref=e124] [cursor=pointer]:
+        - /url: /ko/creator/studio/profile
+      - generic [ref=e125]:
+        - generic [ref=e126]: Beauty
+        - generic [ref=e127]: Fitness
+        - generic [ref=e128]: Music
+        - generic [ref=e129]: Fashion
+        - generic [ref=e130]: Travel
+    - generic [ref=e131]:
+      - heading "FAQ" [level=2] [ref=e132]
+      - generic [ref=e133]:
+        - group [ref=e134]:
+          - generic "FanLetter는 무엇인가요? +" [ref=e135]:
+            - generic [ref=e136]: FanLetter는 무엇인가요?
+            - generic [ref=e137]: +
+        - group [ref=e138]:
+          - generic "누가 사용할 수 있나요? +" [ref=e139]:
+            - generic [ref=e140]: 누가 사용할 수 있나요?
+            - generic [ref=e141]: +
+        - group [ref=e142]:
+          - generic "콘텐츠는 어떻게 수익화하나요? +" [ref=e143]:
+            - generic [ref=e144]: 콘텐츠는 어떻게 수익화하나요?
+            - generic [ref=e145]: +
+        - group [ref=e146]:
+          - generic "모바일에서도 충분히 사용할 수 있나요? +" [ref=e147]:
+            - generic [ref=e148]: 모바일에서도 충분히 사용할 수 있나요?
+            - generic [ref=e149]: +
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - paragraph [ref=e153]: 가장 빠른 AI 크리에이터 홈을 시작하세요.
+        - generic [ref=e154]:
+          - link "크리에이터로 시작" [ref=e155] [cursor=pointer]:
+            - /url: /ko/creator/studio/profile
+          - link "팬 피드 보기" [ref=e156] [cursor=pointer]:
+            - /url: /ko/network-feed
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - paragraph [ref=e159]: FanLetter
+          - generic [ref=e160]:
+            - link "Studio" [ref=e161] [cursor=pointer]:
+              - /url: /ko/creator/studio/profile
+            - link "Feed" [ref=e162] [cursor=pointer]:
+              - /url: /ko/network-feed
+            - link "Activate" [ref=e163] [cursor=pointer]:
+              - /url: /ko/activate
+        - generic [ref=e164]:
+          - paragraph [ref=e165]: 기능
+          - generic [ref=e166]:
+            - link "AI Content" [ref=e167] [cursor=pointer]:
+              - /url: "#features"
+            - link "Network" [ref=e168] [cursor=pointer]:
+              - /url: "#creators"
+        - generic [ref=e169]:
+          - paragraph [ref=e170]: FAQ
+          - link "Help" [ref=e172] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e173]:
+          - paragraph [ref=e174]: Trust
+          - generic [ref=e175]:
+            - img [ref=e176]
+            - generic [ref=e179]: Mobile first
+          - generic [ref=e180]:
+            - img [ref=e181]
+            - generic [ref=e184]: USDT ready
+          - generic [ref=e185]:
+            - img [ref=e186]
+            - generic [ref=e188]: Creator growth
+  - alert [ref=e189]

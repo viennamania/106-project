@@ -1,0 +1,363 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e12]: AI 크리에이터 스튜디오 공개
+        - link "콘텐츠 생성부터 판매까지 한 번에" [ref=e13] [cursor=pointer]:
+          - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e14]:
+        - link "FanLetter" [ref=e15] [cursor=pointer]:
+          - /url: /ko/fanletter?ref=FXBSQ976
+          - img [ref=e17]
+          - generic [ref=e20]: FanLetter
+        - navigation [ref=e21]:
+          - link "기능" [ref=e22] [cursor=pointer]:
+            - /url: "#features"
+          - link "크리에이터" [ref=e23] [cursor=pointer]:
+            - /url: "#creators"
+          - link "스튜디오" [ref=e24] [cursor=pointer]:
+            - /url: /ko/fanletter/studio?ref=FXBSQ976
+          - link "FAQ" [ref=e25] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e26]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: 언어
+            - img [ref=e30]
+            - combobox "언어" [ref=e33]:
+              - option "한국어" [selected]
+              - option "English"
+              - option "日本語"
+              - option "简体中文"
+              - option "Tiếng Việt"
+              - option "Bahasa Indonesia"
+            - img
+          - link "계정 연결" [ref=e34] [cursor=pointer]:
+            - /url: /ko/fanletter/connect?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: FANLETTER
+          - heading "팬에게 팔 수 있는 AI 콘텐츠를 더 빠르게 만드세요." [level=1] [ref=e38]
+          - paragraph [ref=e39]: FanLetter는 크리에이터 프로필, 인물 페르소나, AI 이미지와 동영상 생성, 팬 전용 피드, 판매 흐름을 모바일 중심으로 묶은 크리에이터 수익화 홈입니다.
+          - generic [ref=e40]:
+            - link "크리에이터로 시작" [ref=e41] [cursor=pointer]:
+              - /url: /ko/fanletter/start?ref=FXBSQ976
+            - link "팬 피드 보기" [ref=e42] [cursor=pointer]:
+              - /url: /ko/fanletter/feed?ref=FXBSQ976
+            - link "나의 스튜디오" [ref=e43] [cursor=pointer]:
+              - /url: /ko/fanletter/studio?ref=FXBSQ976
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e49]: 1/3
+            - generic [ref=e54]:
+              - paragraph [ref=e55]: 지니
+              - paragraph [ref=e56]: Take a selfie of a young man with black hair combed back, wearing a black sweatshirt. Ne
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - paragraph [ref=e59]: "63"
+              - paragraph [ref=e60]: 공개 동영상
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: "8"
+              - paragraph [ref=e63]: 활성 크리에이터
+            - generic [ref=e64]:
+              - paragraph [ref=e65]: "71"
+              - paragraph [ref=e66]: 확정 판매
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - paragraph [ref=e71]: Live Creator Videos
+          - heading "실제 공개 동영상 콘텐츠로 팬이 바로 확인합니다." [level=2] [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - generic [ref=e75]:
+              - paragraph [ref=e76]: "281"
+              - paragraph [ref=e77]: 공개 콘텐츠
+            - generic [ref=e78]:
+              - paragraph [ref=e79]: "63"
+              - paragraph [ref=e80]: 공개 동영상
+            - generic [ref=e81]:
+              - paragraph [ref=e82]: "71"
+              - paragraph [ref=e83]: 확정 판매
+            - generic [ref=e84]:
+              - paragraph [ref=e85]: 71 USDT
+              - paragraph [ref=e86]: 누적 판매
+          - link "팬 피드 보기" [ref=e87] [cursor=pointer]:
+            - /url: /ko/fanletter/feed?ref=FXBSQ976
+      - generic [ref=e88]:
+        - link [ref=e89] [cursor=pointer]:
+          - /url: /ko/fanletter/content/68631d14-f050-48ac-b3d8-5f2d24aba881?ref=FXBSQ976
+          - article [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e95]: 무료 공개
+              - generic [ref=e99]:
+                - paragraph [ref=e100]: 지니
+                - paragraph [ref=e101]: 5월 2일
+            - generic [ref=e102]:
+              - heading "Take a selfie of a young man with black hair combed back, wearing a black sweatshirt. Ne" [level=3] [ref=e103]
+              - paragraph [ref=e104]: Take a selfie of a young man with black hair combed back, wearing a black sweatshirt. Next to him, you can only see one shoulder, and behind
+              - generic [ref=e105]:
+                - img [ref=e106]
+                - text: 콘텐츠 보기
+        - link [ref=e111] [cursor=pointer]:
+          - /url: /ko/fanletter/content/21829a65-b20c-4415-a86c-48aa2a839ad9?ref=FXBSQ976
+          - article [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e117]: 무료 공개
+              - generic [ref=e119]:
+                - generic [ref=e120]: 강
+                - generic [ref=e121]:
+                  - paragraph [ref=e122]: 강심장
+                  - paragraph [ref=e123]: 5월 3일
+            - generic [ref=e124]:
+              - heading "워킹" [level=3] [ref=e125]
+              - paragraph [ref=e126]: 워킹
+              - generic [ref=e127]:
+                - img [ref=e128]
+                - text: 콘텐츠 보기
+        - link [ref=e133] [cursor=pointer]:
+          - /url: /ko/fanletter/content/3c9d98a9-ced3-4b2f-92b1-8bbb290b53c3?ref=FXBSQ976
+          - article [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e139]: 무료 공개
+              - generic [ref=e143]:
+                - paragraph [ref=e144]: 섹드립
+                - paragraph [ref=e145]: 5월 3일
+            - generic [ref=e146]:
+              - heading "영어공부해라" [level=3] [ref=e147]
+              - paragraph [ref=e148]: 영어공부해라
+              - generic [ref=e149]:
+                - img [ref=e150]
+                - text: 콘텐츠 보기
+        - link [ref=e155] [cursor=pointer]:
+          - /url: /ko/fanletter/content/4783df0e-6339-4540-bb63-d671e5cce823?ref=FXBSQ976
+          - article [ref=e156]:
+            - generic [ref=e157]:
+              - generic [ref=e161]: 무료 공개
+              - generic [ref=e165]:
+                - paragraph [ref=e166]: 지니
+                - paragraph [ref=e167]: 5월 2일
+            - generic [ref=e168]:
+              - heading "tiktok" [level=3] [ref=e169]
+              - paragraph [ref=e170]: tiktok
+              - generic [ref=e171]:
+                - img [ref=e172]
+                - text: 콘텐츠 보기
+        - link [ref=e177] [cursor=pointer]:
+          - /url: /ko/fanletter/content/b6c2c2cf-d5a2-44a0-bb21-d9703014d019?ref=FXBSQ976
+          - article [ref=e178]:
+            - generic [ref=e179]:
+              - generic [ref=e183]: 무료 공개
+              - generic [ref=e187]:
+                - paragraph [ref=e188]: 지니
+                - paragraph [ref=e189]: 5월 2일
+            - generic [ref=e190]:
+              - 'heading "{ \"prompt_type\": \"descriptive_replication\", \"reference_adherence\": \"STRICT_VISUAL_FI" [level=3] [ref=e191]'
+              - paragraph [ref=e192]: "{ \"prompt_type\": \"descriptive_replication\", \"reference_adherence\": \"STRICT_VISUAL_FIDELITY\", \"aspect_ratio\": \"3:4\", \"identity_lock\": { \"prio"
+              - generic [ref=e193]:
+                - img [ref=e194]
+                - text: 콘텐츠 보기
+        - link [ref=e199] [cursor=pointer]:
+          - /url: /ko/fanletter/content/1c6c398f-88c4-4ef9-97ea-5d2d62acb362?ref=FXBSQ976
+          - article [ref=e200]:
+            - generic [ref=e201]:
+              - generic [ref=e205]: 무료 공개
+              - generic [ref=e209]:
+                - paragraph [ref=e210]: 지니
+                - paragraph [ref=e211]: 5월 2일
+            - generic [ref=e212]:
+              - heading "A Stunning Light-skinned woman, young adult, in vibrant pink, glossy, metallic shorts." [level=3] [ref=e213]
+              - paragraph [ref=e214]: A Stunning Light-skinned woman, young adult, in vibrant pink, glossy, metallic shorts. Close-up, full-body shot, with a dynamic cyberpunk ci
+              - generic [ref=e215]:
+                - img [ref=e216]
+                - text: 콘텐츠 보기
+    - generic [ref=e223]:
+      - generic [ref=e224]:
+        - paragraph [ref=e225]: Creator flow
+        - heading "AI 콘텐츠 생성부터 팬 전용 판매까지" [level=2] [ref=e226]
+        - paragraph [ref=e227]: 프로필 설정부터 AI 생성, 공개 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다.
+      - generic [ref=e228]:
+        - article [ref=e229]:
+          - generic [ref=e230]:
+            - paragraph [ref=e231]: "01"
+            - paragraph [ref=e232]: creator studio
+          - generic [ref=e233]:
+            - img [ref=e235]
+            - generic [ref=e238]:
+              - heading "AI 이미지 생성" [level=3] [ref=e239]
+              - paragraph [ref=e240]: 고정 인물 페르소나와 아바타를 바탕으로 일관된 이미지 콘텐츠를 생성합니다.
+        - article [ref=e241]:
+          - generic [ref=e242]:
+            - paragraph [ref=e243]: "05"
+            - paragraph [ref=e244]: AI content flow
+          - generic [ref=e245]:
+            - img [ref=e247]
+            - generic [ref=e252]:
+              - heading "AI 동영상 생성" [level=3] [ref=e253]
+              - paragraph [ref=e254]: 짧은 세로형 동영상 콘텐츠를 만들고 네트워크 피드와 상세 페이지에서 재생합니다.
+        - article [ref=e255]:
+          - generic [ref=e256]:
+            - paragraph [ref=e257]: 24/7
+            - paragraph [ref=e258]: mobile first
+          - generic [ref=e259]:
+            - img [ref=e261]
+            - generic [ref=e264]:
+              - heading "팬 전용 피드" [level=3] [ref=e265]
+              - paragraph [ref=e266]: 팬 전용 콘텐츠, 유료 콘텐츠, 저장과 공유 흐름을 하나의 피드로 운영합니다.
+    - generic [ref=e268]:
+      - generic [ref=e269]:
+        - generic [ref=e270]:
+          - paragraph [ref=e271]: Features
+          - heading "모바일에서 바로 쓰는 크리에이터 기능" [level=2] [ref=e272]
+        - link "크리에이터로 시작" [ref=e273] [cursor=pointer]:
+          - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e274]:
+        - article [ref=e275]:
+          - img [ref=e277]
+          - generic [ref=e280]:
+            - generic [ref=e281]: New
+            - heading "AI 이미지 생성" [level=3] [ref=e282]
+            - paragraph [ref=e283]: 고정 인물 페르소나와 아바타를 바탕으로 일관된 이미지 콘텐츠를 생성합니다.
+        - article [ref=e284]:
+          - img [ref=e286]
+          - generic [ref=e291]:
+            - generic [ref=e292]: New
+            - heading "AI 동영상 생성" [level=3] [ref=e293]
+            - paragraph [ref=e294]: 짧은 세로형 동영상 콘텐츠를 만들고 네트워크 피드와 상세 페이지에서 재생합니다.
+        - article [ref=e295]:
+          - img [ref=e297]
+          - generic [ref=e300]:
+            - heading "팬 전용 피드" [level=3] [ref=e301]
+            - paragraph [ref=e302]: 팬 전용 콘텐츠, 유료 콘텐츠, 저장과 공유 흐름을 하나의 피드로 운영합니다.
+        - article [ref=e303]:
+          - img [ref=e305]
+          - generic [ref=e310]:
+            - heading "네트워크 성장" [level=3] [ref=e311]
+            - paragraph [ref=e312]: 레퍼럴 코드와 공유 링크로 유입을 추적하고 네트워크 콘텐츠로 확장합니다.
+        - article [ref=e313]:
+          - img [ref=e315]
+          - generic [ref=e319]:
+            - heading "지갑과 정산" [level=3] [ref=e320]
+            - paragraph [ref=e321]: 지갑 연결, USDT 기반 결제 흐름, 판매 내역을 크리에이터 스튜디오에서 확인합니다.
+    - generic [ref=e323]:
+      - generic [ref=e324]:
+        - paragraph [ref=e325]: Creator network
+        - heading "Creator-AI Economy를 더 빠르게 시작하세요." [level=2] [ref=e326]
+        - paragraph [ref=e327]: 인물 페르소나, AI 이미지와 동영상, 팬 전용 콘텐츠, 레퍼럴 네트워크를 하나의 모바일 흐름으로 연결합니다.
+        - link "지금 시작하기" [ref=e328] [cursor=pointer]:
+          - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e329]:
+        - generic [ref=e330]:
+          - img [ref=e332]
+          - generic [ref=e334]:
+            - paragraph [ref=e335]: creator-AI economy를 시작한 네트워크
+            - paragraph [ref=e336]: 현재 공개 데이터로 서비스 움직임을 보여줍니다.
+        - generic [ref=e337]:
+          - generic [ref=e338]:
+            - generic [ref=e339]:
+              - paragraph [ref=e340]: 공개 콘텐츠
+              - img [ref=e341]
+            - paragraph [ref=e344]: "281"
+          - generic [ref=e345]:
+            - generic [ref=e346]:
+              - paragraph [ref=e347]: 공개 동영상
+              - img [ref=e348]
+            - paragraph [ref=e353]: "63"
+          - generic [ref=e354]:
+            - generic [ref=e355]:
+              - paragraph [ref=e356]: 확정 판매
+              - img [ref=e357]
+            - paragraph [ref=e359]: "71"
+          - generic [ref=e360]:
+            - generic [ref=e361]:
+              - paragraph [ref=e362]: 누적 판매
+              - img [ref=e363]
+            - paragraph [ref=e366]: 71 USDT
+    - generic [ref=e368]:
+      - generic [ref=e369]:
+        - heading "모든 니치에 맞는 AI 콘텐츠 홈." [level=2] [ref=e370]
+        - paragraph [ref=e371]: 하나의 인물 정체성을 유지하면서 장르와 상황을 바꿔 더 많은 콘텐츠를 만듭니다.
+        - generic [ref=e372]:
+          - generic [ref=e373]: Beauty
+          - generic [ref=e374]: Fitness
+          - generic [ref=e375]: Music
+          - generic [ref=e376]: Fashion
+          - generic [ref=e377]: Travel
+        - link "크리에이터 스튜디오 열기" [ref=e378] [cursor=pointer]:
+          - /url: /ko/fanletter/start?ref=FXBSQ976
+      - generic [ref=e379]:
+        - link "지니 · 5월 2일 Take a selfie of a young man with black hair combed back, wearing a black sweatshirt. Ne" [ref=e380] [cursor=pointer]:
+          - /url: /ko/fanletter/content/68631d14-f050-48ac-b3d8-5f2d24aba881?ref=FXBSQ976
+          - generic [ref=e383]:
+            - paragraph [ref=e384]: 지니 · 5월 2일
+            - heading "Take a selfie of a young man with black hair combed back, wearing a black sweatshirt. Ne" [level=3] [ref=e385]
+        - link "강심장 · 5월 3일 워킹" [ref=e386] [cursor=pointer]:
+          - /url: /ko/fanletter/content/21829a65-b20c-4415-a86c-48aa2a839ad9?ref=FXBSQ976
+          - generic [ref=e389]:
+            - paragraph [ref=e390]: 강심장 · 5월 3일
+            - heading "워킹" [level=3] [ref=e391]
+        - link "섹드립 · 5월 3일 영어공부해라" [ref=e392] [cursor=pointer]:
+          - /url: /ko/fanletter/content/3c9d98a9-ced3-4b2f-92b1-8bbb290b53c3?ref=FXBSQ976
+          - generic [ref=e395]:
+            - paragraph [ref=e396]: 섹드립 · 5월 3일
+            - heading "영어공부해라" [level=3] [ref=e397]
+    - generic [ref=e398]:
+      - heading "FAQ" [level=2] [ref=e399]
+      - generic [ref=e400]:
+        - group [ref=e401]:
+          - generic "FanLetter는 무엇인가요? +" [ref=e402]:
+            - generic [ref=e403]: FanLetter는 무엇인가요?
+            - generic [ref=e404]: +
+        - group [ref=e405]:
+          - generic "누가 사용할 수 있나요? +" [ref=e406]:
+            - generic [ref=e407]: 누가 사용할 수 있나요?
+            - generic [ref=e408]: +
+        - group [ref=e409]:
+          - generic "콘텐츠는 어떻게 수익화하나요? +" [ref=e410]:
+            - generic [ref=e411]: 콘텐츠는 어떻게 수익화하나요?
+            - generic [ref=e412]: +
+        - group [ref=e413]:
+          - generic "모바일에서도 충분히 사용할 수 있나요? +" [ref=e414]:
+            - generic [ref=e415]: 모바일에서도 충분히 사용할 수 있나요?
+            - generic [ref=e416]: +
+    - generic [ref=e418]:
+      - generic [ref=e419]:
+        - paragraph [ref=e420]: 가장 빠른 AI 크리에이터 홈을 시작하세요.
+        - generic [ref=e421]:
+          - link "크리에이터로 시작" [ref=e422] [cursor=pointer]:
+            - /url: /ko/fanletter/start?ref=FXBSQ976
+          - link "팬 피드 보기" [ref=e423] [cursor=pointer]:
+            - /url: /ko/fanletter/feed?ref=FXBSQ976
+      - generic [ref=e424]:
+        - generic [ref=e425]:
+          - paragraph [ref=e426]: FanLetter
+          - generic [ref=e427]:
+            - link "스튜디오" [ref=e428] [cursor=pointer]:
+              - /url: /ko/fanletter/studio?ref=FXBSQ976
+            - link "피드" [ref=e429] [cursor=pointer]:
+              - /url: /ko/fanletter/feed?ref=FXBSQ976
+            - link "계정 연결" [ref=e430] [cursor=pointer]:
+              - /url: /ko/fanletter/connect?ref=FXBSQ976&returnTo=%2Fko%2Ffanletter%2Fonboarding%3Fref%3DFXBSQ976
+        - generic [ref=e431]:
+          - paragraph [ref=e432]: 기능
+          - generic [ref=e433]:
+            - link "AI 콘텐츠" [ref=e434] [cursor=pointer]:
+              - /url: "#features"
+            - link "네트워크" [ref=e435] [cursor=pointer]:
+              - /url: "#creators"
+        - generic [ref=e436]:
+          - paragraph [ref=e437]: FAQ
+          - link "도움말" [ref=e439] [cursor=pointer]:
+            - /url: "#faq"
+        - generic [ref=e440]:
+          - paragraph [ref=e441]: 신뢰
+          - generic [ref=e442]:
+            - img [ref=e443]
+            - generic [ref=e446]: 모바일 우선
+          - generic [ref=e447]:
+            - img [ref=e448]
+            - generic [ref=e451]: USDT 결제
+          - generic [ref=e452]:
+            - img [ref=e453]
+            - generic [ref=e455]: 크리에이터 성장
+  - alert [ref=e456]
