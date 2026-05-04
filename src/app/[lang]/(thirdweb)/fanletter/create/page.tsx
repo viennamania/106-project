@@ -66,11 +66,11 @@ export async function generateMetadata({
   const referralCode = readReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 첫 AI 캐릭터 vlog 만들기"
+      ? "FanLetter 첫 AI 캐릭터 브이로그 만들기"
       : "Create First FanLetter AI Character Vlog";
   const description =
     locale === "ko"
-      ? "AI 캐릭터의 오늘 장면을 이미지나 동영상 vlog로 생성하고 FanLetter 피드에 게시하세요."
+      ? "AI 캐릭터의 오늘 장면을 이미지나 동영상 브이로그로 생성하고 FanLetter 피드에 게시하세요."
       : "Generate today's AI character scene as an image or video vlog and publish it to FanLetter.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),

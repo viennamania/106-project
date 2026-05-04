@@ -20,8 +20,8 @@ function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "얼굴 공개 없이 고정 AI 캐릭터로 숏폼 vlog를 만들고 팬 피드와 유료 콘텐츠로 연결하는 FanLetter 창작자 플랫폼입니다.",
-      title: "FanLetter | AI 캐릭터 vlogger 창작자 플랫폼",
+        "얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고 팬 피드와 유료 콘텐츠로 연결하는 FanLetter 창작자 플랫폼입니다.",
+      title: "FanLetter | AI 캐릭터 브이로그 창작자 플랫폼",
     };
   }
 

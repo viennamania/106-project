@@ -45,12 +45,12 @@ export async function generateMetadata({
   const title = content
     ? `${content.title} | FanLetter`
     : locale === "ko"
-      ? "FanLetter vlog"
+      ? "FanLetter 브이로그"
       : "FanLetter vlog";
   const description =
     content?.summary ??
     (locale === "ko"
-      ? "FanLetter 공개 AI 캐릭터 vlog 상세 페이지입니다."
+      ? "FanLetter 공개 AI 캐릭터 브이로그 상세 페이지입니다."
       : "A public FanLetter AI character vlog detail page.");
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const openGraphType = content?.hasVideo ? "video.other" : "website";

@@ -115,28 +115,28 @@ type FanletterCopy = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "AI 캐릭터 vlogger 스튜디오 공개",
-    prize: "캐릭터 설정부터 숏폼 vlog까지",
+    label: "AI 캐릭터 브이로그 스튜디오 공개",
+    prize: "캐릭터 설정부터 숏폼 브이로그까지",
   },
-  brandSuffix: "AI Character Vlogger",
+  brandSuffix: "AI 캐릭터 브이로그",
   cta: {
     creator: "AI 캐릭터 채널 시작",
-    fan: "vlog 피드 보기",
+    fan: "브이로그 피드 보기",
     login: "계정 연결",
-    studio: "vlog 스튜디오",
+    studio: "브이로그 스튜디오",
   },
   creatorWall: {
     count: "201,548",
-    label: "AI 캐릭터 vlogger 채널을 시작한 네트워크",
+    label: "AI 캐릭터 브이로그 채널을 시작한 네트워크",
   },
   economy: {
-    body: "캐릭터 페르소나, 숏폼 vlog 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
+    body: "캐릭터 페르소나, 숏폼 브이로그 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
     cta: "지금 시작하기",
-    title: "AI 캐릭터 vlog 채널을 더 빠르게 시작하세요.",
+    title: "AI 캐릭터 브이로그 채널을 더 빠르게 시작하세요.",
   },
   faq: [
     {
-      answer: "FanLetter는 얼굴 공개 없이 고정 페르소나를 가진 AI 캐릭터로 숏폼 vlog 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
+      answer: "FanLetter는 얼굴 공개 없이 고정 페르소나를 가진 AI 캐릭터로 숏폼 브이로그 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
       question: "FanLetter는 무엇인가요?",
     },
     {
@@ -144,11 +144,11 @@ const koCopy: FanletterCopy = {
       question: "누가 사용할 수 있나요?",
     },
     {
-      answer: "vlog 스튜디오에서 오늘의 숏폼 vlog를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
-      question: "vlog는 어떻게 수익화하나요?",
+      answer: "브이로그 스튜디오에서 오늘의 숏폼 브이로그를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
+      question: "브이로그는 어떻게 수익화하나요?",
     },
     {
-      answer: "모바일에서 캐릭터 설정, 오늘의 vlog 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
+      answer: "모바일에서 캐릭터 설정, 오늘의 브이로그 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
       question: "모바일에서도 충분히 사용할 수 있나요?",
     },
   ],
@@ -163,11 +163,11 @@ const koCopy: FanletterCopy = {
       },
       {
         badge: "New",
-        description: "셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 vlog로 생성합니다.",
-        title: "숏폼 vlog 생성",
+        description: "셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 브이로그로 생성합니다.",
+        title: "숏폼 브이로그 생성",
       },
       {
-        description: "공개 vlog, 유료 vlog, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.",
+        description: "공개 브이로그, 유료 브이로그, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.",
         title: "캐릭터 피드",
       },
       {
@@ -175,34 +175,34 @@ const koCopy: FanletterCopy = {
         title: "유료 커뮤니티 확장",
       },
       {
-        description: "브랜드 마스코트, 웹툰, 게임, 버추얼 아이돌 IP를 캐릭터 vlog로 확장합니다.",
+        description: "브랜드 마스코트, 웹툰, 게임, 버추얼 아이돌 IP를 캐릭터 브이로그로 확장합니다.",
         title: "브랜드와 IP 숏폼화",
       },
     ],
   },
   footer: {
-    title: "얼굴 없이 시작하는 AI 캐릭터 vlog 채널.",
+    title: "얼굴 없이 시작하는 AI 캐릭터 브이로그 채널.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "누구나 AI 캐릭터 vlogger가 될 수 있습니다.",
+    title: "누구나 AI 캐릭터 브이로그 채널을 만들 수 있습니다.",
     description:
-      "FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 vlog를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
+      "FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
   },
   languageLabel: "언어",
   liveStats: {
-    content: "공개 vlog",
+    content: "공개 브이로그",
     creators: "활성 캐릭터",
     sales: "확정 판매",
     totalSales: "누적 판매",
-    videos: "동영상 vlog",
+    videos: "동영상 브이로그",
   },
   liveVideos: {
-    empty: "공개된 AI 캐릭터 vlog가 준비되면 이 영역에 바로 노출됩니다.",
-    eyebrow: "Live AI Character Vlogs",
+    empty: "공개된 AI 캐릭터 브이로그가 준비되면 이 영역에 바로 노출됩니다.",
+    eyebrow: "실시간 AI 캐릭터 브이로그",
     free: "무료 공개",
-    open: "vlog 보기",
-    title: "공개된 AI 캐릭터 vlog로 팬이 바로 확인합니다.",
+    open: "브이로그 보기",
+    title: "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다.",
   },
   nav: {
     creators: "캐릭터",
@@ -212,15 +212,15 @@ const koCopy: FanletterCopy = {
   },
   niche: {
     body: "개인, AI 인플루언서, 브랜드 마스코트, 웹툰·게임·버추얼 아이돌 IP까지 하나의 캐릭터 채널로 숏폼화합니다.",
-    cta: "vlog 스튜디오 열기",
+    cta: "브이로그 스튜디오 열기",
     title: "캐릭터가 있으면 채널을 만들 수 있습니다.",
     categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
   },
   proof: {
-    title: "캐릭터 설정부터 숏폼 vlog 판매까지",
+    title: "캐릭터 설정부터 숏폼 브이로그 판매까지",
     stats: [
       { label: "character setup", value: "01" },
-      { label: "vlog flow", value: "05" },
+      { label: "브이로그 흐름", value: "05" },
       { label: "mobile channel", value: "24/7" },
     ],
   },
@@ -242,11 +242,11 @@ const koCopy: FanletterCopy = {
       },
       {
         title: "브랜드와 소상공인",
-        description: "브랜드 마스코트를 사람처럼 말하고 움직이는 vlog 캐릭터로 확장합니다.",
+        description: "브랜드 마스코트를 사람처럼 말하고 움직이는 브이로그 캐릭터로 확장합니다.",
       },
       {
         title: "웹툰·게임·버추얼 IP 팀",
-        description: "기존 캐릭터 IP를 숏폼 vlog와 팬 피드로 재활용합니다.",
+        description: "기존 캐릭터 IP를 숏폼 브이로그와 팬 피드로 재활용합니다.",
       },
     ],
   },
@@ -525,13 +525,13 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정 연결",
-          aiContent: "AI 캐릭터 vlog",
+          aiContent: "AI 캐릭터 브이로그",
           creatorGrowth: "팬 관계 성장",
-          feed: "vlog 피드",
+          feed: "브이로그 피드",
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
-          studio: "vlog 스튜디오",
+          studio: "브이로그 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
         }
@@ -845,14 +845,14 @@ export function FanletterHomePage({
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-                AI character vlog flow
+                {locale === "ko" ? "AI 캐릭터 브이로그 흐름" : "AI character vlog flow"}
               </p>
               <h2 className="mt-4 max-w-2xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.4rem]">
                 {copy.proof.title}
               </h2>
               <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/62 sm:text-base">
                 {locale === "ko"
-                  ? "캐릭터 설정부터 숏폼 vlog 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
+                  ? "캐릭터 설정부터 숏폼 브이로그 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
                   : "Character setup, short-form vlog generation, public feeds, and sales checks are connected as one understandable creator flow."}
               </p>
             </div>
@@ -912,7 +912,7 @@ export function FanletterHomePage({
               </p>
               <h2 className="mt-4 max-w-3xl text-[2.2rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.5rem]">
                 {locale === "ko"
-                  ? "모바일에서 바로 쓰는 AI 캐릭터 vlog 기능"
+                  ? "모바일에서 바로 쓰는 AI 캐릭터 브이로그 기능"
                   : "AI character vlog tools that work from mobile"}
               </h2>
             </div>

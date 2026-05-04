@@ -103,53 +103,53 @@ type FanletterSubpageCopy = {
 const koCopy: FanletterSubpageCopy = {
   actions: {
     continue: "계속 진행",
-    creatorStudio: "vlog 스튜디오",
+    creatorStudio: "브이로그 스튜디오",
     existingDetail: "지갑 연결 상세로 이동",
-    feed: "vlog 피드",
+    feed: "브이로그 피드",
     home: "홈",
-    openContent: "vlog 보기",
+    openContent: "브이로그 보기",
     start: "채널 시작",
   },
   content: {
-    body: "vlog 본문",
-    lockedBody: "전체 vlog는 기존 상세 화면에서 권한 확인 후 열람할 수 있습니다.",
+    body: "브이로그 본문",
+    lockedBody: "전체 브이로그는 기존 상세 화면에서 권한 확인 후 열람할 수 있습니다.",
     lockedDescription:
       "결제, 지갑 연결, 회원 권한 확인은 기존 상세 API와 화면을 그대로 사용합니다.",
-    lockedTitle: "권한 확인이 필요한 vlog입니다.",
-    media: "vlog 미디어",
+    lockedTitle: "권한 확인이 필요한 브이로그입니다.",
+    media: "브이로그 미디어",
     paid: "유료",
     public: "무료 공개",
   },
   creator: {
     characterAvatars: "표정 아바타 세트",
     characterBody:
-      "내부 생성 프롬프트는 숨기고 팬이 소비할 수 있는 캐릭터 소개와 공개 vlog 흐름만 보여줍니다.",
+      "내부 생성 프롬프트는 숨기고 팬이 소비할 수 있는 캐릭터 소개와 공개 브이로그 흐름만 보여줍니다.",
     characterEmptyTraits: "공개 키워드는 페르소나가 더 정리되면 표시됩니다.",
-    characterEvolution: "vlogger 성장 로그",
-    characterEyebrow: "Public AI Character Vlogger",
-    characterImageSignal: "이미지 vlog",
-    characterLatest: "최근 vlog",
-    characterPublicSignal: "공개 vlog",
+    characterEvolution: "브이로그 성장 로그",
+    characterEyebrow: "공개 AI 캐릭터 브이로그",
+    characterImageSignal: "이미지 브이로그",
+    characterLatest: "최근 브이로그",
+    characterPublicSignal: "공개 브이로그",
     characterTitle: "AI 캐릭터 채널",
     characterTraits: "캐릭터 키워드",
-    characterVideoSignal: "동영상 vlog",
-    empty: "이 캐릭터의 공개 vlog가 준비되면 이곳에 표시됩니다.",
+    characterVideoSignal: "동영상 브이로그",
+    empty: "이 캐릭터의 공개 브이로그가 준비되면 이곳에 표시됩니다.",
     eyebrow: "AI Character Channel",
-    publicPosts: "공개 vlog",
+    publicPosts: "공개 브이로그",
     stage: "Stage",
     titleSuffix: "의 FanLetter",
   },
   feed: {
-    allContent: "전체 공개 vlog",
-    empty: "공개 AI 캐릭터 vlog가 준비되면 이곳에 표시됩니다.",
-    eyebrow: "AI Character Vlog Feed",
-    featured: "추천 vlog",
+    allContent: "전체 공개 브이로그",
+    empty: "공개 AI 캐릭터 브이로그가 준비되면 이곳에 표시됩니다.",
+    eyebrow: "AI 캐릭터 브이로그 피드",
+    featured: "추천 브이로그",
     freePublic: "무료 공개",
-    latest: "최신 vlog",
+    latest: "최신 브이로그",
     suggestedCreators: "추천 캐릭터",
-    title: "AI 캐릭터의 공개 숏폼 vlog를 FanLetter 흐름 안에서 둘러보세요.",
-    trending: "인기 vlog",
-    videos: "동영상 vlog",
+    title: "AI 캐릭터의 공개 숏폼 브이로그를 FanLetter 흐름 안에서 둘러보세요.",
+    trending: "인기 브이로그",
+    videos: "동영상 브이로그",
   },
   languageLabel: "언어",
   metrics: {
@@ -158,23 +158,23 @@ const koCopy: FanletterSubpageCopy = {
     saves: "저장",
   },
   start: {
-    body: "가입, AI 캐릭터 설정, 첫 숏폼 vlog 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.",
+    body: "가입, AI 캐릭터 설정, 첫 숏폼 브이로그 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.",
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "가입을 완료하고 표시 이름, 캐릭터 페르소나, 아바타를 정리해 같은 vlogger가 유지되게 준비합니다.",
+        body: "가입을 완료하고 표시 이름, 캐릭터 페르소나, 아바타를 정리해 같은 브이로그 캐릭터가 유지되게 준비합니다.",
         title: "AI 캐릭터 준비",
       },
       {
-        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 이미지 또는 동영상 vlog로 만듭니다.",
-        title: "첫 vlog 생성",
+        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 이미지 또는 동영상 브이로그로 만듭니다.",
+        title: "첫 브이로그 생성",
       },
       {
-        body: "FanLetter vlog 피드와 공유 링크로 팬에게 보여주고 유료 커뮤니티 흐름으로 이어갑니다.",
+        body: "FanLetter 브이로그 피드와 공유 링크로 팬에게 보여주고 유료 커뮤니티 흐름으로 이어갑니다.",
         title: "게시와 수익화",
       },
     ],
-    title: "처음 시작하는 사람도 AI 캐릭터 vlogger 채널을 바로 따라갈 수 있게 정리했습니다.",
+    title: "처음 시작하는 사람도 AI 캐릭터 브이로그 채널을 바로 따라갈 수 있게 정리했습니다.",
   },
 };
 
@@ -881,7 +881,7 @@ export function FanletterFeedPage({
       eyebrow={copy.feed.eyebrow}
       locale={locale}
       referralCode={referralCode}
-      title={locale === "ko" ? "FanLetter AI 캐릭터 vlog 피드" : "FanLetter AI Character Vlog Feed"}
+      title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -913,7 +913,7 @@ export function FanletterFeedPage({
               <div className="grid min-w-0 gap-4">
                 <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)]">
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#1f7c38]">
-                    {locale === "ko" ? "Character Vlog" : "Character Vlog"}
+                    {locale === "ko" ? "캐릭터 브이로그" : "Character Vlog"}
                   </p>
                   <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all]">
                     {copy.feed.title}
@@ -1492,22 +1492,22 @@ export function FanletterOnboardingPage({
       ? {
           accountState: "기존 회원 세션과 지갑 연결을 그대로 사용합니다.",
           asideBody:
-            "처음 방문한 사용자가 AI 캐릭터 vlogger 채널을 바로 시작할 수 있도록 필요한 작업만 순서대로 모았습니다.",
+            "처음 방문한 사용자가 AI 캐릭터 브이로그 채널을 바로 시작할 수 있도록 필요한 작업만 순서대로 모았습니다.",
           asideTitle: "오늘 채널 시작하기",
           completeBody:
-            "가입, 캐릭터 페르소나, 첫 vlog까지 끝내면 FanLetter vlog 피드와 스튜디오에서 바로 이어서 운영할 수 있습니다.",
+            "가입, 캐릭터 페르소나, 첫 브이로그까지 끝내면 FanLetter 브이로그 피드와 스튜디오에서 바로 이어서 운영할 수 있습니다.",
           completeTitle: "완료 후 바로 캐릭터 채널 운영으로 이어집니다.",
           description:
-            "FanLetter 전용 화면에서 계정 연결, AI 캐릭터 페르소나, 첫 숏폼 vlog 생성까지 순서대로 진행하세요.",
+            "FanLetter 전용 화면에서 계정 연결, AI 캐릭터 페르소나, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
           eyebrow: "FanLetter Onboarding",
-          feedCta: "vlog 피드 보기",
-          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 vlog 흐름으로 묶습니다.",
-          homeCta: "vlog 스튜디오",
+          feedCta: "브이로그 피드 보기",
+          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 브이로그 흐름으로 묶습니다.",
+          homeCta: "브이로그 스튜디오",
           primary: "계정 연결부터 시작",
           progress: "Launch checklist",
           requiredLabel: "필수",
           secondary: "프로필부터 설정",
-          title: "AI 캐릭터 vlogger 채널을 한 화면에서 시작하세요.",
+          title: "AI 캐릭터 브이로그 채널을 한 화면에서 시작하세요.",
           steps: [
             {
               body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
@@ -1518,7 +1518,7 @@ export function FanletterOnboardingPage({
               title: "계정과 지갑 연결",
             },
             {
-              body: "표시 이름, 캐릭터 페르소나, AI 아바타를 정리해 같은 vlogger의 첫 인상을 만듭니다.",
+              body: "표시 이름, 캐릭터 페르소나, AI 아바타를 정리해 같은 브이로그 캐릭터의 첫 인상을 만듭니다.",
               cta: "프로필 설정하기",
               href: profileHref,
               Icon: PenLine,
@@ -1526,12 +1526,12 @@ export function FanletterOnboardingPage({
               title: "AI 캐릭터 프로필 준비",
             },
             {
-              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 이미지나 동영상 vlog로 만들고 공개 범위와 가격을 정합니다.",
-              cta: "첫 vlog 만들기",
+              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 이미지나 동영상 브이로그로 만들고 공개 범위와 가격을 정합니다.",
+              cta: "첫 브이로그 만들기",
               href: createHref,
               Icon: Clapperboard,
-              meta: "03 · Vlog",
-              title: "첫 숏폼 vlog 생성",
+              meta: "03 · 브이로그",
+              title: "첫 숏폼 브이로그 생성",
             },
           ],
         }
@@ -1791,7 +1791,7 @@ export function FanletterStartPage({
     locale === "ko"
       ? {
           flowEyebrow: "Quick setup",
-          flowTitle: "3단계만 끝내면 AI 캐릭터 vlogger 채널을 바로 시작할 수 있습니다.",
+          flowTitle: "3단계만 끝내면 AI 캐릭터 브이로그 채널을 바로 시작할 수 있습니다.",
           primary: "가입하고 채널 시작",
           secondary: "프로필 설정하기",
           previewTitle: "오늘 할 일",
@@ -1799,7 +1799,7 @@ export function FanletterStartPage({
           nextLabel: "다음 단계",
           readyLabel: "시작 준비",
           readyValue: "3 steps",
-          stepMeta: ["계정 확인", "캐릭터 준비", "첫 vlog"],
+          stepMeta: ["계정 확인", "캐릭터 준비", "첫 브이로그"],
         }
       : {
           flowEyebrow: "Quick setup",

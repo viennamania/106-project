@@ -72,7 +72,7 @@ function getCopy(locale: Locale) {
           "FanLetter 전용 온보딩에서 이메일 지갑과 회원 상태를 먼저 확인합니다.",
         back: "온보딩으로 돌아가기",
         completedBody:
-          "가입 완료 회원으로 확인되었습니다. vlog 스튜디오에서 AI 캐릭터 프로필, vlog, 공개 상태를 이어서 관리하세요.",
+          "가입 완료 회원으로 확인되었습니다. 브이로그 스튜디오에서 AI 캐릭터 프로필, 브이로그, 공개 상태를 이어서 관리하세요.",
         completedTitle: "FanLetter 시작 준비가 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
@@ -82,7 +82,7 @@ function getCopy(locale: Locale) {
         email: "이메일",
         eyebrow: "FanLetter Account",
         helper:
-          "계정 연결 후 회원 API 동기화가 끝나야 AI 캐릭터 프로필과 첫 vlog 생성 단계로 이동할 수 있습니다.",
+          "계정 연결 후 회원 API 동기화가 끝나야 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
         loginTitle: "FanLetter 계정 연결",
         member: "회원 상태",
         missingClient:
@@ -94,9 +94,9 @@ function getCopy(locale: Locale) {
         primary: "프로필 설정으로 이동",
         reconnect: "다시 확인",
         restoring: "기존 계정 연결을 복원하고 있습니다.",
-        secondary: "첫 vlog 만들기",
+        secondary: "첫 브이로그 만들기",
         signOut: "연결 해제",
-        studio: "vlog 스튜디오로 이동",
+        studio: "브이로그 스튜디오로 이동",
         steps: ["이메일 로그인", "스마트 지갑 연결", "회원 상태 동기화"],
         syncErrorTitle: "회원 상태 확인이 필요합니다.",
         syncing: "회원 상태를 동기화하고 있습니다.",

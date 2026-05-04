@@ -68,7 +68,7 @@ export async function generateMetadata({
     locale === "ko" ? "FanLetter 프로필 설정" : "FanLetter Profile Setup";
   const description =
     locale === "ko"
-      ? "표시 이름, 캐릭터 페르소나, AI 아바타를 설정해 같은 AI 캐릭터 vlogger 채널을 준비하세요."
+      ? "표시 이름, 캐릭터 페르소나, AI 아바타를 설정해 같은 AI 캐릭터 브이로그 채널을 준비하세요."
       : "Set display name, character persona, and AI avatar to prepare a consistent AI character vlogger channel.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),

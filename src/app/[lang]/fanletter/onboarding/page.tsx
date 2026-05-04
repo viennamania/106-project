@@ -36,7 +36,7 @@ export async function generateMetadata({
       : "FanLetter Onboarding";
   const description =
     locale === "ko"
-      ? "가입 확인, AI 캐릭터 페르소나, 첫 숏폼 vlog 생성을 FanLetter 흐름 안에서 시작하세요."
+      ? "가입 확인, AI 캐릭터 페르소나, 첫 숏폼 브이로그 생성을 FanLetter 흐름 안에서 시작하세요."
       : "Start signup verification, AI character persona setup, and first short-form vlog creation inside FanLetter.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
