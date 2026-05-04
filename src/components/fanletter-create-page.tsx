@@ -101,7 +101,7 @@ function getCopy(locale: Locale) {
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
-        missingMedia: "공개하려면 먼저 동영상 브이로그를 생성하세요.",
+        missingMedia: "공개하려면 먼저 브이로그를 생성하세요.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
         paymentRequired: "가입 완료 회원만 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
@@ -125,7 +125,7 @@ function getCopy(locale: Locale) {
         titleText: "오늘의 AI 캐릭터 브이로그를 바로 만드세요.",
         video: "숏폼 브이로그",
         videoBody:
-          "세로형 동영상 브이로그를 생성해 모바일 캐릭터 피드에 바로 연결합니다.",
+          "세로형 브이로그를 생성해 모바일 캐릭터 피드에 바로 연결합니다.",
         viewContent: "브이로그 보기",
       }
     : {
@@ -150,7 +150,7 @@ function getCopy(locale: Locale) {
         generated: "Generated",
         generatingVideo: "Generating AI video...",
         loading: "Checking vlog setup.",
-        missingMedia: "Generate a video vlog before publishing.",
+        missingMedia: "Generate a vlog before publishing.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT paid`,
         paymentRequired: "Only completed members can create the first AI character vlog.",
         paymentRequiredCta: "Verify signup",
@@ -175,7 +175,7 @@ function getCopy(locale: Locale) {
         titleText: "Create today's AI character vlog inside FanLetter.",
         video: "Short-form vlog",
         videoBody:
-          "Generate a vertical video vlog that connects directly to the mobile character feed.",
+          "Generate a vertical vlog that connects directly to the mobile character feed.",
         viewContent: "View vlog",
       };
 }

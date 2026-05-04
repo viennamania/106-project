@@ -195,7 +195,7 @@ const koCopy: FanletterCopy = {
     creators: "활성 캐릭터",
     sales: "확정 판매",
     totalSales: "누적 판매",
-    videos: "동영상 브이로그",
+    videos: "브이로그",
   },
   liveVideos: {
     empty: "공개된 AI 캐릭터 브이로그가 준비되면 이 영역에 바로 노출됩니다.",
@@ -334,7 +334,7 @@ const enCopy: FanletterCopy = {
     creators: "active characters",
     sales: "confirmed sales",
     totalSales: "sales volume",
-    videos: "video vlogs",
+    videos: "vlogs",
   },
   liveVideos: {
     empty: "Public AI character vlogs will appear here as soon as they are available.",

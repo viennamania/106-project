@@ -131,7 +131,7 @@ const koCopy: FanletterSubpageCopy = {
     characterPublicSignal: "공개 브이로그",
     characterTitle: "AI 캐릭터 채널",
     characterTraits: "캐릭터 키워드",
-    characterVideoSignal: "동영상 브이로그",
+    characterVideoSignal: "브이로그",
     empty: "이 캐릭터의 공개 브이로그가 준비되면 이곳에 표시됩니다.",
     eyebrow: "AI Character Channel",
     publicPosts: "공개 브이로그",
@@ -148,7 +148,7 @@ const koCopy: FanletterSubpageCopy = {
     suggestedCreators: "추천 캐릭터",
     title: "AI 캐릭터의 공개 숏폼 브이로그를 FanLetter 흐름 안에서 둘러보세요.",
     trending: "인기 브이로그",
-    videos: "동영상 브이로그",
+    videos: "브이로그",
   },
   languageLabel: "언어",
   metrics: {
@@ -165,7 +165,7 @@ const koCopy: FanletterSubpageCopy = {
         title: "AI 캐릭터 준비",
       },
       {
-        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 동영상 브이로그로 만듭니다.",
+        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 브이로그로 만듭니다.",
         title: "첫 브이로그 생성",
       },
       {
@@ -209,7 +209,7 @@ const enCopy: FanletterSubpageCopy = {
     characterPublicSignal: "Public vlogs",
     characterTitle: "AI character channel",
     characterTraits: "Character keywords",
-    characterVideoSignal: "Video vlogs",
+    characterVideoSignal: "Vlogs",
     empty: "This character's public vlogs will appear here when ready.",
     eyebrow: "AI Character Channel",
     publicPosts: "public vlogs",
@@ -226,7 +226,7 @@ const enCopy: FanletterSubpageCopy = {
     suggestedCreators: "Suggested characters",
     title: "Browse public short-form vlogs from AI characters inside FanLetter.",
     trending: "Popular vlogs",
-    videos: "Video vlogs",
+    videos: "Vlogs",
   },
   languageLabel: "Language",
   metrics: {
@@ -243,7 +243,7 @@ const enCopy: FanletterSubpageCopy = {
         title: "Prepare AI character",
       },
       {
-        body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog.",
+        body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog.",
         title: "Create first vlog",
       },
       {
@@ -1512,7 +1512,7 @@ export function FanletterOnboardingPage({
               title: "AI 캐릭터 프로필 준비",
             },
             {
-              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 세로형 동영상 브이로그로 만들고 공개 범위와 가격을 정합니다.",
+              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 세로형 브이로그로 만들고 공개 범위와 가격을 정합니다.",
               cta: "첫 브이로그 만들기",
               href: createHref,
               Icon: Clapperboard,
@@ -1558,7 +1558,7 @@ export function FanletterOnboardingPage({
               title: "Prepare AI character profile",
             },
             {
-              body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog, then set visibility and pricing.",
+              body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog, then set visibility and pricing.",
               cta: "Create first vlog",
               href: createHref,
               Icon: Clapperboard,

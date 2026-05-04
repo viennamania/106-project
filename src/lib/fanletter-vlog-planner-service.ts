@@ -293,7 +293,7 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
         role: "system",
         content: [
           "You are a mobile-first content strategist for FanLetter, a platform for AI character vlog channels.",
-          "Generate practical daily video vlog plans that reduce creator effort.",
+          "Generate practical daily vlog plans that reduce creator effort.",
           "Plans must be easy to execute from a phone: clear scene, action, camera feeling, short caption hook, and platform angle.",
           "Keep all ideas safe for image and video generation. Do not include nudity, erotic body emphasis, fetish roles, sexualized clothing instructions, or underage implications.",
           "Maintain the same adult AI character identity when persona details are present, but vary situation, routine, emotion, and fan-facing story.",
@@ -308,7 +308,7 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
           `Creator intro: ${trimToLength(input.profile.intro, 220) || "No intro provided."}.`,
           personaInstruction,
           `Recent posts JSON: ${JSON.stringify(summarizeRecentPosts(input.posts))}.`,
-          `Generate exactly ${PLAN_COUNT} daily AI character video vlog plans.`,
+          `Generate exactly ${PLAN_COUNT} daily AI character vlog plans.`,
           "Every plan must use mediaMode video. Do not suggest image-only posts.",
           "Each title should be user-facing and short.",
           "Each summary should explain why fans would care.",

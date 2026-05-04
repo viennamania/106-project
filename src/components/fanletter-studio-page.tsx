@@ -108,11 +108,11 @@ function getCopy(locale: Locale) {
         connectTitle: "계정 연결이 필요합니다.",
         draft: "임시저장",
         emptyBody:
-          "아직 영상 브이로그가 없습니다. 첫 AI 캐릭터 동영상을 만들고 FanLetter 피드에 게시해보세요.",
+          "아직 브이로그가 없습니다. 첫 AI 캐릭터 브이로그를 만들고 FanLetter 피드에 게시해보세요.",
         emptyTitle: "첫 AI 캐릭터 브이로그를 만들 시간입니다.",
         eyebrow: "FanLetter AI 캐릭터 브이로그 스튜디오",
         labels: {
-          allPosts: "전체 영상 브이로그",
+          allPosts: "전체 브이로그",
           availableBalance: "출금 가능",
           completedMember: "가입 완료",
           draftPosts: "임시저장",
@@ -123,7 +123,7 @@ function getCopy(locale: Locale) {
           publishedPosts: "공개 영상",
           sales: "확정 판매",
           totalSales: "누적 판매",
-          videos: "영상 브이로그",
+          videos: "브이로그",
           wallet: "지갑",
         },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
@@ -143,7 +143,7 @@ function getCopy(locale: Locale) {
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
         planner: {
-          body: "캐릭터 페르소나와 최근 영상 브이로그를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 동영상 소재를 제안합니다.",
+          body: "캐릭터 페르소나와 최근 브이로그를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 소재를 제안합니다.",
           checklist: "체크",
           empty: "버튼을 누르면 제목, 요약, 생성 프롬프트, 캡션 훅까지 한 번에 준비합니다.",
           errorFallback: "브이로그 플랜을 생성하지 못했습니다.",
@@ -171,7 +171,7 @@ function getCopy(locale: Locale) {
             title: "AI 캐릭터 준비",
           },
           {
-            body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 동영상 브이로그로 만듭니다.",
+            body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 브이로그로 만듭니다.",
             title: "숏폼 브이로그 생성",
           },
           {
@@ -180,7 +180,7 @@ function getCopy(locale: Locale) {
           },
         ],
         subtitle:
-          "AI 캐릭터 프로필, 숏폼 영상 브이로그 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
+          "AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
         title: "나의 AI 캐릭터 브이로그 스튜디오",
         unknown: "확인 전",
       }
@@ -200,11 +200,11 @@ function getCopy(locale: Locale) {
         connectTitle: "Account connection is required.",
         draft: "Draft",
         emptyBody:
-          "No video vlogs yet. Create your first AI character video and publish it to FanLetter.",
+          "No vlogs yet. Create your first AI character vlog and publish it to FanLetter.",
         emptyTitle: "Create your first AI character vlog.",
         eyebrow: "FanLetter AI Character Vlog Studio",
         labels: {
-          allPosts: "All video vlogs",
+          allPosts: "All vlogs",
           availableBalance: "Available",
           completedMember: "Completed",
           draftPosts: "Drafts",
@@ -215,7 +215,7 @@ function getCopy(locale: Locale) {
           publishedPosts: "Published videos",
           sales: "Confirmed sales",
           totalSales: "Total sales",
-          videos: "Video vlogs",
+          videos: "Vlogs",
           wallet: "Wallet",
         },
         loading: "Checking FanLetter studio state.",
@@ -235,7 +235,7 @@ function getCopy(locale: Locale) {
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
         planner: {
-          body: "OpenAI reads the character persona and recent video vlogs, then suggests seven ready-to-create video ideas.",
+          body: "OpenAI reads the character persona and recent vlogs, then suggests seven ready-to-create ideas.",
           checklist: "Checks",
           empty: "Generate titles, summaries, creation prompts, and caption hooks in one step.",
           errorFallback: "Could not generate vlog plans.",
@@ -263,7 +263,7 @@ function getCopy(locale: Locale) {
             title: "AI character setup",
           },
           {
-            body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog.",
+            body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog.",
             title: "Short-form vlog creation",
           },
           {
@@ -272,7 +272,7 @@ function getCopy(locale: Locale) {
           },
         ],
         subtitle:
-          "Review AI character profile, short-form video vlog creation, post management, and sales summary inside FanLetter.",
+          "Review AI character profile, short-form vlog creation, post management, and sales summary inside FanLetter.",
         title: "My AI Character Vlog Studio",
         unknown: "Not checked",
       };
