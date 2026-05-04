@@ -131,6 +131,17 @@ export default async function LocalizedFanletterChannelsPage({
 
   const locale = lang as Locale;
   const referralCode = readReferralCode(query.ref);
+  const returnToHref = getSafeReturnTo({
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
 
-  return <FanletterChannelsPage locale={locale} referralCode={referralCode} />;
+  return (
+    <FanletterChannelsPage
+      locale={locale}
+      referralCode={referralCode}
+      returnToHref={returnToHref}
+    />
+  );
 }

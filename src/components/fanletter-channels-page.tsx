@@ -439,8 +439,8 @@ function PostingPackageCard({
 }) {
   return (
     <article className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
-      <div className="grid gap-0 lg:grid-cols-[minmax(16rem,0.45fr)_minmax(0,0.55fr)]">
-        <div className="relative aspect-[4/5] bg-black lg:min-h-full">
+      <div className="grid gap-0 lg:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
+        <div className="relative aspect-[4/5] bg-black lg:aspect-auto lg:min-h-full">
           {videoUrl ? (
             <video
               autoPlay
@@ -478,7 +478,7 @@ function PostingPackageCard({
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-col p-4 sm:p-5">
+        <div className="flex min-w-0 flex-col p-4 sm:p-5 lg:p-6">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
             <span>{dateLabel ?? "-"}</span>
             <span>·</span>
@@ -509,22 +509,24 @@ function PostingPackageCard({
             ))}
           </div>
 
-          <div className="mt-5 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#16702e]">
-              {copy.labels.caption}
-            </p>
-            <p className="mt-3 whitespace-pre-line text-sm font-medium leading-6 text-black/62">
-              {caption}
-            </p>
-          </div>
+          <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1.25fr)_minmax(14rem,0.75fr)]">
+            <div className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#16702e]">
+                {copy.labels.caption}
+              </p>
+              <p className="mt-3 max-h-56 overflow-y-auto whitespace-pre-line break-words text-sm font-medium leading-6 text-black/62 [overflow-wrap:anywhere]">
+                {caption}
+              </p>
+            </div>
 
-          <div className="mt-3 rounded-lg border border-black/10 bg-white p-4">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/42">
-              {copy.labels.hashtags}
-            </p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-black">
-              {hashtags}
-            </p>
+            <div className="rounded-lg border border-black/10 bg-white p-4">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/42">
+                {copy.labels.hashtags}
+              </p>
+              <p className="mt-2 break-words text-sm font-semibold leading-6 text-black [overflow-wrap:anywhere]">
+                {hashtags}
+              </p>
+            </div>
           </div>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
@@ -553,9 +555,11 @@ function PostingPackageCard({
 export function FanletterChannelsPage({
   locale,
   referralCode,
+  returnToHref = null,
 }: {
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
 }) {
   const copy = getCopy(locale);
   const account = useActiveAccount();
@@ -570,10 +574,11 @@ export function FanletterChannelsPage({
     resolveGraceMs: FANLETTER_CHANNELS_DISCONNECTED_GRACE_MS,
     status: connectionStatus,
   });
-  const studioHref = buildPathWithReferral(
+  const studioHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const studioHref = returnToHref ?? studioHomeHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: studioHref },
