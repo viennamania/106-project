@@ -97,7 +97,7 @@ export function FanletterDesktopHeroCardCarousel({
           <video
             aria-hidden="true"
             autoPlay
-            className="absolute inset-0 h-full w-full object-contain"
+            className="absolute inset-0 h-full w-full object-cover object-center"
             key={activeSlide.videoUrl}
             loop
             muted
