@@ -45,13 +45,13 @@ export async function generateMetadata({
   const title = content
     ? `${content.title} | FanLetter`
     : locale === "ko"
-      ? "FanLetter 콘텐츠"
-      : "FanLetter content";
+      ? "FanLetter 에피소드"
+      : "FanLetter episode";
   const description =
     content?.summary ??
     (locale === "ko"
-      ? "FanLetter 공개 콘텐츠 상세 페이지입니다."
-      : "A public FanLetter content detail page.");
+      ? "FanLetter 공개 일상 에피소드 상세 페이지입니다."
+      : "A public FanLetter daily episode detail page.");
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const openGraphType = content?.hasVideo ? "video.other" : "website";
   const url = `/${locale}/fanletter/content/${contentId}`;

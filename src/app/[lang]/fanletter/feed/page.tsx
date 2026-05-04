@@ -33,12 +33,12 @@ export async function generateMetadata({
   const referralCode = readReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 피드 | 공개 AI 콘텐츠"
-      : "FanLetter Feed | Public AI content";
+      ? "FanLetter 일상 피드 | 공개 에피소드"
+      : "FanLetter Daily Feed | Public episodes";
   const description =
     locale === "ko"
-      ? "FanLetter에서 공개된 AI 이미지와 동영상 콘텐츠를 확인하세요."
-      : "Browse public AI image and video content on FanLetter.";
+      ? "FanLetter에서 공개된 가상 인물 일상 이미지와 동영상 에피소드를 확인하세요."
+      : "Browse public virtual character daily image and video episodes on FanLetter.";
   const url = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const ogImagePath = buildFanletterOgImagePath({
     description,

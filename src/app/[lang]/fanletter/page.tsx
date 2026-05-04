@@ -20,15 +20,15 @@ function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AI 이미지와 동영상 생성, 인물 페르소나, 팬 전용 피드, 판매 흐름을 하나로 묶은 FanLetter 크리에이터 홈입니다.",
-      title: "FanLetter | AI 크리에이터 수익화 홈",
+        "고정 페르소나를 가진 가상 인물의 일상 장면을 이미지와 동영상 에피소드로 연재하는 FanLetter 홈입니다.",
+      title: "FanLetter | 가상 인물 일상 연재 홈",
     };
   }
 
   return {
     description:
-      "FanLetter brings AI images, AI videos, character personas, fan-only feeds, and creator monetisation into one mobile-first home.",
-    title: "FanLetter | AI creator monetisation home",
+      "FanLetter is a mobile home for serialising a virtual character's daily life through image and video episodes.",
+    title: "FanLetter | Virtual character daily serials",
   };
 }
 

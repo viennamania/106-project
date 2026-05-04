@@ -36,8 +36,8 @@ export async function generateMetadata({
       : "FanLetter Onboarding";
   const description =
     locale === "ko"
-      ? "가입 확인, 크리에이터 프로필, 첫 AI 콘텐츠 생성을 FanLetter 흐름 안에서 시작하세요."
-      : "Start signup verification, creator profile setup, and first AI content creation inside FanLetter.";
+      ? "가입 확인, 캐릭터 페르소나, 첫 일상 에피소드 생성을 FanLetter 흐름 안에서 시작하세요."
+      : "Start signup verification, character persona setup, and first daily episode creation inside FanLetter.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,

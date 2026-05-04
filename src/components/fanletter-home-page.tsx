@@ -107,40 +107,40 @@ type FanletterCopy = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "AI 크리에이터 스튜디오 공개",
-    prize: "콘텐츠 생성부터 판매까지 한 번에",
+    label: "가상 인물 일상 연재 공개",
+    prize: "페르소나부터 오늘의 에피소드까지",
   },
-  brandSuffix: "Creator AI",
+  brandSuffix: "Daily Character",
   cta: {
-    creator: "크리에이터로 시작",
-    fan: "팬 피드 보기",
+    creator: "연재 시작하기",
+    fan: "일상 피드 보기",
     login: "계정 연결",
-    studio: "나의 스튜디오",
+    studio: "연재 스튜디오",
   },
   creatorWall: {
     count: "201,548",
-    label: "creator-AI economy를 시작한 네트워크",
+    label: "가상 인물 일상 연재를 시작한 네트워크",
   },
   economy: {
-    body: "인물 페르소나, AI 이미지와 동영상, 팬 전용 콘텐츠, 레퍼럴 네트워크를 하나의 모바일 흐름으로 연결합니다.",
+    body: "인물 페르소나, 오늘의 장면 생성, 공개 피드, 판매 흐름을 하나의 모바일 연재 흐름으로 연결합니다.",
     cta: "지금 시작하기",
-    title: "Creator-AI Economy를 더 빠르게 시작하세요.",
+    title: "가상 인물 연재 홈을 더 빠르게 시작하세요.",
   },
   faq: [
     {
-      answer: "가입 후 크리에이터 프로필과 인물 페르소나를 설정하면 AI 콘텐츠 생성과 게시 흐름을 바로 사용할 수 있습니다.",
+      answer: "FanLetter는 고정 페르소나를 가진 가상 인물이 매일의 일상 장면을 이미지와 동영상 에피소드로 연재하는 팬 피드입니다.",
       question: "FanLetter는 무엇인가요?",
     },
     {
-      answer: "AI 콘텐츠를 만들고 팬 전용 콘텐츠, 네트워크 피드, 판매 페이지로 연결하려는 크리에이터에게 맞춰져 있습니다.",
+      answer: "단발 이미지보다 같은 인물의 일상 연재로 팬 관계를 쌓고 싶은 크리에이터에게 맞춰져 있습니다.",
       question: "누가 사용할 수 있나요?",
     },
     {
-      answer: "크리에이터 스튜디오에서 AI 이미지와 동영상을 만들고, 가격과 공개 범위를 정해 콘텐츠로 게시합니다.",
-      question: "콘텐츠는 어떻게 수익화하나요?",
+      answer: "연재 스튜디오에서 오늘의 에피소드를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
+      question: "에피소드는 어떻게 수익화하나요?",
     },
     {
-      answer: "모바일에서 프로필 설정, 콘텐츠 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
+      answer: "모바일에서 페르소나 설정, 오늘의 에피소드 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
       question: "모바일에서도 충분히 사용할 수 있나요?",
     },
   ],
@@ -150,110 +150,110 @@ const koCopy: FanletterCopy = {
     items: [
       {
         badge: "New",
-        description: "고정 인물 페르소나와 아바타를 바탕으로 일관된 이미지 콘텐츠를 생성합니다.",
-        title: "AI 이미지 생성",
+        description: "고정 인물 페르소나와 아바타를 바탕으로 같은 인물이 계속 등장하게 만듭니다.",
+        title: "고정 인물 페르소나",
       },
       {
         badge: "New",
-        description: "짧은 세로형 동영상 콘텐츠를 만들고 네트워크 피드와 상세 페이지에서 재생합니다.",
-        title: "AI 동영상 생성",
+        description: "이미지나 세로형 동영상으로 오늘의 셀피, 외출, 루틴 장면을 에피소드로 만듭니다.",
+        title: "오늘의 장면 생성",
       },
       {
-        description: "팬 전용 콘텐츠, 유료 콘텐츠, 저장과 공유 흐름을 하나의 피드로 운영합니다.",
-        title: "팬 전용 피드",
+        description: "공개 일상, 유료 에피소드, 저장과 공유 흐름을 하나의 타임라인으로 운영합니다.",
+        title: "일상 타임라인",
       },
       {
-        description: "레퍼럴 코드와 공유 링크로 유입을 추적하고 네트워크 콘텐츠로 확장합니다.",
-        title: "네트워크 성장",
+        description: "같은 인물의 반복 노출과 공유 링크로 팬이 캐릭터의 다음 하루를 기다리게 만듭니다.",
+        title: "팬 관계 성장",
       },
       {
-        description: "지갑 연결, USDT 기반 결제 흐름, 판매 내역을 크리에이터 스튜디오에서 확인합니다.",
+        description: "지갑 연결, USDT 기반 결제 흐름, 판매 내역을 연재 스튜디오에서 확인합니다.",
         title: "지갑과 정산",
       },
     ],
   },
   footer: {
-    title: "가장 빠른 AI 크리에이터 홈을 시작하세요.",
+    title: "가상 인물의 첫 일상 연재를 시작하세요.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "팬에게 팔 수 있는 AI 콘텐츠를 더 빠르게 만드세요.",
+    title: "가상 인물의 하루를 연재하고 팬이 따라오게 만드세요.",
     description:
-      "FanLetter는 크리에이터 프로필, 인물 페르소나, AI 이미지와 동영상 생성, 팬 전용 피드, 판매 흐름을 모바일 중심으로 묶은 크리에이터 수익화 홈입니다.",
+      "FanLetter는 고정 페르소나를 가진 가상 인물이 매일의 장면을 이미지와 동영상 에피소드로 연재하는 모바일 팬 피드입니다.",
   },
   languageLabel: "언어",
   liveStats: {
-    content: "공개 콘텐츠",
-    creators: "활성 크리에이터",
+    content: "공개 에피소드",
+    creators: "활성 캐릭터",
     sales: "확정 판매",
     totalSales: "누적 판매",
-    videos: "공개 동영상",
+    videos: "동영상 에피소드",
   },
   liveVideos: {
-    empty: "공개 동영상 콘텐츠가 준비되면 이 영역에 바로 노출됩니다.",
-    eyebrow: "Live Creator Videos",
+    empty: "공개된 일상 동영상 에피소드가 준비되면 이 영역에 바로 노출됩니다.",
+    eyebrow: "Live Character Episodes",
     free: "무료 공개",
-    open: "콘텐츠 보기",
-    title: "실제 공개 동영상 콘텐츠로 팬이 바로 확인합니다.",
+    open: "에피소드 보기",
+    title: "공개된 가상 인물 일상 에피소드로 팬이 바로 확인합니다.",
   },
   nav: {
-    creators: "크리에이터",
+    creators: "캐릭터",
     faq: "FAQ",
     features: "기능",
     studio: "스튜디오",
   },
   niche: {
-    body: "하나의 인물 정체성을 유지하면서 장르와 상황을 바꿔 더 많은 콘텐츠를 만듭니다.",
-    cta: "크리에이터 스튜디오 열기",
-    title: "모든 니치에 맞는 AI 콘텐츠 홈.",
-    categories: ["Beauty", "Fitness", "Music", "Fashion", "Travel"],
+    body: "하나의 인물 정체성을 유지하면서 셀피, 외출, 루틴, 대화형 장면을 이어지는 에피소드로 만듭니다.",
+    cta: "연재 스튜디오 열기",
+    title: "같은 인물로 이어지는 일상 연재 홈.",
+    categories: ["Selfie", "Routine", "Travel", "Workout", "Behind"],
   },
   proof: {
-    title: "AI 콘텐츠 생성부터 팬 전용 판매까지",
+    title: "페르소나 고정부터 일상 에피소드 판매까지",
     stats: [
-      { label: "creator studio", value: "01" },
-      { label: "AI content flow", value: "05" },
-      { label: "mobile first", value: "24/7" },
+      { label: "persona lock", value: "01" },
+      { label: "daily episode", value: "05" },
+      { label: "mobile serial", value: "24/7" },
     ],
   },
 };
 
 const enCopy: FanletterCopy = {
   announcement: {
-    label: "Creator AI Studio is live",
-    prize: "Create, publish, and sell in one flow",
+    label: "Virtual character daily serials are live",
+    prize: "From persona to today's episode",
   },
-  brandSuffix: "Creator AI",
+  brandSuffix: "Daily Character",
   cta: {
-    creator: "Become a creator",
-    fan: "Explore the feed",
+    creator: "Start a serial",
+    fan: "Explore daily feed",
     login: "Connect account",
-    studio: "My studio",
+    studio: "Serial studio",
   },
   creatorWall: {
     count: "201,548",
-    label: "network touchpoints ready for the creator-AI economy",
+    label: "network touchpoints ready for virtual character serials",
   },
   economy: {
-    body: "Persona, AI images, AI videos, paid content, and referral growth move through one mobile creator workflow.",
+    body: "Persona, daily scene generation, public feed, and sales move through one mobile serial workflow.",
     cta: "Start now",
-    title: "The Creator-AI Economy starts faster here.",
+    title: "Start a virtual character serial faster.",
   },
   faq: [
     {
-      answer: "FanLetter brings creator profiles, character personas, AI content generation, fan feeds, and monetisation into one mobile-first flow.",
+      answer: "FanLetter is a fan feed where a fixed virtual character publishes daily image and video episodes.",
       question: "What is FanLetter?",
     },
     {
-      answer: "It is built for creators who want to publish AI-assisted content, build fan access, and grow through shareable networks.",
+      answer: "It is built for creators who want recurring fan relationships around the same character, not one-off images.",
       question: "Who is it for?",
     },
     {
-      answer: "Create image or video content in the studio, set pricing and visibility, then publish it to the fan content experience.",
-      question: "How do creators monetise?",
+      answer: "Create today's episode in the serial studio, choose visibility and pricing, then publish it into the fan feed and sales flow.",
+      question: "How do episodes monetise?",
     },
     {
-      answer: "Yes. Profile setup, generation, feed browsing, wallet connection, and sales views are designed around mobile use.",
+      answer: "Yes. Persona setup, daily episode creation, feed browsing, wallet connection, and sales views are designed around mobile use.",
       question: "Is it mobile first?",
     },
   ],
@@ -263,70 +263,70 @@ const enCopy: FanletterCopy = {
     items: [
       {
         badge: "New",
-        description: "Generate consistent image content from a fixed character persona and avatar reference.",
-        title: "AI image creation",
+        description: "Use a fixed persona and avatar reference so the same character keeps appearing.",
+        title: "Locked character persona",
       },
       {
         badge: "New",
-        description: "Create short vertical videos and play them inside the network feed and detail pages.",
-        title: "AI video creation",
+        description: "Turn selfies, routines, outings, and short vertical videos into daily episodes.",
+        title: "Daily scene creation",
       },
       {
-        description: "Run fan-only content, paid content, saves, comments, and shares from one feed system.",
-        title: "Fan content feed",
+        description: "Run public daily posts, paid episodes, saves, comments, and shares from one timeline.",
+        title: "Daily timeline",
       },
       {
-        description: "Use referral codes and share links to track traffic and grow through network content.",
-        title: "Network growth",
+        description: "Repeated character exposure and share links make fans wait for the next day.",
+        title: "Fan relationship growth",
       },
       {
-        description: "Connect wallets, support USDT purchase flows, and review sales from Creator Studio.",
+        description: "Connect wallets, support USDT purchase flows, and review sales from the serial studio.",
         title: "Wallets and payouts",
       },
     ],
   },
   footer: {
-    title: "Start your fastest AI creator home.",
+    title: "Start the first daily serial for your virtual character.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "Create AI content your fans can buy, faster.",
+    title: "Serialise a virtual character's daily life and make fans follow along.",
     description:
-      "FanLetter combines creator profiles, character personas, AI image and video generation, fan-only feeds, and sales flows into one mobile-first monetisation home.",
+      "FanLetter is a mobile fan feed where a fixed character persona publishes daily image and video episodes.",
   },
   languageLabel: "Language",
   liveStats: {
-    content: "public content",
-    creators: "active creators",
+    content: "public episodes",
+    creators: "active characters",
     sales: "confirmed sales",
     totalSales: "sales volume",
-    videos: "public videos",
+    videos: "video episodes",
   },
   liveVideos: {
-    empty: "Public creator videos will appear here as soon as they are available.",
-    eyebrow: "Live Creator Videos",
+    empty: "Public daily video episodes will appear here as soon as they are available.",
+    eyebrow: "Live Character Episodes",
     free: "Free public",
-    open: "View content",
-    title: "Real public creator videos make the fan experience tangible.",
+    open: "View episode",
+    title: "Real public virtual character episodes make the fan experience tangible.",
   },
   nav: {
-    creators: "Creators",
+    creators: "Characters",
     faq: "FAQ",
     features: "Features",
     studio: "Studio",
   },
   niche: {
-    body: "Keep the same character identity while changing scenes, formats, and content categories.",
-    cta: "Open Creator Studio",
-    title: "Built for every AI creator niche.",
-    categories: ["Beauty", "Fitness", "Music", "Fashion", "Travel"],
+    body: "Keep one character identity while turning selfies, routines, outings, and behind-the-scenes moments into connected episodes.",
+    cta: "Open serial studio",
+    title: "A daily serial home for the same character.",
+    categories: ["Selfie", "Routine", "Travel", "Workout", "Behind"],
   },
   proof: {
-    title: "From AI content creation to fan-only sales",
+    title: "From persona lock to daily episode sales",
     stats: [
-      { label: "creator studio", value: "01" },
-      { label: "AI content flow", value: "05" },
-      { label: "mobile first", value: "24/7" },
+      { label: "persona lock", value: "01" },
+      { label: "daily episode", value: "05" },
+      { label: "mobile serial", value: "24/7" },
     ],
   },
 };
@@ -465,25 +465,25 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정 연결",
-          aiContent: "AI 콘텐츠",
-          creatorGrowth: "크리에이터 성장",
-          feed: "피드",
+          aiContent: "일상 에피소드",
+          creatorGrowth: "팬 관계 성장",
+          feed: "일상 피드",
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
-          studio: "스튜디오",
+          studio: "연재 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
         }
       : {
           activate: "Connect account",
-          aiContent: "AI Content",
-          creatorGrowth: "Creator growth",
-          feed: "Feed",
+          aiContent: "Daily episodes",
+          creatorGrowth: "Fan relationship growth",
+          feed: "Daily feed",
           help: "Help",
           mobileFirst: "Mobile first",
           network: "Network",
-          studio: "Studio",
+          studio: "Serial studio",
           trust: "Trust",
           usdtReady: "USDT ready",
         };
@@ -785,15 +785,15 @@ export function FanletterHomePage({
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-                Creator flow
+                Daily serial flow
               </p>
               <h2 className="mt-4 max-w-2xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.4rem]">
                 {copy.proof.title}
               </h2>
               <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/62 sm:text-base">
                 {locale === "ko"
-                  ? "프로필 설정부터 AI 생성, 공개 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
-                  : "Profile setup, AI generation, public feeds, and sales checks are connected as one understandable creator flow."}
+                  ? "페르소나 설정부터 오늘의 장면 생성, 일상 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
+                  : "Persona setup, daily scene generation, public feeds, and sales checks are connected as one understandable serial flow."}
               </p>
             </div>
 
@@ -852,8 +852,8 @@ export function FanletterHomePage({
               </p>
               <h2 className="mt-4 max-w-3xl text-[2.2rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.5rem]">
                 {locale === "ko"
-                  ? "모바일에서 바로 쓰는 크리에이터 기능"
-                  : "Creator tools that work from mobile"}
+                  ? "모바일에서 바로 쓰는 일상 연재 기능"
+                  : "Daily serial tools that work from mobile"}
               </h2>
             </div>
             <Link
@@ -912,7 +912,7 @@ export function FanletterHomePage({
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <div>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-              Creator network
+              Character network
             </p>
             <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]">
               {copy.economy.title}

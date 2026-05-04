@@ -30,14 +30,14 @@ export async function generateMetadata({
   const title = data
     ? `${data.profile.displayName} | FanLetter`
     : locale === "ko"
-      ? "FanLetter 크리에이터"
-      : "FanLetter creator";
+      ? "FanLetter 캐릭터"
+      : "FanLetter character";
   const description =
     data?.profile.character?.summary ??
     data?.profile.intro ??
     (locale === "ko"
-      ? "FanLetter 크리에이터 공개 채널입니다."
-      : "A public FanLetter creator channel.");
+      ? "FanLetter 가상 인물 공개 채널입니다."
+      : "A public FanLetter virtual character channel.");
   const normalizedReferralCode = normalizeReferralCode(referralCode);
   const url = `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}`;
   const ogImagePath = buildFanletterOgImagePath({

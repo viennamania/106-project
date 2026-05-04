@@ -65,11 +65,13 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readReferralCode(query.ref);
   const title =
-    locale === "ko" ? "FanLetter 첫 콘텐츠 만들기" : "Create First FanLetter Content";
+    locale === "ko"
+      ? "FanLetter 첫 일상 에피소드 만들기"
+      : "Create First FanLetter Daily Episode";
   const description =
     locale === "ko"
-      ? "AI 이미지나 동영상을 생성하고 FanLetter 피드에 첫 콘텐츠를 게시하세요."
-      : "Generate an AI image or video and publish your first FanLetter content.";
+      ? "가상 인물의 오늘 장면을 이미지나 동영상 에피소드로 생성하고 FanLetter 피드에 게시하세요."
+      : "Generate today's virtual character scene as an image or video episode and publish it to FanLetter.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: getSafeReturnTo({ locale, referralCode, returnTo: query.returnTo }) },

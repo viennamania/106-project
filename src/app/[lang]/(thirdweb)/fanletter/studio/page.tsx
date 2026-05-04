@@ -36,12 +36,12 @@ export async function generateMetadata({
   const referralCode = readReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 나의 콘텐츠 스튜디오"
-      : "FanLetter My Content Studio";
+      ? "FanLetter 나의 연재 스튜디오"
+      : "FanLetter My Serial Studio";
   const description =
     locale === "ko"
-      ? "FanLetter 안에서 프로필, AI 콘텐츠 생성, 게시물 관리, 판매 요약을 확인하세요."
-      : "Manage profile, AI content creation, posts, and sales summary inside FanLetter.";
+      ? "FanLetter 안에서 캐릭터 프로필, 일상 에피소드 생성, 게시물 관리, 판매 요약을 확인하세요."
+      : "Manage character profile, daily episode creation, posts, and sales summary inside FanLetter.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,

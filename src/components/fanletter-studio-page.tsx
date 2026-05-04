@@ -77,23 +77,23 @@ function getCopy(locale: Locale) {
     ? {
         actions: {
           connect: "계정 연결하기",
-          create: "AI 콘텐츠 만들기",
-          feed: "팬 피드 보기",
-          managePosts: "게시물 전체 관리",
+          create: "오늘의 에피소드 만들기",
+          feed: "일상 피드 보기",
+          managePosts: "에피소드 전체 관리",
           profile: "프로필 설정",
           refresh: "다시 확인",
           sales: "판매 내역 보기",
         },
         connectRequired:
-          "나의 콘텐츠 스튜디오는 FanLetter 계정 연결 후 사용할 수 있습니다.",
+          "나의 연재 스튜디오는 FanLetter 계정 연결 후 사용할 수 있습니다.",
         connectTitle: "계정 연결이 필요합니다.",
         draft: "임시저장",
         emptyBody:
-          "아직 콘텐츠가 없습니다. 첫 AI 이미지나 동영상을 만들고 FanLetter 피드에 게시해보세요.",
-        emptyTitle: "첫 콘텐츠를 만들 시간입니다.",
-        eyebrow: "My FanLetter Studio",
+          "아직 에피소드가 없습니다. 첫 일상 이미지나 동영상을 만들고 FanLetter 피드에 게시해보세요.",
+        emptyTitle: "첫 일상 에피소드를 만들 시간입니다.",
+        eyebrow: "FanLetter Serial Studio",
         labels: {
-          allPosts: "전체 콘텐츠",
+          allPosts: "전체 에피소드",
           availableBalance: "출금 가능",
           completedMember: "가입 완료",
           draftPosts: "임시저장",
@@ -102,7 +102,7 @@ function getCopy(locale: Locale) {
           paid: "유료",
           persona: "인물 페르소나",
           profile: "프로필",
-          publishedPosts: "공개 콘텐츠",
+          publishedPosts: "공개 에피소드",
           sales: "확정 판매",
           totalSales: "누적 판매",
           videos: "동영상",
@@ -111,56 +111,56 @@ function getCopy(locale: Locale) {
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         paymentRequired:
-          "가입 완료 회원만 FanLetter 콘텐츠 스튜디오를 사용할 수 있습니다.",
+          "가입 완료 회원만 FanLetter 연재 스튜디오를 사용할 수 있습니다.",
         paymentTitle: "가입 완료 확인이 필요합니다.",
         priceFree: "무료",
         pricePaid: "유료",
         profileIncomplete:
-          "표시 이름, 인물 페르소나, 아바타를 준비하면 생성 결과와 팬 피드 노출이 더 안정적입니다.",
+          "표시 이름, 인물 페르소나, 아바타를 준비하면 같은 인물의 일상 연재가 더 안정적입니다.",
         profileReady: "프로필이 준비되었습니다.",
-        profileTitle: "크리에이터 프로필",
+        profileTitle: "캐릭터 프로필",
         published: "공개",
-        recentTitle: "최근 콘텐츠",
+        recentTitle: "최근 에피소드",
         salesFallback: "판매 요약을 불러오지 못했습니다.",
         steps: [
           {
-            body: "표시 이름과 인물 페르소나를 정리해 같은 인물이 유지되도록 준비합니다.",
-            title: "프로필 준비",
+            body: "표시 이름과 인물 페르소나를 정리해 같은 인물이 매일 유지되도록 준비합니다.",
+            title: "캐릭터 준비",
           },
           {
-            body: "AI 이미지나 동영상을 만들고 공개 방식과 가격을 정합니다.",
-            title: "콘텐츠 생성",
+            body: "오늘의 셀피, 외출, 루틴 장면을 이미지나 동영상 에피소드로 만듭니다.",
+            title: "일상 에피소드 생성",
           },
           {
-            body: "FanLetter 피드로 팬에게 보여주고 판매 흐름으로 연결합니다.",
-            title: "게시와 판매",
+            body: "FanLetter 일상 피드로 팬에게 보여주고 다음 에피소드와 판매 흐름으로 연결합니다.",
+            title: "연재와 판매",
           },
         ],
         subtitle:
-          "프로필, AI 콘텐츠 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
-        title: "나의 콘텐츠 스튜디오",
+          "캐릭터 프로필, 일상 에피소드 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
+        title: "나의 연재 스튜디오",
         unknown: "확인 전",
       }
     : {
         actions: {
           connect: "Connect account",
-          create: "Create AI content",
-          feed: "View fan feed",
-          managePosts: "Manage all posts",
+          create: "Create today's episode",
+          feed: "View daily feed",
+          managePosts: "Manage all episodes",
           profile: "Set up profile",
           refresh: "Check again",
           sales: "View sales",
         },
         connectRequired:
-          "My content studio is available after connecting your FanLetter account.",
+          "My serial studio is available after connecting your FanLetter account.",
         connectTitle: "Account connection is required.",
         draft: "Draft",
         emptyBody:
-          "No content yet. Create your first AI image or video and publish it to FanLetter.",
-        emptyTitle: "Create your first content.",
-        eyebrow: "My FanLetter Studio",
+          "No episodes yet. Create your first daily image or video and publish it to FanLetter.",
+        emptyTitle: "Create your first daily episode.",
+        eyebrow: "FanLetter Serial Studio",
         labels: {
-          allPosts: "All content",
+          allPosts: "All episodes",
           availableBalance: "Available",
           completedMember: "Completed",
           draftPosts: "Drafts",
@@ -169,7 +169,7 @@ function getCopy(locale: Locale) {
           paid: "Paid",
           persona: "Character persona",
           profile: "Profile",
-          publishedPosts: "Published",
+          publishedPosts: "Published episodes",
           sales: "Confirmed sales",
           totalSales: "Total sales",
           videos: "Videos",
@@ -178,34 +178,34 @@ function getCopy(locale: Locale) {
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
         paymentRequired:
-          "Completed members can use the FanLetter content studio.",
+          "Completed members can use the FanLetter serial studio.",
         paymentTitle: "Signup verification is required.",
         priceFree: "Free",
         pricePaid: "Paid",
         profileIncomplete:
-          "Prepare display name, character persona, and avatar for more consistent generation and fan feed presentation.",
+          "Prepare display name, character persona, and avatar for a more consistent daily character serial.",
         profileReady: "Profile is ready.",
-        profileTitle: "Creator profile",
+        profileTitle: "Character profile",
         published: "Published",
-        recentTitle: "Recent content",
+        recentTitle: "Recent episodes",
         salesFallback: "Could not load sales summary.",
         steps: [
           {
-            body: "Prepare display name and character persona so the same identity stays consistent.",
-            title: "Profile setup",
+            body: "Prepare display name and character persona so the same identity stays consistent every day.",
+            title: "Character setup",
           },
           {
-            body: "Create AI images or videos, then choose visibility and pricing.",
-            title: "Content creation",
+            body: "Create today's selfie, routine, or outing as an image or video episode.",
+            title: "Daily episode creation",
           },
           {
-            body: "Publish to FanLetter and connect fans to the sales flow.",
-            title: "Publish and sell",
+            body: "Publish to the FanLetter daily feed and connect fans to the next episode and sales flow.",
+            title: "Serialise and sell",
           },
         ],
         subtitle:
-          "Review profile, AI content creation, post management, and sales summary inside the FanLetter flow.",
-        title: "My Content Studio",
+          "Review character profile, daily episode creation, post management, and sales summary inside FanLetter.",
+        title: "My Serial Studio",
         unknown: "Not checked",
       };
 }
@@ -945,7 +945,7 @@ export function FanletterStudioPage({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
-                    Content
+                    {locale === "ko" ? "Episodes" : "Episodes"}
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-normal">
                     {copy.recentTitle}

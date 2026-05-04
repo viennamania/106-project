@@ -134,10 +134,10 @@ function getCopy(locale: Locale) {
           "프로필을 설정하려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
         connectRequiredCta: "계정 연결하기",
         completed: "준비 완료",
-        contentCta: "첫 콘텐츠 만들기",
+        contentCta: "첫 에피소드 만들기",
         disconnected: "계정 연결이 필요합니다.",
         displayName: "표시 이름",
-        displayNameHint: "팬 피드와 콘텐츠 상세에 보이는 크리에이터 이름입니다.",
+        displayNameHint: "일상 피드와 에피소드 상세에 보이는 캐릭터/채널 이름입니다.",
         displayNamePlaceholder: "예: 지니뮤직",
         errorFallback: "프로필을 처리하지 못했습니다.",
         eyebrow: "FanLetter Profile",
@@ -162,9 +162,9 @@ function getCopy(locale: Locale) {
         saving: "저장 중...",
         selectedPersona: "선택된 페르소나",
         setupBody:
-          "처음에는 필요한 것만 설정합니다. 표시 이름, 인물 페르소나, AI 아바타를 순서대로 끝내면 콘텐츠 생성으로 바로 이어집니다.",
-        studio: "나의 스튜디오",
-        title: "FanLetter 프로필을 빠르게 준비하세요.",
+          "처음에는 필요한 것만 설정합니다. 표시 이름, 인물 페르소나, AI 아바타를 순서대로 끝내면 첫 일상 에피소드 생성으로 바로 이어집니다.",
+        studio: "연재 스튜디오",
+        title: "가상 인물 연재 프로필을 빠르게 준비하세요.",
       }
     : {
         age: "Age range",
@@ -198,10 +198,10 @@ function getCopy(locale: Locale) {
           "Connect your FanLetter account before setting up a profile.",
         connectRequiredCta: "Connect account",
         completed: "Ready",
-        contentCta: "Create first content",
+        contentCta: "Create first episode",
         disconnected: "Account connection required.",
         displayName: "Display name",
-        displayNameHint: "Shown in the fan feed and content detail pages.",
+        displayNameHint: "Shown in the daily feed and episode detail pages.",
         displayNamePlaceholder: "Example: Genie Music",
         errorFallback: "Failed to process profile.",
         eyebrow: "FanLetter Profile",
@@ -226,9 +226,9 @@ function getCopy(locale: Locale) {
         saving: "Saving...",
         selectedPersona: "Selected persona",
         setupBody:
-          "Keep setup light at first: display name, character persona, and AI avatar. Then continue to content creation.",
-        studio: "My studio",
-        title: "Prepare your FanLetter profile quickly.",
+          "Keep setup light at first: display name, character persona, and AI avatar. Then continue to first daily episode creation.",
+        studio: "Serial studio",
+        title: "Prepare your virtual character serial profile quickly.",
       };
 }
 
