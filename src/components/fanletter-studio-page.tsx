@@ -15,6 +15,7 @@ import {
   PenLine,
   Play,
   RefreshCw,
+  Share2,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -77,6 +78,7 @@ function getCopy(locale: Locale) {
     ? {
         actions: {
           connect: "계정 연결하기",
+          channels: "채널 배포 관리",
           create: "오늘의 브이로그 만들기",
           feed: "브이로그 피드 보기",
           managePosts: "브이로그 전체 관리",
@@ -122,6 +124,8 @@ function getCopy(locale: Locale) {
         published: "공개",
         recentTitle: "최근 브이로그",
         salesFallback: "판매 요약을 불러오지 못했습니다.",
+        channelDistribution:
+          "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
         steps: [
           {
             body: "표시 이름과 캐릭터 페르소나를 정리해 같은 AI 브이로그 크리에이터가 유지되도록 준비합니다.",
@@ -144,6 +148,7 @@ function getCopy(locale: Locale) {
     : {
         actions: {
           connect: "Connect account",
+          channels: "Manage channels",
           create: "Create today's vlog",
           feed: "View vlog feed",
           managePosts: "Manage all vlogs",
@@ -189,6 +194,8 @@ function getCopy(locale: Locale) {
         published: "Published",
         recentTitle: "Recent vlogs",
         salesFallback: "Could not load sales summary.",
+        channelDistribution:
+          "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
         steps: [
           {
             body: "Prepare display name and character persona so the same AI vlogger stays consistent.",
@@ -515,6 +522,10 @@ export function FanletterStudioPage({
   );
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
+    { returnTo: studioHref },
+  );
+  const channelsHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
     { returnTo: studioHref },
   );
   const postsHref = setPathSearchParams(
@@ -920,7 +931,7 @@ export function FanletterStudioPage({
       <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
           <div className="min-w-0 space-y-6">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <ActionCard
                 Icon={Sparkles}
                 body={copy.steps[1].body}
@@ -932,6 +943,12 @@ export function FanletterStudioPage({
                 body={copy.steps[0].body}
                 href={profileHref}
                 title={copy.actions.profile}
+              />
+              <ActionCard
+                Icon={Share2}
+                body={copy.channelDistribution}
+                href={channelsHref}
+                title={copy.actions.channels}
               />
               <ActionCard
                 Icon={FileText}
