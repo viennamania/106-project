@@ -20,15 +20,15 @@ function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "고정 페르소나를 가진 가상 인물의 일상 장면을 이미지와 동영상 에피소드로 연재하는 FanLetter 홈입니다.",
-      title: "FanLetter | 가상 인물 일상 연재 홈",
+        "얼굴 공개 없이 고정 AI 캐릭터로 숏폼 vlog를 만들고 팬 피드와 유료 콘텐츠로 연결하는 FanLetter 창작자 플랫폼입니다.",
+      title: "FanLetter | AI 캐릭터 vlogger 창작자 플랫폼",
     };
   }
 
   return {
     description:
-      "FanLetter is a mobile home for serialising a virtual character's daily life through image and video episodes.",
-    title: "FanLetter | Virtual character daily serials",
+      "FanLetter helps creators make short-form vlogs with a fixed AI character and connect them to fan feeds and paid content without showing their real face.",
+    title: "FanLetter | AI character vlogger platform",
   };
 }
 

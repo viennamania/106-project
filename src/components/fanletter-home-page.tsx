@@ -103,44 +103,52 @@ type FanletterCopy = {
       value: string;
     }>;
   };
+  targetAudience: {
+    eyebrow: string;
+    title: string;
+    items: Array<{
+      description: string;
+      title: string;
+    }>;
+  };
 };
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "가상 인물 일상 연재 공개",
-    prize: "페르소나부터 오늘의 에피소드까지",
+    label: "AI 캐릭터 vlogger 스튜디오 공개",
+    prize: "캐릭터 설정부터 숏폼 vlog까지",
   },
-  brandSuffix: "Daily Character",
+  brandSuffix: "AI Character Vlogger",
   cta: {
-    creator: "연재 시작하기",
-    fan: "일상 피드 보기",
+    creator: "AI 캐릭터 채널 시작",
+    fan: "vlog 피드 보기",
     login: "계정 연결",
-    studio: "연재 스튜디오",
+    studio: "vlog 스튜디오",
   },
   creatorWall: {
     count: "201,548",
-    label: "가상 인물 일상 연재를 시작한 네트워크",
+    label: "AI 캐릭터 vlogger 채널을 시작한 네트워크",
   },
   economy: {
-    body: "인물 페르소나, 오늘의 장면 생성, 공개 피드, 판매 흐름을 하나의 모바일 연재 흐름으로 연결합니다.",
+    body: "캐릭터 페르소나, 숏폼 vlog 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
     cta: "지금 시작하기",
-    title: "가상 인물 연재 홈을 더 빠르게 시작하세요.",
+    title: "AI 캐릭터 vlog 채널을 더 빠르게 시작하세요.",
   },
   faq: [
     {
-      answer: "FanLetter는 고정 페르소나를 가진 가상 인물이 매일의 일상 장면을 이미지와 동영상 에피소드로 연재하는 팬 피드입니다.",
+      answer: "FanLetter는 얼굴 공개 없이 고정 페르소나를 가진 AI 캐릭터로 숏폼 vlog 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
       question: "FanLetter는 무엇인가요?",
     },
     {
-      answer: "단발 이미지보다 같은 인물의 일상 연재로 팬 관계를 쌓고 싶은 크리에이터에게 맞춰져 있습니다.",
+      answer: "얼굴 공개 없이 숏폼 채널을 만들고 싶은 개인, AI 인플루언서 운영자, 유료 커뮤니티 크리에이터, 브랜드 마스코트와 IP 팀에 맞춰져 있습니다.",
       question: "누가 사용할 수 있나요?",
     },
     {
-      answer: "연재 스튜디오에서 오늘의 에피소드를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
-      question: "에피소드는 어떻게 수익화하나요?",
+      answer: "vlog 스튜디오에서 오늘의 숏폼 vlog를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
+      question: "vlog는 어떻게 수익화하나요?",
     },
     {
-      answer: "모바일에서 페르소나 설정, 오늘의 에피소드 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
+      answer: "모바일에서 캐릭터 설정, 오늘의 vlog 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
       question: "모바일에서도 충분히 사용할 수 있나요?",
     },
   ],
@@ -150,51 +158,51 @@ const koCopy: FanletterCopy = {
     items: [
       {
         badge: "New",
-        description: "고정 인물 페르소나와 아바타를 바탕으로 같은 인물이 계속 등장하게 만듭니다.",
-        title: "고정 인물 페르소나",
+        description: "얼굴 공개 없이 운영할 고정 AI 캐릭터와 아바타를 먼저 만듭니다.",
+        title: "AI 캐릭터 설정",
       },
       {
         badge: "New",
-        description: "이미지나 세로형 동영상으로 오늘의 셀피, 외출, 루틴 장면을 에피소드로 만듭니다.",
-        title: "오늘의 장면 생성",
+        description: "셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 vlog로 생성합니다.",
+        title: "숏폼 vlog 생성",
       },
       {
-        description: "공개 일상, 유료 에피소드, 저장과 공유 흐름을 하나의 타임라인으로 운영합니다.",
-        title: "일상 타임라인",
+        description: "공개 vlog, 유료 vlog, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.",
+        title: "캐릭터 피드",
       },
       {
-        description: "같은 인물의 반복 노출과 공유 링크로 팬이 캐릭터의 다음 하루를 기다리게 만듭니다.",
-        title: "팬 관계 성장",
+        description: "Fanvue, Patreon 같은 유료 커뮤니티로 확장할 수 있는 팬 관계를 쌓습니다.",
+        title: "유료 커뮤니티 확장",
       },
       {
-        description: "지갑 연결, USDT 기반 결제 흐름, 판매 내역을 연재 스튜디오에서 확인합니다.",
-        title: "지갑과 정산",
+        description: "브랜드 마스코트, 웹툰, 게임, 버추얼 아이돌 IP를 캐릭터 vlog로 확장합니다.",
+        title: "브랜드와 IP 숏폼화",
       },
     ],
   },
   footer: {
-    title: "가상 인물의 첫 일상 연재를 시작하세요.",
+    title: "얼굴 없이 시작하는 AI 캐릭터 vlog 채널.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "가상 인물의 하루를 연재하고 팬이 따라오게 만드세요.",
+    title: "누구나 AI 캐릭터 vlogger가 될 수 있습니다.",
     description:
-      "FanLetter는 고정 페르소나를 가진 가상 인물이 매일의 장면을 이미지와 동영상 에피소드로 연재하는 모바일 팬 피드입니다.",
+      "FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 vlog를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
   },
   languageLabel: "언어",
   liveStats: {
-    content: "공개 에피소드",
+    content: "공개 vlog",
     creators: "활성 캐릭터",
     sales: "확정 판매",
     totalSales: "누적 판매",
-    videos: "동영상 에피소드",
+    videos: "동영상 vlog",
   },
   liveVideos: {
-    empty: "공개된 일상 동영상 에피소드가 준비되면 이 영역에 바로 노출됩니다.",
-    eyebrow: "Live Character Episodes",
+    empty: "공개된 AI 캐릭터 vlog가 준비되면 이 영역에 바로 노출됩니다.",
+    eyebrow: "Live AI Character Vlogs",
     free: "무료 공개",
-    open: "에피소드 보기",
-    title: "공개된 가상 인물 일상 에피소드로 팬이 바로 확인합니다.",
+    open: "vlog 보기",
+    title: "공개된 AI 캐릭터 vlog로 팬이 바로 확인합니다.",
   },
   nav: {
     creators: "캐릭터",
@@ -203,57 +211,83 @@ const koCopy: FanletterCopy = {
     studio: "스튜디오",
   },
   niche: {
-    body: "하나의 인물 정체성을 유지하면서 셀피, 외출, 루틴, 대화형 장면을 이어지는 에피소드로 만듭니다.",
-    cta: "연재 스튜디오 열기",
-    title: "같은 인물로 이어지는 일상 연재 홈.",
-    categories: ["Selfie", "Routine", "Travel", "Workout", "Behind"],
+    body: "개인, AI 인플루언서, 브랜드 마스코트, 웹툰·게임·버추얼 아이돌 IP까지 하나의 캐릭터 채널로 숏폼화합니다.",
+    cta: "vlog 스튜디오 열기",
+    title: "캐릭터가 있으면 채널을 만들 수 있습니다.",
+    categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
   },
   proof: {
-    title: "페르소나 고정부터 일상 에피소드 판매까지",
+    title: "캐릭터 설정부터 숏폼 vlog 판매까지",
     stats: [
-      { label: "persona lock", value: "01" },
-      { label: "daily episode", value: "05" },
-      { label: "mobile serial", value: "24/7" },
+      { label: "character setup", value: "01" },
+      { label: "vlog flow", value: "05" },
+      { label: "mobile channel", value: "24/7" },
+    ],
+  },
+  targetAudience: {
+    eyebrow: "Who it is for",
+    title: "얼굴 공개 없이 캐릭터 채널을 키우고 싶은 사람들을 위한 플랫폼입니다.",
+    items: [
+      {
+        title: "얼굴 없는 개인 창작자",
+        description: "실제 얼굴을 공개하지 않고 숏폼 채널을 시작하고 싶은 개인에게 맞습니다.",
+      },
+      {
+        title: "AI 인플루언서 운영자",
+        description: "같은 AI 인물이나 가상 캐릭터를 꾸준히 노출해 팬을 만들 수 있습니다.",
+      },
+      {
+        title: "유료 커뮤니티 크리에이터",
+        description: "Fanvue, Patreon, 유료 팬 커뮤니티로 이어지는 콘텐츠 흐름을 만듭니다.",
+      },
+      {
+        title: "브랜드와 소상공인",
+        description: "브랜드 마스코트를 사람처럼 말하고 움직이는 vlog 캐릭터로 확장합니다.",
+      },
+      {
+        title: "웹툰·게임·버추얼 IP 팀",
+        description: "기존 캐릭터 IP를 숏폼 vlog와 팬 피드로 재활용합니다.",
+      },
     ],
   },
 };
 
 const enCopy: FanletterCopy = {
   announcement: {
-    label: "Virtual character daily serials are live",
-    prize: "From persona to today's episode",
+    label: "AI character vlogger studio is live",
+    prize: "From character setup to short-form vlog",
   },
-  brandSuffix: "Daily Character",
+  brandSuffix: "AI Character Vlogger",
   cta: {
-    creator: "Start a serial",
-    fan: "Explore daily feed",
+    creator: "Start AI character channel",
+    fan: "Explore vlog feed",
     login: "Connect account",
-    studio: "Serial studio",
+    studio: "Vlog studio",
   },
   creatorWall: {
     count: "201,548",
-    label: "network touchpoints ready for virtual character serials",
+    label: "network touchpoints ready for AI character vlogger channels",
   },
   economy: {
-    body: "Persona, daily scene generation, public feed, and sales move through one mobile serial workflow.",
+    body: "Character persona, short-form vlog generation, public feeds, and paid community flows move through one mobile creator workflow.",
     cta: "Start now",
-    title: "Start a virtual character serial faster.",
+    title: "Start an AI character vlog channel faster.",
   },
   faq: [
     {
-      answer: "FanLetter is a fan feed where a fixed virtual character publishes daily image and video episodes.",
+      answer: "FanLetter is a creator platform for making short-form vlogs with a fixed AI character, then connecting them to fan feeds and paid content without showing your real face.",
       question: "What is FanLetter?",
     },
     {
-      answer: "It is built for creators who want recurring fan relationships around the same character, not one-off images.",
+      answer: "It is built for no-face creators, AI influencer operators, paid community creators, brands, and teams turning webtoon, game, or virtual idol IP into short-form channels.",
       question: "Who is it for?",
     },
     {
-      answer: "Create today's episode in the serial studio, choose visibility and pricing, then publish it into the fan feed and sales flow.",
-      question: "How do episodes monetise?",
+      answer: "Create today's short-form vlog in the studio, choose visibility and pricing, then publish it into the fan feed and sales flow.",
+      question: "How do vlogs monetise?",
     },
     {
-      answer: "Yes. Persona setup, daily episode creation, feed browsing, wallet connection, and sales views are designed around mobile use.",
+      answer: "Yes. Character setup, today's vlog creation, feed browsing, wallet connection, and sales views are designed around mobile use.",
       question: "Is it mobile first?",
     },
   ],
@@ -263,51 +297,51 @@ const enCopy: FanletterCopy = {
     items: [
       {
         badge: "New",
-        description: "Use a fixed persona and avatar reference so the same character keeps appearing.",
-        title: "Locked character persona",
+        description: "Create a fixed AI character and avatar for a channel that does not require showing your real face.",
+        title: "AI character setup",
       },
       {
         badge: "New",
-        description: "Turn selfies, routines, outings, and short vertical videos into daily episodes.",
-        title: "Daily scene creation",
+        description: "Turn selfies, routines, outings, and conversational scenes into vertical short-form vlogs.",
+        title: "Short-form vlog creation",
       },
       {
-        description: "Run public daily posts, paid episodes, saves, comments, and shares from one timeline.",
-        title: "Daily timeline",
+        description: "Run public vlogs, paid vlogs, saves, comments, and shares from one character feed.",
+        title: "Character feed",
       },
       {
-        description: "Repeated character exposure and share links make fans wait for the next day.",
-        title: "Fan relationship growth",
+        description: "Build fan relationships that can expand toward Fanvue, Patreon, and paid communities.",
+        title: "Paid community growth",
       },
       {
-        description: "Connect wallets, support USDT purchase flows, and review sales from the serial studio.",
-        title: "Wallets and payouts",
+        description: "Turn mascots, webtoon characters, game characters, and virtual idol IP into short-form channels.",
+        title: "Brand and IP shorts",
       },
     ],
   },
   footer: {
-    title: "Start the first daily serial for your virtual character.",
+    title: "Start an AI character vlog channel without showing your face.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "Serialise a virtual character's daily life and make fans follow along.",
+    title: "Anyone can become an AI character vlogger.",
     description:
-      "FanLetter is a mobile fan feed where a fixed character persona publishes daily image and video episodes.",
+      "FanLetter helps creators make short-form vlogs with a fixed AI character, then connect them to fan feeds and paid content without showing their real face.",
   },
   languageLabel: "Language",
   liveStats: {
-    content: "public episodes",
+    content: "public vlogs",
     creators: "active characters",
     sales: "confirmed sales",
     totalSales: "sales volume",
-    videos: "video episodes",
+    videos: "video vlogs",
   },
   liveVideos: {
-    empty: "Public daily video episodes will appear here as soon as they are available.",
-    eyebrow: "Live Character Episodes",
+    empty: "Public AI character vlogs will appear here as soon as they are available.",
+    eyebrow: "Live AI Character Vlogs",
     free: "Free public",
-    open: "View episode",
-    title: "Real public virtual character episodes make the fan experience tangible.",
+    open: "View vlog",
+    title: "Real public AI character vlogs make the fan experience tangible.",
   },
   nav: {
     creators: "Characters",
@@ -316,17 +350,43 @@ const enCopy: FanletterCopy = {
     studio: "Studio",
   },
   niche: {
-    body: "Keep one character identity while turning selfies, routines, outings, and behind-the-scenes moments into connected episodes.",
-    cta: "Open serial studio",
-    title: "A daily serial home for the same character.",
-    categories: ["Selfie", "Routine", "Travel", "Workout", "Behind"],
+    body: "Individuals, AI influencers, brand mascots, and webtoon, game, or virtual idol IP can become short-form character channels.",
+    cta: "Open vlog studio",
+    title: "If you have a character, you can build a channel.",
+    categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
   },
   proof: {
-    title: "From persona lock to daily episode sales",
+    title: "From character setup to short-form vlog sales",
     stats: [
-      { label: "persona lock", value: "01" },
-      { label: "daily episode", value: "05" },
-      { label: "mobile serial", value: "24/7" },
+      { label: "character setup", value: "01" },
+      { label: "vlog flow", value: "05" },
+      { label: "mobile channel", value: "24/7" },
+    ],
+  },
+  targetAudience: {
+    eyebrow: "Who it is for",
+    title: "Built for creators who want to grow a character channel without showing their face.",
+    items: [
+      {
+        title: "No-face individual creators",
+        description: "Start a short-form channel without revealing your real face.",
+      },
+      {
+        title: "AI influencer operators",
+        description: "Keep the same AI person or virtual character visible over time.",
+      },
+      {
+        title: "Paid community creators",
+        description: "Build content flows that can connect to Fanvue, Patreon, and paid fan communities.",
+      },
+      {
+        title: "Brands and small businesses",
+        description: "Turn a mascot into a vlog character that can speak, post, and build a following.",
+      },
+      {
+        title: "Webtoon, game, and virtual IP teams",
+        description: "Reuse existing character IP as short-form vlogs and fan feeds.",
+      },
     ],
   },
 };
@@ -465,25 +525,25 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정 연결",
-          aiContent: "일상 에피소드",
+          aiContent: "AI 캐릭터 vlog",
           creatorGrowth: "팬 관계 성장",
-          feed: "일상 피드",
+          feed: "vlog 피드",
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
-          studio: "연재 스튜디오",
+          studio: "vlog 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
         }
       : {
           activate: "Connect account",
-          aiContent: "Daily episodes",
+          aiContent: "AI character vlogs",
           creatorGrowth: "Fan relationship growth",
-          feed: "Daily feed",
+          feed: "Vlog feed",
           help: "Help",
           mobileFirst: "Mobile first",
           network: "Network",
-          studio: "Serial studio",
+          studio: "Vlog studio",
           trust: "Trust",
           usdtReady: "USDT ready",
         };
@@ -785,15 +845,15 @@ export function FanletterHomePage({
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-                Daily serial flow
+                AI character vlog flow
               </p>
               <h2 className="mt-4 max-w-2xl text-[2.25rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.4rem]">
                 {copy.proof.title}
               </h2>
               <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/62 sm:text-base">
                 {locale === "ko"
-                  ? "페르소나 설정부터 오늘의 장면 생성, 일상 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
-                  : "Persona setup, daily scene generation, public feeds, and sales checks are connected as one understandable serial flow."}
+                  ? "캐릭터 설정부터 숏폼 vlog 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
+                  : "Character setup, short-form vlog generation, public feeds, and sales checks are connected as one understandable creator flow."}
               </p>
             </div>
 
@@ -852,8 +912,8 @@ export function FanletterHomePage({
               </p>
               <h2 className="mt-4 max-w-3xl text-[2.2rem] font-semibold leading-[1] tracking-normal text-white [word-break:keep-all] sm:text-[3.5rem]">
                 {locale === "ko"
-                  ? "모바일에서 바로 쓰는 일상 연재 기능"
-                  : "Daily serial tools that work from mobile"}
+                  ? "모바일에서 바로 쓰는 AI 캐릭터 vlog 기능"
+                  : "AI character vlog tools that work from mobile"}
               </h2>
             </div>
             <Link
@@ -905,6 +965,59 @@ export function FanletterHomePage({
         </div>
       </section>
 
+      <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#1f7c38]">
+                {copy.targetAudience.eyebrow}
+              </p>
+              <h2 className="mt-4 max-w-4xl text-[2.2rem] font-semibold leading-[1] tracking-normal [word-break:keep-all] sm:text-[3.7rem]">
+                {copy.targetAudience.title}
+              </h2>
+            </div>
+            <Link
+              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-black px-6 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit lg:justify-self-end"
+              href={creatorHref}
+            >
+              {copy.cta.creator}
+            </Link>
+          </div>
+
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {copy.targetAudience.items.map((item, index) => {
+              const Icon = featureIcons[index] ?? Sparkles;
+
+              return (
+                <article
+                  className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.07)]"
+                  key={item.title}
+                >
+                  <span
+                    className={joinClasses(
+                      "flex size-11 items-center justify-center rounded-lg text-black",
+                      index === 0
+                        ? "bg-[#44f26e]"
+                        : index === 1
+                          ? "bg-[#e8f5ff]"
+                          : "bg-[#eef3ec]",
+                    )}
+                  >
+                    <Icon className="size-5" />
+                  </span>
+                  <h3 className="mt-5 text-xl font-semibold leading-tight tracking-normal">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+                    {item.description}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       <section
         className="bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
         id="creators"
@@ -912,7 +1025,7 @@ export function FanletterHomePage({
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <div>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-              Character network
+              AI character network
             </p>
             <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]">
               {copy.economy.title}

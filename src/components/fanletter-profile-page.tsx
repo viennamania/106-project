@@ -121,12 +121,12 @@ function getCopy(locale: Locale) {
           ["middle_eastern_mediterranean", "중동/지중해"],
           ["african_diaspora", "아프리카 디아스포라"],
         ] as const,
-        avatar: "AI 아바타",
+        avatar: "AI vlogger 아바타",
         avatarBody:
-          "선택한 페르소나로 기본, 미소, 차분한 표정의 아바타 세트를 만들고 대표 이미지를 저장합니다.",
+          "선택한 캐릭터 페르소나로 기본, 미소, 차분한 표정의 vlogger 아바타 세트를 만들고 대표 이미지를 저장합니다.",
         avatarGenerate: "AI 아바타 생성",
         avatarGenerating: "아바타 생성 중...",
-        avatarRequired: "인물 페르소나를 먼저 선택하세요.",
+        avatarRequired: "캐릭터 페르소나를 먼저 선택하세요.",
         avatarSelect: "대표로 저장",
         avatarSelected: "대표 이미지",
         back: "온보딩으로 돌아가기",
@@ -134,10 +134,10 @@ function getCopy(locale: Locale) {
           "프로필을 설정하려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
         connectRequiredCta: "계정 연결하기",
         completed: "준비 완료",
-        contentCta: "첫 에피소드 만들기",
+        contentCta: "첫 vlog 만들기",
         disconnected: "계정 연결이 필요합니다.",
         displayName: "표시 이름",
-        displayNameHint: "일상 피드와 에피소드 상세에 보이는 캐릭터/채널 이름입니다.",
+        displayNameHint: "vlog 피드와 상세에 보이는 AI 캐릭터/채널 이름입니다.",
         displayNamePlaceholder: "예: 지니뮤직",
         errorFallback: "프로필을 처리하지 못했습니다.",
         eyebrow: "FanLetter Profile",
@@ -151,9 +151,9 @@ function getCopy(locale: Locale) {
         paymentRequired:
           "가입 완료 회원만 FanLetter 프로필을 설정할 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
-        persona: "인물 페르소나",
+        persona: "캐릭터 페르소나",
         personaBody:
-          "같은 인물이 유지되도록 얼굴, 헤어, 피부 톤, 신체 실루엣의 고정 정보를 선택합니다.",
+          "같은 AI vlogger가 유지되도록 얼굴, 헤어, 피부 톤, 신체 실루엣의 고정 정보를 선택합니다.",
         personaRequired: "성별과 연령대를 먼저 선택하세요.",
         personaSave: "선택하고 저장",
         personaSaved: "적용됨",
@@ -162,9 +162,9 @@ function getCopy(locale: Locale) {
         saving: "저장 중...",
         selectedPersona: "선택된 페르소나",
         setupBody:
-          "처음에는 필요한 것만 설정합니다. 표시 이름, 인물 페르소나, AI 아바타를 순서대로 끝내면 첫 일상 에피소드 생성으로 바로 이어집니다.",
-        studio: "연재 스튜디오",
-        title: "가상 인물 연재 프로필을 빠르게 준비하세요.",
+          "처음에는 필요한 것만 설정합니다. 표시 이름, 캐릭터 페르소나, AI 아바타를 순서대로 끝내면 첫 숏폼 vlog 생성으로 바로 이어집니다.",
+        studio: "vlog 스튜디오",
+        title: "AI 캐릭터 vlogger 프로필을 빠르게 준비하세요.",
       }
     : {
         age: "Age range",
@@ -185,9 +185,9 @@ function getCopy(locale: Locale) {
           ["middle_eastern_mediterranean", "Middle Eastern / Mediterranean"],
           ["african_diaspora", "African diaspora"],
         ] as const,
-        avatar: "AI avatar",
+        avatar: "AI vlogger avatar",
         avatarBody:
-          "Create a small expression set from the selected persona and save the representative avatar.",
+          "Create a small vlogger expression set from the selected character persona and save the representative avatar.",
         avatarGenerate: "Generate AI avatar",
         avatarGenerating: "Generating avatar...",
         avatarRequired: "Select a character persona first.",
@@ -198,10 +198,10 @@ function getCopy(locale: Locale) {
           "Connect your FanLetter account before setting up a profile.",
         connectRequiredCta: "Connect account",
         completed: "Ready",
-        contentCta: "Create first episode",
+        contentCta: "Create first vlog",
         disconnected: "Account connection required.",
         displayName: "Display name",
-        displayNameHint: "Shown in the daily feed and episode detail pages.",
+        displayNameHint: "Shown in the vlog feed and detail pages.",
         displayNamePlaceholder: "Example: Genie Music",
         errorFallback: "Failed to process profile.",
         eyebrow: "FanLetter Profile",
@@ -217,7 +217,7 @@ function getCopy(locale: Locale) {
         paymentRequiredCta: "Verify signup",
         persona: "Character persona",
         personaBody:
-          "Choose fixed face, hair, skin tone, and neutral body silhouette details to keep the same person.",
+          "Choose fixed face, hair, skin tone, and neutral body silhouette details to keep the same AI vlogger.",
         personaRequired: "Select gender and age range first.",
         personaSave: "Select and save",
         personaSaved: "Applied",
@@ -226,9 +226,9 @@ function getCopy(locale: Locale) {
         saving: "Saving...",
         selectedPersona: "Selected persona",
         setupBody:
-          "Keep setup light at first: display name, character persona, and AI avatar. Then continue to first daily episode creation.",
-        studio: "Serial studio",
-        title: "Prepare your virtual character serial profile quickly.",
+          "Keep setup light at first: display name, character persona, and AI avatar. Then continue to first short-form vlog creation.",
+        studio: "Vlog studio",
+        title: "Prepare your AI character vlogger profile quickly.",
       };
 }
 

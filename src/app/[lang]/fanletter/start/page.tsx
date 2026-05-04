@@ -34,8 +34,8 @@ export async function generateMetadata({
     locale === "ko" ? "FanLetter 시작하기" : "Start FanLetter";
   const description =
     locale === "ko"
-      ? "FanLetter에서 가상 인물 페르소나, 첫 일상 에피소드 생성, 게시와 판매 흐름을 시작하세요."
-      : "Start a virtual character persona, first daily episode, publishing, and sales flow on FanLetter.";
+      ? "FanLetter에서 AI 캐릭터 페르소나, 첫 숏폼 vlog 생성, 게시와 판매 흐름을 시작하세요."
+      : "Start an AI character persona, first short-form vlog, publishing, and sales flow on FanLetter.";
   const url = buildPathWithReferral(`/${locale}/fanletter/start`, referralCode);
   const ogImagePath = buildFanletterOgImagePath({
     description,

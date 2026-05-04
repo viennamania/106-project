@@ -103,53 +103,53 @@ type FanletterSubpageCopy = {
 const koCopy: FanletterSubpageCopy = {
   actions: {
     continue: "계속 진행",
-    creatorStudio: "연재 스튜디오",
+    creatorStudio: "vlog 스튜디오",
     existingDetail: "지갑 연결 상세로 이동",
-    feed: "일상 피드",
+    feed: "vlog 피드",
     home: "홈",
-    openContent: "에피소드 보기",
-    start: "연재 시작",
+    openContent: "vlog 보기",
+    start: "채널 시작",
   },
   content: {
-    body: "에피소드 본문",
-    lockedBody: "전체 에피소드는 기존 상세 화면에서 권한 확인 후 열람할 수 있습니다.",
+    body: "vlog 본문",
+    lockedBody: "전체 vlog는 기존 상세 화면에서 권한 확인 후 열람할 수 있습니다.",
     lockedDescription:
       "결제, 지갑 연결, 회원 권한 확인은 기존 상세 API와 화면을 그대로 사용합니다.",
-    lockedTitle: "권한 확인이 필요한 에피소드입니다.",
-    media: "에피소드 미디어",
+    lockedTitle: "권한 확인이 필요한 vlog입니다.",
+    media: "vlog 미디어",
     paid: "유료",
     public: "무료 공개",
   },
   creator: {
     characterAvatars: "표정 아바타 세트",
     characterBody:
-      "내부 생성 프롬프트는 숨기고 팬이 소비할 수 있는 캐릭터 소개와 일상 에피소드 흐름만 보여줍니다.",
+      "내부 생성 프롬프트는 숨기고 팬이 소비할 수 있는 캐릭터 소개와 공개 vlog 흐름만 보여줍니다.",
     characterEmptyTraits: "공개 키워드는 페르소나가 더 정리되면 표시됩니다.",
-    characterEvolution: "일상 진화 로그",
-    characterEyebrow: "Public Character Serial",
-    characterImageSignal: "이미지 일상",
-    characterLatest: "최근 에피소드",
-    characterPublicSignal: "공개 에피소드",
-    characterTitle: "공개 캐릭터 홈",
+    characterEvolution: "vlogger 성장 로그",
+    characterEyebrow: "Public AI Character Vlogger",
+    characterImageSignal: "이미지 vlog",
+    characterLatest: "최근 vlog",
+    characterPublicSignal: "공개 vlog",
+    characterTitle: "AI 캐릭터 채널",
     characterTraits: "캐릭터 키워드",
-    characterVideoSignal: "동영상 일상",
-    empty: "이 캐릭터의 공개 일상 에피소드가 준비되면 이곳에 표시됩니다.",
-    eyebrow: "Character Channel",
-    publicPosts: "공개 에피소드",
+    characterVideoSignal: "동영상 vlog",
+    empty: "이 캐릭터의 공개 vlog가 준비되면 이곳에 표시됩니다.",
+    eyebrow: "AI Character Channel",
+    publicPosts: "공개 vlog",
     stage: "Stage",
     titleSuffix: "의 FanLetter",
   },
   feed: {
-    allContent: "전체 공개 에피소드",
-    empty: "공개 일상 에피소드가 준비되면 이곳에 표시됩니다.",
-    eyebrow: "Daily Character Feed",
-    featured: "추천 에피소드",
+    allContent: "전체 공개 vlog",
+    empty: "공개 AI 캐릭터 vlog가 준비되면 이곳에 표시됩니다.",
+    eyebrow: "AI Character Vlog Feed",
+    featured: "추천 vlog",
     freePublic: "무료 공개",
-    latest: "최신 일상",
+    latest: "최신 vlog",
     suggestedCreators: "추천 캐릭터",
-    title: "가상 인물의 공개 일상 에피소드를 FanLetter 흐름 안에서 둘러보세요.",
-    trending: "인기 일상",
-    videos: "동영상 일상",
+    title: "AI 캐릭터의 공개 숏폼 vlog를 FanLetter 흐름 안에서 둘러보세요.",
+    trending: "인기 vlog",
+    videos: "동영상 vlog",
   },
   languageLabel: "언어",
   metrics: {
@@ -158,76 +158,76 @@ const koCopy: FanletterSubpageCopy = {
     saves: "저장",
   },
   start: {
-    body: "가입, 페르소나 설정, 첫 일상 에피소드 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.",
+    body: "가입, AI 캐릭터 설정, 첫 숏폼 vlog 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.",
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "가입을 완료하고 표시 이름, 인물 페르소나, 아바타를 정리해 같은 인물이 유지되게 준비합니다.",
-        title: "캐릭터 준비",
+        body: "가입을 완료하고 표시 이름, 캐릭터 페르소나, 아바타를 정리해 같은 vlogger가 유지되게 준비합니다.",
+        title: "AI 캐릭터 준비",
       },
       {
-        body: "오늘의 셀피, 외출, 루틴 같은 장면을 이미지 또는 동영상 에피소드로 만듭니다.",
-        title: "첫 일상 생성",
+        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 이미지 또는 동영상 vlog로 만듭니다.",
+        title: "첫 vlog 생성",
       },
       {
-        body: "FanLetter 일상 피드와 공유 링크로 팬에게 보여주고 다음 에피소드로 이어갑니다.",
-        title: "연재와 판매",
+        body: "FanLetter vlog 피드와 공유 링크로 팬에게 보여주고 유료 커뮤니티 흐름으로 이어갑니다.",
+        title: "게시와 수익화",
       },
     ],
-    title: "처음 시작하는 사람도 가상 인물 연재를 바로 따라갈 수 있게 정리했습니다.",
+    title: "처음 시작하는 사람도 AI 캐릭터 vlogger 채널을 바로 따라갈 수 있게 정리했습니다.",
   },
 };
 
 const enCopy: FanletterSubpageCopy = {
   actions: {
     continue: "Continue",
-    creatorStudio: "Serial Studio",
+    creatorStudio: "Vlog Studio",
     existingDetail: "Open wallet detail",
-    feed: "Daily Feed",
+    feed: "Vlog Feed",
     home: "Home",
-    openContent: "View episode",
-    start: "Start serial",
+    openContent: "View vlog",
+    start: "Start channel",
   },
   content: {
-    body: "Episode body",
-    lockedBody: "Open the existing detail view to verify access and view the full episode.",
+    body: "Vlog body",
+    lockedBody: "Open the existing detail view to verify access and view the full vlog.",
     lockedDescription:
       "Payments, wallet connection, and access checks keep using the existing content detail APIs and flow.",
-    lockedTitle: "This episode requires access verification.",
-    media: "Episode media",
+    lockedTitle: "This vlog requires access verification.",
+    media: "Vlog media",
     paid: "Paid",
     public: "Free public",
   },
   creator: {
     characterAvatars: "Expression avatar set",
     characterBody:
-      "Internal generation prompts stay private. Fans see the character intro and daily episode signals only.",
+      "Internal generation prompts stay private. Fans see the character intro and public vlog signals only.",
     characterEmptyTraits: "Public keywords will appear as the persona becomes clearer.",
-    characterEvolution: "Daily evolution log",
-    characterEyebrow: "Public Character Serial",
-    characterImageSignal: "Image dailies",
-    characterLatest: "Latest episode",
-    characterPublicSignal: "Public episodes",
-    characterTitle: "Public character home",
+    characterEvolution: "Vlogger growth log",
+    characterEyebrow: "Public AI Character Vlogger",
+    characterImageSignal: "Image vlogs",
+    characterLatest: "Latest vlog",
+    characterPublicSignal: "Public vlogs",
+    characterTitle: "AI character channel",
     characterTraits: "Character keywords",
-    characterVideoSignal: "Video dailies",
-    empty: "This character's public daily episodes will appear here when ready.",
-    eyebrow: "Character Channel",
-    publicPosts: "public episodes",
+    characterVideoSignal: "Video vlogs",
+    empty: "This character's public vlogs will appear here when ready.",
+    eyebrow: "AI Character Channel",
+    publicPosts: "public vlogs",
     stage: "Stage",
     titleSuffix: "'s FanLetter",
   },
   feed: {
-    allContent: "All public episodes",
-    empty: "Public daily episodes will appear here when ready.",
-    eyebrow: "Daily Character Feed",
-    featured: "Featured episode",
+    allContent: "All public vlogs",
+    empty: "Public AI character vlogs will appear here when ready.",
+    eyebrow: "AI Character Vlog Feed",
+    featured: "Featured vlog",
     freePublic: "Free public",
-    latest: "Latest dailies",
+    latest: "Latest vlogs",
     suggestedCreators: "Suggested characters",
-    title: "Browse public daily episodes from virtual characters inside FanLetter.",
-    trending: "Popular dailies",
-    videos: "Video dailies",
+    title: "Browse public short-form vlogs from AI characters inside FanLetter.",
+    trending: "Popular vlogs",
+    videos: "Video vlogs",
   },
   languageLabel: "Language",
   metrics: {
@@ -236,23 +236,23 @@ const enCopy: FanletterSubpageCopy = {
     saves: "saves",
   },
   start: {
-    body: "Signup, persona setup, first daily episode creation, publishing, and sales continue through the existing product flow.",
+    body: "Signup, AI character setup, first short-form vlog creation, publishing, and sales continue through the existing product flow.",
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "Complete signup and prepare display name, character persona, and avatar so the same identity stays consistent.",
-        title: "Prepare character",
+        body: "Complete signup and prepare display name, character persona, and avatar so the same vlogger stays consistent.",
+        title: "Prepare AI character",
       },
       {
-        body: "Create today's selfie, routine, or outing as an image or video episode.",
-        title: "Create first daily",
+        body: "Create today's selfie, routine, outing, or dialogue scene as an image or video vlog.",
+        title: "Create first vlog",
       },
       {
-        body: "Publish to the FanLetter daily feed and keep fans moving into the next episode.",
-        title: "Serialise and sell",
+        body: "Publish to the FanLetter vlog feed and connect fans to paid community flows.",
+        title: "Publish and monetise",
       },
     ],
-    title: "A simple path to start a virtual character daily serial.",
+    title: "A simple path to start an AI character vlogger channel.",
   },
 };
 
@@ -881,7 +881,7 @@ export function FanletterFeedPage({
       eyebrow={copy.feed.eyebrow}
       locale={locale}
       referralCode={referralCode}
-      title={locale === "ko" ? "FanLetter 일상 피드" : "FanLetter Daily Feed"}
+      title={locale === "ko" ? "FanLetter AI 캐릭터 vlog 피드" : "FanLetter AI Character Vlog Feed"}
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -913,7 +913,7 @@ export function FanletterFeedPage({
               <div className="grid min-w-0 gap-4">
                 <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)]">
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#1f7c38]">
-                    {locale === "ko" ? "Daily Serial" : "Daily Serial"}
+                    {locale === "ko" ? "Character Vlog" : "Character Vlog"}
                   </p>
                   <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all]">
                     {copy.feed.title}
@@ -1492,22 +1492,22 @@ export function FanletterOnboardingPage({
       ? {
           accountState: "기존 회원 세션과 지갑 연결을 그대로 사용합니다.",
           asideBody:
-            "처음 방문한 사용자가 가상 인물 연재를 바로 시작할 수 있도록 필요한 작업만 순서대로 모았습니다.",
-          asideTitle: "오늘 연재 시작하기",
+            "처음 방문한 사용자가 AI 캐릭터 vlogger 채널을 바로 시작할 수 있도록 필요한 작업만 순서대로 모았습니다.",
+          asideTitle: "오늘 채널 시작하기",
           completeBody:
-            "가입, 페르소나, 첫 에피소드까지 끝내면 FanLetter 일상 피드와 연재 스튜디오에서 바로 이어서 운영할 수 있습니다.",
-          completeTitle: "완료 후 바로 연재 운영으로 이어집니다.",
+            "가입, 캐릭터 페르소나, 첫 vlog까지 끝내면 FanLetter vlog 피드와 스튜디오에서 바로 이어서 운영할 수 있습니다.",
+          completeTitle: "완료 후 바로 캐릭터 채널 운영으로 이어집니다.",
           description:
-            "FanLetter 전용 화면에서 계정 연결, 인물 페르소나, 첫 일상 에피소드 생성까지 순서대로 진행하세요.",
+            "FanLetter 전용 화면에서 계정 연결, AI 캐릭터 페르소나, 첫 숏폼 vlog 생성까지 순서대로 진행하세요.",
           eyebrow: "FanLetter Onboarding",
-          feedCta: "일상 피드 보기",
-          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter 연재 흐름으로 묶습니다.",
-          homeCta: "연재 스튜디오",
+          feedCta: "vlog 피드 보기",
+          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 vlog 흐름으로 묶습니다.",
+          homeCta: "vlog 스튜디오",
           primary: "계정 연결부터 시작",
           progress: "Launch checklist",
           requiredLabel: "필수",
           secondary: "프로필부터 설정",
-          title: "가상 인물 연재를 한 화면에서 시작하세요.",
+          title: "AI 캐릭터 vlogger 채널을 한 화면에서 시작하세요.",
           steps: [
             {
               body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
@@ -1518,42 +1518,42 @@ export function FanletterOnboardingPage({
               title: "계정과 지갑 연결",
             },
             {
-              body: "표시 이름, 인물 페르소나, AI 아바타를 정리해 같은 인물의 첫 인상을 만듭니다.",
+              body: "표시 이름, 캐릭터 페르소나, AI 아바타를 정리해 같은 vlogger의 첫 인상을 만듭니다.",
               cta: "프로필 설정하기",
               href: profileHref,
               Icon: PenLine,
               meta: "02 · Profile",
-              title: "캐릭터 프로필 준비",
+              title: "AI 캐릭터 프로필 준비",
             },
             {
-              body: "오늘의 일상 장면을 이미지나 동영상 에피소드로 만들고 공개 범위와 가격을 정합니다.",
-              cta: "첫 에피소드 만들기",
+              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 이미지나 동영상 vlog로 만들고 공개 범위와 가격을 정합니다.",
+              cta: "첫 vlog 만들기",
               href: createHref,
               Icon: Clapperboard,
-              meta: "03 · Episode",
-              title: "첫 일상 에피소드 생성",
+              meta: "03 · Vlog",
+              title: "첫 숏폼 vlog 생성",
             },
           ],
         }
       : {
           accountState: "This keeps the existing member session and wallet flow.",
           asideBody:
-            "A focused path for new creators to start a virtual character daily serial quickly.",
-          asideTitle: "Start today's serial",
+            "A focused path for new creators to start an AI character vlogger channel quickly.",
+          asideTitle: "Start today's channel",
           completeBody:
-            "After signup, persona, and first episode, continue directly into the FanLetter daily feed and serial studio.",
-          completeTitle: "Launch work continues into daily publishing.",
+            "After signup, character persona, and first vlog, continue directly into the FanLetter vlog feed and studio.",
+          completeTitle: "Launch work continues into character channel operation.",
           description:
-            "Move through account connection, character persona setup, and first daily episode creation inside FanLetter.",
+            "Move through account connection, AI character persona setup, and first short-form vlog creation inside FanLetter.",
           eyebrow: "FanLetter Onboarding",
-          feedCta: "View daily feed",
-          helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter serial experience.",
-          homeCta: "Serial studio",
+          feedCta: "View vlog feed",
+          helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter AI character vlog experience.",
+          homeCta: "Vlog studio",
           primary: "Start with account",
           progress: "Launch checklist",
           requiredLabel: "Required",
           secondary: "Set up profile",
-          title: "Start a virtual character serial in one guided flow.",
+          title: "Start an AI character vlogger channel in one guided flow.",
           steps: [
             {
               body: "Confirm membership and wallet connection. After completion, return to this onboarding page.",
@@ -1564,20 +1564,20 @@ export function FanletterOnboardingPage({
               title: "Connect account and wallet",
             },
             {
-              body: "Prepare display name, character persona, and AI avatar so the same identity feels consistent.",
+              body: "Prepare display name, character persona, and AI avatar so the same vlogger feels consistent.",
               cta: "Set up profile",
               href: profileHref,
               Icon: PenLine,
               meta: "02 · Profile",
-              title: "Prepare character profile",
+              title: "Prepare AI character profile",
             },
             {
-              body: "Create today's daily scene as an image or video episode, then set visibility and pricing.",
-              cta: "Create first episode",
+              body: "Create today's selfie, routine, outing, or dialogue scene as an image or video vlog, then set visibility and pricing.",
+              cta: "Create first vlog",
               href: createHref,
               Icon: Clapperboard,
-              meta: "03 · Episode",
-              title: "Create first daily episode",
+              meta: "03 · Vlog",
+              title: "Create first short-form vlog",
             },
           ],
         };
@@ -1791,27 +1791,27 @@ export function FanletterStartPage({
     locale === "ko"
       ? {
           flowEyebrow: "Quick setup",
-          flowTitle: "3단계만 끝내면 가상 인물 일상 연재를 바로 시작할 수 있습니다.",
-          primary: "가입하고 연재 시작",
+          flowTitle: "3단계만 끝내면 AI 캐릭터 vlogger 채널을 바로 시작할 수 있습니다.",
+          primary: "가입하고 채널 시작",
           secondary: "프로필 설정하기",
           previewTitle: "오늘 할 일",
           previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
           nextLabel: "다음 단계",
           readyLabel: "시작 준비",
           readyValue: "3 steps",
-          stepMeta: ["계정 확인", "페르소나 준비", "첫 에피소드"],
+          stepMeta: ["계정 확인", "캐릭터 준비", "첫 vlog"],
         }
       : {
           flowEyebrow: "Quick setup",
-          flowTitle: "Complete three steps to start a virtual character daily serial.",
-          primary: "Start serial with signup",
+          flowTitle: "Complete three steps to start an AI character vlogger channel.",
+          primary: "Start channel with signup",
           secondary: "Set up profile",
           previewTitle: "Today’s path",
           previewBody: "New creators can follow the flow in order.",
           nextLabel: "Next step",
           readyLabel: "Ready path",
           readyValue: "3 steps",
-          stepMeta: ["Account check", "Persona setup", "First episode"],
+          stepMeta: ["Account check", "Character setup", "First vlog"],
         };
   const startIcons = [User, Sparkles, WalletCards] as const;
   const heroAside = (
