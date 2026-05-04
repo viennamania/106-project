@@ -526,7 +526,7 @@ function ContentCard({
   const creatorHref = getCreatorHref({ item, locale, referralCode });
 
   return (
-    <article className="overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
+    <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
       <Link className="block" href={href}>
         <div className="relative aspect-[9/14] overflow-hidden bg-[#07100b]">
           {item.coverImageUrl ? (
@@ -570,10 +570,10 @@ function ContentCard({
       </Link>
 
       <div className="p-4">
-        <h2 className="text-xl font-semibold leading-tight tracking-normal">
+        <h2 className="break-words text-xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
           {item.title}
         </h2>
-        <p className="mt-2 min-h-[4.5rem] text-sm font-medium leading-6 text-black/58">
+        <p className="mt-2 min-h-[4.5rem] break-words text-sm font-medium leading-6 text-black/58 [overflow-wrap:anywhere]">
           {item.summary}
         </p>
         <div className="mt-4 flex items-center justify-between gap-2">
@@ -650,7 +650,7 @@ function FeaturedFeedCard({
   const engagementScore = getContentEngagementScore(item);
 
   return (
-    <article className="overflow-hidden rounded-lg border border-black/10 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]">
+    <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]">
       <Link className="group block" href={href}>
         <div className="relative min-h-[28rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
           {item.primaryVideoUrl ? (
@@ -692,10 +692,10 @@ function FeaturedFeedCard({
                 {item.mediaType === "video" ? copy.feed.videos : copy.feed.freePublic}
               </span>
             </div>
-            <h2 className="mt-4 line-clamp-3 text-[2rem] font-semibold leading-[1.02] tracking-normal sm:text-[2.6rem]">
+            <h2 className="mt-4 line-clamp-3 break-words text-[2rem] font-semibold leading-[1.02] tracking-normal [overflow-wrap:anywhere] sm:text-[2.6rem]">
               {item.title}
             </h2>
-            <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-medium leading-6 text-white/72 sm:text-base sm:leading-7">
+            <p className="mt-3 line-clamp-3 max-w-2xl break-words text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere] sm:text-base sm:leading-7">
               {item.summary}
             </p>
             <div className="mt-5 flex items-center justify-between gap-3">
@@ -885,7 +885,7 @@ export function FanletterFeedPage({
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
-          <div className="mb-8 flex snap-x gap-2 overflow-x-auto pb-1">
+          <div className="mb-8 flex flex-wrap gap-2 pb-1">
             {[copy.feed.trending, copy.feed.latest, copy.feed.videos, copy.feed.freePublic].map(
               (filter, index) => (
                 <span
@@ -903,14 +903,14 @@ export function FanletterFeedPage({
           </div>
 
           {featuredItem ? (
-            <div className="mb-10 grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
+            <div className="mb-10 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
               <FeaturedFeedCard
                 item={featuredItem}
                 locale={locale}
                 referralCode={referralCode}
               />
 
-              <div className="grid gap-4">
+              <div className="grid min-w-0 gap-4">
                 <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)]">
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#1f7c38]">
                     Discover
