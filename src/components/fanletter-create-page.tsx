@@ -62,6 +62,10 @@ type CreateForm = {
   title: string;
 };
 
+export type FanletterCreateInitialPlan = Partial<
+  Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
+>;
+
 const EMPTY_FORM: CreateForm = {
   body: "",
   mode: "image",
@@ -254,10 +258,12 @@ function StatusPanel({
 }
 
 export function FanletterCreatePage({
+  initialPlan,
   locale,
   referralCode,
   returnToHref,
 }: {
+  initialPlan?: FanletterCreateInitialPlan;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
@@ -303,7 +309,14 @@ export function FanletterCreatePage({
     useState<ContentPostRecord | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateForm>(EMPTY_FORM);
+  const [form, setForm] = useState<CreateForm>(() => ({
+    ...EMPTY_FORM,
+    body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
+    mode: initialPlan?.mode === "video" ? "video" : "image",
+    prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
+    summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
+    title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
+  }));
   const [generatedMedia, setGeneratedMedia] = useState<GeneratedMedia | null>(
     null,
   );

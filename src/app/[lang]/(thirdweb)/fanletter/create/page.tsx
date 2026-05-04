@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { FanletterCreatePage } from "@/components/fanletter-create-page";
+import {
+  FanletterCreatePage,
+  type FanletterCreateInitialPlan,
+} from "@/components/fanletter-create-page";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
@@ -15,6 +18,11 @@ import {
 import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterCreateSearchParams = {
+  planBody?: string | string[];
+  planMode?: string | string[];
+  planPrompt?: string | string[];
+  planSummary?: string | string[];
+  planTitle?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
 };
@@ -51,6 +59,32 @@ function getSafeReturnTo({
   }
 
   return rawValue;
+}
+
+function readPlanText(rawValue: string | string[] | undefined, limit: number) {
+  return readFirstValue(rawValue)?.trim().slice(0, limit) || undefined;
+}
+
+function readInitialPlan(
+  query: FanletterCreateSearchParams,
+): FanletterCreateInitialPlan | undefined {
+  const title = readPlanText(query.planTitle, 88);
+  const summary = readPlanText(query.planSummary, 180);
+  const prompt = readPlanText(query.planPrompt, 1_200);
+  const body = readPlanText(query.planBody, 600);
+  const mode = readFirstValue(query.planMode) === "video" ? "video" : "image";
+
+  if (!title && !summary && !prompt && !body) {
+    return undefined;
+  }
+
+  return {
+    body,
+    mode,
+    prompt,
+    summary,
+    title,
+  };
 }
 
 export async function generateMetadata({
@@ -134,6 +168,7 @@ export default async function LocalizedFanletterCreatePage({
 
   return (
     <FanletterCreatePage
+      initialPlan={readInitialPlan(query)}
       locale={locale}
       referralCode={referralCode}
       returnToHref={getSafeReturnTo({

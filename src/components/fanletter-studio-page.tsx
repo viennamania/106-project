@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeDollarSign,
+  CalendarClock,
   CheckCircle2,
   Clapperboard,
   FileText,
@@ -36,6 +37,8 @@ import type {
   CreatorProfileRecord,
   CreatorProfileResponse,
   CreatorStudioPostsResponse,
+  FanletterVlogPlanItem,
+  FanletterVlogPlannerResponse,
 } from "@/lib/content";
 import {
   buildPathWithReferral,
@@ -62,6 +65,15 @@ type StudioState = {
   salesError: string | null;
   salesSummary: ContentSalesSummaryRecord | null;
   status: StudioStatus;
+};
+
+type PlannerStatus = "error" | "idle" | "loading" | "ready";
+
+type PlannerState = {
+  error: string | null;
+  generatedAt: string | null;
+  plans: FanletterVlogPlanItem[];
+  status: PlannerStatus;
 };
 
 const FANLETTER_STUDIO_DISCONNECTED_GRACE_MS = 4500;
@@ -126,6 +138,20 @@ function getCopy(locale: Locale) {
         salesFallback: "판매 요약을 불러오지 못했습니다.",
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
+        planner: {
+          body: "캐릭터 페르소나와 최근 콘텐츠를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 브이로그 소재를 제안합니다.",
+          checklist: "체크",
+          empty: "버튼을 누르면 제목, 요약, 생성 프롬프트, 캡션 훅까지 한 번에 준비합니다.",
+          errorFallback: "브이로그 플랜을 생성하지 못했습니다.",
+          eyebrow: "OpenAI Vlog Planner",
+          generate: "AI가 7일 플랜 추천",
+          generating: "플랜 생성 중...",
+          image: "이미지",
+          platform: "배포 포인트",
+          title: "오늘 무엇을 만들지 고민하지 않게 합니다.",
+          usePlan: "이 플랜으로 만들기",
+          video: "동영상",
+        },
         steps: [
           {
             body: "표시 이름과 캐릭터 페르소나를 정리해 같은 AI 브이로그 크리에이터가 유지되도록 준비합니다.",
@@ -196,6 +222,20 @@ function getCopy(locale: Locale) {
         salesFallback: "Could not load sales summary.",
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
+        planner: {
+          body: "OpenAI reads the character persona and recent content, then suggests seven ready-to-create vlog ideas.",
+          checklist: "Checks",
+          empty: "Generate titles, summaries, creation prompts, and caption hooks in one step.",
+          errorFallback: "Could not generate vlog plans.",
+          eyebrow: "OpenAI Vlog Planner",
+          generate: "Suggest 7-day plan",
+          generating: "Generating plans...",
+          image: "Image",
+          platform: "Distribution angle",
+          title: "Remove the daily question of what to make next.",
+          usePlan: "Create with this plan",
+          video: "Video",
+        },
         steps: [
           {
             body: "Prepare display name and character persona so the same AI vlogger stays consistent.",
@@ -417,6 +457,144 @@ function ActionCard({
   );
 }
 
+function PlannerSection({
+  copy,
+  createHref,
+  error,
+  locale,
+  onGenerate,
+  plans,
+  status,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  createHref: string;
+  error: string | null;
+  locale: Locale;
+  onGenerate: () => void;
+  plans: FanletterVlogPlanItem[];
+  status: PlannerStatus;
+}) {
+  const isLoading = status === "loading";
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)]">
+        <div className="bg-[#07100b] p-5 text-white sm:p-6">
+          <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            <CalendarClock className="size-6" />
+          </span>
+          <p className="mt-5 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            {copy.planner.eyebrow}
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-4xl">
+            {copy.planner.title}
+          </h2>
+          <p className="mt-4 text-sm font-medium leading-6 text-white/62">
+            {copy.planner.body}
+          </p>
+          <button
+            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60 sm:w-fit"
+            disabled={isLoading}
+            onClick={onGenerate}
+            type="button"
+          >
+            {isLoading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
+            {isLoading ? copy.planner.generating : copy.planner.generate}
+          </button>
+          {error ? (
+            <p className="mt-4 rounded-lg border border-red-300/20 bg-red-500/12 p-3 text-sm font-medium leading-6 text-red-100">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="min-w-0 p-4 sm:p-5">
+          {plans.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {plans.map((plan) => {
+                const href = setPathSearchParams(createHref, {
+                  planBody: plan.captionHook,
+                  planMode: plan.mediaMode,
+                  planPrompt: plan.scenePrompt,
+                  planSummary: plan.summary,
+                  planTitle: plan.title,
+                });
+
+                return (
+                  <article
+                    className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4"
+                    key={plan.id}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="rounded-full bg-black px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white">
+                        {plan.dayLabel}
+                      </span>
+                      <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/54">
+                        {plan.mediaMode === "video"
+                          ? copy.planner.video
+                          : copy.planner.image}
+                      </span>
+                    </div>
+                    <h3 className="mt-4 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+                      {plan.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-black/58">
+                      {plan.summary}
+                    </p>
+                    <div className="mt-4 rounded-lg border border-black/10 bg-white p-3">
+                      <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-[#16702e]">
+                        {copy.planner.platform}
+                      </p>
+                      <p className="mt-2 text-sm font-medium leading-6 text-black/60">
+                        {plan.platformAngle}
+                      </p>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {plan.checklist.slice(0, 3).map((item) => (
+                        <span
+                          className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black/56"
+                          key={item}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                    <Link
+                      className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                      href={href}
+                    >
+                      {copy.planner.usePlan}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-lg border border-black/10 bg-[#f6f8f4] p-5 text-center">
+              <Sparkles className="size-9 text-[#16702e]" />
+              <p className="mt-4 max-w-md text-base font-medium leading-7 text-black/58">
+                {copy.planner.empty}
+              </p>
+            </div>
+          )}
+          {plans.length > 0 ? (
+            <p className="mt-3 text-xs font-medium leading-5 text-black/42">
+              {locale === "ko"
+                ? "플랜을 선택하면 생성 페이지에 제목, 요약, 프롬프트가 자동으로 채워집니다."
+                : "Choosing a plan pre-fills title, summary, and prompt on the create page."}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PostPreviewCard({
   href,
   locale,
@@ -546,6 +724,12 @@ export function FanletterStudioPage({
   );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const [email, setEmail] = useState<string | null>(memberSession.email);
+  const [plannerState, setPlannerState] = useState<PlannerState>({
+    error: null,
+    generatedAt: null,
+    plans: [],
+    status: "idle",
+  });
   const [state, setState] = useState<StudioState>({
     error: null,
     member: memberSession.member,
@@ -700,6 +884,66 @@ export function FanletterStudioPage({
 
     void loadStudio();
   }, [connection.isConnected, loadStudio]);
+
+  const generatePlanner = useCallback(async () => {
+    if (!accountAddress) {
+      setPlannerState((current) => ({
+        ...current,
+        error: copy.connectRequired,
+        status: "error",
+      }));
+      return;
+    }
+
+    setPlannerState((current) => ({
+      ...current,
+      error: null,
+      status: "loading",
+    }));
+
+    try {
+      const resolvedEmail = await resolveEmail();
+      const response = await fetch("/api/content/planner", {
+        body: JSON.stringify({
+          email: resolvedEmail,
+          locale,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = await readApiJson<FanletterVlogPlannerResponse>(
+        response,
+        copy.planner.errorFallback,
+      );
+
+      if (!data.plans.length) {
+        throw new Error(copy.planner.errorFallback);
+      }
+
+      setPlannerState({
+        error: null,
+        generatedAt: data.generatedAt,
+        plans: data.plans,
+        status: "ready",
+      });
+    } catch (error) {
+      setPlannerState((current) => ({
+        ...current,
+        error:
+          error instanceof Error ? error.message : copy.planner.errorFallback,
+        status: "error",
+      }));
+    }
+  }, [
+    accountAddress,
+    copy.connectRequired,
+    copy.planner.errorFallback,
+    locale,
+    resolveEmail,
+  ]);
 
   const imageCount = useMemo(
     () =>
@@ -931,6 +1175,18 @@ export function FanletterStudioPage({
       <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
           <div className="min-w-0 space-y-6">
+            <PlannerSection
+              copy={copy}
+              createHref={createHref}
+              error={plannerState.error}
+              locale={locale}
+              onGenerate={() => {
+                void generatePlanner();
+              }}
+              plans={plannerState.plans}
+              status={plannerState.status}
+            />
+
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <ActionCard
                 Icon={Sparkles}

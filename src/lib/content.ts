@@ -132,6 +132,25 @@ export type CreatorCharacterPersona = {
   summary: string;
 };
 
+export type FanletterVlogPlanMediaMode = "image" | "video";
+
+export type FanletterVlogPlanItem = {
+  captionHook: string;
+  checklist: string[];
+  dayLabel: string;
+  id: string;
+  mediaMode: FanletterVlogPlanMediaMode;
+  platformAngle: string;
+  scenePrompt: string;
+  summary: string;
+  title: string;
+};
+
+export type FanletterVlogPlannerResponse = {
+  generatedAt: string;
+  plans: FanletterVlogPlanItem[];
+};
+
 export type ContentAssetDocument = {
   assetId: string;
   blobUrl: string;
