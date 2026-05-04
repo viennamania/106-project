@@ -270,6 +270,7 @@ function getPublicContentFilter({
   return {
     ...getPublishedContentLocaleFilter(locale),
     ...(referralCode ? { authorReferralCode: referralCode } : {}),
+    "contentVideoUrls.0": { $exists: true },
     priceType: "free",
     status: "published",
   };
@@ -345,6 +346,10 @@ export const getFanletterPublicContentDetail = cache(
     });
 
     if (!post) {
+      return null;
+    }
+
+    if (!getPrimaryVideoUrl(post)) {
       return null;
     }
 

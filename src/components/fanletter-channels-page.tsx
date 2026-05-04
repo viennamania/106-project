@@ -77,7 +77,7 @@ function getCopy(locale: Locale) {
           refresh: "다시 확인",
         },
         checklist: [
-          "9:16 세로형 영상 또는 대표 이미지 확인",
+          "9:16 세로형 영상이 정상 재생되는지 확인",
           "제목과 요약을 팬이 읽는 문장으로 정리",
           "캡션과 해시태그를 복사해 릴스/쇼츠/틱톡에 업로드",
           "외부 게시 후 FanLetter 링크를 프로필이나 댓글에 연결",
@@ -128,7 +128,6 @@ function getCopy(locale: Locale) {
           "가입 완료 회원만 외부 채널 배포 관리 화면을 사용할 수 있습니다.",
         paymentTitle: "가입 완료 확인이 필요합니다.",
         postTypes: {
-          image: "이미지",
           video: "동영상",
         },
         statusValues: {
@@ -150,7 +149,7 @@ function getCopy(locale: Locale) {
           refresh: "Check again",
         },
         checklist: [
-          "Check 9:16 vertical video or representative image",
+          "Check that the 9:16 vertical video plays correctly",
           "Turn title and summary into a fan-facing caption",
           "Copy caption and hashtags into Reels, Shorts, or TikTok",
           "Add the FanLetter link to profile, description, or comments",
@@ -201,7 +200,6 @@ function getCopy(locale: Locale) {
           "Completed members can use the channel distribution manager.",
         paymentTitle: "Signup verification is required.",
         postTypes: {
-          image: "Image",
           video: "Video",
         },
         statusValues: {
@@ -280,8 +278,8 @@ function buildHashtags(post: ContentPostRecord, locale: Locale) {
     .slice(0, 3);
   const base =
     locale === "ko"
-      ? ["FanLetter", "AI캐릭터", "브이로그", post.contentVideoCount > 0 ? "숏폼영상" : "AI이미지"]
-      : ["FanLetter", "AICharacter", "Vlog", post.contentVideoCount > 0 ? "Shorts" : "AIImage"];
+      ? ["FanLetter", "AI캐릭터", "브이로그", "숏폼영상"]
+      : ["FanLetter", "AICharacter", "Vlog", "Shorts"];
   const uniqueTags = Array.from(new Set([...base, ...normalizedTags]));
 
   return uniqueTags.map((tag) => `#${tag.replace(/\s+/g, "")}`).join(" ");
@@ -439,8 +437,6 @@ function PostingPackageCard({
   post: ContentPostRecord;
   videoUrl: string | null;
 }) {
-  const mediaType = videoUrl ? copy.postTypes.video : copy.postTypes.image;
-
   return (
     <article className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
       <div className="grid gap-0 lg:grid-cols-[minmax(16rem,0.45fr)_minmax(0,0.55fr)]">
@@ -473,7 +469,7 @@ function PostingPackageCard({
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/78 to-transparent p-4">
             <div className="flex flex-wrap gap-1.5">
               <span className="rounded-full bg-white px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-black">
-                {mediaType}
+                {copy.postTypes.video}
               </span>
               <span className="rounded-full bg-black/62 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white">
                 {getStatusLabel(post.status, copy)}
@@ -498,7 +494,7 @@ function PostingPackageCard({
           <div className="mt-5 grid gap-2 sm:grid-cols-3">
             {[
               ["9:16", copy.labels.format],
-              [mediaType, copy.labels.mediaReady],
+              [copy.postTypes.video, copy.labels.mediaReady],
               [post.priceType === "paid" ? `${post.priceUsdt ?? "1"} USDT` : locale === "ko" ? "무료 공개" : "Free", copy.labels.status],
             ].map(([value, label]) => (
               <div
@@ -688,7 +684,7 @@ export function FanletterChannelsPage({
         profileResponse,
         copy.connectRequired,
       );
-      const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=${CHANNEL_POSTS_PAGE_SIZE}&status=all`;
+      const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&media=video&pageSize=${CHANNEL_POSTS_PAGE_SIZE}&status=all`;
       const postsData = await fetch(postsUrl, { cache: "no-store" }).then(
         (response) =>
           readApiJson<CreatorStudioPostsResponse>(
@@ -747,12 +743,7 @@ export function FanletterChannelsPage({
   const distributionPosts = useMemo(
     () =>
       state.posts
-        .filter(
-          (post) =>
-            post.contentImageCount > 0 ||
-            post.contentVideoCount > 0 ||
-            post.coverImageUrl,
-        )
+        .filter((post) => post.contentVideoCount > 0)
         .slice(0, 6),
     [state.posts],
   );

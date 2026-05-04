@@ -21,6 +21,7 @@ export async function GET(request: Request) {
   const rawPageSize = url.searchParams.get("pageSize");
   const rawQuery = url.searchParams.get("q");
   const rawStatus = url.searchParams.get("status");
+  const rawMedia = url.searchParams.get("media");
 
   try {
     const authorization = await validateMemberWalletOwner({
@@ -34,8 +35,9 @@ export async function GET(request: Request) {
 
     const response: CreatorStudioPostsResponse = await getCreatorStudioPostsForMember(
       authorization.normalizedEmail,
-      rawPage || rawPageSize || rawQuery || rawStatus
+      rawPage || rawPageSize || rawQuery || rawStatus || rawMedia
         ? {
+            media: rawMedia === "video" ? "video" : null,
             page: rawPage ? Number(rawPage) : undefined,
             pageSize: rawPageSize ? Number(rawPageSize) : undefined,
             query: rawQuery,

@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Grid2X2,
   Heart,
-  ImageIcon,
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
@@ -127,7 +126,7 @@ const koCopy: FanletterSubpageCopy = {
     characterEmptyTraits: "공개 키워드는 페르소나가 더 정리되면 표시됩니다.",
     characterEvolution: "브이로그 성장 로그",
     characterEyebrow: "공개 AI 캐릭터 브이로그",
-    characterImageSignal: "이미지 브이로그",
+    characterImageSignal: "표정 아바타",
     characterLatest: "최근 브이로그",
     characterPublicSignal: "공개 브이로그",
     characterTitle: "AI 캐릭터 채널",
@@ -166,7 +165,7 @@ const koCopy: FanletterSubpageCopy = {
         title: "AI 캐릭터 준비",
       },
       {
-        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 이미지 또는 동영상 브이로그로 만듭니다.",
+        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 동영상 브이로그로 만듭니다.",
         title: "첫 브이로그 생성",
       },
       {
@@ -205,7 +204,7 @@ const enCopy: FanletterSubpageCopy = {
     characterEmptyTraits: "Public keywords will appear as the persona becomes clearer.",
     characterEvolution: "Vlogger growth log",
     characterEyebrow: "Public AI Character Vlogger",
-    characterImageSignal: "Image vlogs",
+    characterImageSignal: "Avatar set",
     characterLatest: "Latest vlog",
     characterPublicSignal: "Public vlogs",
     characterTitle: "AI character channel",
@@ -244,7 +243,7 @@ const enCopy: FanletterSubpageCopy = {
         title: "Prepare AI character",
       },
       {
-        body: "Create today's selfie, routine, outing, or dialogue scene as an image or video vlog.",
+        body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog.",
         title: "Create first vlog",
       },
       {
@@ -500,11 +499,9 @@ function MediaCard({
     );
   }
 
-  const Icon = mediaType === "image" ? ImageIcon : Clapperboard;
-
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
-      <Icon className="size-14 text-[#44f26e]" />
+      <Clapperboard className="size-14 text-[#44f26e]" />
       <span className="text-xs font-semibold uppercase tracking-[0.22em]">
         {mediaType}
       </span>
@@ -529,13 +526,17 @@ function ContentCard({
     <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
       <Link className="block" href={href}>
         <div className="relative aspect-[9/14] overflow-hidden bg-[#07100b]">
-          {item.coverImageUrl ? (
-            <Image
-              alt={item.title}
-              className="object-cover"
-              fill
-              sizes="(max-width: 640px) 76vw, (max-width: 1024px) 32vw, 22vw"
-              src={item.coverImageUrl}
+          {item.primaryVideoUrl ? (
+            <video
+              aria-hidden="true"
+              autoPlay
+              className="absolute inset-0 h-full w-full object-cover"
+              loop
+              muted
+              playsInline
+              poster={item.coverImageUrl ?? undefined}
+              preload="metadata"
+              src={item.primaryVideoUrl}
             />
           ) : (
             <MediaCard
@@ -549,7 +550,7 @@ function ContentCard({
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.76)_100%)]" />
           <span className="absolute left-3 top-3 inline-flex rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
-            {item.mediaType === "video" ? "Video" : copy.content.public}
+            Video
           </span>
           <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
             <Avatar
@@ -1043,7 +1044,7 @@ function CharacterPersonaShowcase({
     },
     {
       label: copy.creator.characterImageSignal,
-      value: formatNumber(character.imageContentCount, locale),
+      value: formatNumber(character.avatarImageSet.length, locale),
     },
     {
       label: copy.creator.characterLatest,
@@ -1400,8 +1401,7 @@ export function FanletterContentDetailPage({
               ) : null}
 
               {content.canPubliclyAccess &&
-              (content.contentVideoUrls.length > 1 ||
-                content.contentImageUrls.length > 0) ? (
+              content.contentVideoUrls.length > 1 ? (
                 <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4">
                   <div className="mb-4 flex items-center gap-2">
                     <Grid2X2 className="size-4 text-[#44f26e]" />
@@ -1422,20 +1422,6 @@ export function FanletterContentDetailPage({
                           playsInline
                           preload="metadata"
                           src={videoUrl}
-                        />
-                      </div>
-                    ))}
-                    {content.contentImageUrls.map((imageUrl) => (
-                      <div
-                        className="relative aspect-[9/14] overflow-hidden rounded-lg border border-white/10 bg-black"
-                        key={imageUrl}
-                      >
-                        <Image
-                          alt={content.title}
-                          className="object-cover"
-                          fill
-                          sizes="(max-width: 640px) 100vw, 40vw"
-                          src={imageUrl}
                         />
                       </div>
                     ))}
@@ -1526,7 +1512,7 @@ export function FanletterOnboardingPage({
               title: "AI 캐릭터 프로필 준비",
             },
             {
-              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 이미지나 동영상 브이로그로 만들고 공개 범위와 가격을 정합니다.",
+              body: "오늘의 셀피, 루틴, 외출, 대화 장면을 세로형 동영상 브이로그로 만들고 공개 범위와 가격을 정합니다.",
               cta: "첫 브이로그 만들기",
               href: createHref,
               Icon: Clapperboard,
@@ -1572,7 +1558,7 @@ export function FanletterOnboardingPage({
               title: "Prepare AI character profile",
             },
             {
-              body: "Create today's selfie, routine, outing, or dialogue scene as an image or video vlog, then set visibility and pricing.",
+              body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog, then set visibility and pricing.",
               cta: "Create first vlog",
               href: createHref,
               Icon: Clapperboard,

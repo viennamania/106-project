@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   CircleAlert,
   Clapperboard,
-  ImageIcon,
   Loader2,
   MessageCircleHeart,
   Play,
@@ -44,7 +43,7 @@ import {
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
 
-type CreateMode = "image" | "video";
+type CreateMode = "video";
 type GenerationStatus = "error" | "idle" | "loading" | "ready";
 
 type GeneratedMedia = {
@@ -70,7 +69,7 @@ export type FanletterCreateInitialPlan = Partial<
 
 const EMPTY_FORM: CreateForm = {
   body: "",
-  mode: "image",
+  mode: "video",
   priceType: "free",
   prompt: "",
   summary: "",
@@ -100,13 +99,9 @@ function getCopy(locale: Locale) {
         free: "무료 공개",
         generate: "브이로그 생성",
         generated: "생성 완료",
-        generatingImage: "AI 이미지 생성 중...",
         generatingVideo: "AI 동영상 생성 중...",
-        image: "이미지 장면",
-        imageBody:
-          "페르소나와 아바타를 함께 사용해 숏폼 브이로그의 이미지 장면을 만듭니다.",
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
-        missingMedia: "공개하려면 먼저 이미지 또는 동영상을 생성하세요.",
+        missingMedia: "공개하려면 먼저 동영상 브이로그를 생성하세요.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
         paymentRequired: "가입 완료 회원만 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
@@ -118,7 +113,7 @@ function getCopy(locale: Locale) {
         profileRequiredCta: "프로필 설정하기",
         prompt: "브이로그 장면",
         promptPlaceholder:
-          "장소, 행동, 대사, 카메라 느낌, 숏폼 분위기를 자연스럽게 입력하세요.",
+          "장소, 움직임, 행동, 대사, 카메라 느낌, 숏폼 분위기를 자연스럽게 입력하세요.",
         publish: "브이로그 공개",
         published: "공개했습니다.",
         result: "브이로그 미리보기",
@@ -153,13 +148,9 @@ function getCopy(locale: Locale) {
         free: "Free public",
         generate: "Generate vlog",
         generated: "Generated",
-        generatingImage: "Generating AI image...",
         generatingVideo: "Generating AI video...",
-        image: "Image scene",
-        imageBody:
-          "Use the persona and avatar together to create an image scene for the short-form vlog.",
         loading: "Checking vlog setup.",
-        missingMedia: "Generate an image or video before publishing.",
+        missingMedia: "Generate a video vlog before publishing.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT paid`,
         paymentRequired: "Only completed members can create the first AI character vlog.",
         paymentRequiredCta: "Verify signup",
@@ -172,7 +163,7 @@ function getCopy(locale: Locale) {
         profileRequiredCta: "Set up profile",
         prompt: "Vlog scene",
         promptPlaceholder:
-          "Describe location, action, dialogue, camera feel, and short-form mood.",
+          "Describe location, motion, action, dialogue, camera feel, and short-form mood.",
         publish: "Publish vlog",
         published: "Published.",
         result: "Vlog preview",
@@ -314,7 +305,7 @@ export function FanletterCreatePage({
   const [form, setForm] = useState<CreateForm>(() => ({
     ...EMPTY_FORM,
     body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
-    mode: initialPlan?.mode === "video" ? "video" : "image",
+    mode: "video",
     prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
     summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
     title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
@@ -338,9 +329,8 @@ export function FanletterCreatePage({
   const hasPersona = Boolean(profile?.characterPersona);
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const canPublish = Boolean(generatedMedia?.url);
-  const selectedModeCopy = form.mode === "image" ? copy.imageBody : copy.videoBody;
-  const generatedImageUrl = form.mode === "image" ? generatedMedia?.url : null;
-  const generatedVideoUrl = form.mode === "video" ? generatedMedia?.url : null;
+  const selectedModeCopy = copy.videoBody;
+  const generatedVideoUrl = generatedMedia?.url ?? null;
   const contentHref = createdContent
     ? buildPathWithReferral(
         `/${locale}/fanletter/content/${createdContent.contentId}`,
@@ -484,18 +474,13 @@ export function FanletterCreatePage({
       return;
     }
 
-    const endpoint =
-      form.mode === "image"
-        ? "/api/content/posts/generate-content-image"
-        : "/api/content/posts/generate-content-video";
+    const endpoint = "/api/content/posts/generate-content-video";
 
     try {
       setCreatedContent(null);
       setError(null);
       setGeneratedMedia(null);
-      setGenerationMessage(
-        form.mode === "image" ? copy.generatingImage : copy.generatingVideo,
-      );
+      setGenerationMessage(copy.generatingVideo);
       setGenerationStatus("loading");
       setNotice(null);
 
@@ -562,9 +547,9 @@ export function FanletterCreatePage({
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body,
-          contentImageUrls: generatedImageUrl ? [generatedImageUrl] : [],
+          contentImageUrls: [],
           contentVideoUrls: generatedVideoUrl ? [generatedVideoUrl] : [],
-          coverImageUrl: generatedImageUrl,
+          coverImageUrl: null,
           email: resolvedEmail,
           locale,
           priceType: form.priceType,
@@ -773,48 +758,14 @@ export function FanletterCreatePage({
                 01
               </p>
               <h2 className="mt-3 text-2xl font-semibold">{copy.prompt}</h2>
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                {[
-                  {
-                    Icon: ImageIcon,
-                    body: copy.imageBody,
-                    label: copy.image,
-                    value: "image" as const,
-                  },
-                  {
-                    Icon: Clapperboard,
-                    body: copy.videoBody,
-                    label: copy.video,
-                    value: "video" as const,
-                  },
-                ].map((option) => {
-                  const Icon = option.Icon;
-                  const selected = form.mode === option.value;
-
-                  return (
-                    <button
-                      className={`rounded-lg border p-4 text-left transition ${
-                        selected
-                          ? "border-[#44f26e] bg-[#44f26e] text-black"
-                          : "border-white/12 bg-white/[0.055] text-white"
-                      }`}
-                      key={option.value}
-                      onClick={() => {
-                        updateForm({ mode: option.value });
-                        setGeneratedMedia(null);
-                        setGenerationStatus("idle");
-                        setGenerationMessage(null);
-                        setCreatedContent(null);
-                      }}
-                      type="button"
-                    >
-                      <Icon className="size-5" />
-                      <span className="mt-3 block text-sm font-semibold">
-                        {option.label}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="mt-5 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-4 text-[#d7ffdf]">
+                <Clapperboard className="size-5 text-[#44f26e]" />
+                <span className="mt-3 block text-sm font-semibold">
+                  {copy.video}
+                </span>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                  {copy.videoBody}
+                </p>
               </div>
               <input
                 className="mt-5 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
@@ -854,9 +805,7 @@ export function FanletterCreatePage({
                   <Sparkles className="size-4" />
                 )}
                 {generationStatus === "loading"
-                  ? form.mode === "image"
-                    ? copy.generatingImage
-                    : copy.generatingVideo
+                  ? copy.generatingVideo
                   : copy.generate}
               </button>
             </section>
@@ -868,15 +817,7 @@ export function FanletterCreatePage({
               <h2 className="mt-3 text-2xl font-semibold">{copy.result}</h2>
               <div className="mt-5 overflow-hidden rounded-lg border border-white/12 bg-black/32">
                 <div className="relative aspect-[4/5]">
-                  {generatedImageUrl ? (
-                    <Image
-                      alt={form.title || copy.result}
-                      className="object-cover"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      src={generatedImageUrl}
-                    />
-                  ) : generatedVideoUrl ? (
+                  {generatedVideoUrl ? (
                     <video
                       autoPlay
                       className="h-full w-full object-contain"

@@ -108,23 +108,22 @@ function getCopy(locale: Locale) {
         connectTitle: "계정 연결이 필요합니다.",
         draft: "임시저장",
         emptyBody:
-          "아직 브이로그가 없습니다. 첫 AI 캐릭터 이미지나 동영상을 만들고 FanLetter 피드에 게시해보세요.",
+          "아직 영상 브이로그가 없습니다. 첫 AI 캐릭터 동영상을 만들고 FanLetter 피드에 게시해보세요.",
         emptyTitle: "첫 AI 캐릭터 브이로그를 만들 시간입니다.",
         eyebrow: "FanLetter AI 캐릭터 브이로그 스튜디오",
         labels: {
-          allPosts: "전체 브이로그",
+          allPosts: "전체 영상 브이로그",
           availableBalance: "출금 가능",
           completedMember: "가입 완료",
           draftPosts: "임시저장",
-          images: "이미지",
           memberStatus: "회원 상태",
           paid: "유료",
           persona: "캐릭터 페르소나",
           profile: "프로필",
-          publishedPosts: "공개 브이로그",
+          publishedPosts: "공개 영상",
           sales: "확정 판매",
           totalSales: "누적 판매",
-          videos: "동영상",
+          videos: "영상 브이로그",
           wallet: "지갑",
         },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
@@ -144,7 +143,7 @@ function getCopy(locale: Locale) {
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
         planner: {
-          body: "캐릭터 페르소나와 최근 콘텐츠를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 브이로그 소재를 제안합니다.",
+          body: "캐릭터 페르소나와 최근 영상 브이로그를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 동영상 소재를 제안합니다.",
           checklist: "체크",
           empty: "버튼을 누르면 제목, 요약, 생성 프롬프트, 캡션 훅까지 한 번에 준비합니다.",
           errorFallback: "브이로그 플랜을 생성하지 못했습니다.",
@@ -172,7 +171,7 @@ function getCopy(locale: Locale) {
             title: "AI 캐릭터 준비",
           },
           {
-            body: "오늘의 셀피, 외출, 루틴, 대화 장면을 이미지나 동영상 브이로그로 만듭니다.",
+            body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 동영상 브이로그로 만듭니다.",
             title: "숏폼 브이로그 생성",
           },
           {
@@ -181,7 +180,7 @@ function getCopy(locale: Locale) {
           },
         ],
         subtitle:
-          "AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
+          "AI 캐릭터 프로필, 숏폼 영상 브이로그 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
         title: "나의 AI 캐릭터 브이로그 스튜디오",
         unknown: "확인 전",
       }
@@ -201,23 +200,22 @@ function getCopy(locale: Locale) {
         connectTitle: "Account connection is required.",
         draft: "Draft",
         emptyBody:
-          "No vlogs yet. Create your first AI character image or video and publish it to FanLetter.",
+          "No video vlogs yet. Create your first AI character video and publish it to FanLetter.",
         emptyTitle: "Create your first AI character vlog.",
         eyebrow: "FanLetter AI Character Vlog Studio",
         labels: {
-          allPosts: "All vlogs",
+          allPosts: "All video vlogs",
           availableBalance: "Available",
           completedMember: "Completed",
           draftPosts: "Drafts",
-          images: "Images",
           memberStatus: "Member status",
           paid: "Paid",
           persona: "Character persona",
           profile: "Profile",
-          publishedPosts: "Published vlogs",
+          publishedPosts: "Published videos",
           sales: "Confirmed sales",
           totalSales: "Total sales",
-          videos: "Videos",
+          videos: "Video vlogs",
           wallet: "Wallet",
         },
         loading: "Checking FanLetter studio state.",
@@ -237,7 +235,7 @@ function getCopy(locale: Locale) {
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
         planner: {
-          body: "OpenAI reads the character persona and recent content, then suggests seven ready-to-create vlog ideas.",
+          body: "OpenAI reads the character persona and recent video vlogs, then suggests seven ready-to-create video ideas.",
           checklist: "Checks",
           empty: "Generate titles, summaries, creation prompts, and caption hooks in one step.",
           errorFallback: "Could not generate vlog plans.",
@@ -265,7 +263,7 @@ function getCopy(locale: Locale) {
             title: "AI character setup",
           },
           {
-            body: "Create today's selfie, routine, outing, or dialogue scene as an image or video vlog.",
+            body: "Create today's selfie, routine, outing, or dialogue scene as a vertical video vlog.",
             title: "Short-form vlog creation",
           },
           {
@@ -274,7 +272,7 @@ function getCopy(locale: Locale) {
           },
         ],
         subtitle:
-          "Review AI character profile, short-form vlog creation, post management, and sales summary inside FanLetter.",
+          "Review AI character profile, short-form video vlog creation, post management, and sales summary inside FanLetter.",
         title: "My AI Character Vlog Studio",
         unknown: "Not checked",
       };
@@ -557,7 +555,7 @@ function PlannerSection({
                 const href = setPathSearchParams(createHref, {
                   planId: plan.id,
                   planBody: plan.captionHook,
-                  planMode: plan.mediaMode,
+                  planMode: "video",
                   planPrompt: plan.scenePrompt,
                   planSummary: plan.summary,
                   planTitle: plan.title,
@@ -574,9 +572,7 @@ function PlannerSection({
                       </span>
                       <div className="flex flex-wrap justify-end gap-1.5">
                         <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/54">
-                          {plan.mediaMode === "video"
-                            ? copy.planner.video
-                            : copy.planner.image}
+                          {copy.planner.video}
                         </span>
                         <span className="rounded-full border border-[#44f26e]/30 bg-[#44f26e]/14 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
                           {copy.planner.statuses[planStatus]}
@@ -730,7 +726,7 @@ function PostPreviewCard({
               {post.status}
             </span>
             <span className="rounded-full bg-black/64 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white">
-              {post.contentVideoCount > 0 ? "video" : "image"}
+              video
             </span>
           </div>
         </div>
@@ -902,7 +898,7 @@ export function FanletterStudioPage({
         profileResponse,
         copy.connectRequired,
       );
-      const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=${STUDIO_POSTS_PAGE_SIZE}&status=all`;
+      const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&media=video&pageSize=${STUDIO_POSTS_PAGE_SIZE}&status=all`;
       const salesUrl = `/api/content/sales?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=4`;
       const plannerUrl = `/api/content/planner?email=${encodedEmail}&walletAddress=${encodedWallet}`;
       const [postsData, salesResult, plannerResult] = await Promise.all([
@@ -1127,14 +1123,6 @@ export function FanletterStudioPage({
     ],
   );
 
-  const imageCount = useMemo(
-    () =>
-      state.posts.reduce(
-        (count, post) => count + Math.max(0, post.contentImageCount),
-        0,
-      ),
-    [state.posts],
-  );
   const videoCount = useMemo(
     () =>
       state.posts.reduce(
@@ -1554,16 +1542,7 @@ export function FanletterStudioPage({
               </div>
             </section>
 
-            <section className="grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-black/10 bg-white p-4">
-                <ImageIcon className="size-5 text-[#16702e]" />
-                <p className="mt-4 text-2xl font-semibold">
-                  {formatNumber(imageCount, locale)}
-                </p>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
-                  {copy.labels.images}
-                </p>
-              </div>
+            <section className="grid gap-2">
               <div className="rounded-lg border border-black/10 bg-white p-4">
                 <Clapperboard className="size-5 text-[#16702e]" />
                 <p className="mt-4 text-2xl font-semibold">

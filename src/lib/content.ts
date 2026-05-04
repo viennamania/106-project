@@ -132,7 +132,7 @@ export type CreatorCharacterPersona = {
   summary: string;
 };
 
-export type FanletterVlogPlanMediaMode = "image" | "video";
+export type FanletterVlogPlanMediaMode = "video";
 export type FanletterVlogPlanStatus =
   | "created"
   | "distributed"

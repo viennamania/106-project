@@ -74,7 +74,6 @@ function readInitialPlan(
   const prompt = readPlanText(query.planPrompt, 1_200);
   const body = readPlanText(query.planBody, 600);
   const planId = readPlanText(query.planId, 120);
-  const mode = readFirstValue(query.planMode) === "video" ? "video" : "image";
 
   if (!title && !summary && !prompt && !body && !planId) {
     return undefined;
@@ -82,7 +81,7 @@ function readInitialPlan(
 
   return {
     body,
-    mode,
+    mode: "video",
     planId,
     prompt,
     summary,
@@ -107,8 +106,8 @@ export async function generateMetadata({
       : "Create First FanLetter AI Character Vlog";
   const description =
     locale === "ko"
-      ? "AI 캐릭터의 오늘 장면을 이미지나 동영상 브이로그로 생성하고 FanLetter 피드에 게시하세요."
-      : "Generate today's AI character scene as an image or video vlog and publish it to FanLetter.";
+      ? "AI 캐릭터의 오늘 장면을 세로형 동영상 브이로그로 생성하고 FanLetter 피드에 게시하세요."
+      : "Generate today's AI character scene as a vertical video vlog and publish it to FanLetter.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: getSafeReturnTo({ locale, referralCode, returnTo: query.returnTo }) },

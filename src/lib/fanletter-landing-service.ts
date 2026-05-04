@@ -418,6 +418,7 @@ export const getFanletterLandingData = cache(
     const ordersCollection = await getContentOrdersCollection();
     const publishedContentFilter: Filter<ContentPostDocument> = {
       ...getPublishedContentLocaleFilter(locale),
+      "contentVideoUrls.0": { $exists: true },
       status: "published",
     };
     const publicVideoFilter: Filter<ContentPostDocument> = {

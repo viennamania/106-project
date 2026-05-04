@@ -224,6 +224,7 @@ function decodeContentFeedActivityCursor(cursor?: string | null) {
 }
 
 type CreatorStudioPostsQueryOptions = {
+  media?: "all" | "video" | null;
   page?: number;
   pageSize?: number;
   query?: string | null;
@@ -459,6 +460,10 @@ function buildCreatorStudioPostsFilter(
     ["archived", "draft", "published"].includes(normalizedStatus)
   ) {
     filter.status = normalizedStatus;
+  }
+
+  if (options?.media === "video") {
+    filter["contentVideoUrls.0"] = { $exists: true };
   }
 
   if (query) {
@@ -1783,12 +1788,18 @@ export async function getCreatorStudioPostsForMember(
 ): Promise<CreatorStudioPostsResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const postsCollection = await getContentPostsCollection();
+  const summaryMatch: Record<string, unknown> = {
+    authorEmail: member.email,
+  };
+
+  if (options?.media === "video") {
+    summaryMatch["contentVideoUrls.0"] = { $exists: true };
+  }
+
   const summaryCounts = await postsCollection
     .aggregate<{ _id: string; count: number }>([
       {
-        $match: {
-          authorEmail: member.email,
-        },
+        $match: summaryMatch,
       },
       {
         $group: {
@@ -1821,6 +1832,7 @@ export async function getCreatorStudioPostsForMember(
     options &&
       (options.page !== undefined ||
         options.pageSize !== undefined ||
+        options.media === "video" ||
         options.query?.trim() ||
         (options.status && options.status !== "all")),
   );

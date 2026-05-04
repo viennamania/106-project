@@ -135,6 +135,7 @@ export async function POST(request: Request) {
     const [profileSnapshot, postsData] = await Promise.all([
       getCreatorProfileSnapshotForCompletedMember(authorization.member),
       getCreatorStudioPostsForMember(authorization.normalizedEmail, {
+        media: "video",
         pageSize: 10,
         status: "all",
       }),
