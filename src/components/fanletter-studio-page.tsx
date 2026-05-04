@@ -788,7 +788,7 @@ export function FanletterStudioPage({
     { returnTo: studioHref },
   );
   const postsHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/studio/vlogs`, referralCode),
     { returnTo: studioHref },
   );
   const salesHref = setPathSearchParams(
