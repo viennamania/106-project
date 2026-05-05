@@ -754,7 +754,7 @@ function CreatorDiscoveryCard({
 
   return (
     <Link
-      className="flex min-w-[13rem] snap-start items-center gap-3 rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] sm:min-w-0"
+      className="flex min-w-[11.75rem] max-w-[82vw] snap-start items-center gap-3 rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] sm:min-w-0 sm:max-w-none"
       href={href}
     >
       <Avatar
@@ -884,7 +884,7 @@ export function FanletterFeedPage({
       referralCode={referralCode}
       title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
     >
-      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+      <section className="overflow-hidden bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="mb-8 flex flex-wrap gap-2 pb-1">
             {[copy.feed.trending, copy.feed.latest, copy.feed.videos, copy.feed.freePublic].map(
@@ -904,25 +904,25 @@ export function FanletterFeedPage({
           </div>
 
           {featuredItem ? (
-            <div className="mb-10 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
+            <div className="mb-10 grid min-w-0 max-w-full gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
               <FeaturedFeedCard
                 item={featuredItem}
                 locale={locale}
                 referralCode={referralCode}
               />
 
-              <div className="grid min-w-0 gap-4">
-                <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)]">
+              <div className="grid min-w-0 max-w-full grid-cols-[minmax(0,1fr)] gap-4">
+                <div className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-5">
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#1f7c38]">
                     {locale === "ko" ? "캐릭터 브이로그" : "Character Vlog"}
                   </p>
-                  <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all]">
+                  <h2 className="mt-3 min-w-0 max-w-full break-words text-[1.85rem] font-semibold leading-[1.08] tracking-normal [overflow-wrap:anywhere] sm:text-3xl sm:[word-break:keep-all]">
                     {copy.feed.title}
                   </h2>
-                  <div className="mt-5 grid grid-cols-3 gap-2">
+                  <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {feedStats.map((stat) => (
                       <div
-                        className="rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
+                        className="min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
                         key={stat.label}
                       >
                         <p className="text-2xl font-semibold leading-none">
@@ -943,7 +943,7 @@ export function FanletterFeedPage({
                         {copy.feed.suggestedCreators}
                       </h2>
                     </div>
-                    <div className="flex snap-x gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-2 lg:overflow-visible">
+                    <div className="flex max-w-full snap-x gap-3 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:grid-cols-2 lg:overflow-visible">
                       {creatorItems.map((item) => (
                         <CreatorDiscoveryCard
                           item={item}
