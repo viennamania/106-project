@@ -17,6 +17,10 @@ import {
   FanletterDesktopHeroCardCarousel,
   FanletterMobileHeroCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
+import {
+  AnimatedNumber,
+  ScrollReveal,
+} from "@/components/fanletter-home-motion";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterFeaturedVideo,
@@ -437,23 +441,6 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function formatCompactNumber(value: number, locale: Locale) {
-  return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: value >= 1000 ? 1 : 0,
-    notation: value >= 10000 ? "compact" : "standard",
-  }).format(value);
-}
-
-function formatUsdt(value: number, locale: Locale) {
-  if (value <= 0) {
-    return "0 USDT";
-  }
-
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: value >= 100 ? 0 : 2,
-  }).format(value)} USDT`;
-}
-
 function formatDate(value: string | null, locale: Locale) {
   if (!value) {
     return null;
@@ -508,16 +495,19 @@ export function FanletterHomePage({
   }));
   const heroStats = [
     {
+      format: "compact" as const,
       label: copy.liveStats.videos,
-      value: formatCompactNumber(liveStats.publicVideoCount, locale),
+      value: liveStats.publicVideoCount,
     },
     {
+      format: "compact" as const,
       label: copy.liveStats.creators,
-      value: formatCompactNumber(liveStats.activeCreatorCount, locale),
+      value: liveStats.activeCreatorCount,
     },
     {
+      format: "compact" as const,
       label: copy.liveStats.sales,
-      value: formatCompactNumber(liveStats.confirmedSalesCount, locale),
+      value: liveStats.confirmedSalesCount,
     },
   ];
   const proofSteps = copy.proof.stats.map((stat, index) => ({
@@ -530,24 +520,50 @@ export function FanletterHomePage({
   }));
   const networkStats = [
     {
+      format: "compact" as const,
       Icon: MessageCircleHeart,
       label: copy.liveStats.content,
-      value: formatCompactNumber(liveStats.publishedContentCount, locale),
+      value: liveStats.publishedContentCount,
     },
     {
+      format: "compact" as const,
       Icon: Clapperboard,
       label: copy.liveStats.videos,
-      value: formatCompactNumber(liveStats.publicVideoCount, locale),
+      value: liveStats.publicVideoCount,
     },
     {
+      format: "compact" as const,
       Icon: ChartNoAxesCombined,
       label: copy.liveStats.sales,
-      value: formatCompactNumber(liveStats.confirmedSalesCount, locale),
+      value: liveStats.confirmedSalesCount,
     },
     {
+      format: "usdt" as const,
       Icon: BadgeDollarSign,
       label: copy.liveStats.totalSales,
-      value: formatUsdt(liveStats.totalSalesUsdt, locale),
+      value: liveStats.totalSalesUsdt,
+    },
+  ];
+  const liveMetricStats = [
+    {
+      format: "compact" as const,
+      label: copy.liveStats.content,
+      value: liveStats.publishedContentCount,
+    },
+    {
+      format: "compact" as const,
+      label: copy.liveStats.videos,
+      value: liveStats.publicVideoCount,
+    },
+    {
+      format: "compact" as const,
+      label: copy.liveStats.sales,
+      value: liveStats.confirmedSalesCount,
+    },
+    {
+      format: "usdt" as const,
+      label: copy.liveStats.totalSales,
+      value: liveStats.totalSalesUsdt,
     },
   ];
   const nicheVideos = featuredVideos.slice(0, 3);
@@ -634,7 +650,7 @@ export function FanletterHomePage({
           </header>
 
           <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
-            <div className="max-w-[58rem]">
+            <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
               <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
                 {copy.hero.eyebrow}
               </p>
@@ -691,41 +707,51 @@ export function FanletterHomePage({
                   {copy.platformTrust.body}
                 </p>
               </div>
-            </div>
+            </ScrollReveal>
 
             <div className="hidden lg:flex min-w-0 flex-col gap-3">
               <FanletterDesktopHeroCardCarousel slides={heroSlides} />
 
               <div className="grid grid-cols-3 gap-2">
-                {heroStats.map((stat) => (
-                  <div
+                {heroStats.map((stat, index) => (
+                  <ScrollReveal
                     className="rounded-lg border border-white/12 bg-black/46 p-3 backdrop-blur-md"
+                    delay={140 + index * 90}
                     key={stat.label}
                   >
                     <p className="text-2xl font-semibold leading-none text-white">
-                      {stat.value}
+                      <AnimatedNumber
+                        format={stat.format}
+                        locale={locale}
+                        value={stat.value}
+                      />
                     </p>
                     <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/54">
                       {stat.label}
                     </p>
-                  </div>
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
 
             <div className="hidden grid-cols-3 gap-1.5 self-start lg:hidden">
-              {heroStats.map((stat) => (
-                <div
+              {heroStats.map((stat, index) => (
+                <ScrollReveal
                   className="rounded-lg border border-white/14 bg-black/42 px-2.5 py-2.5 shadow-[0_14px_28px_rgba(0,0,0,0.22)] backdrop-blur-md sm:p-4"
+                  delay={120 + index * 80}
                   key={stat.label}
                 >
                   <p className="text-xl font-semibold leading-none text-white sm:text-3xl">
-                    {stat.value}
+                    <AnimatedNumber
+                      format={stat.format}
+                      locale={locale}
+                      value={stat.value}
+                    />
                   </p>
                   <p className="mt-1.5 text-[0.56rem] font-semibold uppercase leading-tight tracking-[0.08em] text-white/54 sm:text-[0.68rem] sm:tracking-[0.16em]">
                     {stat.label}
                   </p>
-                </div>
+                </ScrollReveal>
               ))}
             </div>
           </div>
@@ -735,48 +761,34 @@ export function FanletterHomePage({
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-3xl">
+            <ScrollReveal className="max-w-3xl">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#1f7c38]">
                 {copy.liveVideos.eyebrow}
               </p>
               <h2 className="mt-4 text-[2.35rem] font-semibold leading-[1] tracking-normal text-[#07100b] [word-break:keep-all] sm:text-[3.8rem]">
                 {copy.liveVideos.title}
               </h2>
-            </div>
+            </ScrollReveal>
             <div className="flex flex-col gap-3 md:items-end">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
-                  <p className="text-xl font-semibold leading-none">
-                    {formatCompactNumber(liveStats.publishedContentCount, locale)}
-                  </p>
-                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                    {copy.liveStats.content}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
-                  <p className="text-xl font-semibold leading-none">
-                    {formatCompactNumber(liveStats.publicVideoCount, locale)}
-                  </p>
-                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                    {copy.liveStats.videos}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
-                  <p className="text-xl font-semibold leading-none">
-                    {formatCompactNumber(liveStats.confirmedSalesCount, locale)}
-                  </p>
-                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                    {copy.liveStats.sales}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]">
-                  <p className="text-xl font-semibold leading-none">
-                    {formatUsdt(liveStats.totalSalesUsdt, locale)}
-                  </p>
-                  <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
-                    {copy.liveStats.totalSales}
-                  </p>
-                </div>
+                {liveMetricStats.map((stat, index) => (
+                  <ScrollReveal
+                    className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(8,18,12,0.04)]"
+                    delay={index * 80}
+                    key={stat.label}
+                  >
+                    <p className="text-xl font-semibold leading-none">
+                      <AnimatedNumber
+                        format={stat.format}
+                        locale={locale}
+                        value={stat.value}
+                      />
+                    </p>
+                    <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black/50">
+                      {stat.label}
+                    </p>
+                  </ScrollReveal>
+                ))}
               </div>
               <Link
                 className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#07100b] px-5 text-sm font-semibold !text-white transition hover:bg-[#132018] sm:w-fit"
@@ -789,7 +801,7 @@ export function FanletterHomePage({
 
           {featuredVideos.length > 0 ? (
             <div className="mt-10 flex snap-x gap-3 overflow-x-auto pb-4 sm:gap-4">
-              {featuredVideos.map((video) => {
+              {featuredVideos.map((video, index) => {
                 const publishedDate = formatDate(video.publishedAt, locale);
                 const videoHref = buildPathWithReferral(
                   `/${locale}/fanletter/content/${video.contentId}`,
@@ -797,35 +809,26 @@ export function FanletterHomePage({
                 );
 
                 return (
-                  <Link
-                    className="group flex min-h-[31rem] min-w-[15.8rem] snap-start overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)] sm:min-h-[34rem] sm:min-w-[18rem] lg:min-w-[19rem]"
-                    href={videoHref}
+                  <ScrollReveal
+                    className="flex min-h-[31rem] min-w-[15.8rem] snap-start sm:min-h-[34rem] sm:min-w-[18rem] lg:min-w-[19rem]"
+                    delay={index * 80}
                     key={video.contentId}
                   >
-                    <article className="flex h-full min-h-0 w-full flex-col">
-                      <div className="relative h-[18.5rem] shrink-0 overflow-hidden bg-[#07100b] sm:h-[20rem]">
-                        {video.coverImageUrl ? (
-                          <div
-                            className="absolute inset-0 scale-110 bg-cover bg-center opacity-[0.54] blur-xl"
-                            style={{
-                              backgroundImage: `url(${video.coverImageUrl})`,
-                            }}
-                          />
-                        ) : null}
-                        {video.coverImageUrl ? (
-                          <video
-                            aria-hidden="true"
-                            autoPlay
-                            className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
-                            loop
-                            muted
-                            playsInline
-                            poster={video.coverImageUrl}
-                            preload="metadata"
-                            src={video.videoUrl}
-                          />
-                        ) : (
-                          <>
+                    <Link
+                      className="group flex h-full w-full overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(8,18,12,0.18)]"
+                      href={videoHref}
+                    >
+                      <article className="flex h-full min-h-0 w-full flex-col">
+                        <div className="relative h-[18.5rem] shrink-0 overflow-hidden bg-[#07100b] sm:h-[20rem]">
+                          {video.coverImageUrl ? (
+                            <div
+                              className="absolute inset-0 scale-110 bg-cover bg-center opacity-[0.54] blur-xl"
+                              style={{
+                                backgroundImage: `url(${video.coverImageUrl})`,
+                              }}
+                            />
+                          ) : null}
+                          {video.coverImageUrl ? (
                             <video
                               aria-hidden="true"
                               autoPlay
@@ -833,59 +836,73 @@ export function FanletterHomePage({
                               loop
                               muted
                               playsInline
+                              poster={video.coverImageUrl}
                               preload="metadata"
                               src={video.videoUrl}
                             />
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(68,242,110,0.18),transparent_36%)]" />
-                          </>
-                        )}
-                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.16)_48%,rgba(0,0,0,0.82)_100%)]" />
-                        <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
-                          {copy.liveVideos.free}
-                        </div>
-                        <div className="absolute bottom-3 left-3 right-3">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e] bg-cover bg-center text-xs font-semibold text-black ring-2 ring-white/70"
-                              style={
-                                video.authorAvatarImageUrl
-                                  ? {
-                                      backgroundImage: `url(${video.authorAvatarImageUrl})`,
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {video.authorAvatarImageUrl
-                                ? null
-                                : getAuthorInitial(video.authorName)}
-                            </span>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-white">
-                                {video.authorName}
-                              </p>
-                              {publishedDate ? (
-                                <p className="text-xs font-medium text-white/64">
-                                  {publishedDate}
+                          ) : (
+                            <>
+                              <video
+                                aria-hidden="true"
+                                autoPlay
+                                className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
+                                loop
+                                muted
+                                playsInline
+                                preload="metadata"
+                                src={video.videoUrl}
+                              />
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(68,242,110,0.18),transparent_36%)]" />
+                            </>
+                          )}
+                          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.16)_48%,rgba(0,0,0,0.82)_100%)]" />
+                          <div className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
+                            {copy.liveVideos.free}
+                          </div>
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e] bg-cover bg-center text-xs font-semibold text-black ring-2 ring-white/70"
+                                style={
+                                  video.authorAvatarImageUrl
+                                    ? {
+                                        backgroundImage: `url(${video.authorAvatarImageUrl})`,
+                                      }
+                                    : undefined
+                                }
+                              >
+                                {video.authorAvatarImageUrl
+                                  ? null
+                                  : getAuthorInitial(video.authorName)}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-white">
+                                  {video.authorName}
                                 </p>
-                              ) : null}
+                                {publishedDate ? (
+                                  <p className="text-xs font-medium text-white/64">
+                                    {publishedDate}
+                                  </p>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
-                        <h3 className="line-clamp-3 text-xl font-semibold leading-tight tracking-normal text-black">
-                          {video.title}
-                        </h3>
-                        <p className="mt-3 line-clamp-4 text-sm font-medium leading-6 text-black/58">
-                          {video.summary}
-                        </p>
-                        <div className="mt-auto inline-flex h-10 w-fit items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
-                          <Clapperboard className="size-4" />
-                          {copy.liveVideos.open}
+                        <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                          <h3 className="line-clamp-3 text-xl font-semibold leading-tight tracking-normal text-black">
+                            {video.title}
+                          </h3>
+                          <p className="mt-3 line-clamp-4 text-sm font-medium leading-6 text-black/58">
+                            {video.summary}
+                          </p>
+                          <div className="mt-auto inline-flex h-10 w-fit items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
+                            <Clapperboard className="size-4" />
+                            {copy.liveVideos.open}
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  </Link>
+                      </article>
+                    </Link>
+                  </ScrollReveal>
                 );
               })}
             </div>
@@ -900,7 +917,7 @@ export function FanletterHomePage({
       <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
-            <div>
+            <ScrollReveal>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
                 {locale === "ko" ? "AI 캐릭터 브이로그 흐름" : "AI character vlog flow"}
               </p>
@@ -912,15 +929,16 @@ export function FanletterHomePage({
                   ? "캐릭터 설정부터 숏폼 브이로그 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
                   : "Character setup, short-form vlog generation, public feeds, and sales checks are connected as one understandable creator flow."}
               </p>
-            </div>
+            </ScrollReveal>
 
             <div className="grid gap-3">
               {proofSteps.map((step, index) => {
                 const Icon = step.Icon;
 
                 return (
-                  <article
+                  <ScrollReveal
                     className="grid gap-4 rounded-lg border border-white/10 bg-white/[0.055] p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:grid-cols-[6.5rem_1fr] sm:p-5"
+                    delay={index * 90}
                     key={step.label}
                   >
                     <div>
@@ -949,7 +967,7 @@ export function FanletterHomePage({
                         </p>
                       </div>
                     </div>
-                  </article>
+                  </ScrollReveal>
                 );
               })}
             </div>
@@ -963,7 +981,7 @@ export function FanletterHomePage({
       >
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
+            <ScrollReveal>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
                 {copy.features.eyebrow}
               </p>
@@ -972,7 +990,7 @@ export function FanletterHomePage({
                   ? "모바일에서 바로 쓰는 AI 캐릭터 브이로그 기능"
                   : "AI character vlog tools that work from mobile"}
               </h2>
-            </div>
+            </ScrollReveal>
             <Link
               className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/14 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
               href={creatorHref}
@@ -986,8 +1004,9 @@ export function FanletterHomePage({
               const Icon = featureIcons[index] ?? Sparkles;
 
               return (
-                <article
+                <ScrollReveal
                   className="flex h-full flex-col rounded-lg border border-white/10 bg-white p-4 text-black shadow-[0_18px_42px_rgba(0,0,0,0.2)]"
+                  delay={index * 70}
                   key={feature.title}
                 >
                   <div
@@ -1015,7 +1034,7 @@ export function FanletterHomePage({
                       {feature.description}
                     </p>
                   </div>
-                </article>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -1025,14 +1044,14 @@ export function FanletterHomePage({
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
-            <div>
+            <ScrollReveal>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#1f7c38]">
                 {copy.targetAudience.eyebrow}
               </p>
               <h2 className="mt-4 max-w-4xl text-[2.2rem] font-semibold leading-[1] tracking-normal [word-break:keep-all] sm:text-[3.7rem]">
                 {copy.targetAudience.title}
               </h2>
-            </div>
+            </ScrollReveal>
             <Link
               className="inline-flex h-12 w-full items-center justify-center rounded-full bg-black px-6 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit lg:justify-self-end"
               href={creatorHref}
@@ -1046,8 +1065,9 @@ export function FanletterHomePage({
               const Icon = featureIcons[index] ?? Sparkles;
 
               return (
-                <article
+                <ScrollReveal
                   className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.07)]"
+                  delay={index * 70}
                   key={item.title}
                 >
                   <span
@@ -1068,7 +1088,7 @@ export function FanletterHomePage({
                   <p className="mt-3 text-sm font-medium leading-6 text-black/58">
                     {item.description}
                   </p>
-                </article>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -1080,7 +1100,7 @@ export function FanletterHomePage({
         id="creators"
       >
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-          <div>
+          <ScrollReveal>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
               AI character network
             </p>
@@ -1096,9 +1116,9 @@ export function FanletterHomePage({
             >
               {copy.economy.cta}
             </Link>
-          </div>
+          </ScrollReveal>
 
-          <div className="rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(68,242,110,0.16),rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.02))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.3)] sm:p-5">
+          <ScrollReveal className="rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(68,242,110,0.16),rgba(255,255,255,0.04)_42%,rgba(255,255,255,0.02))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.3)] sm:p-5">
             <div className="mb-4 flex items-center gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <Crown className="size-5" />
@@ -1115,12 +1135,13 @@ export function FanletterHomePage({
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              {networkStats.map((stat) => {
+              {networkStats.map((stat, index) => {
                 const Icon = stat.Icon;
 
                 return (
-                  <div
+                  <ScrollReveal
                     className="rounded-lg border border-white/10 bg-black/42 p-4"
+                    delay={index * 80}
                     key={stat.label}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -1130,19 +1151,23 @@ export function FanletterHomePage({
                       <Icon className="size-4 text-[#44f26e]" />
                     </div>
                     <p className="mt-5 text-3xl font-semibold leading-none text-white">
-                      {stat.value}
+                      <AnimatedNumber
+                        format={stat.format}
+                        locale={locale}
+                        value={stat.value}
+                      />
                     </p>
-                  </div>
+                  </ScrollReveal>
                 );
               })}
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       <section className="border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
-          <div>
+          <ScrollReveal>
             <h2 className="max-w-4xl text-[2.7rem] font-semibold leading-[0.95] tracking-normal [word-break:keep-all] sm:text-[4.6rem]">
               {copy.niche.title}
             </h2>
@@ -1170,11 +1195,11 @@ export function FanletterHomePage({
             >
               {copy.niche.cta}
             </Link>
-          </div>
+          </ScrollReveal>
 
           {nicheVideos.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-3">
-              {nicheVideos.map((video) => {
+              {nicheVideos.map((video, index) => {
                 const videoHref = buildPathWithReferral(
                   `/${locale}/fanletter/content/${video.contentId}`,
                   referralCode,
@@ -1182,41 +1207,43 @@ export function FanletterHomePage({
                 const publishedAt = formatDate(video.publishedAt, locale);
 
                 return (
-                  <Link
+                  <ScrollReveal
                     className="group relative min-h-[19rem] overflow-hidden rounded-lg border border-white/12 bg-[#07100b] shadow-[0_22px_70px_rgba(0,0,0,0.24)]"
-                    href={videoHref}
+                    delay={120 + index * 90}
                     key={video.contentId}
                   >
-                    {video.coverImageUrl ? (
-                      <div
-                        className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
-                        style={{
-                          backgroundImage: `url(${video.coverImageUrl})`,
-                        }}
-                      />
-                    ) : (
-                      <video
-                        aria-hidden="true"
-                        autoPlay
-                        className="absolute inset-0 h-full w-full object-cover opacity-92 transition duration-500 group-hover:scale-[1.03]"
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                        src={video.videoUrl}
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.18)_42%,rgba(0,0,0,0.84)_100%)]" />
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <p className="text-xs font-semibold text-white/62">
-                        {video.authorName}
-                        {publishedAt ? ` · ${publishedAt}` : ""}
-                      </p>
-                      <h3 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight tracking-normal text-white">
-                        {video.title}
-                      </h3>
-                    </div>
-                  </Link>
+                    <Link className="absolute inset-0" href={videoHref}>
+                      {video.coverImageUrl ? (
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
+                          style={{
+                            backgroundImage: `url(${video.coverImageUrl})`,
+                          }}
+                        />
+                      ) : (
+                        <video
+                          aria-hidden="true"
+                          autoPlay
+                          className="absolute inset-0 h-full w-full object-cover opacity-92 transition duration-500 group-hover:scale-[1.03]"
+                          loop
+                          muted
+                          playsInline
+                          preload="metadata"
+                          src={video.videoUrl}
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.18)_42%,rgba(0,0,0,0.84)_100%)]" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <p className="text-xs font-semibold text-white/62">
+                          {video.authorName}
+                          {publishedAt ? ` · ${publishedAt}` : ""}
+                        </p>
+                        <h3 className="mt-2 line-clamp-2 text-lg font-semibold leading-tight tracking-normal text-white">
+                          {video.title}
+                        </h3>
+                      </div>
+                    </Link>
+                  </ScrollReveal>
                 );
               })}
             </div>
