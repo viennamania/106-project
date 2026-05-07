@@ -1240,59 +1240,299 @@ export function FanletterCreatorPage({
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? data.profile.referralCode;
+  const character = data.profile.character;
+  const channelName = character?.name ?? data.profile.displayName;
+  const channelSummary = character?.summary || data.profile.intro;
+  const channelAvatarUrl =
+    character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl;
+  const featuredItem =
+    [...data.items].sort((a, b) => {
+      const scoreDelta = getContentEngagementScore(b) - getContentEngagementScore(a);
+
+      if (scoreDelta !== 0) {
+        return scoreDelta;
+      }
+
+      return (
+        new Date(b.publishedAt ?? 0).getTime() -
+        new Date(a.publishedAt ?? 0).getTime()
+      );
+    })[0] ?? null;
+  const latestItems = data.items
+    .filter((item) => item.contentId !== featuredItem?.contentId)
+    .slice(0, 8);
+  const contentItems = latestItems.length > 0 ? latestItems : data.items;
+  const startHref = buildPathWithReferral(
+    `/${locale}/fanletter/start`,
+    effectiveReferralCode,
+  );
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
+    effectiveReferralCode,
+  );
+  const channelStats = [
+    {
+      label: copy.creator.publicPosts,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      label: copy.creator.characterVideoSignal,
+      value: formatNumber(character?.videoContentCount ?? data.items.length, locale),
+    },
+    {
+      label: copy.creator.characterImageSignal,
+      value: formatNumber(character?.avatarImageSet.length ?? 0, locale),
+    },
+  ];
 
   return (
     <FanletterShell
-      description={data.profile.character?.summary ?? data.profile.intro}
+      description={channelSummary}
       eyebrow={copy.creator.eyebrow}
       locale={locale}
       referralCode={effectiveReferralCode}
-      title={`${data.profile.displayName}${copy.creator.titleSuffix}`}
+      title={channelName}
+      titleClassName="mt-4 max-w-5xl text-[2.5rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-4 rounded-lg border border-black/10 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar
-                imageUrl={data.profile.avatarImageUrl}
-                name={data.profile.displayName}
-                sizeClassName="size-16"
-              />
-              <div>
-                <p className="text-2xl font-semibold leading-tight">
-                  {data.profile.displayName}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-black/50">
-                  {data.profile.referralCode}
-                </p>
+        <div className="mx-auto max-w-[92rem]">
+          <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]">
+            <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+                  <Avatar
+                    imageUrl={channelAvatarUrl}
+                    name={channelName}
+                    sizeClassName="size-16 sm:size-20"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+                      {copy.creator.characterTitle}
+                    </p>
+                    <h2 className="mt-3 break-words text-[1.9rem] font-semibold leading-[1.04] tracking-normal [overflow-wrap:anywhere] sm:text-[2.9rem] sm:[word-break:keep-all]">
+                      {channelName}
+                    </h2>
+                    <p className="mt-2 text-sm font-semibold text-white/44">
+                      {data.profile.referralCode}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                  href={startHref}
+                >
+                  {copy.actions.start}
+                </Link>
               </div>
-            </div>
-            <div className="rounded-lg bg-black px-4 py-3 text-white">
-              <p className="text-2xl font-semibold leading-none">
-                {formatNumber(data.publicContentCount, locale)}
+
+              <p className="mt-5 max-w-3xl text-sm font-medium leading-6 text-white/68 sm:text-base sm:leading-7">
+                {channelSummary}
               </p>
-              <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white/48">
-                {copy.creator.publicPosts}
-              </p>
-            </div>
+
+              {character?.traits.length ? (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {character.traits.slice(0, 5).map((trait) => (
+                    <span
+                      className="rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/72"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-6 grid gap-2 sm:grid-cols-3">
+                {channelStats.map((stat) => (
+                  <div
+                    className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                    key={stat.label}
+                  >
+                    <p className="text-2xl font-semibold leading-none">
+                      {stat.value}
+                    </p>
+                    <p className="mt-2 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-white/42">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Link
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+                  href={feedHref}
+                >
+                  {copy.actions.feed}
+                </Link>
+              </div>
+            </article>
+
+            {featuredItem ? (
+              <FeaturedFeedCard
+                item={featuredItem}
+                locale={locale}
+                referralCode={effectiveReferralCode}
+              />
+            ) : (
+              <aside className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.1)]">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-black/42">
+                  {copy.creator.characterLatest}
+                </p>
+                <p className="mt-3 text-sm font-medium leading-6 text-black/54">
+                  {copy.creator.empty}
+                </p>
+              </aside>
+            )}
           </div>
-          {data.profile.character ? (
+
+          {character ? (
             <CharacterPersonaShowcase
-              character={data.profile.character}
+              character={character}
               displayName={data.profile.displayName}
               locale={locale}
               publicContentCount={data.publicContentCount}
             />
           ) : null}
-          <ContentGrid
-            empty={copy.creator.empty}
-            items={data.items}
-            locale={locale}
-            referralCode={effectiveReferralCode}
-          />
+
+          <section>
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                  {copy.creator.characterVideoSignal}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                  {copy.creator.characterLatest}
+                </h2>
+              </div>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/70 transition hover:border-black/24 hover:text-black"
+                href={feedHref}
+              >
+                {copy.actions.feed}
+              </Link>
+            </div>
+            <ContentGrid
+              empty={copy.creator.empty}
+              emptyActionHref={startHref}
+              emptyActionLabel={copy.actions.start}
+              items={contentItems}
+              locale={locale}
+              referralCode={effectiveReferralCode}
+              showVideoPreview
+            />
+          </section>
         </div>
       </section>
     </FanletterShell>
+  );
+}
+
+function FanletterCharacterMiniCard({
+  channelHref,
+  content,
+  locale,
+  primaryActionHref,
+  primaryActionLabel,
+  startHref,
+}: {
+  channelHref: string;
+  content: FanletterPublicContentDetail;
+  locale: Locale;
+  primaryActionHref: string;
+  primaryActionLabel: string;
+  startHref: string;
+}) {
+  const copy = getCopy(locale);
+  const character = content.authorCharacter;
+  const characterName = character?.name ?? content.authorName;
+  const characterSummary = character?.summary || content.summary;
+  const avatarUrl =
+    character?.avatarImageSet[0]?.url ?? content.authorAvatarImageUrl;
+  const traits = (character?.traits.length ? character.traits : content.tags)
+    .filter(Boolean)
+    .slice(0, 4);
+  const stats = [
+    {
+      label: copy.creator.publicPosts,
+      value: formatNumber(content.authorPublicContentCount, locale),
+    },
+    {
+      label: copy.creator.characterVideoSignal,
+      value: formatNumber(character?.videoContentCount ?? 1, locale),
+    },
+  ];
+
+  return (
+    <section className="mt-7 rounded-lg border border-[#44f26e]/24 bg-[#07100b] p-4 text-white shadow-[0_18px_52px_rgba(0,0,0,0.26)] sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <Link className="flex min-w-0 items-start gap-3" href={channelHref}>
+          <Avatar
+            imageUrl={avatarUrl}
+            name={characterName}
+            sizeClassName="size-14"
+          />
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+              {copy.creator.characterTitle}
+            </p>
+            <h2 className="mt-2 break-words text-2xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
+              {characterName}
+            </h2>
+            <p className="mt-1 text-sm font-semibold text-white/42">
+              {content.authorReferralCode ?? "FanLetter"}
+            </p>
+          </div>
+        </Link>
+
+        <div className="grid grid-cols-2 gap-2 sm:w-48">
+          {stats.map((stat) => (
+            <div
+              className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+              key={stat.label}
+            >
+              <p className="text-xl font-semibold leading-none">{stat.value}</p>
+              <p className="mt-2 text-[0.56rem] font-semibold uppercase tracking-[0.12em] text-white/40">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm font-medium leading-6 text-white/66">
+        {characterSummary}
+      </p>
+
+      {traits.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {traits.map((trait) => (
+            <span
+              className="rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/72"
+              key={trait}
+            >
+              {trait}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          href={primaryActionHref}
+        >
+          {primaryActionLabel}
+          <ArrowRight className="size-4" />
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+          href={startHref}
+        >
+          {copy.actions.start}
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -1423,33 +1663,14 @@ export function FanletterContentDetailPage({
                 {content.summary}
               </p>
 
-              <div className="mt-7 flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
-                <Link
-                  className="flex min-w-0 items-center gap-3"
-                  href={creatorHref}
-                >
-                  <Avatar
-                    imageUrl={content.authorAvatarImageUrl}
-                    name={content.authorName}
-                    sizeClassName="size-12"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-semibold">
-                      {content.authorName}
-                    </p>
-                    <p className="text-sm font-medium text-white/48">
-                      {content.authorReferralCode ?? "FanLetter"}
-                    </p>
-                  </div>
-                </Link>
-                <Link
-                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-black"
-                  href={creatorActionHref}
-                >
-                  {creatorActionLabel}
-                  <ArrowRight className="size-4" />
-                </Link>
-              </div>
+              <FanletterCharacterMiniCard
+                channelHref={creatorHref}
+                content={content}
+                locale={locale}
+                primaryActionHref={creatorActionHref}
+                primaryActionLabel={creatorActionLabel}
+                startHref={startHref}
+              />
 
               {!content.canPubliclyAccess ? (
                 <section className="mt-6 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/10 p-5">

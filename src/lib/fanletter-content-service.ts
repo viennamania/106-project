@@ -42,6 +42,8 @@ export type FanletterPublicContentItem = {
 };
 
 export type FanletterPublicContentDetail = FanletterPublicContentItem & {
+  authorCharacter: FanletterPublicCharacter | null;
+  authorPublicContentCount: number;
   body: string;
   canPubliclyAccess: boolean;
   contentImageUrls: string[];
@@ -331,7 +333,10 @@ export const getFanletterFeedPageData = cache(
 );
 
 export const getFanletterPublicContentDetail = cache(
-  async (contentId: string): Promise<FanletterPublicContentDetail | null> => {
+  async (
+    contentId: string,
+    locale: Locale,
+  ): Promise<FanletterPublicContentDetail | null> => {
     const postsCollection = await getContentPostsCollection();
     const post = await postsCollection.findOne({
       contentId,
@@ -354,9 +359,31 @@ export const getFanletterPublicContentDetail = cache(
       ),
     ]);
     const canPubliclyAccess = post.priceType === "free";
+    const authorReferralCode = normalizeReferralCode(
+      profile?.referralCode ?? post.authorReferralCode,
+    );
+    const authorContentFilter = authorReferralCode
+      ? getPublicContentFilter({ locale, referralCode: authorReferralCode })
+      : null;
+    const [authorPosts, authorPublicContentCount] = authorContentFilter
+      ? await Promise.all([
+          postsCollection
+            .find(authorContentFilter)
+            .sort({
+              publishedAt: -1,
+              createdAt: -1,
+              contentId: -1,
+            })
+            .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
+            .toArray(),
+          postsCollection.countDocuments(authorContentFilter),
+        ])
+      : [[], 0];
 
     return {
       ...toPublicContentItem({ post, profile, social }),
+      authorCharacter: getPublicCharacter({ posts: authorPosts, profile }),
+      authorPublicContentCount,
       body: canPubliclyAccess
         ? post.body
         : post.previewText?.trim() || post.summary,

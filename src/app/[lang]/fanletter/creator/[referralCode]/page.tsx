@@ -27,8 +27,9 @@ export async function generateMetadata({
   const { lang, referralCode } = await params;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const data = await getFanletterCreatorPageData(locale, referralCode);
+  const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const title = data
-    ? `${data.profile.displayName} | FanLetter`
+    ? `${characterName} | FanLetter`
     : locale === "ko"
       ? "FanLetter 캐릭터"
       : "FanLetter character";

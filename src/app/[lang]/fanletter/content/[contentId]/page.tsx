@@ -101,7 +101,7 @@ export default async function LocalizedFanletterContentDetailPage({
   }
 
   const locale = lang as Locale;
-  const content = await getFanletterPublicContentDetail(contentId);
+  const content = await getFanletterPublicContentDetail(contentId, locale);
 
   if (!content) {
     notFound();
