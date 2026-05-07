@@ -157,7 +157,7 @@ const koCopy: FanletterSubpageCopy = {
     saves: "저장",
   },
   start: {
-    body: "가입, AI 캐릭터 설정, 첫 숏폼 브이로그 생성, 게시와 판매까지 기존 기능을 FanLetter 흐름 안에서 이어갑니다.",
+    body: "처음 시작하는 사람도 가입, 캐릭터 만들기, 첫 브이로그 생성까지 순서대로 따라갈 수 있게 정리했습니다.",
     eyebrow: "Start FanLetter",
     steps: [
       {
@@ -173,7 +173,7 @@ const koCopy: FanletterSubpageCopy = {
         title: "게시와 수익화",
       },
     ],
-    title: "처음 시작하는 사람도 AI 캐릭터 브이로그 채널을 바로 따라갈 수 있게 정리했습니다.",
+    title: "AI 캐릭터 브이로그 채널을 바로 시작하세요.",
   },
 };
 
@@ -235,7 +235,7 @@ const enCopy: FanletterSubpageCopy = {
     saves: "saves",
   },
   start: {
-    body: "Signup, AI character setup, first short-form vlog creation, publishing, and sales continue through the existing product flow.",
+    body: "New creators can follow signup, character creation, and first vlog creation in order.",
     eyebrow: "Start FanLetter",
     steps: [
       {
@@ -251,7 +251,7 @@ const enCopy: FanletterSubpageCopy = {
         title: "Publish and monetise",
       },
     ],
-    title: "A simple path to start an AI character vlogger channel.",
+    title: "Start an AI character vlog channel.",
   },
 };
 
@@ -348,6 +348,7 @@ function FanletterShell({
   locale,
   referralCode,
   title,
+  titleClassName,
 }: {
   actions?: ReactNode;
   aside?: ReactNode;
@@ -357,6 +358,7 @@ function FanletterShell({
   locale: Locale;
   referralCode: string | null;
   title: string;
+  titleClassName?: string;
 }) {
   const copy = getCopy(locale);
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
@@ -412,7 +414,12 @@ function FanletterShell({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {eyebrow}
               </p>
-              <h1 className="mt-4 max-w-5xl text-[2.65rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.7rem]">
+              <h1
+                className={
+                  titleClassName ??
+                  "mt-4 max-w-5xl text-[2.65rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.7rem]"
+                }
+              >
                 {title}
               </h1>
               {description ? (
@@ -1866,6 +1873,7 @@ export function FanletterStartPage({
       locale={locale}
       referralCode={referralCode}
       title={copy.start.title}
+      titleClassName="mt-4 max-w-4xl text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem] lg:text-[3.7rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
