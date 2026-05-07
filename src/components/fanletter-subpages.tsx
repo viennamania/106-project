@@ -520,10 +520,12 @@ function ContentCard({
   item,
   locale,
   referralCode,
+  showVideoPreview = false,
 }: {
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
+  showVideoPreview?: boolean;
 }) {
   const copy = getCopy(locale);
   const href = getContentHref({ item, locale, referralCode });
@@ -533,27 +535,32 @@ function ContentCard({
     <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
       <Link className="block" href={href}>
         <div className="relative aspect-[9/14] overflow-hidden bg-[#07100b]">
-          {item.primaryVideoUrl ? (
+          {item.primaryVideoUrl && showVideoPreview ? (
             <video
               aria-hidden="true"
-              autoPlay
               className="absolute inset-0 h-full w-full object-cover"
-              loop
               muted
               playsInline
               poster={item.coverImageUrl ?? undefined}
               preload="metadata"
               src={item.primaryVideoUrl}
             />
-          ) : (
-            <MediaCard
-              alt={item.title}
-              imageUrl={null}
-              mediaType={item.mediaType}
-              title={item.title}
-              videoUrl={item.primaryVideoUrl}
-              controls={false}
+          ) : item.coverImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover"
+              fill
+              sizes="(max-width: 640px) 100vw, 24vw"
+              src={item.coverImageUrl}
             />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#121b16_54%,#1d2f23)] text-white/72">
+              <PlayCircle className="size-14 text-[#44f26e]" />
+              <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+                Video
+              </span>
+            </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.76)_100%)]" />
           <span className="absolute left-3 top-3 inline-flex rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
@@ -611,11 +618,15 @@ function ContentCard({
 
 function ContentGrid({
   empty,
+  emptyActionHref,
+  emptyActionLabel,
   items,
   locale,
   referralCode,
 }: {
   empty: string;
+  emptyActionHref?: string;
+  emptyActionLabel?: string;
   items: FanletterPublicContentItem[];
   locale: Locale;
   referralCode: string | null;
@@ -623,7 +634,15 @@ function ContentGrid({
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-black/10 bg-white p-6 text-sm font-semibold text-black/58">
-        {empty}
+        <p>{empty}</p>
+        {emptyActionHref && emptyActionLabel ? (
+          <Link
+            className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+            href={emptyActionHref}
+          >
+            {emptyActionLabel}
+          </Link>
+        ) : null}
       </div>
     );
   }
@@ -852,13 +871,25 @@ export function FanletterFeedPage({
     );
   });
   const featuredItem = rankedItems[0] ?? items[0] ?? null;
-  const videoItems = items.filter((item) => item.mediaType === "video").slice(0, 6);
+  const featuredContentId = featuredItem?.contentId ?? null;
+  const videoCount = items.filter((item) => item.mediaType === "video").length;
+  const videoItems = items
+    .filter(
+      (item) =>
+        item.mediaType === "video" && item.contentId !== featuredContentId,
+    )
+    .slice(0, 6);
+  const curatedContentIds = new Set([
+    ...(featuredContentId ? [featuredContentId] : []),
+    ...videoItems.map((item) => item.contentId),
+  ]);
   const latestItems = [...items]
     .sort(
       (a, b) =>
         new Date(b.publishedAt ?? 0).getTime() -
         new Date(a.publishedAt ?? 0).getTime(),
     )
+    .filter((item) => !curatedContentIds.has(item.contentId))
     .slice(0, 8);
   const creatorItems = Array.from(
     new Map(
@@ -875,13 +906,30 @@ export function FanletterFeedPage({
     },
     {
       label: copy.feed.videos,
-      value: formatNumber(videoItems.length, locale),
+      value: formatNumber(videoCount, locale),
     },
     {
       label: copy.feed.suggestedCreators,
       value: formatNumber(creatorItems.length, locale),
     },
   ];
+  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const startHref = buildPathWithReferral(
+    `/${locale}/fanletter/start`,
+    referralCode,
+  );
+  const sectionLinks = [
+    featuredItem
+      ? { href: `${feedHref}#popular-vlog`, label: copy.feed.trending }
+      : null,
+    videoItems.length > 0
+      ? { href: `${feedHref}#video-vlogs`, label: copy.feed.videos }
+      : null,
+    latestItems.length > 0
+      ? { href: `${feedHref}#latest-vlogs`, label: copy.feed.latest }
+      : null,
+    { href: `${feedHref}#all-vlogs`, label: copy.feed.allContent },
+  ].filter((link): link is { href: string; label: string } => Boolean(link));
 
   return (
     <FanletterShell
@@ -890,28 +938,30 @@ export function FanletterFeedPage({
       locale={locale}
       referralCode={referralCode}
       title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
+      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]"
     >
       <section className="overflow-hidden bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
-          <div className="mb-8 flex flex-wrap gap-2 pb-1">
-            {[copy.feed.trending, copy.feed.latest, copy.feed.videos, copy.feed.freePublic].map(
-              (filter, index) => (
-                <span
-                  className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full border px-4 text-sm font-semibold ${
-                    index === 0
-                      ? "border-black bg-black text-white"
-                      : "border-black/10 bg-white text-black/62"
-                  }`}
-                  key={filter}
-                >
-                  {filter}
-                </span>
-              ),
-            )}
-          </div>
+          <nav
+            aria-label={locale === "ko" ? "피드 섹션" : "Feed sections"}
+            className="mb-8 flex flex-wrap gap-2 pb-1"
+          >
+            {sectionLinks.map((link) => (
+              <Link
+                className="inline-flex h-9 shrink-0 snap-start items-center rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/70 transition hover:border-[#29d85f]/70 hover:bg-[#effff3] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#29d85f]"
+                href={link.href}
+                key={link.href}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
           {featuredItem ? (
-            <div className="mb-10 grid min-w-0 max-w-full gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch">
+            <div
+              className="mb-10 grid min-w-0 max-w-full scroll-mt-6 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
+              id="popular-vlog"
+            >
               <FeaturedFeedCard
                 item={featuredItem}
                 locale={locale}
@@ -967,28 +1017,28 @@ export function FanletterFeedPage({
           ) : null}
 
           {videoItems.length > 0 ? (
-            <section className="mb-10">
+            <section className="mb-10 scroll-mt-6" id="video-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.videos}
                 </h2>
               </div>
-              <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {videoItems.map((item) => (
-                  <div className="min-w-[17rem] snap-start sm:min-w-[20rem]" key={item.contentId}>
-                    <ContentCard
-                      item={item}
-                      locale={locale}
-                      referralCode={referralCode}
-                    />
-                  </div>
+                  <ContentCard
+                    item={item}
+                    key={item.contentId}
+                    locale={locale}
+                    referralCode={referralCode}
+                    showVideoPreview
+                  />
                 ))}
               </div>
             </section>
           ) : null}
 
           {latestItems.length > 0 ? (
-            <section className="mb-10">
+            <section className="mb-10 scroll-mt-6" id="latest-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.latest}
@@ -1007,13 +1057,18 @@ export function FanletterFeedPage({
             </section>
           ) : null}
 
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div
+            className="mb-4 flex scroll-mt-6 items-center justify-between gap-3"
+            id="all-vlogs"
+          >
             <h2 className="text-2xl font-semibold tracking-normal">
               {copy.feed.allContent}
             </h2>
           </div>
           <ContentGrid
             empty={copy.feed.empty}
+            emptyActionHref={startHref}
+            emptyActionLabel={copy.actions.start}
             items={items}
             locale={locale}
             referralCode={referralCode}
