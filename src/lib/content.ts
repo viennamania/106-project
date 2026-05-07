@@ -586,6 +586,16 @@ export type CreatorProfileUpsertRequest = {
   walletAddress?: string;
 };
 
+export type CreatorProfileCharacterUpdateRequest = {
+  avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
+  avatarImageUrl?: string | null;
+  characterPersona: CreatorCharacterPersona;
+  displayName?: string | null;
+  email: string;
+  intro?: string | null;
+  walletAddress?: string;
+};
+
 export type ContentPostCreateRequest = {
   body: string;
   contentImageUrls?: string[];

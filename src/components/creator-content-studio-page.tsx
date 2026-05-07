@@ -176,6 +176,13 @@ type AvatarGenerationState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
+type CharacterQuickstartState = {
+  error: string | null;
+  gender: "female" | "male";
+  status: "idle" | "loading" | "ready" | "error";
+  style: "cinematic" | "daily" | "friendly" | "premium";
+};
+
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
 
 type CoverGenerationProgressState = {
@@ -192,7 +199,7 @@ type CoverGenerationProgressState = {
   >;
 };
 
-type StudioView = "hub" | "new" | "profile";
+type StudioView = "character" | "hub" | "new" | "profile";
 
 const EMPTY_PROFILE = {
   avatarImageSet: [] as CreatorProfileAvatarCandidate[],
@@ -698,6 +705,13 @@ export function CreatorContentStudioPage({
     buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
     { returnTo: returnToHref },
   );
+  const characterHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/creator/studio/profile/character`,
+      referralCode,
+    ),
+    { returnTo: returnToHref },
+  );
   const postsManagerHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
     { returnTo: returnToHref },
@@ -712,7 +726,9 @@ export function CreatorContentStudioPage({
   );
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
-    view === "profile"
+    view === "character"
+      ? characterHref
+      : view === "profile"
       ? profileHref
       : view === "new"
         ? newPostHref
@@ -755,6 +771,12 @@ export function CreatorContentStudioPage({
       error: null,
       status: "idle",
     });
+  const [quickCharacter, setQuickCharacter] = useState<CharacterQuickstartState>({
+    error: null,
+    gender: "female",
+    status: "idle",
+    style: "friendly",
+  });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
@@ -1375,27 +1397,54 @@ export function CreatorContentStudioPage({
     isDisconnected,
     isResolving: isConnectionResolving,
   } = useThirdwebConnectionState({ accountAddress, status });
-  const backHref = view === "hub" ? returnToHref ?? homeHref : studioHomeHref;
+  const backHref =
+    view === "hub"
+      ? returnToHref ?? homeHref
+      : view === "character"
+        ? profileHref
+        : studioHomeHref;
+  const characterPageCopy =
+    locale === "ko"
+      ? {
+          description:
+            "활성 캐릭터를 바꾸면 이후 생성되는 이미지와 영상의 인물이 달라질 수 있습니다.",
+          shortcut: "프로필로 돌아가기",
+          title: "캐릭터 변경",
+        }
+      : {
+          description:
+            "Changing the active character can change the person used in future image and video generations.",
+          shortcut: "Back to profile",
+          title: "Change character",
+        };
   const pageTitle =
-    view === "profile"
+    view === "character"
+      ? characterPageCopy.title
+      : view === "profile"
       ? contentCopy.labels.creatorSettings
       : view === "new"
         ? contentCopy.actions.createPost
         : contentCopy.page.studioTitle;
   const pageDescription =
-    view === "profile"
+    view === "character"
+      ? characterPageCopy.description
+      : view === "profile"
       ? contentCopy.page.profileDescription
       : view === "new"
         ? contentCopy.page.newDescription
         : contentCopy.page.studioDescription;
   const headerShortcutHref =
-    view === "profile"
+    view === "character"
+      ? profileHref
+      : view === "profile"
       ? newPostHref
       : view === "new"
         ? profileHref
         : null;
   const headerShortcutLabel =
-    view === "profile"
+    view === "character"
+      ? characterPageCopy.shortcut
+      : view === "profile"
       ? contentCopy.actions.createPost
       : view === "new"
         ? contentCopy.labels.creatorSettings
@@ -1544,7 +1593,7 @@ export function CreatorContentStudioPage({
       return;
     }
 
-    const shouldLoadProfileView = view === "profile";
+    const shouldLoadProfileView = view === "profile" || view === "character";
     const shouldLoadAutomation = view === "profile";
     const compactPageSize =
       view === "new" ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE;
@@ -1817,6 +1866,17 @@ export function CreatorContentStudioPage({
         status: "ready",
       });
 
+      if (!shouldLoadAutomation) {
+        setAutomation({
+          available: false,
+          error: null,
+          form: EMPTY_AUTOMATION_FORM,
+          jobs: [],
+          status: "idle",
+        });
+        return;
+      }
+
       if (profileData.automationAvailable === false) {
         setAutomation({
           available: false,
@@ -2072,9 +2132,6 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile", {
         body: JSON.stringify({
-          avatarImageSet: profileToSave.avatarImageSet,
-          avatarImageUrl: profileToSave.avatarImageUrl || null,
-          characterPersona: profileToSave.characterPersona,
           displayName: profileToSave.displayName,
           email,
           heroImageUrl: profileToSave.heroImageUrl || null,
@@ -2117,6 +2174,159 @@ export function CreatorContentStudioPage({
       }));
     } finally {
       setIsSavingProfile(false);
+    }
+  }
+
+  async function saveCharacterProfile(profileOverride: StudioState["profile"]) {
+    if (!profileOverride.characterPersona) {
+      const message =
+        locale === "ko"
+          ? "저장할 캐릭터 페르소나를 먼저 선택하세요."
+          : "Select a character persona before saving.";
+
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
+      return;
+    }
+
+    try {
+      setIsSavingProfile(true);
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/profile/character", {
+        body: JSON.stringify({
+          avatarImageSet: profileOverride.avatarImageSet,
+          avatarImageUrl: profileOverride.avatarImageUrl || null,
+          characterPersona: profileOverride.characterPersona,
+          displayName: profileOverride.displayName,
+          email,
+          intro: profileOverride.intro,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorProfileResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("profile" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.studioLoadFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "캐릭터 설정을 저장했습니다."
+            : "Character settings saved.",
+        profile: createEditableCreatorProfile(data.profile),
+        profileConfigured: data.profileConfigured,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.studioLoadFailed,
+        notice: null,
+      }));
+    } finally {
+      setIsSavingProfile(false);
+    }
+  }
+
+  async function createQuickCharacter() {
+    try {
+      setQuickCharacter((current) => ({
+        ...current,
+        error: null,
+        status: "loading",
+      }));
+      const email = await resolveMemberEmail();
+      const response = await fetch("/api/content/profile/character/quickstart", {
+        body: JSON.stringify({
+          displayName: state.profile.displayName,
+          email,
+          gender: quickCharacter.gender,
+          intro: state.profile.intro,
+          locale,
+          style: quickCharacter.style,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as CreatorProfileResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("profile" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : locale === "ko"
+              ? "캐릭터를 만들지 못했습니다."
+              : "Failed to create the character.",
+        );
+      }
+
+      setAvatarGeneration({
+        candidates: data.profile.avatarImageSet,
+        error: null,
+        status: data.profile.avatarImageSet.length > 0 ? "ready" : "idle",
+      });
+      setPersonaGeneration((current) => ({
+        ...current,
+        candidates: [],
+        error: null,
+        status: "idle",
+      }));
+      setQuickCharacter((current) => ({
+        ...current,
+        error: null,
+        status: "ready",
+      }));
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          locale === "ko"
+            ? "캐릭터를 만들고 프로필에 저장했습니다."
+            : "Character created and saved to your profile.",
+        profile: createEditableCreatorProfile(data.profile),
+        profileConfigured: data.profileConfigured,
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : locale === "ko"
+            ? "캐릭터를 만들지 못했습니다."
+            : "Failed to create the character.";
+
+      setQuickCharacter((current) => ({
+        ...current,
+        error: message,
+        status: "error",
+      }));
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
     }
   }
 
@@ -2270,7 +2480,7 @@ export function CreatorContentStudioPage({
     }
   }
 
-  async function saveCharacterPersona(persona: CreatorCharacterPersona | null) {
+  async function saveCharacterPersona(persona: CreatorCharacterPersona) {
     const nextProfile = {
       ...state.profile,
       avatarImageSet: [],
@@ -2287,7 +2497,7 @@ export function CreatorContentStudioPage({
       ...current,
       profile: nextProfile,
     }));
-    await saveProfile(nextProfile);
+    await saveCharacterProfile(nextProfile);
   }
 
   async function generateProfileAvatarCandidates() {
@@ -2391,7 +2601,7 @@ export function CreatorContentStudioPage({
       ...current,
       profile: nextProfile,
     }));
-    await saveProfile(nextProfile);
+    await saveCharacterProfile(nextProfile);
   }
 
   async function createPost(statusToSave: "draft" | "published") {
@@ -3609,7 +3819,7 @@ export function CreatorContentStudioPage({
             avoid: "변경 금지",
             body:
               "인물만 고정하는 페르소나를 선택하면 AI 이미지와 동영상 생성에서 같은 인물을 더 강하게 유지합니다.",
-            clear: "페르소나 사용 안 함",
+            clear: "변경 페이지에서 재설정",
             female: "여성",
             generate: "AI가 페르소나 추천",
             generating: "추천 생성 중...",
@@ -3641,7 +3851,7 @@ export function CreatorContentStudioPage({
             avoid: "Do not change",
             body:
               "Choose a character-only persona to keep the same person stronger in AI image and video generation.",
-            clear: "Disable persona",
+            clear: "Change on this page",
             female: "Female",
             generate: "Suggest personas",
             generating: "Generating...",
@@ -3854,16 +4064,6 @@ export function CreatorContentStudioPage({
                   {selectedPersona.summary}
                 </p>
               </div>
-              <button
-                className="inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                disabled={isSavingProfile}
-                onClick={() => {
-                  void saveCharacterPersona(null);
-                }}
-                type="button"
-              >
-                {personaCopy.clear}
-              </button>
             </div>
           </div>
         ) : null}
@@ -3943,52 +4143,223 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderProfileCard() {
-    const blockedState = renderBlockedState();
+  function renderQuickCharacterPanel() {
+    const isCreatingCharacter = quickCharacter.status === "loading";
+    const quickCopy =
+      locale === "ko"
+        ? {
+            body:
+              "복잡한 페르소나와 아바타 단계를 자동으로 처리합니다. 이후 바꾸려면 이 캐릭터 변경 화면에서만 변경됩니다.",
+            button: "캐릭터 자동 생성",
+            creating: "캐릭터 생성 중...",
+            genderFemale: "여성",
+            genderLabel: "캐릭터 타입",
+            genderMale: "남성",
+            styleCinematic: "영화적인",
+            styleDaily: "일상 브이로그",
+            styleFriendly: "친근한",
+            styleLabel: "분위기",
+            stylePremium: "프리미엄",
+            title: "빠른 캐릭터 만들기",
+          }
+        : {
+            body:
+              "Automatically handles persona and avatar setup. Future changes happen only from this character change screen.",
+            button: "Create character automatically",
+            creating: "Creating character...",
+            genderFemale: "Female",
+            genderLabel: "Character type",
+            genderMale: "Male",
+            styleCinematic: "Cinematic",
+            styleDaily: "Daily vlog",
+            styleFriendly: "Friendly",
+            styleLabel: "Mood",
+            stylePremium: "Premium",
+            title: "Quick Character Setup",
+          };
+    const genderOptions = [
+      { label: quickCopy.genderFemale, value: "female" as const },
+      { label: quickCopy.genderMale, value: "male" as const },
+    ];
+    const styleOptions = [
+      { label: quickCopy.styleFriendly, value: "friendly" as const },
+      { label: quickCopy.styleDaily, value: "daily" as const },
+      { label: quickCopy.styleCinematic, value: "cinematic" as const },
+      { label: quickCopy.stylePremium, value: "premium" as const },
+    ];
+
+    return (
+      <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <WandSparkles className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-950">
+              {quickCopy.title}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {quickCopy.body}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {quickCopy.genderLabel}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {genderOptions.map((option) => {
+                const selected = quickCharacter.gender === option.value;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                      selected
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    }`}
+                    disabled={isCreatingCharacter}
+                    key={option.value}
+                    onClick={() => {
+                      setQuickCharacter((current) => ({
+                        ...current,
+                        error: null,
+                        gender: option.value,
+                        status: "idle",
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {quickCopy.styleLabel}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {styleOptions.map((option) => {
+                const selected = quickCharacter.style === option.value;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                      selected
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    }`}
+                    disabled={isCreatingCharacter}
+                    key={option.value}
+                    onClick={() => {
+                      setQuickCharacter((current) => ({
+                        ...current,
+                        error: null,
+                        status: "idle",
+                        style: option.value,
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {quickCharacter.error ? (
+          <MessageCard tone="error">{quickCharacter.error}</MessageCard>
+        ) : null}
+
+        <div className="mt-4 flex justify-end">
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            disabled={isCreatingCharacter || isSavingProfile || isDisconnected}
+            onClick={() => {
+              void createQuickCharacter();
+            }}
+            type="button"
+          >
+            {isCreatingCharacter ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
+            {isCreatingCharacter ? quickCopy.creating : quickCopy.button}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderActiveCharacterCard() {
+    const persona = state.profile.characterPersona;
+    const cardCopy =
+      locale === "ko"
+        ? {
+            body:
+              "이 캐릭터가 이후 AI 이미지와 동영상 생성의 기준 인물로 자동 적용됩니다.",
+            change: "캐릭터 변경",
+            empty: "활성 캐릭터가 아직 없습니다.",
+            title: "활성 캐릭터",
+          }
+        : {
+            body:
+              "This character is automatically used as the identity for future AI image and video generations.",
+            change: "Change character",
+            empty: "No active character yet.",
+            title: "Active character",
+          };
+
+    return (
+      <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <CreatorProfileAvatar
+              avatarImageUrl={state.profile.avatarImageUrl}
+              displayName={state.profile.displayName}
+              fallbackLabel={cardCopy.title}
+              sizeClassName="size-16 rounded-full"
+            />
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {cardCopy.title}
+              </p>
+              <p className="mt-1 text-base font-semibold text-slate-950">
+                {persona?.name || state.profile.displayName || cardCopy.empty}
+              </p>
+              <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
+                {persona?.summary || cardCopy.body}
+              </p>
+            </div>
+          </div>
+          <Link
+            className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+            href={characterHref}
+          >
+            {cardCopy.change}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  function renderCharacterAvatarPanel() {
     const isGeneratingProfileAvatar = avatarGeneration.status === "loading";
     const canGenerateProfileAvatar = Boolean(state.profile.characterPersona);
-    const hasDisplayName = Boolean(state.profile.displayName.trim());
-    const hasPersona = Boolean(state.profile.characterPersona);
-    const hasAvatar = Boolean(state.profile.avatarImageUrl);
     const displayedAvatarSet =
       avatarGeneration.candidates.length > 0
         ? avatarGeneration.candidates
         : state.profile.avatarImageSet;
-    const setupProgress = [hasDisplayName, hasPersona, hasAvatar].filter(
-      Boolean,
-    ).length;
-    const setupCopy =
-      locale === "ko"
-        ? {
-            avatarBody: "페르소나를 고른 뒤 표정별 아바타 세트를 만들고 대표 이미지를 저장하세요.",
-            avatarTitle: "AI 아바타 선택",
-            displayBody: "피드와 콘텐츠 상세에 표시될 이름입니다.",
-            displayTitle: "표시 이름 입력",
-            personaBody: "성별과 연령대를 선택하고 같은 인물을 유지할 페르소나를 저장하세요.",
-            personaTitle: "인물 페르소나 선택",
-            progress: `필수 설정 ${setupProgress}/3`,
-            saveButton: "변경사항 저장",
-            saveButtonSaving: "저장 중...",
-            saveBody:
-              "표시 이름을 바꾸거나 이미지를 제거한 경우에만 수동 저장이 필요합니다. 페르소나와 아바타 선택은 즉시 저장됩니다.",
-            saveTitle: "수동 변경 저장",
-          }
-        : {
-            avatarBody:
-              "After choosing a persona, generate an expression avatar set and save a representative image.",
-            avatarTitle: "Choose AI Avatar",
-            displayBody: "This name appears in the feed and content detail pages.",
-            displayTitle: "Enter Display Name",
-            personaBody:
-              "Select gender and age range, then save a persona to keep the same person.",
-            personaTitle: "Choose Character Persona",
-            progress: `Required setup ${setupProgress}/3`,
-            saveButton: "Save changes",
-            saveButtonSaving: "Saving...",
-            saveBody:
-              "Manual save is only needed after editing the display name or removing an image. Persona and avatar selections are saved immediately.",
-            saveTitle: "Save Manual Changes",
-          };
     const avatarGeneratorCopy =
       locale === "ko"
         ? {
@@ -4036,6 +4407,156 @@ export function CreatorContentStudioPage({
 
       return candidate.label ?? avatarGeneratorCopy.setTitle;
     };
+
+    return (
+      <section className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <UserRound className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-950">
+              {avatarGeneratorCopy.title}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {avatarGeneratorCopy.body}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative shrink-0">
+            <div className="flex size-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+              {state.profile.avatarImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={state.profile.displayName || contentCopy.fields.displayName}
+                  className="h-full w-full object-cover"
+                  src={state.profile.avatarImageUrl}
+                />
+              ) : (
+                <UserRound className="size-8 text-slate-300" />
+              )}
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+            <button
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              disabled={
+                isGeneratingProfileAvatar ||
+                isSavingProfile ||
+                isDisconnected ||
+                !canGenerateProfileAvatar
+              }
+              onClick={() => {
+                void generateProfileAvatarCandidates();
+              }}
+              type="button"
+            >
+              {isGeneratingProfileAvatar ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {isGeneratingProfileAvatar
+                ? avatarGeneratorCopy.generating
+                : avatarGeneratorCopy.generate}
+            </button>
+          </div>
+        </div>
+        {!canGenerateProfileAvatar ? (
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            {avatarGeneratorCopy.disabledHint}
+          </p>
+        ) : null}
+        {avatarGeneration.error ? (
+          <MessageCard tone="error">{avatarGeneration.error}</MessageCard>
+        ) : null}
+        {displayedAvatarSet.length > 0 ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+            {displayedAvatarSet.map((candidate) => {
+              const selected = state.profile.avatarImageUrl === candidate.url;
+
+              return (
+                <div
+                  className={`overflow-hidden rounded-[20px] border bg-white shadow-sm ${
+                    selected
+                      ? "border-slate-950 ring-2 ring-slate-950/10"
+                      : "border-slate-200"
+                  }`}
+                  key={candidate.pathname}
+                >
+                  <div className="aspect-square overflow-hidden bg-slate-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt={avatarGeneratorCopy.title}
+                      className="h-full w-full object-cover"
+                      src={candidate.url}
+                    />
+                  </div>
+                  <div className="p-2">
+                    <p className="mb-2 truncate text-center text-[11px] font-semibold text-slate-500">
+                      {getAvatarExpressionLabel(candidate)}
+                    </p>
+                    <button
+                      className="inline-flex h-9 w-full items-center justify-center rounded-full bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={
+                        isSavingProfile ||
+                        isGeneratingProfileAvatar ||
+                        selected
+                      }
+                      onClick={() => {
+                        void saveGeneratedProfileAvatar(candidate);
+                      }}
+                      type="button"
+                    >
+                      {selected
+                        ? avatarGeneratorCopy.selected
+                        : avatarGeneratorCopy.select}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
+  function renderProfileCard() {
+    const blockedState = renderBlockedState();
+    const hasDisplayName = Boolean(state.profile.displayName.trim());
+    const hasPersona = Boolean(state.profile.characterPersona);
+    const hasReadyCharacter = hasPersona;
+    const setupProgress = [hasDisplayName, hasReadyCharacter].filter(Boolean).length;
+    const setupCopy =
+      locale === "ko"
+        ? {
+            characterBody:
+              "캐릭터는 콘텐츠 생성에 자동 적용됩니다. 변경은 별도 화면에서만 진행합니다.",
+            characterTitle: "활성 캐릭터",
+            displayBody: "피드와 콘텐츠 상세에 표시될 이름입니다.",
+            displayTitle: "표시 이름 입력",
+            progress: `필수 설정 ${setupProgress}/2`,
+            saveButton: "변경사항 저장",
+            saveButtonSaving: "저장 중...",
+            saveBody:
+              "이 화면에서는 표시 이름과 기본 소개만 저장합니다. 캐릭터 정체성은 별도 변경 화면에서 관리합니다.",
+            saveTitle: "수동 변경 저장",
+          }
+        : {
+            characterBody:
+              "The character is applied automatically to content generation. Changes happen on a separate screen.",
+            characterTitle: "Active Character",
+            displayBody: "This name appears in the feed and content detail pages.",
+            displayTitle: "Enter Display Name",
+            progress: `Required setup ${setupProgress}/2`,
+            saveButton: "Save changes",
+            saveButtonSaving: "Saving...",
+            saveBody:
+              "This screen only saves display name and basic profile details. Character identity is managed on the separate change screen.",
+            saveTitle: "Save Manual Changes",
+          };
 
     return (
       <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
@@ -4105,161 +4626,27 @@ export function CreatorContentStudioPage({
               <div className="flex items-start gap-3">
                 <span
                   className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    hasPersona
+                    hasReadyCharacter
                       ? "bg-emerald-500 text-white"
                       : "bg-slate-950 text-white"
                   }`}
                 >
-                  {hasPersona ? <Check className="size-4" /> : "2"}
+                  {hasReadyCharacter ? <Check className="size-4" /> : "2"}
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-950">
-                    {setupCopy.personaTitle}
+                    {setupCopy.characterTitle}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {setupCopy.personaBody}
+                    {setupCopy.characterBody}
                   </p>
                 </div>
               </div>
-              <div className="mt-4">{renderCharacterPersonaPanel()}</div>
-            </section>
-
-            <section className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-              <div className="flex items-start gap-3">
-                <span
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    hasAvatar
-                      ? "bg-emerald-500 text-white"
-                      : "bg-slate-950 text-white"
-                  }`}
-                >
-                  {hasAvatar ? <Check className="size-4" /> : "3"}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-950">
-                    {setupCopy.avatarTitle}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {setupCopy.avatarBody}
-                  </p>
-                </div>
+              <div className="mt-4">
+                {hasReadyCharacter
+                  ? renderActiveCharacterCard()
+                  : renderQuickCharacterPanel()}
               </div>
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="relative shrink-0">
-                  <div className="flex size-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
-                    {state.profile.avatarImageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        alt={state.profile.displayName || contentCopy.fields.displayName}
-                        className="h-full w-full object-cover"
-                        src={state.profile.avatarImageUrl}
-                      />
-                    ) : (
-                      <UserRound className="size-8 text-slate-300" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={
-                      isGeneratingProfileAvatar ||
-                      isSavingProfile ||
-                      isDisconnected ||
-                      !canGenerateProfileAvatar
-                    }
-                    onClick={() => {
-                      void generateProfileAvatarCandidates();
-                    }}
-                    type="button"
-                  >
-                    {isGeneratingProfileAvatar ? (
-                      <LoaderCircle className="size-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="size-4" />
-                    )}
-                    {isGeneratingProfileAvatar
-                      ? avatarGeneratorCopy.generating
-                      : avatarGeneratorCopy.generate}
-                  </button>
-                  {state.profile.avatarImageUrl ? (
-                    <button
-                      className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                      onClick={() => {
-                        setState((current) => ({
-                          ...current,
-                          notice: null,
-                          profile: {
-                            ...current.profile,
-                            avatarImageSet: [],
-                            avatarImageUrl: "",
-                          },
-                        }));
-                      }}
-                      type="button"
-                    >
-                      {contentCopy.actions.removeImage}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-              {!canGenerateProfileAvatar ? (
-                <p className="mt-3 text-xs leading-5 text-slate-500">
-                  {avatarGeneratorCopy.disabledHint}
-                </p>
-              ) : null}
-              {avatarGeneration.error ? (
-                <MessageCard tone="error">{avatarGeneration.error}</MessageCard>
-              ) : null}
-              {displayedAvatarSet.length > 0 ? (
-                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {displayedAvatarSet.map((candidate) => {
-                    const selected =
-                      state.profile.avatarImageUrl === candidate.url;
-
-                    return (
-                      <div
-                        className={`overflow-hidden rounded-[20px] border bg-white shadow-sm ${
-                          selected
-                            ? "border-slate-950 ring-2 ring-slate-950/10"
-                            : "border-slate-200"
-                        }`}
-                        key={candidate.pathname}
-                      >
-                        <div className="aspect-square overflow-hidden bg-slate-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            alt={avatarGeneratorCopy.title}
-                            className="h-full w-full object-cover"
-                            src={candidate.url}
-                          />
-                        </div>
-                        <div className="p-2">
-                          <p className="mb-2 truncate text-center text-[11px] font-semibold text-slate-500">
-                            {getAvatarExpressionLabel(candidate)}
-                          </p>
-                          <button
-                            className="inline-flex h-9 w-full items-center justify-center rounded-full bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                            disabled={
-                              isSavingProfile ||
-                              isGeneratingProfileAvatar ||
-                              selected
-                            }
-                            onClick={() => {
-                              void saveGeneratedProfileAvatar(candidate);
-                            }}
-                            type="button"
-                          >
-                            {selected
-                              ? avatarGeneratorCopy.selected
-                              : avatarGeneratorCopy.select}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
             </section>
 
             <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
@@ -4276,11 +4663,7 @@ export function CreatorContentStudioPage({
                   </p>
                   <button
                     className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={
-                      isSavingProfile ||
-                      isDisconnected ||
-                      isGeneratingProfileAvatar
-                    }
+                    disabled={isSavingProfile || isDisconnected}
                     onClick={() => {
                       void saveProfile();
                     }}
@@ -4298,6 +4681,81 @@ export function CreatorContentStudioPage({
                 </div>
               </div>
             </section>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderCharacterChangeCard() {
+    const blockedState = renderBlockedState();
+    const changeCopy =
+      locale === "ko"
+        ? {
+            advancedBody:
+              "원하는 경우 후보를 직접 고르고 아바타 세트를 다시 만들 수 있습니다.",
+            advancedTitle: "직접 변경",
+            currentBody:
+              "현재 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 콘텐츠는 그대로 유지됩니다.",
+            currentTitle: "현재 캐릭터",
+            warning:
+              "캐릭터를 바꾸면 이후 생성되는 이미지와 동영상의 인물 정체성이 달라질 수 있습니다.",
+          }
+        : {
+            advancedBody:
+              "You can manually choose a candidate and regenerate the avatar set.",
+            advancedTitle: "Manual Change",
+            currentBody:
+              "Compare your current character with the new one before saving. Existing posts stay unchanged.",
+            currentTitle: "Current Character",
+            warning:
+              "Changing the character can change the person used in future image and video generations.",
+          };
+
+    return (
+      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
+        <div className="flex items-start gap-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <UserRound className="size-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              {changeCopy.currentTitle}
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {changeCopy.currentBody}
+            </p>
+          </div>
+        </div>
+
+        {blockedState ? (
+          blockedState
+        ) : (
+          <div className="mt-5 space-y-4">
+            {recoverableStudioError ? (
+              <MessageCard tone="error">{recoverableStudioError}</MessageCard>
+            ) : null}
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-950">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0" />
+                <p>{changeCopy.warning}</p>
+              </div>
+            </div>
+            {renderActiveCharacterCard()}
+            {renderQuickCharacterPanel()}
+            <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-slate-950">
+                  {changeCopy.advancedTitle}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  {changeCopy.advancedBody}
+                </p>
+              </div>
+              {renderCharacterPersonaPanel()}
+            </section>
+            {renderCharacterAvatarPanel()}
           </div>
         )}
       </div>
@@ -5615,7 +6073,7 @@ export function CreatorContentStudioPage({
       },
       {
         href: profileHref,
-        isActive: view === "profile",
+        isActive: view === "profile" || view === "character",
         label: contentCopy.labels.creatorSettings,
       },
       {
@@ -6273,6 +6731,10 @@ export function CreatorContentStudioPage({
             </div>
           </div>
         </section>
+      ) : view === "character" ? (
+        <section className="mx-auto w-full max-w-4xl">
+          {renderCharacterChangeCard()}
+        </section>
       ) : (
         <section className="grid gap-3 sm:gap-5 xl:grid-cols-[1.02fr_0.98fr]">
           {renderComposerCard()}
@@ -6372,7 +6834,7 @@ export function CreatorContentStudioPage({
         />
       ) : null}
       <CreatorStudioMobileNav
-        active={view}
+        active={view === "character" ? "profile" : view}
         locale={locale}
         referralCode={referralCode}
         returnToHref={returnToHref}

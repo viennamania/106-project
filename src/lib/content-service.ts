@@ -45,6 +45,7 @@ import {
   type CreatorProfileDocument,
   type CreatorProfileAvatarCandidate,
   type CreatorProfileRecord,
+  type CreatorProfileCharacterUpdateRequest,
   type CreatorProfileUpsertRequest,
   type CreatorCharacterPersona,
   type CreatorStudioPostsResponse,
@@ -1040,11 +1041,17 @@ export async function upsertCreatorProfileForMember(
 
   const collection = await getCreatorProfilesCollection();
   const now = new Date();
+  const existing = await collection.findOne({ email: member.email });
+  const defaultProfile = createDefaultCreatorProfile(member);
 
   const nextProfile: CreatorProfileDocument = {
-    avatarImageSet: normalizeCreatorAvatarSet(input.avatarImageSet),
-    avatarImageUrl: normalizeOptionalText(input.avatarImageUrl, 500),
-    characterPersona: normalizeCharacterPersona(input.characterPersona),
+    avatarImageSet: existing
+      ? existing.avatarImageSet ?? []
+      : defaultProfile.avatarImageSet,
+    avatarImageUrl: existing
+      ? existing.avatarImageUrl ?? null
+      : defaultProfile.avatarImageUrl,
+    characterPersona: existing?.characterPersona ?? null,
     createdAt: now,
     displayName,
     email: member.email,
@@ -1056,8 +1063,6 @@ export async function upsertCreatorProfileForMember(
     updatedAt: now,
   };
 
-  const existing = await collection.findOne({ email: member.email });
-
   await collection.updateOne(
     { email: member.email },
     {
@@ -1065,6 +1070,79 @@ export async function upsertCreatorProfileForMember(
         ...nextProfile,
         configuredAt: existing?.configuredAt ?? now,
         createdAt: existing?.createdAt ?? now,
+      },
+    },
+    { upsert: true },
+  );
+
+  const stored = await collection.findOne({ email: member.email });
+
+  if (!stored) {
+    throw new Error("Failed to save creator profile.");
+  }
+
+  return serializeCreatorProfile(stored);
+}
+
+export async function upsertCreatorCharacterForMember(
+  input: CreatorProfileCharacterUpdateRequest,
+): Promise<CreatorProfileRecord> {
+  const normalizedEmail = normalizeEmail(input.email);
+
+  if (!normalizedEmail) {
+    throw new Error("email is required.");
+  }
+
+  const member = await getCompletedMemberOrThrow(normalizedEmail);
+
+  if (!member.referralCode) {
+    throw new Error("Completed member is missing referral code.");
+  }
+
+  const characterPersona = normalizeCharacterPersona(input.characterPersona);
+
+  if (!characterPersona) {
+    throw new Error("characterPersona is required.");
+  }
+
+  const collection = await getCreatorProfilesCollection();
+  const existing = await collection.findOne({ email: member.email });
+  const defaultProfile = createDefaultCreatorProfile(member);
+  const displayName =
+    trimToLength(input.displayName, PROFILE_DISPLAY_NAME_LIMIT) ||
+    existing?.displayName ||
+    defaultProfile.displayName;
+  const intro =
+    input.intro === undefined
+      ? existing?.intro ?? defaultProfile.intro
+      : trimToLength(input.intro, PROFILE_INTRO_LIMIT);
+  const avatarImageSet = normalizeCreatorAvatarSet(input.avatarImageSet);
+  const avatarImageUrl =
+    normalizeOptionalText(input.avatarImageUrl, 500) ||
+    avatarImageSet.find((candidate) => candidate.expression === "default")?.url ||
+    avatarImageSet[0]?.url ||
+    null;
+  const now = new Date();
+
+  await collection.updateOne(
+    { email: member.email },
+    {
+      $set: {
+        avatarImageSet,
+        avatarImageUrl,
+        characterPersona,
+        configuredAt: existing?.configuredAt ?? now,
+        displayName,
+        email: member.email,
+        heroImageUrl: existing?.heroImageUrl ?? defaultProfile.heroImageUrl ?? null,
+        intro,
+        payoutWalletAddress: existing?.payoutWalletAddress ?? null,
+        referralCode: member.referralCode,
+        status: existing?.status ?? "active",
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        createdAt: now,
       },
     },
     { upsert: true },
