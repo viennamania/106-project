@@ -161,7 +161,7 @@ const koCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "가입을 완료하고 표시 이름, 캐릭터 페르소나, 아바타를 정리해 같은 브이로그 캐릭터가 유지되게 준비합니다.",
+        body: "가입을 완료하고 표시 이름과 분위기만 정해 같은 브이로그 캐릭터를 자동으로 준비합니다.",
         title: "AI 캐릭터 준비",
       },
       {
@@ -239,7 +239,7 @@ const enCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "Complete signup and prepare display name, character persona, and avatar so the same vlogger stays consistent.",
+        body: "Complete signup, then choose a display name and mood to prepare the vlogger automatically.",
         title: "Prepare AI character",
       },
       {
@@ -1483,8 +1483,8 @@ export function FanletterOnboardingPage({
           completeBody:
             "가입, 캐릭터 페르소나, 첫 브이로그까지 끝내면 FanLetter 브이로그 피드와 스튜디오에서 바로 이어서 운영할 수 있습니다.",
           completeTitle: "완료 후 바로 캐릭터 채널 운영으로 이어집니다.",
-          description:
-            "FanLetter 전용 화면에서 계정 연결, AI 캐릭터 페르소나, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
+	          description:
+	            "FanLetter 전용 화면에서 계정 연결, 원클릭 AI 캐릭터 생성, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
           eyebrow: "FanLetter Onboarding",
           feedCta: "브이로그 피드 보기",
           helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 브이로그 흐름으로 묶습니다.",
@@ -1504,12 +1504,12 @@ export function FanletterOnboardingPage({
               title: "계정과 지갑 연결",
             },
             {
-              body: "표시 이름, 캐릭터 페르소나, AI 아바타를 정리해 같은 브이로그 캐릭터의 첫 인상을 만듭니다.",
-              cta: "프로필 설정하기",
+	              body: "표시 이름과 분위기만 정하면 페르소나와 아바타를 자동으로 저장합니다.",
+	              cta: "캐릭터 만들기",
               href: profileHref,
               Icon: PenLine,
               meta: "02 · Profile",
-              title: "AI 캐릭터 프로필 준비",
+	              title: "AI 캐릭터 만들기",
             },
             {
               body: "오늘의 셀피, 루틴, 외출, 대화 장면을 세로형 브이로그로 만들고 공개 범위와 가격을 정합니다.",
@@ -1529,8 +1529,8 @@ export function FanletterOnboardingPage({
           completeBody:
             "After signup, character persona, and first vlog, continue directly into the FanLetter vlog feed and studio.",
           completeTitle: "Launch work continues into character channel operation.",
-          description:
-            "Move through account connection, AI character persona setup, and first short-form vlog creation inside FanLetter.",
+	          description:
+	            "Move through account connection, one-click AI character creation, and first short-form vlog creation inside FanLetter.",
           eyebrow: "FanLetter Onboarding",
           feedCta: "View vlog feed",
           helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter AI character vlog experience.",
@@ -1538,7 +1538,7 @@ export function FanletterOnboardingPage({
           primary: "Start with account",
           progress: "Launch checklist",
           requiredLabel: "Required",
-          secondary: "Set up profile",
+	          secondary: "Create character",
           title: "Start an AI character vlogger channel in one guided flow.",
           steps: [
             {
@@ -1550,12 +1550,12 @@ export function FanletterOnboardingPage({
               title: "Connect account and wallet",
             },
             {
-              body: "Prepare display name, character persona, and AI avatar so the same vlogger feels consistent.",
-              cta: "Set up profile",
+	              body: "Choose a display name and mood to save persona and avatar automatically.",
+	              cta: "Create character",
               href: profileHref,
               Icon: PenLine,
               meta: "02 · Profile",
-              title: "Prepare AI character profile",
+	              title: "Create AI character",
             },
             {
               body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog, then set visibility and pricing.",
@@ -1779,7 +1779,7 @@ export function FanletterStartPage({
           flowEyebrow: "Quick setup",
           flowTitle: "3단계만 끝내면 AI 캐릭터 브이로그 채널을 바로 시작할 수 있습니다.",
           primary: "가입하고 채널 시작",
-          secondary: "프로필 설정하기",
+	          secondary: "캐릭터 만들기",
           previewTitle: "오늘 할 일",
           previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
           nextLabel: "다음 단계",
@@ -1791,7 +1791,7 @@ export function FanletterStartPage({
           flowEyebrow: "Quick setup",
           flowTitle: "Complete three steps to start an AI character vlogger channel.",
           primary: "Start channel with signup",
-          secondary: "Set up profile",
+	          secondary: "Create character",
           previewTitle: "Today’s path",
           previewBody: "New creators can follow the flow in order.",
           nextLabel: "Next step",

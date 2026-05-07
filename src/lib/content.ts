@@ -445,6 +445,7 @@ export type ContentLibraryResponse = {
 
 export type CreatorProfileResponse = {
   automationAvailable?: boolean;
+  characterWarning?: string;
   member?: MemberRecord | null;
   profile: CreatorProfileRecord;
   profileConfigured: boolean;

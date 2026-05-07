@@ -10,7 +10,12 @@ const CANDIDATE_COUNT = 4;
 const IDENTITY_PROMPT_LIMIT = 1_600;
 const TRAIT_LIMIT = 180;
 
-export type CreatorPersonaAgeRange = "20s" | "30s" | "40s" | "50s_plus";
+export type CreatorPersonaAgeRange =
+  | "20s"
+  | "30s"
+  | "40s"
+  | "50s_plus"
+  | "auto";
 export type CreatorPersonaAppearanceTone =
   | "african_diaspora"
   | "east_asian"
@@ -18,7 +23,7 @@ export type CreatorPersonaAppearanceTone =
   | "middle_eastern_mediterranean"
   | "south_asian"
   | "western";
-export type CreatorPersonaGender = "female" | "male";
+export type CreatorPersonaGender = "auto" | "female" | "male";
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -85,12 +90,22 @@ function getCreatorPersonaReasoningEffort() {
 }
 
 function getGenderInstruction(gender: CreatorPersonaGender) {
-  return gender === "female"
-    ? "female adult woman"
-    : "male adult man";
+  if (gender === "female") {
+    return "female adult woman";
+  }
+
+  if (gender === "male") {
+    return "male adult man";
+  }
+
+  return "one clear adult gender presentation chosen by the persona";
 }
 
 function getAgeRangeInstruction(ageRange: CreatorPersonaAgeRange) {
+  if (ageRange === "auto") {
+    return "one coherent adult age range chosen by the persona";
+  }
+
   if (ageRange === "50s_plus") {
     return "50s or older";
   }
@@ -315,6 +330,10 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
   const appearanceToneInstruction = getAppearanceToneInstruction(
     input.appearanceTone,
   );
+  const hasAutoIdentity = input.gender === "auto" || input.ageRange === "auto";
+  const identityRequirement = hasAutoIdentity
+    ? "Each identityPrompt must explicitly state the chosen adult gender presentation and adult age range, then lock them as unchangeable identity traits."
+    : `Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}.`;
 
   return {
     model: getCreatorPersonaModel(),
@@ -327,7 +346,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           "The persona must only describe a consistent adult person's identity.",
           "Make the face description concrete enough for identity consistency: face shape, jawline, cheekbones, eye shape, eyebrow style, nose bridge/tip, mouth/lip shape, skin tone/texture, hairline, hair color, length, and texture.",
           "Describe overall presence only in neutral non-sexual terms: height impression, shoulder line, neck length, posture, frame, and camera-visible stance.",
-          "Every candidate must match the required gender and required adult age range exactly.",
+          "Every candidate must describe a consistent adult person's identity. If gender or age range is fixed, match it exactly. If either is auto, choose a coherent adult identity choice and keep it stable.",
           "When an appearance tone is provided, use it only as a stable visual design direction for face, skin, and hair details. Do not write stereotypes or broad claims about protected identity.",
           "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, content topics, or emphasis on breasts, hips, thighs, buttocks, cleavage, or erotic body parts.",
           "Write user-facing name and summary in Korean when requested. Write identityPrompt, lockedTraits, and avoidChanges in concise English for generation models.",
@@ -339,8 +358,8 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           `Language for name/summary: ${language}.`,
           `Creator display name: ${displayName}.`,
           `Creator intro: ${intro}.`,
-          `Required gender: ${genderInstruction}.`,
-          `Required adult age range: ${ageRangeInstruction}.`,
+          `Gender requirement: ${genderInstruction}.`,
+          `Adult age range requirement: ${ageRangeInstruction}.`,
           appearanceToneInstruction
             ? `Preferred appearance tone: ${appearanceToneInstruction}. Keep it consistent across all candidates.`
             : "No fixed appearance tone was selected. Choose a coherent safe appearance for each candidate.",
@@ -348,7 +367,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
             ? `A creator avatar URL is available for high-level context: ${avatarImageUrl}. Do not claim exact biometric analysis.`
             : "No avatar image is available.",
           `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates.`,
-          `Each identityPrompt must explicitly include ${genderInstruction} and ${ageRangeInstruction}.`,
+          identityRequirement,
           appearanceToneInstruction
             ? "Each identityPrompt must include concrete face, skin, and hair details consistent with the preferred appearance tone."
             : "Each identityPrompt must include concrete face, skin, and hair details that form a stable identity.",

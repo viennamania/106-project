@@ -105,12 +105,12 @@ function getCopy(locale: Locale) {
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
         paymentRequired: "가입 완료 회원만 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
-        personaEmpty: "프로필에서 인물 페르소나를 먼저 선택하면 같은 인물 유지가 강해집니다.",
+        personaEmpty: "프로필에서 캐릭터를 한 번 만들면 같은 인물 유지가 강해집니다.",
         price: "공개 방식",
         profileRequired: "프로필 준비가 필요합니다.",
         profileRequiredBody:
-          "FanLetter 첫 AI 캐릭터 브이로그는 표시 이름과 캐릭터 페르소나를 준비한 뒤 만들면 결과가 더 안정적입니다.",
-        profileRequiredCta: "프로필 설정하기",
+          "표시 이름과 분위기만 정해 캐릭터를 한 번 만들면 첫 브이로그에 자동 적용됩니다.",
+        profileRequiredCta: "캐릭터 만들기",
         prompt: "브이로그 장면",
         promptPlaceholder:
           "장소, 움직임, 행동, 대사, 카메라 느낌, 숏폼 분위기를 자연스럽게 입력하세요.",
@@ -155,12 +155,12 @@ function getCopy(locale: Locale) {
         paymentRequired: "Only completed members can create the first AI character vlog.",
         paymentRequiredCta: "Verify signup",
         personaEmpty:
-          "Choose a persona in profile setup first to keep the same person stronger.",
+          "Create a character once in your profile to keep the same person stronger.",
         price: "Visibility",
         profileRequired: "Profile setup required.",
         profileRequiredBody:
-          "The first AI character vlog works better after setting a display name and character persona.",
-        profileRequiredCta: "Set up profile",
+          "Create a character once with a display name and mood, then it will be applied to the first vlog automatically.",
+        profileRequiredCta: "Create character",
         prompt: "Vlog scene",
         promptPlaceholder:
           "Describe location, motion, action, dialogue, camera feel, and short-form mood.",
@@ -633,7 +633,7 @@ export function FanletterCreatePage({
     );
   }
 
-  if (loadStatus === "ready" && !hasProfileBasics) {
+  if (loadStatus === "ready" && (!hasProfileBasics || !hasPersona)) {
     return (
       <StatusPanel
         body={copy.profileRequiredBody}

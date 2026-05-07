@@ -39,7 +39,7 @@ type QuickCharacterRequest = {
   walletAddress?: string | null;
 };
 
-const ageRanges = ["20s", "30s", "40s", "50s_plus"] as const;
+const ageRanges = ["20s", "30s", "40s", "50s_plus", "auto"] as const;
 const appearanceTones = [
   "african_diaspora",
   "east_asian",
@@ -48,7 +48,7 @@ const appearanceTones = [
   "south_asian",
   "western",
 ] as const;
-const genders = ["female", "male"] as const;
+const genders = ["auto", "female", "male"] as const;
 const styles = [
   "chic",
   "cinematic",
@@ -65,7 +65,7 @@ function jsonError(message: string, status: number) {
 function parseAgeRange(value: string | null | undefined): CreatorPersonaAgeRange {
   return ageRanges.includes(value as CreatorPersonaAgeRange)
     ? (value as CreatorPersonaAgeRange)
-    : "20s";
+    : "auto";
 }
 
 function parseAppearanceTone(
@@ -79,7 +79,7 @@ function parseAppearanceTone(
 function parseGender(value: string | null | undefined): CreatorPersonaGender {
   return genders.includes(value as CreatorPersonaGender)
     ? (value as CreatorPersonaGender)
-    : "female";
+    : "auto";
 }
 
 function parseStyle(value: string | null | undefined): QuickCharacterStyle {
@@ -172,23 +172,37 @@ export async function POST(request: Request) {
       return jsonError("Creator persona generation returned no usable candidates.", 500);
     }
 
-    const avatarCandidates = await generateCreatorAvatarCandidates({
-      displayName,
-      persona: characterPersona,
-      referralCode: authorization.member.referralCode,
-    });
-    const selectedAvatar =
-      avatarCandidates.candidates.find(
-        (candidate) => candidate.expression === "default",
-      ) ?? avatarCandidates.candidates[0];
+    let avatarImageSet: CreatorProfileResponse["profile"]["avatarImageSet"] = [];
+    let selectedAvatarUrl: string | null = null;
+    let characterWarning: string | null = null;
 
-    if (!selectedAvatar) {
-      return jsonError("Avatar generation returned no usable candidates.", 500);
+    try {
+      const avatarCandidates = await generateCreatorAvatarCandidates({
+        displayName,
+        persona: characterPersona,
+        referralCode: authorization.member.referralCode,
+      });
+      const selectedAvatar =
+        avatarCandidates.candidates.find(
+          (candidate) => candidate.expression === "default",
+        ) ?? avatarCandidates.candidates[0];
+
+      if (!selectedAvatar) {
+        throw new Error("Avatar generation returned no usable candidates.");
+      }
+
+      avatarImageSet = avatarCandidates.candidates;
+      selectedAvatarUrl = selectedAvatar.url;
+    } catch {
+      characterWarning =
+        locale === "ko"
+          ? "캐릭터 페르소나는 저장했지만 아바타 생성은 완료하지 못했습니다. 캐릭터 변경 화면에서 아바타만 다시 생성할 수 있습니다."
+          : "The character persona was saved, but avatar generation did not finish. You can regenerate only the avatar from the character change screen.";
     }
 
     const profile = await upsertCreatorCharacterForMember({
-      avatarImageSet: avatarCandidates.candidates,
-      avatarImageUrl: selectedAvatar.url,
+      avatarImageSet,
+      avatarImageUrl: selectedAvatarUrl,
       characterPersona,
       displayName,
       email: authorization.normalizedEmail,
@@ -199,6 +213,7 @@ export async function POST(request: Request) {
       automationAvailable: isMemberAllowedForContentAutomation(
         authorization.normalizedEmail,
       ),
+      ...(characterWarning ? { characterWarning } : {}),
       profile,
       profileConfigured: true,
     };

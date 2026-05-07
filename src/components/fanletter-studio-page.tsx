@@ -99,7 +99,7 @@ function getCopy(locale: Locale) {
           create: "오늘의 브이로그 만들기",
           feed: "브이로그 피드 보기",
           managePosts: "브이로그 전체 관리",
-          profile: "프로필 설정",
+          profile: "캐릭터 만들기",
           refresh: "다시 확인",
           sales: "판매 내역 보기",
         },
@@ -134,7 +134,7 @@ function getCopy(locale: Locale) {
         priceFree: "무료",
         pricePaid: "유료",
         profileIncomplete:
-          "표시 이름, 캐릭터 페르소나, 아바타를 준비하면 같은 AI 캐릭터 브이로그 크리에이터가 더 안정적으로 유지됩니다.",
+          "표시 이름과 분위기만 정해 캐릭터를 한 번 만들면 이후 브이로그에 자동 적용됩니다.",
         profileReady: "프로필이 준비되었습니다.",
         profileTitle: "캐릭터 프로필",
         published: "공개",
@@ -167,7 +167,7 @@ function getCopy(locale: Locale) {
         },
         steps: [
           {
-            body: "표시 이름과 캐릭터 페르소나를 정리해 같은 AI 브이로그 크리에이터가 유지되도록 준비합니다.",
+            body: "표시 이름과 분위기만 정하면 페르소나와 아바타를 자동으로 준비합니다.",
             title: "AI 캐릭터 준비",
           },
           {
@@ -191,7 +191,7 @@ function getCopy(locale: Locale) {
           create: "Create today's vlog",
           feed: "View vlog feed",
           managePosts: "Manage all vlogs",
-          profile: "Set up profile",
+          profile: "Create character",
           refresh: "Check again",
           sales: "View sales",
         },
@@ -226,7 +226,7 @@ function getCopy(locale: Locale) {
         priceFree: "Free",
         pricePaid: "Paid",
         profileIncomplete:
-          "Prepare display name, character persona, and avatar for a more consistent AI character vlogger.",
+          "Create a character once with a display name and mood, then it will be applied to future vlogs automatically.",
         profileReady: "Profile is ready.",
         profileTitle: "Character profile",
         published: "Published",
@@ -259,7 +259,7 @@ function getCopy(locale: Locale) {
         },
         steps: [
           {
-            body: "Prepare display name and character persona so the same AI vlogger stays consistent.",
+            body: "Choose a display name and mood to prepare persona and avatar automatically.",
             title: "AI character setup",
           },
           {

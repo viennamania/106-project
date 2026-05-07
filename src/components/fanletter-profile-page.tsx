@@ -74,6 +74,23 @@ type AvatarGenerationState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
+type CharacterQuickstartState = {
+  advancedOpen: boolean;
+  ageRange: "auto" | "20s" | "30s" | "40s" | "50s_plus";
+  appearanceTone:
+    | "auto"
+    | "african_diaspora"
+    | "east_asian"
+    | "latin"
+    | "middle_eastern_mediterranean"
+    | "south_asian"
+    | "western";
+  error: string | null;
+  gender: "auto" | "female" | "male";
+  status: "idle" | "loading" | "ready" | "error";
+  style: "chic" | "daily" | "fan_service" | "friendly";
+};
+
 const EMPTY_PROFILE: EditableFanletterProfile = {
   avatarImageSet: [],
   avatarImageUrl: "",
@@ -97,6 +114,15 @@ const EMPTY_AVATAR_GENERATION: AvatarGenerationState = {
   candidates: [],
   error: null,
   status: "idle",
+};
+const EMPTY_QUICK_CHARACTER: CharacterQuickstartState = {
+  advancedOpen: false,
+  ageRange: "auto",
+  appearanceTone: "auto",
+  error: null,
+  gender: "auto",
+  status: "idle",
+  style: "friendly",
 };
 const FANLETTER_PROFILE_DISCONNECTED_GRACE_MS = 4500;
 
@@ -142,12 +168,16 @@ function getCopy(locale: Locale) {
         errorFallback: "프로필을 처리하지 못했습니다.",
         eyebrow: "FanLetter Profile",
         gender: "성별",
+        genderAuto: "자동",
         genderFemale: "여성",
         genderMale: "남성",
         generatePersona: "AI가 페르소나 추천",
         generatingPersona: "페르소나 생성 중...",
         loading: "프로필을 불러오는 중입니다.",
         missingDisplayName: "표시 이름을 입력하세요.",
+        manualSetupBody:
+          "원하는 경우 성별, 연령, 페르소나 후보, 아바타 후보를 직접 고를 수 있습니다.",
+        manualSetupTitle: "직접 고급 설정",
         paymentRequired:
           "가입 완료 회원만 FanLetter 프로필을 설정할 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
@@ -157,12 +187,27 @@ function getCopy(locale: Locale) {
         personaRequired: "성별과 연령대를 먼저 선택하세요.",
         personaSave: "선택하고 저장",
         personaSaved: "적용됨",
+        quickAdvanced: "고급 설정",
+        quickAge: "연령대",
+        quickAgeAuto: "자동",
+        quickBody:
+          "표시 이름과 분위기만 정하면 캐릭터 페르소나, 아바타, 대표 이미지를 자동으로 저장합니다.",
+        quickButton: "캐릭터 만들기",
+        quickCreating: "캐릭터 생성 중...",
+        quickGender: "캐릭터 타입",
+        quickStyle: "분위기",
+        quickStyleChic: "시크한",
+        quickStyleDaily: "일상 브이로그",
+        quickStyleFanService: "팬서비스형",
+        quickStyleFriendly: "친근한",
+        quickSuccess: "캐릭터를 만들고 FanLetter 프로필에 저장했습니다.",
+        quickTitle: "빠른 캐릭터 만들기",
         refresh: "다시 불러오기",
         save: "프로필 저장",
         saving: "저장 중...",
         selectedPersona: "선택된 페르소나",
         setupBody:
-          "처음에는 필요한 것만 설정합니다. 표시 이름, 캐릭터 페르소나, AI 아바타를 순서대로 끝내면 첫 숏폼 브이로그 생성으로 바로 이어집니다.",
+          "표시 이름과 분위기만 정하면 캐릭터 설정을 자동으로 끝내고 첫 숏폼 브이로그 생성으로 바로 이어집니다.",
         studio: "브이로그 스튜디오",
         title: "AI 캐릭터 브이로그 프로필을 빠르게 준비하세요.",
       }
@@ -206,12 +251,16 @@ function getCopy(locale: Locale) {
         errorFallback: "Failed to process profile.",
         eyebrow: "FanLetter Profile",
         gender: "Gender",
+        genderAuto: "Auto",
         genderFemale: "Female",
         genderMale: "Male",
         generatePersona: "Suggest personas",
         generatingPersona: "Generating personas...",
         loading: "Loading profile.",
         missingDisplayName: "Enter a display name.",
+        manualSetupBody:
+          "Optionally choose gender, age range, persona candidates, and avatar candidates yourself.",
+        manualSetupTitle: "Manual advanced setup",
         paymentRequired:
           "Only completed members can set up a FanLetter profile.",
         paymentRequiredCta: "Verify signup",
@@ -221,12 +270,27 @@ function getCopy(locale: Locale) {
         personaRequired: "Select gender and age range first.",
         personaSave: "Select and save",
         personaSaved: "Applied",
+        quickAdvanced: "Advanced settings",
+        quickAge: "Age range",
+        quickAgeAuto: "Auto",
+        quickBody:
+          "Choose a display name and mood. Persona, avatar set, representative image, and profile save happen automatically.",
+        quickButton: "Create character",
+        quickCreating: "Creating character...",
+        quickGender: "Character type",
+        quickStyle: "Mood",
+        quickStyleChic: "Chic",
+        quickStyleDaily: "Daily vlog",
+        quickStyleFanService: "Fan service",
+        quickStyleFriendly: "Friendly",
+        quickSuccess: "Character created and saved to your FanLetter profile.",
+        quickTitle: "Quick character setup",
         refresh: "Reload",
         save: "Save profile",
         saving: "Saving...",
         selectedPersona: "Selected persona",
         setupBody:
-          "Keep setup light at first: display name, character persona, and AI avatar. Then continue to first short-form vlog creation.",
+          "Choose a display name and mood to finish character setup automatically, then continue to the first short-form vlog.",
         studio: "Vlog studio",
         title: "Prepare your AI character vlogger profile quickly.",
       };
@@ -359,6 +423,8 @@ export function FanletterProfilePage({
     useState<PersonaGenerationState>(EMPTY_PERSONA_GENERATION);
   const [avatarGeneration, setAvatarGeneration] =
     useState<AvatarGenerationState>(EMPTY_AVATAR_GENERATION);
+  const [quickCharacter, setQuickCharacter] =
+    useState<CharacterQuickstartState>(EMPTY_QUICK_CHARACTER);
   const loadInFlightRef = useRef(false);
   const selectedPersona = profile.characterPersona;
   const setupProgress = useMemo(
@@ -551,6 +617,90 @@ export function FanletterProfilePage({
     }
   }
 
+  async function createQuickCharacter() {
+    if (!profile.displayName.trim()) {
+      setQuickCharacter((current) => ({
+        ...current,
+        error: copy.missingDisplayName,
+        status: "error",
+      }));
+      setError(copy.missingDisplayName);
+      return;
+    }
+
+    if (!accountAddress) {
+      setError(copy.connectRequired);
+      return;
+    }
+
+    try {
+      setQuickCharacter((current) => ({
+        ...current,
+        error: null,
+        status: "loading",
+      }));
+      setError(null);
+      setNotice(null);
+      const resolvedEmail = await resolveEmail();
+      const response = await fetch("/api/content/profile/character/quickstart", {
+        body: JSON.stringify({
+          ageRange:
+            quickCharacter.ageRange === "auto" ? null : quickCharacter.ageRange,
+          appearanceTone:
+            quickCharacter.appearanceTone === "auto"
+              ? null
+              : quickCharacter.appearanceTone,
+          displayName: profile.displayName.trim(),
+          email: resolvedEmail,
+          gender:
+            quickCharacter.gender === "auto" ? null : quickCharacter.gender,
+          intro: profile.intro,
+          locale,
+          style: quickCharacter.style,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = await readApiJson<CreatorProfileResponse>(
+        response,
+        copy.errorFallback,
+      );
+
+      if (!response.ok || !("profile" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : copy.errorFallback,
+        );
+      }
+
+      setProfile(createEditableProfile(data.profile));
+      setProfileConfigured(data.profileConfigured);
+      setPersonaGeneration(EMPTY_PERSONA_GENERATION);
+      setAvatarGeneration({
+        candidates: data.profile.avatarImageSet,
+        error: null,
+        status: data.profile.avatarImageSet.length > 0 ? "ready" : "idle",
+      });
+      setQuickCharacter((current) => ({
+        ...current,
+        error: null,
+        status: "ready",
+      }));
+      setNotice(data.characterWarning ?? copy.quickSuccess);
+    } catch (quickError) {
+      const message = getErrorMessage(quickError, copy.errorFallback);
+
+      setQuickCharacter((current) => ({
+        ...current,
+        error: message,
+        status: "error",
+      }));
+      setError(message);
+    }
+  }
+
   async function generatePersonas() {
     if (!personaGeneration.gender || !personaGeneration.ageRange) {
       setPersonaGeneration((current) => ({
@@ -725,6 +875,269 @@ export function FanletterProfilePage({
     await saveProfile(nextProfile);
   }
 
+  function renderQuickCharacterPanel() {
+    const isCreatingCharacter = quickCharacter.status === "loading";
+    const styleOptions = [
+      ["friendly", copy.quickStyleFriendly],
+      ["chic", copy.quickStyleChic],
+      ["daily", copy.quickStyleDaily],
+      ["fan_service", copy.quickStyleFanService],
+    ] as const;
+    const genderOptions = [
+      ["auto", copy.genderAuto],
+      ["female", copy.genderFemale],
+      ["male", copy.genderMale],
+    ] as const;
+    const ageOptions = [
+      ["auto", copy.quickAgeAuto],
+      ...copy.ageOptions,
+    ] as const;
+
+    return (
+      <section className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 sm:p-5">
+        <div className="flex items-start gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#44f26e] text-black">
+            <Sparkles className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.quickTitle}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-white">
+              {copy.title}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+              {copy.quickBody}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+              {copy.displayName}
+            </p>
+            <input
+              className="mt-2 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+              disabled={isCreatingCharacter}
+              onChange={(event) => {
+                setProfile((current) => ({
+                  ...current,
+                  displayName: event.target.value,
+                }));
+                setQuickCharacter((current) => ({
+                  ...current,
+                  error: null,
+                  status: "idle",
+                }));
+              }}
+              placeholder={copy.displayNamePlaceholder}
+              value={profile.displayName}
+            />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+              {copy.quickStyle}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {styleOptions.map(([value, label]) => {
+                const selected = quickCharacter.style === value;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`min-h-11 rounded-full border px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                      selected
+                        ? "border-[#44f26e] bg-[#44f26e] text-black"
+                        : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.08]"
+                    }`}
+                    disabled={isCreatingCharacter}
+                    key={value}
+                    onClick={() => {
+                      setQuickCharacter((current) => ({
+                        ...current,
+                        error: null,
+                        status: "idle",
+                        style: value,
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-lg border border-white/12 bg-black/18 p-3">
+          <button
+            className="flex h-10 w-full items-center justify-between gap-3 rounded-full px-1 text-sm font-semibold text-white"
+            disabled={isCreatingCharacter}
+            onClick={() => {
+              setQuickCharacter((current) => ({
+                ...current,
+                advancedOpen: !current.advancedOpen,
+              }));
+            }}
+            type="button"
+          >
+            <span>{copy.quickAdvanced}</span>
+            <ArrowRight
+              className={`size-4 transition ${
+                quickCharacter.advancedOpen ? "rotate-90" : ""
+              }`}
+            />
+          </button>
+          {quickCharacter.advancedOpen ? (
+            <div className="mt-3 space-y-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  {copy.quickGender}
+                </p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {genderOptions.map(([value, label]) => {
+                    const selected = quickCharacter.gender === value;
+
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`h-10 rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          selected
+                            ? "border-[#44f26e] bg-[#44f26e] text-black"
+                            : "border-white/12 bg-white/[0.055] text-white"
+                        }`}
+                        disabled={isCreatingCharacter}
+                        key={value}
+                        onClick={() => {
+                          setQuickCharacter((current) => ({
+                            ...current,
+                            error: null,
+                            gender: value,
+                            status: "idle",
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  {copy.quickAge}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  {ageOptions.map(([value, label]) => {
+                    const selected = quickCharacter.ageRange === value;
+
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`h-10 rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          selected
+                            ? "border-[#44f26e] bg-[#44f26e] text-black"
+                            : "border-white/12 bg-white/[0.055] text-white"
+                        }`}
+                        disabled={isCreatingCharacter}
+                        key={value}
+                        onClick={() => {
+                          setQuickCharacter((current) => ({
+                            ...current,
+                            ageRange: value,
+                            error: null,
+                            status: "idle",
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  {copy.appearance}
+                </p>
+                <div className="mt-2 flex snap-x gap-2 overflow-x-auto pb-1">
+                  {copy.appearanceOptions.map(([value, label]) => {
+                    const selected = quickCharacter.appearanceTone === value;
+
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          selected
+                            ? "border-[#44f26e] bg-[#44f26e] text-black"
+                            : "border-white/12 bg-white/[0.055] text-white"
+                        }`}
+                        disabled={isCreatingCharacter}
+                        key={value}
+                        onClick={() => {
+                          setQuickCharacter((current) => ({
+                            ...current,
+                            appearanceTone: value,
+                            error: null,
+                            status: "idle",
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {quickCharacter.status === "loading" ? (
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[copy.persona, copy.avatar, copy.save].map((label) => (
+              <div
+                className="rounded-lg border border-white/12 bg-black/18 p-3 text-sm font-semibold text-white/62"
+                key={label}
+              >
+                <Loader2 className="mb-2 size-4 animate-spin text-[#44f26e]" />
+                {label}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {quickCharacter.error ? (
+          <p className="mt-3 rounded-lg border border-red-300/20 bg-red-500/12 p-3 text-sm leading-6 text-red-100">
+            {quickCharacter.error}
+          </p>
+        ) : null}
+
+        <button
+          aria-busy={isCreatingCharacter}
+          className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          disabled={isCreatingCharacter || isSaving || !accountAddress}
+          onClick={() => {
+            void createQuickCharacter();
+          }}
+          type="button"
+        >
+          {isCreatingCharacter ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Sparkles className="size-4" />
+          )}
+          {isCreatingCharacter ? copy.quickCreating : copy.quickButton}
+        </button>
+      </section>
+    );
+  }
+
   if (connection.isResolving) {
     return (
       <StatusPanel
@@ -824,7 +1237,9 @@ export function FanletterProfilePage({
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-                    {profileConfigured ? copy.completed : `${setupProgress}/3`}
+                    {profileConfigured && setupProgress >= 3
+                      ? copy.completed
+                      : `${setupProgress}/3`}
                   </p>
                   <h2 className="mt-2 truncate text-2xl font-semibold">
                     {profile.displayName || copy.displayNamePlaceholder}
@@ -884,7 +1299,16 @@ export function FanletterProfilePage({
             </div>
           ) : null}
 
-          <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
+	          {renderQuickCharacterPanel()}
+
+	          <details className="mt-4 rounded-lg border border-white/12 bg-white/[0.035] p-3 sm:p-4">
+	            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
+              <span>{copy.manualSetupTitle}</span>
+              <span className="hidden text-xs font-medium text-white/44 sm:block">
+	                {copy.manualSetupBody}
+	              </span>
+	            </summary>
+	            <div className="mt-4 grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
             <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
@@ -919,7 +1343,7 @@ export function FanletterProfilePage({
                 )}
                 {isSaving ? copy.saving : copy.save}
               </button>
-            </section>
+	            </section>
 
             <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
               <div className="flex items-start justify-between gap-4">
@@ -1111,7 +1535,7 @@ export function FanletterProfilePage({
                   })}
                 </div>
               ) : null}
-            </section>
+	          </section>
           </div>
 
           <section className="mt-4 rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
@@ -1191,7 +1615,8 @@ export function FanletterProfilePage({
                 )}
               </div>
             </div>
-          </section>
+	          </section>
+	          </details>
 
           <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-white/10 bg-[#030504]/92 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
             <div className="grid gap-2 sm:flex sm:flex-wrap">

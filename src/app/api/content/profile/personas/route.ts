@@ -40,13 +40,17 @@ function jsonError(message: string, status: number) {
 }
 
 function parsePersonaAgeRange(value: string | null | undefined) {
-  return creatorPersonaAgeRanges.includes(value as CreatorPersonaAgeRange)
+  return creatorPersonaAgeRanges.includes(
+    value as (typeof creatorPersonaAgeRanges)[number],
+  )
     ? (value as CreatorPersonaAgeRange)
     : null;
 }
 
 function parsePersonaGender(value: string | null | undefined) {
-  return creatorPersonaGenders.includes(value as CreatorPersonaGender)
+  return creatorPersonaGenders.includes(
+    value as (typeof creatorPersonaGenders)[number],
+  )
     ? (value as CreatorPersonaGender)
     : null;
 }

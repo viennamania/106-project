@@ -178,7 +178,7 @@ type AvatarGenerationState = {
 
 type CharacterQuickstartState = {
   advancedOpen: boolean;
-  ageRange: "20s" | "30s" | "40s" | "50s_plus";
+  ageRange: "auto" | "20s" | "30s" | "40s" | "50s_plus";
   appearanceTone:
     | "auto"
     | "african_diaspora"
@@ -188,7 +188,7 @@ type CharacterQuickstartState = {
     | "south_asian"
     | "western";
   error: string | null;
-  gender: "female" | "male";
+  gender: "auto" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
   style: "chic" | "daily" | "fan_service" | "friendly";
 };
@@ -783,10 +783,10 @@ export function CreatorContentStudioPage({
     });
   const [quickCharacter, setQuickCharacter] = useState<CharacterQuickstartState>({
     advancedOpen: false,
-    ageRange: "20s",
+    ageRange: "auto",
     appearanceTone: "auto",
     error: null,
-    gender: "female",
+    gender: "auto",
     status: "idle",
     style: "friendly",
   });
@@ -2269,14 +2269,16 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile/character/quickstart", {
         body: JSON.stringify({
-          ageRange: quickCharacter.ageRange,
+          ageRange:
+            quickCharacter.ageRange === "auto" ? null : quickCharacter.ageRange,
           appearanceTone:
             quickCharacter.appearanceTone === "auto"
               ? null
               : quickCharacter.appearanceTone,
           displayName: state.profile.displayName,
           email,
-          gender: quickCharacter.gender,
+          gender:
+            quickCharacter.gender === "auto" ? null : quickCharacter.gender,
           intro: state.profile.intro,
           locale,
           style: quickCharacter.style,
@@ -2321,9 +2323,10 @@ export function CreatorContentStudioPage({
         ...current,
         error: null,
         notice:
-          locale === "ko"
+          data.characterWarning ??
+          (locale === "ko"
             ? "캐릭터를 만들고 프로필에 저장했습니다."
-            : "Character created and saved to your profile.",
+            : "Character created and saved to your profile."),
         profile: createEditableCreatorProfile(data.profile),
         profileConfigured: data.profileConfigured,
       }));
@@ -4145,6 +4148,7 @@ export function CreatorContentStudioPage({
       locale === "ko"
         ? {
             advanced: "고급 설정",
+            ageAuto: "자동",
             age20s: "20대",
             age30s: "30대",
             age40s: "40대",
@@ -4163,6 +4167,7 @@ export function CreatorContentStudioPage({
             button: "캐릭터 만들기",
             creating: "캐릭터 생성 중...",
             displayNameLabel: "표시 이름",
+            genderAuto: "자동",
             genderFemale: "여성",
             genderLabel: "캐릭터 타입",
             genderMale: "남성",
@@ -4175,6 +4180,7 @@ export function CreatorContentStudioPage({
           }
         : {
             advanced: "Advanced settings",
+            ageAuto: "Auto",
             age20s: "20s",
             age30s: "30s",
             age40s: "40s",
@@ -4193,6 +4199,7 @@ export function CreatorContentStudioPage({
             button: "Create character",
             creating: "Creating character...",
             displayNameLabel: "Display name",
+            genderAuto: "Auto",
             genderFemale: "Female",
             genderLabel: "Character type",
             genderMale: "Male",
@@ -4204,10 +4211,12 @@ export function CreatorContentStudioPage({
             title: "Quick Character Setup",
           };
     const genderOptions = [
+      { label: quickCopy.genderAuto, value: "auto" as const },
       { label: quickCopy.genderFemale, value: "female" as const },
       { label: quickCopy.genderMale, value: "male" as const },
     ];
     const ageRangeOptions = [
+      { label: quickCopy.ageAuto, value: "auto" as const },
       { label: quickCopy.age20s, value: "20s" as const },
       { label: quickCopy.age30s, value: "30s" as const },
       { label: quickCopy.age40s, value: "40s" as const },
@@ -4331,7 +4340,7 @@ export function CreatorContentStudioPage({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                     {quickCopy.genderLabel}
                   </p>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-2 grid grid-cols-3 gap-2">
                     {genderOptions.map((option) => {
                       const selected = quickCharacter.gender === option.value;
 
