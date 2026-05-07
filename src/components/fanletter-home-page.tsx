@@ -124,28 +124,28 @@ type FanletterCopy = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "AI 캐릭터 브이로그 스튜디오 공개",
-    prize: "캐릭터 설정부터 숏폼 브이로그까지",
+    label: "원클릭 AI 캐릭터 브이로그 시작",
+    prize: "계정 연결부터 첫 브이로그까지",
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
-    creator: "AI 캐릭터 채널 시작",
+    creator: "캐릭터 만들기",
     fan: "브이로그 피드 보기",
     login: "계정 연결",
     studio: "브이로그 스튜디오",
   },
   creatorWall: {
     count: "201,548",
-    label: "AI 캐릭터 브이로그 채널을 시작한 네트워크",
+    label: "AI 캐릭터 채널 활동 지표",
   },
   economy: {
-    body: "캐릭터 페르소나, 숏폼 브이로그 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
-    cta: "지금 시작하기",
+    body: "캐릭터 만들기, 숏폼 브이로그 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
+    cta: "캐릭터 만들기",
     title: "AI 캐릭터 브이로그 채널을 더 빠르게 시작하세요.",
   },
   faq: [
     {
-      answer: "FanLetter는 얼굴 공개 없이 고정 페르소나를 가진 AI 캐릭터로 숏폼 브이로그 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
+      answer: "FanLetter는 얼굴 공개 없이 같은 AI 캐릭터와 대표 아바타로 숏폼 브이로그 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
       question: "FanLetter는 무엇인가요?",
     },
     {
@@ -157,21 +157,21 @@ const koCopy: FanletterCopy = {
       question: "브이로그는 어떻게 수익화하나요?",
     },
     {
-      answer: "모바일에서 캐릭터 설정, 오늘의 브이로그 생성, 피드 확인, 지갑 연결까지 이어지도록 설계되어 있습니다.",
+      answer: "모바일에서 계정 연결, 캐릭터 만들기, 오늘의 브이로그 생성, 피드 확인까지 이어지도록 설계되어 있습니다.",
       question: "모바일에서도 충분히 사용할 수 있나요?",
     },
   ],
   faqTitle: "FAQ",
   features: {
-    eyebrow: "Features",
+    eyebrow: "기능",
     items: [
       {
-        badge: "New",
+        badge: "새 기능",
         description: "얼굴 공개 없이 운영할 고정 AI 캐릭터와 아바타를 먼저 만듭니다.",
-        title: "AI 캐릭터 설정",
+        title: "AI 캐릭터 만들기",
       },
       {
-        badge: "New",
+        badge: "새 기능",
         description: "셀피, 외출, 루틴, 대화형 장면을 세로형 숏폼 브이로그로 생성합니다.",
         title: "숏폼 브이로그 생성",
       },
@@ -221,9 +221,9 @@ const koCopy: FanletterCopy = {
   },
   niche: {
     body: "개인, AI 인플루언서, 브랜드 마스코트, 웹툰·게임·버추얼 아이돌 IP까지 하나의 캐릭터 채널로 숏폼화합니다.",
-    cta: "브이로그 스튜디오 열기",
+    cta: "캐릭터 만들기",
     title: "캐릭터가 있으면 채널을 만들 수 있습니다.",
-    categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
+    categories: ["얼굴 비공개", "AI 인플루언서", "팬 커뮤니티", "브랜드 마스코트", "IP 숏폼"],
   },
   platformTrust: {
     body: "릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, FanLetter 링크를 정리합니다.",
@@ -232,13 +232,13 @@ const koCopy: FanletterCopy = {
   proof: {
     title: "캐릭터 설정부터 숏폼 브이로그 판매까지",
     stats: [
-      { label: "character setup", value: "01" },
+      { label: "캐릭터 준비", value: "01" },
       { label: "브이로그 흐름", value: "05" },
-      { label: "mobile channel", value: "24/7" },
+      { label: "모바일 채널", value: "24/7" },
     ],
   },
   targetAudience: {
-    eyebrow: "Who it is for",
+    eyebrow: "추천 대상",
     title: "얼굴 공개 없이 캐릭터 채널을 키우고 싶은 사람들을 위한 플랫폼입니다.",
     items: [
       {
@@ -468,10 +468,6 @@ export function FanletterHomePage({
   referralCode: string | null;
 }) {
   const copy = getFanletterCopy(locale);
-  const creatorHref = buildPathWithReferral(
-    `/${locale}/fanletter/start`,
-    referralCode,
-  );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const studioHref = buildPathWithReferral(
@@ -482,6 +478,7 @@ export function FanletterHomePage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
+  const creatorHref = onboardingHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: onboardingHref },
@@ -594,6 +591,48 @@ export function FanletterHomePage({
           usdtReady: "USDT ready",
         };
   const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
+  const heroSetupSteps =
+    locale === "ko"
+      ? [
+          {
+            body: "회원 세션과 지갑 연결 상태를 확인합니다.",
+            Icon: WalletCards,
+            label: "01",
+            title: "계정 연결",
+          },
+          {
+            body: "표시 이름과 분위기만 정하면 대표 아바타까지 준비합니다.",
+            Icon: Bot,
+            label: "02",
+            title: "캐릭터 만들기",
+          },
+          {
+            body: "오늘의 장면을 세로형 숏폼 브이로그로 생성합니다.",
+            Icon: Clapperboard,
+            label: "03",
+            title: "첫 브이로그",
+          },
+        ]
+      : [
+          {
+            body: "Confirm the member session and wallet connection.",
+            Icon: WalletCards,
+            label: "01",
+            title: "Connect account",
+          },
+          {
+            body: "Pick a display name and mood to prepare the avatar.",
+            Icon: Bot,
+            label: "02",
+            title: "Create character",
+          },
+          {
+            body: "Generate today's vertical short-form vlog scene.",
+            Icon: Clapperboard,
+            label: "03",
+            title: "First vlog",
+          },
+        ];
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -610,7 +649,7 @@ export function FanletterHomePage({
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
-          <div className="fixed left-4 right-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-50 flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:static sm:left-auto sm:right-auto sm:top-auto sm:z-auto sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
+          <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
               <span className="truncate">{copy.announcement.label}</span>
@@ -621,7 +660,7 @@ export function FanletterHomePage({
             </Link>
           </div>
 
-          <header className="mt-16 flex items-center justify-between gap-4 sm:mt-4">
+          <header className="mt-4 flex items-center justify-between gap-4">
             <Link className="flex items-center gap-2" href={homeHref}>
               <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
@@ -710,7 +749,53 @@ export function FanletterHomePage({
             </ScrollReveal>
 
             <div className="hidden lg:flex min-w-0 flex-col gap-3">
-              <FanletterDesktopHeroCardCarousel slides={heroSlides} />
+              {heroSlides.length > 0 ? (
+                <FanletterDesktopHeroCardCarousel slides={heroSlides} />
+              ) : (
+                <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-white/14 bg-[radial-gradient(circle_at_50%_8%,rgba(68,242,110,0.16),transparent_34%),linear-gradient(180deg,#07160d_0%,#030504_100%)] p-5 shadow-[0_34px_90px_rgba(0,0,0,0.42)]">
+                  <div className="flex h-full flex-col justify-between">
+                    <div>
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+                        {locale === "ko" ? "빠른 시작" : "Quick start"}
+                      </p>
+                      <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all]">
+                        {locale === "ko"
+                          ? "3단계로 캐릭터 채널을 준비합니다."
+                          : "Prepare a character channel in 3 steps."}
+                      </h2>
+                    </div>
+                    <div className="space-y-3">
+                      {heroSetupSteps.map((step) => {
+                        const Icon = step.Icon;
+
+                        return (
+                          <div
+                            className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                            key={step.title}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                                <Icon className="size-5" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                                  {step.label}
+                                </span>
+                                <span className="mt-1 block text-sm font-semibold text-white">
+                                  {step.title}
+                                </span>
+                                <span className="mt-1 block text-xs font-medium leading-5 text-white/52">
+                                  {step.body}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-2">
                 {heroStats.map((stat, index) => (
@@ -1102,7 +1187,7 @@ export function FanletterHomePage({
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <ScrollReveal>
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
-              AI character network
+              {locale === "ko" ? "AI 캐릭터 채널 지표" : "AI character network"}
             </p>
             <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]">
               {copy.economy.title}
