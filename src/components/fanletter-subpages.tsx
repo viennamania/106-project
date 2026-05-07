@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
@@ -479,15 +480,10 @@ function MediaCard({
 }) {
   if (videoUrl) {
     return (
-      <video
-        autoPlay
+      <FanletterAutoplayVideo
         className="h-full w-full object-cover"
         controls={controls}
-        loop
-        muted
-        playsInline
         poster={imageUrl ?? undefined}
-        preload="metadata"
         src={videoUrl}
         title={title}
       />
@@ -536,13 +532,10 @@ function ContentCard({
       <Link className="block" href={href}>
         <div className="relative aspect-[9/14] overflow-hidden bg-[#07100b]">
           {item.primaryVideoUrl && showVideoPreview ? (
-            <video
-              aria-hidden="true"
+            <FanletterAutoplayVideo
+              ariaHidden
               className="absolute inset-0 h-full w-full object-cover"
-              muted
-              playsInline
               poster={item.coverImageUrl ?? undefined}
-              preload="metadata"
               src={item.primaryVideoUrl}
             />
           ) : item.coverImageUrl ? (
@@ -681,15 +674,10 @@ function FeaturedFeedCard({
       <Link className="group block" href={href}>
         <div className="relative min-h-[28rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
           {item.primaryVideoUrl ? (
-            <video
-              aria-hidden="true"
-              autoPlay
+            <FanletterAutoplayVideo
+              ariaHidden
               className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-              loop
-              muted
-              playsInline
               poster={item.coverImageUrl ?? undefined}
-              preload="metadata"
               src={item.primaryVideoUrl}
             />
           ) : item.coverImageUrl ? (
