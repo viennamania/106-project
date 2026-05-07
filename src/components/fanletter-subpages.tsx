@@ -36,7 +36,7 @@ import {
 
 type FanletterSubpageCopy = {
   actions: {
-    continue: string;
+    creatorChannel: string;
     creatorStudio: string;
     existingDetail: string;
     feed: string;
@@ -102,9 +102,9 @@ type FanletterSubpageCopy = {
 
 const koCopy: FanletterSubpageCopy = {
   actions: {
-    continue: "계속 진행",
+    creatorChannel: "캐릭터 채널 보기",
     creatorStudio: "브이로그 스튜디오",
-    existingDetail: "지갑 연결 상세로 이동",
+    existingDetail: "FanLetter에서 권한 확인",
     feed: "브이로그 피드",
     home: "홈",
     openContent: "브이로그 보기",
@@ -112,9 +112,9 @@ const koCopy: FanletterSubpageCopy = {
   },
   content: {
     body: "브이로그 본문",
-    lockedBody: "전체 브이로그는 기존 상세 화면에서 권한 확인 후 열람할 수 있습니다.",
+    lockedBody: "FanLetter 온보딩을 완료한 뒤 같은 브이로그 상세로 돌아와 이어서 볼 수 있습니다.",
     lockedDescription:
-      "결제, 지갑 연결, 회원 권한 확인은 기존 상세 API와 화면을 그대로 사용합니다.",
+      "캐릭터 채널, 댓글, 권한 확인 흐름을 FanLetter 안에서 이어가도록 준비합니다.",
     lockedTitle: "권한 확인이 필요한 브이로그입니다.",
     media: "브이로그 미디어",
     paid: "유료",
@@ -180,9 +180,9 @@ const koCopy: FanletterSubpageCopy = {
 
 const enCopy: FanletterSubpageCopy = {
   actions: {
-    continue: "Continue",
+    creatorChannel: "View character channel",
     creatorStudio: "Vlog Studio",
-    existingDetail: "Open wallet detail",
+    existingDetail: "Verify in FanLetter",
     feed: "Vlog Feed",
     home: "Home",
     openContent: "View vlog",
@@ -190,9 +190,9 @@ const enCopy: FanletterSubpageCopy = {
   },
   content: {
     body: "Vlog body",
-    lockedBody: "Open the existing detail view to verify access and view the full vlog.",
+    lockedBody: "Complete FanLetter onboarding, then return to this vlog detail to continue.",
     lockedDescription:
-      "Payments, wallet connection, and access checks keep using the existing content detail APIs and flow.",
+      "Character channels, comments, and access checks should stay inside the FanLetter flow.",
     lockedTitle: "This vlog requires access verification.",
     media: "Vlog media",
     paid: "Paid",
@@ -1313,16 +1313,30 @@ export function FanletterContentDetailPage({
     `/${locale}/fanletter/feed`,
     effectiveReferralCode,
   );
+  const homeHref = buildPathWithReferral(
+    `/${locale}/fanletter`,
+    effectiveReferralCode,
+  );
+  const startHref = buildPathWithReferral(
+    `/${locale}/fanletter/start`,
+    effectiveReferralCode,
+  );
   const currentHref = buildPathWithReferral(
     `/${locale}/fanletter/content/${content.contentId}`,
     effectiveReferralCode,
   );
-  const existingDetailHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/content/${content.contentId}`, effectiveReferralCode),
+  const onboardingHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
     {
       returnTo: returnToHref ?? currentHref,
     },
   );
+  const creatorHref = content.authorReferralCode
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/creator/${content.authorReferralCode}`,
+        effectiveReferralCode,
+      )
+    : fallbackBackHref;
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
@@ -1330,6 +1344,14 @@ export function FanletterContentDetailPage({
     content.priceType === "paid"
       ? `${copy.content.paid} · ${content.priceUsdt ?? "1"} USDT`
       : copy.content.public;
+  const detailActionHref = content.canPubliclyAccess ? startHref : onboardingHref;
+  const detailActionLabel = content.canPubliclyAccess
+    ? copy.actions.start
+    : copy.actions.existingDetail;
+  const creatorActionHref = content.canPubliclyAccess ? creatorHref : onboardingHref;
+  const creatorActionLabel = content.canPubliclyAccess
+    ? copy.actions.creatorChannel
+    : copy.actions.existingDetail;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -1344,7 +1366,7 @@ export function FanletterContentDetailPage({
             </Link>
             <Link
               className="flex min-w-0 items-center gap-2"
-              href={buildPathWithReferral(`/${locale}/fanletter`, effectiveReferralCode)}
+              href={homeHref}
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
@@ -1354,10 +1376,10 @@ export function FanletterContentDetailPage({
               </span>
             </Link>
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold"
-              href={existingDetailHref}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-[#44f26e]/50 bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={detailActionHref}
             >
-              {copy.actions.continue}
+              {detailActionLabel}
             </Link>
           </header>
 
@@ -1401,17 +1423,10 @@ export function FanletterContentDetailPage({
                 {content.summary}
               </p>
 
-              <div className="mt-7 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4">
+              <div className="mt-7 flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
                 <Link
                   className="flex min-w-0 items-center gap-3"
-                  href={
-                    content.authorReferralCode
-                      ? buildPathWithReferral(
-                          `/${locale}/fanletter/creator/${content.authorReferralCode}`,
-                          effectiveReferralCode,
-                        )
-                      : fallbackBackHref
-                  }
+                  href={creatorHref}
                 >
                   <Avatar
                     imageUrl={content.authorAvatarImageUrl}
@@ -1428,10 +1443,10 @@ export function FanletterContentDetailPage({
                   </div>
                 </Link>
                 <Link
-                  className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-black"
-                  href={existingDetailHref}
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-black"
+                  href={creatorActionHref}
                 >
-                  {copy.actions.existingDetail}
+                  {creatorActionLabel}
                   <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -1450,6 +1465,12 @@ export function FanletterContentDetailPage({
                       <p className="mt-4 text-sm font-medium leading-6 text-white/78">
                         {copy.content.lockedBody}
                       </p>
+                      <Link
+                        className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                        href={onboardingHref}
+                      >
+                        {copy.actions.existingDetail}
+                      </Link>
                     </div>
                   </div>
                 </section>
