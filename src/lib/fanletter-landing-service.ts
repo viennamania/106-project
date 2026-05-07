@@ -22,22 +22,6 @@ const FEATURED_VIDEO_LIMIT = 6;
 const FEATURED_VIDEO_CANDIDATE_LIMIT = 48;
 const RECENCY_DECAY_DAYS = 21;
 const TEXT_LIMIT = 170;
-const LANDING_STORY_SIGNAL_MIN = 24;
-const LANDING_UNSAFE_PATTERNS = [
-  /19금/i,
-  /\bpov\b/i,
-  /camera\s+(angle|shot)/i,
-  /first[-\s]?person/i,
-  /nude/i,
-  /porn/i,
-  /primeira pessoa/i,
-  /prompt/i,
-  /sex/i,
-  /성인/i,
-  /섹드립/i,
-  /섹스/i,
-  /야동/i,
-] as const;
 
 export type FanletterFeaturedVideo = {
   authorAvatarImageUrl: string | null;
@@ -95,67 +79,6 @@ function compactText(value: string | null | undefined, limit = TEXT_LIMIT) {
   }
 
   return `${text.slice(0, limit - 1).trimEnd()}...`;
-}
-
-function getLandingTextSignal(value: string | null | undefined) {
-  return (value?.match(/[0-9A-Za-z가-힣]/gu) ?? []).length;
-}
-
-function hasUnsafeLandingText(value: string | null | undefined) {
-  const text = (value ?? "").toLowerCase();
-
-  return LANDING_UNSAFE_PATTERNS.some((pattern) => pattern.test(text));
-}
-
-function looksLikePlaceholderText(value: string | null | undefined) {
-  const text = (value ?? "").replace(/\s+/g, "").trim();
-
-  if (!text) {
-    return true;
-  }
-
-  return (
-    /^(.{1,4})\1+$/u.test(text) ||
-    /([\p{L}\p{N}])\1{3,}/u.test(text) ||
-    getLandingTextSignal(text) < 4
-  );
-}
-
-function hasLandingStoryText(post: ContentPostDocument) {
-  return (
-    getLandingTextSignal(post.summary || post.previewText || post.body) >=
-    LANDING_STORY_SIGNAL_MIN
-  );
-}
-
-function isLandingSafePost(post: ContentPostDocument) {
-  const combinedText = [
-    post.title,
-    post.summary,
-    post.previewText,
-    post.body,
-    post.tags.join(" "),
-  ].join(" ");
-
-  if (hasUnsafeLandingText(combinedText)) {
-    return false;
-  }
-
-  if (looksLikePlaceholderText(post.title) || !hasLandingStoryText(post)) {
-    return false;
-  }
-
-  return Boolean(getVideoUrl(post));
-}
-
-function isLandingSafeAuthorName(authorName: string) {
-  const compactName = authorName.replace(/\s+/g, "").trim();
-
-  return (
-    !hasUnsafeLandingText(compactName) &&
-    getLandingTextSignal(compactName) >= 2 &&
-    !/([\p{L}\p{N}])\1{3,}/u.test(compactName)
-  );
 }
 
 function getVideoUrl(post: ContentPostDocument) {
@@ -457,9 +380,7 @@ async function getFeaturedVideoPosts({
       .limit(FEATURED_VIDEO_CANDIDATE_LIMIT)
       .toArray(),
   ]);
-  const candidates = mergeUniquePosts([...scopedPosts, ...globalPosts]).filter(
-    isLandingSafePost,
-  );
+  const candidates = mergeUniquePosts([...scopedPosts, ...globalPosts]);
   const signalsByContentId = await getCandidateSignals(candidates);
 
   return pickWeightedFeaturedPosts({
@@ -546,14 +467,9 @@ export const getFanletterLandingData = cache(
       getFeaturedVideoPosts({ locale, referralCode }),
     ]);
     const profileByEmail = await getProfileByEmail(featuredPosts);
-    const landingFeaturedPosts = featuredPosts.filter((post) => {
-      const profile = profileByEmail.get(post.authorEmail);
-
-      return isLandingSafeAuthorName(getAuthorName(post, profile));
-    });
 
     return {
-      featuredVideos: landingFeaturedPosts.flatMap((post) => {
+      featuredVideos: featuredPosts.flatMap((post) => {
         const videoUrl = getVideoUrl(post);
 
         if (!videoUrl) {
