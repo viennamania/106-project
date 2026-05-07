@@ -1784,9 +1784,11 @@ export function FanletterStartPage({
     locale === "ko"
       ? {
           flowEyebrow: "Quick setup",
-          flowTitle: "3단계만 끝내면 AI 캐릭터 브이로그 채널을 바로 시작할 수 있습니다.",
+          flowBody:
+            "가입, 캐릭터 만들기, 첫 브이로그 생성까지 순서대로 진행합니다.",
+          flowTitle: "3단계로 채널 시작",
           primary: "가입하고 채널 시작",
-	          secondary: "캐릭터 만들기",
+          secondary: "캐릭터 만들기",
           previewTitle: "오늘 할 일",
           previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
           nextLabel: "다음 단계",
@@ -1796,9 +1798,11 @@ export function FanletterStartPage({
         }
       : {
           flowEyebrow: "Quick setup",
-          flowTitle: "Complete three steps to start an AI character vlogger channel.",
+          flowBody:
+            "Move through signup, character creation, and first vlog creation in order.",
+          flowTitle: "Start in 3 steps",
           primary: "Start channel with signup",
-	          secondary: "Create character",
+          secondary: "Create character",
           previewTitle: "Today’s path",
           previewBody: "New creators can follow the flow in order.",
           nextLabel: "Next step",
@@ -1881,23 +1885,23 @@ export function FanletterStartPage({
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
               {startLabels.flowEyebrow}
             </p>
-            <h2 className="mt-4 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[2.8rem]">
+            <h2 className="mt-3 text-[1.85rem] font-semibold leading-[1.12] tracking-normal [word-break:keep-all] sm:text-[2.15rem]">
               {startLabels.flowTitle}
             </h2>
-            <p className="mt-4 text-sm font-medium leading-6 text-white/62">
-              {copy.start.body}
+            <p className="mt-3 max-w-md text-sm font-medium leading-6 text-white/62">
+              {startLabels.flowBody}
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
-                <p className="text-2xl font-semibold leading-none">
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2.5">
+                <p className="text-xl font-semibold leading-none">
                   {copy.start.steps.length}
                 </p>
                 <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/48">
                   {startLabels.readyLabel}
                 </p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-[#44f26e] p-3 text-black">
-                <p className="text-2xl font-semibold leading-none">01</p>
+              <div className="rounded-lg border border-[#44f26e] bg-[#44f26e] px-3 py-2.5 text-black">
+                <p className="text-xl font-semibold leading-none">01</p>
                 <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-black/58">
                   {startLabels.nextLabel}
                 </p>
