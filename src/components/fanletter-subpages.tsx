@@ -616,6 +616,7 @@ function ContentGrid({
   items,
   locale,
   referralCode,
+  showVideoPreview = false,
 }: {
   empty: string;
   emptyActionHref?: string;
@@ -623,6 +624,7 @@ function ContentGrid({
   items: FanletterPublicContentItem[];
   locale: Locale;
   referralCode: string | null;
+  showVideoPreview?: boolean;
 }) {
   if (items.length === 0) {
     return (
@@ -648,6 +650,7 @@ function ContentGrid({
           key={item.contentId}
           locale={locale}
           referralCode={referralCode}
+          showVideoPreview={showVideoPreview}
         />
       ))}
     </div>
@@ -1039,6 +1042,7 @@ export function FanletterFeedPage({
                     key={item.contentId}
                     locale={locale}
                     referralCode={referralCode}
+                    showVideoPreview
                   />
                 ))}
               </div>
@@ -1060,6 +1064,7 @@ export function FanletterFeedPage({
             items={items}
             locale={locale}
             referralCode={referralCode}
+            showVideoPreview
           />
         </div>
       </section>

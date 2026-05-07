@@ -32,7 +32,17 @@ export function FanletterAutoplayVideo({
     video.muted = true;
     video.playsInline = true;
 
+    const ensureSource = () => {
+      if (video.getAttribute("src") === src) {
+        return;
+      }
+
+      video.src = src;
+      video.load();
+    };
     const playVideo = () => {
+      ensureSource();
+
       const playPromise = video.play();
 
       if (playPromise) {
@@ -44,11 +54,18 @@ export function FanletterAutoplayVideo({
     const pauseVideo = () => {
       video.pause();
     };
+    const unloadSource = () => {
+      video.removeAttribute("src");
+      video.load();
+    };
 
     if (typeof IntersectionObserver === "undefined") {
-      playVideo();
-
-      return pauseVideo;
+      const animationFrame = window.requestAnimationFrame(playVideo);
+      return () => {
+        window.cancelAnimationFrame(animationFrame);
+        pauseVideo();
+        unloadSource();
+      };
     }
 
     const observer = new IntersectionObserver(
@@ -70,6 +87,7 @@ export function FanletterAutoplayVideo({
     return () => {
       observer.disconnect();
       pauseVideo();
+      unloadSource();
     };
   }, [src]);
 
@@ -84,9 +102,8 @@ export function FanletterAutoplayVideo({
       muted
       playsInline
       poster={poster}
-      preload="metadata"
+      preload="none"
       ref={videoRef}
-      src={src}
       title={ariaHidden ? undefined : title}
     />
   );
