@@ -157,7 +157,7 @@ function getCopy(locale: Locale) {
         avatarSelected: "대표 이미지",
         back: "온보딩으로 돌아가기",
         connectRequired:
-          "프로필을 설정하려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
+          "AI 캐릭터를 만들기 전에 계정 연결을 먼저 완료하세요. 연결 후 이 캐릭터 만들기 화면으로 돌아옵니다.",
         connectRequiredCta: "계정 연결하기",
         completed: "준비 완료",
         contentCta: "첫 브이로그 만들기",
@@ -181,6 +181,7 @@ function getCopy(locale: Locale) {
         paymentRequired:
           "가입 완료 회원만 FanLetter 프로필을 설정할 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
+        profileStep: "02 · 캐릭터 만들기",
         persona: "캐릭터 페르소나",
         personaBody:
           "같은 AI 브이로그 캐릭터가 유지되도록 얼굴, 헤어, 피부 톤, 신체 실루엣의 고정 정보를 선택합니다.",
@@ -201,6 +202,7 @@ function getCopy(locale: Locale) {
         quickStyleFanService: "팬서비스형",
         quickStyleFriendly: "친근한",
         quickSuccess: "캐릭터를 만들고 FanLetter 프로필에 저장했습니다.",
+        quickPanelTitle: "표시 이름과 분위기만 정하면 끝",
         quickTitle: "빠른 캐릭터 만들기",
         refresh: "다시 불러오기",
         save: "프로필 저장",
@@ -210,6 +212,7 @@ function getCopy(locale: Locale) {
           "표시 이름과 분위기만 정하면 캐릭터 설정을 자동으로 끝내고 첫 숏폼 브이로그 생성으로 바로 이어집니다.",
         studio: "브이로그 스튜디오",
         title: "AI 캐릭터 브이로그 프로필을 빠르게 준비하세요.",
+        nextContentCta: "다음 단계: 첫 브이로그 만들기",
       }
     : {
         age: "Age range",
@@ -240,7 +243,7 @@ function getCopy(locale: Locale) {
         avatarSelected: "Current avatar",
         back: "Back to onboarding",
         connectRequired:
-          "Connect your FanLetter account before setting up a profile.",
+          "Connect your account before creating the AI character. After connection, you will return to this character setup screen.",
         connectRequiredCta: "Connect account",
         completed: "Ready",
         contentCta: "Create first vlog",
@@ -264,6 +267,7 @@ function getCopy(locale: Locale) {
         paymentRequired:
           "Only completed members can set up a FanLetter profile.",
         paymentRequiredCta: "Verify signup",
+        profileStep: "02 · Create character",
         persona: "Character persona",
         personaBody:
           "Choose fixed face, hair, skin tone, and neutral body silhouette details to keep the same AI vlogger.",
@@ -284,6 +288,7 @@ function getCopy(locale: Locale) {
         quickStyleFanService: "Fan service",
         quickStyleFriendly: "Friendly",
         quickSuccess: "Character created and saved to your FanLetter profile.",
+        quickPanelTitle: "Name and mood are enough",
         quickTitle: "Quick character setup",
         refresh: "Reload",
         save: "Save profile",
@@ -293,6 +298,7 @@ function getCopy(locale: Locale) {
           "Choose a display name and mood to finish character setup automatically, then continue to the first short-form vlog.",
         studio: "Vlog studio",
         title: "Prepare your AI character vlogger profile quickly.",
+        nextContentCta: "Next: Create first vlog",
       };
 }
 
@@ -335,12 +341,18 @@ function getErrorMessage(error: unknown, fallback: string) {
 function StatusPanel({
   body,
   cta,
+  eyebrow,
   href,
+  secondaryCta,
+  secondaryHref,
   title,
 }: {
   body: string;
   cta: string;
+  eyebrow?: string;
   href: string;
+  secondaryCta?: string;
+  secondaryHref?: string;
   title: string;
 }) {
   return (
@@ -348,17 +360,32 @@ function StatusPanel({
       <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)]">
           <CircleAlert className="size-8 text-[#44f26e]" />
+          {eyebrow ? (
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {eyebrow}
+            </p>
+          ) : null}
           <h1 className="mt-5 text-3xl font-semibold leading-tight">{title}</h1>
           <p className="mt-3 text-sm font-medium leading-6 text-white/58">
             {body}
           </p>
-          <Link
-            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
-            href={href}
-          >
-            {cta}
-            <ArrowRight className="size-4" />
-          </Link>
+          <div className="mt-6 grid gap-2">
+            <Link
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+              href={href}
+            >
+              {cta}
+              <ArrowRight className="size-4" />
+            </Link>
+            {secondaryCta && secondaryHref ? (
+              <Link
+                className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
+                href={secondaryHref}
+              >
+                {secondaryCta}
+              </Link>
+            ) : null}
+          </div>
         </section>
       </div>
     </main>
@@ -391,13 +418,17 @@ export function FanletterProfilePage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
+  const currentProfileHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
+    { returnTo: returnToHref || onboardingHref },
+  );
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
+    { returnTo: currentProfileHref },
   );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
+    { returnTo: currentProfileHref },
   );
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
@@ -440,6 +471,11 @@ export function FanletterProfilePage({
     avatarGeneration.candidates.length > 0
       ? avatarGeneration.candidates
       : profile.avatarImageSet;
+  const cameFromOnboarding =
+    returnToHref.split("?")[0] === `/${locale}/fanletter/onboarding`;
+  const contentCtaLabel = cameFromOnboarding
+    ? copy.nextContentCta
+    : copy.contentCta;
 
   const resolveEmail = useCallback(async () => {
     const resolved =
@@ -624,7 +660,7 @@ export function FanletterProfilePage({
         error: copy.missingDisplayName,
         status: "error",
       }));
-      setError(copy.missingDisplayName);
+      setError(null);
       return;
     }
 
@@ -904,7 +940,7 @@ export function FanletterProfilePage({
               {copy.quickTitle}
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-white">
-              {copy.title}
+              {copy.quickPanelTitle}
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-white/62">
               {copy.quickBody}
@@ -1143,10 +1179,7 @@ export function FanletterProfilePage({
       <StatusPanel
         body={copy.loading}
         cta={copy.refresh}
-        href={setPathSearchParams(
-          buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
-          { returnTo: returnToHref || onboardingHref },
-        )}
+        href={currentProfileHref}
         title={copy.loading}
       />
     );
@@ -1157,7 +1190,10 @@ export function FanletterProfilePage({
       <StatusPanel
         body={copy.connectRequired}
         cta={copy.connectRequiredCta}
+        eyebrow={copy.profileStep}
         href={connectHref}
+        secondaryCta={copy.back}
+        secondaryHref={returnToHref || onboardingHref}
         title={copy.disconnected}
       />
     );
@@ -1168,7 +1204,10 @@ export function FanletterProfilePage({
       <StatusPanel
         body={copy.paymentRequired}
         cta={copy.paymentRequiredCta}
+        eyebrow={copy.profileStep}
         href={activateHref}
+        secondaryCta={copy.back}
+        secondaryHref={returnToHref || onboardingHref}
         title={copy.paymentRequired}
       />
     );
@@ -1624,9 +1663,17 @@ export function FanletterProfilePage({
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90 sm:w-fit"
                 href={createHref}
               >
-                {copy.contentCta}
+                {contentCtaLabel}
                 <ArrowRight className="size-4" />
               </Link>
+              {cameFromOnboarding ? (
+                <Link
+                  className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-fit"
+                  href={returnToHref || onboardingHref}
+                >
+                  {copy.back}
+                </Link>
+              ) : null}
               <Link
                 className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-fit"
                 href={studioHref}
