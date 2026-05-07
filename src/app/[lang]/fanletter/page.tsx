@@ -98,7 +98,7 @@ export default async function FanletterRoutePage({
     notFound();
   }
   const referralCode = readReferralCode(query.ref);
-  const landingData = await getFanletterLandingData(lang, referralCode);
+  const landingData = await getFanletterLandingData(lang);
 
   return (
     <FanletterHomePage

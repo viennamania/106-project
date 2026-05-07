@@ -321,14 +321,7 @@ export const getFanletterFeedPageData = cache(
     referralCodeInput: string | null,
   ): Promise<FanletterFeedPageData> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
-    let items = await getFanletterPublicContentItems({
-      locale,
-      referralCode,
-    });
-
-    if (items.length === 0 && referralCode) {
-      items = await getFanletterPublicContentItems({ locale });
-    }
+    const items = await getFanletterPublicContentItems({ locale });
 
     return {
       items,

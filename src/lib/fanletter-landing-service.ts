@@ -9,7 +9,6 @@ import {
   normalizeContentLocale,
 } from "@/lib/content";
 import { defaultLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
 import {
   getContentOrdersCollection,
   getContentCommentsCollection,
@@ -101,18 +100,6 @@ function createEmptyCandidateSignals(): FanletterCandidateSignals {
   };
 }
 
-function mergeUniquePosts(posts: ContentPostDocument[]) {
-  const postByContentId = new Map<string, ContentPostDocument>();
-
-  for (const post of posts) {
-    if (!postByContentId.has(post.contentId)) {
-      postByContentId.set(post.contentId, post);
-    }
-  }
-
-  return [...postByContentId.values()];
-}
-
 function getPostPublishedTime(post: ContentPostDocument) {
   return (post.publishedAt ?? post.createdAt).getTime();
 }
@@ -141,11 +128,9 @@ function getCompletenessScore(post: ContentPostDocument) {
 
 function scoreFeaturedVideoCandidate({
   post,
-  referralCode,
   signals,
 }: {
   post: ContentPostDocument;
-  referralCode: string | null;
   signals: FanletterCandidateSignals;
 }) {
   const ageDays = Math.max(
@@ -153,8 +138,6 @@ function scoreFeaturedVideoCandidate({
     (Date.now() - getPostPublishedTime(post)) / (1000 * 60 * 60 * 24),
   );
   const recencyScore = 3 * Math.exp(-ageDays / RECENCY_DECAY_DAYS);
-  const referralBoost =
-    referralCode && post.authorReferralCode === referralCode ? 5 : 0;
   const engagementScore =
     Math.log1p(
       signals.likeCount +
@@ -166,7 +149,6 @@ function scoreFeaturedVideoCandidate({
   return Math.max(
     0.2,
     1 +
-      referralBoost +
       recencyScore +
       getCompletenessScore(post) +
       engagementScore,
@@ -283,18 +265,15 @@ async function getCandidateSignals(posts: ContentPostDocument[]) {
 
 function pickWeightedFeaturedPosts({
   posts,
-  referralCode,
   signalsByContentId,
 }: {
   posts: ContentPostDocument[];
-  referralCode: string | null;
   signalsByContentId: Map<string, FanletterCandidateSignals>;
 }) {
   const remaining = posts.map((post) => ({
     post,
     score: scoreFeaturedVideoCandidate({
       post,
-      referralCode,
       signals:
         signalsByContentId.get(post.contentId) ?? createEmptyCandidateSignals(),
     }),
@@ -306,11 +285,8 @@ function pickWeightedFeaturedPosts({
     const weightedCandidates = remaining.map((candidate) => {
       const selectedAuthorCount =
         selectedCountByAuthor.get(candidate.post.authorEmail) ?? 0;
-      const isReferralAuthor =
-        referralCode && candidate.post.authorReferralCode === referralCode;
-      const diversityPenalty = isReferralAuthor
-        ? 1 + Math.max(0, selectedAuthorCount - 3) * 0.4
-        : 1 + Math.max(0, selectedAuthorCount - 1) * 0.8;
+      const diversityPenalty =
+        1 + Math.max(0, selectedAuthorCount - 1) * 0.8;
 
       return {
         ...candidate,
@@ -346,10 +322,8 @@ function pickWeightedFeaturedPosts({
 
 async function getFeaturedVideoPosts({
   locale,
-  referralCode,
 }: {
   locale: Locale;
-  referralCode: string | null;
 }) {
   const postsCollection = await getContentPostsCollection();
   const baseFilter: Filter<ContentPostDocument> = {
@@ -363,29 +337,15 @@ async function getFeaturedVideoPosts({
     createdAt: -1,
     contentId: -1,
   } as const;
-  const [scopedPosts, globalPosts] = await Promise.all([
-    referralCode
-      ? postsCollection
-          .find({
-            ...baseFilter,
-            authorReferralCode: referralCode,
-          })
-          .sort(sort)
-          .limit(FEATURED_VIDEO_CANDIDATE_LIMIT)
-          .toArray()
-      : Promise.resolve([]),
-    postsCollection
-      .find(baseFilter)
-      .sort(sort)
-      .limit(FEATURED_VIDEO_CANDIDATE_LIMIT)
-      .toArray(),
-  ]);
-  const candidates = mergeUniquePosts([...scopedPosts, ...globalPosts]);
+  const candidates = await postsCollection
+    .find(baseFilter)
+    .sort(sort)
+    .limit(FEATURED_VIDEO_CANDIDATE_LIMIT)
+    .toArray();
   const signalsByContentId = await getCandidateSignals(candidates);
 
   return pickWeightedFeaturedPosts({
     posts: candidates,
-    referralCode,
     signalsByContentId,
   });
 }
@@ -408,11 +368,7 @@ async function getProfileByEmail(posts: ContentPostDocument[]) {
 }
 
 export const getFanletterLandingData = cache(
-  async (
-    locale: Locale,
-    referralCodeInput: string | null,
-  ): Promise<FanletterLandingData> => {
-    const referralCode = normalizeReferralCode(referralCodeInput);
+  async (locale: Locale): Promise<FanletterLandingData> => {
     const postsCollection = await getContentPostsCollection();
     const profilesCollection = await getCreatorProfilesCollection();
     const ordersCollection = await getContentOrdersCollection();
@@ -464,7 +420,7 @@ export const getFanletterLandingData = cache(
       ordersCollection
         .aggregate<{ _id: null; totalSalesUsdt: number }>(totalSalesPipeline)
         .toArray(),
-      getFeaturedVideoPosts({ locale, referralCode }),
+      getFeaturedVideoPosts({ locale }),
     ]);
     const profileByEmail = await getProfileByEmail(featuredPosts);
 
