@@ -1485,38 +1485,39 @@ export function FanletterOnboardingPage({
       ? {
           accountState: "기존 회원 세션과 지갑 연결을 그대로 사용합니다.",
           asideBody:
-            "처음 방문한 사용자가 AI 캐릭터 브이로그 채널을 바로 시작할 수 있도록 필요한 작업만 순서대로 모았습니다.",
-          asideTitle: "오늘 채널 시작하기",
+            "처음 방문한 사용자도 필요한 작업만 순서대로 진행할 수 있게 정리했습니다.",
+          asideTitle: "시작 준비",
           completeBody:
-            "가입, 캐릭터 페르소나, 첫 브이로그까지 끝내면 FanLetter 브이로그 피드와 스튜디오에서 바로 이어서 운영할 수 있습니다.",
-          completeTitle: "완료 후 바로 캐릭터 채널 운영으로 이어집니다.",
-	          description:
-	            "FanLetter 전용 화면에서 계정 연결, 원클릭 AI 캐릭터 생성, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
-          eyebrow: "FanLetter Onboarding",
+            "계정 연결, 캐릭터 만들기, 첫 브이로그 생성을 끝내면 피드와 스튜디오에서 바로 운영을 이어갈 수 있습니다.",
+          completeTitle: "3단계 시작 체크리스트",
+          description:
+            "계정 연결, 캐릭터 만들기, 첫 숏폼 브이로그 생성까지 한 화면에서 순서대로 진행하세요.",
+          eyebrow: "FanLetter 온보딩",
           feedCta: "브이로그 피드 보기",
           helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 브이로그 흐름으로 묶습니다.",
           homeCta: "브이로그 스튜디오",
-          primary: "계정 연결부터 시작",
-          progress: "Launch checklist",
+          primary: "계정 연결하기",
+          progress: "빠른 시작",
+          readyValue: "3단계",
           requiredLabel: "필수",
-          secondary: "프로필부터 설정",
-          title: "AI 캐릭터 브이로그 채널을 한 화면에서 시작하세요.",
+          secondary: "캐릭터 만들기",
+          title: "AI 캐릭터 브이로그 시작하기",
           steps: [
             {
               body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
               cta: "계정 연결하기",
               href: connectHref,
               Icon: User,
-              meta: "01 · Account",
+              meta: "01 · 계정",
               title: "계정과 지갑 연결",
             },
             {
-	              body: "표시 이름과 분위기만 정하면 페르소나와 아바타를 자동으로 저장합니다.",
-	              cta: "캐릭터 만들기",
+              body: "표시 이름과 분위기만 정하면 캐릭터 설정과 대표 아바타를 자동으로 저장합니다.",
+              cta: "캐릭터 만들기",
               href: profileHref,
               Icon: PenLine,
-              meta: "02 · Profile",
-	              title: "AI 캐릭터 만들기",
+              meta: "02 · 캐릭터",
+              title: "AI 캐릭터 만들기",
             },
             {
               body: "오늘의 셀피, 루틴, 외출, 대화 장면을 세로형 브이로그로 만들고 공개 범위와 가격을 정합니다.",
@@ -1534,19 +1535,20 @@ export function FanletterOnboardingPage({
             "A focused path for new creators to start an AI character vlogger channel quickly.",
           asideTitle: "Start today's channel",
           completeBody:
-            "After signup, character persona, and first vlog, continue directly into the FanLetter vlog feed and studio.",
-          completeTitle: "Launch work continues into character channel operation.",
-	          description:
-	            "Move through account connection, one-click AI character creation, and first short-form vlog creation inside FanLetter.",
+            "After account connection, character creation, and first vlog, continue directly into the FanLetter vlog feed and studio.",
+          completeTitle: "3-step start checklist",
+          description:
+            "Move through account connection, character creation, and first short-form vlog creation inside FanLetter.",
           eyebrow: "FanLetter Onboarding",
           feedCta: "View vlog feed",
           helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter AI character vlog experience.",
           homeCta: "Vlog studio",
           primary: "Start with account",
-          progress: "Launch checklist",
+          progress: "Quick start",
+          readyValue: "3 steps",
           requiredLabel: "Required",
-	          secondary: "Create character",
-          title: "Start an AI character vlogger channel in one guided flow.",
+          secondary: "Create character",
+          title: "Start your AI character vlog",
           steps: [
             {
               body: "Confirm membership and wallet connection. After completion, return to this onboarding page.",
@@ -1557,12 +1559,12 @@ export function FanletterOnboardingPage({
               title: "Connect account and wallet",
             },
             {
-	              body: "Choose a display name and mood to save persona and avatar automatically.",
-	              cta: "Create character",
+              body: "Choose a display name and mood to save the character setup and representative avatar automatically.",
+              cta: "Create character",
               href: profileHref,
               Icon: PenLine,
-              meta: "02 · Profile",
-	              title: "Create AI character",
+              meta: "02 · Character",
+              title: "Create AI character",
             },
             {
               body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog, then set visibility and pricing.",
@@ -1583,8 +1585,8 @@ export function FanletterOnboardingPage({
             {labels.asideBody}
           </p>
         </div>
-        <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase text-black">
-          3 steps
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase text-black">
+          {labels.readyValue}
         </span>
       </div>
       <div className="mt-5 space-y-3">
@@ -1640,6 +1642,7 @@ export function FanletterOnboardingPage({
       locale={locale}
       referralCode={referralCode}
       title={labels.title}
+      titleClassName="mt-4 max-w-4xl text-[2.3rem] font-semibold leading-[1.06] tracking-normal text-white [word-break:keep-all] sm:text-[3.45rem] lg:text-[4rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
@@ -1647,7 +1650,7 @@ export function FanletterOnboardingPage({
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
               {labels.progress}
             </p>
-            <h2 className="mt-4 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[2.8rem]">
+            <h2 className="mt-4 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.35rem]">
               {labels.completeTitle}
             </h2>
             <p className="mt-4 text-sm font-medium leading-6 text-white/62">
@@ -1742,7 +1745,7 @@ export function FanletterOnboardingPage({
             <ArrowRight className="size-5 shrink-0" />
           </Link>
           <Link
-            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_18px_42px_rgba(8,18,12,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.18)]"
+            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-[#07100b] p-5 !text-white shadow-[0_18px_42px_rgba(8,18,12,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.18)]"
             href={feedHref}
           >
             <span>
