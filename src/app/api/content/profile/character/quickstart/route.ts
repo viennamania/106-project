@@ -19,7 +19,13 @@ import { validateMemberWalletOwner } from "@/lib/member-owner";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-type QuickCharacterStyle = "cinematic" | "daily" | "friendly" | "premium";
+type QuickCharacterStyle =
+  | "chic"
+  | "cinematic"
+  | "daily"
+  | "fan_service"
+  | "friendly"
+  | "premium";
 
 type QuickCharacterRequest = {
   ageRange?: string | null;
@@ -43,7 +49,14 @@ const appearanceTones = [
   "western",
 ] as const;
 const genders = ["female", "male"] as const;
-const styles = ["cinematic", "daily", "friendly", "premium"] as const;
+const styles = [
+  "chic",
+  "cinematic",
+  "daily",
+  "fan_service",
+  "friendly",
+  "premium",
+] as const;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -77,14 +90,18 @@ function parseStyle(value: string | null | undefined): QuickCharacterStyle {
 
 function createStyleIntro(style: QuickCharacterStyle, locale: Locale) {
   const ko = {
+    chic: "시크하고 절제된 톤으로 짧은 코멘트와 스타일 컷에 잘 맞는 AI 캐릭터 콘텐츠.",
     cinematic: "영화적인 분위기와 감정선이 있는 AI 캐릭터 콘텐츠.",
     daily: "일상 브이로그와 루틴형 숏폼에 잘 맞는 AI 캐릭터 콘텐츠.",
+    fan_service: "팬에게 다정하게 반응하고 답장하는 팬서비스형 AI 캐릭터 콘텐츠.",
     friendly: "팬에게 친근하게 말을 거는 밝은 AI 캐릭터 콘텐츠.",
     premium: "차분하고 세련된 프리미엄 톤의 AI 캐릭터 콘텐츠.",
   } satisfies Record<QuickCharacterStyle, string>;
   const en = {
+    chic: "Chic AI character content suited for concise comments and style-focused scenes.",
     cinematic: "AI character content with cinematic mood and emotional moments.",
     daily: "AI character content suited for daily vlog and routine shorts.",
+    fan_service: "Fan-facing AI character content built around warm replies and appreciation.",
     friendly: "Bright AI character content that feels friendly to fans.",
     premium: "Calm, polished AI character content with a premium tone.",
   } satisfies Record<QuickCharacterStyle, string>;

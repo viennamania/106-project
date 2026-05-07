@@ -177,10 +177,20 @@ type AvatarGenerationState = {
 };
 
 type CharacterQuickstartState = {
+  advancedOpen: boolean;
+  ageRange: "20s" | "30s" | "40s" | "50s_plus";
+  appearanceTone:
+    | "auto"
+    | "african_diaspora"
+    | "east_asian"
+    | "latin"
+    | "middle_eastern_mediterranean"
+    | "south_asian"
+    | "western";
   error: string | null;
   gender: "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
-  style: "cinematic" | "daily" | "friendly" | "premium";
+  style: "chic" | "daily" | "fan_service" | "friendly";
 };
 
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
@@ -772,6 +782,9 @@ export function CreatorContentStudioPage({
       status: "idle",
     });
   const [quickCharacter, setQuickCharacter] = useState<CharacterQuickstartState>({
+    advancedOpen: false,
+    ageRange: "20s",
+    appearanceTone: "auto",
     error: null,
     gender: "female",
     status: "idle",
@@ -2256,6 +2269,11 @@ export function CreatorContentStudioPage({
       const email = await resolveMemberEmail();
       const response = await fetch("/api/content/profile/character/quickstart", {
         body: JSON.stringify({
+          ageRange: quickCharacter.ageRange,
+          appearanceTone:
+            quickCharacter.appearanceTone === "auto"
+              ? null
+              : quickCharacter.appearanceTone,
           displayName: state.profile.displayName,
           email,
           gender: quickCharacter.gender,
@@ -4101,29 +4119,6 @@ export function CreatorContentStudioPage({
                       </span>
                     ) : null}
                   </div>
-                  <div className="mt-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      {personaCopy.locked}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {persona.lockedTraits.slice(0, 6).map((trait) => (
-                        <span
-                          className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700"
-                          key={trait}
-                        >
-                          {trait}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      {personaCopy.avoid}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
-                      {persona.avoidChanges.join(", ")}
-                    </p>
-                  </div>
                   <button
                     className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isSavingProfile || selected}
@@ -4143,49 +4138,104 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderQuickCharacterPanel() {
+  function renderQuickCharacterPanel(options?: { showDisplayName?: boolean }) {
     const isCreatingCharacter = quickCharacter.status === "loading";
+    const showDisplayName = options?.showDisplayName ?? false;
     const quickCopy =
       locale === "ko"
         ? {
+            advanced: "고급 설정",
+            age20s: "20대",
+            age30s: "30대",
+            age40s: "40대",
+            age50sPlus: "50대+",
+            ageLabel: "연령대",
+            appearanceAfricanDiaspora: "아프리카계 인상",
+            appearanceAuto: "자동",
+            appearanceEastAsian: "동아시아계",
+            appearanceLabel: "외형 톤",
+            appearanceLatin: "라틴계",
+            appearanceMiddleEastern: "중동/지중해계",
+            appearanceSouthAsian: "남아시아계",
+            appearanceWestern: "서구권",
             body:
-              "복잡한 페르소나와 아바타 단계를 자동으로 처리합니다. 이후 바꾸려면 이 캐릭터 변경 화면에서만 변경됩니다.",
-            button: "캐릭터 자동 생성",
+              "이름과 분위기만 정하면 페르소나, 아바타, 대표 이미지를 자동으로 저장합니다.",
+            button: "캐릭터 만들기",
             creating: "캐릭터 생성 중...",
+            displayNameLabel: "표시 이름",
             genderFemale: "여성",
             genderLabel: "캐릭터 타입",
             genderMale: "남성",
-            styleCinematic: "영화적인",
+            styleChic: "시크한",
             styleDaily: "일상 브이로그",
+            styleFanService: "팬서비스형",
             styleFriendly: "친근한",
             styleLabel: "분위기",
-            stylePremium: "프리미엄",
             title: "빠른 캐릭터 만들기",
           }
         : {
+            advanced: "Advanced settings",
+            age20s: "20s",
+            age30s: "30s",
+            age40s: "40s",
+            age50sPlus: "50s+",
+            ageLabel: "Age range",
+            appearanceAfricanDiaspora: "African diaspora",
+            appearanceAuto: "Auto",
+            appearanceEastAsian: "East Asian",
+            appearanceLabel: "Appearance tone",
+            appearanceLatin: "Latin",
+            appearanceMiddleEastern: "Middle Eastern / Mediterranean",
+            appearanceSouthAsian: "South Asian",
+            appearanceWestern: "Western",
             body:
-              "Automatically handles persona and avatar setup. Future changes happen only from this character change screen.",
-            button: "Create character automatically",
+              "Choose a name and mood. Persona, avatar set, representative image, and profile save happen automatically.",
+            button: "Create character",
             creating: "Creating character...",
+            displayNameLabel: "Display name",
             genderFemale: "Female",
             genderLabel: "Character type",
             genderMale: "Male",
-            styleCinematic: "Cinematic",
+            styleChic: "Chic",
             styleDaily: "Daily vlog",
+            styleFanService: "Fan service",
             styleFriendly: "Friendly",
             styleLabel: "Mood",
-            stylePremium: "Premium",
             title: "Quick Character Setup",
           };
     const genderOptions = [
       { label: quickCopy.genderFemale, value: "female" as const },
       { label: quickCopy.genderMale, value: "male" as const },
     ];
+    const ageRangeOptions = [
+      { label: quickCopy.age20s, value: "20s" as const },
+      { label: quickCopy.age30s, value: "30s" as const },
+      { label: quickCopy.age40s, value: "40s" as const },
+      { label: quickCopy.age50sPlus, value: "50s_plus" as const },
+    ];
+    const appearanceToneOptions = [
+      { label: quickCopy.appearanceAuto, value: "auto" as const },
+      { label: quickCopy.appearanceEastAsian, value: "east_asian" as const },
+      { label: quickCopy.appearanceWestern, value: "western" as const },
+      { label: quickCopy.appearanceLatin, value: "latin" as const },
+      {
+        label: quickCopy.appearanceSouthAsian,
+        value: "south_asian" as const,
+      },
+      {
+        label: quickCopy.appearanceMiddleEastern,
+        value: "middle_eastern_mediterranean" as const,
+      },
+      {
+        label: quickCopy.appearanceAfricanDiaspora,
+        value: "african_diaspora" as const,
+      },
+    ];
     const styleOptions = [
       { label: quickCopy.styleFriendly, value: "friendly" as const },
+      { label: quickCopy.styleChic, value: "chic" as const },
       { label: quickCopy.styleDaily, value: "daily" as const },
-      { label: quickCopy.styleCinematic, value: "cinematic" as const },
-      { label: quickCopy.stylePremium, value: "premium" as const },
+      { label: quickCopy.styleFanService, value: "fan_service" as const },
     ];
 
     return (
@@ -4204,46 +4254,28 @@ export function CreatorContentStudioPage({
           </div>
         </div>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              {quickCopy.genderLabel}
-            </p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {genderOptions.map((option) => {
-                const selected = quickCharacter.gender === option.value;
-
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                      selected
-                        ? "border-slate-950 bg-slate-950 text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                    disabled={isCreatingCharacter}
-                    key={option.value}
-                    onClick={() => {
-                      setQuickCharacter((current) => ({
-                        ...current,
-                        error: null,
-                        gender: option.value,
-                        status: "idle",
-                      }));
-                    }}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        <div className="mt-4 space-y-4">
+          {showDisplayName ? (
+            <InputField
+              hint={contentCopy.hints.displayName}
+              label={quickCopy.displayNameLabel}
+              onChange={(value) => {
+                setState((current) => ({
+                  ...current,
+                  profile: {
+                    ...current.profile,
+                    displayName: value,
+                  },
+                }));
+              }}
+              value={state.profile.displayName}
+            />
+          ) : null}
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               {quickCopy.styleLabel}
             </p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {styleOptions.map((option) => {
                 const selected = quickCharacter.style === option.value;
 
@@ -4272,6 +4304,134 @@ export function CreatorContentStudioPage({
                 );
               })}
             </div>
+          </div>
+          <div className="rounded-[20px] border border-slate-200 bg-white px-3 py-3">
+            <button
+              className="flex h-9 w-full items-center justify-between gap-3 rounded-full px-1 text-sm font-semibold text-slate-800"
+              disabled={isCreatingCharacter}
+              onClick={() => {
+                setQuickCharacter((current) => ({
+                  ...current,
+                  advancedOpen: !current.advancedOpen,
+                }));
+              }}
+              type="button"
+            >
+              <span>{quickCopy.advanced}</span>
+              <ArrowRight
+                className={cn(
+                  "size-4 transition",
+                  quickCharacter.advancedOpen && "rotate-90",
+                )}
+              />
+            </button>
+            {quickCharacter.advancedOpen ? (
+              <div className="mt-3 space-y-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    {quickCopy.genderLabel}
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {genderOptions.map((option) => {
+                      const selected = quickCharacter.gender === option.value;
+
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            selected
+                              ? "border-slate-950 bg-slate-950 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                          }`}
+                          disabled={isCreatingCharacter}
+                          key={option.value}
+                          onClick={() => {
+                            setQuickCharacter((current) => ({
+                              ...current,
+                              error: null,
+                              gender: option.value,
+                              status: "idle",
+                            }));
+                          }}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    {quickCopy.ageLabel}
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {ageRangeOptions.map((option) => {
+                      const selected = quickCharacter.ageRange === option.value;
+
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            selected
+                              ? "border-slate-950 bg-slate-950 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                          }`}
+                          disabled={isCreatingCharacter}
+                          key={option.value}
+                          onClick={() => {
+                            setQuickCharacter((current) => ({
+                              ...current,
+                              ageRange: option.value,
+                              error: null,
+                              status: "idle",
+                            }));
+                          }}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    {quickCopy.appearanceLabel}
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {appearanceToneOptions.map((option) => {
+                      const selected =
+                        quickCharacter.appearanceTone === option.value;
+
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            selected
+                              ? "border-slate-950 bg-slate-950 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                          }`}
+                          disabled={isCreatingCharacter}
+                          key={option.value}
+                          onClick={() => {
+                            setQuickCharacter((current) => ({
+                              ...current,
+                              appearanceTone: option.value,
+                              error: null,
+                              status: "idle",
+                            }));
+                          }}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -4308,14 +4468,20 @@ export function CreatorContentStudioPage({
             body:
               "이 캐릭터가 이후 AI 이미지와 동영상 생성의 기준 인물로 자동 적용됩니다.",
             change: "캐릭터 변경",
+            create: "오늘의 콘텐츠 만들기",
             empty: "활성 캐릭터가 아직 없습니다.",
+            strengths: "잘 맞는 콘텐츠",
+            strengthItems: ["데일리 브이로그", "팬레터 답장", "AI 이미지·동영상"],
             title: "활성 캐릭터",
           }
         : {
             body:
               "This character is automatically used as the identity for future AI image and video generations.",
             change: "Change character",
+            create: "Create today's post",
             empty: "No active character yet.",
+            strengths: "Best for",
+            strengthItems: ["Daily vlog", "Fan replies", "AI image/video"],
             title: "Active character",
           };
 
@@ -4339,15 +4505,39 @@ export function CreatorContentStudioPage({
               <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
                 {persona?.summary || cardCopy.body}
               </p>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {cardCopy.strengths}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {cardCopy.strengthItems.map((item) => (
+                    <span
+                      className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                      key={item}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-          <Link
-            className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-            href={characterHref}
-          >
-            {cardCopy.change}
-            <ArrowRight className="size-4" />
-          </Link>
+          <div className="flex w-full flex-col gap-2 sm:w-auto">
+            <Link
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
+              href={newPostHref}
+            >
+              <PenSquare className="size-4" />
+              {cardCopy.create}
+            </Link>
+            <Link
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+              href={characterHref}
+            >
+              {cardCopy.change}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -5183,6 +5373,7 @@ export function CreatorContentStudioPage({
       locale === "ko" ? "AI 콘텐츠 동영상 생성" : "Generate AI content video";
     const mobilePreviewImage =
       postForm.coverImageUrl || postForm.contentImageUrls[0] || null;
+    const hasActiveCharacter = Boolean(state.profile.characterPersona);
     const composerBusy =
       isSavingPost ||
       isCreatingSellerWallet ||
@@ -5216,6 +5407,51 @@ export function CreatorContentStudioPage({
             {recoverableStudioError ? (
               <MessageCard tone="error">{recoverableStudioError}</MessageCard>
             ) : null}
+            {!hasActiveCharacter ? (
+              <section className="rounded-[28px] border border-amber-200 bg-amber-50/80 p-3 shadow-[0_18px_42px_rgba(180,83,9,0.08)] sm:p-4">
+                <div className="mb-3 flex items-start gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white">
+                    <Sparkles className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-amber-950">
+                      {locale === "ko"
+                        ? "캐릭터를 먼저 만들면 바로 콘텐츠에 적용됩니다."
+                        : "Create a character first to apply it to this post."}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-amber-900/80">
+                      {locale === "ko"
+                        ? "이름과 분위기만 정하면 작성 화면이 이어집니다."
+                        : "Choose a name and mood, then continue writing here."}
+                    </p>
+                  </div>
+                </div>
+                {renderQuickCharacterPanel({ showDisplayName: true })}
+              </section>
+            ) : (
+              <section className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <CreatorProfileAvatar
+                    avatarImageUrl={state.profile.avatarImageUrl}
+                    displayName={state.profile.displayName}
+                    fallbackLabel={profileSummaryCopy.fallbackName}
+                    sizeClassName="size-11 rounded-full"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                      {locale === "ko"
+                        ? "캐릭터 자동 적용"
+                        : "Character applied"}
+                    </p>
+                    <p className="truncate text-sm font-semibold text-slate-950">
+                      {state.profile.characterPersona?.name ||
+                        state.profile.displayName ||
+                        profileSummaryCopy.fallbackName}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
             <input
               accept="image/png,image/jpeg,image/webp"
               className="sr-only"
