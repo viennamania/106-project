@@ -993,10 +993,12 @@ function FanletterChannelHeroPreview({
 
 function FanletterCreatorFanAccessPanel({
   feedHref,
+  followHref,
   locale,
   startHref,
 }: {
   feedHref: string;
+  followHref: string;
   locale: Locale;
   startHref: string;
 }) {
@@ -1005,6 +1007,7 @@ function FanletterCreatorFanAccessPanel({
       ? {
           body: "공개 브이로그는 바로 둘러보고, 더 깊은 팬 전용 흐름은 같은 캐릭터 채널 안에서 이어가도록 정리했습니다.",
           create: "내 캐릭터 만들기",
+          follow: "팔로우/알림 받기",
           freeBody: "가입 전에도 공개 브이로그와 캐릭터 분위기를 먼저 확인합니다.",
           freeTitle: "무료 공개 보기",
           messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
@@ -1017,6 +1020,7 @@ function FanletterCreatorFanAccessPanel({
       : {
           body: "Public vlogs are easy to browse, while deeper fan-only flows stay inside the same character channel.",
           create: "Create my character",
+          follow: "Follow for updates",
           freeBody: "Fans can preview public vlogs and the character mood before signing up.",
           freeTitle: "Free public view",
           messageBody: "Comments and messages stay inside FanLetter through access checks.",
@@ -1082,18 +1086,229 @@ function FanletterCreatorFanAccessPanel({
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
         <Link
           className="inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+          href={followHref}
+        >
+          {labels.follow}
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
           href={feedHref}
         >
           {labels.view}
         </Link>
-        <Link
-          className="inline-flex h-11 items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
-          href={startHref}
-        >
-          {labels.create}
-        </Link>
       </div>
+      <Link
+        className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
+        href={startHref}
+      >
+        {labels.create}
+      </Link>
     </aside>
+  );
+}
+
+function FanletterChannelTabs({
+  channelHref,
+  locale,
+  publicContentCount,
+}: {
+  channelHref: string;
+  locale: Locale;
+  publicContentCount: number;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          about: "소개",
+          fanOnly: "팬 전용",
+          home: "홈",
+          publicVlogs: "공개 브이로그",
+        }
+      : {
+          about: "About",
+          fanOnly: "Fan-only",
+          home: "Home",
+          publicVlogs: "Public vlogs",
+        };
+  const tabs = [
+    { href: `${channelHref}#channel-home`, label: labels.home },
+    {
+      href: `${channelHref}#public-vlogs`,
+      label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
+    },
+    { href: `${channelHref}#fan-only`, label: labels.fanOnly },
+    { href: `${channelHref}#about`, label: labels.about },
+  ];
+
+  return (
+    <nav
+      aria-label={locale === "ko" ? "캐릭터 채널 섹션" : "Character channel sections"}
+      className="sticky top-0 z-20 -mx-4 mb-8 border-b border-black/10 bg-[#f6f8f4]/94 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+    >
+      <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto [scrollbar-width:none]">
+        {tabs.map((tab, index) => (
+          <Link
+            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition ${
+              index === 0
+                ? "bg-black !text-white"
+                : "border border-black/10 bg-white text-black/62 hover:border-[#29d85f]/60 hover:text-black"
+            }`}
+            href={tab.href}
+            key={tab.href}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function FanletterFollowCta({
+  fanOnlyHref,
+  followHref,
+  locale,
+}: {
+  fanOnlyHref: string;
+  followHref: string;
+  locale: Locale;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          fanOnly: "팬 전용 보기",
+          follow: "팔로우/알림 받기",
+        }
+      : {
+          fanOnly: "View fan-only",
+          follow: "Follow updates",
+        };
+
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <Link
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+        href={followHref}
+      >
+        <BellPlus className="size-4" />
+        {labels.follow}
+      </Link>
+      <Link
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+        href={fanOnlyHref}
+      >
+        <Crown className="size-4" />
+        {labels.fanOnly}
+      </Link>
+    </div>
+  );
+}
+
+function FanletterFanOnlyPreview({
+  channelName,
+  followHref,
+  locale,
+}: {
+  channelName: string;
+  followHref: string;
+  locale: Locale;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: "아직 실제 구독 결제 기능은 열지 않고, 캐릭터 채널 안에서 팬 전용 콘텐츠가 어디에 붙을지 먼저 보여줍니다.",
+          cta: "오픈 알림 받기",
+          eyebrow: "Fan-only Preview",
+          locked: "준비 중",
+          title: "팬 전용 브이로그 공간",
+        }
+      : {
+          body: "Paid subscription is not open yet. This shows where fan-only character content can live inside the channel.",
+          cta: "Get launch updates",
+          eyebrow: "Fan-only Preview",
+          locked: "Coming soon",
+          title: "Fan-only vlog space",
+        };
+  const cards =
+    locale === "ko"
+      ? [
+          {
+            body: `${channelName}의 비공개 하루 루틴과 짧은 근황을 모아 보여줍니다.`,
+            title: "비공개 루틴",
+          },
+          {
+            body: "댓글보다 더 가까운 팬 메시지와 답장 흐름을 준비합니다.",
+            title: "팬 메시지",
+          },
+          {
+            body: "공개 피드에 올리기 전의 미리보기와 제작 노트를 담습니다.",
+            title: "선공개 노트",
+          },
+        ]
+      : [
+          {
+            body: `${channelName}'s private routines and short updates can live here.`,
+            title: "Private routine",
+          },
+          {
+            body: "A closer fan message and reply flow can continue here.",
+            title: "Fan messages",
+          },
+          {
+            body: "Preview notes before public feed release can be collected here.",
+            title: "Early notes",
+          },
+        ];
+
+  return (
+    <section className="mb-8 scroll-mt-24" id="fan-only">
+      <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {labels.eyebrow}
+            </p>
+            <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.6rem]">
+              {labels.title}
+            </h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+              {labels.body}
+            </p>
+          </div>
+          <Link
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={followHref}
+          >
+            <BellPlus className="size-4" />
+            {labels.cta}
+          </Link>
+        </div>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-3">
+          {cards.map((card) => (
+            <article
+              className="min-h-[12rem] rounded-lg border border-white/10 bg-white/[0.055] p-4"
+              key={card.title}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <LockKeyhole className="size-5" />
+                </span>
+                <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#b9ffc8]">
+                  {labels.locked}
+                </span>
+              </div>
+              <h3 className="mt-5 text-xl font-semibold tracking-normal">
+                {card.title}
+              </h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/56">
+                {card.body}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1206,6 +1421,108 @@ function FanletterRelatedVlogs({
             referralCode={referralCode}
           />
         ))}
+      </div>
+    </section>
+  );
+}
+
+function FanletterContentNextActions({
+  channelHref,
+  feedHref,
+  followHref,
+  locale,
+  startHref,
+}: {
+  channelHref: string;
+  feedHref: string;
+  followHref: string;
+  locale: Locale;
+  startHref: string;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          channelBody: "이 캐릭터의 공개 브이로그와 팬 전용 예정 콘텐츠를 이어봅니다.",
+          channelTitle: "캐릭터 채널",
+          feedBody: "다른 AI 캐릭터 브이로그를 최신순으로 둘러봅니다.",
+          feedTitle: "전체 피드",
+          followBody: "FanLetter 온보딩 후 이 캐릭터 흐름으로 다시 돌아옵니다.",
+          followTitle: "팔로우/알림",
+          open: "열기",
+          startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 시작합니다.",
+          startTitle: "내 채널 시작",
+          title: "다음 행동",
+        }
+      : {
+          channelBody: "Continue into this character's public vlogs and fan-only preview.",
+          channelTitle: "Character channel",
+          feedBody: "Browse the latest public vlogs from other AI characters.",
+          feedTitle: "Full feed",
+          followBody: "Complete FanLetter onboarding, then return to this character flow.",
+          followTitle: "Follow updates",
+          open: "Open",
+          startBody: "Start your own AI character vlog channel without complex setup.",
+          startTitle: "Start my channel",
+          title: "Next actions",
+        };
+  const actions = [
+    {
+      body: labels.channelBody,
+      href: channelHref,
+      icon: User,
+      title: labels.channelTitle,
+    },
+    {
+      body: labels.followBody,
+      href: followHref,
+      icon: BellPlus,
+      title: labels.followTitle,
+    },
+    {
+      body: labels.feedBody,
+      href: feedHref,
+      icon: Grid2X2,
+      title: labels.feedTitle,
+    },
+    {
+      body: labels.startBody,
+      href: startHref,
+      icon: Rocket,
+      title: labels.startTitle,
+    },
+  ];
+
+  return (
+    <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+      <h2 className="text-xl font-semibold tracking-normal text-white">
+        {labels.title}
+      </h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {actions.map((action) => {
+          const Icon = action.icon;
+
+          return (
+            <Link
+              className="group rounded-lg border border-white/10 bg-[#07100b] p-4 transition hover:border-[#44f26e]/46 hover:bg-[#0b1510]"
+              href={action.href}
+              key={action.title}
+            >
+              <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <p className="mt-4 text-base font-semibold text-white">
+                {action.title}
+              </p>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/54">
+                {action.body}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
+                {labels.open}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -1480,7 +1797,10 @@ function CharacterPersonaShowcase({
   ];
 
   return (
-    <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]">
+    <section
+      className="mb-8 grid scroll-mt-24 gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]"
+      id="about"
+    >
       <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-2xl">
@@ -1646,6 +1966,13 @@ export function FanletterCreatorPage({
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
+  const followHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
+    {
+      returnTo: channelHref,
+    },
+  );
+  const fanOnlyHref = `${channelHref}#fan-only`;
   const channelStats = [
     {
       label: copy.creator.publicPosts,
@@ -1664,20 +1991,11 @@ export function FanletterCreatorPage({
   return (
     <FanletterShell
       actions={
-        <>
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={startHref}
-          >
-            {copy.actions.start}
-          </Link>
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
-            href={feedHref}
-          >
-            {copy.actions.feed}
-          </Link>
-        </>
+        <FanletterFollowCta
+          fanOnlyHref={fanOnlyHref}
+          followHref={followHref}
+          locale={locale}
+        />
       }
       aside={
         <FanletterChannelHeroPreview
@@ -1698,8 +2016,16 @@ export function FanletterCreatorPage({
       titleClassName="mt-4 max-w-5xl text-[2.5rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+        <FanletterChannelTabs
+          channelHref={channelHref}
+          locale={locale}
+          publicContentCount={data.publicContentCount}
+        />
         <div className="mx-auto max-w-[92rem]">
-          <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]">
+          <div
+            className="mb-8 grid scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
+            id="channel-home"
+          >
             <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
@@ -1779,6 +2105,7 @@ export function FanletterCreatorPage({
 
             <FanletterCreatorFanAccessPanel
               feedHref={feedHref}
+              followHref={followHref}
               locale={locale}
               startHref={startHref}
             />
@@ -1813,7 +2140,13 @@ export function FanletterCreatorPage({
             </section>
           ) : null}
 
-          <section>
+          <FanletterFanOnlyPreview
+            channelName={channelName}
+            followHref={followHref}
+            locale={locale}
+          />
+
+          <section className="scroll-mt-24" id="public-vlogs">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
@@ -2194,6 +2527,14 @@ export function FanletterContentDetailPage({
                 items={content.authorRecentContent}
                 locale={locale}
                 referralCode={effectiveReferralCode}
+              />
+
+              <FanletterContentNextActions
+                channelHref={creatorHref}
+                feedHref={fallbackBackHref}
+                followHref={onboardingHref}
+                locale={locale}
+                startHref={startHref}
               />
             </section>
           </div>
