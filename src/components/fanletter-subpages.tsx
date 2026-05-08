@@ -344,6 +344,86 @@ function getContentEngagementScore(item: FanletterPublicContentItem) {
   );
 }
 
+function getPublishedTime(value: string | null) {
+  if (!value) {
+    return 0;
+  }
+
+  const time = new Date(value).getTime();
+
+  return Number.isFinite(time) ? time : 0;
+}
+
+type FanletterRankedCreator = {
+  authorAvatarImageUrl: string | null;
+  authorName: string;
+  authorReferralCode: string | null;
+  key: string;
+  latestContentId: string;
+  latestPublishedAt: string | null;
+  latestTitle: string;
+  postCount: number;
+  score: number;
+  videoCount: number;
+};
+
+function getRankedCreators(items: FanletterPublicContentItem[]) {
+  const creators = new Map<string, FanletterRankedCreator>();
+
+  items.forEach((item) => {
+    const key = item.authorReferralCode ?? item.authorName;
+    const current = creators.get(key);
+    const score = getContentEngagementScore(item);
+    const itemPublishedTime = getPublishedTime(item.publishedAt);
+
+    if (!current) {
+      creators.set(key, {
+        authorAvatarImageUrl: item.authorAvatarImageUrl,
+        authorName: item.authorName,
+        authorReferralCode: item.authorReferralCode,
+        key,
+        latestContentId: item.contentId,
+        latestPublishedAt: item.publishedAt,
+        latestTitle: item.title,
+        postCount: 1,
+        score,
+        videoCount: item.mediaType === "video" ? 1 : 0,
+      });
+      return;
+    }
+
+    current.score += score;
+    current.postCount += 1;
+    current.videoCount += item.mediaType === "video" ? 1 : 0;
+
+    if (!current.authorAvatarImageUrl && item.authorAvatarImageUrl) {
+      current.authorAvatarImageUrl = item.authorAvatarImageUrl;
+    }
+
+    if (itemPublishedTime > getPublishedTime(current.latestPublishedAt)) {
+      current.latestContentId = item.contentId;
+      current.latestPublishedAt = item.publishedAt;
+      current.latestTitle = item.title;
+    }
+  });
+
+  return Array.from(creators.values()).sort((a, b) => {
+    const scoreDelta = b.score - a.score;
+
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    const postDelta = b.postCount - a.postCount;
+
+    if (postDelta !== 0) {
+      return postDelta;
+    }
+
+    return getPublishedTime(b.latestPublishedAt) - getPublishedTime(a.latestPublishedAt);
+  });
+}
+
 function FanletterShell({
   actions,
   aside,
@@ -793,6 +873,183 @@ function CreatorDiscoveryCard({
   );
 }
 
+function FanletterCreatorRanking({
+  items,
+  locale,
+  referralCode,
+}: {
+  items: FanletterPublicContentItem[];
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const rankedCreators = getRankedCreators(items).slice(0, 5);
+
+  if (rankedCreators.length === 0) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          body: "좋아요, 댓글, 저장 반응이 높은 캐릭터를 먼저 보여줍니다.",
+          cta: "채널 보기",
+          eyebrow: "Character Ranking",
+          latest: "최근 브이로그",
+          publicPosts: "공개",
+          reactions: "반응",
+          title: "인기 AI 캐릭터 랭킹",
+          videos: "영상",
+        }
+      : {
+          body: "Characters with stronger likes, comments, and saves surface first.",
+          cta: "View channel",
+          eyebrow: "Character Ranking",
+          latest: "Latest vlog",
+          publicPosts: "Public",
+          reactions: "Reactions",
+          title: "Popular AI character ranking",
+          videos: "Videos",
+        };
+
+  return (
+    <section className="mb-10 scroll-mt-6" id="popular-characters">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+            {labels.title}
+          </h2>
+        </div>
+        <p className="max-w-md text-sm font-medium leading-6 text-black/54">
+          {labels.body}
+        </p>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-5">
+        {rankedCreators.map((creator, index) => {
+          const isLeader = index === 0;
+          const href = creator.authorReferralCode
+            ? buildPathWithReferral(
+                `/${locale}/fanletter/creator/${creator.authorReferralCode}`,
+                referralCode ?? creator.authorReferralCode,
+              )
+            : buildPathWithReferral(
+                `/${locale}/fanletter/content/${creator.latestContentId}`,
+                referralCode,
+              );
+          const metrics = [
+            {
+              label: labels.reactions,
+              value: formatNumber(creator.score, locale),
+            },
+            {
+              label: labels.publicPosts,
+              value: formatNumber(creator.postCount, locale),
+            },
+            {
+              label: labels.videos,
+              value: formatNumber(creator.videoCount, locale),
+            },
+          ];
+
+          return (
+            <Link
+              className={`group flex min-h-[18rem] flex-col rounded-lg border p-4 transition ${
+                isLeader
+                  ? "border-[#44f26e]/34 bg-[#07100b] !text-white shadow-[0_22px_64px_rgba(8,18,12,0.22)] hover:border-[#44f26e]/60"
+                  : "border-black/10 bg-white text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] hover:border-[#29d85f]/60"
+              }`}
+              href={href}
+              key={creator.key}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <Avatar
+                  imageUrl={creator.authorAvatarImageUrl}
+                  name={creator.authorName}
+                  sizeClassName="size-12"
+                />
+                <span
+                  className={`inline-flex h-8 shrink-0 items-center rounded-full px-3 text-xs font-semibold ${
+                    isLeader
+                      ? "bg-[#44f26e] text-black"
+                      : "border border-black/10 bg-[#f6f8f4] text-black/62"
+                  }`}
+                >
+                  #{String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className="mt-4 min-w-0">
+                <h3 className="truncate text-xl font-semibold tracking-normal">
+                  {creator.authorName}
+                </h3>
+                <p
+                  className={`mt-1 text-xs font-semibold ${
+                    isLeader ? "text-[#44f26e]" : "text-[#1f7c38]"
+                  }`}
+                >
+                  {creator.authorReferralCode ?? "FanLetter"}
+                </p>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {metrics.map((metric) => (
+                  <div
+                    className={`rounded-lg border p-2 ${
+                      isLeader
+                        ? "border-white/10 bg-white/[0.055]"
+                        : "border-black/10 bg-[#f6f8f4]"
+                    }`}
+                    key={metric.label}
+                  >
+                    <p className="text-lg font-semibold leading-none">
+                      {metric.value}
+                    </p>
+                    <p
+                      className={`mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] ${
+                        isLeader ? "text-white/42" : "text-black/42"
+                      }`}
+                    >
+                      {metric.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-auto pt-5">
+                <p
+                  className={`text-[0.66rem] font-semibold uppercase tracking-[0.16em] ${
+                    isLeader ? "text-white/40" : "text-black/42"
+                  }`}
+                >
+                  {labels.latest}
+                </p>
+                <p
+                  className={`mt-2 line-clamp-2 break-words text-sm font-semibold leading-5 [overflow-wrap:anywhere] ${
+                    isLeader ? "text-white/72" : "text-black/62"
+                  }`}
+                >
+                  {creator.latestTitle}
+                </p>
+                <span
+                  className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${
+                    isLeader ? "text-[#44f26e]" : "text-black"
+                  }`}
+                >
+                  {labels.cta}
+                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SocialMetrics({
   content,
   locale,
@@ -1121,12 +1378,14 @@ function FanletterChannelTabs({
       ? {
           about: "소개",
           fanOnly: "팬 전용",
+          fanRequests: "요청",
           home: "홈",
           publicVlogs: "공개 브이로그",
         }
       : {
           about: "About",
           fanOnly: "Fan-only",
+          fanRequests: "Requests",
           home: "Home",
           publicVlogs: "Public vlogs",
         };
@@ -1136,6 +1395,7 @@ function FanletterChannelTabs({
       href: `${channelHref}#public-vlogs`,
       label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
     },
+    { href: `${channelHref}#fan-requests`, label: labels.fanRequests },
     { href: `${channelHref}#fan-only`, label: labels.fanOnly },
     { href: `${channelHref}#about`, label: labels.about },
   ];
@@ -1307,6 +1567,134 @@ function FanletterFanOnlyPreview({
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FanletterFanPromptPanel({
+  characterName,
+  className = "",
+  followHref,
+  id,
+  locale,
+  requestHref,
+  startHref,
+}: {
+  characterName: string;
+  className?: string;
+  followHref: string;
+  id?: string;
+  locale: Locale;
+  requestHref: string;
+  startHref: string;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: "좋아요만 누르고 끝나지 않게, 응원 메시지와 다음 브이로그 요청을 FanLetter 흐름으로 이어갑니다.",
+          eyebrow: "Fan Request",
+          messageBody: "팔로우와 권한 확인을 거쳐 캐릭터 대화 흐름으로 이어집니다.",
+          messageCta: "메시지 남기기",
+          messageTitle: "응원 메시지",
+          requestBody: "보고 싶은 장소, 룩, 상황을 다음 브이로그 요청으로 연결합니다.",
+          requestCta: "요청하기",
+          requestTitle: "다음 브이로그 요청",
+          startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
+          startCta: "채널 시작",
+          startTitle: "내 캐릭터로 답장",
+          title: `${characterName}에게 한마디 남기기`,
+        }
+      : {
+          body: "Move beyond likes by connecting fan messages and next-vlog requests into the FanLetter flow.",
+          eyebrow: "Fan Request",
+          messageBody: "Follow and access checks lead into the character conversation flow.",
+          messageCta: "Leave a message",
+          messageTitle: "Support message",
+          requestBody: "Turn places, outfits, and scenes fans want to see into next-vlog requests.",
+          requestCta: "Request vlog",
+          requestTitle: "Next vlog request",
+          startBody: "Create your own AI character and collect fan participation the same way.",
+          startCta: "Start channel",
+          startTitle: "Reply with my character",
+          title: `Leave a note for ${characterName}`,
+        };
+  const actions = [
+    {
+      body: labels.messageBody,
+      cta: labels.messageCta,
+      href: followHref,
+      icon: MessageCircleHeart,
+      title: labels.messageTitle,
+    },
+    {
+      body: labels.requestBody,
+      cta: labels.requestCta,
+      href: requestHref,
+      icon: Clapperboard,
+      title: labels.requestTitle,
+    },
+    {
+      body: labels.startBody,
+      cta: labels.startCta,
+      href: startHref,
+      icon: Rocket,
+      title: labels.startTitle,
+    },
+  ];
+
+  return (
+    <section
+      className={`scroll-mt-24 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 ${className}`}
+      id={id}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.55rem]">
+            {labels.title}
+          </h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+            {labels.body}
+          </p>
+        </div>
+        <Link
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          href={requestHref}
+        >
+          <PenLine className="size-4" />
+          {labels.requestCta}
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-3 md:grid-cols-3">
+        {actions.map((action) => {
+          const Icon = action.icon;
+
+          return (
+            <Link
+              className="group rounded-lg border border-white/10 bg-white/[0.055] p-4 transition hover:border-[#44f26e]/46 hover:bg-white/[0.075]"
+              href={action.href}
+              key={action.title}
+            >
+              <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <h3 className="mt-5 text-xl font-semibold tracking-normal">
+                {action.title}
+              </h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/56">
+                {action.body}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
+                {action.cta}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -1579,6 +1967,7 @@ export function FanletterFeedPage({
       ]),
     ).values(),
   ).slice(0, 6);
+  const rankedCreatorCount = getRankedCreators(items).length;
   const feedStats = [
     {
       label: copy.feed.freePublic,
@@ -1601,6 +1990,12 @@ export function FanletterFeedPage({
   const sectionLinks = [
     featuredItem
       ? { href: `${feedHref}#popular-vlog`, label: copy.feed.trending }
+      : null,
+    rankedCreatorCount > 0
+      ? {
+          href: `${feedHref}#popular-characters`,
+          label: locale === "ko" ? "캐릭터 랭킹" : "Character ranking",
+        }
       : null,
     videoItems.length > 0
       ? { href: `${feedHref}#video-vlogs`, label: copy.feed.videos }
@@ -1695,6 +2090,12 @@ export function FanletterFeedPage({
               </div>
             </div>
           ) : null}
+
+          <FanletterCreatorRanking
+            items={items}
+            locale={locale}
+            referralCode={referralCode}
+          />
 
           {videoItems.length > 0 ? (
             <section className="mb-10 scroll-mt-6" id="video-vlogs">
@@ -1972,6 +2373,12 @@ export function FanletterCreatorPage({
       returnTo: channelHref,
     },
   );
+  const fanRequestHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
+    {
+      returnTo: `${channelHref}#fan-requests`,
+    },
+  );
   const fanOnlyHref = `${channelHref}#fan-only`;
   const channelStats = [
     {
@@ -2139,6 +2546,16 @@ export function FanletterCreatorPage({
               />
             </section>
           ) : null}
+
+          <FanletterFanPromptPanel
+            characterName={channelName}
+            className="mb-8"
+            followHref={followHref}
+            id="fan-requests"
+            locale={locale}
+            requestHref={fanRequestHref}
+            startHref={startHref}
+          />
 
           <FanletterFanOnlyPreview
             channelName={channelName}
@@ -2361,6 +2778,12 @@ export function FanletterContentDetailPage({
         effectiveReferralCode,
       )
     : fallbackBackHref;
+  const fanRequestHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
+    {
+      returnTo: `${creatorHref}#fan-requests`,
+    },
+  );
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
@@ -2376,6 +2799,7 @@ export function FanletterContentDetailPage({
   const creatorActionLabel = content.canPubliclyAccess
     ? copy.actions.creatorChannel
     : copy.actions.existingDetail;
+  const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -2453,6 +2877,15 @@ export function FanletterContentDetailPage({
                 locale={locale}
                 primaryActionHref={creatorActionHref}
                 primaryActionLabel={creatorActionLabel}
+                startHref={startHref}
+              />
+
+              <FanletterFanPromptPanel
+                characterName={contentCharacterName}
+                className="mt-6"
+                followHref={onboardingHref}
+                locale={locale}
+                requestHref={fanRequestHref}
                 startHref={startHref}
               />
 
