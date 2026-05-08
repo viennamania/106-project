@@ -3,8 +3,11 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
+  BellPlus,
   Clapperboard,
   CheckCircle2,
+  Crown,
   Grid2X2,
   Heart,
   LockKeyhole,
@@ -16,6 +19,7 @@ import {
   Share2,
   Sparkles,
   User,
+  Video,
   WalletCards,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -839,6 +843,374 @@ function SocialMetrics({
   );
 }
 
+function FanletterChannelHeroPreview({
+  channelAvatarUrl,
+  channelName,
+  character,
+  featuredItem,
+  locale,
+  publicContentCount,
+  referralCode,
+}: {
+  channelAvatarUrl: string | null;
+  channelName: string;
+  character: FanletterPublicCharacter | null;
+  featuredItem: FanletterPublicContentItem | null;
+  locale: Locale;
+  publicContentCount: number;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const labels =
+    locale === "ko"
+      ? {
+          aiCreator: "AI 캐릭터",
+          freeWall: "무료 공개 피드",
+          latest: "대표 브이로그",
+          paidReady: "팬 전용 준비 중",
+        }
+      : {
+          aiCreator: "AI character",
+          freeWall: "Free public feed",
+          latest: "Featured vlog",
+          paidReady: "Fan-only coming soon",
+        };
+  const heroTitle = featuredItem?.title ?? character?.latestTitle ?? copy.creator.empty;
+  const heroHref = featuredItem
+    ? getContentHref({ item: featuredItem, locale, referralCode })
+    : null;
+  const stats = [
+    {
+      label: copy.creator.publicPosts,
+      value: formatNumber(publicContentCount, locale),
+    },
+    {
+      label: copy.creator.characterVideoSignal,
+      value: formatNumber(character?.videoContentCount ?? 0, locale),
+    },
+    {
+      label: copy.creator.characterImageSignal,
+      value: formatNumber(character?.avatarImageSet.length ?? 0, locale),
+    },
+  ];
+  const preview = (
+    <div className="group relative overflow-hidden rounded-lg border border-white/12 bg-[#07100b] shadow-[0_28px_90px_rgba(0,0,0,0.36)]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b]">
+        {featuredItem?.primaryVideoUrl ? (
+          <FanletterAutoplayVideo
+            ariaHidden
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+            poster={featuredItem.coverImageUrl ?? undefined}
+            src={featuredItem.primaryVideoUrl}
+          />
+        ) : featuredItem?.coverImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover transition duration-500 group-hover:scale-[1.025]"
+            fill
+            sizes="(max-width: 1024px) 100vw, 28rem"
+            src={featuredItem.coverImageUrl}
+          />
+        ) : channelAvatarUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover"
+            fill
+            sizes="(max-width: 1024px) 100vw, 28rem"
+            src={channelAvatarUrl}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_50%_22%,rgba(68,242,110,0.28),transparent_34%),linear-gradient(145deg,#07100b,#111b15_52%,#1b2d22)]">
+            <Clapperboard className="size-16 text-[#44f26e]" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_40%,rgba(0,0,0,0.88)_100%)]" />
+        <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
+            <BadgeCheck className="size-3.5" />
+            {labels.aiCreator}
+          </span>
+          <span className="inline-flex rounded-full border border-white/16 bg-black/34 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white">
+            {labels.freeWall}
+          </span>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className="flex items-center gap-3">
+            <Avatar
+              imageUrl={channelAvatarUrl}
+              name={channelName}
+              sizeClassName="size-12"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">
+                {channelName}
+              </p>
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/64">
+                {heroTitle}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10 bg-[#07100b] p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-white/42">
+            {labels.latest}
+          </p>
+          <span className="inline-flex rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-[0.66rem] font-semibold text-[#b9ffc8]">
+            {labels.paidReady}
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {stats.map((stat) => (
+            <div
+              className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+              key={stat.label}
+            >
+              <p className="text-xl font-semibold leading-none text-white">
+                {stat.value}
+              </p>
+              <p className="mt-2 text-[0.54rem] font-semibold uppercase tracking-[0.1em] text-white/42">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return heroHref ? (
+    <Link className="block" href={heroHref}>
+      {preview}
+    </Link>
+  ) : (
+    preview
+  );
+}
+
+function FanletterCreatorFanAccessPanel({
+  feedHref,
+  locale,
+  startHref,
+}: {
+  feedHref: string;
+  locale: Locale;
+  startHref: string;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: "공개 브이로그는 바로 둘러보고, 더 깊은 팬 전용 흐름은 같은 캐릭터 채널 안에서 이어가도록 정리했습니다.",
+          create: "내 캐릭터 만들기",
+          freeBody: "가입 전에도 공개 브이로그와 캐릭터 분위기를 먼저 확인합니다.",
+          freeTitle: "무료 공개 보기",
+          messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
+          messageTitle: "팬 대화 흐름",
+          paidBody: "준비되는 팬 전용 콘텐츠를 같은 캐릭터 채널에서 이어봅니다.",
+          paidTitle: "팬 전용 준비 중",
+          title: "팬이 바로 이해하는 채널 구조",
+          view: "공개 브이로그 보기",
+        }
+      : {
+          body: "Public vlogs are easy to browse, while deeper fan-only flows stay inside the same character channel.",
+          create: "Create my character",
+          freeBody: "Fans can preview public vlogs and the character mood before signing up.",
+          freeTitle: "Free public view",
+          messageBody: "Comments and messages stay inside FanLetter through access checks.",
+          messageTitle: "Fan conversation flow",
+          paidBody: "Upcoming fan-only content can continue inside this character channel.",
+          paidTitle: "Fan-only coming soon",
+          title: "A channel structure fans understand",
+          view: "View public vlogs",
+        };
+  const accessItems = [
+    {
+      body: labels.freeBody,
+      icon: BellPlus,
+      title: labels.freeTitle,
+    },
+    {
+      body: labels.paidBody,
+      icon: Crown,
+      title: labels.paidTitle,
+    },
+    {
+      body: labels.messageBody,
+      icon: MessageCircleHeart,
+      title: labels.messageTitle,
+    },
+  ];
+
+  return (
+    <aside className="rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-6">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+        Fan Access
+      </p>
+      <h2 className="mt-3 text-[1.9rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all]">
+        {labels.title}
+      </h2>
+      <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+        {labels.body}
+      </p>
+
+      <div className="mt-5 grid gap-2">
+        {accessItems.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <div
+              className="flex gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
+              key={item.title}
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">{item.title}</p>
+                <p className="mt-1 text-sm font-medium leading-5 text-black/52">
+                  {item.body}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <Link
+          className="inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+          href={feedHref}
+        >
+          {labels.view}
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
+          href={startHref}
+        >
+          {labels.create}
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
+function FanletterRelatedVlogCard({
+  fallbackImageUrl,
+  item,
+  locale,
+  referralCode,
+}: {
+  fallbackImageUrl: string | null;
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const href = getContentHref({ item, locale, referralCode });
+  const fallbackThumbUrl = item.authorAvatarImageUrl ?? fallbackImageUrl;
+
+  return (
+    <Link
+      className="group grid min-w-0 grid-cols-[5.75rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-white/[0.045] p-3 transition hover:bg-white/[0.07]"
+      href={href}
+    >
+      <div className="relative aspect-[9/14] overflow-hidden rounded-lg bg-[#07100b]">
+        {item.coverImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover transition duration-500 group-hover:scale-[1.025]"
+            fill
+            sizes="6rem"
+            src={item.coverImageUrl}
+          />
+        ) : fallbackThumbUrl ? (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.025]"
+            style={{ backgroundImage: `url(${fallbackThumbUrl})` }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#101820] text-white/52">
+            <Video className="size-7 text-[#44f26e]" />
+            <span className="text-[0.58rem] font-semibold uppercase tracking-[0.14em]">
+              Video
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 self-center">
+        <p className="line-clamp-2 break-words text-base font-semibold leading-tight text-white [overflow-wrap:anywhere]">
+          {item.title}
+        </p>
+        <p className="mt-2 line-clamp-2 break-words text-sm font-medium leading-5 text-white/54 [overflow-wrap:anywhere]">
+          {item.summary}
+        </p>
+        <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-white/42">
+          <Heart className="size-3.5 text-[#44f26e]" />
+          {formatNumber(getContentEngagementScore(item), locale)}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function FanletterRelatedVlogs({
+  fallbackImageUrl,
+  items,
+  locale,
+  referralCode,
+}: {
+  fallbackImageUrl: string | null;
+  items: FanletterPublicContentItem[];
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          eyebrow: "같은 캐릭터",
+          title: "다음에 볼 공개 브이로그",
+        }
+      : {
+          eyebrow: "Same character",
+          title: "Public vlogs to watch next",
+        };
+
+  return (
+    <section className="mt-6 rounded-lg border border-white/10 bg-[#07100b] p-4 sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-normal text-white">
+            {labels.title}
+          </h2>
+        </div>
+        <ArrowRight className="size-5 shrink-0 text-white/34" />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {items.map((item) => (
+          <FanletterRelatedVlogCard
+            fallbackImageUrl={fallbackImageUrl}
+            item={item}
+            key={item.contentId}
+            locale={locale}
+            referralCode={referralCode}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterFeedPage({
   items,
   locale,
@@ -1270,6 +1642,10 @@ export function FanletterCreatorPage({
     `/${locale}/fanletter/feed`,
     effectiveReferralCode,
   );
+  const channelHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
   const channelStats = [
     {
       label: copy.creator.publicPosts,
@@ -1287,6 +1663,33 @@ export function FanletterCreatorPage({
 
   return (
     <FanletterShell
+      actions={
+        <>
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={startHref}
+          >
+            {copy.actions.start}
+          </Link>
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={feedHref}
+          >
+            {copy.actions.feed}
+          </Link>
+        </>
+      }
+      aside={
+        <FanletterChannelHeroPreview
+          channelAvatarUrl={channelAvatarUrl}
+          channelName={channelName}
+          character={character}
+          featuredItem={featuredItem}
+          locale={locale}
+          publicContentCount={data.publicContentCount}
+          referralCode={effectiveReferralCode}
+        />
+      }
       description={channelSummary}
       eyebrow={copy.creator.eyebrow}
       locale={locale}
@@ -1361,6 +1764,12 @@ export function FanletterCreatorPage({
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+                  href={channelHref}
+                >
+                  {copy.actions.creatorChannel}
+                </Link>
+                <Link
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
                   href={feedHref}
                 >
                   {copy.actions.feed}
@@ -1368,22 +1777,11 @@ export function FanletterCreatorPage({
               </div>
             </article>
 
-            {featuredItem ? (
-              <FeaturedFeedCard
-                item={featuredItem}
-                locale={locale}
-                referralCode={effectiveReferralCode}
-              />
-            ) : (
-              <aside className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.1)]">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-black/42">
-                  {copy.creator.characterLatest}
-                </p>
-                <p className="mt-3 text-sm font-medium leading-6 text-black/54">
-                  {copy.creator.empty}
-                </p>
-              </aside>
-            )}
+            <FanletterCreatorFanAccessPanel
+              feedHref={feedHref}
+              locale={locale}
+              startHref={startHref}
+            />
           </div>
 
           {character ? (
@@ -1393,6 +1791,26 @@ export function FanletterCreatorPage({
               locale={locale}
               publicContentCount={data.publicContentCount}
             />
+          ) : null}
+
+          {featuredItem ? (
+            <section className="mb-8">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                    {copy.feed.featured}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                    {copy.feed.trending}
+                  </h2>
+                </div>
+              </div>
+              <FeaturedFeedCard
+                item={featuredItem}
+                locale={locale}
+                referralCode={effectiveReferralCode}
+              />
+            </section>
           ) : null}
 
           <section>
@@ -1452,6 +1870,18 @@ function FanletterCharacterMiniCard({
   const traits = (character?.traits.length ? character.traits : content.tags)
     .filter(Boolean)
     .slice(0, 4);
+  const labels =
+    locale === "ko"
+      ? {
+          aiLabel: "AI 캐릭터",
+          fanOnly: "팬 전용 준비 중",
+          freeFollow: "무료 공개 채널",
+        }
+      : {
+          aiLabel: "AI character",
+          fanOnly: "Fan-only coming soon",
+          freeFollow: "Free public channel",
+        };
   const stats = [
     {
       label: copy.creator.publicPosts,
@@ -1497,6 +1927,27 @@ function FanletterCharacterMiniCard({
               </p>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2">
+          <BadgeCheck className="size-4 shrink-0 text-[#44f26e]" />
+          <span className="min-w-0 truncate text-xs font-semibold text-white/72">
+            {labels.aiLabel}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2">
+          <BellPlus className="size-4 shrink-0 text-[#44f26e]" />
+          <span className="min-w-0 truncate text-xs font-semibold text-white/72">
+            {labels.freeFollow}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 px-3 py-2">
+          <Crown className="size-4 shrink-0 text-[#44f26e]" />
+          <span className="min-w-0 truncate text-xs font-semibold text-[#b9ffc8]">
+            {labels.fanOnly}
+          </span>
         </div>
       </div>
 
@@ -1734,6 +2185,16 @@ export function FanletterContentDetailPage({
                   {content.body}
                 </p>
               </section>
+
+              <FanletterRelatedVlogs
+                fallbackImageUrl={
+                  content.authorCharacter?.avatarImageSet[0]?.url ??
+                  content.authorAvatarImageUrl
+                }
+                items={content.authorRecentContent}
+                locale={locale}
+                referralCode={effectiveReferralCode}
+              />
             </section>
           </div>
         </div>

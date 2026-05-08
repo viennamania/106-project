@@ -44,6 +44,7 @@ export type FanletterPublicContentItem = {
 export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   authorCharacter: FanletterPublicCharacter | null;
   authorPublicContentCount: number;
+  authorRecentContent: FanletterPublicContentItem[];
   body: string;
   canPubliclyAccess: boolean;
   contentImageUrls: string[];
@@ -379,11 +380,23 @@ export const getFanletterPublicContentDetail = cache(
           postsCollection.countDocuments(authorContentFilter),
         ])
       : [[], 0];
+    const authorRecentPosts = authorPosts
+      .filter((authorPost) => authorPost.contentId !== post.contentId)
+      .slice(0, 4);
+    const authorRecentSocialByContentId =
+      await getSocialByContentId(authorRecentPosts);
 
     return {
       ...toPublicContentItem({ post, profile, social }),
       authorCharacter: getPublicCharacter({ posts: authorPosts, profile }),
       authorPublicContentCount,
+      authorRecentContent: authorRecentPosts.map((authorPost) =>
+        toPublicContentItem({
+          post: authorPost,
+          profile,
+          social: authorRecentSocialByContentId.get(authorPost.contentId),
+        }),
+      ),
       body: canPubliclyAccess
         ? post.body
         : post.previewText?.trim() || post.summary,
