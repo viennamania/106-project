@@ -25,6 +25,7 @@ import {
 import type { ReactNode } from "react";
 
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
@@ -1575,18 +1576,22 @@ function FanletterFanOnlyPreview({
 function FanletterFanPromptPanel({
   characterName,
   className = "",
+  creatorReferralCode,
   followHref,
   id,
   locale,
   requestHref,
+  sourceContentId,
   startHref,
 }: {
   characterName: string;
   className?: string;
+  creatorReferralCode: string | null;
   followHref: string;
   id?: string;
   locale: Locale;
   requestHref: string;
+  sourceContentId?: string | null;
   startHref: string;
 }) {
   const labels =
@@ -1696,6 +1701,15 @@ function FanletterFanPromptPanel({
           );
         })}
       </div>
+
+      {creatorReferralCode ? (
+        <FanletterFanRequestForm
+          characterName={characterName}
+          creatorReferralCode={creatorReferralCode}
+          locale={locale}
+          sourceContentId={sourceContentId}
+        />
+      ) : null}
     </section>
   );
 }
@@ -2550,6 +2564,7 @@ export function FanletterCreatorPage({
           <FanletterFanPromptPanel
             characterName={channelName}
             className="mb-8"
+            creatorReferralCode={data.profile.referralCode}
             followHref={followHref}
             id="fan-requests"
             locale={locale}
@@ -2883,9 +2898,11 @@ export function FanletterContentDetailPage({
               <FanletterFanPromptPanel
                 characterName={contentCharacterName}
                 className="mt-6"
+                creatorReferralCode={content.authorReferralCode}
                 followHref={onboardingHref}
                 locale={locale}
                 requestHref={fanRequestHref}
+                sourceContentId={content.contentId}
                 startHref={startHref}
               />
 

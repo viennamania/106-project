@@ -37,6 +37,9 @@ import type {
   CreatorProfileRecord,
   CreatorProfileResponse,
   CreatorStudioPostsResponse,
+  FanletterFanRequestRecord,
+  FanletterFanRequestStatusUpdateResponse,
+  FanletterFanRequestsResponse,
   FanletterVlogPlanItem,
   FanletterVlogPlanStatus,
   FanletterVlogPlannerResponse,
@@ -58,6 +61,8 @@ type StudioStatus = "error" | "idle" | "loading" | "ready";
 
 type StudioState = {
   error: string | null;
+  fanRequests: FanletterFanRequestRecord[];
+  fanRequestsError: string | null;
   member: MemberRecord | null;
   posts: ContentPostRecord[];
   postsSummary: CreatorStudioPostsResponse["summary"];
@@ -98,6 +103,7 @@ function getCopy(locale: Locale) {
           channels: "채널 배포 관리",
           create: "오늘의 브이로그 만들기",
           feed: "브이로그 피드 보기",
+          fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
           profile: "캐릭터 만들기",
           refresh: "다시 확인",
@@ -116,6 +122,7 @@ function getCopy(locale: Locale) {
           availableBalance: "출금 가능",
           completedMember: "가입 완료",
           draftPosts: "임시저장",
+          fanRequests: "팬 요청",
           memberStatus: "회원 상태",
           paid: "유료",
           persona: "캐릭터 페르소나",
@@ -140,6 +147,27 @@ function getCopy(locale: Locale) {
         published: "공개",
         recentTitle: "최근 브이로그",
         salesFallback: "판매 요약을 불러오지 못했습니다.",
+        fanRequests: {
+          body: "캐릭터 채널과 콘텐츠 상세에서 들어온 응원 메시지와 다음 브이로그 요청을 모아봅니다.",
+          create: "이 요청으로 만들기",
+          empty:
+            "아직 팬 요청이 없습니다. 캐릭터 채널을 공유하면 이곳에 요청이 쌓입니다.",
+          errorFallback: "팬 요청을 불러오지 못했습니다.",
+          hide: "숨김",
+          markReviewed: "확인",
+          requester: "보낸 사람",
+          statuses: {
+            hidden: "숨김",
+            new: "신규",
+            reviewed: "확인함",
+            used: "제작 반영",
+          },
+          title: "팬 요청함",
+          types: {
+            message: "응원 메시지",
+            vlog_request: "브이로그 요청",
+          },
+        },
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
         planner: {
@@ -190,6 +218,7 @@ function getCopy(locale: Locale) {
           channels: "Manage channels",
           create: "Create today's vlog",
           feed: "View vlog feed",
+          fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
           profile: "Create character",
           refresh: "Check again",
@@ -208,6 +237,7 @@ function getCopy(locale: Locale) {
           availableBalance: "Available",
           completedMember: "Completed",
           draftPosts: "Drafts",
+          fanRequests: "Fan requests",
           memberStatus: "Member status",
           paid: "Paid",
           persona: "Character persona",
@@ -232,6 +262,27 @@ function getCopy(locale: Locale) {
         published: "Published",
         recentTitle: "Recent vlogs",
         salesFallback: "Could not load sales summary.",
+        fanRequests: {
+          body: "Review support messages and next-vlog requests from character channels and content detail pages.",
+          create: "Create from request",
+          empty:
+            "No fan requests yet. Share the character channel to collect them here.",
+          errorFallback: "Could not load fan requests.",
+          hide: "Hide",
+          markReviewed: "Reviewed",
+          requester: "From",
+          statuses: {
+            hidden: "Hidden",
+            new: "New",
+            reviewed: "Reviewed",
+            used: "Used",
+          },
+          title: "Fan request inbox",
+          types: {
+            message: "Support message",
+            vlog_request: "Vlog request",
+          },
+        },
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
         planner: {
@@ -370,6 +421,44 @@ async function readApiJson<T>(response: Response, fallback: string) {
   return data as T;
 }
 
+function buildFanRequestCreateHref({
+  createHref,
+  locale,
+  request,
+}: {
+  createHref: string;
+  locale: Locale;
+  request: FanletterFanRequestRecord;
+}) {
+  const normalizedBody = request.body.trim().replace(/\s+/g, " ");
+  const titleSeed = normalizedBody.slice(0, 52);
+  const title =
+    locale === "ko"
+      ? request.requestType === "message"
+        ? `팬 메시지 답장: ${titleSeed}`
+        : `팬 요청: ${titleSeed}`
+      : request.requestType === "message"
+        ? `Fan message reply: ${titleSeed}`
+        : `Fan request: ${titleSeed}`;
+  const summary =
+    locale === "ko"
+      ? `${request.characterName}에게 들어온 팬 요청을 바탕으로 만든 브이로그입니다.`
+      : `A vlog based on a fan request for ${request.characterName}.`;
+  const prompt =
+    locale === "ko"
+      ? `${request.characterName}가 팬의 요청을 자연스럽게 반영한 세로형 숏폼 브이로그. 팬 요청: ${normalizedBody}`
+      : `${request.characterName} naturally responds to a fan request in a vertical short-form vlog. Fan request: ${normalizedBody}`;
+
+  return setPathSearchParams(createHref, {
+    fanRequestId: request.requestId,
+    planBody: request.body,
+    planMode: "video",
+    planPrompt: prompt,
+    planSummary: summary,
+    planTitle: title,
+  });
+}
+
 function StatusPanel({
   body,
   cta,
@@ -475,6 +564,146 @@ function ActionCard({
       <h2 className="mt-5 text-xl font-semibold leading-tight">{title}</h2>
       <p className="mt-2 text-sm font-medium leading-6 text-black/54">{body}</p>
     </Link>
+  );
+}
+
+function FanRequestsSection({
+  copy,
+  createHref,
+  error,
+  locale,
+  onUpdateStatus,
+  requests,
+  updatingRequestId,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  createHref: string;
+  error: string | null;
+  locale: Locale;
+  onUpdateStatus: (
+    requestId: string,
+    status: FanletterFanRequestRecord["status"],
+  ) => void;
+  requests: FanletterFanRequestRecord[];
+  updatingRequestId: string | null;
+}) {
+  return (
+    <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
+            Fan Request
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-normal">
+            {copy.fanRequests.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/54">
+            {copy.fanRequests.body}
+          </p>
+        </div>
+        <span className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black/62">
+          {formatNumber(requests.length, locale)}
+        </span>
+      </div>
+
+      {error ? (
+        <p className="mt-4 rounded-lg border border-amber-300/20 bg-amber-300/12 p-3 text-sm font-medium leading-6 text-amber-900">
+          {error}
+        </p>
+      ) : null}
+
+      {requests.length > 0 ? (
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          {requests.map((request) => {
+            const isUpdating = updatingRequestId === request.requestId;
+            const createFromRequestHref = buildFanRequestCreateHref({
+              createHref,
+              locale,
+              request,
+            });
+            const createdLabel = formatDate(request.createdAt, locale);
+
+            return (
+              <article
+                className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4"
+                key={request.requestId}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="rounded-full bg-black px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white">
+                    {copy.fanRequests.types[request.requestType]}
+                  </span>
+                  <span className="rounded-full border border-[#44f26e]/30 bg-[#44f26e]/16 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
+                    {copy.fanRequests.statuses[request.status]}
+                  </span>
+                </div>
+
+                <p className="mt-4 line-clamp-4 break-words text-base font-semibold leading-7 text-black [overflow-wrap:anywhere]">
+                  {request.body}
+                </p>
+                <div className="mt-4 grid gap-2 text-xs font-semibold text-black/44 sm:grid-cols-2">
+                  <span>
+                    {copy.fanRequests.requester}:{" "}
+                    <span className="text-black/64">
+                      {request.requesterDisplayName ??
+                        request.requesterEmail ??
+                        "FanLetter"}
+                    </span>
+                  </span>
+                  <span className="sm:text-right">{createdLabel ?? "-"}</span>
+                </div>
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold !text-white transition hover:bg-black/82 sm:col-span-3"
+                    href={createFromRequestHref}
+                  >
+                    {copy.fanRequests.create}
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                  {request.status === "new" ? (
+                    <button
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold text-black/58 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isUpdating}
+                      onClick={() => {
+                        onUpdateStatus(request.requestId, "reviewed");
+                      }}
+                      type="button"
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        copy.fanRequests.markReviewed
+                      )}
+                    </button>
+                  ) : null}
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold text-black/58 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={isUpdating}
+                    onClick={() => {
+                      onUpdateStatus(request.requestId, "hidden");
+                    }}
+                    type="button"
+                  >
+                    {isUpdating ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      copy.fanRequests.hide
+                    )}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-5 rounded-lg border border-dashed border-black/12 bg-[#f6f8f4] p-5">
+          <MessageCircleHeart className="size-8 text-[#16702e]" />
+          <p className="mt-4 text-sm font-medium leading-6 text-black/54">
+            {copy.fanRequests.empty}
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -812,8 +1041,11 @@ export function FanletterStudioPage({
     status: "idle",
   });
   const [updatingPlanId, setUpdatingPlanId] = useState<string | null>(null);
+  const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(null);
   const [state, setState] = useState<StudioState>({
     error: null,
+    fanRequests: [],
+    fanRequestsError: null,
     member: memberSession.member,
     posts: [],
     postsSummary: EMPTY_POSTS_SUMMARY,
@@ -848,6 +1080,7 @@ export function FanletterStudioPage({
     setState((current) => ({
       ...current,
       error: null,
+      fanRequestsError: null,
       salesError: null,
       status: "loading",
     }));
@@ -901,7 +1134,9 @@ export function FanletterStudioPage({
       const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&media=video&pageSize=${STUDIO_POSTS_PAGE_SIZE}&status=all`;
       const salesUrl = `/api/content/sales?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=4`;
       const plannerUrl = `/api/content/planner?email=${encodedEmail}&walletAddress=${encodedWallet}`;
-      const [postsData, salesResult, plannerResult] = await Promise.all([
+      const fanRequestsUrl = `/api/fanletter/requests?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=6`;
+      const [postsData, salesResult, plannerResult, fanRequestsResult] =
+        await Promise.all([
         fetch(postsUrl, { cache: "no-store" }).then((response) =>
           readApiJson<CreatorStudioPostsResponse>(response, copy.connectRequired),
         ),
@@ -937,6 +1172,23 @@ export function FanletterStudioPage({
                   : copy.planner.errorFallback,
             }),
           ),
+        fetch(fanRequestsUrl, { cache: "no-store" })
+          .then((response) =>
+            readApiJson<FanletterFanRequestsResponse>(
+              response,
+              copy.fanRequests.errorFallback,
+            ),
+          )
+          .then(
+            (data) => ({ data, error: null }),
+            (error: unknown) => ({
+              data: null,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : copy.fanRequests.errorFallback,
+            }),
+          ),
       ]);
       const nextMember =
         profileData.member ?? postsData.member ?? salesResult.data?.member ?? null;
@@ -951,6 +1203,8 @@ export function FanletterStudioPage({
 
       setState({
         error: null,
+        fanRequests: fanRequestsResult.data?.requests ?? [],
+        fanRequestsError: fanRequestsResult.error,
         member: nextMember,
         posts: postsData.posts,
         postsSummary: postsData.summary,
@@ -985,6 +1239,7 @@ export function FanletterStudioPage({
     chain.id,
     chain.name,
     copy.connectRequired,
+    copy.fanRequests.errorFallback,
     copy.planner.errorFallback,
     copy.salesFallback,
     locale,
@@ -1119,6 +1374,79 @@ export function FanletterStudioPage({
       accountAddress,
       copy.connectRequired,
       copy.planner.errorFallback,
+      resolveEmail,
+    ],
+  );
+
+  const updateFanRequestStatus = useCallback(
+    async (
+      requestId: string,
+      status: FanletterFanRequestRecord["status"],
+      contentId?: string | null,
+    ) => {
+      if (!accountAddress) {
+        setState((current) => ({
+          ...current,
+          fanRequestsError: copy.connectRequired,
+        }));
+        return;
+      }
+
+      setUpdatingRequestId(requestId);
+      setState((current) => ({
+        ...current,
+        fanRequestsError: null,
+      }));
+
+      try {
+        const resolvedEmail = await resolveEmail();
+        const response = await fetch("/api/fanletter/requests", {
+          body: JSON.stringify({
+            contentId,
+            email: resolvedEmail,
+            requestId,
+            status,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
+        const data = await readApiJson<FanletterFanRequestStatusUpdateResponse>(
+          response,
+          copy.fanRequests.errorFallback,
+        );
+
+        setState((current) => ({
+          ...current,
+          fanRequests:
+            data.request.status === "hidden"
+              ? current.fanRequests.filter(
+                  (request) => request.requestId !== data.request.requestId,
+                )
+              : current.fanRequests.map((request) =>
+                  request.requestId === data.request.requestId
+                    ? data.request
+                    : request,
+                ),
+        }));
+      } catch (error) {
+        setState((current) => ({
+          ...current,
+          fanRequestsError:
+            error instanceof Error
+              ? error.message
+              : copy.fanRequests.errorFallback,
+        }));
+      } finally {
+        setUpdatingRequestId(null);
+      }
+    },
+    [
+      accountAddress,
+      copy.connectRequired,
+      copy.fanRequests.errorFallback,
       resolveEmail,
     ],
   );
@@ -1345,6 +1673,18 @@ export function FanletterStudioPage({
       <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
           <div className="min-w-0 space-y-6">
+            <FanRequestsSection
+              copy={copy}
+              createHref={createHref}
+              error={state.fanRequestsError}
+              locale={locale}
+              onUpdateStatus={(requestId, nextStatus) => {
+                void updateFanRequestStatus(requestId, nextStatus);
+              }}
+              requests={state.fanRequests}
+              updatingRequestId={updatingRequestId}
+            />
+
             <PlannerSection
               copy={copy}
               createHref={createHref}

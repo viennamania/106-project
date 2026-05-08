@@ -35,6 +35,7 @@ import type { MemberAnnouncementDocument } from "@/lib/announcements";
 import type {
   ContentCommentDocument,
   ContentEntitlementDocument,
+  FanletterFanRequestDocument,
   ContentImageGenerationDocument,
   FanletterVlogPlanDocument,
   ContentOrderDocument,
@@ -130,6 +131,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterVlogPlansCollectionPromise?: Promise<
     Collection<FanletterVlogPlanDocument>
+  >;
+  mongoFanletterFanRequestsCollectionPromise?: Promise<
+    Collection<FanletterFanRequestDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -990,6 +994,32 @@ export async function getContentImageGenerationsCollection() {
   }
 
   return globalForMongo.mongoContentImageGenerationsCollectionPromise;
+}
+
+export async function getFanletterFanRequestsCollection() {
+  if (!globalForMongo.mongoFanletterFanRequestsCollectionPromise) {
+    globalForMongo.mongoFanletterFanRequestsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_FAN_REQUESTS_COLLECTION ??
+        "fanletterFanRequests";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterFanRequestDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ requestId: 1 }, { unique: true }),
+        collection.createIndex({ creatorEmail: 1, status: 1, createdAt: -1 }),
+        collection.createIndex({ creatorReferralCode: 1, createdAt: -1 }),
+        collection.createIndex({ sourceContentId: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterFanRequestsCollectionPromise;
 }
 
 export async function getFanletterVlogPlansCollection() {

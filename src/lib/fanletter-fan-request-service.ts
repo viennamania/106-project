@@ -1,0 +1,285 @@
+import "server-only";
+
+import { randomUUID } from "node:crypto";
+
+import type { Filter } from "mongodb";
+
+import type {
+  FanletterFanRequestDocument,
+  FanletterFanRequestRecord,
+  FanletterFanRequestStatus,
+  FanletterFanRequestType,
+} from "@/lib/content";
+import {
+  fanletterFanRequestStatuses,
+  fanletterFanRequestTypes,
+} from "@/lib/content";
+import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
+import {
+  getContentPostsCollection,
+  getCreatorProfilesCollection,
+  getFanletterFanRequestsCollection,
+  getMembersCollection,
+} from "@/lib/mongodb";
+
+const FANLETTER_FAN_REQUEST_BODY_LIMIT = 600;
+const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
+const FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT = 80;
+const FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT = 240;
+const FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX = 50;
+
+function collapseWhitespace(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function trimToLength(value: string | null | undefined, limit: number) {
+  const normalized = collapseWhitespace(value ?? "");
+
+  return normalized ? normalized.slice(0, limit) : null;
+}
+
+function normalizeFanRequestType(
+  value: string | null | undefined,
+): FanletterFanRequestType {
+  return fanletterFanRequestTypes.includes(value as FanletterFanRequestType)
+    ? (value as FanletterFanRequestType)
+    : "vlog_request";
+}
+
+function normalizeFanRequestStatus(
+  value: string | null | undefined,
+): FanletterFanRequestStatus {
+  if (fanletterFanRequestStatuses.includes(value as FanletterFanRequestStatus)) {
+    return value as FanletterFanRequestStatus;
+  }
+
+  throw new Error("Unsupported fan request status.");
+}
+
+function serializeFanRequest(
+  request: FanletterFanRequestDocument,
+): FanletterFanRequestRecord {
+  return {
+    body: request.body,
+    characterName: request.characterName,
+    createdAt: request.createdAt.toISOString(),
+    creatorDisplayName: request.creatorDisplayName,
+    creatorReferralCode: request.creatorReferralCode,
+    requestId: request.requestId,
+    requestType: request.requestType,
+    requesterDisplayName: request.requesterDisplayName,
+    requesterEmail: request.requesterEmail,
+    sourceContentId: request.sourceContentId,
+    sourcePath: request.sourcePath,
+    status: request.status,
+    usedContentId: request.usedContentId ?? null,
+    updatedAt: request.updatedAt.toISOString(),
+  };
+}
+
+async function resolveFanRequestCreator({
+  characterName,
+  creatorReferralCode,
+}: {
+  characterName?: string | null;
+  creatorReferralCode?: string | null;
+}) {
+  const normalizedReferralCode = normalizeReferralCode(creatorReferralCode);
+
+  if (!normalizedReferralCode) {
+    throw new Error("creatorReferralCode is required.");
+  }
+
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne({
+    referralCode: normalizedReferralCode,
+    status: "completed",
+  });
+
+  if (!member) {
+    throw new Error("Creator not found.");
+  }
+
+  const profilesCollection = await getCreatorProfilesCollection();
+  const profile = await profilesCollection.findOne({ email: member.email });
+  const fallbackDisplayName = member.email.split("@")[0] || "FanLetter";
+  const creatorDisplayName =
+    profile?.displayName?.trim() || fallbackDisplayName;
+  const resolvedCharacterName =
+    trimToLength(characterName, FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT) ??
+    trimToLength(
+      profile?.characterPersona?.name ?? profile?.displayName,
+      FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT,
+    ) ??
+    creatorDisplayName;
+
+  return {
+    characterName: resolvedCharacterName,
+    creatorDisplayName,
+    creatorEmail: member.email,
+    creatorReferralCode: normalizedReferralCode,
+  };
+}
+
+async function normalizeSourceContentId({
+  creatorReferralCode,
+  sourceContentId,
+}: {
+  creatorReferralCode: string;
+  sourceContentId?: string | null;
+}) {
+  const normalizedSourceContentId = sourceContentId?.trim() || null;
+
+  if (!normalizedSourceContentId) {
+    return null;
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId: normalizedSourceContentId,
+    status: "published",
+  });
+
+  if (!post) {
+    throw new Error("Source content not found.");
+  }
+
+  if (post.authorReferralCode !== creatorReferralCode) {
+    throw new Error("Source content does not match this creator.");
+  }
+
+  return normalizedSourceContentId;
+}
+
+export async function createFanletterFanRequest(input: {
+  body?: string | null;
+  characterName?: string | null;
+  creatorReferralCode?: string | null;
+  requestType?: string | null;
+  requesterDisplayName?: string | null;
+  requesterEmail?: string | null;
+  sourceContentId?: string | null;
+  sourcePath?: string | null;
+}) {
+  const body = trimToLength(input.body, FANLETTER_FAN_REQUEST_BODY_LIMIT);
+
+  if (!body) {
+    throw new Error("Fan request body is required.");
+  }
+
+  const creator = await resolveFanRequestCreator({
+    characterName: input.characterName,
+    creatorReferralCode: input.creatorReferralCode,
+  });
+  const sourceContentId = await normalizeSourceContentId({
+    creatorReferralCode: creator.creatorReferralCode,
+    sourceContentId: input.sourceContentId,
+  });
+  const now = new Date();
+  const request: FanletterFanRequestDocument = {
+    body,
+    characterName: creator.characterName,
+    createdAt: now,
+    creatorDisplayName: creator.creatorDisplayName,
+    creatorEmail: creator.creatorEmail,
+    creatorReferralCode: creator.creatorReferralCode,
+    requestId: randomUUID(),
+    requestType: normalizeFanRequestType(input.requestType),
+    requesterDisplayName: trimToLength(
+      input.requesterDisplayName,
+      FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
+    ),
+    requesterEmail: normalizeEmail(input.requesterEmail ?? "") || null,
+    sourceContentId,
+    sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),
+    status: "new",
+    usedContentId: null,
+    updatedAt: now,
+  };
+  const requestsCollection = await getFanletterFanRequestsCollection();
+
+  await requestsCollection.insertOne(request);
+
+  return serializeFanRequest(request);
+}
+
+export async function getFanletterFanRequestsForCreator({
+  creatorEmail,
+  pageSize = 20,
+  status,
+}: {
+  creatorEmail: string;
+  pageSize?: number;
+  status?: FanletterFanRequestStatus | "open" | null;
+}) {
+  const normalizedPageSize = Math.max(
+    1,
+    Math.min(Math.trunc(pageSize), FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX),
+  );
+  const filter: Filter<FanletterFanRequestDocument> = {
+    creatorEmail,
+    status:
+      status === "open" || !status
+        ? { $in: ["new", "reviewed", "used"] }
+        : status,
+  };
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const requests = await requestsCollection
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .limit(normalizedPageSize + 1)
+    .toArray();
+  const visibleRequests = requests.slice(0, normalizedPageSize);
+
+  return {
+    pageInfo: {
+      hasNextPage: requests.length > normalizedPageSize,
+      pageSize: normalizedPageSize,
+    },
+    requests: visibleRequests.map(serializeFanRequest),
+  };
+}
+
+export async function updateFanletterFanRequestStatusForCreator({
+  contentId,
+  creatorEmail,
+  requestId,
+  status,
+}: {
+  contentId?: string | null;
+  creatorEmail: string;
+  requestId?: string | null;
+  status?: string | null;
+}) {
+  const normalizedRequestId = requestId?.trim();
+
+  if (!normalizedRequestId) {
+    throw new Error("requestId is required.");
+  }
+
+  const normalizedStatus = normalizeFanRequestStatus(status);
+  const now = new Date();
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const result = await requestsCollection.findOneAndUpdate(
+    {
+      creatorEmail,
+      requestId: normalizedRequestId,
+    },
+    {
+      $set: {
+        status: normalizedStatus,
+        updatedAt: now,
+        ...(normalizedStatus === "used"
+          ? { usedContentId: contentId?.trim() || null }
+          : {}),
+      },
+    },
+    { returnDocument: "after" },
+  );
+
+  if (!result) {
+    throw new Error("Fan request not found.");
+  }
+
+  return serializeFanRequest(result);
+}

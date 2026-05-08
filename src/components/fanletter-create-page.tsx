@@ -64,6 +64,7 @@ type CreateForm = {
 export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
 > & {
+  fanRequestId?: string;
   planId?: string;
 };
 
@@ -328,6 +329,7 @@ export function FanletterCreatePage({
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
   const initialPlanId = initialPlan?.planId?.trim() || null;
+  const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const canPublish = Boolean(generatedMedia?.url);
   const selectedModeCopy = copy.videoBody;
   const generatedVideoUrl = generatedMedia?.url ?? null;
@@ -584,6 +586,21 @@ export function FanletterCreatePage({
             email: resolvedEmail,
             planId: initialPlanId,
             status: status === "published" ? "published" : "created",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        }).catch(() => null);
+      }
+      if (initialFanRequestId) {
+        await fetch("/api/fanletter/requests", {
+          body: JSON.stringify({
+            contentId: data.content.contentId,
+            email: resolvedEmail,
+            requestId: initialFanRequestId,
+            status: "used",
             walletAddress: accountAddress,
           }),
           headers: {

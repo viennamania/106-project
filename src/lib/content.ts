@@ -44,6 +44,13 @@ export const contentEntitlementSources = [
   "purchase",
   "complimentary",
 ] as const;
+export const fanletterFanRequestTypes = ["message", "vlog_request"] as const;
+export const fanletterFanRequestStatuses = [
+  "new",
+  "reviewed",
+  "used",
+  "hidden",
+] as const;
 
 export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
 export type ContentPostStatus = (typeof contentPostStatuses)[number];
@@ -54,6 +61,10 @@ export type ContentAssetKind = (typeof contentAssetKinds)[number];
 export type ContentOrderStatus = (typeof contentOrderStatuses)[number];
 export type ContentEntitlementSource =
   (typeof contentEntitlementSources)[number];
+export type FanletterFanRequestType =
+  (typeof fanletterFanRequestTypes)[number];
+export type FanletterFanRequestStatus =
+  (typeof fanletterFanRequestStatuses)[number];
 export type ContentAccessGateReason =
   | "connect"
   | "network"
@@ -182,6 +193,24 @@ export type FanletterVlogPlanDocument = {
   status: FanletterVlogPlanStatus;
   summary: string;
   title: string;
+  updatedAt: Date;
+};
+
+export type FanletterFanRequestDocument = {
+  body: string;
+  characterName: string;
+  createdAt: Date;
+  creatorDisplayName: string;
+  creatorEmail: string;
+  creatorReferralCode: string;
+  requestId: string;
+  requestType: FanletterFanRequestType;
+  requesterDisplayName: string | null;
+  requesterEmail: string | null;
+  sourceContentId: string | null;
+  sourcePath: string | null;
+  status: FanletterFanRequestStatus;
+  usedContentId?: string | null;
   updatedAt: Date;
 };
 
@@ -325,6 +354,57 @@ export type ContentCommentRecord = {
   contentId: string;
   createdAt: string;
   memberEmail: string;
+};
+
+export type FanletterFanRequestRecord = {
+  body: string;
+  characterName: string;
+  createdAt: string;
+  creatorDisplayName: string;
+  creatorReferralCode: string;
+  requestId: string;
+  requestType: FanletterFanRequestType;
+  requesterDisplayName: string | null;
+  requesterEmail: string | null;
+  sourceContentId: string | null;
+  sourcePath: string | null;
+  status: FanletterFanRequestStatus;
+  usedContentId: string | null;
+  updatedAt: string;
+};
+
+export type FanletterFanRequestCreateRequest = {
+  body?: string | null;
+  characterName?: string | null;
+  creatorReferralCode?: string | null;
+  requestType?: string | null;
+  requesterDisplayName?: string | null;
+  sourceContentId?: string | null;
+  sourcePath?: string | null;
+};
+
+export type FanletterFanRequestCreateResponse = {
+  request: FanletterFanRequestRecord;
+};
+
+export type FanletterFanRequestsResponse = {
+  pageInfo: {
+    hasNextPage: boolean;
+    pageSize: number;
+  };
+  requests: FanletterFanRequestRecord[];
+};
+
+export type FanletterFanRequestStatusUpdateRequest = {
+  contentId?: string | null;
+  email?: string | null;
+  requestId?: string | null;
+  status?: string | null;
+  walletAddress?: string | null;
+};
+
+export type FanletterFanRequestStatusUpdateResponse = {
+  request: FanletterFanRequestRecord;
 };
 
 export type ContentFeedItemRecord = ContentPostRecord & {
