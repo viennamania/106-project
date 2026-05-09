@@ -15,10 +15,7 @@ import {
   type FanletterAccountStatusKind,
   useFanletterAccountStatus,
 } from "@/lib/fanletter-account-status";
-import type {
-  CreatorProfileResponse,
-  CreatorStudioPostsResponse,
-} from "@/lib/content";
+import type { FanletterReadinessResponse } from "@/lib/fanletter-readiness";
 import type { Locale } from "@/lib/i18n";
 
 type SetupStatus = FanletterAccountStatusKind;
@@ -145,111 +142,79 @@ export function FanletterSetupStatusProvider({
       accountStatus.accountAddress,
     );
 
-    async function loadCharacterState() {
-      const params = new URLSearchParams({
-        email: accountStatus.email ?? "",
-        walletAddress: accountStatus.accountAddress ?? "",
-      });
-      const response = await fetch(`/api/content/profile?${params.toString()}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      const data = (await response.json().catch(() => null)) as
-        | CreatorProfileResponse
-        | { error?: string }
-        | null;
-
-      if (!response.ok || !data || !("profile" in data)) {
-        throw new Error(
-          data && "error" in data && data.error
-            ? data.error
-            : "Failed to load character profile.",
-        );
-      }
-
-      const persona = data.profile.characterPersona;
-
-      return {
-        avatarImageUrl: data.profile.avatarImageUrl,
-        error: null,
-        name: persona?.name ?? data.profile.displayName ?? null,
-        status: persona ? "ready" : "empty",
-      } satisfies CharacterState;
-    }
-
-    async function loadVlogState() {
-      const params = new URLSearchParams({
-        email: accountStatus.email ?? "",
-        media: "video",
-        pageSize: "1",
-        status: "all",
-        walletAddress: accountStatus.accountAddress ?? "",
-      });
-      const response = await fetch(`/api/content/posts?${params.toString()}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      const data = (await response.json().catch(() => null)) as
-        | CreatorStudioPostsResponse
-        | { error?: string }
-        | null;
-
-      if (!response.ok || !data || !("summary" in data)) {
-        throw new Error(
-          data && "error" in data && data.error
-            ? data.error
-            : "Failed to load vlog status.",
-        );
-      }
-
-      const totalCount = data.summary.published + data.summary.draft;
-
-      return {
-        error: null,
-        publishedCount: data.summary.published,
-        status: totalCount > 0 ? "ready" : "empty",
-        totalCount,
-      } satisfies VlogState;
-    }
-
     async function loadSetupState() {
-      const [characterResult, vlogsResult] = await Promise.allSettled([
-        loadCharacterState(),
-        loadVlogState(),
-      ]);
+      const params = new URLSearchParams({
+        email: accountStatus.email ?? "",
+        walletAddress: accountStatus.accountAddress ?? "",
+      });
+      const response = await fetch(
+        `/api/fanletter/readiness?${params.toString()}`,
+        {
+          cache: "no-store",
+          signal: controller.signal,
+        },
+      );
+      const data = (await response.json().catch(() => null)) as
+        | FanletterReadinessResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("character" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : "Failed to load FanLetter readiness.",
+        );
+      }
 
       if (controller.signal.aborted) {
         return;
       }
 
       setLoadedSetup({
-        character:
-          characterResult.status === "fulfilled"
-            ? characterResult.value
-            : {
-                ...EMPTY_CHARACTER_STATE,
-                error:
-                  characterResult.reason instanceof Error
-                    ? characterResult.reason.message
-                    : null,
-                status: "error",
-              },
+        character: {
+          avatarImageUrl: data.character.avatarImageUrl,
+          error: null,
+          name: data.character.name,
+          status: data.character.ready ? "ready" : "empty",
+        },
         key: lookupKey,
-        vlogs:
-          vlogsResult.status === "fulfilled"
-            ? vlogsResult.value
-            : {
-                ...EMPTY_VLOG_STATE,
-                error:
-                  vlogsResult.reason instanceof Error
-                    ? vlogsResult.reason.message
-                    : null,
-                status: "error",
-              },
+        vlogs: {
+          error: null,
+          publishedCount: data.vlogs.publishedCount,
+          status: data.vlogs.totalCount > 0 ? "ready" : "empty",
+          totalCount: data.vlogs.totalCount,
+        },
       });
     }
 
-    void loadSetupState();
+    async function loadSetupStateSafely() {
+      try {
+        await loadSetupState();
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : null;
+
+        setLoadedSetup({
+          character: {
+            ...EMPTY_CHARACTER_STATE,
+            error: message,
+            status: "error",
+          },
+          key: lookupKey,
+          vlogs: {
+            ...EMPTY_VLOG_STATE,
+            error: message,
+            status: "error",
+          },
+        });
+      }
+    }
+
+    void loadSetupStateSafely();
 
     return () => {
       controller.abort();
