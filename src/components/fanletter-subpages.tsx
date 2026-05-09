@@ -46,6 +46,7 @@ type FanletterSubpageCopy = {
     creatorStudio: string;
     existingDetail: string;
     feed: string;
+    following: string;
     home: string;
     openContent: string;
     start: string;
@@ -112,6 +113,7 @@ const koCopy: FanletterSubpageCopy = {
     creatorStudio: "브이로그 스튜디오",
     existingDetail: "FanLetter에서 권한 확인",
     feed: "브이로그 피드",
+    following: "팔로잉",
     home: "홈",
     openContent: "브이로그 보기",
     start: "채널 시작",
@@ -190,6 +192,7 @@ const enCopy: FanletterSubpageCopy = {
     creatorStudio: "Vlog Studio",
     existingDetail: "Verify in FanLetter",
     feed: "Vlog Feed",
+    following: "Following",
     home: "Home",
     openContent: "View vlog",
     start: "Start channel",
@@ -450,6 +453,10 @@ function FanletterShell({
   const copy = getCopy(locale);
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const followingHref = buildPathWithReferral(
+    `/${locale}/fanletter/following`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(`/${locale}/fanletter/start`, referralCode);
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
@@ -473,6 +480,7 @@ function FanletterShell({
             <nav className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex">
               <Link href={homeHref}>{copy.actions.home}</Link>
               <Link href={feedHref}>{copy.actions.feed}</Link>
+              <Link href={followingHref}>{copy.actions.following}</Link>
               <Link href={studioHref}>{copy.actions.creatorStudio}</Link>
               <Link href={startHref}>{copy.actions.start}</Link>
             </nav>
@@ -2064,11 +2072,16 @@ export function FanletterFeedPage({
     },
   ];
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const followingHref = buildPathWithReferral(
+    `/${locale}/fanletter/following`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(
     `/${locale}/fanletter/start`,
     referralCode,
   );
   const sectionLinks = [
+    { href: followingHref, label: copy.actions.following },
     featuredItem
       ? { href: `${feedHref}#popular-vlog`, label: copy.feed.trending }
       : null,

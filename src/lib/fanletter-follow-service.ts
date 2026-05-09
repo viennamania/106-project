@@ -1,11 +1,40 @@
 import "server-only";
 
-import type { FanletterCharacterFollowStateResponse } from "@/lib/content";
+import type { Filter } from "mongodb";
+
+import type {
+  ContentPostDocument,
+  CreatorProfileDocument,
+  FanletterCharacterFollowDocument,
+  FanletterCharacterFollowStateResponse,
+  FanletterFollowedCharacterLatestContentRecord,
+  FanletterFollowedCharacterRecord,
+  FanletterFollowedCharactersResponse,
+} from "@/lib/content";
+import { normalizeContentLocale } from "@/lib/content";
+import { defaultLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
+  getContentPostsCollection,
+  getCreatorProfilesCollection,
   getFanletterCharacterFollowsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
+
+const FANLETTER_FOLLOWING_PAGE_SIZE_MAX = 50;
+const SUMMARY_LIMIT = 170;
+const TITLE_LIMIT = 96;
+const TRAIT_LIMIT = 38;
+
+function compactText(value: string | null | undefined, limit: number) {
+  const text = (value ?? "").replace(/\s+/g, " ").trim();
+
+  if (text.length <= limit) {
+    return text;
+  }
+
+  return `${text.slice(0, limit - 1).trimEnd()}...`;
+}
 
 async function resolveFanletterFollowCreator(referralCode?: string | null) {
   const creatorReferralCode = normalizeReferralCode(referralCode);
@@ -32,6 +61,87 @@ async function resolveFanletterFollowCreator(referralCode?: string | null) {
 
 function normalizeFollowerEmail(value?: string | null) {
   return normalizeEmail(value ?? "") || null;
+}
+
+function getPublishedContentLocaleFilter(
+  locale: Locale,
+): Filter<ContentPostDocument> {
+  const contentLocale = normalizeContentLocale(locale);
+
+  return contentLocale === defaultLocale
+    ? {
+        $or: [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ],
+      }
+    : { locale: contentLocale };
+}
+
+function getFanletterPublicContentFilter({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode: string;
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    authorReferralCode: referralCode,
+    "contentVideoUrls.0": { $exists: true },
+    priceType: "free",
+    status: "published",
+  };
+}
+
+function getCoverImageUrl(post: ContentPostDocument) {
+  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+}
+
+function getPrimaryVideoUrl(post: ContentPostDocument) {
+  return post.contentVideoUrls?.find((url) => Boolean(url?.trim())) ?? null;
+}
+
+function getMediaType(
+  post: ContentPostDocument,
+): FanletterFollowedCharacterLatestContentRecord["mediaType"] {
+  if (getPrimaryVideoUrl(post)) {
+    return "video";
+  }
+
+  if (getCoverImageUrl(post)) {
+    return "image";
+  }
+
+  return "text";
+}
+
+function serializeLatestContent(
+  post: ContentPostDocument,
+): FanletterFollowedCharacterLatestContentRecord {
+  return {
+    contentId: post.contentId,
+    coverImageUrl: getCoverImageUrl(post),
+    mediaType: getMediaType(post),
+    primaryVideoUrl: getPrimaryVideoUrl(post),
+    publishedAt: post.publishedAt?.toISOString() ?? null,
+    summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
+    title: compactText(post.title, TITLE_LIMIT),
+  };
+}
+
+function normalizeFollowingPageSize(value?: number | null) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return 24;
+  }
+
+  return Math.max(
+    1,
+    Math.min(Math.trunc(parsed), FANLETTER_FOLLOWING_PAGE_SIZE_MAX),
+  );
 }
 
 export async function getFanletterFollowState({
@@ -115,4 +225,116 @@ export async function updateFanletterFollowForMember({
     creatorReferralCode: creator.creatorReferralCode,
     followerEmail: normalizedFollowerEmail,
   });
+}
+
+export async function getFanletterFollowedCharactersForMember({
+  followerEmail,
+  locale,
+  pageSize,
+}: {
+  followerEmail?: string | null;
+  locale: Locale;
+  pageSize?: number | null;
+}): Promise<FanletterFollowedCharactersResponse> {
+  const normalizedFollowerEmail = normalizeFollowerEmail(followerEmail);
+
+  if (!normalizedFollowerEmail) {
+    throw new Error("followerEmail is required.");
+  }
+
+  const followsCollection = await getFanletterCharacterFollowsCollection();
+  const follows = await followsCollection
+    .find({ followerEmail: normalizedFollowerEmail })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .limit(normalizeFollowingPageSize(pageSize))
+    .toArray();
+  const referralCodes = [
+    ...new Set(follows.map((follow) => follow.creatorReferralCode).filter(Boolean)),
+  ];
+
+  if (referralCodes.length === 0) {
+    return { characters: [] };
+  }
+
+  const profilesCollection = await getCreatorProfilesCollection();
+  const profiles = await profilesCollection
+    .find({ referralCode: { $in: referralCodes } })
+    .toArray();
+  const profileByReferralCode = new Map(
+    profiles.map((profile) => [profile.referralCode, profile]),
+  );
+  const characters = await Promise.all(
+    follows.map(async (follow) =>
+      serializeFollowedCharacter({
+        follow,
+        followerCount: await followsCollection.countDocuments({
+          creatorReferralCode: follow.creatorReferralCode,
+        }),
+        locale,
+        profile: profileByReferralCode.get(follow.creatorReferralCode) ?? null,
+      }),
+    ),
+  );
+
+  return { characters };
+}
+
+async function serializeFollowedCharacter({
+  follow,
+  followerCount,
+  locale,
+  profile,
+}: {
+  follow: FanletterCharacterFollowDocument;
+  followerCount: number;
+  locale: Locale;
+  profile: CreatorProfileDocument | null;
+}): Promise<FanletterFollowedCharacterRecord> {
+  const postsCollection = await getContentPostsCollection();
+  const publicContentFilter = getFanletterPublicContentFilter({
+    locale,
+    referralCode: follow.creatorReferralCode,
+  });
+  const [latestContent, publicContentCount] = await Promise.all([
+    postsCollection.findOne(publicContentFilter, {
+      sort: {
+        publishedAt: -1,
+        createdAt: -1,
+        contentId: -1,
+      },
+    }),
+    postsCollection.countDocuments(publicContentFilter),
+  ]);
+  const fallbackDisplayName =
+    follow.creatorEmail.split("@")[0] || follow.creatorReferralCode;
+  const characterName =
+    compactText(profile?.characterPersona?.name, 64) ||
+    compactText(profile?.displayName, 64) ||
+    fallbackDisplayName;
+  const characterSummary =
+    compactText(profile?.characterPersona?.summary, 220) ||
+    compactText(profile?.intro, 220) ||
+    (locale === "ko"
+      ? "FanLetter에서 팔로우 중인 AI 캐릭터 채널입니다."
+      : "An AI character channel you follow on FanLetter.");
+  const traits =
+    profile?.characterPersona?.lockedTraits
+      .map((trait) => compactText(trait, TRAIT_LIMIT))
+      .filter(Boolean)
+      .slice(0, 4) ?? [];
+
+  return {
+    avatarImageUrl: profile?.avatarImageUrl ?? null,
+    characterName,
+    characterSummary,
+    displayName: compactText(profile?.displayName, 48) || fallbackDisplayName,
+    followedAt: follow.createdAt.toISOString(),
+    followerCount,
+    latestContent: latestContent ? serializeLatestContent(latestContent) : null,
+    publicContentCount,
+    referralCode: follow.creatorReferralCode,
+    traits,
+    updatedAt: follow.updatedAt.toISOString(),
+    videoContentCount: publicContentCount,
+  };
 }

@@ -421,6 +421,35 @@ export type FanletterCharacterFollowStateResponse = {
   followerCount: number;
 };
 
+export type FanletterFollowedCharacterLatestContentRecord = {
+  contentId: string;
+  coverImageUrl: string | null;
+  mediaType: "image" | "text" | "video";
+  primaryVideoUrl: string | null;
+  publishedAt: string | null;
+  summary: string;
+  title: string;
+};
+
+export type FanletterFollowedCharacterRecord = {
+  avatarImageUrl: string | null;
+  characterName: string;
+  characterSummary: string;
+  displayName: string;
+  followedAt: string;
+  followerCount: number;
+  latestContent: FanletterFollowedCharacterLatestContentRecord | null;
+  publicContentCount: number;
+  referralCode: string;
+  traits: string[];
+  updatedAt: string;
+  videoContentCount: number;
+};
+
+export type FanletterFollowedCharactersResponse = {
+  characters: FanletterFollowedCharacterRecord[];
+};
+
 export type FanletterCharacterFollowUpdateRequest = {
   action?: "follow" | "unfollow" | null;
   creatorReferralCode?: string | null;
