@@ -287,7 +287,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
   const canPrompt = environment.platform === "ios" || Boolean(installPrompt);
 
   return (
-    <aside className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md sm:bottom-5">
+    <aside className="fixed inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-md sm:bottom-5">
       <div className="overflow-hidden rounded-lg border border-[#44f26e]/34 bg-[#030504]/96 p-3 text-white shadow-[0_22px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl">
         <div className="flex gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">

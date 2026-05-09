@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 
+import { FanletterMobileBottomNav } from "@/components/fanletter-mobile-bottom-nav";
 import { FanletterPwaMobileBridge } from "@/components/fanletter-pwa-mobile-bridge";
 import {
   createFanletterPwaMetadata,
@@ -33,6 +34,9 @@ export default async function FanletterLayout({
   return (
     <>
       {children}
+      <Suspense fallback={null}>
+        <FanletterMobileBottomNav locale={locale} />
+      </Suspense>
       <Suspense fallback={null}>
         <FanletterPwaMobileBridge locale={locale} />
       </Suspense>

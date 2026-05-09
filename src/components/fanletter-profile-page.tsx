@@ -1663,7 +1663,7 @@ export function FanletterProfilePage({
 	          </section>
 	          </details>
 
-          <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-white/10 bg-[#030504]/92 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+          <div className="sticky bottom-[calc(5.1rem+env(safe-area-inset-bottom))] z-20 -mx-4 mt-6 border-t border-white/10 bg-[#030504]/92 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
             <div className="grid gap-2 sm:flex sm:flex-wrap">
               <Link
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90 sm:w-fit"
