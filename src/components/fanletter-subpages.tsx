@@ -3817,7 +3817,7 @@ export function FanletterOnboardingPage({
                 <span className="mt-1 block truncate text-sm font-semibold text-white">
                   {step.title}
                 </span>
-                {index === 0 || index === 1 ? (
+                {index <= 2 ? (
                   <span className="mt-2 block">
                     <FanletterSetupStepBadge
                       locale={locale}
@@ -3903,12 +3903,7 @@ export function FanletterOnboardingPage({
                         <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
                           {step.meta}
                         </span>
-                        {index === 0 ? (
-                          <FanletterSetupStepBadge
-                            locale={locale}
-                            stepIndex={index}
-                          />
-                        ) : index === 1 ? (
+                        {index <= 2 ? (
                           <FanletterSetupStepBadge
                             locale={locale}
                             stepIndex={index}
@@ -4183,7 +4178,7 @@ export function FanletterStartPage({
                         <span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/46">
                           {startLabels.stepMeta[index]}
                         </span>
-                        {index === 0 || index === 1 ? (
+                        {index <= 2 ? (
                           <FanletterSetupStepBadge
                             locale={locale}
                             stepIndex={index}

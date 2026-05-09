@@ -15,11 +15,15 @@ import {
   type FanletterAccountStatusKind,
   useFanletterAccountStatus,
 } from "@/lib/fanletter-account-status";
-import type { CreatorProfileResponse } from "@/lib/content";
+import type {
+  CreatorProfileResponse,
+  CreatorStudioPostsResponse,
+} from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 
 type SetupStatus = FanletterAccountStatusKind;
 type CharacterStatus = "checking" | "empty" | "error" | "ready" | "unavailable";
+type VlogStatus = "checking" | "empty" | "error" | "ready" | "unavailable";
 
 type SetupSurface = "dark" | "light";
 type SetupVariant = "onboarding" | "start";
@@ -72,6 +76,12 @@ const EMPTY_CHARACTER_STATE = {
   name: null,
   status: "unavailable" as CharacterStatus,
 };
+const EMPTY_VLOG_STATE = {
+  error: null,
+  publishedCount: 0,
+  status: "unavailable" as VlogStatus,
+  totalCount: 0,
+};
 
 type CharacterState = {
   avatarImageUrl: string | null;
@@ -80,15 +90,33 @@ type CharacterState = {
   status: CharacterStatus;
 };
 
+type VlogState = {
+  error: string | null;
+  publishedCount: number;
+  status: VlogStatus;
+  totalCount: number;
+};
+
 type SetupState = {
   accountStatus: SetupStatus;
   character: CharacterState;
+  vlogs: VlogState;
 };
+
+type LoadedSetupState = {
+  character: CharacterState;
+  key: string;
+  vlogs: VlogState;
+} | null;
 
 const FanletterSetupStatusContext = createContext<SetupState | null>(null);
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function getSetupLookupKey(email: string, walletAddress: string) {
+  return `${email.toLowerCase()}:${walletAddress.toLowerCase()}`;
 }
 
 export function FanletterSetupStatusProvider({
@@ -100,101 +128,204 @@ export function FanletterSetupStatusProvider({
     disconnectedResolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
   });
-  const [character, setCharacter] = useState<CharacterState>(
-    EMPTY_CHARACTER_STATE,
-  );
+  const [loadedSetup, setLoadedSetup] = useState<LoadedSetupState>(null);
 
   useEffect(() => {
-    if (accountStatus.status === "checking") {
-      setCharacter({
-        ...EMPTY_CHARACTER_STATE,
-        status: "checking",
-      });
-      return;
-    }
-
     if (
       accountStatus.status !== "connected" ||
-      !accountStatus.accountAddress
+      !accountStatus.accountAddress ||
+      !accountStatus.email
     ) {
-      setCharacter(EMPTY_CHARACTER_STATE);
-      return;
-    }
-
-    if (!accountStatus.email) {
-      setCharacter({
-        ...EMPTY_CHARACTER_STATE,
-        status: "checking",
-      });
       return;
     }
 
     const controller = new AbortController();
+    const lookupKey = getSetupLookupKey(
+      accountStatus.email,
+      accountStatus.accountAddress,
+    );
 
-    setCharacter((current) => ({
-      ...current,
-      error: null,
-      status: "checking",
-    }));
+    async function loadCharacterState() {
+      const params = new URLSearchParams({
+        email: accountStatus.email ?? "",
+        walletAddress: accountStatus.accountAddress ?? "",
+      });
+      const response = await fetch(`/api/content/profile?${params.toString()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const data = (await response.json().catch(() => null)) as
+        | CreatorProfileResponse
+        | { error?: string }
+        | null;
 
-    async function loadCharacter() {
-      try {
-        const params = new URLSearchParams({
-          email: accountStatus.email ?? "",
-          walletAddress: accountStatus.accountAddress ?? "",
-        });
-        const response = await fetch(`/api/content/profile?${params.toString()}`, {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        const data = (await response.json().catch(() => null)) as
-          | CreatorProfileResponse
-          | { error?: string }
-          | null;
-
-        if (!response.ok || !data || !("profile" in data)) {
-          throw new Error(
-            data && "error" in data && data.error
-              ? data.error
-              : "Failed to load character profile.",
-          );
-        }
-
-        const persona = data.profile.characterPersona;
-
-        setCharacter({
-          avatarImageUrl: data.profile.avatarImageUrl,
-          error: null,
-          name: persona?.name ?? data.profile.displayName ?? null,
-          status: persona ? "ready" : "empty",
-        });
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        setCharacter({
-          ...EMPTY_CHARACTER_STATE,
-          error: error instanceof Error ? error.message : null,
-          status: "error",
-        });
+      if (!response.ok || !data || !("profile" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : "Failed to load character profile.",
+        );
       }
+
+      const persona = data.profile.characterPersona;
+
+      return {
+        avatarImageUrl: data.profile.avatarImageUrl,
+        error: null,
+        name: persona?.name ?? data.profile.displayName ?? null,
+        status: persona ? "ready" : "empty",
+      } satisfies CharacterState;
     }
 
-    void loadCharacter();
+    async function loadVlogState() {
+      const params = new URLSearchParams({
+        email: accountStatus.email ?? "",
+        media: "video",
+        pageSize: "1",
+        status: "all",
+        walletAddress: accountStatus.accountAddress ?? "",
+      });
+      const response = await fetch(`/api/content/posts?${params.toString()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const data = (await response.json().catch(() => null)) as
+        | CreatorStudioPostsResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("summary" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : "Failed to load vlog status.",
+        );
+      }
+
+      const totalCount = data.summary.published + data.summary.draft;
+
+      return {
+        error: null,
+        publishedCount: data.summary.published,
+        status: totalCount > 0 ? "ready" : "empty",
+        totalCount,
+      } satisfies VlogState;
+    }
+
+    async function loadSetupState() {
+      const [characterResult, vlogsResult] = await Promise.allSettled([
+        loadCharacterState(),
+        loadVlogState(),
+      ]);
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      setLoadedSetup({
+        character:
+          characterResult.status === "fulfilled"
+            ? characterResult.value
+            : {
+                ...EMPTY_CHARACTER_STATE,
+                error:
+                  characterResult.reason instanceof Error
+                    ? characterResult.reason.message
+                    : null,
+                status: "error",
+              },
+        key: lookupKey,
+        vlogs:
+          vlogsResult.status === "fulfilled"
+            ? vlogsResult.value
+            : {
+                ...EMPTY_VLOG_STATE,
+                error:
+                  vlogsResult.reason instanceof Error
+                    ? vlogsResult.reason.message
+                    : null,
+                status: "error",
+              },
+      });
+    }
+
+    void loadSetupState();
 
     return () => {
       controller.abort();
     };
   }, [accountStatus.accountAddress, accountStatus.email, accountStatus.status]);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo<SetupState>(() => {
+    if (accountStatus.status === "checking") {
+      return {
+        accountStatus: accountStatus.status,
+        character: {
+          ...EMPTY_CHARACTER_STATE,
+          status: "checking",
+        },
+        vlogs: {
+          ...EMPTY_VLOG_STATE,
+          status: "checking",
+        },
+      };
+    }
+
+    if (
+      accountStatus.status !== "connected" ||
+      !accountStatus.accountAddress
+    ) {
+      return {
+        accountStatus: accountStatus.status,
+        character: EMPTY_CHARACTER_STATE,
+        vlogs: EMPTY_VLOG_STATE,
+      };
+    }
+
+    if (!accountStatus.email) {
+      return {
+        accountStatus: accountStatus.status,
+        character: {
+          ...EMPTY_CHARACTER_STATE,
+          status: "checking",
+        },
+        vlogs: {
+          ...EMPTY_VLOG_STATE,
+          status: "checking",
+        },
+      };
+    }
+
+    const lookupKey = getSetupLookupKey(
+      accountStatus.email,
+      accountStatus.accountAddress,
+    );
+
+    if (loadedSetup?.key === lookupKey) {
+      return {
+        accountStatus: accountStatus.status,
+        character: loadedSetup.character,
+        vlogs: loadedSetup.vlogs,
+      };
+    }
+
+    return {
       accountStatus: accountStatus.status,
-      character,
-    }),
-    [accountStatus.status, character],
-  );
+      character: {
+        ...EMPTY_CHARACTER_STATE,
+        status: "checking",
+      },
+      vlogs: {
+        ...EMPTY_VLOG_STATE,
+        status: "checking",
+      },
+    };
+  }, [
+    accountStatus.accountAddress,
+    accountStatus.email,
+    accountStatus.status,
+    loadedSetup,
+  ]);
 
   return (
     <FanletterSetupStatusContext.Provider value={value}>
@@ -226,14 +357,20 @@ function getCopy(locale: Locale) {
         characterReview: "캐릭터 확인 필요",
         connect: "계정 연결하기",
         connected: "완료",
+        continueVlog: "브이로그 이어서 관리",
         create: "캐릭터 만들기",
         firstVlog: "첫 브이로그 만들기",
+        manageVlogs: "브이로그 관리",
+        nextVlog: "다음 브이로그 만들기",
         onboardingPrimary: "계정 연결하기",
         onboardingSecondary: "캐릭터 만들기",
         signupPrimary: "가입하고 채널 시작",
         signupSecondary: "캐릭터 만들기",
         studio: "브이로그 스튜디오",
         verify: "가입 완료 확인하기",
+        vlogChecking: "브이로그 확인 중",
+        vlogReady: "브이로그 운영 중",
+        vlogReview: "브이로그 확인 필요",
       }
     : {
         accountStatus: "View account status",
@@ -244,14 +381,20 @@ function getCopy(locale: Locale) {
         characterReview: "Review character",
         connect: "Connect account",
         connected: "Done",
+        continueVlog: "Continue managing vlog",
         create: "Create character",
         firstVlog: "Create first vlog",
+        manageVlogs: "Manage vlogs",
+        nextVlog: "Create next vlog",
         onboardingPrimary: "Start with account",
         onboardingSecondary: "Create character",
         signupPrimary: "Start channel with signup",
         signupSecondary: "Create character",
         studio: "Vlog studio",
         verify: "Verify signup",
+        vlogChecking: "Checking vlogs",
+        vlogReady: "Vlogs active",
+        vlogReview: "Review vlogs",
       };
 }
 
@@ -288,12 +431,23 @@ function getOnboardingCopy(locale: Locale) {
         firstReadyBody:
           "준비된 캐릭터를 자동 적용해 오늘의 장면을 세로형 브이로그로 만들 수 있습니다.",
         firstReadyTitle: "첫 브이로그를 만들 차례",
+        firstExistingBody: (count: number) =>
+          count > 1
+            ? `이미 브이로그 ${count}개가 준비되어 있습니다. 다음 브이로그를 만들거나 스튜디오에서 게시 상태를 관리하세요.`
+            : "이미 브이로그가 준비되어 있습니다. 다음 브이로그를 만들거나 스튜디오에서 게시 상태를 관리하세요.",
+        firstExistingTitle: "브이로그 운영 중",
         firstRequiresCharacterBody:
           "먼저 캐릭터를 만들면 해당 캐릭터가 첫 브이로그 생성 화면에 자동 적용됩니다.",
         firstRequiresCharacterTitle: "캐릭터 준비 후 생성 가능",
         firstWaitingBody:
           "캐릭터 확인이 끝나면 바로 첫 브이로그 생성으로 이어갈 수 있습니다.",
         firstWaitingTitle: "캐릭터 확인 후 생성 가능",
+        firstVlogCheckingBody:
+          "저장된 브이로그가 있는지 확인하고 있습니다. 확인이 끝나면 만들기 또는 관리로 안내합니다.",
+        firstVlogCheckingTitle: "브이로그 상태 확인 중",
+        firstVlogReviewBody:
+          "브이로그 상태를 확인하지 못했습니다. 스튜디오에서 기존 브이로그를 확인하거나 새 브이로그를 만들 수 있습니다.",
+        firstVlogReviewTitle: "브이로그 상태 확인 필요",
         heroCharacterPending:
           "계정 연결은 확인되었습니다. 표시 이름과 분위기만 정하면 캐릭터와 대표 아바타를 자동으로 준비합니다.",
         heroChecking:
@@ -306,6 +460,10 @@ function getOnboardingCopy(locale: Locale) {
             : "계정과 AI 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 FanLetter 피드로 이어가세요.",
         heroReview:
           "계정 연결 상태 확인이 필요합니다. 먼저 연결 상태를 정리한 뒤 캐릭터와 브이로그 생성을 이어가세요.",
+        heroVlogReady: (count: number) =>
+          count > 1
+            ? `브이로그 ${count}개가 이미 준비되어 있습니다. 다음 브이로그를 만들거나 스튜디오에서 운영을 이어가세요.`
+            : "브이로그가 이미 준비되어 있습니다. 다음 브이로그를 만들거나 스튜디오에서 운영을 이어가세요.",
         progress: {
           active: "다음",
           attention: "확인",
@@ -319,6 +477,8 @@ function getOnboardingCopy(locale: Locale) {
           "연결 상태를 확인하는 중입니다. 잠시 후 완료된 단계가 자동으로 표시됩니다.",
         statusReady:
           "계정과 캐릭터가 준비되어 있습니다. 이제 첫 브이로그 생성이 다음 단계입니다.",
+        statusVlogReady:
+          "브이로그가 이미 준비되어 있습니다. 다음 브이로그를 만들거나 스튜디오에서 관리하세요.",
       }
     : {
         accountCheckingBody:
@@ -351,12 +511,23 @@ function getOnboardingCopy(locale: Locale) {
         firstReadyBody:
           "Use the prepared character automatically and turn today's moment into a vertical vlog.",
         firstReadyTitle: "Create the first vlog next",
+        firstExistingBody: (count: number) =>
+          count > 1
+            ? `${count} vlogs are already ready. Create the next vlog or manage publishing in the studio.`
+            : "A vlog is already ready. Create the next vlog or manage publishing in the studio.",
+        firstExistingTitle: "Vlogs active",
         firstRequiresCharacterBody:
           "Create the character first, then it will be applied automatically to the first vlog flow.",
         firstRequiresCharacterTitle: "Create after character setup",
         firstWaitingBody:
           "Once the character check finishes, you can continue directly into first vlog creation.",
         firstWaitingTitle: "Create after character check",
+        firstVlogCheckingBody:
+          "Checking whether saved vlogs already exist. The next action will switch to create or manage once this finishes.",
+        firstVlogCheckingTitle: "Checking vlog status",
+        firstVlogReviewBody:
+          "The saved vlog status could not be confirmed. You can review existing vlogs in the studio or create a new one.",
+        firstVlogReviewTitle: "Review vlog status",
         heroCharacterPending:
           "The account is connected. Choose a display name and mood to prepare the character and avatar automatically.",
         heroChecking:
@@ -369,6 +540,10 @@ function getOnboardingCopy(locale: Locale) {
             : "The account and AI character are ready. Create the first vlog and continue into the FanLetter feed.",
         heroReview:
           "Account connection needs review. Resolve the connection first, then continue into character and vlog creation.",
+        heroVlogReady: (count: number) =>
+          count > 1
+            ? `${count} vlogs are already ready. Create the next vlog or continue operating in the studio.`
+            : "A vlog is already ready. Create the next vlog or continue operating in the studio.",
         progress: {
           active: "Next",
           attention: "Review",
@@ -382,6 +557,8 @@ function getOnboardingCopy(locale: Locale) {
           "Checking connection status. Completed steps will update automatically.",
         statusReady:
           "The account and character are ready. First vlog creation is the next step.",
+        statusVlogReady:
+          "A vlog is already ready. Create the next vlog or manage publishing in the studio.",
       };
 }
 
@@ -389,10 +566,12 @@ function getSetupStepState({
   character,
   status,
   stepIndex,
+  vlogs,
 }: {
   character: CharacterState;
   status: SetupStatus;
   stepIndex: number;
+  vlogs: VlogState;
 }): SetupStepState {
   if (stepIndex === 0) {
     if (status === "connected") {
@@ -439,6 +618,18 @@ function getSetupStepState({
   }
 
   if (status === "connected" && character.status === "ready") {
+    if (vlogs.status === "ready") {
+      return "complete";
+    }
+
+    if (vlogs.status === "checking") {
+      return "checking";
+    }
+
+    if (vlogs.status === "error") {
+      return "attention";
+    }
+
     return "active";
   }
 
@@ -484,6 +675,7 @@ function getStepText({
   status,
   stepIndex,
   title,
+  vlogs,
 }: {
   body: string;
   character: CharacterState;
@@ -491,6 +683,7 @@ function getStepText({
   status: SetupStatus;
   stepIndex: number;
   title: string;
+  vlogs: VlogState;
 }) {
   const copy = getOnboardingCopy(locale);
 
@@ -551,6 +744,27 @@ function getStepText({
 
   if (stepIndex === 2) {
     if (status === "connected" && character.status === "ready") {
+      if (vlogs.status === "ready") {
+        return {
+          body: copy.firstExistingBody(vlogs.totalCount),
+          title: copy.firstExistingTitle,
+        };
+      }
+
+      if (vlogs.status === "checking") {
+        return {
+          body: copy.firstVlogCheckingBody,
+          title: copy.firstVlogCheckingTitle,
+        };
+      }
+
+      if (vlogs.status === "error") {
+        return {
+          body: copy.firstVlogReviewBody,
+          title: copy.firstVlogReviewTitle,
+        };
+      }
+
       return {
         body: copy.firstReadyBody,
         title: copy.firstReadyTitle,
@@ -618,12 +832,14 @@ function getHeroActions({
   links,
   status,
   variant,
+  vlogs,
 }: {
   character: CharacterState;
   copy: ReturnType<typeof getCopy>;
   links: SetupLinks;
   status: SetupStatus;
   variant: SetupVariant;
+  vlogs: VlogState;
 }) {
   if (status === "checking") {
     return {
@@ -654,6 +870,31 @@ function getHeroActions({
     }
 
     if (character.status === "ready") {
+      if (vlogs.status === "checking") {
+        return {
+          primaryHref: links.studioHref,
+          primaryLabel: copy.vlogChecking,
+          secondaryHref: links.profileHref,
+          secondaryLabel: copy.characterManage,
+        };
+      }
+
+      if (vlogs.status === "ready") {
+        return vlogs.publishedCount > 0
+          ? {
+              primaryHref: links.createHref,
+              primaryLabel: copy.nextVlog,
+              secondaryHref: links.studioHref,
+              secondaryLabel: copy.manageVlogs,
+            }
+          : {
+              primaryHref: links.studioHref,
+              primaryLabel: copy.continueVlog,
+              secondaryHref: links.createHref,
+              secondaryLabel: copy.nextVlog,
+            };
+      }
+
       return {
         primaryHref: links.createHref,
         primaryLabel: copy.firstVlog,
@@ -702,12 +943,14 @@ function getStepAction({
   links,
   status,
   stepIndex,
+  vlogs,
 }: {
   character: CharacterState;
   copy: ReturnType<typeof getCopy>;
   links: SetupLinks;
   status: SetupStatus;
   stepIndex: number;
+  vlogs: VlogState;
 }): SetupStepAction {
   if (stepIndex === 0) {
     if (status === "connected") {
@@ -781,9 +1024,30 @@ function getStepAction({
   }
 
   if (character.status === "ready") {
+    if (vlogs.status === "ready") {
+      return vlogs.publishedCount > 0
+        ? {
+            href: links.createHref,
+            label: copy.nextVlog,
+            tone: "success" as const,
+          }
+        : {
+            href: links.studioHref,
+            label: copy.continueVlog,
+            tone: "success" as const,
+          };
+    }
+
+    if (vlogs.status === "checking") {
+      return {
+        href: links.studioHref,
+        label: copy.vlogChecking,
+      };
+    }
+
     return {
-        href: links.createHref,
-        label: copy.firstVlog,
+      href: links.createHref,
+      label: copy.firstVlog,
     };
   }
 
@@ -828,10 +1092,14 @@ export function FanletterSetupHeroActions({
     links,
     status,
     variant,
+    vlogs: setupState.vlogs,
   });
   const isChecking =
     status === "checking" ||
-    (status === "connected" && setupState.character.status === "checking");
+    (status === "connected" && setupState.character.status === "checking") ||
+    (status === "connected" &&
+      setupState.character.status === "ready" &&
+      setupState.vlogs.status === "checking");
 
   return (
     <>
@@ -881,10 +1149,12 @@ export function FanletterSetupStepAction({
     },
     status,
     stepIndex,
+    vlogs: setupState.vlogs,
   });
   const isChecking =
     (status === "checking" && stepIndex === 0) ||
-    (setupState.character.status === "checking" && stepIndex > 0);
+    (setupState.character.status === "checking" && stepIndex > 0) ||
+    (setupState.vlogs.status === "checking" && stepIndex === 2);
 
   return (
     <Link
@@ -930,6 +1200,7 @@ export function FanletterSetupStepNavLink({
     },
     status: setupState.accountStatus,
     stepIndex,
+    vlogs: setupState.vlogs,
   });
 
   return (
@@ -952,26 +1223,42 @@ export function FanletterSetupStepBadge({
   const status = setupState.accountStatus;
   const copy = getCopy(locale);
   const isCharacterStep = stepIndex === 1;
-  const isComplete = isCharacterStep
-    ? setupState.character.status === "ready"
-    : status === "connected";
-  const isChecking = isCharacterStep
-    ? setupState.character.status === "checking"
-    : status === "checking";
-  const isAttention = isCharacterStep && setupState.character.status === "error";
-  const label = isCharacterStep
+  const isVlogStep = stepIndex === 2;
+  const isComplete = isVlogStep
+    ? setupState.vlogs.status === "ready"
+    : isCharacterStep
+      ? setupState.character.status === "ready"
+      : status === "connected";
+  const isChecking = isVlogStep
+    ? setupState.vlogs.status === "checking" ||
+      (status === "connected" && setupState.character.status === "checking")
+    : isCharacterStep
+      ? setupState.character.status === "checking"
+      : status === "checking";
+  const isAttention =
+    (isCharacterStep && setupState.character.status === "error") ||
+    (isVlogStep && setupState.vlogs.status === "error");
+  const label = isVlogStep
     ? isChecking
-      ? copy.characterChecking
+      ? copy.vlogChecking
       : isAttention
-        ? copy.characterReview
+        ? copy.vlogReview
       : isComplete
-        ? copy.characterReady
-        : copy.create
-    : isChecking
-      ? copy.checking
-      : isComplete
-        ? copy.connected
-        : copy.connect;
+        ? copy.vlogReady
+        : copy.firstVlog
+    : isCharacterStep
+      ? isChecking
+        ? copy.characterChecking
+        : isAttention
+          ? copy.characterReview
+        : isComplete
+          ? copy.characterReady
+          : copy.create
+      : isChecking
+        ? copy.checking
+        : isComplete
+          ? copy.connected
+          : copy.connect;
 
   return (
     <span
@@ -1011,7 +1298,7 @@ export function FanletterSetupHeroDescription({
 }) {
   const setupState = useSetupState();
   const copy = getOnboardingCopy(locale);
-  const { accountStatus, character } = setupState;
+  const { accountStatus, character, vlogs } = setupState;
   const text =
     accountStatus === "checking"
       ? copy.heroChecking
@@ -1021,6 +1308,14 @@ export function FanletterSetupHeroDescription({
           ? copy.heroReview
           : accountStatus === "connected" && character.status === "checking"
             ? copy.heroChecking
+            : accountStatus === "connected" &&
+                character.status === "ready" &&
+                vlogs.status === "ready"
+              ? copy.heroVlogReady(vlogs.totalCount)
+            : accountStatus === "connected" &&
+                character.status === "ready" &&
+                vlogs.status === "checking"
+              ? copy.heroChecking
             : accountStatus === "connected" && character.status === "ready"
               ? copy.heroReady(character.name)
               : accountStatus === "connected"
@@ -1047,6 +1342,7 @@ export function FanletterSetupProgressTiles({
           character: setupState.character,
           status: setupState.accountStatus,
           stepIndex: index,
+          vlogs: setupState.vlogs,
         });
         const statusLabel = copy.progress[state];
 
@@ -1093,6 +1389,14 @@ export function FanletterSetupStatusNote({
           setupState.character.status === "checking"
         ? copy.statusChecking
       : setupState.accountStatus === "connected" &&
+          setupState.character.status === "ready" &&
+          setupState.vlogs.status === "checking"
+        ? copy.statusChecking
+      : setupState.accountStatus === "connected" &&
+          setupState.character.status === "ready" &&
+          setupState.vlogs.status === "ready"
+        ? copy.statusVlogReady
+      : setupState.accountStatus === "connected" &&
           setupState.character.status === "ready"
         ? copy.statusReady
         : setupState.accountStatus === "connected"
@@ -1122,6 +1426,7 @@ export function FanletterSetupStepText({
     status: setupState.accountStatus,
     stepIndex,
     title,
+    vlogs: setupState.vlogs,
   });
   const shouldShowCharacterCard =
     stepIndex === 1 &&
