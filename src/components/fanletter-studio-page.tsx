@@ -478,8 +478,8 @@ function StatusPanel({
   title: string;
 }) {
   return (
-    <main className="min-h-screen bg-[#030504] px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100svh-3rem)] max-w-3xl items-center">
+    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-3xl items-center sm:min-h-[calc(100svh-3rem)]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
           <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
             {loading ? (

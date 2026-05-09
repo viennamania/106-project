@@ -357,9 +357,9 @@ function StatusPanel({
   title: string;
 }) {
   return (
-    <main className="min-h-screen bg-[#030504] px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
-        <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)]">
+    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl items-center sm:min-h-[70vh]">
+        <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
           <CircleAlert className="size-8 text-[#44f26e]" />
           {eyebrow ? (
             <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
