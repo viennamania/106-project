@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
 import { FanletterPwaMobileBridge } from "@/components/fanletter-pwa-mobile-bridge";
+import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 import {
   createFanletterPwaMetadata,
   fanletterViewport,
@@ -31,11 +32,11 @@ export default async function FanletterLayout({
   const locale = hasLocale(lang) ? lang : defaultLocale;
 
   return (
-    <>
+    <ThirdwebRuntimeLayout>
       {children}
       <Suspense fallback={null}>
         <FanletterPwaMobileBridge locale={locale} />
       </Suspense>
-    </>
+    </ThirdwebRuntimeLayout>
   );
 }

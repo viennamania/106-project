@@ -27,6 +27,7 @@ import type { ReactNode } from "react";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
+import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
@@ -678,6 +679,16 @@ function ContentCard({
         <p className="mt-2 min-h-[4.5rem] break-words text-sm font-medium leading-6 text-black/58 [overflow-wrap:anywhere]">
           {item.summary}
         </p>
+        <FanletterSocialActions
+          commentsHref={`${href}#fanletter-comments`}
+          contentId={item.contentId}
+          initialSocial={item.social}
+          locale={locale}
+          shareHref={href}
+          summary={item.summary}
+          title={item.title}
+          variant="compact"
+        />
         <div className="mt-4 flex items-center justify-between gap-2">
           {creatorHref ? (
             <Link
@@ -2967,6 +2978,15 @@ export function FanletterContentDetailPage({
               <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
                 {content.summary}
               </p>
+
+              <FanletterSocialActions
+                contentId={content.contentId}
+                initialSocial={content.social}
+                locale={locale}
+                shareHref={currentHref}
+                summary={content.summary}
+                title={content.title}
+              />
 
               <FanletterFanRequestSourceCard
                 content={content}
