@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { LocaleSync } from "@/components/locale-sync";
+import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 import {
   defaultLocale,
   getDictionary,
@@ -42,9 +43,9 @@ export default async function LocaleLayout({
   }
 
   return (
-    <>
+    <ThirdwebRuntimeLayout>
       <LocaleSync locale={lang} />
       {children}
-    </>
+    </ThirdwebRuntimeLayout>
   );
 }
