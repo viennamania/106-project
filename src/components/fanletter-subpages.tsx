@@ -122,6 +122,8 @@ type FanletterSubpageCopy = {
   };
 };
 
+type FanletterShellSection = "feed" | "following" | "home" | "start" | "studio";
+
 const koCopy: FanletterSubpageCopy = {
   actions: {
     creatorChannel: "캐릭터 채널 보기",
@@ -477,6 +479,7 @@ function FanletterShell({
   actions,
   aside,
   children,
+  currentSection,
   description,
   eyebrow,
   locale,
@@ -487,6 +490,7 @@ function FanletterShell({
   actions?: ReactNode;
   aside?: ReactNode;
   children: ReactNode;
+  currentSection?: FanletterShellSection;
   description?: ReactNode;
   eyebrow: string;
   locale: Locale;
@@ -506,6 +510,21 @@ function FanletterShell({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const navItems: Array<{
+    href: string;
+    label: string;
+    section: FanletterShellSection;
+  }> = [
+    { href: homeHref, label: copy.actions.home, section: "home" },
+    { href: feedHref, label: copy.actions.feed, section: "feed" },
+    { href: followingHref, label: copy.actions.following, section: "following" },
+    { href: studioHref, label: copy.actions.creatorStudio, section: "studio" },
+    { href: startHref, label: copy.actions.start, section: "start" },
+  ];
+  const visibleNavItems = navItems.filter(
+    (item) => !(currentSection === "start" && item.section === "start"),
+  );
+  const isStartSection = currentSection === "start";
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -521,28 +540,47 @@ function FanletterShell({
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex">
-              <Link href={homeHref}>{copy.actions.home}</Link>
-              <Link href={feedHref}>{copy.actions.feed}</Link>
-              <Link href={followingHref}>{copy.actions.following}</Link>
-              <Link href={studioHref}>{copy.actions.creatorStudio}</Link>
-              <Link href={startHref}>{copy.actions.start}</Link>
+            <nav className="hidden min-w-0 items-center gap-5 text-sm font-semibold text-white/74 lg:flex xl:gap-7">
+              {visibleNavItems.map((item) => {
+                const active = item.section === currentSection;
+
+                return (
+                  <Link
+                    aria-current={active ? "page" : undefined}
+                    className={`whitespace-nowrap transition hover:text-white ${
+                      active ? "text-white" : "text-white/68"
+                    }`}
+                    href={item.href}
+                    key={item.section}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 shrink-0 items-center gap-2">
               <div className="hidden sm:block">
-                <LanguageSwitcher label={copy.languageLabel} locale={locale} />
+                <LanguageSwitcher
+                  className={isStartSection ? "sm:min-w-[136px]" : undefined}
+                  label={copy.languageLabel}
+                  locale={locale}
+                />
               </div>
               <FanletterAccountStatusLink
+                className={isStartSection ? "max-w-[8.75rem]" : undefined}
+                hideIdentity={isStartSection}
                 locale={locale}
                 referralCode={referralCode}
               />
-              <Link
-                className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
-                href={startHref}
-              >
-                {copy.actions.start}
-              </Link>
+              {isStartSection ? null : (
+                <Link
+                  className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+                  href={startHref}
+                >
+                  {copy.actions.start}
+                </Link>
+              )}
             </div>
           </header>
 
@@ -2627,6 +2665,7 @@ export function FanletterFeedPage({
 
   return (
     <FanletterShell
+      currentSection="feed"
       description={copy.feed.title}
       eyebrow={copy.feed.eyebrow}
       locale={locale}
@@ -3907,6 +3946,7 @@ export function FanletterOnboardingPage({
           />
         }
         eyebrow={labels.eyebrow}
+        currentSection="start"
         locale={locale}
         referralCode={referralCode}
         title={labels.title}
@@ -4139,6 +4179,7 @@ export function FanletterStartPage({
           />
         }
         eyebrow={copy.start.eyebrow}
+        currentSection="start"
         locale={locale}
         referralCode={referralCode}
         title={copy.start.title}

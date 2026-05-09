@@ -33,6 +33,7 @@ type AccountStatusView = {
 type FanletterAccountStatusLinkProps = {
   className?: string;
   compactOnMobile?: boolean;
+  hideIdentity?: boolean;
   locale: Locale;
   referralCode: string | null;
 };
@@ -136,6 +137,7 @@ function FanletterAccountStatusLinkFallback({
 function FanletterAccountStatusLinkInner({
   className,
   compactOnMobile = true,
+  hideIdentity = false,
   locale,
   referralCode,
 }: FanletterAccountStatusLinkProps) {
@@ -164,7 +166,10 @@ function FanletterAccountStatusLinkInner({
     accountStatus.email ??
     formatAddressLabel(accountStatus.accountAddress) ??
     copy.connected;
-  const connectedLabel = `${copy.connected} · ${identityLabel}`;
+  const connectedLabel = hideIdentity
+    ? copy.connected
+    : `${copy.connected} · ${identityLabel}`;
+  const connectedTitle = `${copy.connected} · ${identityLabel}`;
   const member = accountStatus.member;
   const view: AccountStatusView = accountStatus.status === "setupMissing"
     ? {
@@ -226,7 +231,7 @@ function FanletterAccountStatusLinkInner({
                   href: connectHref,
                   label: connectedLabel,
                   mobileLabel: copy.connected,
-                  title: connectedLabel,
+                  title: connectedTitle,
                   tone: "connected",
                 };
   const Icon = view.Icon;
