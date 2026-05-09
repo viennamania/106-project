@@ -178,6 +178,11 @@ function getCopy(locale: Locale) {
         avatarSelect: "대표로 저장",
         avatarSelected: "대표 이미지",
         back: "온보딩으로 돌아가기",
+        characterChange: "캐릭터 변경 페이지",
+        characterLockedBody:
+          "이 화면에서는 성장 상태와 다음 미션을 확인합니다. 페르소나나 대표 아바타를 바꾸려면 전용 변경 페이지에서 진행하세요.",
+        characterLockedTitle: "캐릭터 정체성이 고정되어 있습니다.",
+        characterReview: "캐릭터 확인",
         connectRequired:
           "AI 캐릭터를 만들기 전에 계정 연결을 먼저 완료하세요. 연결 후 이 캐릭터 만들기 화면으로 돌아옵니다.",
         connectRequiredCta: "계정 연결하기",
@@ -230,6 +235,9 @@ function getCopy(locale: Locale) {
         save: "프로필 저장",
         saving: "저장 중...",
         selectedPersona: "선택된 페르소나",
+        readyBody:
+          "대표 페르소나와 아바타는 고정되어 있습니다. 여기서는 성장 단계와 다음 미션을 보고, 변경이 필요할 때만 전용 페이지로 이동합니다.",
+        readyTitle: "AI 캐릭터의 성장 상태를 확인하세요.",
         setupBody:
           "표시 이름과 분위기만 정하면 캐릭터 설정을 자동으로 끝내고 첫 숏폼 브이로그 생성으로 바로 이어집니다.",
         studio: "브이로그 스튜디오",
@@ -288,6 +296,11 @@ function getCopy(locale: Locale) {
         avatarSelect: "Save as avatar",
         avatarSelected: "Current avatar",
         back: "Back to onboarding",
+        characterChange: "Change character",
+        characterLockedBody:
+          "This screen is for growth status and next missions. Use the dedicated change page when you need to change the persona or representative avatar.",
+        characterLockedTitle: "Character identity is locked.",
+        characterReview: "Character review",
         connectRequired:
           "Connect your account before creating the AI character. After connection, you will return to this character setup screen.",
         connectRequiredCta: "Connect account",
@@ -340,6 +353,9 @@ function getCopy(locale: Locale) {
         save: "Save profile",
         saving: "Saving...",
         selectedPersona: "Selected persona",
+        readyBody:
+          "The representative persona and avatar are locked. Review growth progress and next missions here, and only move to the change page when needed.",
+        readyTitle: "Review your AI character growth.",
         setupBody:
           "Choose a display name and mood to finish character setup automatically, then continue to the first short-form vlog.",
         studio: "Vlog studio",
@@ -492,6 +508,10 @@ export function FanletterProfilePage({
     buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
+  const changeCharacterHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/profile/character`, referralCode),
+    { returnTo: currentProfileHref },
+  );
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: currentProfileHref },
@@ -538,6 +558,12 @@ export function FanletterProfilePage({
         Boolean(profile.avatarImageUrl),
       ].filter(Boolean).length,
     [profile.avatarImageUrl, profile.characterPersona, profile.displayName],
+  );
+  const characterReady = Boolean(
+    profileConfigured &&
+      profile.displayName.trim() &&
+      profile.characterPersona &&
+      profile.avatarImageUrl,
   );
   const avatarCandidates =
     avatarGeneration.candidates.length > 0
@@ -1378,6 +1404,81 @@ export function FanletterProfilePage({
     );
   }
 
+  function renderCharacterReadyPanel() {
+    const identityTraits = selectedPersona?.lockedTraits.slice(0, 8) ?? [];
+
+    return (
+      <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,0.96fr)_minmax(19rem,0.64fr)]">
+        <article className="rounded-lg border border-[#44f26e]/24 bg-white/[0.055] p-4 sm:p-5">
+          <div className="flex flex-col gap-5 sm:flex-row">
+            <span className="relative flex aspect-square w-full shrink-0 overflow-hidden rounded-lg border border-white/12 bg-black/28 sm:w-40">
+              {profile.avatarImageUrl ? (
+                <Image
+                  alt={profile.displayName || copy.displayName}
+                  className="object-cover"
+                  fill
+                  sizes="(max-width: 640px) 90vw, 160px"
+                  src={profile.avatarImageUrl}
+                />
+              ) : (
+                <span className="flex size-full items-center justify-center">
+                  <UserRound className="size-12 text-[#44f26e]" />
+                </span>
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                {copy.characterReview}
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold leading-tight text-white [word-break:keep-all]">
+                {selectedPersona?.name ?? profile.displayName}
+              </h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+                {selectedPersona?.summary ?? copy.growthIdentityBody}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {identityTraits.length > 0
+                  ? identityTraits.map((trait) => (
+                      <span
+                        className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/72"
+                        key={trait}
+                      >
+                        {trait}
+                      </span>
+                    ))
+                  : [copy.displayName, copy.persona, copy.avatar].map((trait) => (
+                      <span
+                        className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/54"
+                        key={trait}
+                      >
+                        {trait}
+                      </span>
+                    ))}
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <aside className="rounded-lg border border-white/12 bg-[linear-gradient(180deg,rgba(68,242,110,0.11),rgba(255,255,255,0.045))] p-4 sm:p-5">
+          <BadgeCheck className="size-7 text-[#44f26e]" />
+          <h2 className="mt-4 text-2xl font-semibold leading-tight text-white [word-break:keep-all]">
+            {copy.characterLockedTitle}
+          </h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+            {copy.characterLockedBody}
+          </p>
+          <Link
+            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/50 bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+            href={changeCharacterHref}
+          >
+            {copy.characterChange}
+            <ArrowRight className="size-4" />
+          </Link>
+        </aside>
+      </section>
+    );
+  }
+
   function renderQuickCharacterPanel() {
     const isCreatingCharacter = quickCharacter.status === "loading";
     const styleOptions = [
@@ -1722,10 +1823,10 @@ export function FanletterProfilePage({
                 {copy.eyebrow}
               </p>
               <h1 className="mt-4 text-[2.65rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:text-[5rem]">
-                {copy.title}
+                {characterReady ? copy.readyTitle : copy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
-                {copy.setupBody}
+                {characterReady ? copy.readyBody : copy.setupBody}
               </p>
             </div>
 
@@ -1812,7 +1913,11 @@ export function FanletterProfilePage({
 
           {renderCharacterGrowthCenter()}
 
-	          {renderQuickCharacterPanel()}
+          {characterReady ? (
+            renderCharacterReadyPanel()
+          ) : (
+            <>
+              {renderQuickCharacterPanel()}
 
 	          <details className="mt-4 rounded-lg border border-white/12 bg-white/[0.035] p-3 sm:p-4">
 	            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
@@ -2130,6 +2235,8 @@ export function FanletterProfilePage({
             </div>
 	          </section>
 	          </details>
+            </>
+          )}
 
           <div className="sticky bottom-[calc(5.1rem+env(safe-area-inset-bottom))] z-20 -mx-4 mt-6 border-t border-white/10 bg-[#030504]/92 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
             <div className="grid gap-2 sm:flex sm:flex-wrap">

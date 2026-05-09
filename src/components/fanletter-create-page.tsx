@@ -111,7 +111,7 @@ function getCopy(locale: Locale) {
         price: "공개 방식",
         profileRequired: "프로필 준비가 필요합니다.",
         profileRequiredBody:
-          "표시 이름과 분위기만 정해 캐릭터를 한 번 만들면 첫 브이로그에 자동 적용됩니다.",
+          "표시 이름, 페르소나, 대표 아바타까지 준비하면 첫 브이로그에 자동 적용됩니다.",
         profileRequiredCta: "캐릭터 만들기",
         prompt: "브이로그 장면",
         promptPlaceholder:
@@ -161,7 +161,7 @@ function getCopy(locale: Locale) {
         price: "Visibility",
         profileRequired: "Profile setup required.",
         profileRequiredBody:
-          "Create a character once with a display name and mood, then it will be applied to the first vlog automatically.",
+          "Prepare a display name, persona, and representative avatar so the character is applied to the first vlog automatically.",
         profileRequiredCta: "Create character",
         prompt: "Vlog scene",
         promptPlaceholder:
@@ -329,6 +329,8 @@ export function FanletterCreatePage({
   const loadInFlightRef = useRef(false);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
+  const hasAvatar = Boolean(profile?.avatarImageUrl);
+  const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const canPublish = Boolean(generatedMedia?.url);
@@ -651,7 +653,7 @@ export function FanletterCreatePage({
     );
   }
 
-  if (loadStatus === "ready" && (!hasProfileBasics || !hasPersona)) {
+  if (loadStatus === "ready" && !hasCharacterReady) {
     return (
       <StatusPanel
         body={copy.profileRequiredBody}

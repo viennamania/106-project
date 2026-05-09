@@ -1467,7 +1467,7 @@ export function FanletterStudioPage({
     Boolean(state.profile?.characterPersona),
     Boolean(state.profile?.avatarImageUrl),
   ].filter(Boolean).length;
-  const profileReady = state.profileConfigured && profileProgress >= 2;
+  const profileReady = state.profileConfigured && profileProgress >= 3;
   const profileActionLabel = profileReady
     ? copy.actions.profileManage
     : copy.actions.profileCreate;

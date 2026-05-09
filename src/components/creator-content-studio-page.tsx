@@ -682,16 +682,30 @@ async function readCoverGenerationStream(
 }
 
 export function CreatorContentStudioPage({
+  characterHrefOverride = null,
   dictionary,
+  homeHrefOverride = null,
   locale,
+  newPostHrefOverride = null,
+  postsManagerHrefOverride = null,
+  profileHrefOverride = null,
   referralCode = null,
   returnToHref = null,
+  salesManagerHrefOverride = null,
+  studioHomeHrefOverride = null,
   view = "hub",
 }: {
+  characterHrefOverride?: string | null;
   dictionary: CreatorStudioDictionary;
+  homeHrefOverride?: string | null;
   locale: Locale;
+  newPostHrefOverride?: string | null;
+  postsManagerHrefOverride?: string | null;
+  profileHrefOverride?: string | null;
   referralCode?: string | null;
   returnToHref?: string | null;
+  salesManagerHrefOverride?: string | null;
+  studioHomeHrefOverride?: string | null;
   view?: StudioView;
 }) {
   const contentCopy = getContentCopy(locale);
@@ -706,34 +720,41 @@ export function CreatorContentStudioPage({
     memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
       ? memberSession.email
       : null;
-  const homeHref = buildReferralLandingPath(locale, referralCode);
-  const studioHomeHref = setPathSearchParams(
+  const defaultHomeHref = buildReferralLandingPath(locale, referralCode);
+  const homeHref = homeHrefOverride ?? defaultHomeHref;
+  const defaultStudioHomeHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
     { returnTo: returnToHref },
   );
-  const profileHref = setPathSearchParams(
+  const studioHomeHref = studioHomeHrefOverride ?? defaultStudioHomeHref;
+  const defaultProfileHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/profile`, referralCode),
     { returnTo: returnToHref },
   );
-  const characterHref = setPathSearchParams(
+  const profileHref = profileHrefOverride ?? defaultProfileHref;
+  const defaultCharacterHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/creator/studio/profile/character`,
       referralCode,
     ),
     { returnTo: returnToHref },
   );
-  const postsManagerHref = setPathSearchParams(
+  const characterHref = characterHrefOverride ?? defaultCharacterHref;
+  const defaultPostsManagerHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/posts`, referralCode),
     { returnTo: returnToHref },
   );
-  const salesManagerHref = setPathSearchParams(
+  const postsManagerHref = postsManagerHrefOverride ?? defaultPostsManagerHref;
+  const defaultSalesManagerHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/sales`, referralCode),
     { returnTo: returnToHref },
   );
-  const newPostHref = setPathSearchParams(
+  const salesManagerHref = salesManagerHrefOverride ?? defaultSalesManagerHref;
+  const defaultNewPostHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
     { returnTo: returnToHref },
   );
+  const newPostHref = newPostHrefOverride ?? defaultNewPostHref;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
     view === "character"

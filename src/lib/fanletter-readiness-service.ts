@@ -77,12 +77,17 @@ export async function getFanletterReadinessForMember(
       })(),
     ]);
   const persona = profileSnapshot.profile.characterPersona;
+  const characterReady = Boolean(
+    profileSnapshot.profile.displayName.trim() &&
+      persona &&
+      profileSnapshot.profile.avatarImageUrl,
+  );
 
   return {
     character: {
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       name: persona?.name ?? profileSnapshot.profile.displayName ?? null,
-      ready: Boolean(persona),
+      ready: characterReady,
     },
     fanRequests: {
       pendingCount: pendingFanRequestCount,
