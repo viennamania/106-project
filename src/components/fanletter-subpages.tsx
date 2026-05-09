@@ -2265,7 +2265,6 @@ function FanletterFeedDiscoveryControls({
           placeholder: "캐릭터명, 제목, 장면 검색",
           result: "검색 결과",
           search: "검색",
-          sort: "정렬",
           sortOptions: {
             comments: "댓글 많은 순",
             latest: "최신순",
@@ -2282,7 +2281,6 @@ function FanletterFeedDiscoveryControls({
           placeholder: "Search character, title, or scene",
           result: "Results",
           search: "Search",
-          sort: "Sort",
           sortOptions: {
             comments: "Most comments",
             latest: "Latest",
@@ -2304,6 +2302,10 @@ function FanletterFeedDiscoveryControls({
     referralCode,
     sort: "latest",
   });
+  const hasActiveFilters =
+    filters.query.length > 0 ||
+    (Boolean(filters.sort) && filters.sort !== "latest") ||
+    filters.page > 1;
 
   return (
     <section className="mb-8 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-5">
@@ -2322,11 +2324,11 @@ function FanletterFeedDiscoveryControls({
               </h2>
             </div>
           </div>
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-black/58">
+          <p className="mt-3 hidden max-w-3xl text-sm font-medium leading-6 text-black/58 sm:block">
             {labels.helper}
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-sm font-semibold text-black/58">
+        <div className="inline-flex w-fit items-center gap-2 justify-self-start rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-sm font-semibold text-black/58 lg:justify-self-end">
           <SlidersHorizontal className="size-4 text-[#1f7c38]" />
           {labels.page} {formatNumber(filters.page, locale)} /{" "}
           {formatNumber(filters.pageCount, locale)}
@@ -2335,10 +2337,17 @@ function FanletterFeedDiscoveryControls({
 
       <form
         action={`/${locale}/fanletter/feed`}
-        className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem_auto_auto]"
+        className={`mt-5 grid gap-3 ${
+          hasActiveFilters
+            ? "lg:grid-cols-[minmax(0,1fr)_auto_auto]"
+            : "lg:grid-cols-[minmax(0,1fr)_auto]"
+        }`}
         method="get"
       >
         {referralCode ? <input name="ref" type="hidden" value={referralCode} /> : null}
+        {filters.sort && filters.sort !== "latest" ? (
+          <input name="sort" type="hidden" value={filters.sort} />
+        ) : null}
         <label className="min-w-0">
           <span className="sr-only">{labels.search}</span>
           <input
@@ -2350,20 +2359,6 @@ function FanletterFeedDiscoveryControls({
             type="search"
           />
         </label>
-        <label className="min-w-0">
-          <span className="sr-only">{labels.sort}</span>
-          <select
-            className="h-12 w-full rounded-lg border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black outline-none transition focus:border-[#29d85f]/70 focus:bg-white"
-            defaultValue={filters.sort}
-            name="sort"
-          >
-            {sortOptions.map((option) => (
-              <option key={option} value={option}>
-                {labels.sortOptions[option]}
-              </option>
-            ))}
-          </select>
-        </label>
         <button
           className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
           type="submit"
@@ -2371,21 +2366,24 @@ function FanletterFeedDiscoveryControls({
           <Search className="size-4" />
           {labels.search}
         </button>
-        <Link
-          className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 px-5 text-sm font-semibold text-black/62 transition hover:border-black/24 hover:text-black"
-          href={resetHref}
-        >
-          {labels.clear}
-        </Link>
+        {hasActiveFilters ? (
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 px-5 text-sm font-semibold text-black/62 transition hover:border-black/24 hover:text-black"
+            href={resetHref}
+          >
+            {labels.clear}
+          </Link>
+        ) : null}
       </form>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex snap-x gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
         {sortOptions.map((option) => {
           const isActive = filters.sort === option;
 
           return (
             <Link
-              className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition ${
+              aria-current={isActive ? "page" : undefined}
+              className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full px-4 text-sm font-semibold transition ${
                 isActive
                   ? "bg-[#44f26e] text-black"
                   : "border border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black"
@@ -2537,21 +2535,41 @@ export function FanletterFeedPage({
     ).values(),
   ).slice(0, 6);
   const rankedCreatorCount = getRankedCreators(items).length;
+  const hasSearchQuery = filters.query.length > 0;
+  const feedStatLabels =
+    locale === "ko"
+      ? {
+          pageCreators: "이 페이지 캐릭터",
+          pageVideos: "이 페이지 영상",
+          total: "전체 공개",
+        }
+      : {
+          pageCreators: "Page creators",
+          pageVideos: "Page videos",
+          total: "All public",
+        };
   const feedStats = [
     {
-      label: copy.feed.freePublic,
+      label: feedStatLabels.total,
       value: formatNumber(filters.totalCount, locale),
     },
     {
-      label: copy.feed.videos,
+      label: feedStatLabels.pageVideos,
       value: formatNumber(videoCount, locale),
     },
     {
-      label: copy.feed.suggestedCreators,
+      label: feedStatLabels.pageCreators,
       value: formatNumber(creatorItems.length, locale),
     },
   ];
   const feedHref = getFeedHref({ filters, locale, referralCode });
+  const resetFeedHref = getFeedHref({
+    locale,
+    page: 1,
+    query: "",
+    referralCode,
+    sort: "latest",
+  });
   const followingHref = buildPathWithReferral(
     `/${locale}/fanletter/following`,
     referralCode,
@@ -2560,6 +2578,17 @@ export function FanletterFeedPage({
     `/${locale}/fanletter/start`,
     referralCode,
   );
+  const emptyFeedMessage = hasSearchQuery
+    ? locale === "ko"
+      ? `"${filters.query}"에 맞는 브이로그가 없습니다. 검색어를 지우거나 다른 캐릭터명, 제목, 장면으로 다시 찾아보세요.`
+      : `No vlogs match "${filters.query}". Clear the search or try another character, title, or scene.`
+    : copy.feed.empty;
+  const emptyFeedActionHref = hasSearchQuery ? resetFeedHref : startHref;
+  const emptyFeedActionLabel = hasSearchQuery
+    ? locale === "ko"
+      ? "전체 브이로그 보기"
+      : "View all vlogs"
+    : copy.actions.start;
   const sectionLinks = [
     { href: followingHref, label: copy.actions.following },
     featuredItem
@@ -2593,7 +2622,7 @@ export function FanletterFeedPage({
         <div className="mx-auto max-w-[92rem]">
           <nav
             aria-label={locale === "ko" ? "피드 섹션" : "Feed sections"}
-            className="mb-8 flex flex-wrap gap-2 pb-1"
+            className="-mx-4 mb-6 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mb-8 sm:flex-wrap sm:overflow-visible sm:px-0"
           >
             {sectionLinks.map((link) => (
               <Link
@@ -2728,9 +2757,9 @@ export function FanletterFeedPage({
             </h2>
           </div>
           <ContentGrid
-            empty={copy.feed.empty}
-            emptyActionHref={startHref}
-            emptyActionLabel={copy.actions.start}
+            empty={emptyFeedMessage}
+            emptyActionHref={emptyFeedActionHref}
+            emptyActionLabel={emptyFeedActionLabel}
             items={items}
             locale={locale}
             referralCode={referralCode}
