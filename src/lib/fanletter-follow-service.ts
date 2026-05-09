@@ -26,6 +26,17 @@ const SUMMARY_LIMIT = 170;
 const TITLE_LIMIT = 96;
 const TRAIT_LIMIT = 38;
 
+type FanletterPublicContentAggregate = {
+  _id: string;
+  latestContent: ContentPostDocument | null;
+  publicContentCount: number;
+};
+
+type FanletterFollowerCountAggregate = {
+  _id: string;
+  followerCount: number;
+};
+
 function compactText(value: string | null | undefined, limit: number) {
   const text = (value ?? "").replace(/\s+/g, " ").trim();
 
@@ -79,16 +90,11 @@ function getPublishedContentLocaleFilter(
     : { locale: contentLocale };
 }
 
-function getFanletterPublicContentFilter({
-  locale,
-  referralCode,
-}: {
-  locale: Locale;
-  referralCode: string;
-}): Filter<ContentPostDocument> {
+function getFanletterPublicContentBaseFilter(
+  locale: Locale,
+): Filter<ContentPostDocument> {
   return {
     ...getPublishedContentLocaleFilter(locale),
-    authorReferralCode: referralCode,
     "contentVideoUrls.0": { $exists: true },
     priceType: "free",
     status: "published",
@@ -263,48 +269,86 @@ export async function getFanletterFollowedCharactersForMember({
   const profileByReferralCode = new Map(
     profiles.map((profile) => [profile.referralCode, profile]),
   );
-  const characters = await Promise.all(
-    follows.map(async (follow) =>
-      serializeFollowedCharacter({
-        follow,
-        followerCount: await followsCollection.countDocuments({
-          creatorReferralCode: follow.creatorReferralCode,
-        }),
-        locale,
-        profile: profileByReferralCode.get(follow.creatorReferralCode) ?? null,
-      }),
-    ),
+  const postsCollection = await getContentPostsCollection();
+  const [contentAggregates, followerCountAggregates] = await Promise.all([
+    postsCollection
+      .aggregate<FanletterPublicContentAggregate>([
+        {
+          $match: {
+            ...getFanletterPublicContentBaseFilter(locale),
+            authorReferralCode: { $in: referralCodes },
+          },
+        },
+        {
+          $sort: {
+            authorReferralCode: 1,
+            publishedAt: -1,
+            createdAt: -1,
+            contentId: -1,
+          },
+        },
+        {
+          $group: {
+            _id: "$authorReferralCode",
+            latestContent: { $first: "$$ROOT" },
+            publicContentCount: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+    followsCollection
+      .aggregate<FanletterFollowerCountAggregate>([
+        {
+          $match: {
+            creatorReferralCode: { $in: referralCodes },
+          },
+        },
+        {
+          $group: {
+            _id: "$creatorReferralCode",
+            followerCount: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+  ]);
+  const contentByReferralCode = new Map(
+    contentAggregates.map((aggregate) => [aggregate._id, aggregate]),
+  );
+  const followerCountByReferralCode = new Map(
+    followerCountAggregates.map((aggregate) => [
+      aggregate._id,
+      aggregate.followerCount,
+    ]),
+  );
+  const characters = follows.map((follow) =>
+    serializeFollowedCharacter({
+      contentAggregate: contentByReferralCode.get(follow.creatorReferralCode) ?? null,
+      follow,
+      followerCount: followerCountByReferralCode.get(follow.creatorReferralCode) ?? 0,
+      locale,
+      profile: profileByReferralCode.get(follow.creatorReferralCode) ?? null,
+    }),
   );
 
   return { characters };
 }
 
-async function serializeFollowedCharacter({
+function serializeFollowedCharacter({
+  contentAggregate,
   follow,
   followerCount,
   locale,
   profile,
 }: {
+  contentAggregate: FanletterPublicContentAggregate | null;
   follow: FanletterCharacterFollowDocument;
   followerCount: number;
   locale: Locale;
   profile: CreatorProfileDocument | null;
-}): Promise<FanletterFollowedCharacterRecord> {
-  const postsCollection = await getContentPostsCollection();
-  const publicContentFilter = getFanletterPublicContentFilter({
-    locale,
-    referralCode: follow.creatorReferralCode,
-  });
-  const [latestContent, publicContentCount] = await Promise.all([
-    postsCollection.findOne(publicContentFilter, {
-      sort: {
-        publishedAt: -1,
-        createdAt: -1,
-        contentId: -1,
-      },
-    }),
-    postsCollection.countDocuments(publicContentFilter),
-  ]);
+}): FanletterFollowedCharacterRecord {
+  const latestContent = contentAggregate?.latestContent ?? null;
+  const publicContentCount = contentAggregate?.publicContentCount ?? 0;
   const fallbackDisplayName =
     follow.creatorEmail.split("@")[0] || follow.creatorReferralCode;
   const characterName =

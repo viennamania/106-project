@@ -13,6 +13,7 @@ import {
   PlayCircle,
   RefreshCw,
   Sparkles,
+  UserMinus,
   UserRound,
   UsersRound,
   WalletCards,
@@ -72,6 +73,9 @@ function getCopy(locale: Locale) {
           "내가 팔로우한 AI 캐릭터의 최신 공개 브이로그와 채널을 한 화면에서 이어봅니다.",
         title: "팔로우한 캐릭터",
         updated: "업데이트",
+        unfollow: "팔로우 해제",
+        unfollowError: "팔로우를 해제하지 못했습니다.",
+        unfollowing: "해제 중",
         videos: "브이로그",
       }
     : {
@@ -102,6 +106,9 @@ function getCopy(locale: Locale) {
           "Continue into the latest public vlogs and channels from AI characters you follow.",
         title: "Followed Characters",
         updated: "Updated",
+        unfollow: "Unfollow",
+        unfollowError: "Could not unfollow this character.",
+        unfollowing: "Unfollowing",
         videos: "Vlogs",
       };
 }
@@ -217,11 +224,15 @@ function FollowingHeader({
 
 function FollowedCharacterCard({
   character,
+  isUpdating,
   locale,
+  onUnfollow,
   referralCode,
 }: {
   character: FanletterFollowedCharacterRecord;
+  isUpdating: boolean;
   locale: Locale;
+  onUnfollow: (character: FanletterFollowedCharacterRecord) => void;
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
@@ -365,6 +376,21 @@ function FollowedCharacterCard({
             <PlayCircle className="size-4" />
             {copy.openLatest}
           </Link>
+          <button
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+            disabled={isUpdating}
+            onClick={() => {
+              onUnfollow(character);
+            }}
+            type="button"
+          >
+            {isUpdating ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <UserMinus className="size-4" />
+            )}
+            {isUpdating ? copy.unfollowing : copy.unfollow}
+          </button>
         </div>
       </div>
     </article>
@@ -536,9 +562,13 @@ export function FanletterFollowingPage({
   const [characters, setCharacters] = useState<FanletterFollowedCharacterRecord[]>(
     [],
   );
+  const [actionError, setActionError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<LoadStatus>("idle");
+  const [updatingReferralCode, setUpdatingReferralCode] = useState<string | null>(
+    null,
+  );
   const followingHref = buildPathWithReferral(
     `/${locale}/fanletter/following`,
     referralCode,
@@ -585,6 +615,7 @@ export function FanletterFollowingPage({
     }
 
     setStatus("loading");
+    setActionError(null);
     setError(null);
 
     try {
@@ -621,6 +652,59 @@ export function FanletterFollowingPage({
       setStatus("error");
     }
   }, [accountAddress, copy.errorBody, email, locale, memberSession.email]);
+
+  const unfollowCharacter = useCallback(
+    async (character: FanletterFollowedCharacterRecord) => {
+      const resolvedEmail = email ?? memberSession.email;
+
+      if (!accountAddress || !resolvedEmail || updatingReferralCode) {
+        return;
+      }
+
+      const previousCharacters = characters;
+
+      setActionError(null);
+      setUpdatingReferralCode(character.referralCode);
+      setCharacters((current) =>
+        current.filter((item) => item.referralCode !== character.referralCode),
+      );
+
+      try {
+        await readApiJson(
+          await fetch("/api/fanletter/follows", {
+            body: JSON.stringify({
+              action: "unfollow",
+              creatorReferralCode: character.referralCode,
+              email: resolvedEmail,
+              walletAddress: accountAddress,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          }),
+          copy.unfollowError,
+        );
+      } catch (unfollowError) {
+        setCharacters(previousCharacters);
+        setActionError(
+          unfollowError instanceof Error
+            ? unfollowError.message
+            : copy.unfollowError,
+        );
+      } finally {
+        setUpdatingReferralCode(null);
+      }
+    },
+    [
+      accountAddress,
+      characters,
+      copy.unfollowError,
+      email,
+      memberSession.email,
+      updatingReferralCode,
+    ],
+  );
 
   useEffect(() => {
     if (!connection.isConnected) {
@@ -715,6 +799,11 @@ export function FanletterFollowingPage({
             />
           ) : (
             <>
+              {actionError ? (
+                <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                  {actionError}
+                </p>
+              ) : null}
               <div className="mb-8 grid gap-3 md:grid-cols-3">
                 {stats.map((stat) => {
                   const Icon = stat.icon;
@@ -751,8 +840,10 @@ export function FanletterFollowingPage({
                 {characters.map((character) => (
                   <FollowedCharacterCard
                     character={character}
+                    isUpdating={updatingReferralCode === character.referralCode}
                     key={character.referralCode}
                     locale={locale}
+                    onUnfollow={unfollowCharacter}
                     referralCode={referralCode}
                   />
                 ))}
