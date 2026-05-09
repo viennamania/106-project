@@ -8,16 +8,13 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterCreatorSearchParams = {
   ref?: string | string[];
 };
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
-}
 
 export async function generateMetadata({
   params,
@@ -101,7 +98,7 @@ export default async function LocalizedFanletterCreatorPage({
     notFound();
   }
 
-  const queryReferralCode = readReferralCode(query.ref);
+  const queryReferralCode = readFanletterReferralCode(query.ref);
 
   return (
     <FanletterCreatorPage

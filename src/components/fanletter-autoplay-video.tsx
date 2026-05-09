@@ -11,6 +11,21 @@ type FanletterAutoplayVideoProps = {
   title?: string;
 };
 
+function shouldAvoidAutoplay() {
+  const connection = (
+    navigator as Navigator & {
+      connection?: {
+        saveData?: boolean;
+      };
+    }
+  ).connection;
+
+  return (
+    connection?.saveData === true ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function FanletterAutoplayVideo({
   ariaHidden = false,
   className,
@@ -59,6 +74,17 @@ export function FanletterAutoplayVideo({
       video.load();
     };
 
+    if (shouldAvoidAutoplay()) {
+      if (controls) {
+        ensureSource();
+      }
+
+      return () => {
+        pauseVideo();
+        unloadSource();
+      };
+    }
+
     if (typeof IntersectionObserver === "undefined") {
       const animationFrame = window.requestAnimationFrame(playVideo);
       return () => {
@@ -89,7 +115,7 @@ export function FanletterAutoplayVideo({
       pauseVideo();
       unloadSource();
     };
-  }, [src]);
+  }, [controls, src]);
 
   return (
     <video

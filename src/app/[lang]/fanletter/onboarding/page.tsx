@@ -7,17 +7,13 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterOnboardingSearchParams = {
   ref?: string | string[];
 };
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
-}
 
 export async function generateMetadata({
   params,
@@ -29,7 +25,7 @@ export async function generateMetadata({
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
       ? "FanLetter 온보딩"
@@ -98,7 +94,7 @@ export default async function LocalizedFanletterOnboardingPage({
   return (
     <FanletterOnboardingPage
       locale={lang as Locale}
-      referralCode={readReferralCode(query.ref)}
+      referralCode={readFanletterReferralCode(query.ref)}
     />
   );
 }

@@ -1,7 +1,7 @@
 import "server-only";
 
-import { cache } from "react";
 import type { Filter } from "mongodb";
+import { unstable_cache } from "next/cache";
 
 import {
   type ContentPostDocument,
@@ -367,7 +367,7 @@ async function getProfileByEmail(posts: ContentPostDocument[]) {
   return new Map(profiles.map((profile) => [profile.email, profile]));
 }
 
-export const getFanletterLandingData = cache(
+export const getFanletterLandingData = unstable_cache(
   async (locale: Locale): Promise<FanletterLandingData> => {
     const postsCollection = await getContentPostsCollection();
     const profilesCollection = await getCreatorProfilesCollection();
@@ -457,5 +457,10 @@ export const getFanletterLandingData = cache(
         totalSalesUsdt: totalSalesRows[0]?.totalSalesUsdt ?? 0,
       },
     };
+  },
+  ["fanletter-landing-data"],
+  {
+    revalidate: 300,
+    tags: ["fanletter-landing-data"],
   },
 );

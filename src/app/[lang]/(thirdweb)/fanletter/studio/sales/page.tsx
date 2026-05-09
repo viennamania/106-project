@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterSalesPage } from "@/components/fanletter-sales-page";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterSalesSearchParams = {
   ref?: string | string[];
@@ -21,10 +21,6 @@ function getMetaCopy(locale: Locale) {
           "Manage FanLetter AI character vlog sales, seller wallet, and withdrawal status.",
         title: "Sales history | FanLetter",
       };
-}
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
 }
 
 export async function generateMetadata({
@@ -59,7 +55,7 @@ export default async function LocalizedFanletterSalesPage({
   return (
     <FanletterSalesPage
       locale={lang as Locale}
-      referralCode={readReferralCode(query.ref)}
+      referralCode={readFanletterReferralCode(query.ref)}
     />
   );
 }

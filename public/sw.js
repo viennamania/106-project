@@ -1,5 +1,5 @@
-const PAGE_CACHE = "mobile-pwa-pages-v4";
-const ASSET_CACHE = "mobile-pwa-assets-v4";
+const PAGE_CACHE = "mobile-pwa-pages-v5";
+const ASSET_CACHE = "mobile-pwa-assets-v5";
 const LOCALES = ["ko", "en", "ja", "zh", "vi", "id"];
 const ROOT_PUBLIC_NAVIGATION_URLS = LOCALES.map((locale) => `/${locale}`);
 const FANLETTER_PUBLIC_NAVIGATION_URLS = LOCALES.flatMap((locale) => [
@@ -173,7 +173,7 @@ async function handleNavigation(request) {
     if (
       cacheKey &&
       shouldCacheResponse(response, {
-        allowPrivate: FANLETTER_PUBLIC_NAVIGATION_CACHE_PATHS.has(cacheKey),
+        allowPrivate: isFanletterPublicCachePath(cacheKey),
       })
     ) {
       await cache.put(cacheKey, response.clone());
@@ -257,7 +257,30 @@ function normalizePathname(pathname) {
 function getPublicNavigationCacheKey(url) {
   const pathname = normalizePathname(url.pathname);
 
-  return PUBLIC_NAVIGATION_CACHE_PATHS.has(pathname) ? pathname : null;
+  if (PUBLIC_NAVIGATION_CACHE_PATHS.has(pathname)) {
+    return pathname;
+  }
+
+  return isFanletterPublicDetailPath(pathname) ? pathname : null;
+}
+
+function isFanletterPublicCachePath(pathname) {
+  return (
+    FANLETTER_PUBLIC_NAVIGATION_CACHE_PATHS.has(pathname) ||
+    isFanletterPublicDetailPath(pathname)
+  );
+}
+
+function isFanletterPublicDetailPath(pathname) {
+  const [, locale, section, resource, id, extraSegment] = pathname.split("/");
+
+  return (
+    LOCALES.includes(locale) &&
+    section === "fanletter" &&
+    (resource === "content" || resource === "creator") &&
+    Boolean(id) &&
+    !extraSegment
+  );
 }
 
 async function getNavigationFallback(cache, url) {

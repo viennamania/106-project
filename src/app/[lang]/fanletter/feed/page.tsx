@@ -12,9 +12,12 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import {
+  readFanletterReferralCode,
+  readFirstSearchParam,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterFeedSearchParams = {
   page?: string | string[];
@@ -22,14 +25,6 @@ type FanletterFeedSearchParams = {
   ref?: string | string[];
   sort?: string | string[];
 };
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
-}
-
-function readFirstSearchParam(rawValue?: string | string[]) {
-  return Array.isArray(rawValue) ? rawValue[0] : rawValue;
-}
 
 function readFeedSort(rawValue?: string | string[]): FanletterFeedSort {
   const value = readFirstSearchParam(rawValue);
@@ -55,7 +50,7 @@ export async function generateMetadata({
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
       ? "FanLetter 브이로그 피드 | 공개 AI 캐릭터 브이로그"
@@ -119,7 +114,7 @@ export default async function LocalizedFanletterFeedPage({
   }
 
   const locale = lang as Locale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const data = await getFanletterFeedPageData(locale, referralCode, {
     page: readFeedPage(query.page),
     query: readFirstSearchParam(query.q),

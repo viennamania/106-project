@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterVlogManagementPage } from "@/components/fanletter-vlog-management-page";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterVlogsSearchParams = {
   ref?: string | string[];
@@ -21,10 +21,6 @@ function getMetaCopy(locale: Locale) {
           "Search FanLetter AI character vlogs and manage published, draft, and archived states.",
         title: "Manage all vlogs | FanLetter",
       };
-}
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
 }
 
 export async function generateMetadata({
@@ -59,7 +55,7 @@ export default async function LocalizedFanletterVlogManagementPage({
   return (
     <FanletterVlogManagementPage
       locale={lang as Locale}
-      referralCode={readReferralCode(query.ref)}
+      referralCode={readFanletterReferralCode(query.ref)}
     />
   );
 }

@@ -19,28 +19,21 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  useActiveAccount,
-  useActiveWalletConnectionStatus,
-} from "thirdweb/react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
-import { useMemberSession } from "@/components/member-session-provider";
 import type {
   FanletterFollowedCharacterRecord,
   FanletterFollowedCharactersResponse,
 } from "@/lib/content";
+import { useFanletterAccountStatus } from "@/lib/fanletter-account-status";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { thirdwebClient } from "@/lib/thirdweb";
-import {
-  getThirdwebUserEmail,
-  useThirdwebConnectionState,
-} from "@/lib/thirdweb-client";
+import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 
 type LoadStatus = "error" | "idle" | "loading" | "ready";
 
@@ -553,21 +546,17 @@ export function FanletterFollowingPage({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const account = useActiveAccount();
-  const connectionStatus = useActiveWalletConnectionStatus();
-  const memberSession = useMemberSession();
-  const accountAddress = account?.address ?? null;
-  const connection = useThirdwebConnectionState({
-    accountAddress,
+  const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: 3000,
     resolveGraceMs: 3000,
-    status: connectionStatus,
   });
+  const { accountAddress, connection, memberSession } = accountStatus;
   const [characters, setCharacters] = useState<FanletterFollowedCharacterRecord[]>(
     [],
   );
   const [actionError, setActionError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
+  const [emailSyncAttempted, setEmailSyncAttempted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [updatingReferralCode, setUpdatingReferralCode] = useState<string | null>(
@@ -614,6 +603,7 @@ export function FanletterFollowingPage({
 
   const loadFollowing = useCallback(async () => {
     if (!accountAddress) {
+      setEmailSyncAttempted(false);
       setStatus("idle");
       return;
     }
@@ -630,6 +620,7 @@ export function FanletterFollowingPage({
       }
 
       setEmail(resolvedEmail ?? null);
+      setEmailSyncAttempted(true);
 
       if (!resolvedEmail) {
         setStatus("idle");
@@ -652,6 +643,7 @@ export function FanletterFollowingPage({
       setCharacters(data.characters);
       setStatus("ready");
     } catch (loadError) {
+      setEmailSyncAttempted(true);
       setError(loadError instanceof Error ? loadError.message : copy.errorBody);
       setStatus("error");
     }
@@ -711,6 +703,10 @@ export function FanletterFollowingPage({
   );
 
   useEffect(() => {
+    setEmailSyncAttempted(false);
+  }, [accountAddress]);
+
+  useEffect(() => {
     if (!connection.isConnected) {
       return;
     }
@@ -724,8 +720,16 @@ export function FanletterFollowingPage({
     };
   }, [connection.isConnected, loadFollowing]);
 
+  const isWaitingForAccount =
+    accountStatus.status === "checking" ||
+    (connection.isConnected && !email && !emailSyncAttempted);
   const showConnect =
-    connection.isDisconnected || (!connection.isResolving && !accountAddress) || !email;
+    !isWaitingForAccount &&
+    (accountStatus.status === "disconnected" ||
+      accountStatus.status === "setupMissing" ||
+      accountStatus.status === "issue" ||
+      !accountAddress ||
+      !email);
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -767,7 +771,7 @@ export function FanletterFollowingPage({
 
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
-          {connection.isResolving || status === "loading" ? (
+          {isWaitingForAccount || status === "loading" ? (
             <StatePanel
               body={copy.loading}
               icon="loading"

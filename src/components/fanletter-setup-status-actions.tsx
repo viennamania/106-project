@@ -2,23 +2,14 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+
 import {
-  useActiveAccount,
-  useActiveWalletConnectionStatus,
-} from "thirdweb/react";
-
-import { useMemberSession } from "@/components/member-session-provider";
+  type FanletterAccountStatusKind,
+  useFanletterAccountStatus,
+} from "@/lib/fanletter-account-status";
 import type { Locale } from "@/lib/i18n";
-import { hasThirdwebClientId } from "@/lib/thirdweb";
-import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 
-type SetupStatus =
-  | "checking"
-  | "connected"
-  | "disconnected"
-  | "issue"
-  | "pendingPayment"
-  | "setupMissing";
+type SetupStatus = FanletterAccountStatusKind;
 
 type SetupSurface = "dark" | "light";
 type SetupVariant = "onboarding" | "start";
@@ -56,65 +47,11 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function getSetupStatus({
-  connection,
-  memberSession,
-}: {
-  connection: ReturnType<typeof useThirdwebConnectionState>;
-  memberSession: ReturnType<typeof useMemberSession>;
-}): SetupStatus {
-  if (!hasThirdwebClientId) {
-    return "setupMissing";
-  }
-
-  if (
-    connection.isResolving ||
-    memberSession.isValidating ||
-    memberSession.status === "validating"
-  ) {
-    return "checking";
-  }
-
-  if (connection.isDisconnected) {
-    return "disconnected";
-  }
-
-  if (memberSession.member?.serviceSuspendedAt) {
-    return "issue";
-  }
-
-  if (memberSession.member?.status === "pending_payment") {
-    return "pendingPayment";
-  }
-
-  if (memberSession.status === "error" && !memberSession.member) {
-    return "issue";
-  }
-
-  if (connection.isConnected) {
-    return "connected";
-  }
-
-  return "disconnected";
-}
-
 function useSetupStatus() {
-  const account = useActiveAccount();
-  const connectionStatus = useActiveWalletConnectionStatus();
-  const memberSession = useMemberSession();
-  const accountAddress = account?.address ?? null;
-  const connection = useThirdwebConnectionState({
-    accountAddress,
-    clientConfigured: hasThirdwebClientId,
+  return useFanletterAccountStatus({
     disconnectedResolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
-    status: connectionStatus,
-  });
-
-  return getSetupStatus({
-    connection,
-    memberSession,
-  });
+  }).status;
 }
 
 function getCopy(locale: Locale) {

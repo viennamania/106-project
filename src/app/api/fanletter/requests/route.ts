@@ -17,6 +17,9 @@ import {
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 50;
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
@@ -70,7 +73,11 @@ function readStatus(value: string | null): FanletterFanRequestStatus | "open" {
 function readPageSize(value: string | null) {
   const parsed = Number(value);
 
-  return Number.isFinite(parsed) ? parsed : 20;
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  return Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(parsed)));
 }
 
 function getRequesterFingerprint(request: Request) {

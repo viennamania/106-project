@@ -10,12 +10,16 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import {
+  getSafeFanletterReturnTo,
+  readFanletterReferralCode,
+  readFirstSearchParam,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterCreateSearchParams = {
   fanRequestId?: string | string[];
@@ -29,42 +33,8 @@ type FanletterCreateSearchParams = {
   returnTo?: string | string[];
 };
 
-function readFirstValue(rawValue?: string | string[]) {
-  return Array.isArray(rawValue) ? rawValue[0] : rawValue;
-}
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(readFirstValue(rawValue));
-}
-
-function getSafeReturnTo({
-  locale,
-  referralCode,
-  returnTo,
-}: {
-  locale: Locale;
-  referralCode: string | null;
-  returnTo?: string | string[];
-}) {
-  const fallback = buildPathWithReferral(
-    `/${locale}/fanletter/onboarding`,
-    referralCode,
-  );
-  const rawValue = readFirstValue(returnTo)?.trim();
-
-  if (!rawValue || rawValue.startsWith("//")) {
-    return fallback;
-  }
-
-  if (!rawValue.startsWith(`/${locale}/`)) {
-    return fallback;
-  }
-
-  return rawValue;
-}
-
 function readPlanText(rawValue: string | string[] | undefined, limit: number) {
-  return readFirstValue(rawValue)?.trim().slice(0, limit) || undefined;
+  return readFirstSearchParam(rawValue)?.trim().slice(0, limit) || undefined;
 }
 
 function readInitialPlan(
@@ -102,7 +72,7 @@ export async function generateMetadata({
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
       ? "FanLetter 첫 AI 캐릭터 브이로그 만들기"
@@ -113,7 +83,13 @@ export async function generateMetadata({
       : "Generate today's AI character scene as a vertical vlog and publish it to FanLetter.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
-    { returnTo: getSafeReturnTo({ locale, referralCode, returnTo: query.returnTo }) },
+    {
+      returnTo: getSafeFanletterReturnTo({
+        locale,
+        referralCode,
+        returnTo: query.returnTo,
+      }),
+    },
   );
   const ogImagePath = buildFanletterOgImagePath({
     description,
@@ -169,14 +145,14 @@ export default async function LocalizedFanletterCreatePage({
   }
 
   const locale = lang as Locale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
 
   return (
     <FanletterCreatePage
       initialPlan={readInitialPlan(query)}
       locale={locale}
       referralCode={referralCode}
-      returnToHref={getSafeReturnTo({
+      returnToHref={getSafeFanletterReturnTo({
         locale,
         referralCode,
         returnTo: query.returnTo,

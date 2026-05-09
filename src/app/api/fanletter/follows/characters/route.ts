@@ -3,6 +3,9 @@ import { getFanletterFollowedCharactersForMember } from "@/lib/fanletter-follow-
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
+const DEFAULT_PAGE_SIZE = 24;
+const MAX_PAGE_SIZE = 50;
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
@@ -22,7 +25,11 @@ function readLocale(value: string | null): Locale {
 function readPageSize(value: string | null) {
   const parsed = Number(value);
 
-  return Number.isFinite(parsed) ? parsed : 24;
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  return Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(parsed)));
 }
 
 export async function GET(request: Request) {

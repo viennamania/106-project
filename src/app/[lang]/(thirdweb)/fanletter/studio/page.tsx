@@ -7,21 +7,13 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterStudioSearchParams = {
   ref?: string | string[];
 };
-
-function readFirstValue(rawValue?: string | string[]) {
-  return Array.isArray(rawValue) ? rawValue[0] : rawValue;
-}
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(readFirstValue(rawValue));
-}
 
 export async function generateMetadata({
   params,
@@ -33,7 +25,7 @@ export async function generateMetadata({
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
       ? "FanLetter 나의 AI 캐릭터 브이로그 스튜디오"
@@ -100,7 +92,7 @@ export default async function LocalizedFanletterStudioPage({
   }
 
   const locale = lang as Locale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
 
   return <FanletterStudioPage locale={locale} referralCode={referralCode} />;
 }

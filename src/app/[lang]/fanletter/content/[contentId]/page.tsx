@@ -5,34 +5,16 @@ import { FanletterContentDetailPage } from "@/components/fanletter-subpages";
 import { getFanletterPublicContentDetail } from "@/lib/fanletter-content-service";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import { FANLETTER_OG_IMAGE_SIZE } from "@/lib/fanletter-og";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterContentSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
 };
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
-}
-
-function normalizeReturnToPath(
-  value: string | string[] | undefined,
-  locale: Locale,
-) {
-  const candidate = Array.isArray(value) ? value[0] : value;
-
-  if (!candidate || !candidate.startsWith(`/${locale}/`)) {
-    return null;
-  }
-
-  if (candidate.startsWith("//")) {
-    return null;
-  }
-
-  return candidate;
-}
 
 export async function generateMetadata({
   params,
@@ -111,8 +93,8 @@ export default async function LocalizedFanletterContentDetailPage({
     <FanletterContentDetailPage
       content={content}
       locale={locale}
-      referralCode={readReferralCode(query.ref)}
-      returnToHref={normalizeReturnToPath(query.returnTo, locale)}
+      referralCode={readFanletterReferralCode(query.ref)}
+      returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
     />
   );
 }

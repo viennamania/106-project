@@ -8,13 +8,9 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
-
-function readReferralCode(rawValue?: string | string[]) {
-  return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
-}
 
 function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
@@ -42,7 +38,7 @@ export async function generateMetadata({
   const { lang } = await params;
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const meta = getFanletterMeta(locale);
   const url = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const ogImagePath = buildFanletterOgImagePath({
@@ -97,7 +93,7 @@ export default async function FanletterRoutePage({
   if (!hasLocale(lang)) {
     notFound();
   }
-  const referralCode = readReferralCode(query.ref);
+  const referralCode = readFanletterReferralCode(query.ref);
   const landingData = await getFanletterLandingData(lang);
 
   return (

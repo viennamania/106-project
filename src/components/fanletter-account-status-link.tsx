@@ -10,19 +10,13 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { Suspense, useMemo, type ComponentType } from "react";
-import {
-  useActiveAccount,
-  useActiveWalletConnectionStatus,
-} from "thirdweb/react";
 
-import { useMemberSession } from "@/components/member-session-provider";
+import { useFanletterAccountStatus } from "@/lib/fanletter-account-status";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
-import { hasThirdwebClientId } from "@/lib/thirdweb";
-import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 
 type AccountStatusTone = "connected" | "muted" | "warning";
 
@@ -145,19 +139,12 @@ function FanletterAccountStatusLinkInner({
   locale,
   referralCode,
 }: FanletterAccountStatusLinkProps) {
-  const account = useActiveAccount();
-  const connectionStatus = useActiveWalletConnectionStatus();
-  const memberSession = useMemberSession();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const accountAddress = account?.address ?? null;
-  const connection = useThirdwebConnectionState({
-    accountAddress,
-    clientConfigured: hasThirdwebClientId,
+  const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
-    status: connectionStatus,
   });
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const copy = getCopy(locale);
   const search = searchParams?.toString() ?? "";
   const fallbackPath = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
@@ -174,12 +161,12 @@ function FanletterAccountStatusLinkInner({
     { returnTo: currentHref },
   );
   const identityLabel =
-    memberSession.email ?? formatAddressLabel(accountAddress) ?? copy.connected;
+    accountStatus.email ??
+    formatAddressLabel(accountStatus.accountAddress) ??
+    copy.connected;
   const connectedLabel = `${copy.connected} · ${identityLabel}`;
-  const member = memberSession.member;
-  const isMemberChecking =
-    memberSession.isValidating || memberSession.status === "validating";
-  const view: AccountStatusView = !hasThirdwebClientId
+  const member = accountStatus.member;
+  const view: AccountStatusView = accountStatus.status === "setupMissing"
     ? {
         Icon: CircleAlert,
         href: connectHref,
@@ -188,7 +175,7 @@ function FanletterAccountStatusLinkInner({
         title: copy.setupMissing,
         tone: "warning",
       }
-    : connection.isResolving || isMemberChecking
+    : accountStatus.status === "checking"
       ? {
           Icon: Loader2,
           href: connectHref,
@@ -198,7 +185,7 @@ function FanletterAccountStatusLinkInner({
           title: copy.checking,
           tone: "muted",
         }
-      : connection.isDisconnected
+      : accountStatus.status === "disconnected"
         ? {
             Icon: Mail,
             href: connectHref,
@@ -216,7 +203,7 @@ function FanletterAccountStatusLinkInner({
               title: copy.serviceSuspended,
               tone: "warning",
             }
-          : member?.status === "pending_payment"
+          : accountStatus.status === "pendingPayment"
             ? {
                 Icon: ShieldAlert,
                 href: activateHref,
@@ -225,13 +212,13 @@ function FanletterAccountStatusLinkInner({
                 title: copy.payment,
                 tone: "warning",
               }
-            : memberSession.status === "error" && !member
+            : accountStatus.status === "issue"
               ? {
                   Icon: CircleAlert,
                   href: connectHref,
                   label: copy.issue,
                   mobileLabel: copy.issue,
-                  title: memberSession.error ?? copy.issue,
+                  title: accountStatus.memberSession.error ?? copy.issue,
                   tone: "warning",
                 }
               : {
