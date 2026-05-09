@@ -591,6 +591,18 @@ export function FanletterHomePage({
           trust: "Trust",
           usdtReady: "USDT ready",
         };
+  const mobileFooterLabels =
+    locale === "ko"
+      ? {
+          activate: "계정",
+          feed: "피드",
+          studio: "스튜디오",
+        }
+      : {
+          activate: "Account",
+          feed: "Feed",
+          studio: "Studio",
+        };
   const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
   const heroSetupSteps =
     locale === "ko"
@@ -1375,28 +1387,64 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <footer className="bg-white px-4 py-12 text-black sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1fr_1.4fr]">
+      <footer className="bg-white px-4 pb-8 pt-10 text-black sm:px-6 sm:py-12 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_1.4fr] md:gap-10">
           <div>
-            <p className="max-w-lg text-4xl font-semibold leading-[1] tracking-normal [word-break:keep-all]">
+            <p className="max-w-lg text-[2.15rem] font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-4xl sm:leading-[1]">
               {copy.footer.title}
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#44f26e] px-5 text-sm font-semibold !text-black"
+                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg bg-[#44f26e] px-3 text-center text-sm font-semibold !text-black sm:px-5"
                 href={creatorHref}
               >
                 {copy.cta.creator}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-black/12 px-5 text-sm font-semibold !text-black"
+                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
                 href={feedHref}
               >
                 {copy.cta.fan}
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-6 text-sm font-semibold text-black/62 sm:grid-cols-4">
+          <div className="sm:hidden">
+            <div className="grid grid-cols-3 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={studioHref}
+              >
+                {mobileFooterLabels.studio}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={feedHref}
+              >
+                {mobileFooterLabels.feed}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={connectHref}
+              >
+                {mobileFooterLabels.activate}
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-2 text-sm font-semibold text-black/68">
+              <div className="flex min-h-10 items-center gap-2">
+                <ShieldCheck className="size-4 shrink-0" />
+                <span>{footerLabels.mobileFirst}</span>
+              </div>
+              <div className="flex min-h-10 items-center gap-2">
+                <BadgeDollarSign className="size-4 shrink-0" />
+                <span>{footerLabels.usdtReady}</span>
+              </div>
+              <div className="flex min-h-10 items-center gap-2">
+                <ChartNoAxesCombined className="size-4 shrink-0" />
+                <span>{footerLabels.creatorGrowth}</span>
+              </div>
+            </div>
+          </div>
+          <div className="hidden grid-cols-2 gap-6 text-sm font-semibold text-black/62 sm:grid sm:grid-cols-4">
             <div>
               <p className="text-black">FanLetter</p>
               <div className="mt-4 space-y-2">
