@@ -1,24 +1,40 @@
-const PAGE_CACHE = "pocket-smart-wallet-pages-v1";
-const ASSET_CACHE = "pocket-smart-wallet-assets-v2";
+const PAGE_CACHE = "mobile-pwa-pages-v4";
+const ASSET_CACHE = "mobile-pwa-assets-v4";
+const LOCALES = ["ko", "en", "ja", "zh", "vi", "id"];
+const ROOT_PUBLIC_NAVIGATION_URLS = LOCALES.map((locale) => `/${locale}`);
+const FANLETTER_PUBLIC_NAVIGATION_URLS = LOCALES.flatMap((locale) => [
+  `/${locale}/fanletter`,
+  `/${locale}/fanletter/feed`,
+  `/${locale}/fanletter/onboarding`,
+  `/${locale}/fanletter/start`,
+]);
+const FANLETTER_MANIFEST_URLS = LOCALES.map(
+  (locale) => `/${locale}/fanletter/manifest.webmanifest`,
+);
 const PRECACHE_URLS = [
   "/offline",
   "/manifest.webmanifest",
   "/favicon.ico",
   "/icon-192.png",
   "/icon-512.png",
-  "/ko",
-  "/en",
-  "/ja",
-  "/zh",
-  "/vi",
-  "/id",
+  "/fanletter-apple-icon.png",
+  "/fanletter-icon-192.png",
+  "/fanletter-icon-512.png",
+  ...FANLETTER_MANIFEST_URLS,
 ];
+const PUBLIC_NAVIGATION_CACHE_PATHS = new Set([
+  ...ROOT_PUBLIC_NAVIGATION_URLS,
+  ...FANLETTER_PUBLIC_NAVIGATION_URLS,
+]);
+const FANLETTER_PUBLIC_NAVIGATION_CACHE_PATHS = new Set(
+  FANLETTER_PUBLIC_NAVIGATION_URLS,
+);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(PAGE_CACHE);
-      await cache.addAll(PRECACHE_URLS);
+      await precacheUrls(cache, PRECACHE_URLS);
       await self.skipWaiting();
     })(),
   );
@@ -148,21 +164,26 @@ self.addEventListener("fetch", (event) => {
 
 async function handleNavigation(request) {
   const cache = await caches.open(PAGE_CACHE);
+  const url = new URL(request.url);
+  const cacheKey = getPublicNavigationCacheKey(url);
 
   try {
     const response = await fetch(request);
 
-    if (response.ok) {
-      await cache.put(request, response.clone());
+    if (
+      cacheKey &&
+      shouldCacheResponse(response, {
+        allowPrivate: FANLETTER_PUBLIC_NAVIGATION_CACHE_PATHS.has(cacheKey),
+      })
+    ) {
+      await cache.put(cacheKey, response.clone());
     }
 
     return response;
   } catch {
     const cachedResponse =
-      (await cache.match(request, { ignoreSearch: true })) ||
-      (request.url.endsWith("/") || new URL(request.url).pathname === "/"
-        ? await cache.match("/ko")
-        : null) ||
+      (cacheKey ? await cache.match(cacheKey) : null) ||
+      (await getNavigationFallback(cache, url)) ||
       (await cache.match("/offline"));
 
     if (cachedResponse) {
@@ -187,7 +208,7 @@ async function handleAsset(request) {
 
   const response = await fetch(request);
 
-  if (response.ok) {
+  if (shouldCacheResponse(response)) {
     await cache.put(request, response.clone());
   }
 
@@ -198,8 +219,76 @@ async function refreshAsset(cache, request) {
   try {
     const response = await fetch(request);
 
-    if (response.ok) {
+    if (shouldCacheResponse(response)) {
       await cache.put(request, response.clone());
     }
   } catch {}
+}
+
+async function precacheUrls(cache, urls) {
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await fetch(url, { cache: "reload" });
+        const pathname = normalizePathname(
+          new URL(url, self.location.origin).pathname,
+        );
+
+        if (
+          shouldCacheResponse(response, {
+            allowPrivate: FANLETTER_PUBLIC_NAVIGATION_CACHE_PATHS.has(pathname),
+          })
+        ) {
+          await cache.put(url, response);
+        }
+      } catch {}
+    }),
+  );
+}
+
+function normalizePathname(pathname) {
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+
+  return pathname;
+}
+
+function getPublicNavigationCacheKey(url) {
+  const pathname = normalizePathname(url.pathname);
+
+  return PUBLIC_NAVIGATION_CACHE_PATHS.has(pathname) ? pathname : null;
+}
+
+async function getNavigationFallback(cache, url) {
+  const pathname = normalizePathname(url.pathname);
+  const [, locale, section] = pathname.split("/");
+
+  if (LOCALES.includes(locale) && section === "fanletter") {
+    return cache.match(`/${locale}/fanletter`);
+  }
+
+  if (LOCALES.includes(locale)) {
+    return cache.match(`/${locale}`);
+  }
+
+  if (pathname === "/") {
+    return cache.match("/ko");
+  }
+
+  return null;
+}
+
+function shouldCacheResponse(response, options = {}) {
+  if (!response.ok) {
+    return false;
+  }
+
+  if (options.allowPrivate) {
+    return true;
+  }
+
+  const cacheControl = response.headers.get("Cache-Control") || "";
+
+  return !/(?:^|,)\s*(?:no-store|private)\b/i.test(cacheControl);
 }
