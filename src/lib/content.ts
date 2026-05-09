@@ -789,6 +789,12 @@ export type ContentSocialResponse = {
 
 export type ContentCommentsResponse = {
   comments: ContentCommentRecord[];
+  pageInfo: {
+    hasMore: boolean;
+    nextOffset: number | null;
+    offset: number;
+    pageSize: number;
+  };
   social: ContentSocialSummaryRecord;
 };
 

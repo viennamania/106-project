@@ -35,6 +35,8 @@ import { cn } from "@/lib/utils";
 type FanletterSocialActionsVariant = "compact" | "panel";
 type CommentsStatus = "error" | "idle" | "loading" | "ready" | "submitting";
 
+const COMMENTS_PAGE_SIZE = 5;
+
 type FanletterSocialActionsProps = {
   className?: string;
   commentsHref?: string;
@@ -61,6 +63,7 @@ function getCopy(locale: Locale) {
         like: "좋아요",
         liked: "좋아요 완료",
         loadCommentsFailed: "댓글을 불러오지 못했습니다.",
+        loadMoreComments: "댓글 더 보기",
         loading: "확인 중",
         loadingComments: "댓글을 불러오는 중",
         noComments: "아직 댓글이 없습니다.",
@@ -69,6 +72,10 @@ function getCopy(locale: Locale) {
         save: "저장",
         saved: "저장됨",
         share: "공유",
+        remainingComments: (remaining: number) =>
+          `${remaining.toLocaleString("ko")}개 더 볼 수 있음`,
+        showingComments: (visible: number, total: number) =>
+          `최근 댓글 ${visible.toLocaleString("ko")}개 표시 중 · 전체 ${total.toLocaleString("ko")}개`,
         signInRequired: "계정 연결 후 사용할 수 있습니다.",
         submitCommentFailed: "댓글을 등록하지 못했습니다.",
         submitting: "게시 중",
@@ -85,6 +92,7 @@ function getCopy(locale: Locale) {
         like: "Like",
         liked: "Liked",
         loadCommentsFailed: "Failed to load comments.",
+        loadMoreComments: "Load more comments",
         loading: "Checking",
         loadingComments: "Loading comments",
         noComments: "No comments yet.",
@@ -93,6 +101,10 @@ function getCopy(locale: Locale) {
         save: "Save",
         saved: "Saved",
         share: "Share",
+        remainingComments: (remaining: number) =>
+          `${remaining.toLocaleString("en")} more available`,
+        showingComments: (visible: number, total: number) =>
+          `Showing ${visible.toLocaleString("en")} recent comments · ${total.toLocaleString("en")} total`,
         signInRequired: "Connect your account to use this.",
         submitCommentFailed: "Failed to post comment.",
         submitting: "Posting",
@@ -200,6 +212,8 @@ export function FanletterSocialActions({
     null,
   );
   const [comments, setComments] = useState<ContentCommentRecord[]>([]);
+  const [commentsPageInfo, setCommentsPageInfo] =
+    useState<ContentCommentsResponse["pageInfo"] | null>(null);
   const [commentsStatus, setCommentsStatus] =
     useState<CommentsStatus>("idle");
   const [commentsError, setCommentsError] = useState<string | null>(null);
@@ -259,12 +273,21 @@ export function FanletterSocialActions({
     }
   }, [accountAddress, connection.isConnected, contentId, resolveEmail]);
 
-  const loadComments = useCallback(async () => {
+  const loadComments = useCallback(async ({
+    append = false,
+    offset = 0,
+  }: {
+    append?: boolean;
+    offset?: number;
+  } = {}) => {
     setCommentsError(null);
     setCommentsStatus("loading");
 
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({
+        offset: String(offset),
+        pageSize: String(COMMENTS_PAGE_SIZE),
+      });
 
       if (connection.isConnected && accountAddress) {
         const resolvedEmail = await resolveEmail();
@@ -290,7 +313,23 @@ export function FanletterSocialActions({
         );
       }
 
-      setComments(data.comments);
+      setComments((current) => {
+        if (!append) {
+          return data.comments;
+        }
+
+        const existingIds = new Set(
+          current.map((comment) => comment.commentId),
+        );
+
+        return [
+          ...current,
+          ...data.comments.filter(
+            (comment) => !existingIds.has(comment.commentId),
+          ),
+        ];
+      });
+      setCommentsPageInfo(data.pageInfo);
       setSocial(data.social);
       setCommentsStatus("ready");
     } catch (error) {
@@ -442,6 +481,15 @@ export function FanletterSocialActions({
         data.comment,
         ...current.filter((comment) => comment.commentId !== data.comment.commentId),
       ]);
+      setCommentsPageInfo((current) =>
+        current
+          ? {
+              ...current,
+              nextOffset:
+                current.nextOffset === null ? null : current.nextOffset + 1,
+            }
+          : current,
+      );
       setSocial(data.social);
       setCommentBody("");
       setCommentsStatus("ready");
@@ -703,6 +751,18 @@ export function FanletterSocialActions({
       ) : null}
 
       <div className="mt-5 rounded-lg border border-white/10 bg-black/22 p-3 sm:p-4">
+        {social.commentCount > 0 ? (
+          <div className="mb-3 flex flex-col gap-1 text-xs font-semibold text-white/42 sm:flex-row sm:items-center sm:justify-between">
+            <p>{copy.showingComments(comments.length, social.commentCount)}</p>
+            {commentsPageInfo?.hasMore ? (
+              <p>
+                {copy.remainingComments(
+                  Math.max(social.commentCount - comments.length, 0),
+                )}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         {commentsStatus === "loading" && comments.length === 0 ? (
           <div className="flex items-center justify-center gap-2 py-9 text-sm font-semibold text-white/52">
             <Loader2 className="size-4 animate-spin" />
@@ -738,6 +798,27 @@ export function FanletterSocialActions({
             ))}
           </div>
         )}
+
+        {comments.length > 0 && commentsPageInfo?.hasMore ? (
+          <button
+            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#44f26e]/28 bg-[#44f26e]/10 px-4 text-sm font-semibold text-[#b9ffc8] transition hover:border-[#44f26e]/50 hover:bg-[#44f26e]/16 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={commentsStatus === "loading"}
+            onClick={() => {
+              void loadComments({
+                append: true,
+                offset: commentsPageInfo.nextOffset ?? comments.length,
+              });
+            }}
+            type="button"
+          >
+            {commentsStatus === "loading" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <MessageCircle className="size-4" />
+            )}
+            {copy.loadMoreComments}
+          </button>
+        ) : null}
 
         {commentsError && comments.length > 0 ? (
           <p className="mt-3 rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm leading-5 text-rose-100">

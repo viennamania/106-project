@@ -9,8 +9,31 @@ import {
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
+const DEFAULT_COMMENTS_PAGE_SIZE = 5;
+const MAX_COMMENTS_PAGE_SIZE = 30;
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+function readNonNegativeInteger(value: string | null) {
+  const parsed = value ? Number.parseInt(value, 10) : 0;
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 0;
+  }
+
+  return parsed;
+}
+
+function readCommentsPageSize(value: string | null) {
+  const parsed = value ? Number.parseInt(value, 10) : DEFAULT_COMMENTS_PAGE_SIZE;
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return DEFAULT_COMMENTS_PAGE_SIZE;
+  }
+
+  return Math.min(MAX_COMMENTS_PAGE_SIZE, Math.max(1, parsed));
 }
 
 export async function GET(
@@ -49,6 +72,10 @@ export async function GET(
     const response: ContentCommentsResponse = await getContentCommentsForContent(
       contentId,
       viewerEmail,
+      {
+        offset: readNonNegativeInteger(url.searchParams.get("offset")),
+        pageSize: readCommentsPageSize(url.searchParams.get("pageSize")),
+      },
     );
 
     return Response.json(response);

@@ -130,7 +130,8 @@ const CONTENT_IMAGE_LIMIT = 10;
 const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
 const CONTENT_COMMENT_BODY_LIMIT = 500;
-const CONTENT_COMMENTS_PAGE_SIZE = 30;
+const CONTENT_COMMENTS_DEFAULT_PAGE_SIZE = 5;
+const CONTENT_COMMENTS_MAX_PAGE_SIZE = 30;
 const CONTENT_ORDER_PAYMENT_WINDOW_MS = 1000 * 60 * 30;
 const CONTENT_SALES_DEFAULT_PAGE_SIZE = 10;
 const CONTENT_SALES_MAX_PAGE_SIZE = 60;
@@ -443,6 +444,25 @@ function clampSalesPageSize(value: number | undefined) {
   }
 
   return Math.min(CONTENT_SALES_MAX_PAGE_SIZE, Math.max(1, Math.round(value)));
+}
+
+function clampCommentOffset(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
+}
+
+function clampCommentPageSize(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return CONTENT_COMMENTS_DEFAULT_PAGE_SIZE;
+  }
+
+  return Math.min(
+    CONTENT_COMMENTS_MAX_PAGE_SIZE,
+    Math.max(1, Math.floor(value)),
+  );
 }
 
 function buildCreatorStudioPostsFilter(
@@ -1560,23 +1580,38 @@ function serializeContentComment(
 export async function getContentCommentsForContent(
   contentId: string,
   viewerEmail?: string | null,
+  options?: {
+    offset?: number;
+    pageSize?: number;
+  },
 ): Promise<ContentCommentsResponse> {
   await ensurePublishedContentExists(contentId);
 
+  const offset = clampCommentOffset(options?.offset);
+  const pageSize = clampCommentPageSize(options?.pageSize);
   const commentsCollection = await getContentCommentsCollection();
   const comments = await commentsCollection
     .find({ contentId })
     .sort({ createdAt: -1 })
-    .limit(CONTENT_COMMENTS_PAGE_SIZE)
+    .skip(offset)
+    .limit(pageSize + 1)
     .toArray();
+  const visibleComments = comments.slice(0, pageSize);
   const profileByEmail = await getCommentAuthorProfiles(
-    comments.map((comment) => comment.memberEmail),
+    visibleComments.map((comment) => comment.memberEmail),
   );
+  const hasMore = comments.length > pageSize;
 
   return {
-    comments: comments.map((comment) =>
+    comments: visibleComments.map((comment) =>
       serializeContentComment(comment, profileByEmail),
     ),
+    pageInfo: {
+      hasMore,
+      nextOffset: hasMore ? offset + pageSize : null,
+      offset,
+      pageSize,
+    },
     social: await getContentSocialSummaryForViewer(contentId, viewerEmail),
   };
 }
