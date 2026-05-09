@@ -19,7 +19,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "feed" | "create" | "studio" | "character";
+  key: "home" | "feed" | "create" | "studio" | "profile";
   label: string;
   primary?: boolean;
 };
@@ -53,19 +53,19 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const copy =
     locale === "ko"
       ? {
-          character: "캐릭터",
           create: "만들기",
           feed: "피드",
           home: "홈",
           label: "FanLetter 주요 메뉴",
+          profile: "프로필",
           studio: "스튜디오",
         }
       : {
-          character: "Character",
           create: "Create",
           feed: "Feed",
           home: "Home",
           label: "FanLetter navigation",
+          profile: "Profile",
           studio: "Studio",
         };
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
@@ -113,8 +113,8 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       ],
       href: buildHref(`${basePath}/profile`),
       icon: UserRound,
-      key: "character",
-      label: copy.character,
+      key: "profile",
+      label: copy.profile,
     },
   ];
 
