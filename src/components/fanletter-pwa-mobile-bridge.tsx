@@ -23,8 +23,18 @@ type InstallEnvironment = {
   restrictedInApp: boolean;
   standalone: boolean;
 };
+type InstallDismissReason = "accepted" | "ios-guide" | "later" | "legacy";
+type InstallDismissRecord = {
+  dismissedAt: number;
+  expiresAt: number;
+  platform: InstallPlatform;
+  reason: InstallDismissReason;
+  version: 2;
+};
 
 const dismissedStorageKey = "fanletter:pwa-install-dismissed:v1";
+const installPromptSnoozeMs = 7 * 24 * 60 * 60 * 1000;
+const installAcceptedSnoozeMs = 90 * 24 * 60 * 60 * 1000;
 const publicSurfacePattern =
   /^\/(?:ko|en|ja|zh|vi|id)\/fanletter(?:\/?$|\/(?:feed|start|onboarding|content|creator)(?:\/|$))/;
 
@@ -65,6 +75,71 @@ function safeWriteStorage(key: string, value: string) {
   try {
     window.localStorage.setItem(key, value);
   } catch {}
+}
+
+function safeRemoveStorage(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {}
+}
+
+function createDismissRecord({
+  now,
+  platform,
+  reason,
+  snoozeMs = installPromptSnoozeMs,
+}: {
+  now: number;
+  platform: InstallPlatform;
+  reason: InstallDismissReason;
+  snoozeMs?: number;
+}) {
+  return JSON.stringify({
+    dismissedAt: now,
+    expiresAt: now + snoozeMs,
+    platform,
+    reason,
+    version: 2,
+  } satisfies InstallDismissRecord);
+}
+
+function readDismissedState(now: number) {
+  const storedValue = safeReadStorage(dismissedStorageKey);
+
+  if (!storedValue) {
+    return false;
+  }
+
+  if (storedValue === "1") {
+    safeWriteStorage(
+      dismissedStorageKey,
+      createDismissRecord({
+        now,
+        platform: "other",
+        reason: "legacy",
+      }),
+    );
+    return true;
+  }
+
+  try {
+    const record = JSON.parse(storedValue) as Partial<InstallDismissRecord>;
+
+    if (typeof record.expiresAt !== "number") {
+      safeRemoveStorage(dismissedStorageKey);
+      return false;
+    }
+
+    if (record.expiresAt > now) {
+      return true;
+    }
+  } catch {
+    safeRemoveStorage(dismissedStorageKey);
+    return false;
+  }
+
+  safeRemoveStorage(dismissedStorageKey);
+  return false;
 }
 
 export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
@@ -140,7 +215,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
       restrictedInApp: isRestrictedInAppBrowser(userAgent),
       standalone: isStandaloneDisplayMode(),
     });
-    setDismissed(safeReadStorage(dismissedStorageKey) === "1");
+    setDismissed(readDismissedState(Date.now()));
   }, []);
 
   useEffect(() => {
@@ -201,13 +276,23 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
     shareId,
   ]);
 
-  const dismiss = useCallback(() => {
-    safeWriteStorage(dismissedStorageKey, "1");
+  const dismiss = useCallback((reason: InstallDismissReason = "later") => {
+    safeWriteStorage(
+      dismissedStorageKey,
+      createDismissRecord({
+        now: Date.now(),
+        platform: environment.platform,
+        reason,
+        snoozeMs:
+          reason === "accepted" ? installAcceptedSnoozeMs : installPromptSnoozeMs,
+      }),
+    );
     setDismissed(true);
     trackFunnelEvent("pwa_install_dismiss", {
       metadata: {
         app: "fanletter",
         platform: environment.platform,
+        reason,
         surface: "fanletter-mobile",
       },
       referralCode,
@@ -228,7 +313,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
         shareId,
         targetHref: currentPath,
       });
-      dismiss();
+      dismiss("ios-guide");
       return;
     }
 
@@ -265,7 +350,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
       });
 
       if (outcome.outcome === "accepted") {
-        dismiss();
+        dismiss("accepted");
       }
     } finally {
       setPromptState("idle");
@@ -304,7 +389,9 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
               <button
                 aria-label={copy.dismiss}
                 className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:text-white"
-                onClick={dismiss}
+                onClick={() => {
+                  dismiss("later");
+                }}
                 type="button"
               >
                 <X className="size-4" />
@@ -331,7 +418,9 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
               </button>
               <button
                 className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold text-white/76 transition hover:text-white"
-                onClick={dismiss}
+                onClick={() => {
+                  dismiss("later");
+                }}
                 type="button"
               >
                 {copy.dismiss}
