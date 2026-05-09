@@ -31,6 +31,7 @@ import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import {
   FanletterSetupHeroActions,
+  FanletterSetupStatusProvider,
   FanletterSetupStepAction,
   FanletterSetupStepBadge,
 } from "@/components/fanletter-setup-status-actions";
@@ -3801,6 +3802,14 @@ export function FanletterOnboardingPage({
                 <span className="mt-1 block truncate text-sm font-semibold text-white">
                   {step.title}
                 </span>
+                {index === 0 || index === 1 ? (
+                  <span className="mt-2 block">
+                    <FanletterSetupStepBadge
+                      locale={locale}
+                      stepIndex={index}
+                    />
+                  </span>
+                ) : null}
               </span>
               <ArrowRight className="size-4 shrink-0 text-white/42" />
             </Link>
@@ -3811,28 +3820,29 @@ export function FanletterOnboardingPage({
   );
 
   return (
-    <FanletterShell
-      actions={
-        <FanletterSetupHeroActions
-          activateHref={activateHref}
-          connectHref={connectHref}
-          createHref={createHref}
-          locale={locale}
-          onboardingHref={onboardingHref}
-          profileHref={profileHref}
-          studioHref={studioHref}
-          surface="dark"
-          variant="onboarding"
-        />
-      }
-      aside={heroAside}
-      description={labels.description}
-      eyebrow={labels.eyebrow}
-      locale={locale}
-      referralCode={referralCode}
-      title={labels.title}
-      titleClassName="mt-4 max-w-4xl text-[2.3rem] font-semibold leading-[1.06] tracking-normal text-white [word-break:keep-all] sm:text-[3.45rem] lg:text-[4rem]"
-    >
+    <FanletterSetupStatusProvider>
+      <FanletterShell
+        actions={
+          <FanletterSetupHeroActions
+            activateHref={activateHref}
+            connectHref={connectHref}
+            createHref={createHref}
+            locale={locale}
+            onboardingHref={onboardingHref}
+            profileHref={profileHref}
+            studioHref={studioHref}
+            surface="dark"
+            variant="onboarding"
+          />
+        }
+        aside={heroAside}
+        description={labels.description}
+        eyebrow={labels.eyebrow}
+        locale={locale}
+        referralCode={referralCode}
+        title={labels.title}
+        titleClassName="mt-4 max-w-4xl text-[2.3rem] font-semibold leading-[1.06] tracking-normal text-white [word-break:keep-all] sm:text-[3.45rem] lg:text-[4rem]"
+      >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <aside className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
@@ -3888,7 +3898,15 @@ export function FanletterOnboardingPage({
                           {step.meta}
                         </span>
                         {index === 0 ? (
-                          <FanletterSetupStepBadge locale={locale} />
+                          <FanletterSetupStepBadge
+                            locale={locale}
+                            stepIndex={index}
+                          />
+                        ) : index === 1 ? (
+                          <FanletterSetupStepBadge
+                            locale={locale}
+                            stepIndex={index}
+                          />
                         ) : null}
                       </div>
                       <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-normal">
@@ -3953,7 +3971,8 @@ export function FanletterOnboardingPage({
           </Link>
         </div>
       </section>
-    </FanletterShell>
+      </FanletterShell>
+    </FanletterSetupStatusProvider>
   );
 }
 
@@ -4059,28 +4078,29 @@ export function FanletterStartPage({
   );
 
   return (
-    <FanletterShell
-      actions={
-        <FanletterSetupHeroActions
-          activateHref={activateHref}
-          connectHref={connectHref}
-          createHref={createHref}
-          locale={locale}
-          onboardingHref={onboardingHref}
-          profileHref={profileHref}
-          studioHref={studioHref}
-          surface="dark"
-          variant="start"
-        />
-      }
-      aside={heroAside}
-      description={copy.start.body}
-      eyebrow={copy.start.eyebrow}
-      locale={locale}
-      referralCode={referralCode}
-      title={copy.start.title}
-      titleClassName="mt-4 max-w-4xl text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem] lg:text-[3.7rem]"
-    >
+    <FanletterSetupStatusProvider>
+      <FanletterShell
+        actions={
+          <FanletterSetupHeroActions
+            activateHref={activateHref}
+            connectHref={connectHref}
+            createHref={createHref}
+            locale={locale}
+            onboardingHref={onboardingHref}
+            profileHref={profileHref}
+            studioHref={studioHref}
+            surface="dark"
+            variant="start"
+          />
+        }
+        aside={heroAside}
+        description={copy.start.body}
+        eyebrow={copy.start.eyebrow}
+        locale={locale}
+        referralCode={referralCode}
+        title={copy.start.title}
+        titleClassName="mt-4 max-w-4xl text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem] lg:text-[3.7rem]"
+      >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <div className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
@@ -4165,6 +4185,7 @@ export function FanletterStartPage({
           />
         </div>
       </section>
-    </FanletterShell>
+      </FanletterShell>
+    </FanletterSetupStatusProvider>
   );
 }

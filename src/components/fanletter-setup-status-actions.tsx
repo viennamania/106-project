@@ -2,14 +2,24 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   type FanletterAccountStatusKind,
   useFanletterAccountStatus,
 } from "@/lib/fanletter-account-status";
+import type { CreatorProfileResponse } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 
 type SetupStatus = FanletterAccountStatusKind;
+type CharacterStatus = "checking" | "empty" | "error" | "ready" | "unavailable";
 
 type SetupSurface = "dark" | "light";
 type SetupVariant = "onboarding" | "start";
@@ -42,16 +52,153 @@ type SetupStepAction = {
 };
 
 const CONNECTION_RESOLVE_GRACE_MS = 3000;
+const EMPTY_CHARACTER_STATE = {
+  avatarImageUrl: null,
+  error: null,
+  name: null,
+  status: "unavailable" as CharacterStatus,
+};
+
+type CharacterState = {
+  avatarImageUrl: string | null;
+  error: string | null;
+  name: string | null;
+  status: CharacterStatus;
+};
+
+type SetupState = {
+  accountStatus: SetupStatus;
+  character: CharacterState;
+};
+
+const FanletterSetupStatusContext = createContext<SetupState | null>(null);
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function useSetupStatus() {
-  return useFanletterAccountStatus({
+export function FanletterSetupStatusProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
-  }).status;
+  });
+  const [character, setCharacter] = useState<CharacterState>(
+    EMPTY_CHARACTER_STATE,
+  );
+
+  useEffect(() => {
+    if (accountStatus.status === "checking") {
+      setCharacter({
+        ...EMPTY_CHARACTER_STATE,
+        status: "checking",
+      });
+      return;
+    }
+
+    if (
+      accountStatus.status !== "connected" ||
+      !accountStatus.accountAddress
+    ) {
+      setCharacter(EMPTY_CHARACTER_STATE);
+      return;
+    }
+
+    if (!accountStatus.email) {
+      setCharacter({
+        ...EMPTY_CHARACTER_STATE,
+        status: "checking",
+      });
+      return;
+    }
+
+    const controller = new AbortController();
+
+    setCharacter((current) => ({
+      ...current,
+      error: null,
+      status: "checking",
+    }));
+
+    async function loadCharacter() {
+      try {
+        const params = new URLSearchParams({
+          email: accountStatus.email ?? "",
+          walletAddress: accountStatus.accountAddress ?? "",
+        });
+        const response = await fetch(`/api/content/profile?${params.toString()}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const data = (await response.json().catch(() => null)) as
+          | CreatorProfileResponse
+          | { error?: string }
+          | null;
+
+        if (!response.ok || !data || !("profile" in data)) {
+          throw new Error(
+            data && "error" in data && data.error
+              ? data.error
+              : "Failed to load character profile.",
+          );
+        }
+
+        const persona = data.profile.characterPersona;
+
+        setCharacter({
+          avatarImageUrl: data.profile.avatarImageUrl,
+          error: null,
+          name: persona?.name ?? data.profile.displayName ?? null,
+          status: persona ? "ready" : "empty",
+        });
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setCharacter({
+          ...EMPTY_CHARACTER_STATE,
+          error: error instanceof Error ? error.message : null,
+          status: "error",
+        });
+      }
+    }
+
+    void loadCharacter();
+
+    return () => {
+      controller.abort();
+    };
+  }, [accountStatus.accountAddress, accountStatus.email, accountStatus.status]);
+
+  const value = useMemo(
+    () => ({
+      accountStatus: accountStatus.status,
+      character,
+    }),
+    [accountStatus.status, character],
+  );
+
+  return (
+    <FanletterSetupStatusContext.Provider value={value}>
+      {children}
+    </FanletterSetupStatusContext.Provider>
+  );
+}
+
+function useSetupState() {
+  const state = useContext(FanletterSetupStatusContext);
+
+  if (!state) {
+    throw new Error(
+      "Fanletter setup actions must be rendered inside FanletterSetupStatusProvider.",
+    );
+  }
+
+  return state;
 }
 
 function getCopy(locale: Locale) {
@@ -59,6 +206,9 @@ function getCopy(locale: Locale) {
     ? {
         accountStatus: "계정 상태 보기",
         checking: "계정 확인 중",
+        characterChecking: "캐릭터 확인 중",
+        characterManage: "캐릭터 확인/변경",
+        characterReady: "캐릭터 준비 완료",
         connect: "계정 연결하기",
         connected: "완료",
         create: "캐릭터 만들기",
@@ -73,6 +223,9 @@ function getCopy(locale: Locale) {
     : {
         accountStatus: "View account status",
         checking: "Checking account",
+        characterChecking: "Checking character",
+        characterManage: "Review/change character",
+        characterReady: "Character ready",
         connect: "Connect account",
         connected: "Done",
         create: "Create character",
@@ -121,11 +274,13 @@ function getActionClassName({
 }
 
 function getHeroActions({
+  character,
   copy,
   links,
   status,
   variant,
 }: {
+  character: CharacterState;
   copy: ReturnType<typeof getCopy>;
   links: SetupLinks;
   status: SetupStatus;
@@ -150,6 +305,24 @@ function getHeroActions({
   }
 
   if (status === "connected") {
+    if (character.status === "checking") {
+      return {
+        primaryHref: links.profileHref,
+        primaryLabel: copy.characterChecking,
+        secondaryHref: links.studioHref,
+        secondaryLabel: copy.studio,
+      };
+    }
+
+    if (character.status === "ready") {
+      return {
+        primaryHref: links.createHref,
+        primaryLabel: copy.firstVlog,
+        secondaryHref: links.profileHref,
+        secondaryLabel: copy.characterManage,
+      };
+    }
+
     return {
       primaryHref: links.profileHref,
       primaryLabel: copy.create,
@@ -185,11 +358,13 @@ function getHeroActions({
 }
 
 function getStepAction({
+  character,
   copy,
   links,
   status,
   stepIndex,
 }: {
+  character: CharacterState;
   copy: ReturnType<typeof getCopy>;
   links: SetupLinks;
   status: SetupStatus;
@@ -235,10 +410,21 @@ function getStepAction({
   }
 
   return stepIndex === 1
-    ? {
-        href: links.profileHref,
-        label: copy.create,
-      }
+    ? character.status === "ready"
+      ? {
+          href: links.profileHref,
+          label: copy.characterManage,
+          tone: "success" as const,
+        }
+      : character.status === "checking"
+        ? {
+            href: links.profileHref,
+            label: copy.characterChecking,
+          }
+        : {
+            href: links.profileHref,
+            label: copy.create,
+          }
     : {
         href: links.createHref,
         label: copy.firstVlog,
@@ -256,7 +442,8 @@ export function FanletterSetupHeroActions({
   surface,
   variant,
 }: SetupHeroActionsProps) {
-  const status = useSetupStatus();
+  const setupState = useSetupState();
+  const status = setupState.accountStatus;
   const copy = getCopy(locale);
   const links = {
     activateHref,
@@ -267,11 +454,15 @@ export function FanletterSetupHeroActions({
     studioHref,
   };
   const actions = getHeroActions({
+    character: setupState.character,
     copy,
     links,
     status,
     variant,
   });
+  const isChecking =
+    status === "checking" ||
+    (status === "connected" && setupState.character.status === "checking");
 
   return (
     <>
@@ -279,7 +470,7 @@ export function FanletterSetupHeroActions({
         className={getActionClassName({ isPrimary: true, surface })}
         href={actions.primaryHref}
       >
-        {status === "checking" ? (
+        {isChecking ? (
           <Loader2 className="size-4 animate-spin" />
         ) : null}
         {actions.primaryLabel}
@@ -305,9 +496,11 @@ export function FanletterSetupStepAction({
   stepIndex,
   studioHref,
 }: SetupStepActionProps) {
-  const status = useSetupStatus();
+  const setupState = useSetupState();
+  const status = setupState.accountStatus;
   const copy = getCopy(locale);
   const action = getStepAction({
+    character: setupState.character,
     copy,
     links: {
       activateHref,
@@ -331,7 +524,8 @@ export function FanletterSetupStepAction({
       )}
       href={action.href}
     >
-      {status === "checking" && stepIndex === 0 ? (
+      {(status === "checking" && stepIndex === 0) ||
+      (setupState.character.status === "checking" && stepIndex === 1) ? (
         <Loader2 className="size-4 animate-spin" />
       ) : null}
       {action.label || defaultLabel}
@@ -342,13 +536,34 @@ export function FanletterSetupStepAction({
 
 export function FanletterSetupStepBadge({
   locale,
+  stepIndex = 0,
 }: {
   locale: Locale;
+  stepIndex?: number;
 }) {
-  const status = useSetupStatus();
+  const setupState = useSetupState();
+  const status = setupState.accountStatus;
   const copy = getCopy(locale);
-  const isComplete = status === "connected";
-  const isChecking = status === "checking";
+  const isCharacterStep = stepIndex === 1;
+  const isComplete = isCharacterStep
+    ? setupState.character.status === "ready"
+    : status === "connected";
+  const isChecking = isCharacterStep
+    ? setupState.character.status === "checking"
+    : status === "checking";
+  const label = isCharacterStep
+    ? isChecking
+      ? copy.characterChecking
+      : isComplete
+        ? setupState.character.name
+          ? `${setupState.character.name} · ${copy.characterReady}`
+          : copy.characterReady
+        : copy.create
+    : isChecking
+      ? copy.checking
+      : isComplete
+        ? copy.connected
+        : copy.connect;
 
   return (
     <span
@@ -366,7 +581,7 @@ export function FanletterSetupStepBadge({
       ) : (
         <ArrowRight className="size-3.5" />
       )}
-      {isChecking ? copy.checking : isComplete ? copy.connected : copy.connect}
+      {label}
     </span>
   );
 }
