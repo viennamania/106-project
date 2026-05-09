@@ -568,7 +568,7 @@ export function FanletterHomePage({
   const footerLabels =
     locale === "ko"
       ? {
-          activate: "계정 연결",
+          activate: "계정 상태",
           aiContent: "AI 캐릭터 브이로그",
           creatorGrowth: "팬 관계 성장",
           feed: "브이로그 피드",
@@ -580,7 +580,7 @@ export function FanletterHomePage({
           usdtReady: "USDT 결제",
         }
       : {
-          activate: "Connect account",
+          activate: "Account status",
           aiContent: "AI character vlogs",
           creatorGrowth: "Fan relationship growth",
           feed: "Vlog feed",

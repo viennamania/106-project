@@ -6,7 +6,6 @@ import {
   BadgeCheck,
   BellPlus,
   Clapperboard,
-  CheckCircle2,
   Crown,
   Grid2X2,
   Heart,
@@ -30,6 +29,11 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
+import {
+  FanletterSetupHeroActions,
+  FanletterSetupStepAction,
+  FanletterSetupStepBadge,
+} from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
@@ -3423,6 +3427,10 @@ export function FanletterOnboardingPage({
     buildPathWithReferral(`/${locale}/fanletter/studio`, referralCode),
     { returnTo: onboardingHref },
   );
+  const activateHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    { returnTo: onboardingHref },
+  );
   const labels =
     locale === "ko"
       ? {
@@ -3439,11 +3447,8 @@ export function FanletterOnboardingPage({
           feedCta: "브이로그 피드 보기",
           helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 브이로그 흐름으로 묶습니다.",
           homeCta: "브이로그 스튜디오",
-          primary: "계정 연결하기",
           progress: "빠른 시작",
           readyValue: "3단계",
-          requiredLabel: "필수",
-          secondary: "캐릭터 만들기",
           title: "AI 캐릭터 브이로그 시작하기",
           steps: [
             {
@@ -3486,11 +3491,8 @@ export function FanletterOnboardingPage({
           feedCta: "View vlog feed",
           helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter AI character vlog experience.",
           homeCta: "Vlog studio",
-          primary: "Start with account",
           progress: "Quick start",
           readyValue: "3 steps",
-          requiredLabel: "Required",
-          secondary: "Create character",
           title: "Start your AI character vlog",
           steps: [
             {
@@ -3564,20 +3566,17 @@ export function FanletterOnboardingPage({
   return (
     <FanletterShell
       actions={
-        <>
-          <Link
-            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
-            href={connectHref}
-          >
-            {labels.primary}
-          </Link>
-          <Link
-            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
-            href={profileHref}
-          >
-            {labels.secondary}
-          </Link>
-        </>
+        <FanletterSetupHeroActions
+          activateHref={activateHref}
+          connectHref={connectHref}
+          createHref={createHref}
+          locale={locale}
+          onboardingHref={onboardingHref}
+          profileHref={profileHref}
+          studioHref={studioHref}
+          surface="dark"
+          variant="onboarding"
+        />
       }
       aside={heroAside}
       description={labels.description}
@@ -3642,10 +3641,7 @@ export function FanletterOnboardingPage({
                           {step.meta}
                         </span>
                         {index === 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f9ed] px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
-                            <CheckCircle2 className="size-3.5" />
-                            {labels.requiredLabel}
-                          </span>
+                          <FanletterSetupStepBadge locale={locale} />
                         ) : null}
                       </div>
                       <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-normal">
@@ -3655,13 +3651,17 @@ export function FanletterOnboardingPage({
                         {step.body}
                       </p>
                     </div>
-                    <Link
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit"
-                      href={step.href}
-                    >
-                      {step.cta}
-                      <ArrowRight className="size-4" />
-                    </Link>
+                    <FanletterSetupStepAction
+                      activateHref={activateHref}
+                      connectHref={connectHref}
+                      createHref={createHref}
+                      defaultLabel={step.cta}
+                      locale={locale}
+                      onboardingHref={onboardingHref}
+                      profileHref={profileHref}
+                      stepIndex={index}
+                      studioHref={studioHref}
+                    />
                   </div>
                 </article>
               );
@@ -3726,6 +3726,22 @@ export function FanletterStartPage({
     `/${locale}/fanletter/profile`,
     referralCode,
   );
+  const connectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const createHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
+    { returnTo: onboardingHref },
+  );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
+  const activateHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    { returnTo: onboardingHref },
+  );
   const startLabels =
     locale === "ko"
       ? {
@@ -3733,8 +3749,6 @@ export function FanletterStartPage({
           flowBody:
             "가입, 캐릭터 만들기, 첫 브이로그 생성까지 순서대로 진행합니다.",
           flowTitle: "3단계로 채널 시작",
-          primary: "가입하고 채널 시작",
-          secondary: "캐릭터 만들기",
           previewTitle: "오늘 할 일",
           previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
           nextLabel: "다음 단계",
@@ -3747,8 +3761,6 @@ export function FanletterStartPage({
           flowBody:
             "Move through signup, character creation, and first vlog creation in order.",
           flowTitle: "Start in 3 steps",
-          primary: "Start channel with signup",
-          secondary: "Create character",
           previewTitle: "Today’s path",
           previewBody: "New creators can follow the flow in order.",
           nextLabel: "Next step",
@@ -3802,20 +3814,17 @@ export function FanletterStartPage({
   return (
     <FanletterShell
       actions={
-        <>
-          <Link
-            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:w-fit"
-            href={onboardingHref}
-          >
-            {startLabels.primary}
-          </Link>
-          <Link
-            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12 sm:w-fit"
-            href={profileHref}
-          >
-            {startLabels.secondary}
-          </Link>
-        </>
+        <FanletterSetupHeroActions
+          activateHref={activateHref}
+          connectHref={connectHref}
+          createHref={createHref}
+          locale={locale}
+          onboardingHref={onboardingHref}
+          profileHref={profileHref}
+          studioHref={studioHref}
+          surface="dark"
+          variant="start"
+        />
       }
       aside={heroAside}
       description={copy.start.body}
@@ -3856,58 +3865,57 @@ export function FanletterStartPage({
           </div>
 
           <div className="grid gap-3">
-          {copy.start.steps.map((step, index) => {
-            const Icon = startIcons[index] ?? Sparkles;
+            {copy.start.steps.map((step, index) => {
+              const Icon = startIcons[index] ?? Sparkles;
 
-            return (
-              <article
-                className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
-                key={step.title}
-              >
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                      <Icon className="size-6" />
-                    </span>
-                    {index < copy.start.steps.length - 1 ? (
-                      <span className="mt-3 hidden h-12 w-px bg-black/10 sm:block" />
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
-                        {String(index + 1).padStart(2, "0")}
+              return (
+                <article
+                  className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+                  key={step.title}
+                >
+                  <div className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                        <Icon className="size-6" />
                       </span>
-                      <span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/46">
-                        {startLabels.stepMeta[index]}
-                      </span>
+                      {index < copy.start.steps.length - 1 ? (
+                        <span className="mt-3 hidden h-12 w-px bg-black/10 sm:block" />
+                      ) : null}
                     </div>
-                    <p className="mt-4 text-2xl font-semibold leading-tight">
-                      {step.title}
-                    </p>
-                    <p className="mt-3 text-sm font-medium leading-6 text-black/58">
-                      {step.body}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/46">
+                          {startLabels.stepMeta[index]}
+                        </span>
+                      </div>
+                      <p className="mt-4 text-2xl font-semibold leading-tight">
+                        {step.title}
+                      </p>
+                      <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+                        {step.body}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </article>
-            );
-          })}
+                </article>
+              );
+            })}
           </div>
         </div>
         <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-3 sm:flex-row lg:justify-end">
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82 sm:min-w-[12rem]"
-            href={onboardingHref}
-          >
-            {startLabels.primary}
-          </Link>
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-full border border-black/12 bg-white px-5 text-sm font-semibold !text-black transition hover:bg-black/[0.03] sm:min-w-[12rem]"
-            href={profileHref}
-          >
-            {startLabels.secondary}
-          </Link>
+          <FanletterSetupHeroActions
+            activateHref={activateHref}
+            connectHref={connectHref}
+            createHref={createHref}
+            locale={locale}
+            onboardingHref={onboardingHref}
+            profileHref={profileHref}
+            studioHref={studioHref}
+            surface="light"
+            variant="start"
+          />
         </div>
       </section>
     </FanletterShell>
