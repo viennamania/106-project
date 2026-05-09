@@ -2820,6 +2820,7 @@ export function FanletterFeedPage({
                 items={remainingItems}
                 locale={locale}
                 referralCode={referralCode}
+                showVideoPreview
               />
             </>
           ) : null}
