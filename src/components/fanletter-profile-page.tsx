@@ -5,13 +5,19 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
   CheckCircle2,
   CircleAlert,
+  Heart,
+  ImageIcon,
   Loader2,
+  LockKeyhole,
   MessageCircleHeart,
   Save,
   Sparkles,
+  Trophy,
   UserRound,
+  Video,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -30,6 +36,10 @@ import type {
   CreatorProfileRecord,
   CreatorProfileResponse,
 } from "@/lib/content";
+import type {
+  FanletterCharacterGrowthRecord,
+  FanletterCharacterGrowthResponse,
+} from "@/lib/fanletter-character-growth";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -92,6 +102,12 @@ type CharacterQuickstartState = {
   style: "chic" | "daily" | "fan_service" | "friendly";
 };
 
+type CharacterGrowthState = {
+  data: FanletterCharacterGrowthRecord | null;
+  error: string | null;
+  status: "idle" | "loading" | "ready" | "error";
+};
+
 const EMPTY_PROFILE: EditableFanletterProfile = {
   avatarImageSet: [],
   avatarImageUrl: "",
@@ -124,6 +140,11 @@ const EMPTY_QUICK_CHARACTER: CharacterQuickstartState = {
   gender: "auto",
   status: "idle",
   style: "friendly",
+};
+const EMPTY_CHARACTER_GROWTH: CharacterGrowthState = {
+  data: null,
+  error: null,
+  status: "idle",
 };
 const FANLETTER_PROFILE_DISCONNECTED_GRACE_MS = 4500;
 
@@ -214,6 +235,30 @@ function getCopy(locale: Locale) {
         studio: "브이로그 스튜디오",
         title: "AI 캐릭터 브이로그 프로필을 빠르게 준비하세요.",
         nextContentCta: "다음 단계: 첫 브이로그 만들기",
+        growthActionCta: "진행하기",
+        growthAvatarCollection: "아바타 성장 컬렉션",
+        growthCompleted: "완료",
+        growthContentSkills: "콘텐츠 스킬",
+        growthFallbackBody:
+          "계정 데이터를 불러오면 캐릭터 레벨, 성장 미션, 해금 상태를 보여줍니다.",
+        growthFallbackTitle: "캐릭터 성장 준비 중",
+        growthIdentityBody:
+          "페르소나와 대표 아바타는 캐릭터의 고정 정체성입니다. 성장은 표정, 콘텐츠 스킬, 연출 방향을 확장합니다.",
+        growthIdentityLocked: "정체성 고정됨",
+        growthLoading: "캐릭터 성장 상태를 계산하는 중입니다.",
+        growthMissions: "성장 미션",
+        growthNext: "다음 성장",
+        growthSignals: "성장 신호",
+        growthTitle: "캐릭터 성장 센터",
+        growthUnlocked: "해금됨",
+        growthXp: "XP",
+        growthXpMax: "최고 레벨",
+        growthXpToNext: "다음 레벨까지",
+        metricComments: "댓글",
+        metricFanRequests: "팬 요청",
+        metricPublished: "공개 브이로그",
+        metricReactions: "팬 반응",
+        metricSaves: "저장",
       }
     : {
         age: "Age range",
@@ -300,6 +345,30 @@ function getCopy(locale: Locale) {
         studio: "Vlog studio",
         title: "Prepare your AI character vlogger profile quickly.",
         nextContentCta: "Next: Create first vlog",
+        growthActionCta: "Continue",
+        growthAvatarCollection: "Avatar growth collection",
+        growthCompleted: "Done",
+        growthContentSkills: "Content skills",
+        growthFallbackBody:
+          "After account data loads, this shows character level, missions, and unlocks.",
+        growthFallbackTitle: "Character growth setup",
+        growthIdentityBody:
+          "Persona and representative avatar are the fixed identity. Growth expands expressions, content skills, and direction.",
+        growthIdentityLocked: "Identity locked",
+        growthLoading: "Calculating character growth.",
+        growthMissions: "Growth missions",
+        growthNext: "Next growth",
+        growthSignals: "Growth signals",
+        growthTitle: "Character growth center",
+        growthUnlocked: "Unlocked",
+        growthXp: "XP",
+        growthXpMax: "Max level",
+        growthXpToNext: "To next level",
+        metricComments: "Comments",
+        metricFanRequests: "Fan requests",
+        metricPublished: "Public vlogs",
+        metricReactions: "Fan reactions",
+        metricSaves: "Saves",
       };
 }
 
@@ -457,6 +526,8 @@ export function FanletterProfilePage({
     useState<AvatarGenerationState>(EMPTY_AVATAR_GENERATION);
   const [quickCharacter, setQuickCharacter] =
     useState<CharacterQuickstartState>(EMPTY_QUICK_CHARACTER);
+  const [characterGrowth, setCharacterGrowth] =
+    useState<CharacterGrowthState>(EMPTY_CHARACTER_GROWTH);
   const loadInFlightRef = useRef(false);
   const selectedPersona = profile.characterPersona;
   const setupProgress = useMemo(
@@ -477,6 +548,10 @@ export function FanletterProfilePage({
   const contentCtaLabel = cameFromOnboarding
     ? copy.nextContentCta
     : copy.contentCta;
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US"),
+    [locale],
+  );
 
   const resolveEmail = useCallback(async () => {
     const resolved =
@@ -489,6 +564,53 @@ export function FanletterProfilePage({
     setEmail(resolved);
     return resolved;
   }, [copy.connectRequired, email, memberSession.email]);
+
+  const loadCharacterGrowth = useCallback(
+    async (resolvedEmail: string) => {
+      if (!accountAddress) {
+        return;
+      }
+
+      try {
+        setCharacterGrowth((current) => ({
+          ...current,
+          error: null,
+          status: "loading",
+        }));
+        const params = new URLSearchParams({
+          email: resolvedEmail,
+          locale,
+          walletAddress: accountAddress,
+        });
+        const response = await fetch(
+          `/api/fanletter/character-growth?${params.toString()}`,
+        );
+        const data = await readApiJson<FanletterCharacterGrowthResponse>(
+          response,
+          copy.errorFallback,
+        );
+
+        if (!response.ok || !("growth" in data)) {
+          throw new Error(
+            "error" in data && data.error ? data.error : copy.errorFallback,
+          );
+        }
+
+        setCharacterGrowth({
+          data: data.growth,
+          error: null,
+          status: "ready",
+        });
+      } catch (growthError) {
+        setCharacterGrowth({
+          data: null,
+          error: getErrorMessage(growthError, copy.errorFallback),
+          status: "error",
+        });
+      }
+    },
+    [accountAddress, copy.errorFallback, locale],
+  );
 
   const loadProfile = useCallback(async () => {
     if (!accountAddress || loadInFlightRef.current) {
@@ -572,6 +694,7 @@ export function FanletterProfilePage({
       setProfile(createEditableProfile(data.profile));
       setProfileConfigured(data.profileConfigured);
       setLoadStatus("ready");
+      void loadCharacterGrowth(resolvedEmail);
     } catch (loadError) {
       setError(getErrorMessage(loadError, copy.errorFallback));
       setLoadStatus("error");
@@ -586,6 +709,7 @@ export function FanletterProfilePage({
     copy.paymentRequired,
     locale,
     referralCode,
+    loadCharacterGrowth,
     resolveEmail,
     updateMemberSession,
   ]);
@@ -647,6 +771,7 @@ export function FanletterProfilePage({
       setProfile(createEditableProfile(data.profile));
       setProfileConfigured(data.profileConfigured);
       setNotice(locale === "ko" ? "프로필을 저장했습니다." : "Profile saved.");
+      void loadCharacterGrowth(resolvedEmail);
     } catch (saveError) {
       setError(getErrorMessage(saveError, copy.errorFallback));
     } finally {
@@ -726,6 +851,7 @@ export function FanletterProfilePage({
         status: "ready",
       }));
       setNotice(data.characterWarning ?? copy.quickSuccess);
+      void loadCharacterGrowth(resolvedEmail);
     } catch (quickError) {
       const message = getErrorMessage(quickError, copy.errorFallback);
 
@@ -912,6 +1038,346 @@ export function FanletterProfilePage({
     await saveProfile(nextProfile);
   }
 
+  function getGrowthActionHref(
+    action: FanletterCharacterGrowthRecord["missions"][number]["action"],
+  ) {
+    if (action === "create_character") {
+      return currentProfileHref;
+    }
+
+    if (action === "create_vlog") {
+      return createHref;
+    }
+
+    return studioHref;
+  }
+
+  function renderCharacterGrowthCenter() {
+    const growth = characterGrowth.data;
+    const nextMission = growth?.missions.find((mission) => !mission.completed);
+    const progressPercent = growth?.progressPercent ?? setupProgress * 33;
+    const xpLabel = growth
+      ? `${numberFormatter.format(growth.totalXp)} ${copy.growthXp}`
+      : copy.growthFallbackTitle;
+    const nextLevelLabel = growth
+      ? growth.xpToNextLevel === null
+        ? copy.growthXpMax
+        : `${numberFormatter.format(growth.xpToNextLevel)} ${copy.growthXp}`
+      : copy.growthLoading;
+    const reactionCount = growth
+      ? growth.metrics.likeCount +
+        growth.metrics.commentCount +
+        growth.metrics.saveCount
+      : 0;
+    const avatarUnlocks = growth?.avatarUnlocks ?? [];
+    const contentSkills = growth?.contentSkills ?? [];
+    const metricTiles = [
+      {
+        icon: <Video className="size-4" />,
+        label: copy.metricPublished,
+        value: growth?.metrics.publishedVlogCount ?? 0,
+      },
+      {
+        icon: <Heart className="size-4" />,
+        label: copy.metricReactions,
+        value: reactionCount,
+      },
+      {
+        icon: <MessageCircleHeart className="size-4" />,
+        label: copy.metricFanRequests,
+        value: growth?.metrics.fanRequestTotalCount ?? 0,
+      },
+      {
+        icon: <Save className="size-4" />,
+        label: copy.metricSaves,
+        value: growth?.metrics.saveCount ?? 0,
+      },
+    ];
+    const identityTraits = selectedPersona?.lockedTraits.slice(0, 6) ?? [];
+
+    return (
+      <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.04fr)_minmax(21rem,0.96fr)]">
+        <article className="rounded-lg border border-[#44f26e]/24 bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.045)_42%,rgba(3,5,4,0.78))] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.28)] sm:p-5">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+            <span className="relative flex size-28 shrink-0 overflow-hidden rounded-lg border border-white/12 bg-black/28">
+              {profile.avatarImageUrl ? (
+                <Image
+                  alt={profile.displayName || copy.displayName}
+                  className="object-cover"
+                  fill
+                  sizes="112px"
+                  src={profile.avatarImageUrl}
+                />
+              ) : (
+                <span className="flex size-full items-center justify-center">
+                  <UserRound className="size-10 text-[#44f26e]" />
+                </span>
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold text-black">
+                  <Trophy className="size-3.5" />
+                  {growth ? `Lv.${growth.level}` : `${setupProgress}/3`}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/14 bg-white/[0.065] px-3 py-1 text-xs font-semibold text-white/72">
+                  <LockKeyhole className="size-3.5 text-[#44f26e]" />
+                  {copy.growthIdentityLocked}
+                </span>
+              </div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                {copy.growthTitle}
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold leading-tight text-white [word-break:keep-all]">
+                {growth
+                  ? growth.title
+                  : profile.displayName || copy.growthFallbackTitle}
+              </h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/64 [word-break:keep-all]">
+                {growth?.summary ?? copy.growthFallbackBody}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between gap-3 text-xs font-semibold text-white/52">
+              <span>{xpLabel}</span>
+              <span>
+                {copy.growthXpToNext}: {nextLevelLabel}
+              </span>
+            </div>
+            <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-[#44f26e]"
+                style={{ width: `${Math.min(100, progressPercent)}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {metricTiles.map((metric) => (
+              <div
+                className="rounded-lg border border-white/12 bg-black/20 p-3"
+                key={metric.label}
+              >
+                <div className="flex items-center gap-2 text-[#44f26e]">
+                  {metric.icon}
+                  <span className="text-xs font-semibold">{metric.label}</span>
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-white">
+                  {numberFormatter.format(metric.value)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <div className="grid gap-4">
+          <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <BadgeCheck className="mt-0.5 size-5 shrink-0 text-[#44f26e]" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  {copy.growthIdentityLocked}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-white">
+                  {selectedPersona?.name ?? (profile.displayName || copy.persona)}
+                </h2>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+                  {selectedPersona?.summary ?? copy.growthIdentityBody}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {identityTraits.length > 0
+                ? identityTraits.map((trait) => (
+                    <span
+                      className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/72"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))
+                : [copy.displayName, copy.persona, copy.avatar].map((trait) => (
+                    <span
+                      className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/50"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  {copy.growthNext}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-white">
+                  {nextMission?.title ?? copy.growthCompleted}
+                </h2>
+              </div>
+              {nextMission ? (
+                <Link
+                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-semibold !text-black transition hover:bg-[#67ff88]"
+                  href={getGrowthActionHref(nextMission.action)}
+                >
+                  {copy.growthActionCta}
+                </Link>
+              ) : null}
+            </div>
+            <p className="mt-3 text-sm font-medium leading-6 text-white/58">
+              {nextMission?.description ?? copy.growthIdentityBody}
+            </p>
+          </section>
+        </div>
+
+        <section className="rounded-lg border border-white/12 bg-white/[0.04] p-4 sm:p-5 lg:col-span-2">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div>
+              <div className="flex items-center gap-2">
+                <Trophy className="size-5 text-[#44f26e]" />
+                <h2 className="text-xl font-semibold text-white">
+                  {copy.growthMissions}
+                </h2>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {(growth?.missions ?? []).slice(0, 5).map((mission) => {
+                  const percent = Math.round(
+                    (mission.progress / Math.max(1, mission.target)) * 100,
+                  );
+
+                  return (
+                    <article
+                      className="rounded-lg border border-white/12 bg-black/20 p-3"
+                      key={mission.id}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-sm font-semibold text-white">
+                            {mission.title}
+                          </h3>
+                          <p className="mt-1 text-xs font-medium leading-5 text-white/50">
+                            {mission.description}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[0.68rem] font-semibold ${
+                            mission.completed
+                              ? "bg-[#44f26e] text-black"
+                              : "bg-white/10 text-white/62"
+                          }`}
+                        >
+                          {mission.completed
+                            ? copy.growthCompleted
+                            : `${numberFormatter.format(mission.progress)}/${numberFormatter.format(mission.target)}`}
+                        </span>
+                      </div>
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-[#44f26e]"
+                          style={{ width: `${Math.min(100, percent)}%` }}
+                        />
+                      </div>
+                    </article>
+                  );
+                })}
+                {characterGrowth.status === "loading" ? (
+                  <div className="rounded-lg border border-white/12 bg-black/20 p-4 text-sm font-medium text-white/58">
+                    <Loader2 className="mb-2 size-4 animate-spin text-[#44f26e]" />
+                    {copy.growthLoading}
+                  </div>
+                ) : null}
+                {characterGrowth.error ? (
+                  <div className="rounded-lg border border-red-300/20 bg-red-500/12 p-4 text-sm font-medium leading-6 text-red-100">
+                    {characterGrowth.error}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="size-5 text-[#44f26e]" />
+                  <h2 className="text-xl font-semibold text-white">
+                    {copy.growthAvatarCollection}
+                  </h2>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {avatarUnlocks.length > 0 ? (
+                    avatarUnlocks.map((unlock) => (
+                      <div
+                        className={`rounded-lg border p-3 ${
+                          unlock.unlocked
+                            ? "border-[#44f26e]/40 bg-[#44f26e]/10"
+                            : "border-white/12 bg-black/20"
+                        }`}
+                        key={unlock.id}
+                      >
+                        <p className="text-sm font-semibold text-white">
+                          {unlock.label}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-white/50">
+                          {unlock.description}
+                        </p>
+                        {unlock.unlocked ? (
+                          <span className="mt-3 inline-flex rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
+                            {copy.growthUnlocked}
+                          </span>
+                        ) : null}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-white/12 bg-black/20 p-3 text-sm font-medium leading-6 text-white/50 sm:col-span-2">
+                      {copy.growthLoading}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-5 text-[#44f26e]" />
+                  <h2 className="text-xl font-semibold text-white">
+                    {copy.growthContentSkills}
+                  </h2>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {contentSkills.length > 0 ? (
+                    contentSkills.map((skill) => (
+                      <div
+                        className={`rounded-lg border p-3 ${
+                          skill.unlocked
+                            ? "border-[#44f26e]/40 bg-[#44f26e]/10"
+                            : "border-white/12 bg-black/20"
+                        }`}
+                        key={skill.id}
+                      >
+                        <p className="text-sm font-semibold text-white">
+                          {skill.label}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-white/50">
+                          {skill.description}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-white/12 bg-black/20 p-3 text-sm font-medium leading-6 text-white/50 sm:col-span-2">
+                      {copy.growthLoading}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    );
+  }
+
   function renderQuickCharacterPanel() {
     const isCreatingCharacter = quickCharacter.status === "loading";
     const styleOptions = [
@@ -931,7 +1397,7 @@ export function FanletterProfilePage({
     ] as const;
 
     return (
-      <section className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 sm:p-5">
+      <section className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 sm:p-5">
         <div className="flex items-start gap-4">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#44f26e] text-black">
             <Sparkles className="size-5" />
@@ -1343,6 +1809,8 @@ export function FanletterProfilePage({
               {notice}
             </div>
           ) : null}
+
+          {renderCharacterGrowthCenter()}
 
 	          {renderQuickCharacterPanel()}
 
