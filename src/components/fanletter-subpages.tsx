@@ -2496,8 +2496,8 @@ function FanletterFeedPagination({
           aria-disabled={filters.page <= 1}
           className={`inline-flex h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold transition ${
             filters.page <= 1
-              ? "pointer-events-none border-black/8 text-black/28"
-              : "border-black/10 text-black/62 hover:border-black/24 hover:text-black"
+              ? "pointer-events-none border-black/8 !text-black/28"
+              : "border-black/10 !text-black/62 hover:border-black/24 hover:!text-black"
           }`}
           href={previousHref}
         >
@@ -2507,8 +2507,8 @@ function FanletterFeedPagination({
           aria-disabled={filters.page >= filters.pageCount}
           className={`inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
             filters.page >= filters.pageCount
-              ? "pointer-events-none border border-black/8 text-black/28"
-              : "bg-black text-white hover:bg-black/82"
+              ? "pointer-events-none border border-black/8 !text-black/28"
+              : "bg-black !text-white hover:bg-black/82"
           }`}
           href={nextHref}
         >
