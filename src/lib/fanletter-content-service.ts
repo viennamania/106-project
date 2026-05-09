@@ -25,8 +25,28 @@ import {
 } from "@/lib/mongodb";
 
 const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
+const FANLETTER_FEED_PAGE_SIZE = 24;
+const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
 const TITLE_LIMIT = 96;
+
+export const fanletterFeedSortOptions = [
+  "latest",
+  "popular",
+  "comments",
+  "saves",
+] as const;
+
+export type FanletterFeedSort = (typeof fanletterFeedSortOptions)[number];
+
+export type FanletterFeedFilters = {
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  query: string;
+  sort: FanletterFeedSort;
+  totalCount: number;
+};
 
 export type FanletterPublicContentItem = {
   authorAvatarImageUrl: string | null;
@@ -87,6 +107,7 @@ export type FanletterPublicCharacter = {
 };
 
 export type FanletterFeedPageData = {
+  filters: FanletterFeedFilters;
   items: FanletterPublicContentItem[];
   referralCode: string | null;
 };
@@ -121,6 +142,70 @@ function compactText(value: string | null | undefined, limit: number) {
   }
 
   return `${text.slice(0, limit - 1).trimEnd()}...`;
+}
+
+function compactSearchQuery(value: string | null | undefined) {
+  return (value ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isFanletterFeedSort(value: string | null | undefined): value is FanletterFeedSort {
+  return fanletterFeedSortOptions.includes(value as FanletterFeedSort);
+}
+
+function normalizeFeedPage(value: number | null | undefined) {
+  if (!value || !Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.max(1, Math.floor(value));
+}
+
+function getFanletterEngagementScore(item: FanletterPublicContentItem) {
+  return (
+    item.social.likeCount * 3 +
+    item.social.commentCount * 4 +
+    item.social.saveCount * 2
+  );
+}
+
+function sortFeedItems(
+  items: FanletterPublicContentItem[],
+  sort: FanletterFeedSort,
+) {
+  const withLatestFallback = (a: FanletterPublicContentItem, b: FanletterPublicContentItem) =>
+    new Date(b.publishedAt ?? 0).getTime() -
+      new Date(a.publishedAt ?? 0).getTime() ||
+    b.contentId.localeCompare(a.contentId);
+
+  return [...items].sort((a, b) => {
+    if (sort === "popular") {
+      const scoreDelta = getFanletterEngagementScore(b) - getFanletterEngagementScore(a);
+
+      return scoreDelta || withLatestFallback(a, b);
+    }
+
+    if (sort === "comments") {
+      return (
+        b.social.commentCount - a.social.commentCount ||
+        getFanletterEngagementScore(b) - getFanletterEngagementScore(a) ||
+        withLatestFallback(a, b)
+      );
+    }
+
+    if (sort === "saves") {
+      return (
+        b.social.saveCount - a.social.saveCount ||
+        getFanletterEngagementScore(b) - getFanletterEngagementScore(a) ||
+        withLatestFallback(a, b)
+      );
+    }
+
+    return withLatestFallback(a, b);
+  });
 }
 
 function getPublicCharacterTraits(persona: CreatorCharacterPersona) {
@@ -235,6 +320,47 @@ async function getProfilesByAuthorEmail(posts: ContentPostDocument[]) {
   return new Map(profiles.map((profile) => [profile.email, profile]));
 }
 
+async function getCreatorProfileMatchesForFeedQuery(query: string) {
+  if (!query) {
+    return {
+      emails: [],
+      referralCodes: [],
+    };
+  }
+
+  const profilesCollection = await getCreatorProfilesCollection();
+  const regex = new RegExp(escapeRegExp(query), "i");
+  const profiles = await profilesCollection
+    .find(
+      {
+        $or: [
+          { displayName: regex },
+          { email: regex },
+          { intro: regex },
+          { referralCode: regex },
+          { "characterPersona.name": regex },
+          { "characterPersona.summary": regex },
+          { "characterPersona.lockedTraits": regex },
+        ],
+      },
+      {
+        projection: {
+          email: 1,
+          referralCode: 1,
+        },
+      },
+    )
+    .limit(80)
+    .toArray();
+
+  return {
+    emails: profiles.map((profile) => profile.email).filter(Boolean),
+    referralCodes: profiles
+      .map((profile) => normalizeReferralCode(profile.referralCode))
+      .filter((value): value is string => Boolean(value)),
+  };
+}
+
 async function getSocialByContentId(posts: ContentPostDocument[]) {
   const pairs = await Promise.all(
     posts.map(async (post) => [
@@ -305,40 +431,81 @@ async function getFanRequestSourceForContent(contentId: string) {
   return request ? toPublicFanRequestSource(request) : null;
 }
 
-function getPublicContentFilter({
+async function getPublicContentFilter({
   locale,
+  query,
   referralCode,
 }: {
   locale: Locale;
+  query?: string | null;
   referralCode?: string | null;
-}): Filter<ContentPostDocument> {
-  return {
+}): Promise<Filter<ContentPostDocument>> {
+  const baseFilter: Filter<ContentPostDocument> = {
     ...getPublishedContentLocaleFilter(locale),
     ...(referralCode ? { authorReferralCode: referralCode } : {}),
     "contentVideoUrls.0": { $exists: true },
     priceType: "free",
     status: "published",
   };
+  const normalizedQuery = compactSearchQuery(query);
+
+  if (!normalizedQuery) {
+    return baseFilter;
+  }
+
+  const regex = new RegExp(escapeRegExp(normalizedQuery), "i");
+  const profileMatches =
+    await getCreatorProfileMatchesForFeedQuery(normalizedQuery);
+  const searchClauses: Filter<ContentPostDocument>[] = [
+    { authorEmail: regex },
+    { authorReferralCode: regex },
+    { body: regex },
+    { previewText: regex },
+    { summary: regex },
+    { tags: regex },
+    { title: regex },
+  ];
+
+  if (profileMatches.emails.length > 0) {
+    searchClauses.push({ authorEmail: { $in: profileMatches.emails } });
+  }
+
+  if (profileMatches.referralCodes.length > 0) {
+    searchClauses.push({
+      authorReferralCode: { $in: profileMatches.referralCodes },
+    });
+  }
+
+  return {
+    $and: [
+      baseFilter,
+      {
+        $or: searchClauses,
+      },
+    ],
+  };
 }
 
 export async function getFanletterPublicContentItems({
   locale,
   limit = FANLETTER_PUBLIC_CONTENT_LIMIT,
+  query,
   referralCode,
 }: {
   locale: Locale;
   limit?: number;
+  query?: string | null;
   referralCode?: string | null;
 }) {
   const postsCollection = await getContentPostsCollection();
   const normalizedReferralCode = normalizeReferralCode(referralCode);
+  const contentFilter = await getPublicContentFilter({
+    locale,
+    query,
+    referralCode: normalizedReferralCode,
+  });
   const posts = await postsCollection
-    .find(
-      getPublicContentFilter({
-        locale,
-        referralCode: normalizedReferralCode,
-      }),
-    )
+    .find(contentFilter)
     .sort({
       publishedAt: -1,
       createdAt: -1,
@@ -364,11 +531,93 @@ export const getFanletterFeedPageData = cache(
   async (
     locale: Locale,
     referralCodeInput: string | null,
+    options?: {
+      page?: number | null;
+      query?: string | null;
+      sort?: string | null;
+    },
   ): Promise<FanletterFeedPageData> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
-    const items = await getFanletterPublicContentItems({ locale });
+    const query = compactSearchQuery(options?.query);
+    const sort = isFanletterFeedSort(options?.sort) ? options.sort : "latest";
+    const postsCollection = await getContentPostsCollection();
+    const contentFilter = await getPublicContentFilter({ locale, query });
+    const totalMatchingCount = await postsCollection.countDocuments(contentFilter);
+    const pageSize = FANLETTER_FEED_PAGE_SIZE;
+    let page = normalizeFeedPage(options?.page);
+    let items: FanletterPublicContentItem[] = [];
+    const totalCount =
+      sort === "latest"
+        ? totalMatchingCount
+        : Math.min(totalMatchingCount, FANLETTER_FEED_MAX_SORT_CANDIDATES);
+    const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+
+    page = Math.min(page, pageCount);
+
+    const offset = (page - 1) * pageSize;
+
+    if (totalMatchingCount > 0) {
+      if (sort === "latest") {
+        const posts = await postsCollection
+          .find(contentFilter)
+          .sort({
+            publishedAt: -1,
+            createdAt: -1,
+            contentId: -1,
+          })
+          .skip(offset)
+          .limit(pageSize)
+          .toArray();
+        const [profileByEmail, socialByContentId] = await Promise.all([
+          getProfilesByAuthorEmail(posts),
+          getSocialByContentId(posts),
+        ]);
+
+        items = posts.map((post) =>
+          toPublicContentItem({
+            post,
+            profile: profileByEmail.get(post.authorEmail),
+            social: socialByContentId.get(post.contentId),
+          }),
+        );
+      } else {
+        const posts = await postsCollection
+          .find(contentFilter)
+          .sort({
+            publishedAt: -1,
+            createdAt: -1,
+            contentId: -1,
+          })
+          .limit(FANLETTER_FEED_MAX_SORT_CANDIDATES)
+          .toArray();
+        const [profileByEmail, socialByContentId] = await Promise.all([
+          getProfilesByAuthorEmail(posts),
+          getSocialByContentId(posts),
+        ]);
+        const sortedItems = sortFeedItems(
+          posts.map((post) =>
+            toPublicContentItem({
+              post,
+              profile: profileByEmail.get(post.authorEmail),
+              social: socialByContentId.get(post.contentId),
+            }),
+          ),
+          sort,
+        );
+
+        items = sortedItems.slice(offset, offset + pageSize);
+      }
+    }
 
     return {
+      filters: {
+        page,
+        pageCount,
+        pageSize,
+        query,
+        sort,
+        totalCount,
+      },
       items,
       referralCode,
     };
@@ -407,7 +656,7 @@ export const getFanletterPublicContentDetail = cache(
       profile?.referralCode ?? post.authorReferralCode,
     );
     const authorContentFilter = authorReferralCode
-      ? getPublicContentFilter({ locale, referralCode: authorReferralCode })
+      ? await getPublicContentFilter({ locale, referralCode: authorReferralCode })
       : null;
     const [authorPosts, authorPublicContentCount] = authorContentFilter
       ? await Promise.all([
@@ -465,10 +714,11 @@ export const getFanletterCreatorPageData = cache(
 
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
+    const contentFilter = await getPublicContentFilter({ locale, referralCode });
     const [storedProfile, posts, publicContentCount] = await Promise.all([
       profilesCollection.findOne({ referralCode }),
       postsCollection
-        .find(getPublicContentFilter({ locale, referralCode }))
+        .find(contentFilter)
         .sort({
           publishedAt: -1,
           createdAt: -1,
@@ -476,7 +726,7 @@ export const getFanletterCreatorPageData = cache(
         })
         .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
         .toArray(),
-      postsCollection.countDocuments(getPublicContentFilter({ locale, referralCode })),
+      postsCollection.countDocuments(contentFilter),
     ]);
     const profile =
       storedProfile ??

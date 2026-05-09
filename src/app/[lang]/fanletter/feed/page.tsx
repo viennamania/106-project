@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterFeedPage } from "@/components/fanletter-subpages";
-import { getFanletterFeedPageData } from "@/lib/fanletter-content-service";
+import {
+  fanletterFeedSortOptions,
+  getFanletterFeedPageData,
+  type FanletterFeedSort,
+} from "@/lib/fanletter-content-service";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
@@ -13,11 +17,32 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 
 type FanletterFeedSearchParams = {
+  page?: string | string[];
+  q?: string | string[];
   ref?: string | string[];
+  sort?: string | string[];
 };
 
 function readReferralCode(rawValue?: string | string[]) {
   return normalizeReferralCode(Array.isArray(rawValue) ? rawValue[0] : rawValue);
+}
+
+function readFirstSearchParam(rawValue?: string | string[]) {
+  return Array.isArray(rawValue) ? rawValue[0] : rawValue;
+}
+
+function readFeedSort(rawValue?: string | string[]): FanletterFeedSort {
+  const value = readFirstSearchParam(rawValue);
+
+  return fanletterFeedSortOptions.includes(value as FanletterFeedSort)
+    ? (value as FanletterFeedSort)
+    : "latest";
+}
+
+function readFeedPage(rawValue?: string | string[]) {
+  const parsed = Number(readFirstSearchParam(rawValue));
+
+  return Number.isFinite(parsed) ? Math.max(1, Math.floor(parsed)) : 1;
 }
 
 export async function generateMetadata({
@@ -95,10 +120,15 @@ export default async function LocalizedFanletterFeedPage({
 
   const locale = lang as Locale;
   const referralCode = readReferralCode(query.ref);
-  const data = await getFanletterFeedPageData(locale, referralCode);
+  const data = await getFanletterFeedPageData(locale, referralCode, {
+    page: readFeedPage(query.page),
+    query: readFirstSearchParam(query.q),
+    sort: readFeedSort(query.sort),
+  });
 
   return (
     <FanletterFeedPage
+      filters={data.filters}
       items={data.items}
       locale={locale}
       referralCode={data.referralCode}

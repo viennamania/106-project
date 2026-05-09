@@ -16,7 +16,9 @@ import {
   PenLine,
   PlayCircle,
   Rocket,
+  Search,
   Share2,
+  SlidersHorizontal,
   Sparkles,
   User,
   Video,
@@ -31,6 +33,8 @@ import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
+  FanletterFeedFilters,
+  FanletterFeedSort,
   FanletterPublicCharacter,
   FanletterPublicContentDetail,
   FanletterPublicContentItem,
@@ -339,6 +343,35 @@ function getCreatorHref({
   return buildPathWithReferral(
     `/${locale}/fanletter/creator/${item.authorReferralCode}`,
     referralCode ?? item.authorReferralCode,
+  );
+}
+
+function getFeedHref({
+  filters,
+  locale,
+  page,
+  query,
+  referralCode,
+  sort,
+}: {
+  filters?: FanletterFeedFilters;
+  locale: Locale;
+  page?: number;
+  query?: string;
+  referralCode: string | null;
+  sort?: FanletterFeedSort;
+}) {
+  const nextQuery = query ?? filters?.query ?? "";
+  const nextSort = sort ?? filters?.sort ?? "latest";
+  const nextPage = page ?? filters?.page ?? 1;
+
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode),
+    {
+      page: nextPage > 1 ? String(nextPage) : null,
+      q: nextQuery,
+      sort: nextSort === "latest" ? null : nextSort,
+    },
   );
 }
 
@@ -2016,11 +2049,250 @@ function FanletterContentNextActions({
   );
 }
 
+function FanletterFeedDiscoveryControls({
+  filters,
+  locale,
+  referralCode,
+}: {
+  filters: FanletterFeedFilters;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          clear: "필터 초기화",
+          helper:
+            "제목, 요약, 캐릭터명으로 찾고 반응 데이터 기준으로 피드를 다시 정렬합니다.",
+          page: "페이지",
+          placeholder: "캐릭터명, 제목, 장면 검색",
+          result: "검색 결과",
+          search: "검색",
+          sort: "정렬",
+          sortOptions: {
+            comments: "댓글 많은 순",
+            latest: "최신순",
+            popular: "인기순",
+            saves: "저장 많은 순",
+          } satisfies Record<FanletterFeedSort, string>,
+          title: "브이로그 찾기",
+        }
+      : {
+          clear: "Reset filters",
+          helper:
+            "Find vlogs by title, summary, or character name, then reorder the feed by fan signals.",
+          page: "Page",
+          placeholder: "Search character, title, or scene",
+          result: "Results",
+          search: "Search",
+          sort: "Sort",
+          sortOptions: {
+            comments: "Most comments",
+            latest: "Latest",
+            popular: "Popular",
+            saves: "Most saved",
+          } satisfies Record<FanletterFeedSort, string>,
+          title: "Find vlogs",
+        };
+  const sortOptions: FanletterFeedSort[] = [
+    "latest",
+    "popular",
+    "comments",
+    "saves",
+  ];
+  const resetHref = getFeedHref({
+    locale,
+    page: 1,
+    query: "",
+    referralCode,
+    sort: "latest",
+  });
+
+  return (
+    <section className="mb-8 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <Search className="size-5" />
+            </span>
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
+                {labels.result} {formatNumber(filters.totalCount, locale)}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-normal">
+                {labels.title}
+              </h2>
+            </div>
+          </div>
+          <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-black/58">
+            {labels.helper}
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-sm font-semibold text-black/58">
+          <SlidersHorizontal className="size-4 text-[#1f7c38]" />
+          {labels.page} {formatNumber(filters.page, locale)} /{" "}
+          {formatNumber(filters.pageCount, locale)}
+        </div>
+      </div>
+
+      <form
+        action={`/${locale}/fanletter/feed`}
+        className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem_auto_auto]"
+        method="get"
+      >
+        {referralCode ? <input name="ref" type="hidden" value={referralCode} /> : null}
+        <label className="min-w-0">
+          <span className="sr-only">{labels.search}</span>
+          <input
+            className="h-12 w-full rounded-lg border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black outline-none transition placeholder:text-black/34 focus:border-[#29d85f]/70 focus:bg-white"
+            defaultValue={filters.query}
+            maxLength={80}
+            name="q"
+            placeholder={labels.placeholder}
+            type="search"
+          />
+        </label>
+        <label className="min-w-0">
+          <span className="sr-only">{labels.sort}</span>
+          <select
+            className="h-12 w-full rounded-lg border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black outline-none transition focus:border-[#29d85f]/70 focus:bg-white"
+            defaultValue={filters.sort}
+            name="sort"
+          >
+            {sortOptions.map((option) => (
+              <option key={option} value={option}>
+                {labels.sortOptions[option]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
+          type="submit"
+        >
+          <Search className="size-4" />
+          {labels.search}
+        </button>
+        <Link
+          className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 px-5 text-sm font-semibold text-black/62 transition hover:border-black/24 hover:text-black"
+          href={resetHref}
+        >
+          {labels.clear}
+        </Link>
+      </form>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {sortOptions.map((option) => {
+          const isActive = filters.sort === option;
+
+          return (
+            <Link
+              className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-[#44f26e] text-black"
+                  : "border border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black"
+              }`}
+              href={getFeedHref({
+                filters,
+                locale,
+                page: 1,
+                referralCode,
+                sort: option,
+              })}
+              key={option}
+            >
+              {labels.sortOptions[option]}
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function FanletterFeedPagination({
+  filters,
+  locale,
+  referralCode,
+}: {
+  filters: FanletterFeedFilters;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  if (filters.pageCount <= 1) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          next: "다음",
+          page: "페이지",
+          previous: "이전",
+        }
+      : {
+          next: "Next",
+          page: "Page",
+          previous: "Previous",
+        };
+  const previousHref = getFeedHref({
+    filters,
+    locale,
+    page: Math.max(1, filters.page - 1),
+    referralCode,
+  });
+  const nextHref = getFeedHref({
+    filters,
+    locale,
+    page: Math.min(filters.pageCount, filters.page + 1),
+    referralCode,
+  });
+
+  return (
+    <nav
+      aria-label={labels.page}
+      className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="text-sm font-semibold text-black/50">
+        {labels.page} {formatNumber(filters.page, locale)} /{" "}
+        {formatNumber(filters.pageCount, locale)}
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:flex">
+        <Link
+          aria-disabled={filters.page <= 1}
+          className={`inline-flex h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold transition ${
+            filters.page <= 1
+              ? "pointer-events-none border-black/8 text-black/28"
+              : "border-black/10 text-black/62 hover:border-black/24 hover:text-black"
+          }`}
+          href={previousHref}
+        >
+          {labels.previous}
+        </Link>
+        <Link
+          aria-disabled={filters.page >= filters.pageCount}
+          className={`inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
+            filters.page >= filters.pageCount
+              ? "pointer-events-none border border-black/8 text-black/28"
+              : "bg-black text-white hover:bg-black/82"
+          }`}
+          href={nextHref}
+        >
+          {labels.next}
+        </Link>
+      </div>
+    </nav>
+  );
+}
+
 export function FanletterFeedPage({
+  filters,
   items,
   locale,
   referralCode,
 }: {
+  filters: FanletterFeedFilters;
   items: FanletterPublicContentItem[];
   locale: Locale;
   referralCode: string | null;
@@ -2071,7 +2343,7 @@ export function FanletterFeedPage({
   const feedStats = [
     {
       label: copy.feed.freePublic,
-      value: formatNumber(items.length, locale),
+      value: formatNumber(filters.totalCount, locale),
     },
     {
       label: copy.feed.videos,
@@ -2082,7 +2354,7 @@ export function FanletterFeedPage({
       value: formatNumber(creatorItems.length, locale),
     },
   ];
-  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const feedHref = getFeedHref({ filters, locale, referralCode });
   const followingHref = buildPathWithReferral(
     `/${locale}/fanletter/following`,
     referralCode,
@@ -2136,6 +2408,12 @@ export function FanletterFeedPage({
               </Link>
             ))}
           </nav>
+
+          <FanletterFeedDiscoveryControls
+            filters={filters}
+            locale={locale}
+            referralCode={referralCode}
+          />
 
           {featuredItem ? (
             <div
@@ -2260,6 +2538,11 @@ export function FanletterFeedPage({
             locale={locale}
             referralCode={referralCode}
             showVideoPreview
+          />
+          <FanletterFeedPagination
+            filters={filters}
+            locale={locale}
+            referralCode={referralCode}
           />
         </div>
       </section>
