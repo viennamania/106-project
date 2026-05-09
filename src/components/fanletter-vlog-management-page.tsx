@@ -1022,7 +1022,10 @@ function VlogManagerCard({
 }) {
   const videoUrl = getPostVideoUrl(post);
   const detailHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/content/${post.contentId}`, referralCode),
+    buildPathWithReferral(
+      `/${locale}/fanletter/content/${post.contentId}`,
+      referralCode,
+    ),
     {
       returnTo: currentManagerHref,
     },
