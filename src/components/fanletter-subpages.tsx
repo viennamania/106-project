@@ -2058,6 +2058,189 @@ function FanletterContentNextActions({
   );
 }
 
+function FanletterDetailWatchPanel({
+  channelHref,
+  characterAvatarUrl,
+  characterName,
+  content,
+  locale,
+}: {
+  channelHref: string;
+  characterAvatarUrl: string | null;
+  characterName: string;
+  content: FanletterPublicContentDetail;
+  locale: Locale;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: "영상, 캐릭터 채널, 팬 요청을 같은 FanLetter 흐름에서 이어봅니다.",
+          detail: "FanLetter 전용 보기",
+          publicVlogs: "공개 브이로그",
+          title: "지금 보는 캐릭터",
+        }
+      : {
+          body: "Keep the video, character channel, and fan requests inside one FanLetter flow.",
+          detail: "FanLetter view",
+          publicVlogs: "public vlogs",
+          title: "Now watching",
+        };
+
+  return (
+    <div className="border-t border-white/8 p-3 sm:p-4">
+      <div className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
+        <div className="flex items-start gap-3">
+          <Avatar
+            imageUrl={characterAvatarUrl}
+            name={characterName}
+            sizeClassName="size-11"
+          />
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+              {labels.title}
+            </p>
+            <Link
+              className="mt-1 inline-flex min-w-0 items-center gap-2 text-base font-semibold leading-tight text-white"
+              href={channelHref}
+            >
+              <span className="truncate">{characterName}</span>
+              <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
+            </Link>
+            <p className="mt-2 text-xs font-medium leading-5 text-white/54">
+              {labels.body}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <span className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold text-[#b9ffc8]">
+            {labels.detail}
+          </span>
+          <span className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-white/58">
+            {formatNumber(content.authorPublicContentCount, locale)}{" "}
+            {labels.publicVlogs}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FanletterDetailQuickActions({
+  characterName,
+  creatorActionHref,
+  creatorActionLabel,
+  detailActionHref,
+  detailActionLabel,
+  fanRequestHref,
+  locale,
+  startHref,
+}: {
+  characterName: string;
+  creatorActionHref: string;
+  creatorActionLabel: string;
+  detailActionHref: string;
+  detailActionLabel: string;
+  fanRequestHref: string;
+  locale: Locale;
+  startHref: string;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: "시청 후 바로 캐릭터 채널, 다음 장면 요청, 내 채널 시작으로 이어가도록 정리했습니다.",
+          creatorBody: `${characterName}의 공개 브이로그와 캐릭터 소개를 계속 봅니다.`,
+          open: "이동",
+          requestBody: "보고 싶은 룩, 장소, 상황을 다음 브이로그 요청으로 남깁니다.",
+          requestTitle: "다음 장면 요청",
+          startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 만듭니다.",
+          startTitle: "내 채널 시작",
+          title: "이 브이로그에서 이어가기",
+        }
+      : {
+          body: "After watching, continue into the character channel, next-scene request, or your own channel setup.",
+          creatorBody: `Keep watching ${characterName}'s public vlogs and character intro.`,
+          open: "Open",
+          requestBody: "Leave the outfit, place, or scene you want to see as a next-vlog request.",
+          requestTitle: "Request next scene",
+          startBody: "Create your own AI character vlog channel without complex setup.",
+          startTitle: "Start my channel",
+          title: "Continue from this vlog",
+        };
+  const actions = [
+    {
+      body: labels.creatorBody,
+      href: creatorActionHref,
+      icon: User,
+      title: creatorActionLabel,
+    },
+    {
+      body: labels.requestBody,
+      href: fanRequestHref,
+      icon: Clapperboard,
+      title: labels.requestTitle,
+    },
+    {
+      body: labels.startBody,
+      href: startHref,
+      icon: Rocket,
+      title: labels.startTitle,
+    },
+  ];
+
+  return (
+    <section className="mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            FanLetter Flow
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-normal [word-break:keep-all]">
+            {labels.title}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+            {labels.body}
+          </p>
+        </div>
+        <Link
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          href={detailActionHref}
+        >
+          {detailActionLabel}
+          <ArrowRight className="size-4" />
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {actions.map((action) => {
+          const Icon = action.icon;
+
+          return (
+            <Link
+              className="group rounded-lg border border-white/10 bg-white/[0.055] p-4 transition hover:border-[#44f26e]/46 hover:bg-white/[0.075]"
+              href={action.href}
+              key={action.title}
+            >
+              <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-5" />
+              </span>
+              <h3 className="mt-4 break-words text-lg font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
+                {action.title}
+              </h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/54">
+                {action.body}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
+                {labels.open}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function FanletterFeedDiscoveryControls({
   filters,
   locale,
@@ -3200,6 +3383,21 @@ export function FanletterContentDetailPage({
     ? copy.actions.creatorChannel
     : copy.actions.existingDetail;
   const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
+  const contentCharacterAvatarUrl =
+    content.authorCharacter?.avatarImageSet[0]?.url ??
+    content.authorAvatarImageUrl;
+  const detailLabels =
+    locale === "ko"
+      ? {
+          character: "캐릭터",
+          heroEyebrow: "FanLetter 전용 브이로그",
+          watchBadge: "세로 브이로그",
+        }
+      : {
+          character: "Character",
+          heroEyebrow: "FanLetter vlog detail",
+          watchBadge: "Vertical vlog",
+        };
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -3247,13 +3445,48 @@ export function FanletterContentDetailPage({
                   title={content.title}
                   videoUrl={primaryVideoUrl}
                 />
+                <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-3">
+                  <span className="inline-flex rounded-full bg-black/62 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
+                    {detailLabels.watchBadge}
+                  </span>
+                  <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black">
+                    FanLetter
+                  </span>
+                </div>
               </div>
               <div className="border-t border-white/8 p-3">
                 <SocialMetrics content={content} locale={locale} />
               </div>
+              <FanletterDetailWatchPanel
+                channelHref={creatorHref}
+                characterAvatarUrl={contentCharacterAvatarUrl}
+                characterName={contentCharacterName}
+                content={content}
+                locale={locale}
+              />
             </section>
 
             <section className="pb-10">
+              <Link
+                className="mb-4 inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
+                href={creatorHref}
+              >
+                <Avatar
+                  imageUrl={contentCharacterAvatarUrl}
+                  name={contentCharacterName}
+                  sizeClassName="size-9"
+                />
+                <span className="min-w-0">
+                  <span className="block text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
+                    {detailLabels.character}
+                  </span>
+                  <span className="block truncate text-sm font-semibold">
+                    {contentCharacterName}
+                  </span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
+              </Link>
+
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
                   {content.mediaType === "video" ? (
@@ -3268,9 +3501,12 @@ export function FanletterContentDetailPage({
                     {formatDate(content.publishedAt, locale)}
                   </span>
                 ) : null}
+                <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
+                  {detailLabels.heroEyebrow}
+                </span>
               </div>
 
-              <h1 className="mt-5 text-[2.45rem] font-semibold leading-[1] tracking-normal sm:text-[4.1rem]">
+              <h1 className="mt-5 break-words text-[2.45rem] font-semibold leading-[1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.1rem]">
                 {content.title}
               </h1>
               <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
@@ -3284,6 +3520,17 @@ export function FanletterContentDetailPage({
                 shareHref={currentHref}
                 summary={content.summary}
                 title={content.title}
+              />
+
+              <FanletterDetailQuickActions
+                characterName={contentCharacterName}
+                creatorActionHref={creatorActionHref}
+                creatorActionLabel={creatorActionLabel}
+                detailActionHref={detailActionHref}
+                detailActionLabel={detailActionLabel}
+                fanRequestHref={fanRequestHref}
+                locale={locale}
+                startHref={startHref}
               />
 
               <FanletterFanRequestSourceCard
