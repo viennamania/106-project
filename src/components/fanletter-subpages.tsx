@@ -30,10 +30,15 @@ import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import {
+  FanletterSetupHeroDescription,
   FanletterSetupHeroActions,
+  FanletterSetupProgressTiles,
   FanletterSetupStatusProvider,
+  FanletterSetupStatusNote,
   FanletterSetupStepAction,
   FanletterSetupStepBadge,
+  FanletterSetupStepNavLink,
+  FanletterSetupStepText,
 } from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -483,7 +488,7 @@ function FanletterShell({
   actions?: ReactNode;
   aside?: ReactNode;
   children: ReactNode;
-  description?: string;
+  description?: ReactNode;
   eyebrow: string;
   locale: Locale;
   referralCode: string | null;
@@ -3769,6 +3774,10 @@ export function FanletterOnboardingPage({
             },
           ],
         };
+  const progressItems = labels.steps.map((step) => ({
+    label: step.meta.split("·")[1]?.trim() ?? step.title,
+    title: step.title,
+  }));
   const heroAside = (
     <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.28)] backdrop-blur-md sm:p-5">
       <div className="flex items-start justify-between gap-4">
@@ -3787,10 +3796,17 @@ export function FanletterOnboardingPage({
           const Icon = step.Icon;
 
           return (
-            <Link
+            <FanletterSetupStepNavLink
+              activateHref={activateHref}
               className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/34 p-3 transition hover:border-[#44f26e]/54 hover:bg-black/48"
-              href={step.href}
+              connectHref={connectHref}
+              createHref={createHref}
               key={step.title}
+              locale={locale}
+              onboardingHref={onboardingHref}
+              profileHref={profileHref}
+              stepIndex={index}
+              studioHref={studioHref}
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <Icon className="size-5" />
@@ -3806,13 +3822,14 @@ export function FanletterOnboardingPage({
                   <span className="mt-2 block">
                     <FanletterSetupStepBadge
                       locale={locale}
+                      surface="dark"
                       stepIndex={index}
                     />
                   </span>
                 ) : null}
               </span>
               <ArrowRight className="size-4 shrink-0 text-white/42" />
-            </Link>
+            </FanletterSetupStepNavLink>
           );
         })}
       </div>
@@ -3836,7 +3853,12 @@ export function FanletterOnboardingPage({
           />
         }
         aside={heroAside}
-        description={labels.description}
+        description={
+          <FanletterSetupHeroDescription
+            defaultText={labels.description}
+            locale={locale}
+          />
+        }
         eyebrow={labels.eyebrow}
         locale={locale}
         referralCode={referralCode}
@@ -3855,27 +3877,12 @@ export function FanletterOnboardingPage({
             <p className="mt-4 text-sm font-medium leading-6 text-white/62">
               {labels.completeBody}
             </p>
-            <div className="mt-6 grid grid-cols-3 gap-2">
-              {labels.steps.map((step, index) => (
-                <div
-                  className={`rounded-lg border p-3 ${
-                    index === 0
-                      ? "border-[#44f26e] bg-[#44f26e] text-black"
-                      : "border-white/10 bg-white/[0.06] text-white"
-                  }`}
-                  key={step.meta}
-                >
-                  <p className="text-xl font-semibold leading-none">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <p className="mt-2 text-[0.56rem] font-semibold uppercase tracking-[0.1em] opacity-70">
-                    {step.meta.split("·")[1]?.trim() ?? step.title}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <FanletterSetupProgressTiles items={progressItems} locale={locale} />
             <p className="mt-5 rounded-lg border border-white/10 bg-white/[0.055] p-3 text-xs font-medium leading-5 text-white/58">
-              {labels.accountState}
+              <FanletterSetupStatusNote
+                defaultText={labels.accountState}
+                locale={locale}
+              />
             </p>
           </aside>
 
@@ -3909,12 +3916,12 @@ export function FanletterOnboardingPage({
                           />
                         ) : null}
                       </div>
-                      <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-normal">
-                        {step.title}
-                      </h2>
-                      <p className="mt-2 text-sm font-medium leading-6 text-black/58">
-                        {step.body}
-                      </p>
+                      <FanletterSetupStepText
+                        body={step.body}
+                        locale={locale}
+                        stepIndex={index}
+                        title={step.title}
+                      />
                     </div>
                     <FanletterSetupStepAction
                       activateHref={activateHref}
