@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterCreatorPage } from "@/components/fanletter-subpages";
+import { ThirdwebRuntimeLayout } from "@/components/thirdweb-runtime-layout";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import {
   buildFanletterOgImagePath,
@@ -104,10 +105,12 @@ export default async function LocalizedFanletterCreatorPage({
   const queryReferralCode = readReferralCode(query.ref);
 
   return (
-    <FanletterCreatorPage
-      data={data}
-      locale={locale}
-      referralCode={queryReferralCode ?? data.profile.referralCode}
-    />
+    <ThirdwebRuntimeLayout>
+      <FanletterCreatorPage
+        data={data}
+        locale={locale}
+        referralCode={queryReferralCode ?? data.profile.referralCode}
+      />
+    </ThirdwebRuntimeLayout>
   );
 }

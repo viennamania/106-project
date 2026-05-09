@@ -27,6 +27,15 @@ const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
 const FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT = 80;
 const FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT = 240;
 const FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX = 50;
+const FANLETTER_FAN_REQUEST_RATE_LIMIT_COUNT = 3;
+const FANLETTER_FAN_REQUEST_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const FANLETTER_FAN_REQUEST_DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const FANLETTER_FAN_REQUEST_BLOCKED_PATTERNS = [
+  /https?:\/\//i,
+  /\bwww\./i,
+  /바카라|카지노|도박|토토|대출|성인광고|텔레그램|오픈채팅|카톡/i,
+  /\b(casino|betting|telegram|whatsapp|loan|spam)\b/i,
+];
 
 function collapseWhitespace(value: string) {
   return value.trim().replace(/\s+/g, " ");
@@ -36,6 +45,18 @@ function trimToLength(value: string | null | undefined, limit: number) {
   const normalized = collapseWhitespace(value ?? "");
 
   return normalized ? normalized.slice(0, limit) : null;
+}
+
+function normalizeRequesterFingerprint(value: string | null | undefined) {
+  const normalized = collapseWhitespace(value ?? "");
+
+  return normalized ? normalized.slice(0, 80) : null;
+}
+
+function assertFanRequestBodyAllowed(body: string) {
+  if (FANLETTER_FAN_REQUEST_BLOCKED_PATTERNS.some((pattern) => pattern.test(body))) {
+    throw new Error("Fan request contains blocked content.");
+  }
 }
 
 function normalizeFanRequestType(
@@ -151,6 +172,74 @@ async function normalizeSourceContentId({
   return normalizedSourceContentId;
 }
 
+function getFanRequestRequesterFilter(
+  request: Pick<
+    FanletterFanRequestDocument,
+    "requesterDisplayName" | "requesterEmail" | "requesterFingerprint"
+  >,
+): Filter<FanletterFanRequestDocument> | null {
+  if (request.requesterEmail) {
+    return { requesterEmail: request.requesterEmail };
+  }
+
+  if (request.requesterFingerprint) {
+    return { requesterFingerprint: request.requesterFingerprint };
+  }
+
+  if (request.requesterDisplayName) {
+    return {
+      requesterDisplayName: request.requesterDisplayName,
+      requesterEmail: null,
+    };
+  }
+
+  return null;
+}
+
+async function assertFanRequestSubmissionAllowed({
+  now,
+  request,
+}: {
+  now: Date;
+  request: FanletterFanRequestDocument;
+}) {
+  assertFanRequestBodyAllowed(request.body);
+
+  const requesterFilter = getFanRequestRequesterFilter(request);
+
+  if (!requesterFilter) {
+    return;
+  }
+
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const duplicateSince = new Date(
+    now.getTime() - FANLETTER_FAN_REQUEST_DUPLICATE_WINDOW_MS,
+  );
+  const duplicateRequest = await requestsCollection.findOne({
+    ...requesterFilter,
+    body: request.body,
+    creatorReferralCode: request.creatorReferralCode,
+    createdAt: { $gte: duplicateSince },
+  });
+
+  if (duplicateRequest) {
+    throw new Error("Duplicate fan request.");
+  }
+
+  const rateLimitSince = new Date(
+    now.getTime() - FANLETTER_FAN_REQUEST_RATE_LIMIT_WINDOW_MS,
+  );
+  const recentRequestCount = await requestsCollection.countDocuments({
+    ...requesterFilter,
+    creatorReferralCode: request.creatorReferralCode,
+    createdAt: { $gte: rateLimitSince },
+  });
+
+  if (recentRequestCount >= FANLETTER_FAN_REQUEST_RATE_LIMIT_COUNT) {
+    throw new Error("Too many fan requests. Please try again later.");
+  }
+}
+
 export async function createFanletterFanRequest(input: {
   body?: string | null;
   characterName?: string | null;
@@ -158,6 +247,7 @@ export async function createFanletterFanRequest(input: {
   requestType?: string | null;
   requesterDisplayName?: string | null;
   requesterEmail?: string | null;
+  requesterFingerprint?: string | null;
   sourceContentId?: string | null;
   sourcePath?: string | null;
 }) {
@@ -190,6 +280,7 @@ export async function createFanletterFanRequest(input: {
       FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
     ),
     requesterEmail: normalizeEmail(input.requesterEmail ?? "") || null,
+    requesterFingerprint: normalizeRequesterFingerprint(input.requesterFingerprint),
     sourceContentId,
     sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),
     status: "new",
@@ -198,6 +289,7 @@ export async function createFanletterFanRequest(input: {
   };
   const requestsCollection = await getFanletterFanRequestsCollection();
 
+  await assertFanRequestSubmissionAllowed({ now, request });
   await requestsCollection.insertOne(request);
 
   return serializeFanRequest(request);

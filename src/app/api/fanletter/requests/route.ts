@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type {
   FanletterFanRequestCreateRequest,
   FanletterFanRequestCreateResponse,
@@ -23,10 +25,19 @@ function getErrorStatus(message: string) {
   if (
     message === "creatorReferralCode is required." ||
     message === "Fan request body is required." ||
+    message === "Fan request contains blocked content." ||
     message === "requestId is required." ||
     message === "Unsupported fan request status."
   ) {
     return 400;
+  }
+
+  if (message === "Duplicate fan request.") {
+    return 409;
+  }
+
+  if (message === "Too many fan requests. Please try again later.") {
+    return 429;
   }
 
   if (
@@ -60,6 +71,20 @@ function readPageSize(value: string | null) {
   const parsed = Number(value);
 
   return Number.isFinite(parsed) ? parsed : 20;
+}
+
+function getRequesterFingerprint(request: Request) {
+  const forwardedFor =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
+  const realIp = request.headers.get("x-real-ip")?.trim() ?? "";
+  const userAgent = request.headers.get("user-agent")?.trim().slice(0, 180) ?? "";
+  const fingerprintSource = `${forwardedFor || realIp}|${userAgent}`;
+
+  if (!fingerprintSource.replace("|", "").trim()) {
+    return null;
+  }
+
+  return createHash("sha256").update(fingerprintSource).digest("hex").slice(0, 40);
 }
 
 export async function GET(request: Request) {
@@ -124,6 +149,7 @@ export async function POST(request: Request) {
       requestType: body?.requestType,
       requesterDisplayName: body?.requesterDisplayName,
       requesterEmail,
+      requesterFingerprint: getRequesterFingerprint(request),
       sourceContentId: body?.sourceContentId,
       sourcePath: body?.sourcePath,
     });

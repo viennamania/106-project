@@ -207,10 +207,19 @@ export type FanletterFanRequestDocument = {
   requestType: FanletterFanRequestType;
   requesterDisplayName: string | null;
   requesterEmail: string | null;
+  requesterFingerprint?: string | null;
   sourceContentId: string | null;
   sourcePath: string | null;
   status: FanletterFanRequestStatus;
   usedContentId?: string | null;
+  updatedAt: Date;
+};
+
+export type FanletterCharacterFollowDocument = {
+  createdAt: Date;
+  creatorEmail: string;
+  creatorReferralCode: string;
+  followerEmail: string;
   updatedAt: Date;
 };
 
@@ -405,6 +414,18 @@ export type FanletterFanRequestStatusUpdateRequest = {
 
 export type FanletterFanRequestStatusUpdateResponse = {
   request: FanletterFanRequestRecord;
+};
+
+export type FanletterCharacterFollowStateResponse = {
+  followed: boolean;
+  followerCount: number;
+};
+
+export type FanletterCharacterFollowUpdateRequest = {
+  action?: "follow" | "unfollow" | null;
+  creatorReferralCode?: string | null;
+  email?: string | null;
+  walletAddress?: string | null;
 };
 
 export type ContentFeedItemRecord = ContentPostRecord & {

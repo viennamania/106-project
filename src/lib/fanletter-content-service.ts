@@ -10,6 +10,8 @@ import {
   type ContentSocialSummaryRecord,
   type CreatorProfileAvatarCandidate,
   type CreatorProfileDocument,
+  type FanletterFanRequestDocument,
+  type FanletterFanRequestType,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
 } from "@/lib/content";
@@ -19,6 +21,7 @@ import { normalizeReferralCode } from "@/lib/member";
 import {
   getContentPostsCollection,
   getCreatorProfilesCollection,
+  getFanletterFanRequestsCollection,
 } from "@/lib/mongodb";
 
 const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
@@ -49,7 +52,16 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   canPubliclyAccess: boolean;
   contentImageUrls: string[];
   contentVideoUrls: string[];
+  fanRequestSource: FanletterPublicFanRequestSource | null;
   tags: string[];
+};
+
+export type FanletterPublicFanRequestSource = {
+  body: string;
+  characterName: string;
+  createdAt: string;
+  requestType: FanletterFanRequestType;
+  requesterDisplayName: string | null;
 };
 
 export type FanletterCreatorProfile = {
@@ -263,6 +275,36 @@ function toPublicContentItem({
   };
 }
 
+function toPublicFanRequestSource(
+  request: FanletterFanRequestDocument,
+): FanletterPublicFanRequestSource {
+  return {
+    body: compactText(request.body, 220),
+    characterName: compactText(request.characterName, 64),
+    createdAt: request.createdAt.toISOString(),
+    requestType: request.requestType,
+    requesterDisplayName: compactText(request.requesterDisplayName, 36) || null,
+  };
+}
+
+async function getFanRequestSourceForContent(contentId: string) {
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const request = await requestsCollection.findOne(
+    {
+      status: "used",
+      usedContentId: contentId,
+    },
+    {
+      sort: {
+        updatedAt: -1,
+        createdAt: -1,
+      },
+    },
+  );
+
+  return request ? toPublicFanRequestSource(request) : null;
+}
+
 function getPublicContentFilter({
   locale,
   referralCode,
@@ -353,11 +395,12 @@ export const getFanletterPublicContentDetail = cache(
     }
 
     const profilesCollection = await getCreatorProfilesCollection();
-    const [profile, social] = await Promise.all([
+    const [profile, social, fanRequestSource] = await Promise.all([
       profilesCollection.findOne({ email: post.authorEmail }),
       getContentSocialSummaryForViewer(post.contentId, null).catch(() =>
         createEmptyContentSocialSummary(),
       ),
+      getFanRequestSourceForContent(post.contentId),
     ]);
     const canPubliclyAccess = post.priceType === "free";
     const authorReferralCode = normalizeReferralCode(
@@ -403,6 +446,7 @@ export const getFanletterPublicContentDetail = cache(
       canPubliclyAccess,
       contentImageUrls: canPubliclyAccess ? post.contentImageUrls ?? [] : [],
       contentVideoUrls: canPubliclyAccess ? post.contentVideoUrls ?? [] : [],
+      fanRequestSource,
       tags: post.tags,
     };
   },

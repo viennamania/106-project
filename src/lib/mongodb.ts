@@ -35,6 +35,7 @@ import type { MemberAnnouncementDocument } from "@/lib/announcements";
 import type {
   ContentCommentDocument,
   ContentEntitlementDocument,
+  FanletterCharacterFollowDocument,
   FanletterFanRequestDocument,
   ContentImageGenerationDocument,
   FanletterVlogPlanDocument,
@@ -134,6 +135,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterFanRequestsCollectionPromise?: Promise<
     Collection<FanletterFanRequestDocument>
+  >;
+  mongoFanletterCharacterFollowsCollectionPromise?: Promise<
+    Collection<FanletterCharacterFollowDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1012,7 +1016,18 @@ export async function getFanletterFanRequestsCollection() {
         collection.createIndex({ requestId: 1 }, { unique: true }),
         collection.createIndex({ creatorEmail: 1, status: 1, createdAt: -1 }),
         collection.createIndex({ creatorReferralCode: 1, createdAt: -1 }),
+        collection.createIndex({
+          creatorReferralCode: 1,
+          requesterEmail: 1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          creatorReferralCode: 1,
+          requesterFingerprint: 1,
+          createdAt: -1,
+        }),
         collection.createIndex({ sourceContentId: 1, createdAt: -1 }),
+        collection.createIndex({ usedContentId: 1, updatedAt: -1 }),
       ]);
 
       return collection;
@@ -1020,6 +1035,35 @@ export async function getFanletterFanRequestsCollection() {
   }
 
   return globalForMongo.mongoFanletterFanRequestsCollectionPromise;
+}
+
+export async function getFanletterCharacterFollowsCollection() {
+  if (!globalForMongo.mongoFanletterCharacterFollowsCollectionPromise) {
+    globalForMongo.mongoFanletterCharacterFollowsCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_CHARACTER_FOLLOWS_COLLECTION ??
+          "fanletterCharacterFollows";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterCharacterFollowDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex(
+            { creatorReferralCode: 1, followerEmail: 1 },
+            { unique: true },
+          ),
+          collection.createIndex({ creatorReferralCode: 1, createdAt: -1 }),
+          collection.createIndex({ followerEmail: 1, updatedAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterCharacterFollowsCollectionPromise;
 }
 
 export async function getFanletterVlogPlansCollection() {

@@ -48,9 +48,23 @@ function getCopy(locale: Locale) {
       };
 }
 
-function getErrorMessage(value: unknown, fallback: string) {
-  if (value instanceof Error && value.message) {
-    return value.message;
+function getErrorMessage(value: unknown, fallback: string, locale: Locale) {
+  const message = value instanceof Error ? value.message : null;
+
+  if (message && locale === "ko") {
+    const koreanMessages: Record<string, string> = {
+      "Duplicate fan request.": "이미 같은 요청을 남겼습니다.",
+      "Fan request contains blocked content.":
+        "요청에 링크나 광고성 문구가 포함되어 저장하지 못했습니다.",
+      "Too many fan requests. Please try again later.":
+        "짧은 시간에 요청이 많습니다. 잠시 후 다시 시도해 주세요.",
+    };
+
+    return koreanMessages[message] ?? message;
+  }
+
+  if (message) {
+    return message;
   }
 
   return fallback;
@@ -141,7 +155,7 @@ export function FanletterFanRequestForm({
       setRequesterDisplayName("");
       setStatus("success");
     } catch (submitError) {
-      setError(getErrorMessage(submitError, copy.errorFallback));
+      setError(getErrorMessage(submitError, copy.errorFallback, locale));
       setStatus("error");
     }
   }

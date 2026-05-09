@@ -26,6 +26,7 @@ import type { ReactNode } from "react";
 
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
+import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
@@ -1250,11 +1251,13 @@ function FanletterChannelHeroPreview({
 }
 
 function FanletterCreatorFanAccessPanel({
+  creatorReferralCode,
   feedHref,
   followHref,
   locale,
   startHref,
 }: {
+  creatorReferralCode: string;
   feedHref: string;
   followHref: string;
   locale: Locale;
@@ -1265,7 +1268,6 @@ function FanletterCreatorFanAccessPanel({
       ? {
           body: "공개 브이로그는 바로 둘러보고, 더 깊은 팬 전용 흐름은 같은 캐릭터 채널 안에서 이어가도록 정리했습니다.",
           create: "내 캐릭터 만들기",
-          follow: "팔로우/알림 받기",
           freeBody: "가입 전에도 공개 브이로그와 캐릭터 분위기를 먼저 확인합니다.",
           freeTitle: "무료 공개 보기",
           messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
@@ -1278,7 +1280,6 @@ function FanletterCreatorFanAccessPanel({
       : {
           body: "Public vlogs are easy to browse, while deeper fan-only flows stay inside the same character channel.",
           create: "Create my character",
-          follow: "Follow for updates",
           freeBody: "Fans can preview public vlogs and the character mood before signing up.",
           freeTitle: "Free public view",
           messageBody: "Comments and messages stay inside FanLetter through access checks.",
@@ -1342,12 +1343,12 @@ function FanletterCreatorFanAccessPanel({
       </div>
 
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
-        <Link
-          className="inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
-          href={followHref}
-        >
-          {labels.follow}
-        </Link>
+        <FanletterFollowButton
+          creatorReferralCode={creatorReferralCode}
+          fallbackHref={followHref}
+          locale={locale}
+          theme="dark"
+        />
         <Link
           className="inline-flex h-11 items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
           href={feedHref}
@@ -1426,10 +1427,12 @@ function FanletterChannelTabs({
 }
 
 function FanletterFollowCta({
+  creatorReferralCode,
   fanOnlyHref,
   followHref,
   locale,
 }: {
+  creatorReferralCode: string;
   fanOnlyHref: string;
   followHref: string;
   locale: Locale;
@@ -1438,22 +1441,18 @@ function FanletterFollowCta({
     locale === "ko"
       ? {
           fanOnly: "팬 전용 보기",
-          follow: "팔로우/알림 받기",
         }
       : {
           fanOnly: "View fan-only",
-          follow: "Follow updates",
         };
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
-      <Link
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-        href={followHref}
-      >
-        <BellPlus className="size-4" />
-        {labels.follow}
-      </Link>
+      <FanletterFollowButton
+        creatorReferralCode={creatorReferralCode}
+        fallbackHref={followHref}
+        locale={locale}
+      />
       <Link
         className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
         href={fanOnlyHref}
@@ -1823,6 +1822,74 @@ function FanletterRelatedVlogs({
             referralCode={referralCode}
           />
         ))}
+      </div>
+    </section>
+  );
+}
+
+function FanletterFanRequestSourceCard({
+  content,
+  locale,
+}: {
+  content: FanletterPublicContentDetail;
+  locale: Locale;
+}) {
+  const source = content.fanRequestSource;
+
+  if (!source) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          eyebrow: "Fan Request",
+          message: "팬 메시지 기반",
+          requestedBy: "요청",
+          title: "팬 요청으로 만든 브이로그",
+          vlogRequest: "다음 브이로그 요청 기반",
+        }
+      : {
+          eyebrow: "Fan Request",
+          message: "Inspired by a fan message",
+          requestedBy: "Request",
+          title: "Vlog made from a fan request",
+          vlogRequest: "Inspired by a next-vlog request",
+        };
+  const typeLabel =
+    source.requestType === "message" ? labels.message : labels.vlogRequest;
+
+  return (
+    <section className="mt-6 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-white sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+          {source.requestType === "message" ? (
+            <MessageCircleHeart className="size-5" />
+          ) : (
+            <Clapperboard className="size-5" />
+          )}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-normal">
+            {labels.title}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/66">
+            {source.body}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-[#44f26e]/26 bg-black/22 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+              {typeLabel}
+            </span>
+            <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/58">
+              {source.requesterDisplayName
+                ? `${labels.requestedBy} · ${source.requesterDisplayName}`
+                : formatDate(source.createdAt, locale)}
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -2413,6 +2480,7 @@ export function FanletterCreatorPage({
     <FanletterShell
       actions={
         <FanletterFollowCta
+          creatorReferralCode={data.profile.referralCode}
           fanOnlyHref={fanOnlyHref}
           followHref={followHref}
           locale={locale}
@@ -2525,6 +2593,7 @@ export function FanletterCreatorPage({
             </article>
 
             <FanletterCreatorFanAccessPanel
+              creatorReferralCode={data.profile.referralCode}
               feedHref={feedHref}
               followHref={followHref}
               locale={locale}
@@ -2885,6 +2954,11 @@ export function FanletterContentDetailPage({
               <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
                 {content.summary}
               </p>
+
+              <FanletterFanRequestSourceCard
+                content={content}
+                locale={locale}
+              />
 
               <FanletterCharacterMiniCard
                 channelHref={creatorHref}
