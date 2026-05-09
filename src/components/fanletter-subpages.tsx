@@ -26,6 +26,10 @@ import type { ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import {
+  FanletterChannelSectionTabs,
+  type FanletterChannelSectionTabItem,
+} from "@/components/fanletter-channel-section-tabs";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import {
@@ -159,9 +163,9 @@ const koCopy: FanletterSubpageCopy = {
     characterTraits: "캐릭터 키워드",
     characterVideoSignal: "브이로그",
     empty: "이 캐릭터의 공개 브이로그가 준비되면 이곳에 표시됩니다.",
-    eyebrow: "AI Character Channel",
+    eyebrow: "AI 캐릭터 채널",
     publicPosts: "공개 브이로그",
-    stage: "Stage",
+    stage: "성장 단계",
     titleSuffix: "의 FanLetter",
   },
   feed: {
@@ -1341,6 +1345,12 @@ function FanletterChannelHeroPreview({
             </div>
           ))}
         </div>
+        {heroHref ? (
+          <div className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition group-hover:bg-[#64ff84]">
+            {copy.actions.openContent}
+            <ArrowRight className="size-4" />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1356,15 +1366,15 @@ function FanletterChannelHeroPreview({
 
 function FanletterCreatorFanAccessPanel({
   creatorReferralCode,
-  feedHref,
   followHref,
   locale,
+  publicVlogsHref,
   startHref,
 }: {
   creatorReferralCode: string;
-  feedHref: string;
   followHref: string;
   locale: Locale;
+  publicVlogsHref: string;
   startHref: string;
 }) {
   const labels =
@@ -1372,6 +1382,7 @@ function FanletterCreatorFanAccessPanel({
       ? {
           body: "공개 브이로그는 바로 둘러보고, 더 깊은 팬 전용 흐름은 같은 캐릭터 채널 안에서 이어가도록 정리했습니다.",
           create: "내 캐릭터 만들기",
+          eyebrow: "팬 접근",
           freeBody: "가입 전에도 공개 브이로그와 캐릭터 분위기를 먼저 확인합니다.",
           freeTitle: "무료 공개 보기",
           messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
@@ -1384,6 +1395,7 @@ function FanletterCreatorFanAccessPanel({
       : {
           body: "Public vlogs are easy to browse, while deeper fan-only flows stay inside the same character channel.",
           create: "Create my character",
+          eyebrow: "Fan Access",
           freeBody: "Fans can preview public vlogs and the character mood before signing up.",
           freeTitle: "Free public view",
           messageBody: "Comments and messages stay inside FanLetter through access checks.",
@@ -1414,7 +1426,7 @@ function FanletterCreatorFanAccessPanel({
   return (
     <aside className="rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-6">
       <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
-        Fan Access
+        {labels.eyebrow}
       </p>
       <h2 className="mt-3 text-[1.9rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all]">
         {labels.title}
@@ -1455,7 +1467,7 @@ function FanletterCreatorFanAccessPanel({
         />
         <Link
           className="inline-flex h-11 items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
-          href={feedHref}
+          href={publicVlogsHref}
         >
           {labels.view}
         </Link>
@@ -1495,38 +1507,25 @@ function FanletterChannelTabs({
           home: "Home",
           publicVlogs: "Public vlogs",
         };
-  const tabs = [
-    { href: `${channelHref}#channel-home`, label: labels.home },
+  const tabs: FanletterChannelSectionTabItem[] = [
+    { href: `${channelHref}#channel-home`, id: "channel-home", label: labels.home },
     {
       href: `${channelHref}#public-vlogs`,
+      id: "public-vlogs",
       label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
     },
-    { href: `${channelHref}#fan-requests`, label: labels.fanRequests },
-    { href: `${channelHref}#fan-only`, label: labels.fanOnly },
-    { href: `${channelHref}#about`, label: labels.about },
+    { href: `${channelHref}#fan-requests`, id: "fan-requests", label: labels.fanRequests },
+    { href: `${channelHref}#fan-only`, id: "fan-only", label: labels.fanOnly },
+    { href: `${channelHref}#about`, id: "about", label: labels.about },
   ];
 
   return (
-    <nav
-      aria-label={locale === "ko" ? "캐릭터 채널 섹션" : "Character channel sections"}
-      className="sticky top-0 z-20 -mx-4 mb-8 border-b border-black/10 bg-[#f6f8f4]/94 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
-    >
-      <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto [scrollbar-width:none]">
-        {tabs.map((tab, index) => (
-          <Link
-            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition ${
-              index === 0
-                ? "bg-black !text-white"
-                : "border border-black/10 bg-white text-black/62 hover:border-[#29d85f]/60 hover:text-black"
-            }`}
-            href={tab.href}
-            key={tab.href}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </div>
-    </nav>
+    <FanletterChannelSectionTabs
+      ariaLabel={
+        locale === "ko" ? "캐릭터 채널 섹션" : "Character channel sections"
+      }
+      items={tabs}
+    />
   );
 }
 
@@ -1582,7 +1581,7 @@ function FanletterFanOnlyPreview({
       ? {
           body: "아직 실제 구독 결제 기능은 열지 않고, 캐릭터 채널 안에서 팬 전용 콘텐츠가 어디에 붙을지 먼저 보여줍니다.",
           cta: "오픈 알림 받기",
-          eyebrow: "Fan-only Preview",
+          eyebrow: "팬 전용 미리보기",
           locked: "준비 중",
           title: "팬 전용 브이로그 공간",
         }
@@ -3040,6 +3039,8 @@ export function FanletterCreatorPage({
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
+  const publicVlogsHref = `${channelHref}#public-vlogs`;
+  const fanRequestsSectionHref = `${channelHref}#fan-requests`;
   const followHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
     {
@@ -3053,6 +3054,16 @@ export function FanletterCreatorPage({
     },
   );
   const fanOnlyHref = `${channelHref}#fan-only`;
+  const channelActionLabels =
+    locale === "ko"
+      ? {
+          fanRequest: "팬 요청 보내기",
+          publicVlogs: "공개 브이로그 보기",
+        }
+      : {
+          fanRequest: "Send fan request",
+          publicVlogs: "View public vlogs",
+        };
   const channelStats = [
     {
       label: copy.creator.publicPosts,
@@ -3090,6 +3101,7 @@ export function FanletterCreatorPage({
         />
       }
       description={channelSummary}
+      currentSection="feed"
       eyebrow={copy.creator.eyebrow}
       locale={locale}
       referralCode={effectiveReferralCode}
@@ -3171,24 +3183,24 @@ export function FanletterCreatorPage({
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-                  href={channelHref}
+                  href={publicVlogsHref}
                 >
-                  {copy.actions.creatorChannel}
+                  {channelActionLabels.publicVlogs}
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-                  href={feedHref}
+                  href={fanRequestsSectionHref}
                 >
-                  {copy.actions.feed}
+                  {channelActionLabels.fanRequest}
                 </Link>
               </div>
             </article>
 
             <FanletterCreatorFanAccessPanel
               creatorReferralCode={data.profile.referralCode}
-              feedHref={feedHref}
               followHref={followHref}
               locale={locale}
+              publicVlogsHref={publicVlogsHref}
               startHref={startHref}
             />
           </div>
