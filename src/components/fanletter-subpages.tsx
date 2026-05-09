@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
@@ -523,8 +524,12 @@ function FanletterShell({
               <div className="hidden sm:block">
                 <LanguageSwitcher label={copy.languageLabel} locale={locale} />
               </div>
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={referralCode}
+              />
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36"
+                className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
                 href={startHref}
               >
                 {copy.actions.start}
@@ -3214,12 +3219,18 @@ export function FanletterContentDetailPage({
                 FanLetter
               </span>
             </Link>
-            <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#44f26e]/50 bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-              href={detailActionHref}
-            >
-              {detailActionLabel}
-            </Link>
+            <div className="flex items-center gap-2">
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={effectiveReferralCode}
+              />
+              <Link
+                className="hidden h-11 items-center justify-center rounded-full border border-[#44f26e]/50 bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:inline-flex"
+                href={detailActionHref}
+              >
+                {detailActionLabel}
+              </Link>
+            </div>
           </header>
 
           <div className="grid gap-8 pt-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:pt-12">

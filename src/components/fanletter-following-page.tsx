@@ -24,6 +24,7 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
@@ -212,12 +213,15 @@ function FollowingHeader({
         <Link href={startHref}>{copy.start}</Link>
       </nav>
 
-      <Link
-        className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36"
-        href={startHref}
-      >
-        {copy.start}
-      </Link>
+      <div className="flex items-center gap-2">
+        <FanletterAccountStatusLink locale={locale} referralCode={referralCode} />
+        <Link
+          className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+          href={startHref}
+        >
+          {copy.start}
+        </Link>
+      </div>
     </header>
   );
 }

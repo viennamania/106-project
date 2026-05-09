@@ -29,6 +29,7 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   ContentPostRecord,
@@ -1533,13 +1534,18 @@ export function FanletterStudioPage({
                 FanLetter
               </span>
             </Link>
-            <Link
-              className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-              href={feedHref}
-            >
-              {copy.actions.feed}
-            </Link>
-            <span className="size-11 sm:hidden" />
+            <div className="flex items-center gap-2">
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={referralCode}
+              />
+              <Link
+                className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+                href={feedHref}
+              >
+                {copy.actions.feed}
+              </Link>
+            </div>
           </header>
 
           <div className="grid gap-8 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-end">

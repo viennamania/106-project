@@ -27,6 +27,7 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   ContentPostMutationResponse,
@@ -658,19 +659,25 @@ export function FanletterVlogManagementPage({
                 FanLetter
               </span>
             </Link>
-            <button
-              className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08] disabled:opacity-50"
-              disabled={isInitialLoading}
-              onClick={() => {
-                void loadVlogs();
-              }}
-              title={copy.actions.refresh}
-              type="button"
-            >
-              <RefreshCw
-                className={`size-5 ${isInitialLoading ? "animate-spin" : ""}`}
+            <div className="flex items-center gap-2">
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={referralCode}
               />
-            </button>
+              <button
+                className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08] disabled:opacity-50"
+                disabled={isInitialLoading}
+                onClick={() => {
+                  void loadVlogs();
+                }}
+                title={copy.actions.refresh}
+                type="button"
+              >
+                <RefreshCw
+                  className={`size-5 ${isInitialLoading ? "animate-spin" : ""}`}
+                />
+              </button>
+            </div>
           </header>
 
           <div className="grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-end lg:py-14">

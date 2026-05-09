@@ -17,6 +17,7 @@ import {
   FanletterDesktopHeroCardCarousel,
   FanletterMobileHeroCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import {
   AnimatedNumber,
   ScrollReveal,
@@ -679,12 +680,10 @@ export function FanletterHomePage({
               <div className="hidden sm:block">
                 <LanguageSwitcher label={copy.languageLabel} locale={locale} />
               </div>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/40"
-                href={connectHref}
-              >
-                {copy.cta.login}
-              </Link>
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={referralCode}
+              />
             </div>
           </header>
 

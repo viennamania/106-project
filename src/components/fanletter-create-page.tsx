@@ -21,6 +21,7 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
   CONTENT_PAID_USDT_AMOUNT,
@@ -683,13 +684,18 @@ export function FanletterCreatePage({
                 FanLetter
               </span>
             </Link>
-            <Link
-              className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-              href={studioHref}
-            >
-              {copy.studio}
-            </Link>
-            <span className="size-11 sm:hidden" />
+            <div className="flex items-center gap-2">
+              <FanletterAccountStatusLink
+                locale={locale}
+                referralCode={referralCode}
+              />
+              <Link
+                className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+                href={studioHref}
+              >
+                {copy.studio}
+              </Link>
+            </div>
           </header>
 
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
