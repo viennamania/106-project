@@ -106,7 +106,8 @@ function getCopy(locale: Locale) {
           feed: "브이로그 피드 보기",
           fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
-          profile: "캐릭터 만들기",
+          profileCreate: "캐릭터 만들기",
+          profileManage: "캐릭터 확인/변경",
           refresh: "다시 확인",
           sales: "판매 내역 보기",
         },
@@ -221,7 +222,8 @@ function getCopy(locale: Locale) {
           feed: "View vlog feed",
           fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
-          profile: "Create character",
+          profileCreate: "Create character",
+          profileManage: "Review/change character",
           refresh: "Check again",
           sales: "View sales",
         },
@@ -1466,6 +1468,9 @@ export function FanletterStudioPage({
     Boolean(state.profile?.avatarImageUrl),
   ].filter(Boolean).length;
   const profileReady = state.profileConfigured && profileProgress >= 2;
+  const profileActionLabel = profileReady
+    ? copy.actions.profileManage
+    : copy.actions.profileCreate;
   const memberIsPendingPayment = state.member?.status === "pending_payment";
 
   if (connection.isResolving) {
@@ -1572,7 +1577,7 @@ export function FanletterStudioPage({
                   href={profileHref}
                 >
                   <PenLine className="size-4" />
-                  {copy.actions.profile}
+                  {profileActionLabel}
                 </Link>
               </div>
             </div>
@@ -1718,7 +1723,7 @@ export function FanletterStudioPage({
                 Icon={PenLine}
                 body={copy.steps[0].body}
                 href={profileHref}
-                title={copy.actions.profile}
+                title={profileActionLabel}
               />
               <ActionCard
                 Icon={Share2}
