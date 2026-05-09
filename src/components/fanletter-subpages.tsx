@@ -21,7 +21,6 @@ import {
   Sparkles,
   User,
   Video,
-  WalletCards,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -186,16 +185,16 @@ const koCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "가입을 완료하고 표시 이름과 분위기만 정해 같은 브이로그 캐릭터를 자동으로 준비합니다.",
+        body: "회원 세션과 지갑 연결 상태를 확인합니다. 완료 후 캐릭터 준비로 이어집니다.",
+        title: "계정 연결",
+      },
+      {
+        body: "표시 이름과 분위기만 정하면 캐릭터 설정과 대표 아바타를 자동으로 저장합니다.",
         title: "AI 캐릭터 준비",
       },
       {
-        body: "오늘의 셀피, 외출, 루틴, 대화 장면을 세로형 브이로그로 만듭니다.",
+        body: "준비된 캐릭터를 적용해 오늘의 셀피, 루틴, 대화 장면을 세로형 브이로그로 만듭니다.",
         title: "첫 브이로그 생성",
-      },
-      {
-        body: "FanLetter 브이로그 피드와 공유 링크로 팬에게 보여주고 유료 커뮤니티 흐름으로 이어갑니다.",
-        title: "게시와 수익화",
       },
     ],
     title: "AI 캐릭터 브이로그 채널을 바로 시작하세요.",
@@ -265,16 +264,16 @@ const enCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "Complete signup, then choose a display name and mood to prepare the vlogger automatically.",
+        body: "Confirm the member session and wallet connection, then continue into character setup.",
+        title: "Connect account",
+      },
+      {
+        body: "Choose a display name and mood to save the character setup and representative avatar automatically.",
         title: "Prepare AI character",
       },
       {
-        body: "Create today's selfie, routine, outing, or dialogue scene as a vertical vlog.",
+        body: "Apply the prepared character to today's selfie, routine, outing, or dialogue scene as a vertical vlog.",
         title: "Create first vlog",
-      },
-      {
-        body: "Publish to the FanLetter vlog feed and connect fans to paid community flows.",
-        title: "Publish and monetise",
       },
     ],
     title: "Start an AI character vlog channel.",
@@ -4020,28 +4019,34 @@ export function FanletterStartPage({
       ? {
           flowEyebrow: "Quick setup",
           flowBody:
-            "가입, 캐릭터 만들기, 첫 브이로그 생성까지 순서대로 진행합니다.",
-          flowTitle: "3단계로 채널 시작",
+            "완료된 단계와 다음 단계를 자동으로 확인하면서 순서대로 진행합니다.",
+          flowTitle: "현재 시작 상태",
           previewTitle: "오늘 할 일",
-          previewBody: "처음 방문한 사용자도 순서대로 따라가면 됩니다.",
-          nextLabel: "다음 단계",
-          readyLabel: "시작 준비",
-          readyValue: "3 steps",
-          stepMeta: ["계정 확인", "캐릭터 준비", "첫 브이로그"],
+          previewBody:
+            "계정, 캐릭터, 첫 브이로그 중 지금 필요한 단계만 확인하세요.",
+          readyLabel: "전체 단계",
+          readyValue: "3단계",
+          stepMeta: ["계정", "캐릭터", "브이로그"],
+          stepStatus: "상태 기반 안내",
         }
       : {
           flowEyebrow: "Quick setup",
           flowBody:
-            "Move through signup, character creation, and first vlog creation in order.",
-          flowTitle: "Start in 3 steps",
+            "Move through the flow while completed steps and the next action update automatically.",
+          flowTitle: "Current start status",
           previewTitle: "Today’s path",
-          previewBody: "New creators can follow the flow in order.",
-          nextLabel: "Next step",
-          readyLabel: "Ready path",
+          previewBody:
+            "Check only the account, character, or first-vlog step needed right now.",
+          readyLabel: "Total steps",
           readyValue: "3 steps",
-          stepMeta: ["Account check", "Character setup", "First vlog"],
+          stepMeta: ["Account", "Character", "Vlog"],
+          stepStatus: "Status-aware guide",
         };
-  const startIcons = [User, Sparkles, WalletCards] as const;
+  const startIcons = [User, Sparkles, Clapperboard] as const;
+  const startProgressItems = copy.start.steps.map((step, index) => ({
+    label: startLabels.stepMeta[index] ?? step.title,
+    title: step.title,
+  }));
   const heroAside = (
     <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.28)] backdrop-blur-md sm:p-5">
       <div className="flex items-start justify-between gap-4">
@@ -4057,30 +4062,13 @@ export function FanletterStartPage({
           {startLabels.readyValue}
         </span>
       </div>
-      <div className="mt-5 space-y-3">
-        {copy.start.steps.map((step, index) => {
-          const Icon = startIcons[index] ?? Sparkles;
-
-          return (
-            <div
-              className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/34 p-3"
-              key={step.title}
-            >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <Icon className="size-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {step.title}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <FanletterSetupProgressTiles items={startProgressItems} locale={locale} />
+      <p className="mt-4 rounded-lg border border-white/10 bg-black/24 p-3 text-xs font-medium leading-5 text-white/58">
+        <FanletterSetupStatusNote
+          defaultText={startLabels.flowBody}
+          locale={locale}
+        />
+      </p>
     </div>
   );
 
@@ -4101,7 +4089,12 @@ export function FanletterStartPage({
           />
         }
         aside={heroAside}
-        description={copy.start.body}
+        description={
+          <FanletterSetupHeroDescription
+            defaultText={copy.start.body}
+            locale={locale}
+          />
+        }
         eyebrow={copy.start.eyebrow}
         locale={locale}
         referralCode={referralCode}
@@ -4120,7 +4113,22 @@ export function FanletterStartPage({
             <p className="mt-3 max-w-md text-sm font-medium leading-6 text-white/62">
               {startLabels.flowBody}
             </p>
-            <div className="mt-5 grid grid-cols-2 gap-2">
+            <FanletterSetupProgressTiles
+              items={startProgressItems}
+              locale={locale}
+            />
+            <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.055] p-3 text-xs font-medium leading-5 text-white/58">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
+                {startLabels.stepStatus}
+              </p>
+              <p className="mt-2">
+                <FanletterSetupStatusNote
+                  defaultText={startLabels.flowBody}
+                  locale={locale}
+                />
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2.5">
                 <p className="text-xl font-semibold leading-none">
                   {copy.start.steps.length}
@@ -4129,12 +4137,15 @@ export function FanletterStartPage({
                   {startLabels.readyLabel}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#44f26e] bg-[#44f26e] px-3 py-2.5 text-black">
-                <p className="text-xl font-semibold leading-none">01</p>
+              <Link
+                className="rounded-lg border border-[#44f26e] bg-[#44f26e] px-3 py-2.5 text-black transition hover:bg-[#67ff88]"
+                href={onboardingHref}
+              >
+                <p className="text-xl font-semibold leading-none">→</p>
                 <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-black/58">
-                  {startLabels.nextLabel}
+                  {copy.actions.start}
                 </p>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -4143,9 +4154,17 @@ export function FanletterStartPage({
               const Icon = startIcons[index] ?? Sparkles;
 
               return (
-                <article
-                  className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+                <FanletterSetupStepNavLink
+                  activateHref={activateHref}
+                  className="group block rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/70 hover:shadow-[0_24px_52px_rgba(8,18,12,0.1)] sm:p-5"
+                  connectHref={connectHref}
+                  createHref={createHref}
                   key={step.title}
+                  locale={locale}
+                  onboardingHref={onboardingHref}
+                  profileHref={profileHref}
+                  stepIndex={index}
+                  studioHref={studioHref}
                 >
                   <div className="flex gap-4">
                     <div className="flex flex-col items-center">
@@ -4164,16 +4183,23 @@ export function FanletterStartPage({
                         <span className="rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/46">
                           {startLabels.stepMeta[index]}
                         </span>
+                        {index === 0 || index === 1 ? (
+                          <FanletterSetupStepBadge
+                            locale={locale}
+                            stepIndex={index}
+                          />
+                        ) : null}
                       </div>
-                      <p className="mt-4 text-2xl font-semibold leading-tight">
-                        {step.title}
-                      </p>
-                      <p className="mt-3 text-sm font-medium leading-6 text-black/58">
-                        {step.body}
-                      </p>
+                      <FanletterSetupStepText
+                        body={step.body}
+                        locale={locale}
+                        stepIndex={index}
+                        title={step.title}
+                      />
                     </div>
+                    <ArrowRight className="mt-3 size-5 shrink-0 text-black/24 transition group-hover:translate-x-1 group-hover:text-black" />
                   </div>
-                </article>
+                </FanletterSetupStepNavLink>
               );
             })}
           </div>
