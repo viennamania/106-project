@@ -2525,7 +2525,14 @@ export function FanletterFeedPage({
         new Date(a.publishedAt ?? 0).getTime(),
     )
     .filter((item) => !curatedContentIds.has(item.contentId))
-    .slice(0, 8);
+    .slice(0, 4);
+  const highlightedContentIds = new Set([
+    ...curatedContentIds,
+    ...latestItems.map((item) => item.contentId),
+  ]);
+  const remainingItems = items.filter(
+    (item) => !highlightedContentIds.has(item.contentId),
+  );
   const creatorItems = Array.from(
     new Map(
       items.map((item) => [
@@ -2589,6 +2596,13 @@ export function FanletterFeedPage({
       ? "전체 브이로그 보기"
       : "View all vlogs"
     : copy.actions.start;
+  const allContentSectionLabel =
+    remainingItems.length > 0 && highlightedContentIds.size > 0
+      ? locale === "ko"
+        ? "더 많은 공개 브이로그"
+        : "More public vlogs"
+      : copy.feed.allContent;
+  const showAllContentSection = items.length === 0 || remainingItems.length > 0;
   const sectionLinks = [
     { href: followingHref, label: copy.actions.following },
     featuredItem
@@ -2606,7 +2620,9 @@ export function FanletterFeedPage({
     latestItems.length > 0
       ? { href: `${feedHref}#latest-vlogs`, label: copy.feed.latest }
       : null,
-    { href: `${feedHref}#all-vlogs`, label: copy.feed.allContent },
+    showAllContentSection
+      ? { href: `${feedHref}#all-vlogs`, label: allContentSectionLabel }
+      : null,
   ].filter((link): link is { href: string; label: string } => Boolean(link));
 
   return (
@@ -2735,7 +2751,7 @@ export function FanletterFeedPage({
                 </h2>
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {latestItems.slice(0, 4).map((item) => (
+                {latestItems.map((item) => (
                   <ContentCard
                     item={item}
                     key={item.contentId}
@@ -2748,23 +2764,26 @@ export function FanletterFeedPage({
             </section>
           ) : null}
 
-          <div
-            className="mb-4 flex scroll-mt-6 items-center justify-between gap-3"
-            id="all-vlogs"
-          >
-            <h2 className="text-2xl font-semibold tracking-normal">
-              {copy.feed.allContent}
-            </h2>
-          </div>
-          <ContentGrid
-            empty={emptyFeedMessage}
-            emptyActionHref={emptyFeedActionHref}
-            emptyActionLabel={emptyFeedActionLabel}
-            items={items}
-            locale={locale}
-            referralCode={referralCode}
-            showVideoPreview
-          />
+          {showAllContentSection ? (
+            <>
+              <div
+                className="mb-4 flex scroll-mt-6 items-center justify-between gap-3"
+                id="all-vlogs"
+              >
+                <h2 className="text-2xl font-semibold tracking-normal">
+                  {allContentSectionLabel}
+                </h2>
+              </div>
+              <ContentGrid
+                empty={emptyFeedMessage}
+                emptyActionHref={emptyFeedActionHref}
+                emptyActionLabel={emptyFeedActionLabel}
+                items={remainingItems}
+                locale={locale}
+                referralCode={referralCode}
+              />
+            </>
+          ) : null}
           <FanletterFeedPagination
             filters={filters}
             locale={locale}
