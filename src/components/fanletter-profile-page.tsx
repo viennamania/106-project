@@ -204,6 +204,35 @@ function getCopy(locale: Locale) {
           title: "내 캐릭터 콘텐츠 홈",
           vlogSignal: "공개 브이로그",
         },
+        contentPlaybook: {
+          avatarBody:
+            "대표 아바타와 세트 표정을 기준으로 썸네일, 장면 톤, 감정 변화를 맞춥니다.",
+          avatarMeta: "아바타 연출",
+          avatarPlanBody:
+            "대표 아바타의 표정 변화가 보이는 세로형 브이로그. 같은 캐릭터 정체성을 유지하면서 썸네일이 되는 첫 장면을 강하게 잡습니다.",
+          avatarTitle: "아바타 세트 활용",
+          body:
+            "캐릭터 정체성, 성장 신호, 팬 요청 흐름을 오늘 만들 브이로그 기획으로 바로 바꿉니다.",
+          cta: "이 기획으로 만들기",
+          defaultSkill: "일상 브이로그",
+          defaultTrait: "고정 페르소나",
+          eyebrow: "Content Playbook",
+          fanBody:
+            "팬 요청이 있으면 반응형 에피소드로, 없으면 댓글을 부르는 질문형 장면으로 전환합니다.",
+          fanMetaEmpty: "댓글 유도",
+          fanMetaReady: "대기 요청",
+          fanPlanBody:
+            "팬이 댓글로 이어서 반응하고 싶게 만드는 짧은 팬서비스형 브이로그. 요청에 답하는 느낌을 첫 문장에 넣습니다.",
+          fanTitle: "팬 요청 에피소드",
+          promptLabel: "추천 소재",
+          title: "다음 브이로그 기획",
+          todayBody:
+            "대표 캐릭터의 성격과 콘텐츠 강점을 앞세워 바로 올릴 수 있는 일상 장면을 만듭니다.",
+          todayMeta: "오늘 업로드",
+          todayPlanBody:
+            "캐릭터의 하루 중 한 장면을 짧게 보여주는 세로형 브이로그. 첫 3초는 감정 훅으로 시작하고 마지막에는 팬 댓글을 유도합니다.",
+          todayTitle: "오늘의 장면",
+        },
         contentCta: "첫 브이로그 만들기",
         disconnected: "계정 연결이 필요합니다.",
         displayName: "표시 이름",
@@ -339,6 +368,35 @@ function getCopy(locale: Locale) {
           studioCta: "Open studio",
           title: "My character content home",
           vlogSignal: "Public vlogs",
+        },
+        contentPlaybook: {
+          avatarBody:
+            "Use the representative avatar and expression set to align thumbnails, scene tone, and emotion shifts.",
+          avatarMeta: "Avatar direction",
+          avatarPlanBody:
+            "A vertical vlog that makes the representative avatar's expression shift visible while keeping the same character identity and a strong thumbnail opening.",
+          avatarTitle: "Use the avatar set",
+          body:
+            "Turn character identity, growth signals, and fan request flow into the next vlog plan.",
+          cta: "Create with this plan",
+          defaultSkill: "Daily vlog",
+          defaultTrait: "Locked persona",
+          eyebrow: "Content Playbook",
+          fanBody:
+            "If fan requests are waiting, turn one into a response episode. Otherwise, use a question-led scene that invites comments.",
+          fanMetaEmpty: "Comment hook",
+          fanMetaReady: "Pending requests",
+          fanPlanBody:
+            "A short fan-service vlog that makes fans want to reply in comments. Open with the feeling that the character is answering a request.",
+          fanTitle: "Fan request episode",
+          promptLabel: "Suggested angle",
+          title: "Next vlog plans",
+          todayBody:
+            "Use the character personality and content strength for a daily scene ready to post.",
+          todayMeta: "Post today",
+          todayPlanBody:
+            "A vertical vlog showing one moment from the character's day. Start with an emotional hook in the first three seconds and end by inviting fan comments.",
+          todayTitle: "Today's scene",
         },
         contentCta: "Create first vlog",
         disconnected: "Account connection required.",
@@ -1333,6 +1391,144 @@ export function FanletterProfilePage({
     );
   }
 
+  function renderCharacterContentPlaybook() {
+    if (!characterReady) {
+      return null;
+    }
+
+    const growth = characterGrowth.data;
+    const displayCharacterName =
+      selectedPersona?.name?.trim() ||
+      profile.displayName.trim() ||
+      copy.displayName;
+    const primaryTrait =
+      selectedPersona?.lockedTraits[0] ?? copy.contentPlaybook.defaultTrait;
+    const primarySkill =
+      growth?.contentSkills.find((skill) => skill.unlocked)?.label ??
+      copy.contentPlaybook.defaultSkill;
+    const pendingFanRequests = growth?.metrics.fanRequestPendingCount ?? 0;
+    const avatarUrls = new Set(
+      [
+        profile.avatarImageUrl,
+        ...profile.avatarImageSet.map((candidate) => candidate.url),
+      ].filter(Boolean),
+    );
+    const avatarSetMeta =
+      avatarUrls.size > 0
+        ? `${numberFormatter.format(avatarUrls.size)} ${copy.contentHome.avatarSet}`
+        : copy.contentPlaybook.avatarMeta;
+    const fanMeta =
+      pendingFanRequests > 0
+        ? `${numberFormatter.format(pendingFanRequests)} ${copy.contentPlaybook.fanMetaReady}`
+        : copy.contentPlaybook.fanMetaEmpty;
+    const dailyPrompt =
+      locale === "ko"
+        ? `${displayCharacterName} 캐릭터가 ${primaryTrait} 이미지를 유지하면서 ${primarySkill} 강점을 살린 세로형 숏폼 브이로그를 만든다. 첫 3초는 일상 장면의 감정 훅으로 시작하고, 마지막에는 팬 댓글을 유도한다.`
+        : `${displayCharacterName} keeps the ${primaryTrait} identity and uses the ${primarySkill} strength in a vertical short-form vlog. Open with an emotional hook in the first three seconds and end by inviting fan comments.`;
+    const fanPrompt =
+      locale === "ko"
+        ? `${displayCharacterName} 캐릭터가 팬의 반응에 답하는 느낌으로 짧은 브이로그를 만든다. 팬 요청이나 댓글을 소재로 삼고, 직접 말을 거는 듯한 친밀한 장면을 포함한다.`
+        : `${displayCharacterName} creates a short vlog that feels like a direct response to fan reactions. Use a fan request or comment as the angle and include an intimate scene that speaks to fans directly.`;
+    const avatarPrompt =
+      locale === "ko"
+        ? `${displayCharacterName} 캐릭터의 대표 아바타와 표정 세트를 활용해 썸네일이 되는 첫 장면, 감정 변화, 마지막 리액션 컷이 분명한 세로형 브이로그를 만든다.`
+        : `${displayCharacterName} uses the representative avatar and expression set for a vertical vlog with a clear thumbnail opening, emotion shift, and final reaction shot.`;
+    const planCards = [
+      {
+        Icon: Video,
+        body: copy.contentPlaybook.todayBody,
+        href: setPathSearchParams(createHref, {
+          planBody: copy.contentPlaybook.todayPlanBody,
+          planId: "character-daily-scene",
+          planPrompt: dailyPrompt,
+          planSummary: `${primaryTrait} · ${primarySkill}`,
+          planTitle: copy.contentPlaybook.todayTitle,
+        }),
+        meta: `${copy.contentPlaybook.todayMeta} · ${primarySkill}`,
+        title: copy.contentPlaybook.todayTitle,
+      },
+      {
+        Icon: MessageCircleHeart,
+        body: copy.contentPlaybook.fanBody,
+        href: setPathSearchParams(createHref, {
+          planBody: copy.contentPlaybook.fanPlanBody,
+          planId: "fan-request-episode",
+          planPrompt: fanPrompt,
+          planSummary: fanMeta,
+          planTitle: copy.contentPlaybook.fanTitle,
+        }),
+        meta: fanMeta,
+        title: copy.contentPlaybook.fanTitle,
+      },
+      {
+        Icon: ImageIcon,
+        body: copy.contentPlaybook.avatarBody,
+        href: setPathSearchParams(createHref, {
+          planBody: copy.contentPlaybook.avatarPlanBody,
+          planId: "avatar-set-direction",
+          planPrompt: avatarPrompt,
+          planSummary: avatarSetMeta,
+          planTitle: copy.contentPlaybook.avatarTitle,
+        }),
+        meta: avatarSetMeta,
+        title: copy.contentPlaybook.avatarTitle,
+      },
+    ];
+
+    return (
+      <section className="mt-4 rounded-lg border border-white/12 bg-white/[0.045] p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.contentPlaybook.eyebrow}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold leading-tight text-white [word-break:keep-all]">
+              {copy.contentPlaybook.title}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-white/58 [word-break:keep-all]">
+              {copy.contentPlaybook.body}
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#9bffad]">
+            <Sparkles className="size-3.5" />
+            {copy.contentPlaybook.promptLabel}
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {planCards.map(({ Icon, body, href, meta, title }) => (
+            <article
+              className="flex min-h-[14.5rem] flex-col rounded-lg border border-white/12 bg-black/22 p-4"
+              key={title}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <Icon className="size-5" />
+                </span>
+                <span className="rounded-full border border-white/12 px-2.5 py-1 text-[0.68rem] font-semibold text-white/50">
+                  {meta}
+                </span>
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-white">
+                {title}
+              </h3>
+              <p className="mt-2 flex-1 text-sm font-medium leading-6 text-white/54">
+                {body}
+              </p>
+              <Link
+                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.06] px-4 text-sm font-semibold !text-white transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/10"
+                href={href}
+              >
+                {copy.contentPlaybook.cta}
+                <ArrowRight className="size-4" />
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   function renderCharacterGrowthCenter() {
     const growth = characterGrowth.data;
     const nextMission = growth?.missions.find((mission) => !mission.completed);
@@ -2167,6 +2363,8 @@ export function FanletterProfilePage({
           ) : null}
 
           {renderCharacterContentHome()}
+
+          {renderCharacterContentPlaybook()}
 
           {renderCharacterGrowthCenter()}
 
