@@ -65,6 +65,7 @@ type CreateForm = {
 export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
 > & {
+  fanRequestBody?: string;
   fanRequestId?: string;
   planId?: string;
 };
@@ -97,6 +98,13 @@ function getCopy(locale: Locale) {
         emptyPrompt: "오늘의 브이로그 장면을 입력하세요.",
         errorFallback: "첫 AI 캐릭터 브이로그를 처리하지 못했습니다.",
         eyebrow: "FanLetter AI 캐릭터 브이로그",
+        fanRequestContext: {
+          autoClose: "공개하면 팬 요청함에서 제작 반영으로 자동 정리됩니다.",
+          autoFill: "제목, 요약, 장면 프롬프트에 요청 내용이 반영되었습니다.",
+          body: "팬이 남긴 내용을 보면서 장면만 다듬으면 됩니다.",
+          eyebrow: "Fan Request",
+          title: "팬 요청으로 브이로그를 만들고 있습니다.",
+        },
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
         generate: "브이로그 생성",
@@ -146,6 +154,15 @@ function getCopy(locale: Locale) {
         emptyPrompt: "Enter today's vlog scene.",
         errorFallback: "Failed to process first AI character vlog.",
         eyebrow: "FanLetter AI Character Vlog",
+        fanRequestContext: {
+          autoClose:
+            "Publishing will automatically mark the fan request as used.",
+          autoFill:
+            "The title, summary, and scene prompt already include the request.",
+          body: "Keep the fan note visible while you refine the scene.",
+          eyebrow: "Fan Request",
+          title: "Creating a vlog from a fan request.",
+        },
         feed: "View FanLetter vlog feed",
         free: "Free public",
         generate: "Generate vlog",
@@ -333,6 +350,8 @@ export function FanletterCreatePage({
   const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
+  const initialFanRequestBody =
+    initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
   const canPublish = Boolean(generatedMedia?.url);
   const selectedModeCopy = copy.videoBody;
   const generatedVideoUrl = generatedMedia?.url ?? null;
@@ -600,10 +619,10 @@ export function FanletterCreatePage({
       if (initialFanRequestId) {
         await fetch("/api/fanletter/requests", {
           body: JSON.stringify({
-            contentId: data.content.contentId,
+            contentId: status === "published" ? data.content.contentId : null,
             email: resolvedEmail,
             requestId: initialFanRequestId,
-            status: "used",
+            status: status === "published" ? "used" : "reviewed",
             walletAddress: accountAddress,
           }),
           headers: {
@@ -775,6 +794,44 @@ export function FanletterCreatePage({
             <div className="mb-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4 text-sm font-medium leading-6 text-[#c9ffd5]">
               {notice}
             </div>
+          ) : null}
+
+          {initialFanRequestId ? (
+            <section className="mb-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-[#d8ffe0] sm:p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                    {copy.fanRequestContext.eyebrow}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                    {copy.fanRequestContext.title}
+                  </h2>
+                  <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                    {copy.fanRequestContext.body}
+                  </p>
+                  {initialFanRequestBody ? (
+                    <p className="mt-4 line-clamp-3 rounded-lg border border-white/10 bg-black/24 p-3 text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                      {initialFanRequestBody}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-[24rem] lg:grid-cols-1">
+                  {[copy.fanRequestContext.autoFill, copy.fanRequestContext.autoClose].map(
+                    (item) => (
+                      <div
+                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                        key={item}
+                      >
+                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                        <p className="text-xs font-semibold leading-5 text-white/64">
+                          {item}
+                        </p>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            </section>
           ) : null}
 
           <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">

@@ -22,6 +22,7 @@ import {
 } from "@/lib/landing-branding";
 
 type FanletterCreateSearchParams = {
+  fanRequestBody?: string | string[];
   fanRequestId?: string | string[];
   planBody?: string | string[];
   planId?: string | string[];
@@ -44,15 +45,25 @@ function readInitialPlan(
   const summary = readPlanText(query.planSummary, 180);
   const prompt = readPlanText(query.planPrompt, 1_200);
   const body = readPlanText(query.planBody, 600);
+  const fanRequestBody = readPlanText(query.fanRequestBody, 600);
   const fanRequestId = readPlanText(query.fanRequestId, 120);
   const planId = readPlanText(query.planId, 120);
 
-  if (!title && !summary && !prompt && !body && !planId && !fanRequestId) {
+  if (
+    !title &&
+    !summary &&
+    !prompt &&
+    !body &&
+    !fanRequestBody &&
+    !planId &&
+    !fanRequestId
+  ) {
     return undefined;
   }
 
   return {
     body,
+    fanRequestBody,
     fanRequestId,
     mode: "video",
     planId,

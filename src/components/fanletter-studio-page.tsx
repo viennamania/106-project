@@ -467,14 +467,19 @@ function buildFanRequestCreateHref({
     locale === "ko"
       ? `${request.characterName}에게 들어온 ${requestTypeLabel}을 바탕으로 만든 브이로그입니다.`
       : `A vlog based on a ${requestTypeLabel} for ${request.characterName}.`;
+  const body =
+    locale === "ko"
+      ? `${request.characterName}가 팬 요청에 답하는 브이로그입니다. 팬이 남긴 말: ${normalizedBody}`
+      : `${request.characterName} responds to a fan request in this vlog. Fan note: ${normalizedBody}`;
   const prompt =
     locale === "ko"
       ? `${request.characterName}가 팬이 남긴 ${requestTypeLabel}에 직접 답하듯 자연스럽게 반영한 세로형 숏폼 브이로그. 팬 요청 원문: ${normalizedBody}`
       : `${request.characterName} naturally responds to this ${requestTypeLabel} in a vertical short-form vlog. Original fan request: ${normalizedBody}`;
 
   return setPathSearchParams(createHref, {
+    fanRequestBody: request.body,
     fanRequestId: request.requestId,
-    planBody: request.body,
+    planBody: body,
     planMode: "video",
     planPrompt: prompt,
     planSummary: summary,
