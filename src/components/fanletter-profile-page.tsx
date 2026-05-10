@@ -299,12 +299,19 @@ function getCopy(locale: Locale) {
         growthIdentityBody:
           "페르소나와 대표 아바타는 캐릭터의 고정 정체성입니다. 성장은 표정, 콘텐츠 스킬, 연출 방향을 확장합니다.",
         growthIdentityLocked: "정체성 고정됨",
+        growthLockedHint: "해금 후 콘텐츠 기획에 사용할 수 있습니다.",
         growthLoading: "캐릭터 성장 상태를 계산하는 중입니다.",
         growthMissions: "성장 미션",
         growthNext: "다음 성장",
+        growthPlanAvatarBody:
+          "해금된 아바타 연출을 중심으로 대표 캐릭터의 표정 변화와 썸네일 컷이 분명한 세로형 브이로그를 만듭니다.",
+        growthPlanSkillBody:
+          "해금된 콘텐츠 스킬을 중심으로 캐릭터의 강점이 첫 장면부터 드러나는 세로형 브이로그를 만듭니다.",
         growthSignals: "성장 신호",
         growthTitle: "캐릭터 성장 센터",
         growthUnlocked: "해금됨",
+        growthUseAvatar: "이 연출로 만들기",
+        growthUseSkill: "이 스킬로 만들기",
         growthXp: "XP",
         growthXpMax: "최고 레벨",
         growthXpToNext: "다음 레벨까지",
@@ -464,12 +471,19 @@ function getCopy(locale: Locale) {
         growthIdentityBody:
           "Persona and representative avatar are the fixed identity. Growth expands expressions, content skills, and direction.",
         growthIdentityLocked: "Identity locked",
+        growthLockedHint: "Unlock it before using it in content plans.",
         growthLoading: "Calculating character growth.",
         growthMissions: "Growth missions",
         growthNext: "Next growth",
+        growthPlanAvatarBody:
+          "Create a vertical vlog around the unlocked avatar direction, with a clear expression shift and thumbnail-ready opening.",
+        growthPlanSkillBody:
+          "Create a vertical vlog around the unlocked content skill, making the character strength visible from the first scene.",
         growthSignals: "Growth signals",
         growthTitle: "Character growth center",
         growthUnlocked: "Unlocked",
+        growthUseAvatar: "Use this direction",
+        growthUseSkill: "Use this skill",
         growthXp: "XP",
         growthXpMax: "Max level",
         growthXpToNext: "To next level",
@@ -1529,6 +1543,50 @@ export function FanletterProfilePage({
     );
   }
 
+  function getCharacterPlaybookName() {
+    return (
+      selectedPersona?.name?.trim() ||
+      profile.displayName.trim() ||
+      copy.displayName
+    );
+  }
+
+  function getSkillPlanHref(
+    skill: FanletterCharacterGrowthRecord["contentSkills"][number],
+  ) {
+    const characterName = getCharacterPlaybookName();
+    const planPrompt =
+      locale === "ko"
+        ? `${characterName} 캐릭터가 ${skill.label} 콘텐츠 스킬을 중심으로 세로형 브이로그를 만든다. ${skill.description} 캐릭터 고정 정체성과 대표 아바타를 유지하고 첫 3초에 시청 포인트를 보여준다.`
+        : `${characterName} creates a vertical vlog around the ${skill.label} content skill. ${skill.description} Keep the locked character identity and representative avatar, and show the viewing hook in the first three seconds.`;
+
+    return setPathSearchParams(createHref, {
+      planBody: copy.growthPlanSkillBody,
+      planId: `character-playbook-skill-${skill.id}`,
+      planPrompt,
+      planSummary: skill.description,
+      planTitle: skill.label,
+    });
+  }
+
+  function getAvatarPlanHref(
+    unlock: FanletterCharacterGrowthRecord["avatarUnlocks"][number],
+  ) {
+    const characterName = getCharacterPlaybookName();
+    const planPrompt =
+      locale === "ko"
+        ? `${characterName} 캐릭터가 ${unlock.label} 아바타 연출을 활용해 세로형 브이로그를 만든다. ${unlock.description} 대표 아바타의 정체성을 유지하면서 썸네일이 되는 첫 장면과 마지막 리액션 컷을 분명하게 구성한다.`
+        : `${characterName} creates a vertical vlog using the ${unlock.label} avatar direction. ${unlock.description} Keep the representative avatar identity while making the thumbnail opening and final reaction shot clear.`;
+
+    return setPathSearchParams(createHref, {
+      planBody: copy.growthPlanAvatarBody,
+      planId: `character-playbook-avatar-${unlock.id}`,
+      planPrompt,
+      planSummary: unlock.description,
+      planTitle: unlock.label,
+    });
+  }
+
   function renderCharacterGrowthCenter() {
     const growth = characterGrowth.data;
     const nextMission = growth?.missions.find((mission) => !mission.completed);
@@ -1801,10 +1859,23 @@ export function FanletterProfilePage({
                           {unlock.description}
                         </p>
                         {unlock.unlocked ? (
-                          <span className="mt-3 inline-flex rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
-                            {copy.growthUnlocked}
-                          </span>
-                        ) : null}
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <span className="inline-flex rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
+                              {copy.growthUnlocked}
+                            </span>
+                            <Link
+                              className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/30 px-2.5 py-1 text-[0.68rem] font-semibold !text-[#9bffad] transition hover:bg-[#44f26e]/10"
+                              href={getAvatarPlanHref(unlock)}
+                            >
+                              {copy.growthUseAvatar}
+                              <ArrowRight className="size-3" />
+                            </Link>
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-[0.68rem] font-semibold leading-5 text-white/34">
+                            {copy.growthLockedHint}
+                          </p>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -1839,6 +1910,19 @@ export function FanletterProfilePage({
                         <p className="mt-1 text-xs font-medium leading-5 text-white/50">
                           {skill.description}
                         </p>
+                        {skill.unlocked ? (
+                          <Link
+                            className="mt-3 inline-flex items-center gap-1 rounded-full border border-[#44f26e]/30 px-2.5 py-1 text-[0.68rem] font-semibold !text-[#9bffad] transition hover:bg-[#44f26e]/10"
+                            href={getSkillPlanHref(skill)}
+                          >
+                            {copy.growthUseSkill}
+                            <ArrowRight className="size-3" />
+                          </Link>
+                        ) : (
+                          <p className="mt-3 text-[0.68rem] font-semibold leading-5 text-white/34">
+                            {copy.growthLockedHint}
+                          </p>
+                        )}
                       </div>
                     ))
                   ) : (

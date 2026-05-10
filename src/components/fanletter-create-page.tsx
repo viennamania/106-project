@@ -389,7 +389,9 @@ export function FanletterCreatePage({
   const initialFanRequestBody =
     initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
   const isCharacterPlaybookPlan = Boolean(
-    initialPlanId && CHARACTER_PLAYBOOK_PLAN_IDS.has(initialPlanId),
+    initialPlanId &&
+      (CHARACTER_PLAYBOOK_PLAN_IDS.has(initialPlanId) ||
+        initialPlanId.startsWith("character-playbook-")),
   );
   const hasPlanContext = Boolean(
     initialPlan &&
