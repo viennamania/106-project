@@ -83,11 +83,16 @@ type PlannerState = {
   status: PlannerStatus;
 };
 
+type FanRequestInboxFilter =
+  | "all"
+  | Extract<FanletterFanRequestRecord["status"], "new" | "reviewed" | "used">;
+
 type PlannerPatchResponse = {
   plan: FanletterVlogPlanItem;
 };
 
 const FANLETTER_STUDIO_DISCONNECTED_GRACE_MS = 4500;
+const FAN_REQUESTS_PAGE_SIZE = 24;
 const STUDIO_POSTS_PAGE_SIZE = 6;
 const EMPTY_POSTS_SUMMARY: CreatorStudioPostsResponse["summary"] = {
   all: 0,
@@ -156,6 +161,7 @@ function getCopy(locale: Locale) {
           empty:
             "아직 팬 요청이 없습니다. 캐릭터 채널을 공유하면 이곳에 요청이 쌓입니다.",
           errorFallback: "팬 요청을 불러오지 못했습니다.",
+          filteredEmpty: "이 상태의 팬 요청은 없습니다.",
           hide: "숨김",
           markReviewed: "확인",
           openCount: "제작 대기",
@@ -169,6 +175,12 @@ function getCopy(locale: Locale) {
           },
           title: "팬 요청함",
           totalCount: "전체",
+          tabs: {
+            all: "전체",
+            new: "신규",
+            reviewed: "확인함",
+            used: "제작 반영",
+          },
           types: {
             message: "응원 메시지",
             vlog_request: "브이로그 요청",
@@ -278,6 +290,7 @@ function getCopy(locale: Locale) {
           empty:
             "No fan requests yet. Share the character channel to collect them here.",
           errorFallback: "Could not load fan requests.",
+          filteredEmpty: "No fan requests in this status.",
           hide: "Hide",
           markReviewed: "Reviewed",
           openCount: "Ready to create",
@@ -291,6 +304,12 @@ function getCopy(locale: Locale) {
           },
           title: "Fan request inbox",
           totalCount: "Total",
+          tabs: {
+            all: "All",
+            new: "New",
+            reviewed: "Reviewed",
+            used: "Used",
+          },
           types: {
             message: "Support message",
             vlog_request: "Vlog request",
@@ -617,9 +636,38 @@ function FanRequestsSection({
   requests: FanletterFanRequestRecord[];
   updatingRequestId: string | null;
 }) {
+  const [activeFilter, setActiveFilter] =
+    useState<FanRequestInboxFilter>("all");
   const readyRequestCount = requests.filter(
     (request) => request.status === "new" || request.status === "reviewed",
   ).length;
+  const requestCounts: Record<FanRequestInboxFilter, number> = {
+    all: requests.length,
+    new: 0,
+    reviewed: 0,
+    used: 0,
+  };
+
+  requests.forEach((request) => {
+    if (
+      request.status === "new" ||
+      request.status === "reviewed" ||
+      request.status === "used"
+    ) {
+      requestCounts[request.status] += 1;
+    }
+  });
+
+  const requestTabs: Array<{ label: string; value: FanRequestInboxFilter }> = [
+    { label: copy.fanRequests.tabs.all, value: "all" },
+    { label: copy.fanRequests.tabs.new, value: "new" },
+    { label: copy.fanRequests.tabs.reviewed, value: "reviewed" },
+    { label: copy.fanRequests.tabs.used, value: "used" },
+  ];
+  const visibleRequests =
+    activeFilter === "all"
+      ? requests
+      : requests.filter((request) => request.status === activeFilter);
 
   return (
     <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
@@ -667,8 +715,42 @@ function FanRequestsSection({
       </div>
 
       {requests.length > 0 ? (
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          {requestTabs.map((tab) => {
+            const isActive = activeFilter === tab.value;
+
+            return (
+              <button
+                className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border px-4 text-xs font-semibold transition ${
+                  isActive
+                    ? "border-black bg-black text-white"
+                    : "border-black/10 bg-white text-black/58 hover:text-black"
+                }`}
+                key={tab.value}
+                onClick={() => {
+                  setActiveFilter(tab.value);
+                }}
+                type="button"
+              >
+                {tab.label}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[0.64rem] ${
+                    isActive
+                      ? "bg-white/16 text-white"
+                      : "bg-[#f6f8f4] text-black/48"
+                  }`}
+                >
+                  {formatNumber(requestCounts[tab.value], locale)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {visibleRequests.length > 0 ? (
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
-          {requests.map((request) => {
+          {visibleRequests.map((request) => {
             const isUpdating = updatingRequestId === request.requestId;
             const createFromRequestHref = buildFanRequestCreateHref({
               createHref,
@@ -786,7 +868,9 @@ function FanRequestsSection({
         <div className="mt-5 rounded-lg border border-dashed border-black/12 bg-[#f6f8f4] p-5">
           <MessageCircleHeart className="size-8 text-[#16702e]" />
           <p className="mt-4 text-sm font-medium leading-6 text-black/54">
-            {copy.fanRequests.empty}
+            {requests.length > 0
+              ? copy.fanRequests.filteredEmpty
+              : copy.fanRequests.empty}
           </p>
         </div>
       )}
@@ -1221,7 +1305,7 @@ export function FanletterStudioPage({
       const postsUrl = `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&media=video&pageSize=${STUDIO_POSTS_PAGE_SIZE}&status=all`;
       const salesUrl = `/api/content/sales?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=4`;
       const plannerUrl = `/api/content/planner?email=${encodedEmail}&walletAddress=${encodedWallet}`;
-      const fanRequestsUrl = `/api/fanletter/requests?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=6`;
+      const fanRequestsUrl = `/api/fanletter/requests?email=${encodedEmail}&walletAddress=${encodedWallet}&pageSize=${FAN_REQUESTS_PAGE_SIZE}`;
       const [postsData, salesResult, plannerResult, fanRequestsResult] =
         await Promise.all([
         fetch(postsUrl, { cache: "no-store" }).then((response) =>
