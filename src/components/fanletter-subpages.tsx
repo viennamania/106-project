@@ -3537,17 +3537,19 @@ export function FanletterContentDetailPage({
       ? {
           character: "캐릭터",
           heroEyebrow: "FanLetter 전용 브이로그",
+          requestCta: "장면 요청",
           watchBadge: "세로 브이로그",
         }
       : {
           character: "Character",
           heroEyebrow: "FanLetter vlog detail",
+          requestCta: "Request scene",
           watchBadge: "Vertical vlog",
         };
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
-      <section className="px-4 pb-8 pt-3 sm:px-6 lg:px-8">
+      <section className="px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
             <Link
@@ -3563,7 +3565,7 @@ export function FanletterContentDetailPage({
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
               </span>
-              <span className="truncate text-xl font-semibold tracking-normal">
+              <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
                 FanLetter
               </span>
             </Link>
@@ -3581,9 +3583,69 @@ export function FanletterContentDetailPage({
             </div>
           </header>
 
-          <div className="grid gap-8 pt-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:pt-12">
+          <div className="pt-5 lg:hidden">
+            <Link
+              className="inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
+              href={creatorHref}
+            >
+              <Avatar
+                imageUrl={contentCharacterAvatarUrl}
+                name={contentCharacterName}
+                sizeClassName="size-9"
+              />
+              <span className="min-w-0">
+                <span className="block text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
+                  {detailLabels.character}
+                </span>
+                <span className="block truncate text-sm font-semibold">
+                  {contentCharacterName}
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
+            </Link>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
+                {content.mediaType === "video" ? (
+                  <PlayCircle className="size-3.5" />
+                ) : (
+                  <Sparkles className="size-3.5" />
+                )}
+                {detailAccessLabel}
+              </span>
+              {formatDate(content.publishedAt, locale) ? (
+                <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
+                  {formatDate(content.publishedAt, locale)}
+                </span>
+              ) : null}
+            </div>
+
+            <h1 className="mt-4 break-words text-[2rem] font-semibold leading-[1.04] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all]">
+              {content.title}
+            </h1>
+            <p className="mt-3 line-clamp-2 break-words text-sm font-medium leading-6 text-white/64 [overflow-wrap:anywhere]">
+              {content.summary}
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={creatorActionHref}
+              >
+                {creatorActionLabel}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-sm font-semibold !text-white transition hover:bg-white/10"
+                href={fanRequestHref}
+              >
+                {detailLabels.requestCta}
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 pt-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
             <section className="overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6">
-              <div className="relative aspect-[9/14] bg-[#07100b] sm:aspect-[4/5]">
+              <div className="relative h-[52svh] min-h-[20rem] max-h-[28rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
                 <MediaCard
                   alt={content.title}
                   imageUrl={primaryImageUrl}
@@ -3603,61 +3665,65 @@ export function FanletterContentDetailPage({
               <div className="border-t border-white/8 p-3">
                 <SocialMetrics content={content} locale={locale} />
               </div>
-              <FanletterDetailWatchPanel
-                channelHref={creatorHref}
-                characterAvatarUrl={contentCharacterAvatarUrl}
-                characterName={contentCharacterName}
-                content={content}
-                locale={locale}
-              />
+              <div className="hidden sm:block">
+                <FanletterDetailWatchPanel
+                  channelHref={creatorHref}
+                  characterAvatarUrl={contentCharacterAvatarUrl}
+                  characterName={contentCharacterName}
+                  content={content}
+                  locale={locale}
+                />
+              </div>
             </section>
 
             <section className="pb-10">
-              <Link
-                className="mb-4 inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
-                href={creatorHref}
-              >
-                <Avatar
-                  imageUrl={contentCharacterAvatarUrl}
-                  name={contentCharacterName}
-                  sizeClassName="size-9"
-                />
-                <span className="min-w-0">
-                  <span className="block text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
-                    {detailLabels.character}
+              <div className="hidden lg:block">
+                <Link
+                  className="mb-4 inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
+                  href={creatorHref}
+                >
+                  <Avatar
+                    imageUrl={contentCharacterAvatarUrl}
+                    name={contentCharacterName}
+                    sizeClassName="size-9"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
+                      {detailLabels.character}
+                    </span>
+                    <span className="block truncate text-sm font-semibold">
+                      {contentCharacterName}
+                    </span>
                   </span>
-                  <span className="block truncate text-sm font-semibold">
-                    {contentCharacterName}
-                  </span>
-                </span>
-                <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
-              </Link>
+                  <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
+                </Link>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
-                  {content.mediaType === "video" ? (
-                    <PlayCircle className="size-3.5" />
-                  ) : (
-                    <Sparkles className="size-3.5" />
-                  )}
-                  {detailAccessLabel}
-                </span>
-                {formatDate(content.publishedAt, locale) ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
+                    {content.mediaType === "video" ? (
+                      <PlayCircle className="size-3.5" />
+                    ) : (
+                      <Sparkles className="size-3.5" />
+                    )}
+                    {detailAccessLabel}
+                  </span>
+                  {formatDate(content.publishedAt, locale) ? (
+                    <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
+                      {formatDate(content.publishedAt, locale)}
+                    </span>
+                  ) : null}
                   <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
-                    {formatDate(content.publishedAt, locale)}
+                    {detailLabels.heroEyebrow}
                   </span>
-                ) : null}
-                <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
-                  {detailLabels.heroEyebrow}
-                </span>
-              </div>
+                </div>
 
-              <h1 className="mt-5 break-words text-[2.45rem] font-semibold leading-[1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.1rem]">
-                {content.title}
-              </h1>
-              <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
-                {content.summary}
-              </p>
+                <h1 className="mt-5 break-words text-[2.45rem] font-semibold leading-[1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.1rem]">
+                  {content.title}
+                </h1>
+                <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
+                  {content.summary}
+                </p>
+              </div>
 
               <FanletterSocialActions
                 contentId={content.contentId}
