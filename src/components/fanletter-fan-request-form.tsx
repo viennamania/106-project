@@ -26,7 +26,8 @@ function getCopy(locale: Locale) {
         message: "응원 메시지",
         nameLabel: "이름",
         namePlaceholder: "선택 사항",
-        saved: "요청이 저장되었습니다. 크리에이터 스튜디오 요청함에서 확인할 수 있습니다.",
+        saved:
+          "요청이 저장되었습니다. 크리에이터가 스튜디오 요청함에서 바로 브이로그로 만들 수 있습니다.",
         submit: "요청 남기기",
         submitting: "저장 중...",
         title: "바로 요청 남기기",
@@ -40,7 +41,8 @@ function getCopy(locale: Locale) {
         message: "Support message",
         nameLabel: "Name",
         namePlaceholder: "Optional",
-        saved: "Request saved. The creator can review it in the studio inbox.",
+        saved:
+          "Request saved. The creator can turn it into a vlog from the studio inbox.",
         submit: "Leave request",
         submitting: "Saving...",
         title: "Leave a request",

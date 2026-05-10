@@ -150,14 +150,17 @@ function getCopy(locale: Locale) {
         recentTitle: "최근 브이로그",
         salesFallback: "판매 요약을 불러오지 못했습니다.",
         fanRequests: {
-          body: "캐릭터 채널과 콘텐츠 상세에서 들어온 응원 메시지와 다음 브이로그 요청을 모아봅니다.",
+          body: "팬이 남긴 메시지를 오늘 만들 브이로그 소재로 바로 넘길 수 있게 모아봅니다.",
           create: "이 요청으로 만들기",
+          createdContent: "만든 브이로그 보기",
           empty:
             "아직 팬 요청이 없습니다. 캐릭터 채널을 공유하면 이곳에 요청이 쌓입니다.",
           errorFallback: "팬 요청을 불러오지 못했습니다.",
           hide: "숨김",
           markReviewed: "확인",
+          openCount: "제작 대기",
           requester: "보낸 사람",
+          source: "요청 위치 보기",
           statuses: {
             hidden: "숨김",
             new: "신규",
@@ -165,10 +168,13 @@ function getCopy(locale: Locale) {
             used: "제작 반영",
           },
           title: "팬 요청함",
+          totalCount: "전체",
           types: {
             message: "응원 메시지",
             vlog_request: "브이로그 요청",
           },
+          usedNotice: "게시된 브이로그와 연결된 요청입니다.",
+          workflow: ["요청 확인", "소재 자동 반영", "게시 후 자동 정리"],
         },
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
@@ -266,14 +272,17 @@ function getCopy(locale: Locale) {
         recentTitle: "Recent vlogs",
         salesFallback: "Could not load sales summary.",
         fanRequests: {
-          body: "Review support messages and next-vlog requests from character channels and content detail pages.",
+          body: "Turn fan messages into the next vlog idea without leaving the studio.",
           create: "Create from request",
+          createdContent: "View created vlog",
           empty:
             "No fan requests yet. Share the character channel to collect them here.",
           errorFallback: "Could not load fan requests.",
           hide: "Hide",
           markReviewed: "Reviewed",
+          openCount: "Ready to create",
           requester: "From",
+          source: "View source",
           statuses: {
             hidden: "Hidden",
             new: "New",
@@ -281,10 +290,13 @@ function getCopy(locale: Locale) {
             used: "Used",
           },
           title: "Fan request inbox",
+          totalCount: "Total",
           types: {
             message: "Support message",
             vlog_request: "Vlog request",
           },
+          usedNotice: "This request is linked to a published vlog.",
+          workflow: ["Review request", "Apply as an idea", "Auto-organise after publish"],
         },
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
@@ -435,6 +447,14 @@ function buildFanRequestCreateHref({
 }) {
   const normalizedBody = request.body.trim().replace(/\s+/g, " ");
   const titleSeed = normalizedBody.slice(0, 52);
+  const requestTypeLabel =
+    locale === "ko"
+      ? request.requestType === "message"
+        ? "팬 응원 메시지"
+        : "다음 브이로그 요청"
+      : request.requestType === "message"
+        ? "fan support message"
+        : "next vlog request";
   const title =
     locale === "ko"
       ? request.requestType === "message"
@@ -445,12 +465,12 @@ function buildFanRequestCreateHref({
         : `Fan request: ${titleSeed}`;
   const summary =
     locale === "ko"
-      ? `${request.characterName}에게 들어온 팬 요청을 바탕으로 만든 브이로그입니다.`
-      : `A vlog based on a fan request for ${request.characterName}.`;
+      ? `${request.characterName}에게 들어온 ${requestTypeLabel}을 바탕으로 만든 브이로그입니다.`
+      : `A vlog based on a ${requestTypeLabel} for ${request.characterName}.`;
   const prompt =
     locale === "ko"
-      ? `${request.characterName}가 팬의 요청을 자연스럽게 반영한 세로형 숏폼 브이로그. 팬 요청: ${normalizedBody}`
-      : `${request.characterName} naturally responds to a fan request in a vertical short-form vlog. Fan request: ${normalizedBody}`;
+      ? `${request.characterName}가 팬이 남긴 ${requestTypeLabel}에 직접 답하듯 자연스럽게 반영한 세로형 숏폼 브이로그. 팬 요청 원문: ${normalizedBody}`
+      : `${request.characterName} naturally responds to this ${requestTypeLabel} in a vertical short-form vlog. Original fan request: ${normalizedBody}`;
 
   return setPathSearchParams(createHref, {
     fanRequestId: request.requestId,
@@ -576,6 +596,7 @@ function FanRequestsSection({
   error,
   locale,
   onUpdateStatus,
+  referralCode,
   requests,
   updatingRequestId,
 }: {
@@ -587,9 +608,14 @@ function FanRequestsSection({
     requestId: string,
     status: FanletterFanRequestRecord["status"],
   ) => void;
+  referralCode: string | null;
   requests: FanletterFanRequestRecord[];
   updatingRequestId: string | null;
 }) {
+  const readyRequestCount = requests.filter(
+    (request) => request.status === "new" || request.status === "reviewed",
+  ).length;
+
   return (
     <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -604,9 +630,15 @@ function FanRequestsSection({
             {copy.fanRequests.body}
           </p>
         </div>
-        <span className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black/62">
-          {formatNumber(requests.length, locale)}
-        </span>
+        <div className="grid grid-cols-2 gap-2 rounded-full border border-black/10 bg-[#f6f8f4] p-1 text-xs font-semibold text-black/62">
+          <span className="inline-flex h-9 items-center justify-center rounded-full bg-black px-3 !text-white">
+            {copy.fanRequests.openCount}{" "}
+            {formatNumber(readyRequestCount, locale)}
+          </span>
+          <span className="inline-flex h-9 items-center justify-center rounded-full px-3">
+            {copy.fanRequests.totalCount} {formatNumber(requests.length, locale)}
+          </span>
+        </div>
       </div>
 
       {error ? (
@@ -614,6 +646,20 @@ function FanRequestsSection({
           {error}
         </p>
       ) : null}
+
+      <div className="mt-4 grid gap-2 md:grid-cols-3">
+        {copy.fanRequests.workflow.map((step, index) => (
+          <div
+            className="flex items-center gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-3"
+            key={step}
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-xs font-semibold text-black">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="text-sm font-semibold text-black/68">{step}</span>
+          </div>
+        ))}
+      </div>
 
       {requests.length > 0 ? (
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
@@ -625,6 +671,15 @@ function FanRequestsSection({
               request,
             });
             const createdLabel = formatDate(request.createdAt, locale);
+            const sourceHref = request.sourcePath?.startsWith("/")
+              ? request.sourcePath
+              : null;
+            const createdContentHref = request.usedContentId
+              ? buildPathWithReferral(
+                  `/${locale}/fanletter/content/${request.usedContentId}`,
+                  referralCode ?? request.creatorReferralCode,
+                )
+              : null;
 
             return (
               <article
@@ -655,14 +710,38 @@ function FanRequestsSection({
                   <span className="sm:text-right">{createdLabel ?? "-"}</span>
                 </div>
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                  <Link
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold !text-white transition hover:bg-black/82 sm:col-span-3"
-                    href={createFromRequestHref}
-                  >
-                    {copy.fanRequests.create}
-                    <ArrowRight className="size-3.5" />
-                  </Link>
+                {request.status === "used" ? (
+                  <p className="mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/12 px-3 py-2 text-xs font-semibold leading-5 text-[#16702e]">
+                    {copy.fanRequests.usedNotice}
+                  </p>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {createdContentHref ? (
+                    <Link
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-xs font-semibold !text-black transition hover:bg-[#64ff84] sm:min-w-52"
+                      href={createdContentHref}
+                    >
+                      {copy.fanRequests.createdContent}
+                      <ArrowRight className="size-3.5" />
+                    </Link>
+                  ) : (
+                    <Link
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold !text-white transition hover:bg-black/82 sm:min-w-52"
+                      href={createFromRequestHref}
+                    >
+                      {copy.fanRequests.create}
+                      <ArrowRight className="size-3.5" />
+                    </Link>
+                  )}
+                  {sourceHref ? (
+                    <Link
+                      className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold !text-black/58 transition hover:!text-black sm:flex-none"
+                      href={sourceHref}
+                    >
+                      {copy.fanRequests.source}
+                    </Link>
+                  ) : null}
                   {request.status === "new" ? (
                     <button
                       className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold text-black/58 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
@@ -1692,6 +1771,7 @@ export function FanletterStudioPage({
               onUpdateStatus={(requestId, nextStatus) => {
                 void updateFanRequestStatus(requestId, nextStatus);
               }}
+              referralCode={referralCode}
               requests={state.fanRequests}
               updatingRequestId={updatingRequestId}
             />
