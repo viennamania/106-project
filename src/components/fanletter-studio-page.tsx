@@ -162,6 +162,16 @@ function getCopy(locale: Locale) {
             "아직 팬 요청이 없습니다. 캐릭터 채널을 공유하면 이곳에 요청이 쌓입니다.",
           errorFallback: "팬 요청을 불러오지 못했습니다.",
           filteredEmpty: "이 상태의 팬 요청은 없습니다.",
+          focus: {
+            allBody: "신규 요청을 먼저 보여주고, 확인한 요청과 제작 반영 요청은 뒤로 정리합니다.",
+            allTitle: "처리할 요청을 위에서부터 확인하세요.",
+            newBody: "아직 확인하지 않은 요청입니다. 빠르게 훑고 바로 만들거나 확인 처리하세요.",
+            newTitle: "새로 들어온 요청만 모았습니다.",
+            reviewedBody: "내용은 확인했고 아직 제작에 쓰지 않은 요청입니다.",
+            reviewedTitle: "제작 대기 소재를 고르세요.",
+            usedBody: "이미 브이로그로 반영된 요청입니다. 만든 브이로그와 연결 상태를 확인하세요.",
+            usedTitle: "제작 반영된 요청입니다.",
+          },
           hide: "숨김",
           markReviewed: "확인",
           openCount: "제작 대기",
@@ -291,6 +301,20 @@ function getCopy(locale: Locale) {
             "No fan requests yet. Share the character channel to collect them here.",
           errorFallback: "Could not load fan requests.",
           filteredEmpty: "No fan requests in this status.",
+          focus: {
+            allBody:
+              "New requests appear first, with reviewed and used requests organised behind them.",
+            allTitle: "Work through requests from the top.",
+            newBody:
+              "These have not been reviewed yet. Scan them, create from them, or mark them reviewed.",
+            newTitle: "New fan requests only.",
+            reviewedBody:
+              "These requests were reviewed but have not been used in a vlog yet.",
+            reviewedTitle: "Choose the next idea to create.",
+            usedBody:
+              "These requests are already linked to created vlogs. Check the result and connection.",
+            usedTitle: "Requests already reflected in vlogs.",
+          },
           hide: "Hide",
           markReviewed: "Reviewed",
           openCount: "Ready to create",
@@ -658,16 +682,73 @@ function FanRequestsSection({
     }
   });
 
-  const requestTabs: Array<{ label: string; value: FanRequestInboxFilter }> = [
-    { label: copy.fanRequests.tabs.all, value: "all" },
-    { label: copy.fanRequests.tabs.new, value: "new" },
-    { label: copy.fanRequests.tabs.reviewed, value: "reviewed" },
-    { label: copy.fanRequests.tabs.used, value: "used" },
+  const sortedRequests = useMemo(() => {
+    const statusPriority: Record<FanletterFanRequestRecord["status"], number> = {
+      hidden: 3,
+      new: 0,
+      reviewed: 1,
+      used: 2,
+    };
+
+    return [...requests].sort((left, right) => {
+      const priorityDelta =
+        statusPriority[left.status] - statusPriority[right.status];
+
+      if (priorityDelta !== 0) {
+        return priorityDelta;
+      }
+
+      return (
+        new Date(right.createdAt).getTime() -
+        new Date(left.createdAt).getTime()
+      );
+    });
+  }, [requests]);
+  const requestTabs: Array<{
+    Icon: typeof MessageCircleHeart;
+    label: string;
+    value: FanRequestInboxFilter;
+  }> = [
+    {
+      Icon: MessageCircleHeart,
+      label: copy.fanRequests.tabs.all,
+      value: "all",
+    },
+    { Icon: Sparkles, label: copy.fanRequests.tabs.new, value: "new" },
+    {
+      Icon: CheckCircle2,
+      label: copy.fanRequests.tabs.reviewed,
+      value: "reviewed",
+    },
+    { Icon: Clapperboard, label: copy.fanRequests.tabs.used, value: "used" },
   ];
   const visibleRequests =
     activeFilter === "all"
-      ? requests
-      : requests.filter((request) => request.status === activeFilter);
+      ? sortedRequests
+      : sortedRequests.filter((request) => request.status === activeFilter);
+  const focusCopy =
+    activeFilter === "new"
+      ? {
+          body: copy.fanRequests.focus.newBody,
+          title: copy.fanRequests.focus.newTitle,
+        }
+      : activeFilter === "reviewed"
+        ? {
+            body: copy.fanRequests.focus.reviewedBody,
+            title: copy.fanRequests.focus.reviewedTitle,
+          }
+        : activeFilter === "used"
+          ? {
+              body: copy.fanRequests.focus.usedBody,
+              title: copy.fanRequests.focus.usedTitle,
+            }
+          : {
+              body: copy.fanRequests.focus.allBody,
+              title: copy.fanRequests.focus.allTitle,
+            };
+  const ActiveFilterIcon =
+    requestTabs.find((tab) => tab.value === activeFilter)?.Icon ??
+    MessageCircleHeart;
 
   return (
     <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
@@ -718,6 +799,7 @@ function FanRequestsSection({
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
           {requestTabs.map((tab) => {
             const isActive = activeFilter === tab.value;
+            const Icon = tab.Icon;
 
             return (
               <button
@@ -730,8 +812,10 @@ function FanRequestsSection({
                 onClick={() => {
                   setActiveFilter(tab.value);
                 }}
+                aria-pressed={isActive}
                 type="button"
               >
+                <Icon className="size-3.5" />
                 {tab.label}
                 <span
                   className={`rounded-full px-2 py-0.5 text-[0.64rem] ${
@@ -745,6 +829,47 @@ function FanRequestsSection({
               </button>
             );
           })}
+        </div>
+      ) : null}
+
+      {requests.length > 0 ? (
+        <div className="mt-4 rounded-lg border border-black/10 bg-[linear-gradient(135deg,#07100b_0%,#12361d_52%,#44f26e_160%)] p-4 text-white">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <ActiveFilterIcon className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
+                  {copy.fanRequests.tabs[activeFilter]}
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-normal">
+                  {focusCopy.title}
+                </h3>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                  {focusCopy.body}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:w-56">
+              <div className="rounded-lg border border-white/10 bg-white/[0.07] p-3">
+                <p className="text-2xl font-semibold leading-none">
+                  {formatNumber(requestCounts[activeFilter], locale)}
+                </p>
+                <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  {copy.fanRequests.tabs[activeFilter]}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/12 p-3">
+                <p className="text-2xl font-semibold leading-none text-[#b9ffc8]">
+                  {formatNumber(readyRequestCount, locale)}
+                </p>
+                <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  {copy.fanRequests.openCount}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -767,17 +892,29 @@ function FanRequestsSection({
                   referralCode ?? request.creatorReferralCode,
                 )
               : null;
+            const cardTone =
+              request.status === "new"
+                ? "border-[#44f26e]/55 bg-white shadow-[0_18px_42px_rgba(68,242,110,0.13)]"
+                : request.status === "used"
+                  ? "border-black/8 bg-white"
+                  : "border-black/10 bg-[#f6f8f4]";
 
             return (
               <article
-                className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4"
+                className={`rounded-lg border p-4 transition ${cardTone}`}
                 key={request.requestId}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="rounded-full bg-black px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white">
                     {copy.fanRequests.types[request.requestType]}
                   </span>
-                  <span className="rounded-full border border-[#44f26e]/30 bg-[#44f26e]/16 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-[#16702e]">
+                  <span
+                    className={`rounded-full border px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] ${
+                      request.status === "new"
+                        ? "border-[#44f26e]/60 bg-[#44f26e] text-black"
+                        : "border-[#44f26e]/30 bg-[#44f26e]/16 text-[#16702e]"
+                    }`}
+                  >
                     {copy.fanRequests.statuses[request.status]}
                   </span>
                 </div>
