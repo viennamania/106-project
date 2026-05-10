@@ -25,6 +25,7 @@ import {
 } from "@/lib/mongodb";
 
 const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
+const FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT = 5;
 const FANLETTER_FEED_PAGE_SIZE = 24;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
@@ -84,6 +85,13 @@ export type FanletterPublicFanRequestSource = {
   requesterDisplayName: string | null;
 };
 
+export type FanletterPublicFanRequestPreview = {
+  body: string;
+  createdAt: string;
+  requestType: FanletterFanRequestType;
+  requesterDisplayName: string | null;
+};
+
 export type FanletterCreatorProfile = {
   avatarImageUrl: string | null;
   character: FanletterPublicCharacter | null;
@@ -113,6 +121,7 @@ export type FanletterFeedPageData = {
 };
 
 export type FanletterCreatorPageData = {
+  fanRequestPreviews: FanletterPublicFanRequestPreview[];
   items: FanletterPublicContentItem[];
   profile: FanletterCreatorProfile;
   publicContentCount: number;
@@ -413,6 +422,17 @@ function toPublicFanRequestSource(
   };
 }
 
+function toPublicFanRequestPreview(
+  request: FanletterFanRequestDocument,
+): FanletterPublicFanRequestPreview {
+  return {
+    body: compactText(request.body, 180),
+    createdAt: request.createdAt.toISOString(),
+    requestType: request.requestType,
+    requesterDisplayName: compactText(request.requesterDisplayName, 28) || null,
+  };
+}
+
 async function getFanRequestSourceForContent(contentId: string) {
   const requestsCollection = await getFanletterFanRequestsCollection();
   const request = await requestsCollection.findOne(
@@ -429,6 +449,23 @@ async function getFanRequestSourceForContent(contentId: string) {
   );
 
   return request ? toPublicFanRequestSource(request) : null;
+}
+
+async function getPublicFanRequestPreviews(referralCode: string) {
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const requests = await requestsCollection
+    .find({
+      creatorReferralCode: referralCode,
+      status: { $in: ["new", "reviewed", "used"] },
+    })
+    .sort({
+      createdAt: -1,
+      updatedAt: -1,
+    })
+    .limit(FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT)
+    .toArray();
+
+  return requests.map(toPublicFanRequestPreview);
 }
 
 async function getPublicContentFilter({
@@ -715,19 +752,21 @@ export const getFanletterCreatorPageData = cache(
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const [storedProfile, posts, publicContentCount] = await Promise.all([
-      profilesCollection.findOne({ referralCode }),
-      postsCollection
-        .find(contentFilter)
-        .sort({
-          publishedAt: -1,
-          createdAt: -1,
-          contentId: -1,
-        })
-        .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
-        .toArray(),
-      postsCollection.countDocuments(contentFilter),
-    ]);
+    const [storedProfile, posts, publicContentCount, fanRequestPreviews] =
+      await Promise.all([
+        profilesCollection.findOne({ referralCode }),
+        postsCollection
+          .find(contentFilter)
+          .sort({
+            publishedAt: -1,
+            createdAt: -1,
+            contentId: -1,
+          })
+          .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
+          .toArray(),
+        postsCollection.countDocuments(contentFilter),
+        getPublicFanRequestPreviews(referralCode).catch(() => []),
+      ]);
     const profile =
       storedProfile ??
       (posts[0]?.authorEmail
@@ -745,6 +784,7 @@ export const getFanletterCreatorPageData = cache(
       "FanLetter Creator";
 
     return {
+      fanRequestPreviews,
       items: posts.map((post) =>
         toPublicContentItem({
           post,

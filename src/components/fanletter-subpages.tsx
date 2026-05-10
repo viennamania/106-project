@@ -52,6 +52,7 @@ import type {
   FanletterPublicCharacter,
   FanletterPublicContentDetail,
   FanletterPublicContentItem,
+  FanletterPublicFanRequestPreview,
 } from "@/lib/fanletter-content-service";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -1682,6 +1683,8 @@ function FanletterFanPromptPanel({
   followHref,
   id,
   locale,
+  previewRequests = [],
+  publicVlogsHref,
   requestHref,
   sourceContentId,
   startHref,
@@ -1692,6 +1695,8 @@ function FanletterFanPromptPanel({
   followHref: string;
   id?: string;
   locale: Locale;
+  previewRequests?: FanletterPublicFanRequestPreview[];
+  publicVlogsHref?: string;
   requestHref: string;
   sourceContentId?: string | null;
   startHref: string;
@@ -1705,6 +1710,12 @@ function FanletterFanPromptPanel({
           messageBody: "팔로우 후 알림과 팬 대화 흐름으로 이어집니다.",
           messageCta: "팔로우하고 메시지",
           messageTitle: "응원 메시지도 이어가기",
+          previewBody:
+            "최근 요청을 익명 중심으로 보여줍니다. 비슷한 장면을 이어서 요청해도 됩니다.",
+          previewEmptyRequester: "익명 팬",
+          previewMessage: "응원",
+          previewTitle: "팬들이 보고 싶어하는 장면",
+          previewVlogRequest: "브이로그 요청",
           requestCta: "요청 입력하기",
           startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
           startCta: "채널 시작",
@@ -1732,6 +1743,12 @@ function FanletterFanPromptPanel({
           messageBody: "Follow first, then continue into alerts and fan conversation flows.",
           messageCta: "Follow and message",
           messageTitle: "Continue with a message",
+          previewBody:
+            "Recent requests are shown with privacy-friendly fan names. You can build on a similar scene.",
+          previewEmptyRequester: "Anonymous fan",
+          previewMessage: "Message",
+          previewTitle: "Scenes fans want to see",
+          previewVlogRequest: "Vlog request",
           requestCta: "Write request",
           startBody: "Create your own AI character and collect fan participation the same way.",
           startCta: "Start channel",
@@ -1821,12 +1838,72 @@ function FanletterFanPromptPanel({
         </div>
       </div>
 
+      {previewRequests.length > 0 ? (
+        <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.045] p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                Fan voices
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
+                {labels.previewTitle}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/56">
+                {labels.previewBody}
+              </p>
+            </div>
+            <Link
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 px-3 text-sm font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/10"
+              href={requestFormHref}
+            >
+              <PenLine className="size-4" />
+              {labels.requestCta}
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {previewRequests.slice(0, 3).map((request, index) => {
+              const typeLabel =
+                request.requestType === "message"
+                  ? labels.previewMessage
+                  : labels.previewVlogRequest;
+              const requester =
+                request.requesterDisplayName || labels.previewEmptyRequester;
+              const createdLabel = formatDate(request.createdAt, locale);
+
+              return (
+                <article
+                  className="rounded-lg border border-white/10 bg-black/18 p-4"
+                  key={`${request.createdAt}-${index}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+                      {typeLabel}
+                    </span>
+                    <span className="text-xs font-semibold text-white/36">
+                      {createdLabel}
+                    </span>
+                  </div>
+                  <p className="mt-4 line-clamp-4 break-words text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere]">
+                    {request.body}
+                  </p>
+                  <p className="mt-4 text-xs font-semibold text-white/42">
+                    {requester}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {creatorReferralCode ? (
         <FanletterFanRequestForm
           characterName={characterName}
           creatorReferralCode={creatorReferralCode}
+          followHref={followHref}
           formId={requestFormId}
           locale={locale}
+          publicVlogsHref={publicVlogsHref}
           sourceContentId={sourceContentId}
         />
       ) : null}
@@ -3318,6 +3395,8 @@ export function FanletterCreatorPage({
             followHref={followHref}
             id="fan-requests"
             locale={locale}
+            previewRequests={data.fanRequestPreviews}
+            publicVlogsHref={publicVlogsHref}
             requestHref={fanRequestsSectionHref}
             startHref={startHref}
           />
@@ -3808,6 +3887,7 @@ export function FanletterContentDetailPage({
                 followHref={onboardingHref}
                 id={fanRequestSectionId}
                 locale={locale}
+                publicVlogsHref={`${creatorHref}#public-vlogs`}
                 requestHref={fanRequestHref}
                 sourceContentId={content.contentId}
                 startHref={startHref}

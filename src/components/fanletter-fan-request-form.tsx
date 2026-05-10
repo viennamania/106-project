@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  ArrowRight,
   CheckCircle2,
   Clapperboard,
   Loader2,
   MessageCircleHeart,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import type {
@@ -31,18 +33,24 @@ function getCopy(locale: Locale) {
           "아침 루틴과 플레이리스트",
         ],
         examplesLabel: "빠른 예시",
+        followChannel: "채널 팔로우",
         helper:
           "팬이 남긴 요청은 크리에이터 스튜디오 요청함에 저장되고, 좋은 요청은 다음 브이로그 소재가 됩니다.",
         message: "응원 메시지",
         nameLabel: "이름",
         namePlaceholder: "선택 사항",
+        newRequest: "다른 요청 남기기",
         note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
         requestKind: "요청 종류",
         saved:
           "요청이 저장되었습니다. 크리에이터가 스튜디오 요청함에서 바로 브이로그로 만들 수 있습니다.",
         submit: "요청 남기기",
+        successBody:
+          "이제 같은 채널의 공개 브이로그를 보거나 팔로우해서 다음 업데이트를 이어볼 수 있습니다.",
+        successTitle: "팬 요청이 전달되었습니다",
         submitting: "저장 중...",
         title: "다음 브이로그 요청 남기기",
+        viewVlogs: "공개 브이로그 보기",
         vlogRequest: "다음 브이로그 요청",
       }
     : {
@@ -58,18 +66,24 @@ function getCopy(locale: Locale) {
           "Morning routine and playlist",
         ],
         examplesLabel: "Quick examples",
+        followChannel: "Follow channel",
         helper:
           "Fan requests are saved to the creator's studio inbox, where strong ideas can become future vlogs.",
         message: "Support message",
         nameLabel: "Name",
         namePlaceholder: "Optional",
+        newRequest: "Leave another",
         note: "You can leave a request without signing in. Duplicate requests are not saved.",
         requestKind: "Request type",
         saved:
           "Request saved. The creator can turn it into a vlog from the studio inbox.",
         submit: "Leave request",
+        successBody:
+          "Keep watching public vlogs from this channel or follow to stay close to the next update.",
+        successTitle: "Fan request delivered",
         submitting: "Saving...",
         title: "Leave a request",
+        viewVlogs: "View public vlogs",
         vlogRequest: "Next vlog request",
       };
 }
@@ -115,14 +129,18 @@ async function readApiJson<T>(response: Response, fallback: string): Promise<T> 
 export function FanletterFanRequestForm({
   characterName,
   creatorReferralCode,
+  followHref,
   formId,
   locale,
+  publicVlogsHref,
   sourceContentId,
 }: {
   characterName: string;
   creatorReferralCode: string;
+  followHref?: string;
   formId?: string;
   locale: Locale;
+  publicVlogsHref?: string;
   sourceContentId?: string | null;
 }) {
   const copy = getCopy(locale);
@@ -194,6 +212,12 @@ export function FanletterFanRequestForm({
 
       return trimmed ? `${trimmed}\n${example}` : example;
     });
+    setError(null);
+    setStatus("idle");
+    setRequestType("vlog_request");
+  }
+
+  function resetForAnotherRequest() {
     setError(null);
     setStatus("idle");
     setRequestType("vlog_request");
@@ -334,9 +358,54 @@ export function FanletterFanRequestForm({
       </div>
 
       {status === "success" ? (
-        <p className="mt-3 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-sm font-medium leading-6 text-[#b9ffc8]">
-          {copy.saved}
-        </p>
+        <div
+          aria-live="polite"
+          className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 text-[#b9ffc8]"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <CheckCircle2 className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-white">
+                {copy.successTitle}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-6 text-[#b9ffc8]">
+                {copy.saved}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-6 text-white/56">
+                {copy.successBody}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <button
+              className="inline-flex h-10 items-center justify-center rounded-full border border-[#44f26e]/28 px-3 text-sm font-semibold text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
+              onClick={resetForAnotherRequest}
+              type="button"
+            >
+              {copy.newRequest}
+            </button>
+            {publicVlogsHref ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/12 px-3 text-sm font-semibold !text-white transition hover:bg-white/8"
+                href={publicVlogsHref}
+              >
+                {copy.viewVlogs}
+                <ArrowRight className="size-4" />
+              </Link>
+            ) : null}
+            {followHref ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={followHref}
+              >
+                {copy.followChannel}
+                <ArrowRight className="size-4" />
+              </Link>
+            ) : null}
+          </div>
+        </div>
       ) : null}
       {status === "error" && error ? (
         <p className="mt-3 rounded-lg border border-red-300/20 bg-red-400/10 px-3 py-2 text-sm font-medium leading-6 text-red-100">
