@@ -1496,7 +1496,7 @@ function FanletterChannelTabs({
       ? {
           about: "소개",
           fanOnly: "팬 전용",
-          fanRequests: "요청",
+          fanRequests: "팬 요청",
           home: "홈",
           publicVlogs: "공개 브이로그",
         }
@@ -1699,54 +1699,75 @@ function FanletterFanPromptPanel({
   const labels =
     locale === "ko"
       ? {
-          body: "좋아요만 누르고 끝나지 않게, 응원 메시지와 다음 브이로그 요청을 FanLetter 흐름으로 이어갑니다.",
-          eyebrow: "Fan Request",
-          messageBody: "팔로우와 권한 확인을 거쳐 캐릭터 대화 흐름으로 이어집니다.",
-          messageCta: "메시지 남기기",
-          messageTitle: "응원 메시지",
-          requestBody: "보고 싶은 장소, 룩, 상황을 다음 브이로그 요청으로 연결합니다.",
-          requestCta: "요청하기",
-          requestTitle: "다음 브이로그 요청",
+          body: "보고 싶은 장면을 한 줄로 남기면 크리에이터가 스튜디오 요청함에서 바로 확인하고 다음 브이로그 소재로 쓸 수 있습니다.",
+          eyebrow: "팬 요청",
+          guideTitle: "어떻게 쓰나요",
+          messageBody: "팔로우 후 알림과 팬 대화 흐름으로 이어집니다.",
+          messageCta: "팔로우하고 메시지",
+          messageTitle: "응원 메시지도 이어가기",
+          requestCta: "요청 입력하기",
           startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
           startCta: "채널 시작",
           startTitle: "내 캐릭터로 답장",
-          title: `${characterName}에게 한마디 남기기`,
+          steps: [
+            {
+              body: "장소, 룩, 상황, 질문처럼 보고 싶은 장면을 짧게 적습니다.",
+              title: "장면을 적기",
+            },
+            {
+              body: "이름은 선택 사항입니다. 요청만 남겨도 스튜디오 요청함에 저장됩니다.",
+              title: "요청 남기기",
+            },
+            {
+              body: "크리에이터가 요청을 골라 바로 브이로그 제작 흐름으로 이어갑니다.",
+              title: "브이로그로 제작",
+            },
+          ],
+          title: `${characterName}의 다음 브이로그를 요청하세요`,
         }
       : {
-          body: "Move beyond likes by connecting fan messages and next-vlog requests into the FanLetter flow.",
-          eyebrow: "Fan Request",
-          messageBody: "Follow and access checks lead into the character conversation flow.",
-          messageCta: "Leave a message",
-          messageTitle: "Support message",
-          requestBody: "Turn places, outfits, and scenes fans want to see into next-vlog requests.",
-          requestCta: "Request vlog",
-          requestTitle: "Next vlog request",
+          body: "Write the scene you want to see, and the creator can pick it up from the studio inbox as a next-vlog idea.",
+          eyebrow: "Fan request",
+          guideTitle: "How it works",
+          messageBody: "Follow first, then continue into alerts and fan conversation flows.",
+          messageCta: "Follow and message",
+          messageTitle: "Continue with a message",
+          requestCta: "Write request",
           startBody: "Create your own AI character and collect fan participation the same way.",
           startCta: "Start channel",
           startTitle: "Reply with my character",
-          title: `Leave a note for ${characterName}`,
+          steps: [
+            {
+              body: "Write the place, outfit, situation, or question you want to see.",
+              title: "Describe a scene",
+            },
+            {
+              body: "Your name is optional. The request is saved to the studio inbox.",
+              title: "Leave the request",
+            },
+            {
+              body: "The creator can turn selected requests into the next vlog flow.",
+              title: "Become a vlog",
+            },
+          ],
+          title: `Request ${characterName}'s next vlog`,
         };
+  const requestFormId = id ? `${id}-form` : "fanletter-fan-request-form";
+  const requestFormHref = creatorReferralCode ? `#${requestFormId}` : requestHref;
   const actions = [
-    {
-      body: labels.messageBody,
-      cta: labels.messageCta,
-      href: followHref,
-      icon: MessageCircleHeart,
-      title: labels.messageTitle,
-    },
-    {
-      body: labels.requestBody,
-      cta: labels.requestCta,
-      href: requestHref,
-      icon: Clapperboard,
-      title: labels.requestTitle,
-    },
     {
       body: labels.startBody,
       cta: labels.startCta,
       href: startHref,
       icon: Rocket,
       title: labels.startTitle,
+    },
+    {
+      body: labels.messageBody,
+      cta: labels.messageCta,
+      href: followHref,
+      icon: MessageCircleHeart,
+      title: labels.messageTitle,
     },
   ];
 
@@ -1769,30 +1790,64 @@ function FanletterFanPromptPanel({
         </div>
         <Link
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-          href={requestHref}
+          href={requestFormHref}
         >
           <PenLine className="size-4" />
           {labels.requestCta}
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
+      <div className="mt-6 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-4">
+        <p className="text-sm font-semibold text-[#b9ffc8]">
+          {labels.guideTitle}
+        </p>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {labels.steps.map((step, index) => (
+            <div
+              className="rounded-lg border border-white/10 bg-black/18 p-3"
+              key={step.title}
+            >
+              <span className="text-lg font-semibold leading-none text-[#44f26e]">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3 className="mt-3 text-base font-semibold tracking-normal">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/56">
+                {step.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {creatorReferralCode ? (
+        <FanletterFanRequestForm
+          characterName={characterName}
+          creatorReferralCode={creatorReferralCode}
+          formId={requestFormId}
+          locale={locale}
+          sourceContentId={sourceContentId}
+        />
+      ) : null}
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
         {actions.map((action) => {
           const Icon = action.icon;
 
           return (
             <Link
-              className="group rounded-lg border border-white/10 bg-white/[0.055] p-4 transition hover:border-[#44f26e]/46 hover:bg-white/[0.075]"
+              className="group rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:border-[#44f26e]/46 hover:bg-white/[0.07]"
               href={action.href}
               key={action.title}
             >
               <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <Icon className="size-5" />
               </span>
-              <h3 className="mt-5 text-xl font-semibold tracking-normal">
+              <h3 className="mt-5 text-lg font-semibold tracking-normal">
                 {action.title}
               </h3>
-              <p className="mt-3 text-sm font-medium leading-6 text-white/56">
+              <p className="mt-2 text-sm font-medium leading-6 text-white/56">
                 {action.body}
               </p>
               <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
@@ -1803,15 +1858,6 @@ function FanletterFanPromptPanel({
           );
         })}
       </div>
-
-      {creatorReferralCode ? (
-        <FanletterFanRequestForm
-          characterName={characterName}
-          creatorReferralCode={creatorReferralCode}
-          locale={locale}
-          sourceContentId={sourceContentId}
-        />
-      ) : null}
     </section>
   );
 }
@@ -3084,12 +3130,6 @@ export function FanletterCreatorPage({
       returnTo: channelHref,
     },
   );
-  const fanRequestHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
-    {
-      returnTo: `${channelHref}#fan-requests`,
-    },
-  );
   const fanOnlyHref = `${channelHref}#fan-only`;
   const channelActionLabels =
     locale === "ko"
@@ -3278,7 +3318,7 @@ export function FanletterCreatorPage({
             followHref={followHref}
             id="fan-requests"
             locale={locale}
-            requestHref={fanRequestHref}
+            requestHref={fanRequestsSectionHref}
             startHref={startHref}
           />
 

@@ -19,28 +19,52 @@ type SubmitStatus = "error" | "idle" | "loading" | "success";
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        bodyLabel: "메시지 또는 요청",
+        bodyLabel: "보고 싶은 장면",
         bodyPlaceholder:
           "예: 다음에는 카페에서 영어 공부하는 브이로그를 보고 싶어요.",
+        emptyBody: "보고 싶은 장면이나 응원 메시지를 입력해 주세요.",
         errorFallback: "요청을 저장하지 못했습니다.",
+        examples: [
+          "카페에서 영어 공부하는 하루",
+          "새 의상으로 팬 질문 답하기",
+          "비 오는 날 산책 브이로그",
+          "아침 루틴과 플레이리스트",
+        ],
+        examplesLabel: "빠른 예시",
+        helper:
+          "팬이 남긴 요청은 크리에이터 스튜디오 요청함에 저장되고, 좋은 요청은 다음 브이로그 소재가 됩니다.",
         message: "응원 메시지",
         nameLabel: "이름",
         namePlaceholder: "선택 사항",
+        note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
+        requestKind: "요청 종류",
         saved:
           "요청이 저장되었습니다. 크리에이터가 스튜디오 요청함에서 바로 브이로그로 만들 수 있습니다.",
         submit: "요청 남기기",
         submitting: "저장 중...",
-        title: "바로 요청 남기기",
+        title: "다음 브이로그 요청 남기기",
         vlogRequest: "다음 브이로그 요청",
       }
     : {
-        bodyLabel: "Message or request",
+        bodyLabel: "Scene to request",
         bodyPlaceholder:
           "Example: I want to see a vlog where you study English at a cafe.",
+        emptyBody: "Write a scene request or support message.",
         errorFallback: "Could not save the request.",
+        examples: [
+          "A day studying English at a cafe",
+          "Answer fan questions in a new outfit",
+          "A rainy-day walk vlog",
+          "Morning routine and playlist",
+        ],
+        examplesLabel: "Quick examples",
+        helper:
+          "Fan requests are saved to the creator's studio inbox, where strong ideas can become future vlogs.",
         message: "Support message",
         nameLabel: "Name",
         namePlaceholder: "Optional",
+        note: "You can leave a request without signing in. Duplicate requests are not saved.",
+        requestKind: "Request type",
         saved:
           "Request saved. The creator can turn it into a vlog from the studio inbox.",
         submit: "Leave request",
@@ -91,11 +115,13 @@ async function readApiJson<T>(response: Response, fallback: string): Promise<T> 
 export function FanletterFanRequestForm({
   characterName,
   creatorReferralCode,
+  formId,
   locale,
   sourceContentId,
 }: {
   characterName: string;
   creatorReferralCode: string;
+  formId?: string;
   locale: Locale;
   sourceContentId?: string | null;
 }) {
@@ -121,7 +147,7 @@ export function FanletterFanRequestForm({
 
   async function submitRequest() {
     if (!body.trim()) {
-      setError(copy.bodyLabel);
+      setError(copy.emptyBody);
       setStatus("error");
       return;
     }
@@ -162,13 +188,39 @@ export function FanletterFanRequestForm({
     }
   }
 
+  function applyExample(example: string) {
+    setBody((current) => {
+      const trimmed = current.trim();
+
+      return trimmed ? `${trimmed}\n${example}` : example;
+    });
+    setError(null);
+    setStatus("idle");
+    setRequestType("vlog_request");
+  }
+
   return (
-    <div className="mt-6 rounded-lg border border-white/10 bg-black/22 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-lg font-semibold tracking-normal text-white">
-          {copy.title}
-        </h3>
-        <div className="grid grid-cols-2 gap-2 rounded-full border border-white/10 bg-white/[0.045] p-1">
+    <div
+      className="mt-6 scroll-mt-28 rounded-lg border border-white/12 bg-black/28 p-4 sm:p-5"
+      id={formId}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+            {copy.requestKind}
+          </p>
+          <h3 className="mt-2 text-xl font-semibold tracking-normal text-white [word-break:keep-all]">
+            {copy.title}
+          </h3>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+            {copy.helper}
+          </p>
+        </div>
+        <div
+          aria-label={copy.requestKind}
+          className="grid shrink-0 grid-cols-1 gap-2 rounded-lg border border-white/10 bg-white/[0.045] p-1 sm:grid-cols-2 lg:w-[24rem]"
+          role="group"
+        >
           {requestTypes.map((type) => {
             const Icon = type.icon;
             const active = requestType === type.value;
@@ -183,6 +235,10 @@ export function FanletterFanRequestForm({
                 key={type.value}
                 onClick={() => {
                   setRequestType(type.value);
+                  setError(null);
+                  if (status !== "loading") {
+                    setStatus("idle");
+                  }
                 }}
                 type="button"
               >
@@ -194,16 +250,45 @@ export function FanletterFanRequestForm({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+      <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9ffc8]">
+          {copy.examplesLabel}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {copy.examples.map((example) => (
+            <button
+              className="rounded-full border border-[#44f26e]/22 bg-black/18 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8] transition hover:border-[#44f26e]/56 hover:bg-[#44f26e]/12"
+              key={example}
+              onClick={() => {
+                applyExample(example);
+              }}
+              type="button"
+            >
+              {example}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem]">
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-            {copy.bodyLabel}
+          <span className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+              {copy.bodyLabel}
+            </span>
+            <span className="text-xs font-semibold text-white/32">
+              {body.length}/600
+            </span>
           </span>
           <textarea
             className="mt-2 min-h-28 w-full resize-y rounded-lg border border-white/10 bg-white/[0.055] px-3 py-3 text-sm font-medium leading-6 text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/70"
             maxLength={600}
             onChange={(event) => {
               setBody(event.target.value);
+              setError(null);
+              if (status !== "loading") {
+                setStatus("idle");
+              }
             }}
             placeholder={copy.bodyPlaceholder}
             value={body}
@@ -219,6 +304,9 @@ export function FanletterFanRequestForm({
               maxLength={40}
               onChange={(event) => {
                 setRequesterDisplayName(event.target.value);
+                if (status !== "loading") {
+                  setStatus("idle");
+                }
               }}
               placeholder={copy.namePlaceholder}
               value={requesterDisplayName}
@@ -239,6 +327,9 @@ export function FanletterFanRequestForm({
             ) : null}
             {status === "loading" ? copy.submitting : copy.submit}
           </button>
+          <p className="mt-3 text-xs font-medium leading-5 text-white/42">
+            {copy.note}
+          </p>
         </div>
       </div>
 
