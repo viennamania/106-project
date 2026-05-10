@@ -78,6 +78,11 @@ const EMPTY_FORM: CreateForm = {
   summary: "",
   title: "",
 };
+const CHARACTER_PLAYBOOK_PLAN_IDS = new Set([
+  "avatar-set-direction",
+  "character-daily-scene",
+  "fan-request-episode",
+]);
 const FANLETTER_CREATE_DISCONNECTED_GRACE_MS = 4500;
 
 function getCopy(locale: Locale) {
@@ -104,6 +109,21 @@ function getCopy(locale: Locale) {
           body: "팬이 남긴 내용을 보면서 장면만 다듬으면 됩니다.",
           eyebrow: "Fan Request",
           title: "팬 요청으로 브이로그를 만들고 있습니다.",
+        },
+        planContext: {
+          applied: "제목, 요약, 장면 프롬프트에 추천 기획이 반영되었습니다.",
+          body:
+            "프로필의 캐릭터 정체성, 성장 신호, 팬 반응 흐름을 바탕으로 만든 기획입니다. 필요하면 문장만 다듬고 바로 생성하세요.",
+          bodyPlanner:
+            "스튜디오에서 선택한 기획이 입력값에 반영되었습니다. 장면만 다듬고 바로 브이로그를 생성할 수 있습니다.",
+          eyebrow: "Character Playbook",
+          eyebrowPlanner: "Selected Plan",
+          generateCta: "이 기획으로 바로 생성",
+          promptLabel: "추천 장면",
+          summaryLabel: "기획 포인트",
+          title: "프로필 추천 기획으로 시작합니다.",
+          titleLabel: "추천 제목",
+          titlePlanner: "선택한 기획으로 시작합니다.",
         },
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
@@ -162,6 +182,22 @@ function getCopy(locale: Locale) {
           body: "Keep the fan note visible while you refine the scene.",
           eyebrow: "Fan Request",
           title: "Creating a vlog from a fan request.",
+        },
+        planContext: {
+          applied:
+            "The recommended title, summary, and scene prompt have been applied.",
+          body:
+            "This plan comes from the character identity, growth signals, and fan reaction loop in the profile. Refine the wording if needed, then generate.",
+          bodyPlanner:
+            "The selected studio plan has been applied to the inputs. Refine the scene and generate the vlog.",
+          eyebrow: "Character Playbook",
+          eyebrowPlanner: "Selected Plan",
+          generateCta: "Generate from this plan",
+          promptLabel: "Suggested scene",
+          summaryLabel: "Plan angle",
+          title: "Starting from a profile recommendation.",
+          titleLabel: "Suggested title",
+          titlePlanner: "Starting from the selected plan.",
         },
         feed: "View FanLetter vlog feed",
         free: "Free public",
@@ -352,6 +388,17 @@ export function FanletterCreatePage({
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const initialFanRequestBody =
     initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
+  const isCharacterPlaybookPlan = Boolean(
+    initialPlanId && CHARACTER_PLAYBOOK_PLAN_IDS.has(initialPlanId),
+  );
+  const hasPlanContext = Boolean(
+    initialPlan &&
+      !initialFanRequestId &&
+      (initialPlanId ||
+        form.title.trim() ||
+        form.summary.trim() ||
+        form.prompt.trim()),
+  );
   const canPublish = Boolean(generatedMedia?.url);
   const selectedModeCopy = copy.videoBody;
   const generatedVideoUrl = generatedMedia?.url ?? null;
@@ -601,7 +648,7 @@ export function FanletterCreatePage({
       }
 
       setCreatedContent(data.content);
-      if (initialPlanId) {
+      if (initialPlanId && !isCharacterPlaybookPlan) {
         await fetch("/api/content/planner", {
           body: JSON.stringify({
             contentId: data.content.contentId,
@@ -794,6 +841,78 @@ export function FanletterCreatePage({
             <div className="mb-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4 text-sm font-medium leading-6 text-[#c9ffd5]">
               {notice}
             </div>
+          ) : null}
+
+          {hasPlanContext ? (
+            <section className="mb-4 rounded-lg border border-[#44f26e]/24 bg-[linear-gradient(135deg,rgba(68,242,110,0.14),rgba(255,255,255,0.045)_46%,rgba(3,5,4,0.8))] p-4 text-[#d8ffe0] sm:p-5">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] lg:items-start">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                    {isCharacterPlaybookPlan
+                      ? copy.planContext.eyebrow
+                      : copy.planContext.eyebrowPlanner}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal [word-break:keep-all]">
+                    {isCharacterPlaybookPlan
+                      ? copy.planContext.title
+                      : copy.planContext.titlePlanner}
+                  </h2>
+                  <p className="mt-2 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+                    {isCharacterPlaybookPlan
+                      ? copy.planContext.body
+                      : copy.planContext.bodyPlanner}
+                  </p>
+                  <div className="mt-4 flex items-start gap-3 rounded-lg border border-white/10 bg-black/24 p-3">
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                    <p className="text-xs font-semibold leading-5 text-white/64">
+                      {copy.planContext.applied}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <div className="rounded-lg border border-white/10 bg-black/24 p-3">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      {copy.planContext.titleLabel}
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white">
+                      {form.title || copy.titlePlaceholder}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-black/24 p-3">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      {copy.planContext.summaryLabel}
+                    </p>
+                    <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/62">
+                      {form.summary || copy.summaryPlaceholder}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-black/24 p-3">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      {copy.planContext.promptLabel}
+                    </p>
+                    <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-white/62 [overflow-wrap:anywhere]">
+                      {form.prompt || copy.promptPlaceholder}
+                    </p>
+                  </div>
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={generationStatus === "loading"}
+                    onClick={() => {
+                      void generateMedia();
+                    }}
+                    type="button"
+                  >
+                    {generationStatus === "loading" ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4" />
+                    )}
+                    {copy.planContext.generateCta}
+                  </button>
+                </div>
+              </div>
+            </section>
           ) : null}
 
           {initialFanRequestId ? (
