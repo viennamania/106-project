@@ -187,6 +187,23 @@ function getCopy(locale: Locale) {
           "AI 캐릭터를 만들기 전에 계정 연결을 먼저 완료하세요. 연결 후 이 캐릭터 만들기 화면으로 돌아옵니다.",
         connectRequiredCta: "계정 연결하기",
         completed: "준비 완료",
+        contentHome: {
+          avatarSet: "아바타 세트",
+          body:
+            "이 프로필은 생성 설정이 아니라 팬이 소비하는 캐릭터 채널의 중심 자산입니다.",
+          changeCta: "정체성 변경",
+          createCta: "오늘의 브이로그 만들기",
+          emptySkill: "첫 브이로그를 만들면 콘텐츠 강점이 열립니다.",
+          eyebrow: "Character Content Home",
+          fanSignal: "팬 요청 반응력",
+          identitySignal: "고정 정체성",
+          nextPrompt: "다음 콘텐츠는 캐릭터의 강점과 팬 요청 흐름을 반영해 만드세요.",
+          reactionSignal: "팬 반응",
+          skills: "콘텐츠 강점",
+          studioCta: "스튜디오 보기",
+          title: "내 캐릭터 콘텐츠 홈",
+          vlogSignal: "공개 브이로그",
+        },
         contentCta: "첫 브이로그 만들기",
         disconnected: "계정 연결이 필요합니다.",
         displayName: "표시 이름",
@@ -305,6 +322,24 @@ function getCopy(locale: Locale) {
           "Connect your account before creating the AI character. After connection, you will return to this character setup screen.",
         connectRequiredCta: "Connect account",
         completed: "Ready",
+        contentHome: {
+          avatarSet: "Avatar set",
+          body:
+            "This profile is the core content asset for the character channel, not just setup.",
+          changeCta: "Change identity",
+          createCta: "Create today's vlog",
+          emptySkill: "Create the first vlog to unlock content strengths.",
+          eyebrow: "Character Content Home",
+          fanSignal: "Fan request response",
+          identitySignal: "Locked identity",
+          nextPrompt:
+            "Create the next post with the character strengths and fan request loop in mind.",
+          reactionSignal: "Fan reactions",
+          skills: "Content strengths",
+          studioCta: "Open studio",
+          title: "My character content home",
+          vlogSignal: "Public vlogs",
+        },
         contentCta: "Create first vlog",
         disconnected: "Account connection required.",
         displayName: "Display name",
@@ -1076,6 +1111,226 @@ export function FanletterProfilePage({
     }
 
     return studioHref;
+  }
+
+  function renderCharacterContentHome() {
+    if (!characterReady) {
+      return null;
+    }
+
+    const growth = characterGrowth.data;
+    const reactionCount = growth
+      ? growth.metrics.likeCount +
+        growth.metrics.commentCount +
+        growth.metrics.saveCount
+      : 0;
+    const contentStrengths =
+      growth?.contentSkills.filter((skill) => skill.unlocked).slice(0, 3) ?? [];
+    const fallbackStrengths =
+      selectedPersona?.lockedTraits.slice(0, 3).map((trait, index) => ({
+        description: copy.growthIdentityLocked,
+        id: `trait-${index}-${trait}`,
+        label: trait,
+      })) ?? [];
+    const strengths =
+      contentStrengths.length > 0 ? contentStrengths : fallbackStrengths;
+    const avatarPreviewSet = [
+      ...(profile.avatarImageUrl
+        ? [
+            {
+              label: copy.avatarSelected,
+              url: profile.avatarImageUrl,
+            },
+          ]
+        : []),
+      ...profile.avatarImageSet
+        .filter((candidate) => candidate.url !== profile.avatarImageUrl)
+        .slice(0, 3)
+        .map((candidate) => ({
+          label: candidate.label ?? candidate.expression ?? copy.avatar,
+          url: candidate.url,
+        })),
+    ].slice(0, 4);
+    const signalCards = [
+      {
+        Icon: Video,
+        label: copy.contentHome.vlogSignal,
+        value: growth?.metrics.publishedVlogCount ?? 0,
+      },
+      {
+        Icon: MessageCircleHeart,
+        label: copy.contentHome.fanSignal,
+        value: growth?.metrics.fanRequestTotalCount ?? 0,
+      },
+      {
+        Icon: Heart,
+        label: copy.contentHome.reactionSignal,
+        value: reactionCount,
+      },
+    ];
+
+    return (
+      <section className="mt-5 rounded-lg border border-[#44f26e]/24 bg-[linear-gradient(135deg,#07100b_0%,#0f2a18_56%,#44f26e_170%)] p-4 text-white shadow-[0_30px_90px_rgba(0,0,0,0.3)] sm:p-5">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-stretch">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#8dffa5]">
+              {copy.contentHome.eyebrow}
+            </p>
+            <h2 className="mt-3 text-[2.25rem] font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[3.25rem]">
+              {copy.contentHome.title}
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-white/64 sm:text-base sm:leading-7">
+              {copy.contentHome.body}
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold text-black">
+                <Trophy className="size-3.5" />
+                {growth ? `Lv.${growth.level} · ${growth.title}` : copy.completed}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/14 bg-white/[0.07] px-3 py-1 text-xs font-semibold text-white/72">
+                <LockKeyhole className="size-3.5 text-[#44f26e]" />
+                {copy.contentHome.identitySignal}
+              </span>
+            </div>
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+              {signalCards.map(({ Icon, label, value }) => (
+                <div
+                  className="rounded-lg border border-white/10 bg-white/[0.07] p-3"
+                  key={label}
+                >
+                  <Icon className="size-4 text-[#44f26e]" />
+                  <p className="mt-3 text-2xl font-semibold leading-none">
+                    {numberFormatter.format(value)}
+                  </p>
+                  <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <Link
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+                href={createHref}
+              >
+                {copy.contentHome.createCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
+                href={studioHref}
+              >
+                {copy.contentHome.studioCta}
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-[13rem_minmax(0,1fr)]">
+            <div className="min-w-0 rounded-lg border border-white/10 bg-black/22 p-3">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-white/10 bg-black/24">
+                {profile.avatarImageUrl ? (
+                  <Image
+                    alt={profile.displayName || copy.displayName}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 90vw, 208px"
+                    src={profile.avatarImageUrl}
+                  />
+                ) : (
+                  <span className="flex size-full items-center justify-center">
+                    <UserRound className="size-12 text-[#44f26e]" />
+                  </span>
+                )}
+              </div>
+              <p className="mt-3 truncate text-lg font-semibold">
+                {selectedPersona?.name ?? profile.displayName}
+              </p>
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/50">
+                {selectedPersona?.summary ?? copy.growthIdentityBody}
+              </p>
+            </div>
+
+            <div className="grid min-w-0 gap-4">
+              <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold">
+                    {copy.contentHome.skills}
+                  </h3>
+                  <Sparkles className="size-5 text-[#44f26e]" />
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {strengths.length > 0 ? (
+                    strengths.map((strength) => (
+                      <div
+                        className="rounded-lg border border-white/10 bg-black/18 p-3"
+                        key={strength.id}
+                      >
+                        <p className="text-sm font-semibold text-white">
+                          {strength.label}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/48">
+                          {strength.description}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-medium leading-6 text-white/50">
+                      {copy.contentHome.emptySkill}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold">
+                    {copy.contentHome.avatarSet}
+                  </h3>
+                  <ImageIcon className="size-5 text-[#44f26e]" />
+                </div>
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  {avatarPreviewSet.map((avatar) => (
+                    <div
+                      className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22"
+                      key={avatar.url}
+                    >
+                      <div className="relative aspect-square">
+                        <Image
+                          alt={avatar.label}
+                          className="object-cover"
+                          fill
+                          sizes="72px"
+                          src={avatar.url}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {avatarPreviewSet.length === 0 ? (
+                    <div className="col-span-4 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-medium text-white/50">
+                      {copy.avatarBody}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <p className="text-xs font-medium leading-5 text-white/50">
+                    {copy.contentHome.nextPrompt}
+                  </p>
+                  <Link
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-xs font-semibold !text-white transition hover:bg-white/8"
+                    href={changeCharacterHref}
+                  >
+                    {copy.contentHome.changeCta}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   function renderCharacterGrowthCenter() {
@@ -1910,6 +2165,8 @@ export function FanletterProfilePage({
               {notice}
             </div>
           ) : null}
+
+          {renderCharacterContentHome()}
 
           {renderCharacterGrowthCenter()}
 
