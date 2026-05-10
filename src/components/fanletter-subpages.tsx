@@ -1931,11 +1931,15 @@ function FanletterRelatedVlogs({
 }
 
 function FanletterFanRequestSourceCard({
+  channelHref,
   content,
   locale,
+  requestHref,
 }: {
+  channelHref: string;
   content: FanletterPublicContentDetail;
   locale: Locale;
+  requestHref: string;
 }) {
   const source = content.fanRequestSource;
 
@@ -1946,52 +1950,85 @@ function FanletterFanRequestSourceCard({
   const labels =
     locale === "ko"
       ? {
+          channelCta: "캐릭터 채널 보기",
+          cta: "나도 다음 요청 남기기",
           eyebrow: "Fan Request",
           message: "팬 메시지 기반",
           requestedBy: "요청",
+          result: "팬이 남긴 한마디가 실제 브이로그 소재로 반영되었습니다.",
           title: "팬 요청으로 만든 브이로그",
           vlogRequest: "다음 브이로그 요청 기반",
         }
       : {
+          channelCta: "View character channel",
+          cta: "Leave my next request",
           eyebrow: "Fan Request",
           message: "Inspired by a fan message",
           requestedBy: "Request",
+          result: "A fan note became the idea behind this vlog.",
           title: "Vlog made from a fan request",
           vlogRequest: "Inspired by a next-vlog request",
         };
   const typeLabel =
     source.requestType === "message" ? labels.message : labels.vlogRequest;
+  const createdLabel = formatDate(source.createdAt, locale);
 
   return (
     <section className="mt-6 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-white sm:p-5">
-      <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-          {source.requestType === "message" ? (
-            <MessageCircleHeart className="size-5" />
-          ) : (
-            <Clapperboard className="size-5" />
-          )}
-        </span>
-        <div className="min-w-0">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-            {labels.eyebrow}
-          </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-normal">
-            {labels.title}
-          </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-white/66">
-            {source.body}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-[#44f26e]/26 bg-black/22 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
-              {typeLabel}
-            </span>
-            <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/58">
-              {source.requesterDisplayName
-                ? `${labels.requestedBy} · ${source.requesterDisplayName}`
-                : formatDate(source.createdAt, locale)}
-            </span>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            {source.requestType === "message" ? (
+              <MessageCircleHeart className="size-5" />
+            ) : (
+              <Clapperboard className="size-5" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {labels.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-normal">
+              {labels.title}
+            </h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-[#b9ffc8]">
+              {labels.result}
+            </p>
+            <p className="mt-3 break-words rounded-lg border border-white/10 bg-black/22 p-3 text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere]">
+              {source.body}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-[#44f26e]/26 bg-black/22 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                {typeLabel}
+              </span>
+              {source.requesterDisplayName ? (
+                <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/58">
+                  {labels.requestedBy} · {source.requesterDisplayName}
+                </span>
+              ) : null}
+              {createdLabel ? (
+                <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/58">
+                  {createdLabel}
+                </span>
+              ) : null}
+            </div>
           </div>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:w-56 lg:flex-col">
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={requestHref}
+          >
+            <PenLine className="size-4" />
+            {labels.cta}
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={channelHref}
+          >
+            {labels.channelCta}
+            <ArrowRight className="size-4" />
+          </Link>
         </div>
       </div>
     </section>
@@ -3466,12 +3503,16 @@ export function FanletterContentDetailPage({
         effectiveReferralCode,
       )
     : fallbackBackHref;
-  const fanRequestHref = setPathSearchParams(
+  const fallbackFanRequestHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
     {
       returnTo: `${creatorHref}#fan-requests`,
     },
   );
+  const fanRequestSectionId = "fanletter-request";
+  const fanRequestHref = content.authorReferralCode
+    ? `#${fanRequestSectionId}`
+    : fallbackFanRequestHref;
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
@@ -3639,8 +3680,10 @@ export function FanletterContentDetailPage({
               />
 
               <FanletterFanRequestSourceCard
+                channelHref={creatorHref}
                 content={content}
                 locale={locale}
+                requestHref={fanRequestHref}
               />
 
               <FanletterCharacterMiniCard
@@ -3657,6 +3700,7 @@ export function FanletterContentDetailPage({
                 className="mt-6"
                 creatorReferralCode={content.authorReferralCode}
                 followHref={onboardingHref}
+                id={fanRequestSectionId}
                 locale={locale}
                 requestHref={fanRequestHref}
                 sourceContentId={content.contentId}
