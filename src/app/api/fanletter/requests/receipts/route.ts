@@ -1,5 +1,9 @@
 import type { FanletterFanRequestsResponse } from "@/lib/content";
-import { getFanletterFanRequestsForReceiptIds } from "@/lib/fanletter-fan-request-service";
+import {
+  claimFanletterFanRequestReceiptsForRequester,
+  getFanletterFanRequestsForReceiptIds,
+} from "@/lib/fanletter-fan-request-service";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 const DEFAULT_PAGE_SIZE = 12;
 const MAX_PAGE_SIZE = 30;
@@ -7,6 +11,11 @@ const MAX_PAGE_SIZE = 30;
 type ReceiptLookupRequest = {
   pageSize?: unknown;
   requestIds?: unknown;
+};
+
+type ReceiptClaimRequest = ReceiptLookupRequest & {
+  email?: unknown;
+  walletAddress?: unknown;
 };
 
 function jsonError(message: string, status: number) {
@@ -56,5 +65,40 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "Failed to load fan requests.";
 
     return jsonError(message, 500);
+  }
+}
+
+export async function PATCH(request: Request) {
+  let body: ReceiptClaimRequest | null = null;
+
+  try {
+    body = (await request.json()) as ReceiptClaimRequest;
+  } catch {
+    return jsonError("Invalid JSON body.", 400);
+  }
+
+  try {
+    const authorization = await validateMemberWalletOwner({
+      email: typeof body?.email === "string" ? body.email : null,
+      walletAddress:
+        typeof body?.walletAddress === "string" ? body.walletAddress : null,
+    });
+
+    if (authorization.error) {
+      return authorization.error;
+    }
+
+    const response = await claimFanletterFanRequestReceiptsForRequester({
+      pageSize: readPageSize(body?.pageSize),
+      requesterEmail: authorization.normalizedEmail,
+      requestIds: Array.isArray(body?.requestIds) ? body.requestIds : [],
+    });
+
+    return Response.json(response);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to claim fan requests.";
+
+    return jsonError(message, message === "requesterEmail is required." ? 400 : 500);
   }
 }

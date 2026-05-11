@@ -80,6 +80,8 @@ function getCopy(locale: Locale) {
         myRequestsAdd: "다음 요청",
         myRequestsBody:
           "계정으로 남긴 요청과 이 기기에 저장된 요청 영수증을 함께 확인합니다.",
+        myRequestsClaimed:
+          "이 기기에 저장된 요청 영수증을 연결된 계정에 함께 보관합니다.",
         myRequestsEmptyBody:
           "캐릭터 채널에서 보고 싶은 장면을 요청하면 이곳에 진행 상태가 쌓입니다.",
         myRequestsEmptyTitle: "아직 보낸 팬 요청이 없습니다.",
@@ -153,6 +155,8 @@ function getCopy(locale: Locale) {
         myRequestsAdd: "Next request",
         myRequestsBody:
           "Track requests from your account together with receipts saved on this device.",
+        myRequestsClaimed:
+          "Request receipts saved on this device are now kept with your connected account.",
         myRequestsEmptyBody:
           "Request a scene from a character channel, then its progress will appear here.",
         myRequestsEmptyTitle: "No fan requests sent yet.",
@@ -869,6 +873,7 @@ function MyFanRequestsPanel({
   characters,
   error,
   hasLocalReceipts,
+  isReceiptClaimed,
   locale,
   onRetry,
   referralCode,
@@ -878,6 +883,7 @@ function MyFanRequestsPanel({
   characters: FanletterFollowedCharacterRecord[];
   error: string | null;
   hasLocalReceipts: boolean;
+  isReceiptClaimed: boolean;
   locale: Locale;
   onRetry: () => void;
   referralCode: string | null;
@@ -936,7 +942,7 @@ function MyFanRequestsPanel({
           </p>
           {hasLocalReceipts ? (
             <p className="mt-2 text-xs font-semibold leading-5 text-[#1f7c38]">
-              {copy.myRequestsLocalNote}
+              {isReceiptClaimed ? copy.myRequestsClaimed : copy.myRequestsLocalNote}
             </p>
           ) : null}
         </div>
@@ -1234,6 +1240,7 @@ export function FanletterFollowingPage({
   >([]);
   const [receiptRequestStatus, setReceiptRequestStatus] =
     useState<LoadStatus>("idle");
+  const [receiptRequestsClaimed, setReceiptRequestsClaimed] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [updatingReferralCode, setUpdatingReferralCode] = useState<string | null>(
     null,
@@ -1342,6 +1349,7 @@ export function FanletterFollowingPage({
       setFanRequestError(null);
       setFanRequests([]);
       setFanRequestStatus("idle");
+      setReceiptRequestsClaimed(false);
       setStatus("idle");
       return;
     }
@@ -1366,6 +1374,43 @@ export function FanletterFollowingPage({
         setFanRequestStatus("idle");
         setStatus("idle");
         return;
+      }
+
+      const localRequestIds = readFanletterRequestReceiptIds();
+
+      setReceiptRequestIds(localRequestIds);
+
+      if (localRequestIds.length > 0) {
+        try {
+          const claimData = await readApiJson<FanletterFanRequestsResponse>(
+            await fetch("/api/fanletter/requests/receipts", {
+              body: JSON.stringify({
+                email: resolvedEmail,
+                pageSize: 12,
+                requestIds: localRequestIds,
+                walletAddress: accountAddress,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+              method: "PATCH",
+            }),
+            copy.myRequestsError,
+          );
+
+          setReceiptRequests(claimData.requests);
+          setReceiptRequestStatus("ready");
+          setReceiptRequestError(null);
+          setReceiptRequestsClaimed(claimData.requests.length > 0);
+        } catch (claimError) {
+          setReceiptRequestsClaimed(false);
+          setReceiptRequestError(
+            claimError instanceof Error ? claimError.message : copy.myRequestsError,
+          );
+          setReceiptRequestStatus("error");
+        }
+      } else {
+        setReceiptRequestsClaimed(false);
       }
 
       const params = new URLSearchParams({
@@ -1576,6 +1621,7 @@ export function FanletterFollowingPage({
                   characters={characters}
                   error={trackedFanRequestError}
                   hasLocalReceipts={hasLocalRequestReceipts}
+                  isReceiptClaimed={receiptRequestsClaimed}
                   locale={locale}
                   onRetry={() => {
                     void loadReceiptRequests();
@@ -1610,6 +1656,7 @@ export function FanletterFollowingPage({
                   characters={characters}
                   error={trackedFanRequestError}
                   hasLocalReceipts={hasLocalRequestReceipts}
+                  isReceiptClaimed={receiptRequestsClaimed}
                   locale={locale}
                   onRetry={() => {
                     void loadReceiptRequests();
@@ -1639,6 +1686,7 @@ export function FanletterFollowingPage({
                 characters={characters}
                 error={trackedFanRequestError}
                 hasLocalReceipts={hasLocalRequestReceipts}
+                isReceiptClaimed={receiptRequestsClaimed}
                 locale={locale}
                 onRetry={() => {
                   void loadReceiptRequests();
@@ -1670,6 +1718,7 @@ export function FanletterFollowingPage({
                 characters={characters}
                 error={trackedFanRequestError}
                 hasLocalReceipts={hasLocalRequestReceipts}
+                isReceiptClaimed={receiptRequestsClaimed}
                 locale={locale}
                 onRetry={() => {
                   void loadReceiptRequests();
