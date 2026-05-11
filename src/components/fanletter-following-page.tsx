@@ -32,6 +32,7 @@ import type {
   FanletterFollowedCharactersResponse,
 } from "@/lib/content";
 import { useFanletterAccountStatus } from "@/lib/fanletter-account-status";
+import { readFanletterRequestReceiptIds } from "@/lib/fanletter-request-receipts";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -71,11 +72,14 @@ function getCopy(locale: Locale) {
         messageType: "응원 메시지",
         myRequestsAdd: "다음 요청",
         myRequestsBody:
-          "계정으로 남긴 팬 요청이 접수, 검토, 제작 완료까지 어떻게 움직이는지 확인합니다.",
+          "계정으로 남긴 요청과 이 기기에 저장된 요청 영수증을 함께 확인합니다.",
         myRequestsEmptyBody:
           "캐릭터 채널에서 보고 싶은 장면을 요청하면 이곳에 진행 상태가 쌓입니다.",
         myRequestsEmptyTitle: "아직 보낸 팬 요청이 없습니다.",
         myRequestsError: "내 팬 요청 상태를 불러오지 못했습니다.",
+        myRequestsLoading: "팬 요청 상태를 확인하는 중입니다.",
+        myRequestsLocalNote:
+          "로그인 없이 남긴 요청도 이 기기에 저장된 영수증으로 상태를 확인합니다.",
         myRequestsRetry: "요청 상태 새로고침",
         myRequestsTitle: "내 요청 상태",
         myRequestsWatch: "제작된 브이로그",
@@ -134,11 +138,14 @@ function getCopy(locale: Locale) {
         messageType: "Message",
         myRequestsAdd: "Next request",
         myRequestsBody:
-          "Track fan requests you left with your account from received, to reviewed, to produced.",
+          "Track requests from your account together with receipts saved on this device.",
         myRequestsEmptyBody:
           "Request a scene from a character channel, then its progress will appear here.",
         myRequestsEmptyTitle: "No fan requests sent yet.",
         myRequestsError: "Could not load your fan request status.",
+        myRequestsLoading: "Checking fan request status.",
+        myRequestsLocalNote:
+          "Requests left without signing in can still be tracked from receipts saved on this device.",
         myRequestsRetry: "Refresh requests",
         myRequestsTitle: "My request status",
         myRequestsWatch: "Produced vlog",
@@ -214,6 +221,22 @@ async function readApiJson<T>(response: Response, fallback: string): Promise<T> 
   }
 
   return data;
+}
+
+function mergeFanRequests(
+  requestGroups: FanletterFanRequestRecord[][],
+): FanletterFanRequestRecord[] {
+  const requestsById = new Map<string, FanletterFanRequestRecord>();
+
+  requestGroups.flat().forEach((request) => {
+    requestsById.set(request.requestId, request);
+  });
+
+  return Array.from(requestsById.values()).sort(
+    (left, right) =>
+      toTimestamp(right.updatedAt || right.createdAt) -
+      toTimestamp(left.updatedAt || left.createdAt),
+  );
 }
 
 function CharacterAvatar({
@@ -701,6 +724,7 @@ function FanHomeDashboard({
 function MyFanRequestsPanel({
   characters,
   error,
+  hasLocalReceipts,
   locale,
   onRetry,
   referralCode,
@@ -709,6 +733,7 @@ function MyFanRequestsPanel({
 }: {
   characters: FanletterFollowedCharacterRecord[];
   error: string | null;
+  hasLocalReceipts: boolean;
   locale: Locale;
   onRetry: () => void;
   referralCode: string | null;
@@ -765,6 +790,11 @@ function MyFanRequestsPanel({
           <p className="mt-3 text-sm font-medium leading-6 text-black/58">
             {copy.myRequestsBody}
           </p>
+          {hasLocalReceipts ? (
+            <p className="mt-2 text-xs font-semibold leading-5 text-[#1f7c38]">
+              {copy.myRequestsLocalNote}
+            </p>
+          ) : null}
         </div>
         <button
           className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28 disabled:cursor-not-allowed disabled:opacity-60"
@@ -785,7 +815,7 @@ function MyFanRequestsPanel({
         <div className="mt-5 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
           <div className="flex items-center gap-3 text-sm font-semibold text-black/56">
             <Loader2 className="size-4 animate-spin text-[#1f7c38]" />
-            {copy.loading}
+            {copy.myRequestsLoading}
           </div>
         </div>
       ) : status === "error" ? (
@@ -1051,6 +1081,15 @@ export function FanletterFollowingPage({
   const [fanRequestError, setFanRequestError] = useState<string | null>(null);
   const [fanRequests, setFanRequests] = useState<FanletterFanRequestRecord[]>([]);
   const [fanRequestStatus, setFanRequestStatus] = useState<LoadStatus>("idle");
+  const [receiptRequestError, setReceiptRequestError] = useState<string | null>(
+    null,
+  );
+  const [receiptRequestIds, setReceiptRequestIds] = useState<string[]>([]);
+  const [receiptRequests, setReceiptRequests] = useState<
+    FanletterFanRequestRecord[]
+  >([]);
+  const [receiptRequestStatus, setReceiptRequestStatus] =
+    useState<LoadStatus>("idle");
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [updatingReferralCode, setUpdatingReferralCode] = useState<string | null>(
     null,
@@ -1093,6 +1132,65 @@ export function FanletterFollowingPage({
     ],
     [characters, copy.followingCount, copy.publicVlogs, copy.videos],
   );
+  const trackedFanRequests = useMemo(
+    () => mergeFanRequests([fanRequests, receiptRequests]),
+    [fanRequests, receiptRequests],
+  );
+  const trackedFanRequestStatus: LoadStatus =
+    fanRequestStatus === "loading" || receiptRequestStatus === "loading"
+      ? "loading"
+      : trackedFanRequests.length > 0
+        ? "ready"
+        : fanRequestStatus === "error" || receiptRequestStatus === "error"
+          ? "error"
+          : "ready";
+  const trackedFanRequestError = fanRequestError ?? receiptRequestError;
+  const hasLocalRequestReceipts = receiptRequestIds.length > 0;
+  const hasLocalRequestTracking =
+    hasLocalRequestReceipts ||
+    receiptRequests.length > 0 ||
+    receiptRequestStatus === "loading" ||
+    receiptRequestStatus === "error";
+
+  const loadReceiptRequests = useCallback(async () => {
+    const requestIds = readFanletterRequestReceiptIds();
+
+    setReceiptRequestIds(requestIds);
+    setReceiptRequestError(null);
+
+    if (requestIds.length === 0) {
+      setReceiptRequests([]);
+      setReceiptRequestStatus("ready");
+      return;
+    }
+
+    setReceiptRequestStatus("loading");
+
+    try {
+      const data = await readApiJson<FanletterFanRequestsResponse>(
+        await fetch("/api/fanletter/requests/receipts", {
+          body: JSON.stringify({
+            pageSize: 12,
+            requestIds,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        }),
+        copy.myRequestsError,
+      );
+
+      setReceiptRequests(data.requests);
+      setReceiptRequestStatus("ready");
+    } catch (requestError) {
+      setReceiptRequests([]);
+      setReceiptRequestError(
+        requestError instanceof Error ? requestError.message : copy.myRequestsError,
+      );
+      setReceiptRequestStatus("error");
+    }
+  }, [copy.myRequestsError]);
 
   const loadFollowing = useCallback(async () => {
     if (!accountAddress) {
@@ -1240,6 +1338,10 @@ export function FanletterFollowingPage({
   }, [accountAddress]);
 
   useEffect(() => {
+    void loadReceiptRequests();
+  }, [loadReceiptRequests]);
+
+  useEffect(() => {
     if (!connection.isConnected) {
       return;
     }
@@ -1290,6 +1392,7 @@ export function FanletterFollowingPage({
               <button
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/8"
                 onClick={() => {
+                  void loadReceiptRequests();
                   void loadFollowing();
                 }}
                 type="button"
@@ -1311,33 +1414,82 @@ export function FanletterFollowingPage({
               title={copy.loading}
             />
           ) : showConnect ? (
-            <StatePanel
-              actionHref={connectHref}
-              actionLabel={copy.connect}
-              body={copy.connectBody}
-              icon="connect"
-              title={copy.connectTitle}
-            />
+            <>
+              <StatePanel
+                actionHref={connectHref}
+                actionLabel={copy.connect}
+                body={copy.connectBody}
+                icon="connect"
+                title={copy.connectTitle}
+              />
+              {hasLocalRequestTracking ? (
+                <MyFanRequestsPanel
+                  characters={characters}
+                  error={trackedFanRequestError}
+                  hasLocalReceipts={hasLocalRequestReceipts}
+                  locale={locale}
+                  onRetry={() => {
+                    void loadReceiptRequests();
+                  }}
+                  referralCode={referralCode}
+                  requests={trackedFanRequests}
+                  status={trackedFanRequestStatus}
+                />
+              ) : null}
+            </>
           ) : status === "error" ? (
-            <StatePanel
-              actionHref={feedHref}
-              actionLabel={copy.emptyCta}
-              body={error ?? copy.errorBody}
-              icon="error"
-              onRetry={() => {
-                void loadFollowing();
-              }}
-              retryLabel={copy.retry}
-              title={copy.errorBody}
-            />
+            <>
+              <StatePanel
+                actionHref={feedHref}
+                actionLabel={copy.emptyCta}
+                body={error ?? copy.errorBody}
+                icon="error"
+                onRetry={() => {
+                  void loadReceiptRequests();
+                  void loadFollowing();
+                }}
+                retryLabel={copy.retry}
+                title={copy.errorBody}
+              />
+              {hasLocalRequestTracking ? (
+                <MyFanRequestsPanel
+                  characters={characters}
+                  error={trackedFanRequestError}
+                  hasLocalReceipts={hasLocalRequestReceipts}
+                  locale={locale}
+                  onRetry={() => {
+                    void loadReceiptRequests();
+                    void loadFollowing();
+                  }}
+                  referralCode={referralCode}
+                  requests={trackedFanRequests}
+                  status={trackedFanRequestStatus}
+                />
+              ) : null}
+            </>
           ) : characters.length === 0 ? (
-            <StatePanel
-              actionHref={feedHref}
-              actionLabel={copy.emptyCta}
-              body={copy.emptyBody}
-              icon="empty"
-              title={copy.emptyTitle}
-            />
+            <>
+              <StatePanel
+                actionHref={feedHref}
+                actionLabel={copy.emptyCta}
+                body={copy.emptyBody}
+                icon="empty"
+                title={copy.emptyTitle}
+              />
+              <MyFanRequestsPanel
+                characters={characters}
+                error={trackedFanRequestError}
+                hasLocalReceipts={hasLocalRequestReceipts}
+                locale={locale}
+                onRetry={() => {
+                  void loadReceiptRequests();
+                  void loadFollowing();
+                }}
+                referralCode={referralCode}
+                requests={trackedFanRequests}
+                status={trackedFanRequestStatus}
+              />
+            </>
           ) : (
             <>
               {actionError ? (
@@ -1352,14 +1504,16 @@ export function FanletterFollowingPage({
               />
               <MyFanRequestsPanel
                 characters={characters}
-                error={fanRequestError}
+                error={trackedFanRequestError}
+                hasLocalReceipts={hasLocalRequestReceipts}
                 locale={locale}
                 onRetry={() => {
+                  void loadReceiptRequests();
                   void loadFollowing();
                 }}
                 referralCode={referralCode}
-                requests={fanRequests}
-                status={fanRequestStatus}
+                requests={trackedFanRequests}
+                status={trackedFanRequestStatus}
               />
               <div className="mb-8 grid gap-3 md:grid-cols-3">
                 {stats.map((stat) => {

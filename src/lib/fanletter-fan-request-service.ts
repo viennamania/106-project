@@ -30,6 +30,7 @@ const FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX = 50;
 const FANLETTER_FAN_REQUEST_RATE_LIMIT_COUNT = 3;
 const FANLETTER_FAN_REQUEST_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const FANLETTER_FAN_REQUEST_DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const FANLETTER_FAN_REQUEST_RECEIPT_LOOKUP_LIMIT = 30;
 const FANLETTER_FAN_REQUEST_BLOCKED_PATTERNS = [
   /https?:\/\//i,
   /\bwww\./i,
@@ -51,6 +52,16 @@ function normalizeRequesterFingerprint(value: string | null | undefined) {
   const normalized = collapseWhitespace(value ?? "");
 
   return normalized ? normalized.slice(0, 80) : null;
+}
+
+function normalizeReceiptRequestIds(values: unknown[]) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => (typeof value === "string" ? collapseWhitespace(value) : ""))
+        .filter((value) => /^[A-Za-z0-9-]{8,80}$/.test(value)),
+    ),
+  ).slice(0, FANLETTER_FAN_REQUEST_RECEIPT_LOOKUP_LIMIT);
 }
 
 function assertFanRequestBodyAllowed(body: string) {
@@ -353,6 +364,49 @@ export async function getFanletterFanRequestsForRequester({
   const requests = await requestsCollection
     .find({
       requesterEmail: normalizedRequesterEmail,
+      status: { $in: ["new", "reviewed", "used"] },
+    })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .limit(normalizedPageSize + 1)
+    .toArray();
+  const visibleRequests = requests.slice(0, normalizedPageSize);
+
+  return {
+    pageInfo: {
+      hasNextPage: requests.length > normalizedPageSize,
+      pageSize: normalizedPageSize,
+    },
+    requests: visibleRequests.map(serializeFanRequest),
+  };
+}
+
+export async function getFanletterFanRequestsForReceiptIds({
+  pageSize = 20,
+  requestIds,
+}: {
+  pageSize?: number;
+  requestIds: unknown[];
+}) {
+  const normalizedRequestIds = normalizeReceiptRequestIds(requestIds);
+  const normalizedPageSize = Math.max(
+    1,
+    Math.min(Math.trunc(pageSize), FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX),
+  );
+
+  if (normalizedRequestIds.length === 0) {
+    return {
+      pageInfo: {
+        hasNextPage: false,
+        pageSize: normalizedPageSize,
+      },
+      requests: [],
+    };
+  }
+
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const requests = await requestsCollection
+    .find({
+      requestId: { $in: normalizedRequestIds },
       status: { $in: ["new", "reviewed", "used"] },
     })
     .sort({ updatedAt: -1, createdAt: -1 })

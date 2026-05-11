@@ -19,6 +19,7 @@ import type {
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+import { rememberFanletterRequestReceiptId } from "@/lib/fanletter-request-receipts";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
 
@@ -52,6 +53,8 @@ function getCopy(locale: Locale) {
         note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
         requestKind: "요청 종류",
         requestPreview: "방금 보낸 요청",
+        requestReceipt:
+          "이 요청은 이 기기에 저장되어 계정 연결 전에도 상태를 다시 확인할 수 있습니다.",
         requestStatus: "내 요청 상태 보기",
         saved:
           "요청이 크리에이터 스튜디오에 들어갔습니다.",
@@ -101,6 +104,8 @@ function getCopy(locale: Locale) {
         note: "You can leave a request without signing in. Duplicate requests are not saved.",
         requestKind: "Request type",
         requestPreview: "Request just sent",
+        requestReceipt:
+          "This request is saved on this device, so you can track it before connecting an account.",
         requestStatus: "Track my request",
         saved:
           "Your request entered the creator's studio inbox.",
@@ -223,7 +228,7 @@ export function FanletterFanRequestForm({
         typeof window === "undefined"
           ? null
           : `${window.location.pathname}${window.location.search}`;
-      await readApiJson<FanletterFanRequestCreateResponse>(
+      const data = await readApiJson<FanletterFanRequestCreateResponse>(
         await fetch("/api/fanletter/requests", {
           body: JSON.stringify({
             body,
@@ -242,6 +247,7 @@ export function FanletterFanRequestForm({
         copy.errorFallback,
       );
 
+      rememberFanletterRequestReceiptId(data.request.requestId);
       setLastSubmittedRequest({
         body: body.trim(),
         requestType,
@@ -437,6 +443,9 @@ export function FanletterFanRequestForm({
                   </p>
                   <p className="mt-1 text-sm font-medium leading-6 text-white/56">
                     {copy.successBody}
+                  </p>
+                  <p className="mt-2 text-xs font-semibold leading-5 text-[#b9ffc8]">
+                    {copy.requestReceipt}
                   </p>
                 </div>
               </div>
