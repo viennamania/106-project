@@ -70,6 +70,13 @@ function getCopy(locale: Locale) {
         latestFrom: "최신 공개 브이로그",
         loading: "팔로우한 캐릭터를 확인하는 중입니다.",
         messageType: "응원 메시지",
+        myProducedBody:
+          "팬이 남긴 요청이 실제 공개 브이로그로 제작되었습니다. 바로 결과를 확인하고 다음 장면도 이어서 요청할 수 있습니다.",
+        myProducedCta: "제작된 브이로그 보기",
+        myProducedEyebrow: "제작 완료 알림",
+        myProducedMore: "더 많은 제작 완료 요청",
+        myProducedRequest: "요청 원문",
+        myProducedTitle: "내 요청이 브이로그가 됐어요",
         myRequestsAdd: "다음 요청",
         myRequestsBody:
           "계정으로 남긴 요청과 이 기기에 저장된 요청 영수증을 함께 확인합니다.",
@@ -136,6 +143,13 @@ function getCopy(locale: Locale) {
         latestFrom: "Latest public vlog",
         loading: "Checking followed characters.",
         messageType: "Message",
+        myProducedBody:
+          "A fan request became a published vlog. Watch the result now, then leave the next scene request.",
+        myProducedCta: "Watch produced vlog",
+        myProducedEyebrow: "Produced alert",
+        myProducedMore: "More produced requests",
+        myProducedRequest: "Original request",
+        myProducedTitle: "Your request became a vlog",
         myRequestsAdd: "Next request",
         myRequestsBody:
           "Track requests from your account together with receipts saved on this device.",
@@ -717,6 +731,136 @@ function FanHomeDashboard({
           </div>
         </div>
       </aside>
+    </section>
+  );
+}
+
+function ProducedRequestHighlight({
+  locale,
+  referralCode,
+  requests,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  requests: FanletterFanRequestRecord[];
+}) {
+  const copy = getCopy(locale);
+  const producedRequests = requests
+    .filter((request) => request.status === "used" && request.usedContentId)
+    .slice(0, 3);
+  const featuredRequest = producedRequests[0] ?? null;
+
+  if (!featuredRequest?.usedContentId) {
+    return null;
+  }
+
+  const featuredHref = buildPathWithReferral(
+    `/${locale}/fanletter/content/${featuredRequest.usedContentId}`,
+    referralCode ?? featuredRequest.creatorReferralCode,
+  );
+
+  return (
+    <section className="mb-8 overflow-hidden rounded-lg bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)]">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.46fr)]">
+        <div className="p-5 sm:p-6 lg:p-7">
+          <div className="flex items-start gap-3">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <BadgeCheck className="size-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+                {copy.myProducedEyebrow}
+              </p>
+              <h2 className="mt-3 break-words text-[2rem] font-semibold leading-[1.05] tracking-normal [overflow-wrap:anywhere] sm:text-[2.75rem] sm:[word-break:keep-all]">
+                {copy.myProducedTitle}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+                {copy.myProducedBody}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-semibold text-black">
+                {copy.myProducedRequest}
+              </span>
+              <span className="text-xs font-semibold text-white/38">
+                {formatDate(featuredRequest.updatedAt, locale) ??
+                  formatDate(featuredRequest.createdAt, locale) ??
+                  "FanLetter"}
+              </span>
+            </div>
+            <h3 className="mt-4 truncate text-sm font-semibold text-[#b9ffc8]">
+              {featuredRequest.characterName}
+            </h3>
+            <p className="mt-2 line-clamp-3 break-words text-base font-semibold leading-7 text-white [overflow-wrap:anywhere]">
+              {featuredRequest.body}
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={featuredHref}
+            >
+              <PlayCircle className="size-4" />
+              {copy.myProducedCta}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+              href={`${buildPathWithReferral(
+                `/${locale}/fanletter/creator/${featuredRequest.creatorReferralCode}`,
+                referralCode ?? featuredRequest.creatorReferralCode,
+              )}#fan-requests`}
+            >
+              <MessageCircleHeart className="size-4" />
+              {copy.myRequestsAdd}
+            </Link>
+          </div>
+        </div>
+
+        <aside className="border-t border-white/10 bg-white/[0.055] p-5 sm:p-6 lg:border-l lg:border-t-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            {copy.myProducedMore}
+          </p>
+          <div className="mt-4 grid gap-3">
+            {producedRequests.map((request) => {
+              const contentHref = request.usedContentId
+                ? buildPathWithReferral(
+                    `/${locale}/fanletter/content/${request.usedContentId}`,
+                    referralCode ?? request.creatorReferralCode,
+                  )
+                : null;
+
+              if (!contentHref) {
+                return null;
+              }
+
+              return (
+                <Link
+                  className="group rounded-lg border border-white/10 bg-black/18 p-4 transition hover:border-[#44f26e]/42 hover:bg-black/26"
+                  href={contentHref}
+                  key={request.requestId}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+                      {copy.statusUsed}
+                    </span>
+                    <ArrowRight className="size-4 shrink-0 text-white/34 transition group-hover:text-[#44f26e]" />
+                  </div>
+                  <p className="mt-3 truncate text-sm font-semibold text-white">
+                    {request.characterName}
+                  </p>
+                  <p className="mt-2 line-clamp-2 break-words text-sm font-medium leading-6 text-white/58 [overflow-wrap:anywhere]">
+                    {request.body}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }
@@ -1422,6 +1566,11 @@ export function FanletterFollowingPage({
                 icon="connect"
                 title={copy.connectTitle}
               />
+              <ProducedRequestHighlight
+                locale={locale}
+                referralCode={referralCode}
+                requests={trackedFanRequests}
+              />
               {hasLocalRequestTracking ? (
                 <MyFanRequestsPanel
                   characters={characters}
@@ -1451,6 +1600,11 @@ export function FanletterFollowingPage({
                 retryLabel={copy.retry}
                 title={copy.errorBody}
               />
+              <ProducedRequestHighlight
+                locale={locale}
+                referralCode={referralCode}
+                requests={trackedFanRequests}
+              />
               {hasLocalRequestTracking ? (
                 <MyFanRequestsPanel
                   characters={characters}
@@ -1475,6 +1629,11 @@ export function FanletterFollowingPage({
                 body={copy.emptyBody}
                 icon="empty"
                 title={copy.emptyTitle}
+              />
+              <ProducedRequestHighlight
+                locale={locale}
+                referralCode={referralCode}
+                requests={trackedFanRequests}
               />
               <MyFanRequestsPanel
                 characters={characters}
@@ -1501,6 +1660,11 @@ export function FanletterFollowingPage({
                 characters={characters}
                 locale={locale}
                 referralCode={referralCode}
+              />
+              <ProducedRequestHighlight
+                locale={locale}
+                referralCode={referralCode}
+                requests={trackedFanRequests}
               />
               <MyFanRequestsPanel
                 characters={characters}
