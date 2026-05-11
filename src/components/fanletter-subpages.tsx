@@ -2173,9 +2173,12 @@ function FanletterFanRequestSourceCard({
           channelCta: "캐릭터 채널 보기",
           cta: "나도 다음 요청 남기기",
           eyebrow: "Fan Request",
+          flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
           message: "팬 메시지 기반",
+          originalRequest: "원 요청 내용",
           requestedBy: "요청",
-          result: "팬이 남긴 한마디가 실제 브이로그 소재로 반영되었습니다.",
+          result:
+            "팬이 남긴 한마디가 실제 브이로그 소재로 반영되었습니다. 같은 방식으로 다음 장면도 요청할 수 있습니다.",
           title: "팬 요청으로 만든 브이로그",
           vlogRequest: "다음 브이로그 요청 기반",
         }
@@ -2183,9 +2186,12 @@ function FanletterFanRequestSourceCard({
           channelCta: "View character channel",
           cta: "Leave my next request",
           eyebrow: "Fan Request",
+          flow: ["Request received", "Vlog produced", "Next request open"],
           message: "Inspired by a fan message",
+          originalRequest: "Original request",
           requestedBy: "Request",
-          result: "A fan note became the idea behind this vlog.",
+          result:
+            "A fan note became the idea behind this vlog. You can request the next scene the same way.",
           title: "Vlog made from a fan request",
           vlogRequest: "Inspired by a next-vlog request",
         };
@@ -2194,7 +2200,7 @@ function FanletterFanRequestSourceCard({
   const createdLabel = formatDate(source.createdAt, locale);
 
   return (
-    <section className="mt-6 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-white sm:p-5">
+    <section className="mt-6 rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
@@ -2214,9 +2220,14 @@ function FanletterFanRequestSourceCard({
             <p className="mt-2 text-sm font-semibold leading-6 text-[#b9ffc8]">
               {labels.result}
             </p>
-            <p className="mt-3 break-words rounded-lg border border-white/10 bg-black/22 p-3 text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere]">
-              {source.body}
-            </p>
+            <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3">
+              <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#8dffa5]">
+                {labels.originalRequest}
+              </p>
+              <p className="mt-2 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                {source.body}
+              </p>
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="rounded-full border border-[#44f26e]/26 bg-black/22 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
                 {typeLabel}
@@ -2231,6 +2242,19 @@ function FanletterFanRequestSourceCard({
                   {createdLabel}
                 </span>
               ) : null}
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {labels.flow.map((item, index) => (
+                <span
+                  className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-semibold text-white/62"
+                  key={item}
+                >
+                  <span className="mr-2 text-[#44f26e]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -2250,6 +2274,73 @@ function FanletterFanRequestSourceCard({
             <ArrowRight className="size-4" />
           </Link>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FanletterDetailRequestCta({
+  characterName,
+  fanRequestHref,
+  locale,
+}: {
+  characterName: string;
+  fanRequestHref: string;
+  locale: Locale;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body: `${characterName}에게 보고 싶은 룩, 장소, 질문을 남기면 크리에이터가 스튜디오 요청함에서 바로 다음 브이로그 소재로 확인할 수 있습니다.`,
+          cta: "다음 장면 요청하기",
+          eyebrow: "Fan Request",
+          steps: ["장면 남기기", "제작 후보 검토", "채널에서 공개 확인"],
+          title: "이 브이로그 다음 장면을 요청하세요",
+        }
+      : {
+          body: `Leave the outfit, place, or question you want ${characterName} to answer. The creator can review it from the studio inbox as a next-vlog idea.`,
+          cta: "Request next scene",
+          eyebrow: "Fan Request",
+          steps: ["Leave a scene", "Reviewed for production", "Watch it on channel"],
+          title: "Request the next scene after this vlog",
+        };
+
+  return (
+    <section className="mt-6 rounded-lg border border-[#44f26e]/26 bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.045)_48%,rgba(3,5,4,0.86))] p-4 text-white sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            <PenLine className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {labels.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
+              {labels.title}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+              {labels.body}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {labels.steps.map((step, index) => (
+                <span
+                  className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]"
+                  key={step}
+                >
+                  {String(index + 1).padStart(2, "0")} · {step}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <Link
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          href={fanRequestHref}
+        >
+          {labels.cta}
+          <ArrowRight className="size-4" />
+        </Link>
       </div>
     </section>
   );
@@ -3951,6 +4042,21 @@ export function FanletterContentDetailPage({
                 title={content.title}
               />
 
+              {content.fanRequestSource ? (
+                <FanletterFanRequestSourceCard
+                  channelHref={creatorHref}
+                  content={content}
+                  locale={locale}
+                  requestHref={fanRequestHref}
+                />
+              ) : (
+                <FanletterDetailRequestCta
+                  characterName={contentCharacterName}
+                  fanRequestHref={fanRequestHref}
+                  locale={locale}
+                />
+              )}
+
               <FanletterDetailQuickActions
                 characterName={contentCharacterName}
                 creatorActionHref={creatorActionHref}
@@ -3960,13 +4066,6 @@ export function FanletterContentDetailPage({
                 fanRequestHref={fanRequestHref}
                 locale={locale}
                 startHref={startHref}
-              />
-
-              <FanletterFanRequestSourceCard
-                channelHref={creatorHref}
-                content={content}
-                locale={locale}
-                requestHref={fanRequestHref}
               />
 
               <FanletterCharacterMiniCard
