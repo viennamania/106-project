@@ -28,12 +28,12 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "팔로우한 캐릭터 | FanLetter"
-      : "Followed Characters | FanLetter";
+      ? "팬 홈 | FanLetter"
+      : "Fan Home | FanLetter";
   const description =
     locale === "ko"
-      ? "FanLetter에서 팔로우한 AI 캐릭터와 최신 공개 브이로그를 확인하세요."
-      : "View AI characters you follow and their latest public vlogs on FanLetter.";
+      ? "FanLetter에서 팔로우한 AI 캐릭터의 최신 공개 브이로그와 팬 요청 흐름을 이어가세요."
+      : "Continue into latest public vlogs and fan requests from AI characters you follow on FanLetter.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/following`,
     referralCode,
