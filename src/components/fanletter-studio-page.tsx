@@ -173,10 +173,17 @@ function getCopy(locale: Locale) {
             usedTitle: "제작 반영된 요청입니다.",
           },
           hide: "숨김",
+          categoryLabel: "자동 분류",
+          recommendedBody:
+            "신규/확인함 요청 중 바로 브이로그 소재로 옮기기 좋은 요청을 먼저 띄웁니다.",
+          recommendedCta: "이 요청으로 바로 만들기",
+          recommendedEyebrow: "오늘의 추천 요청",
+          recommendedTitle: "지금 만들기 좋은 팬 요청",
           markReviewed: "확인",
           openCount: "제작 대기",
           requester: "보낸 사람",
           source: "요청 위치 보기",
+          sourceVlog: "브이로그 기반",
           statuses: {
             hidden: "숨김",
             new: "신규",
@@ -194,6 +201,14 @@ function getCopy(locale: Locale) {
           types: {
             message: "응원 메시지",
             vlog_request: "브이로그 요청",
+          },
+          categories: {
+            look: "룩/스타일",
+            place: "장소",
+            question: "질문/답장",
+            routine: "루틴",
+            story: "스토리",
+            support: "응원",
           },
           usedNotice: "게시된 브이로그와 연결된 요청입니다.",
           workflow: ["요청 확인", "소재 자동 반영", "게시 후 자동 정리"],
@@ -316,10 +331,17 @@ function getCopy(locale: Locale) {
             usedTitle: "Requests already reflected in vlogs.",
           },
           hide: "Hide",
+          categoryLabel: "Auto category",
+          recommendedBody:
+            "Among new and reviewed requests, this one is ready to move into a vlog.",
+          recommendedCta: "Create this now",
+          recommendedEyebrow: "Today's request pick",
+          recommendedTitle: "A fan request ready to create",
           markReviewed: "Reviewed",
           openCount: "Ready to create",
           requester: "From",
           source: "View source",
+          sourceVlog: "Source vlog",
           statuses: {
             hidden: "Hidden",
             new: "New",
@@ -337,6 +359,14 @@ function getCopy(locale: Locale) {
           types: {
             message: "Support message",
             vlog_request: "Vlog request",
+          },
+          categories: {
+            look: "Look/style",
+            place: "Place",
+            question: "Question/reply",
+            routine: "Routine",
+            story: "Story",
+            support: "Support",
           },
           usedNotice: "This request is linked to a published vlog.",
           workflow: ["Review request", "Apply as an idea", "Auto-organise after publish"],
@@ -530,6 +560,67 @@ function buildFanRequestCreateHref({
   });
 }
 
+type FanRequestCategory =
+  | "look"
+  | "place"
+  | "question"
+  | "routine"
+  | "story"
+  | "support";
+
+function getFanRequestCategory(request: FanletterFanRequestRecord): FanRequestCategory {
+  const body = request.body.toLowerCase();
+
+  if (request.requestType === "message") {
+    return "support";
+  }
+
+  if (
+    /카페|공원|바다|해변|학교|회사|사무실|집|방|거리|춘천|서울|부산|제주|cafe|park|beach|school|office|home|room|street|seoul|busan|jeju/.test(
+      body,
+    )
+  ) {
+    return "place";
+  }
+
+  if (
+    /옷|의상|룩|패션|스타일|코디|헤어|메이크업|outfit|look|fashion|style|hair|makeup/.test(
+      body,
+    )
+  ) {
+    return "look";
+  }
+
+  if (
+    /질문|답장|대답|말해|알려|궁금|q&a|question|answer|reply|ask/.test(body)
+  ) {
+    return "question";
+  }
+
+  if (
+    /루틴|아침|저녁|하루|운동|공부|출근|퇴근|routine|morning|night|daily|workout|study/.test(
+      body,
+    )
+  ) {
+    return "routine";
+  }
+
+  return "story";
+}
+
+function getFanRequestProductionScore(request: FanletterFanRequestRecord) {
+  const normalizedBody = request.body.trim();
+  const category = getFanRequestCategory(request);
+  const statusScore =
+    request.status === "new" ? 70 : request.status === "reviewed" ? 55 : 0;
+  const typeScore = request.requestType === "vlog_request" ? 18 : 6;
+  const lengthScore = Math.min(18, Math.floor(normalizedBody.length / 18));
+  const sourceScore = request.sourceContentId ? 5 : 0;
+  const categoryScore = category === "support" ? 3 : 8;
+
+  return statusScore + typeScore + lengthScore + sourceScore + categoryScore;
+}
+
 function StatusPanel({
   body,
   cta,
@@ -704,6 +795,22 @@ function FanRequestsSection({
       );
     });
   }, [requests]);
+  const recommendedRequest = useMemo(
+    () =>
+      [...requests]
+        .filter(
+          (request) =>
+            request.status === "new" || request.status === "reviewed",
+        )
+        .sort(
+          (left, right) =>
+            getFanRequestProductionScore(right) -
+              getFanRequestProductionScore(left) ||
+            new Date(right.createdAt).getTime() -
+              new Date(left.createdAt).getTime(),
+        )[0] ?? null,
+    [requests],
+  );
   const requestTabs: Array<{
     Icon: typeof MessageCircleHeart;
     label: string;
@@ -749,6 +856,16 @@ function FanRequestsSection({
   const ActiveFilterIcon =
     requestTabs.find((tab) => tab.value === activeFilter)?.Icon ??
     MessageCircleHeart;
+  const recommendedCategory = recommendedRequest
+    ? getFanRequestCategory(recommendedRequest)
+    : null;
+  const recommendedCreateHref = recommendedRequest
+    ? buildFanRequestCreateHref({
+        createHref,
+        locale,
+        request: recommendedRequest,
+      })
+    : null;
 
   return (
     <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
@@ -794,6 +911,69 @@ function FanRequestsSection({
           </div>
         ))}
       </div>
+
+      {recommendedRequest && recommendedCreateHref && recommendedCategory ? (
+        <div className="mt-4 rounded-lg border border-[#44f26e]/35 bg-[#07100b] p-4 text-white shadow-[0_18px_48px_rgba(8,18,12,0.18)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Sparkles className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
+                  {copy.fanRequests.recommendedEyebrow}
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-normal">
+                  {copy.fanRequests.recommendedTitle}
+                </h3>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                  {copy.fanRequests.recommendedBody}
+                </p>
+                <p className="mt-4 line-clamp-3 break-words rounded-lg border border-white/10 bg-white/[0.055] p-3 text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                  {recommendedRequest.body}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                    {copy.fanRequests.categoryLabel} ·{" "}
+                    {copy.fanRequests.categories[recommendedCategory]}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/58">
+                    {copy.fanRequests.types[recommendedRequest.requestType]}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/58">
+                    {copy.fanRequests.statuses[recommendedRequest.status]}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-60 lg:grid-cols-1">
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={recommendedCreateHref}
+              >
+                {copy.fanRequests.recommendedCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              {recommendedRequest.status === "new" ? (
+                <button
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold text-white/68 transition hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={updatingRequestId === recommendedRequest.requestId}
+                  onClick={() => {
+                    onUpdateStatus(recommendedRequest.requestId, "reviewed");
+                  }}
+                  type="button"
+                >
+                  {updatingRequestId === recommendedRequest.requestId ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    copy.fanRequests.markReviewed
+                  )}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {requests.length > 0 ? (
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
@@ -882,6 +1062,7 @@ function FanRequestsSection({
               locale,
               request,
             });
+            const category = getFanRequestCategory(request);
             const createdLabel = formatDate(request.createdAt, locale);
             const sourceHref = request.sourcePath?.startsWith("/")
               ? request.sourcePath
@@ -922,6 +1103,17 @@ function FanRequestsSection({
                 <p className="mt-4 line-clamp-4 break-words text-base font-semibold leading-7 text-black [overflow-wrap:anywhere]">
                   {request.body}
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 py-1 text-xs font-semibold text-[#16702e]">
+                    {copy.fanRequests.categoryLabel} ·{" "}
+                    {copy.fanRequests.categories[category]}
+                  </span>
+                  {request.sourceContentId ? (
+                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-black/44">
+                      {copy.fanRequests.sourceVlog}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="mt-4 grid gap-2 text-xs font-semibold text-black/44 sm:grid-cols-2">
                   <span>
                     {copy.fanRequests.requester}:{" "}
