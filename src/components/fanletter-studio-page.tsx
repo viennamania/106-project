@@ -174,6 +174,12 @@ function getCopy(locale: Locale) {
           },
           hide: "숨김",
           categoryLabel: "자동 분류",
+          candidateQueueBody:
+            "신규/확인함 요청 중 제작 점수가 높은 요청을 자동 정렬해 바로 만들 후보로 묶었습니다.",
+          candidateQueueEyebrow: "제작 후보 큐",
+          candidateQueueRank: "후보",
+          candidateQueueTitle: "오늘 만들기 좋은 요청 3개",
+          candidateQueueTop: "최우선",
           recommendedBody:
             "신규/확인함 요청 중 바로 브이로그 소재로 옮기기 좋은 요청을 먼저 띄웁니다.",
           recommendedCta: "이 요청으로 바로 만들기",
@@ -332,6 +338,12 @@ function getCopy(locale: Locale) {
           },
           hide: "Hide",
           categoryLabel: "Auto category",
+          candidateQueueBody:
+            "New and reviewed requests are scored and sorted into a short create-now queue.",
+          candidateQueueEyebrow: "Production queue",
+          candidateQueueRank: "Candidate",
+          candidateQueueTitle: "Three requests ready to create",
+          candidateQueueTop: "Top pick",
           recommendedBody:
             "Among new and reviewed requests, this one is ready to move into a vlog.",
           recommendedCta: "Create this now",
@@ -797,7 +809,7 @@ function FanRequestsSection({
       );
     });
   }, [requests]);
-  const recommendedRequest = useMemo(
+  const recommendedRequests = useMemo(
     () =>
       [...requests]
         .filter(
@@ -810,7 +822,8 @@ function FanRequestsSection({
               getFanRequestProductionScore(left) ||
             new Date(right.createdAt).getTime() -
               new Date(left.createdAt).getTime(),
-        )[0] ?? null,
+        )
+        .slice(0, 3),
     [requests],
   );
   const requestTabs: Array<{
@@ -858,17 +871,6 @@ function FanRequestsSection({
   const ActiveFilterIcon =
     requestTabs.find((tab) => tab.value === activeFilter)?.Icon ??
     MessageCircleHeart;
-  const recommendedCategory = recommendedRequest
-    ? getFanRequestCategory(recommendedRequest)
-    : null;
-  const recommendedCreateHref = recommendedRequest
-    ? buildFanRequestCreateHref({
-        createHref,
-        locale,
-        request: recommendedRequest,
-      })
-    : null;
-
   return (
     <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -914,7 +916,7 @@ function FanRequestsSection({
         ))}
       </div>
 
-      {recommendedRequest && recommendedCreateHref && recommendedCategory ? (
+      {recommendedRequests.length > 0 ? (
         <div className="mt-4 rounded-lg border border-[#44f26e]/35 bg-[#07100b] p-4 text-white shadow-[0_18px_48px_rgba(8,18,12,0.18)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-3">
@@ -923,56 +925,118 @@ function FanRequestsSection({
               </span>
               <div className="min-w-0">
                 <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
-                  {copy.fanRequests.recommendedEyebrow}
+                  {copy.fanRequests.candidateQueueEyebrow}
                 </p>
                 <h3 className="mt-2 text-xl font-semibold tracking-normal">
-                  {copy.fanRequests.recommendedTitle}
+                  {copy.fanRequests.candidateQueueTitle}
                 </h3>
-                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
-                  {copy.fanRequests.recommendedBody}
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-white/62">
+                  {copy.fanRequests.candidateQueueBody}
                 </p>
-                <p className="mt-4 line-clamp-3 break-words rounded-lg border border-white/10 bg-white/[0.055] p-3 text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
-                  {recommendedRequest.body}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
-                    {copy.fanRequests.categoryLabel} ·{" "}
-                    {copy.fanRequests.categories[recommendedCategory]}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/58">
-                    {copy.fanRequests.types[recommendedRequest.requestType]}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/58">
-                    {copy.fanRequests.statuses[recommendedRequest.status]}
-                  </span>
-                </div>
               </div>
             </div>
-            <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-60 lg:grid-cols-1">
-              <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={recommendedCreateHref}
-              >
-                {copy.fanRequests.recommendedCta}
-                <ArrowRight className="size-4" />
-              </Link>
-              {recommendedRequest.status === "new" ? (
-                <button
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold text-white/68 transition hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={updatingRequestId === recommendedRequest.requestId}
-                  onClick={() => {
-                    onUpdateStatus(recommendedRequest.requestId, "reviewed");
-                  }}
-                  type="button"
-                >
-                  {updatingRequestId === recommendedRequest.requestId ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    copy.fanRequests.markReviewed
-                  )}
-                </button>
-              ) : null}
+            <div className="rounded-lg border border-[#44f26e]/20 bg-[#44f26e]/10 px-4 py-3 text-sm font-semibold text-[#b9ffc8]">
+              {formatNumber(recommendedRequests.length, locale)} / 3
             </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            {recommendedRequests.map((request, index) => {
+              const category = getFanRequestCategory(request);
+              const createFromRequestHref = buildFanRequestCreateHref({
+                createHref,
+                locale,
+                request,
+              });
+              const isUpdating = updatingRequestId === request.requestId;
+              const isTopPick = index === 0;
+
+              return (
+                <article
+                  className={`rounded-lg border p-4 ${
+                    isTopPick
+                      ? "border-[#44f26e]/42 bg-[#44f26e]/12"
+                      : "border-white/10 bg-white/[0.045]"
+                  }`}
+                  key={request.requestId}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] ${
+                        isTopPick
+                          ? "bg-[#44f26e] text-black"
+                          : "border border-[#44f26e]/24 bg-[#44f26e]/10 text-[#b9ffc8]"
+                      }`}
+                    >
+                      {isTopPick
+                        ? copy.fanRequests.candidateQueueTop
+                        : `${copy.fanRequests.candidateQueueRank} ${index + 1}`}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[0.64rem] font-semibold text-white/56">
+                      {copy.fanRequests.statuses[request.status]}
+                    </span>
+                  </div>
+                  <p className="mt-4 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                    {request.body}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                      {copy.fanRequests.categories[category]}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/52">
+                      {copy.fanRequests.types[request.requestType]}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    <Link
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-xs font-semibold !text-black transition hover:bg-[#64ff84]"
+                      href={createFromRequestHref}
+                    >
+                      {isTopPick
+                        ? copy.fanRequests.recommendedCta
+                        : copy.fanRequests.create}
+                      <ArrowRight className="size-3.5" />
+                    </Link>
+                    <div className="grid grid-cols-2 gap-2">
+                      {request.status === "new" ? (
+                        <button
+                          className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-3 text-xs font-semibold text-white/62 transition hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={isUpdating}
+                          onClick={() => {
+                            onUpdateStatus(request.requestId, "reviewed");
+                          }}
+                          type="button"
+                        >
+                          {isUpdating ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            copy.fanRequests.markReviewed
+                          )}
+                        </button>
+                      ) : (
+                        <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-white/44">
+                          {copy.fanRequests.statuses[request.status]}
+                        </span>
+                      )}
+                      <button
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-3 text-xs font-semibold text-white/62 transition hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={isUpdating}
+                        onClick={() => {
+                          onUpdateStatus(request.requestId, "hidden");
+                        }}
+                        type="button"
+                      >
+                        {isUpdating ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          copy.fanRequests.hide
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       ) : null}
