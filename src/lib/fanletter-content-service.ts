@@ -11,6 +11,7 @@ import {
   type CreatorProfileAvatarCandidate,
   type CreatorProfileDocument,
   type FanletterFanRequestDocument,
+  type FanletterFanRequestStatus,
   type FanletterFanRequestType,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
@@ -90,6 +91,8 @@ export type FanletterPublicFanRequestPreview = {
   createdAt: string;
   requestType: FanletterFanRequestType;
   requesterDisplayName: string | null;
+  status: FanletterFanRequestStatus;
+  usedContentId: string | null;
 };
 
 export type FanletterCreatorProfile = {
@@ -430,6 +433,8 @@ function toPublicFanRequestPreview(
     createdAt: request.createdAt.toISOString(),
     requestType: request.requestType,
     requesterDisplayName: compactText(request.requesterDisplayName, 28) || null,
+    status: request.status,
+    usedContentId: request.usedContentId ?? null,
   };
 }
 
@@ -453,17 +458,42 @@ async function getFanRequestSourceForContent(contentId: string) {
 
 async function getPublicFanRequestPreviews(referralCode: string) {
   const requestsCollection = await getFanletterFanRequestsCollection();
-  const requests = await requestsCollection
-    .find({
-      creatorReferralCode: referralCode,
-      status: { $in: ["new", "reviewed", "used"] },
-    })
-    .sort({
-      createdAt: -1,
-      updatedAt: -1,
-    })
-    .limit(FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT)
-    .toArray();
+  const [usedRequests, recentRequests] = await Promise.all([
+    requestsCollection
+      .find({
+        creatorReferralCode: referralCode,
+        status: "used",
+        usedContentId: { $type: "string" },
+      })
+      .sort({
+        updatedAt: -1,
+        createdAt: -1,
+      })
+      .limit(3)
+      .toArray(),
+    requestsCollection
+      .find({
+        creatorReferralCode: referralCode,
+        status: { $in: ["new", "reviewed", "used"] },
+      })
+      .sort({
+        createdAt: -1,
+        updatedAt: -1,
+      })
+      .limit(FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT)
+      .toArray(),
+  ]);
+  const requestsById = new Map<string, FanletterFanRequestDocument>();
+
+  [...usedRequests, ...recentRequests].forEach((request) => {
+    if (!requestsById.has(request.requestId)) {
+      requestsById.set(request.requestId, request);
+    }
+  });
+  const requests = [...requestsById.values()].slice(
+    0,
+    FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT,
+  );
 
   return requests.map(toPublicFanRequestPreview);
 }

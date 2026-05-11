@@ -1685,6 +1685,7 @@ function FanletterFanPromptPanel({
   locale,
   previewRequests = [],
   publicVlogsHref,
+  referralCode,
   requestHref,
   sourceContentId,
   startHref,
@@ -1697,6 +1698,7 @@ function FanletterFanPromptPanel({
   locale: Locale;
   previewRequests?: FanletterPublicFanRequestPreview[];
   publicVlogsHref?: string;
+  referralCode?: string | null;
   requestHref: string;
   sourceContentId?: string | null;
   startHref: string;
@@ -1710,6 +1712,11 @@ function FanletterFanPromptPanel({
           messageBody: "팔로우 후 알림과 팬 대화 흐름으로 이어집니다.",
           messageCta: "팔로우하고 메시지",
           messageTitle: "응원 메시지도 이어가기",
+          fulfilledBadge: "제작 완료",
+          fulfilledBody:
+            "팬이 남긴 요청이 실제 공개 브이로그로 연결된 사례입니다.",
+          fulfilledCta: "브이로그 보기",
+          fulfilledTitle: "요청이 브이로그가 된 사례",
           previewBody:
             "최근 요청을 익명 중심으로 보여줍니다. 비슷한 장면을 이어서 요청해도 됩니다.",
           previewEmptyRequester: "익명 팬",
@@ -1743,6 +1750,11 @@ function FanletterFanPromptPanel({
           messageBody: "Follow first, then continue into alerts and fan conversation flows.",
           messageCta: "Follow and message",
           messageTitle: "Continue with a message",
+          fulfilledBadge: "Produced",
+          fulfilledBody:
+            "These fan notes were turned into published vlogs.",
+          fulfilledCta: "Watch vlog",
+          fulfilledTitle: "Requests that became vlogs",
           previewBody:
             "Recent requests are shown with privacy-friendly fan names. You can build on a similar scene.",
           previewEmptyRequester: "Anonymous fan",
@@ -1787,6 +1799,23 @@ function FanletterFanPromptPanel({
       title: labels.messageTitle,
     },
   ];
+  const fulfilledRequests = previewRequests
+    .filter((request) => request.status === "used" && request.usedContentId)
+    .slice(0, 2);
+  const recentRequests = previewRequests
+    .filter(
+      (request) =>
+        !(
+          request.status === "used" &&
+          request.usedContentId &&
+          fulfilledRequests.some(
+            (fulfilledRequest) =>
+              fulfilledRequest.usedContentId === request.usedContentId,
+          )
+        ),
+    )
+    .slice(0, 3);
+  const previewReferralCode = referralCode ?? creatorReferralCode;
 
   return (
     <section
@@ -1860,39 +1889,107 @@ function FanletterFanPromptPanel({
               {labels.requestCta}
             </Link>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            {previewRequests.slice(0, 3).map((request, index) => {
-              const typeLabel =
-                request.requestType === "message"
-                  ? labels.previewMessage
-                  : labels.previewVlogRequest;
-              const requester =
-                request.requesterDisplayName || labels.previewEmptyRequester;
-              const createdLabel = formatDate(request.createdAt, locale);
+          {fulfilledRequests.length > 0 ? (
+            <div className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <BadgeCheck className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#8dffa5]">
+                    {labels.fulfilledBadge}
+                  </p>
+                  <h4 className="mt-1 text-lg font-semibold tracking-normal">
+                    {labels.fulfilledTitle}
+                  </h4>
+                  <p className="mt-1 text-sm font-medium leading-6 text-white/58">
+                    {labels.fulfilledBody}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {fulfilledRequests.map((request, index) => {
+                  const createdLabel = formatDate(request.createdAt, locale);
+                  const requester =
+                    request.requesterDisplayName || labels.previewEmptyRequester;
+                  const contentHref = request.usedContentId
+                    ? buildPathWithReferral(
+                        `/${locale}/fanletter/content/${request.usedContentId}`,
+                        previewReferralCode,
+                      )
+                    : null;
 
-              return (
-                <article
-                  className="rounded-lg border border-white/10 bg-black/18 p-4"
-                  key={`${request.createdAt}-${index}`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
-                      {typeLabel}
-                    </span>
-                    <span className="text-xs font-semibold text-white/36">
-                      {createdLabel}
-                    </span>
-                  </div>
-                  <p className="mt-4 line-clamp-4 break-words text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere]">
-                    {request.body}
-                  </p>
-                  <p className="mt-4 text-xs font-semibold text-white/42">
-                    {requester}
-                  </p>
-                </article>
-              );
-            })}
-          </div>
+                  return (
+                    <article
+                      className="rounded-lg border border-[#44f26e]/20 bg-black/22 p-4"
+                      key={`${request.usedContentId}-${request.createdAt}-${index}`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-semibold text-black">
+                          {labels.fulfilledBadge}
+                        </span>
+                        <span className="text-xs font-semibold text-white/36">
+                          {createdLabel}
+                        </span>
+                      </div>
+                      <p className="mt-4 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                        {request.body}
+                      </p>
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs font-semibold text-white/42">
+                          {requester}
+                        </p>
+                        {contentHref ? (
+                          <Link
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                            href={contentHref}
+                          >
+                            {labels.fulfilledCta}
+                            <ArrowRight className="size-4" />
+                          </Link>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+          {recentRequests.length > 0 ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {recentRequests.map((request, index) => {
+                const typeLabel =
+                  request.requestType === "message"
+                    ? labels.previewMessage
+                    : labels.previewVlogRequest;
+                const requester =
+                  request.requesterDisplayName || labels.previewEmptyRequester;
+                const createdLabel = formatDate(request.createdAt, locale);
+
+                return (
+                  <article
+                    className="rounded-lg border border-white/10 bg-black/18 p-4"
+                    key={`${request.createdAt}-${request.body}-${index}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+                        {typeLabel}
+                      </span>
+                      <span className="text-xs font-semibold text-white/36">
+                        {createdLabel}
+                      </span>
+                    </div>
+                    <p className="mt-4 line-clamp-4 break-words text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere]">
+                      {request.body}
+                    </p>
+                    <p className="mt-4 text-xs font-semibold text-white/42">
+                      {requester}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -3397,6 +3494,7 @@ export function FanletterCreatorPage({
             locale={locale}
             previewRequests={data.fanRequestPreviews}
             publicVlogsHref={publicVlogsHref}
+            referralCode={effectiveReferralCode}
             requestHref={fanRequestsSectionHref}
             startHref={startHref}
           />
@@ -3888,6 +3986,7 @@ export function FanletterContentDetailPage({
                 id={fanRequestSectionId}
                 locale={locale}
                 publicVlogsHref={`${creatorHref}#public-vlogs`}
+                referralCode={effectiveReferralCode}
                 requestHref={fanRequestHref}
                 sourceContentId={content.contentId}
                 startHref={startHref}
