@@ -30,6 +30,7 @@ function getErrorStatus(message: string) {
     message === "Fan request body is required." ||
     message === "Fan request contains blocked content." ||
     message === "requestId is required." ||
+    message === "Published content is required." ||
     message === "Unsupported fan request status."
   ) {
     return 400;
@@ -46,12 +47,16 @@ function getErrorStatus(message: string) {
   if (
     message === "Creator not found." ||
     message === "Source content not found." ||
+    message === "Content not found." ||
     message === "Fan request not found."
   ) {
     return 404;
   }
 
-  if (message === "Source content does not match this creator.") {
+  if (
+    message === "Source content does not match this creator." ||
+    message === "Content does not belong to this creator."
+  ) {
     return 403;
   }
 

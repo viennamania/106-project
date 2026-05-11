@@ -551,7 +551,9 @@ function buildFanRequestCreateHref({
 
   return setPathSearchParams(createHref, {
     fanRequestBody: request.body,
+    fanRequestCharacterName: request.characterName,
     fanRequestId: request.requestId,
+    fanRequestType: request.requestType,
     planBody: body,
     planMode: "video",
     planPrompt: prompt,

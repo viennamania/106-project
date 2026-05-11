@@ -30,6 +30,8 @@ import {
   type ContentPriceType,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
+  type FanletterFanRequestStatusUpdateResponse,
+  type FanletterFanRequestType,
 } from "@/lib/content";
 import {
   buildPathWithReferral,
@@ -45,6 +47,7 @@ import {
 } from "@/lib/thirdweb-client";
 
 type CreateMode = "video";
+type FanRequestSyncStatus = "failed" | "idle" | "reviewed" | "syncing" | "used";
 type GenerationStatus = "error" | "idle" | "loading" | "ready";
 
 type GeneratedMedia = {
@@ -66,7 +69,9 @@ export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
 > & {
   fanRequestBody?: string;
+  fanRequestCharacterName?: string;
   fanRequestId?: string;
+  fanRequestType?: FanletterFanRequestType;
   planId?: string;
 };
 
@@ -107,7 +112,17 @@ function getCopy(locale: Locale) {
           autoClose: "공개하면 팬 요청함에서 제작 반영으로 자동 정리됩니다.",
           autoFill: "제목, 요약, 장면 프롬프트에 요청 내용이 반영되었습니다.",
           body: "팬이 남긴 내용을 보면서 장면만 다듬으면 됩니다.",
+          draftSynced: "임시 저장 상태로 팬 요청을 확인함 처리했습니다.",
           eyebrow: "Fan Request",
+          failed:
+            "브이로그는 저장됐지만 팬 요청 상태를 갱신하지 못했습니다. 스튜디오 요청함에서 다시 처리하세요.",
+          publishStep: "공개하면 요청 카드가 완성된 브이로그와 연결됩니다.",
+          requestTypes: {
+            message: "응원 메시지",
+            vlog_request: "브이로그 요청",
+          },
+          synced: "팬 요청함에서 제작 반영으로 정리되었습니다.",
+          syncing: "팬 요청함을 정리하고 있습니다.",
           title: "팬 요청으로 브이로그를 만들고 있습니다.",
         },
         planContext: {
@@ -180,7 +195,17 @@ function getCopy(locale: Locale) {
           autoFill:
             "The title, summary, and scene prompt already include the request.",
           body: "Keep the fan note visible while you refine the scene.",
+          draftSynced: "The fan request was marked as reviewed for this draft.",
           eyebrow: "Fan Request",
+          failed:
+            "The vlog was saved, but the fan request status could not be updated. Retry from the studio inbox.",
+          publishStep: "Publishing links the request card to the finished vlog.",
+          requestTypes: {
+            message: "Support message",
+            vlog_request: "Vlog request",
+          },
+          synced: "The fan request was moved to produced.",
+          syncing: "Updating the fan request inbox.",
           title: "Creating a vlog from a fan request.",
         },
         planContext: {
@@ -357,6 +382,11 @@ export function FanletterCreatePage({
     useState<ContentPostRecord | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
+  const [fanRequestSyncError, setFanRequestSyncError] = useState<string | null>(
+    null,
+  );
+  const [fanRequestSyncStatus, setFanRequestSyncStatus] =
+    useState<FanRequestSyncStatus>("idle");
   const [form, setForm] = useState<CreateForm>(() => ({
     ...EMPTY_FORM,
     body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
@@ -388,6 +418,25 @@ export function FanletterCreatePage({
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const initialFanRequestBody =
     initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
+  const initialFanRequestType = initialPlan?.fanRequestType ?? null;
+  const initialFanRequestCharacterName =
+    initialPlan?.fanRequestCharacterName?.trim() ||
+    profile?.characterPersona?.name?.trim() ||
+    profile?.displayName?.trim() ||
+    null;
+  const fanRequestTypeLabel = initialFanRequestType
+    ? copy.fanRequestContext.requestTypes[initialFanRequestType]
+    : null;
+  const fanRequestSyncLabel =
+    fanRequestSyncStatus === "syncing"
+      ? copy.fanRequestContext.syncing
+      : fanRequestSyncStatus === "used"
+        ? copy.fanRequestContext.synced
+        : fanRequestSyncStatus === "reviewed"
+          ? copy.fanRequestContext.draftSynced
+          : fanRequestSyncStatus === "failed"
+            ? (fanRequestSyncError ?? copy.fanRequestContext.failed)
+            : null;
   const isCharacterPlaybookPlan = Boolean(
     initialPlanId &&
       (CHARACTER_PLAYBOOK_PLAN_IDS.has(initialPlanId) ||
@@ -611,9 +660,14 @@ export function FanletterCreatePage({
     const title = inferTitle(form, copy.generate);
     const body = form.body.trim() || form.prompt.trim() || title;
     const summary = inferSummary(form) || body.replace(/\s+/g, " ").slice(0, 140);
+    let savedContent: ContentPostRecord | null = null;
 
     try {
       setError(null);
+      setFanRequestSyncError(null);
+      if (initialFanRequestId) {
+        setFanRequestSyncStatus("idle");
+      }
       setIsSaving(true);
       setNotice(null);
       const resolvedEmail = await resolveEmail();
@@ -649,6 +703,7 @@ export function FanletterCreatePage({
         );
       }
 
+      savedContent = data.content;
       setCreatedContent(data.content);
       if (initialPlanId && !isCharacterPlaybookPlan) {
         await fetch("/api/content/planner", {
@@ -666,7 +721,8 @@ export function FanletterCreatePage({
         }).catch(() => null);
       }
       if (initialFanRequestId) {
-        await fetch("/api/fanletter/requests", {
+        setFanRequestSyncStatus("syncing");
+        const fanRequestResponse = await fetch("/api/fanletter/requests", {
           body: JSON.stringify({
             contentId: status === "published" ? data.content.contentId : null,
             email: resolvedEmail,
@@ -678,11 +734,35 @@ export function FanletterCreatePage({
             "Content-Type": "application/json",
           },
           method: "PATCH",
-        }).catch(() => null);
+        });
+        const fanRequestData =
+          await readApiJson<FanletterFanRequestStatusUpdateResponse>(
+            fanRequestResponse,
+            copy.fanRequestContext.failed,
+          );
+
+        if (!fanRequestResponse.ok || !("request" in fanRequestData)) {
+          throw new Error(
+            "error" in fanRequestData && fanRequestData.error
+              ? fanRequestData.error
+              : copy.fanRequestContext.failed,
+          );
+        }
+
+        setFanRequestSyncStatus(
+          status === "published" ? "used" : "reviewed",
+        );
       }
       setNotice(status === "published" ? copy.published : copy.draftSaved);
     } catch (saveError) {
-      setError(getErrorMessage(saveError, copy.errorFallback));
+      const message = getErrorMessage(saveError, copy.errorFallback);
+
+      if (savedContent && initialFanRequestId) {
+        setFanRequestSyncError(message);
+        setFanRequestSyncStatus("failed");
+      } else {
+        setError(message);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -930,26 +1010,60 @@ export function FanletterCreatePage({
                   <p className="mt-2 text-sm font-medium leading-6 text-white/62">
                     {copy.fanRequestContext.body}
                   </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {fanRequestTypeLabel ? (
+                      <span className="rounded-full border border-[#44f26e]/26 bg-black/24 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                        {fanRequestTypeLabel}
+                      </span>
+                    ) : null}
+                    {initialFanRequestCharacterName ? (
+                      <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/62">
+                        {initialFanRequestCharacterName}
+                      </span>
+                    ) : null}
+                  </div>
                   {initialFanRequestBody ? (
                     <p className="mt-4 line-clamp-3 rounded-lg border border-white/10 bg-black/24 p-3 text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
                       {initialFanRequestBody}
                     </p>
                   ) : null}
+                  {fanRequestSyncLabel ? (
+                    <div
+                      className={`mt-3 flex items-start gap-3 rounded-lg border p-3 ${
+                        fanRequestSyncStatus === "failed"
+                          ? "border-red-300/20 bg-red-500/12 text-red-100"
+                          : "border-[#44f26e]/24 bg-[#44f26e]/10 text-[#d8ffe0]"
+                      }`}
+                    >
+                      {fanRequestSyncStatus === "syncing" ? (
+                        <Loader2 className="mt-0.5 size-4 shrink-0 animate-spin text-[#44f26e]" />
+                      ) : fanRequestSyncStatus === "failed" ? (
+                        <CircleAlert className="mt-0.5 size-4 shrink-0 text-red-200" />
+                      ) : (
+                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                      )}
+                      <p className="text-xs font-semibold leading-5">
+                        {fanRequestSyncLabel}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-[24rem] lg:grid-cols-1">
-                  {[copy.fanRequestContext.autoFill, copy.fanRequestContext.autoClose].map(
-                    (item) => (
-                      <div
-                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.055] p-3"
-                        key={item}
-                      >
-                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
-                        <p className="text-xs font-semibold leading-5 text-white/64">
-                          {item}
-                        </p>
-                      </div>
-                    ),
-                  )}
+                  {[
+                    copy.fanRequestContext.autoFill,
+                    copy.fanRequestContext.publishStep,
+                    copy.fanRequestContext.autoClose,
+                  ].map((item) => (
+                    <div
+                      className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                      key={item}
+                    >
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                      <p className="text-xs font-semibold leading-5 text-white/64">
+                        {item}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </section>

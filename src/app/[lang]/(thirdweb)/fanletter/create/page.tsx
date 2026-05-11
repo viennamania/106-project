@@ -23,7 +23,9 @@ import {
 
 type FanletterCreateSearchParams = {
   fanRequestBody?: string | string[];
+  fanRequestCharacterName?: string | string[];
   fanRequestId?: string | string[];
+  fanRequestType?: string | string[];
   planBody?: string | string[];
   planId?: string | string[];
   planMode?: string | string[];
@@ -46,7 +48,16 @@ function readInitialPlan(
   const prompt = readPlanText(query.planPrompt, 1_200);
   const body = readPlanText(query.planBody, 600);
   const fanRequestBody = readPlanText(query.fanRequestBody, 600);
+  const fanRequestCharacterName = readPlanText(
+    query.fanRequestCharacterName,
+    80,
+  );
   const fanRequestId = readPlanText(query.fanRequestId, 120);
+  const rawFanRequestType = readPlanText(query.fanRequestType, 32);
+  const fanRequestType =
+    rawFanRequestType === "message" || rawFanRequestType === "vlog_request"
+      ? rawFanRequestType
+      : undefined;
   const planId = readPlanText(query.planId, 120);
 
   if (
@@ -55,8 +66,10 @@ function readInitialPlan(
     !prompt &&
     !body &&
     !fanRequestBody &&
+    !fanRequestCharacterName &&
     !planId &&
-    !fanRequestId
+    !fanRequestId &&
+    !fanRequestType
   ) {
     return undefined;
   }
@@ -64,7 +77,9 @@ function readInitialPlan(
   return {
     body,
     fanRequestBody,
+    fanRequestCharacterName,
     fanRequestId,
+    fanRequestType,
     mode: "video",
     planId,
     prompt,

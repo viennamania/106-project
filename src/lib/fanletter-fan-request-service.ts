@@ -350,6 +350,28 @@ export async function updateFanletterFanRequestStatusForCreator({
   }
 
   const normalizedStatus = normalizeFanRequestStatus(status);
+  const normalizedContentId = contentId?.trim() || null;
+
+  if (normalizedStatus === "used") {
+    if (!normalizedContentId) {
+      throw new Error("Published content is required.");
+    }
+
+    const postsCollection = await getContentPostsCollection();
+    const post = await postsCollection.findOne({
+      contentId: normalizedContentId,
+      status: "published",
+    });
+
+    if (!post) {
+      throw new Error("Content not found.");
+    }
+
+    if (post.authorEmail !== creatorEmail) {
+      throw new Error("Content does not belong to this creator.");
+    }
+  }
+
   const now = new Date();
   const requestsCollection = await getFanletterFanRequestsCollection();
   const result = await requestsCollection.findOneAndUpdate(
@@ -362,7 +384,7 @@ export async function updateFanletterFanRequestStatusForCreator({
         status: normalizedStatus,
         updatedAt: now,
         ...(normalizedStatus === "used"
-          ? { usedContentId: contentId?.trim() || null }
+          ? { usedContentId: normalizedContentId }
           : {}),
       },
     },
