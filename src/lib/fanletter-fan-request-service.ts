@@ -332,6 +332,43 @@ export async function getFanletterFanRequestsForCreator({
   };
 }
 
+export async function getFanletterFanRequestsForRequester({
+  pageSize = 20,
+  requesterEmail,
+}: {
+  pageSize?: number;
+  requesterEmail: string;
+}) {
+  const normalizedRequesterEmail = normalizeEmail(requesterEmail);
+
+  if (!normalizedRequesterEmail) {
+    throw new Error("requesterEmail is required.");
+  }
+
+  const normalizedPageSize = Math.max(
+    1,
+    Math.min(Math.trunc(pageSize), FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX),
+  );
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const requests = await requestsCollection
+    .find({
+      requesterEmail: normalizedRequesterEmail,
+      status: { $in: ["new", "reviewed", "used"] },
+    })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .limit(normalizedPageSize + 1)
+    .toArray();
+  const visibleRequests = requests.slice(0, normalizedPageSize);
+
+  return {
+    pageInfo: {
+      hasNextPage: requests.length > normalizedPageSize,
+      pageSize: normalizedPageSize,
+    },
+    requests: visibleRequests.map(serializeFanRequest),
+  };
+}
+
 export async function updateFanletterFanRequestStatusForCreator({
   contentId,
   creatorEmail,

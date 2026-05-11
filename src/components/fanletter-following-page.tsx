@@ -4,10 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
+  BadgeCheck,
   BellPlus,
   Clapperboard,
+  Clock3,
   Grid2X2,
   Heart,
+  Inbox,
   Loader2,
   MessageCircleHeart,
   PlayCircle,
@@ -23,6 +26,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import type {
+  FanletterFanRequestRecord,
+  FanletterFanRequestsResponse,
   FanletterFollowedCharacterRecord,
   FanletterFollowedCharactersResponse,
 } from "@/lib/content";
@@ -63,6 +68,17 @@ function getCopy(locale: Locale) {
         latest: "최신 브이로그",
         latestFrom: "최신 공개 브이로그",
         loading: "팔로우한 캐릭터를 확인하는 중입니다.",
+        messageType: "응원 메시지",
+        myRequestsAdd: "다음 요청",
+        myRequestsBody:
+          "계정으로 남긴 팬 요청이 접수, 검토, 제작 완료까지 어떻게 움직이는지 확인합니다.",
+        myRequestsEmptyBody:
+          "캐릭터 채널에서 보고 싶은 장면을 요청하면 이곳에 진행 상태가 쌓입니다.",
+        myRequestsEmptyTitle: "아직 보낸 팬 요청이 없습니다.",
+        myRequestsError: "내 팬 요청 상태를 불러오지 못했습니다.",
+        myRequestsRetry: "요청 상태 새로고침",
+        myRequestsTitle: "내 요청 상태",
+        myRequestsWatch: "제작된 브이로그",
         noLatest:
           "아직 공개 브이로그가 없으면 캐릭터 채널에서 다음 장면을 먼저 요청할 수 있습니다.",
         openLatest: "최신 브이로그 보기",
@@ -75,6 +91,9 @@ function getCopy(locale: Locale) {
         requestExamples: ["새로운 룩", "오늘의 장소", "팬 질문 답변"],
         requestQueue: "요청 가능한 캐릭터",
         requestTitle: "다음 브이로그를 요청하세요",
+        statusNew: "접수됨",
+        statusReviewed: "검토 중",
+        statusUsed: "제작 완료",
         start: "채널 시작",
         studio: "스튜디오",
         summary:
@@ -85,6 +104,7 @@ function getCopy(locale: Locale) {
         unfollowError: "팔로우를 해제하지 못했습니다.",
         unfollowing: "해제 중",
         videos: "브이로그",
+        vlogRequestType: "브이로그 요청",
         watchNow: "지금 보기",
       }
     : {
@@ -111,6 +131,17 @@ function getCopy(locale: Locale) {
         latest: "Latest vlog",
         latestFrom: "Latest public vlog",
         loading: "Checking followed characters.",
+        messageType: "Message",
+        myRequestsAdd: "Next request",
+        myRequestsBody:
+          "Track fan requests you left with your account from received, to reviewed, to produced.",
+        myRequestsEmptyBody:
+          "Request a scene from a character channel, then its progress will appear here.",
+        myRequestsEmptyTitle: "No fan requests sent yet.",
+        myRequestsError: "Could not load your fan request status.",
+        myRequestsRetry: "Refresh requests",
+        myRequestsTitle: "My request status",
+        myRequestsWatch: "Produced vlog",
         noLatest:
           "If there is no public vlog yet, open the character channel and request the next scene first.",
         openLatest: "Open latest vlog",
@@ -123,6 +154,9 @@ function getCopy(locale: Locale) {
         requestExamples: ["New look", "Today's place", "Fan Q&A"],
         requestQueue: "Characters open for requests",
         requestTitle: "Request the next vlog",
+        statusNew: "Received",
+        statusReviewed: "Reviewing",
+        statusUsed: "Produced",
         start: "Start channel",
         studio: "Studio",
         summary:
@@ -133,6 +167,7 @@ function getCopy(locale: Locale) {
         unfollowError: "Could not unfollow this character.",
         unfollowing: "Unfollowing",
         videos: "Vlogs",
+        vlogRequestType: "Vlog Request",
         watchNow: "Watch now",
       };
 }
@@ -663,6 +698,185 @@ function FanHomeDashboard({
   );
 }
 
+function MyFanRequestsPanel({
+  characters,
+  error,
+  locale,
+  onRetry,
+  referralCode,
+  requests,
+  status,
+}: {
+  characters: FanletterFollowedCharacterRecord[];
+  error: string | null;
+  locale: Locale;
+  onRetry: () => void;
+  referralCode: string | null;
+  requests: FanletterFanRequestRecord[];
+  status: LoadStatus;
+}) {
+  const copy = getCopy(locale);
+  const fallbackCharacter = characters[0] ?? null;
+  const fallbackRequestHref = fallbackCharacter
+    ? `${buildPathWithReferral(
+        `/${locale}/fanletter/creator/${fallbackCharacter.referralCode}`,
+        referralCode ?? fallbackCharacter.referralCode,
+      )}#fan-requests`
+    : buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const visibleRequests = requests.slice(0, 4);
+
+  function getStatusView(request: FanletterFanRequestRecord) {
+    if (request.status === "used") {
+      return {
+        Icon: BadgeCheck,
+        className: "border-[#29d85f]/32 bg-[#44f26e] text-black",
+        label: copy.statusUsed,
+      };
+    }
+
+    if (request.status === "reviewed") {
+      return {
+        Icon: Clock3,
+        className: "border-[#29d85f]/22 bg-[#44f26e]/12 text-[#1f7c38]",
+        label: copy.statusReviewed,
+      };
+    }
+
+    return {
+      Icon: Inbox,
+      className: "border-black/10 bg-[#f6f8f4] text-black/58",
+      label: copy.statusNew,
+    };
+  }
+
+  return (
+    <section
+      className="mb-8 rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-6"
+      id="fanletter-my-requests"
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
+            Fan Request
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+            {copy.myRequestsTitle}
+          </h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+            {copy.myRequestsBody}
+          </p>
+        </div>
+        <button
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={status === "loading"}
+          onClick={onRetry}
+          type="button"
+        >
+          {status === "loading" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <RefreshCw className="size-4" />
+          )}
+          {copy.myRequestsRetry}
+        </button>
+      </div>
+
+      {status === "loading" ? (
+        <div className="mt-5 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
+          <div className="flex items-center gap-3 text-sm font-semibold text-black/56">
+            <Loader2 className="size-4 animate-spin text-[#1f7c38]" />
+            {copy.loading}
+          </div>
+        </div>
+      ) : status === "error" ? (
+        <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-700">
+            {error ?? copy.myRequestsError}
+          </p>
+        </div>
+      ) : visibleRequests.length === 0 ? (
+        <div className="mt-5 grid gap-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div>
+            <h3 className="text-lg font-semibold tracking-normal">
+              {copy.myRequestsEmptyTitle}
+            </h3>
+            <p className="mt-2 text-sm font-medium leading-6 text-black/56">
+              {copy.myRequestsEmptyBody}
+            </p>
+          </div>
+          <Link
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+            href={fallbackRequestHref}
+          >
+            {copy.requestCta}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          {visibleRequests.map((request) => {
+            const statusView = getStatusView(request);
+            const StatusIcon = statusView.Icon;
+            const actionHref = request.usedContentId
+              ? buildPathWithReferral(
+                  `/${locale}/fanletter/content/${request.usedContentId}`,
+                  referralCode ?? request.creatorReferralCode,
+                )
+              : `${buildPathWithReferral(
+                  `/${locale}/fanletter/creator/${request.creatorReferralCode}`,
+                  referralCode ?? request.creatorReferralCode,
+                )}#fan-requests`;
+            const actionLabel = request.usedContentId
+              ? copy.myRequestsWatch
+              : copy.myRequestsAdd;
+
+            return (
+              <article
+                className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4"
+                key={request.requestId}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[0.68rem] font-semibold ${statusView.className}`}
+                  >
+                    <StatusIcon className="size-3.5" />
+                    {statusView.label}
+                  </span>
+                  <span className="text-xs font-semibold text-black/38">
+                    {formatDate(request.updatedAt, locale) ??
+                      formatDate(request.createdAt, locale) ??
+                      "FanLetter"}
+                  </span>
+                </div>
+                <h3 className="mt-4 truncate text-sm font-semibold text-[#1f7c38]">
+                  {request.characterName}
+                </h3>
+                <p className="mt-2 line-clamp-3 break-words text-sm font-semibold leading-6 text-black/78 [overflow-wrap:anywhere]">
+                  {request.body}
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs font-semibold text-black/40">
+                    {request.requestType === "message"
+                      ? copy.messageType
+                      : copy.vlogRequestType}
+                  </p>
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-3 text-sm font-semibold text-black transition hover:border-[#29d85f]/60"
+                    href={actionHref}
+                  >
+                    {actionLabel}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function LatestVlogStrip({
   characters,
   locale,
@@ -834,6 +1048,9 @@ export function FanletterFollowingPage({
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [emailSyncAttempted, setEmailSyncAttempted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fanRequestError, setFanRequestError] = useState<string | null>(null);
+  const [fanRequests, setFanRequests] = useState<FanletterFanRequestRecord[]>([]);
+  const [fanRequestStatus, setFanRequestStatus] = useState<LoadStatus>("idle");
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [updatingReferralCode, setUpdatingReferralCode] = useState<string | null>(
     null,
@@ -880,6 +1097,9 @@ export function FanletterFollowingPage({
   const loadFollowing = useCallback(async () => {
     if (!accountAddress) {
       setEmailSyncAttempted(false);
+      setFanRequestError(null);
+      setFanRequests([]);
+      setFanRequestStatus("idle");
       setStatus("idle");
       return;
     }
@@ -887,6 +1107,8 @@ export function FanletterFollowingPage({
     setStatus("loading");
     setActionError(null);
     setError(null);
+    setFanRequestError(null);
+    setFanRequestStatus("loading");
 
     try {
       let resolvedEmail = memberSession.email ?? email;
@@ -899,6 +1121,7 @@ export function FanletterFollowingPage({
       setEmailSyncAttempted(true);
 
       if (!resolvedEmail) {
+        setFanRequestStatus("idle");
         setStatus("idle");
         return;
       }
@@ -917,13 +1140,47 @@ export function FanletterFollowingPage({
       );
 
       setCharacters(data.characters);
+
+      try {
+        const requestParams = new URLSearchParams({
+          email: resolvedEmail,
+          pageSize: "8",
+          walletAddress: accountAddress,
+        });
+        const requestData = await readApiJson<FanletterFanRequestsResponse>(
+          await fetch(`/api/fanletter/requests/mine?${requestParams.toString()}`, {
+            cache: "no-store",
+          }),
+          copy.myRequestsError,
+        );
+
+        setFanRequests(requestData.requests);
+        setFanRequestStatus("ready");
+      } catch (requestError) {
+        setFanRequests([]);
+        setFanRequestError(
+          requestError instanceof Error
+            ? requestError.message
+            : copy.myRequestsError,
+        );
+        setFanRequestStatus("error");
+      }
+
       setStatus("ready");
     } catch (loadError) {
       setEmailSyncAttempted(true);
       setError(loadError instanceof Error ? loadError.message : copy.errorBody);
+      setFanRequestStatus("idle");
       setStatus("error");
     }
-  }, [accountAddress, copy.errorBody, email, locale, memberSession.email]);
+  }, [
+    accountAddress,
+    copy.errorBody,
+    copy.myRequestsError,
+    email,
+    locale,
+    memberSession.email,
+  ]);
 
   const unfollowCharacter = useCallback(
     async (character: FanletterFollowedCharacterRecord) => {
@@ -1092,6 +1349,17 @@ export function FanletterFollowingPage({
                 characters={characters}
                 locale={locale}
                 referralCode={referralCode}
+              />
+              <MyFanRequestsPanel
+                characters={characters}
+                error={fanRequestError}
+                locale={locale}
+                onRetry={() => {
+                  void loadFollowing();
+                }}
+                referralCode={referralCode}
+                requests={fanRequests}
+                status={fanRequestStatus}
               />
               <div className="mb-8 grid gap-3 md:grid-cols-3">
                 {stats.map((stat) => {

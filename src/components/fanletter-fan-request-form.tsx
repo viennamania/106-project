@@ -18,6 +18,7 @@ import type {
   FanletterFanRequestType,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
+import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
 
@@ -51,6 +52,7 @@ function getCopy(locale: Locale) {
         note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
         requestKind: "요청 종류",
         requestPreview: "방금 보낸 요청",
+        requestStatus: "내 요청 상태 보기",
         saved:
           "요청이 크리에이터 스튜디오에 들어갔습니다.",
         submit: "요청 남기기",
@@ -99,6 +101,7 @@ function getCopy(locale: Locale) {
         note: "You can leave a request without signing in. Duplicate requests are not saved.",
         requestKind: "Request type",
         requestPreview: "Request just sent",
+        requestStatus: "Track my request",
         saved:
           "Your request entered the creator's studio inbox.",
         submit: "Leave request",
@@ -171,6 +174,7 @@ export function FanletterFanRequestForm({
   formId,
   locale,
   publicVlogsHref,
+  referralCode,
   sourceContentId,
 }: {
   characterName: string;
@@ -179,6 +183,7 @@ export function FanletterFanRequestForm({
   formId?: string;
   locale: Locale;
   publicVlogsHref?: string;
+  referralCode?: string | null;
   sourceContentId?: string | null;
 }) {
   const copy = getCopy(locale);
@@ -273,6 +278,10 @@ export function FanletterFanRequestForm({
       ? copy.message
       : copy.vlogRequest
     : null;
+  const requestStatusHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/following`,
+    referralCode ?? creatorReferralCode,
+  )}#fanletter-my-requests`;
 
   return (
     <div
@@ -476,7 +485,7 @@ export function FanletterFanRequestForm({
               })}
             </div>
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <button
               className="inline-flex h-10 items-center justify-center rounded-full border border-[#44f26e]/28 px-3 text-sm font-semibold text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
               onClick={resetForAnotherRequest}
@@ -484,6 +493,13 @@ export function FanletterFanRequestForm({
             >
               {copy.newRequest}
             </button>
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold !text-black transition hover:bg-white/90"
+              href={requestStatusHref}
+            >
+              {copy.requestStatus}
+              <ArrowRight className="size-4" />
+            </Link>
             {publicVlogsHref ? (
               <Link
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/12 px-3 text-sm font-semibold !text-white transition hover:bg-white/8"

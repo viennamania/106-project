@@ -2001,6 +2001,7 @@ function FanletterFanPromptPanel({
           formId={requestFormId}
           locale={locale}
           publicVlogsHref={publicVlogsHref}
+          referralCode={referralCode}
           sourceContentId={sourceContentId}
         />
       ) : null}
