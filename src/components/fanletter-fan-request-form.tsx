@@ -2,10 +2,13 @@
 
 import {
   ArrowRight,
+  Bell,
   CheckCircle2,
   Clapperboard,
+  Inbox,
   Loader2,
   MessageCircleHeart,
+  Radio,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,6 +20,11 @@ import type {
 import type { Locale } from "@/lib/i18n";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
+
+type LastSubmittedRequest = {
+  body: string;
+  requestType: FanletterFanRequestType;
+};
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -42,11 +50,26 @@ function getCopy(locale: Locale) {
         newRequest: "다른 요청 남기기",
         note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
         requestKind: "요청 종류",
+        requestPreview: "방금 보낸 요청",
         saved:
-          "요청이 저장되었습니다. 크리에이터가 스튜디오 요청함에서 바로 브이로그로 만들 수 있습니다.",
+          "요청이 크리에이터 스튜디오에 들어갔습니다.",
         submit: "요청 남기기",
         successBody:
-          "이제 같은 채널의 공개 브이로그를 보거나 팔로우해서 다음 업데이트를 이어볼 수 있습니다.",
+          "제작되면 이 캐릭터 채널의 공개 브이로그 영역에서 확인할 수 있습니다.",
+        successSteps: [
+          {
+            body: "스튜디오 요청함에 저장됨",
+            title: "요청 접수",
+          },
+          {
+            body: "좋은 요청은 제작 후보 큐로 이동",
+            title: "제작 검토",
+          },
+          {
+            body: "브이로그로 공개되면 채널에서 확인",
+            title: "공개 확인",
+          },
+        ],
         successTitle: "팬 요청이 전달되었습니다",
         submitting: "저장 중...",
         title: "다음 브이로그 요청 남기기",
@@ -75,11 +98,26 @@ function getCopy(locale: Locale) {
         newRequest: "Leave another",
         note: "You can leave a request without signing in. Duplicate requests are not saved.",
         requestKind: "Request type",
+        requestPreview: "Request just sent",
         saved:
-          "Request saved. The creator can turn it into a vlog from the studio inbox.",
+          "Your request entered the creator's studio inbox.",
         submit: "Leave request",
         successBody:
-          "Keep watching public vlogs from this channel or follow to stay close to the next update.",
+          "If it gets produced, you can find it in this character channel's public vlogs.",
+        successSteps: [
+          {
+            body: "Saved to the studio inbox",
+            title: "Received",
+          },
+          {
+            body: "Strong ideas enter the production queue",
+            title: "Reviewed",
+          },
+          {
+            body: "Produced vlogs appear on the channel",
+            title: "Published",
+          },
+        ],
         successTitle: "Fan request delivered",
         submitting: "Saving...",
         title: "Leave a request",
@@ -146,6 +184,8 @@ export function FanletterFanRequestForm({
   const copy = getCopy(locale);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [lastSubmittedRequest, setLastSubmittedRequest] =
+    useState<LastSubmittedRequest | null>(null);
   const [requesterDisplayName, setRequesterDisplayName] = useState("");
   const [requestType, setRequestType] =
     useState<FanletterFanRequestType>("vlog_request");
@@ -197,6 +237,10 @@ export function FanletterFanRequestForm({
         copy.errorFallback,
       );
 
+      setLastSubmittedRequest({
+        body: body.trim(),
+        requestType,
+      });
       setBody("");
       setRequesterDisplayName("");
       setStatus("success");
@@ -222,6 +266,13 @@ export function FanletterFanRequestForm({
     setStatus("idle");
     setRequestType("vlog_request");
   }
+
+  const successStepIcons = [Inbox, Clapperboard, Radio] as const;
+  const lastSubmittedRequestTypeLabel = lastSubmittedRequest
+    ? lastSubmittedRequest.requestType === "message"
+      ? copy.message
+      : copy.vlogRequest
+    : null;
 
   return (
     <div
@@ -360,22 +411,69 @@ export function FanletterFanRequestForm({
       {status === "success" ? (
         <div
           aria-live="polite"
-          className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 text-[#b9ffc8]"
+          className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-[#b9ffc8]"
         >
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-              <CheckCircle2 className="size-5" />
-            </span>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.62fr)]">
             <div className="min-w-0">
-              <p className="text-base font-semibold text-white">
-                {copy.successTitle}
-              </p>
-              <p className="mt-1 text-sm font-medium leading-6 text-[#b9ffc8]">
-                {copy.saved}
-              </p>
-              <p className="mt-1 text-sm font-medium leading-6 text-white/56">
-                {copy.successBody}
-              </p>
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <CheckCircle2 className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-base font-semibold text-white">
+                    {copy.successTitle}
+                  </p>
+                  <p className="mt-1 text-sm font-medium leading-6 text-[#b9ffc8]">
+                    {copy.saved}
+                  </p>
+                  <p className="mt-1 text-sm font-medium leading-6 text-white/56">
+                    {copy.successBody}
+                  </p>
+                </div>
+              </div>
+
+              {lastSubmittedRequest ? (
+                <div className="mt-4 rounded-lg border border-white/10 bg-black/22 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      {copy.requestPreview}
+                    </span>
+                    {lastSubmittedRequestTypeLabel ? (
+                      <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.64rem] font-semibold text-[#b9ffc8]">
+                        {lastSubmittedRequestTypeLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-3 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+                    {lastSubmittedRequest.body}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="grid gap-2">
+              {copy.successSteps.map((step, index) => {
+                const Icon = successStepIcons[index] ?? Bell;
+
+                return (
+                  <div
+                    className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                    key={step.title}
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-white">
+                        {step.title}
+                      </span>
+                      <span className="mt-1 block text-xs font-medium leading-5 text-white/52">
+                        {step.body}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
