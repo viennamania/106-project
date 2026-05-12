@@ -22,6 +22,7 @@ import {
   Trophy,
   User,
   Video,
+  type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -4050,6 +4051,215 @@ function FanletterFeedDiscoveryControls({
   );
 }
 
+function FanletterFeedMobileGuide({
+  allContentSectionLabel,
+  feedHref,
+  featuredItem,
+  filters,
+  latestCount,
+  locale,
+  rankedCreatorCount,
+  referralCode,
+  remainingCount,
+  videoCount,
+}: {
+  allContentSectionLabel: string;
+  feedHref: string;
+  featuredItem: FanletterPublicContentItem | null;
+  filters: FanletterFeedFilters;
+  latestCount: number;
+  locale: Locale;
+  rankedCreatorCount: number;
+  referralCode: string | null;
+  remainingCount: number;
+  videoCount: number;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          all: "더 보기",
+          allBody: `${formatNumber(remainingCount, locale)}개 공개 브이로그`,
+          body:
+            "모바일에서는 먼저 보고 싶은 흐름을 고른 뒤 필요한 섹션으로 바로 이동하세요.",
+          characters: "캐릭터 랭킹",
+          charactersBody: `${formatNumber(rankedCreatorCount, locale)}개 캐릭터`,
+          eyebrow: "모바일 탐색",
+          latest: "최신 브이로그",
+          latestBody: `${formatNumber(latestCount, locale)}개 새 장면`,
+          next: "다음 페이지",
+          open: "이동",
+          page: "페이지",
+          popular: "인기 브이로그",
+          previous: "이전",
+          title: "빠르게 둘러보기",
+          videos: "영상만 보기",
+          videosBody: `${formatNumber(videoCount, locale)}개 영상`,
+        }
+      : {
+          all: "More",
+          allBody: `${formatNumber(remainingCount, locale)} public vlogs`,
+          body:
+            "On mobile, choose the flow you want first and jump straight to that section.",
+          characters: "Character ranking",
+          charactersBody: `${formatNumber(rankedCreatorCount, locale)} characters`,
+          eyebrow: "Mobile Guide",
+          latest: "Latest vlogs",
+          latestBody: `${formatNumber(latestCount, locale)} new scenes`,
+          next: "Next page",
+          open: "Open",
+          page: "Page",
+          popular: "Popular vlog",
+          previous: "Previous",
+          title: "Quick browse",
+          videos: "Videos only",
+          videosBody: `${formatNumber(videoCount, locale)} videos`,
+        };
+  const guideItems = [
+    featuredItem
+      ? {
+          body: featuredItem.title,
+          href: `${feedHref}#popular-vlog`,
+          Icon: Trophy,
+          title: labels.popular,
+        }
+      : null,
+    rankedCreatorCount > 0
+      ? {
+          body: labels.charactersBody,
+          href: `${feedHref}#popular-characters`,
+          Icon: Crown,
+          title: labels.characters,
+        }
+      : null,
+    videoCount > 0
+      ? {
+          body: labels.videosBody,
+          href: `${feedHref}#video-vlogs`,
+          Icon: Video,
+          title: labels.videos,
+        }
+      : null,
+    latestCount > 0
+      ? {
+          body: labels.latestBody,
+          href: `${feedHref}#latest-vlogs`,
+          Icon: Sparkles,
+          title: labels.latest,
+        }
+      : null,
+    remainingCount > 0
+      ? {
+          body: labels.allBody,
+          href: `${feedHref}#all-vlogs`,
+          Icon: Grid2X2,
+          title: allContentSectionLabel || labels.all,
+        }
+      : null,
+  ].filter(
+    (
+      item,
+    ): item is {
+      body: string;
+      href: string;
+      Icon: LucideIcon;
+      title: string;
+    } => Boolean(item),
+  );
+  const previousHref = getFeedHref({
+    filters,
+    locale,
+    page: Math.max(1, filters.page - 1),
+    referralCode,
+  });
+  const nextHref = getFeedHref({
+    filters,
+    locale,
+    page: Math.min(filters.pageCount, filters.page + 1),
+    referralCode,
+  });
+  const canGoPrevious = filters.page > 1;
+  const canGoNext = filters.page < filters.pageCount;
+
+  if (guideItems.length === 0 && filters.pageCount <= 1) {
+    return null;
+  }
+
+  return (
+    <section className="mb-8 rounded-lg border border-black/10 bg-[#07100b] p-4 text-white shadow-[0_18px_44px_rgba(8,18,12,0.16)] lg:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+            {labels.title}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+            {labels.body}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8]">
+          {labels.page} {formatNumber(filters.page, locale)} /{" "}
+          {formatNumber(filters.pageCount, locale)}
+        </span>
+      </div>
+
+      {guideItems.length > 0 ? (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {guideItems.map(({ Icon, body, href, title }) => (
+            <Link
+              className="group min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3 transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+              href={href}
+              key={`${href}-${title}`}
+            >
+              <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-4" />
+              </span>
+              <h3 className="mt-3 truncate text-sm font-semibold">{title}</h3>
+              <p className="mt-1 line-clamp-2 min-h-8 break-words text-xs font-medium leading-4 text-white/54 [overflow-wrap:anywhere]">
+                {body}
+              </p>
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#b9ffc8]">
+                {labels.open}
+                <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
+      {filters.pageCount > 1 ? (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {canGoPrevious ? (
+            <Link
+              className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+              href={previousHref}
+            >
+              {labels.previous}
+            </Link>
+          ) : (
+            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+              {labels.previous}
+            </span>
+          )}
+          {canGoNext ? (
+            <Link
+              className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={nextHref}
+            >
+              {labels.next}
+            </Link>
+          ) : (
+            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+              {labels.next}
+            </span>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function FanletterFeedPagination({
   filters,
   locale,
@@ -4350,6 +4560,19 @@ export function FanletterFeedPage({
             filters={filters}
             locale={locale}
             referralCode={referralCode}
+          />
+
+          <FanletterFeedMobileGuide
+            allContentSectionLabel={allContentSectionLabel}
+            featuredItem={featuredItem}
+            feedHref={feedHref}
+            filters={filters}
+            latestCount={latestItems.length}
+            locale={locale}
+            rankedCreatorCount={rankedCreatorCount}
+            referralCode={referralCode}
+            remainingCount={remainingItems.length}
+            videoCount={videoItems.length}
           />
 
           {featuredItem ? (
