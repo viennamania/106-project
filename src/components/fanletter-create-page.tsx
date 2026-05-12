@@ -22,6 +22,7 @@ import {
 } from "thirdweb/react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
   CONTENT_PAID_USDT_AMOUNT,
@@ -508,17 +509,22 @@ function StatusPanel({
   body,
   cta,
   href,
+  locale,
   title,
 }: {
   body: string;
   cta: string;
   href: string;
+  locale: Locale;
   title: string;
 }) {
   return (
     <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl items-center sm:min-h-[70vh]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
+          <div className="mb-5 flex justify-end">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
           <CircleAlert className="size-8 text-[#44f26e]" />
           <h1 className="mt-5 text-3xl font-semibold leading-tight">{title}</h1>
           <p className="mt-3 text-sm font-medium leading-6 text-white/58">
@@ -1066,6 +1072,7 @@ export function FanletterCreatePage({
         body={copy.loading}
         cta={copy.accountRequiredCta}
         href={connectHref}
+        locale={locale}
         title={copy.loading}
       />
     );
@@ -1077,6 +1084,7 @@ export function FanletterCreatePage({
         body={copy.accountRequiredBody}
         cta={copy.accountRequiredCta}
         href={connectHref}
+        locale={locale}
         title={copy.accountRequired}
       />
     );
@@ -1088,6 +1096,7 @@ export function FanletterCreatePage({
         body={copy.paymentRequired}
         cta={copy.paymentRequiredCta}
         href={activateHref}
+        locale={locale}
         title={copy.paymentRequired}
       />
     );
@@ -1099,6 +1108,7 @@ export function FanletterCreatePage({
         body={copy.profileRequiredBody}
         cta={copy.profileRequiredCta}
         href={profileHref}
+        locale={locale}
         title={copy.profileRequired}
       />
     );
@@ -1127,6 +1137,10 @@ export function FanletterCreatePage({
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
@@ -1139,6 +1153,10 @@ export function FanletterCreatePage({
               </Link>
             </div>
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
             <div>

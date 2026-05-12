@@ -30,6 +30,7 @@ import {
 } from "thirdweb/react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   ContentPostRecord,
@@ -639,6 +640,7 @@ function StatusPanel({
   body,
   cta,
   href,
+  locale,
   loading,
   onRetry,
   title,
@@ -646,6 +648,7 @@ function StatusPanel({
   body: string;
   cta?: string;
   href?: string;
+  locale: Locale;
   loading?: boolean;
   onRetry?: () => void;
   title: string;
@@ -654,6 +657,9 @@ function StatusPanel({
     <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-3xl items-center sm:min-h-[calc(100svh-3rem)]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
+          <div className="mb-5 flex justify-end">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
           <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
             {loading ? (
               <Loader2 className="size-6 animate-spin" />
@@ -2040,6 +2046,7 @@ export function FanletterStudioPage({
     return (
       <StatusPanel
         body={copy.loading}
+        locale={locale}
         loading
         title={copy.loading}
       />
@@ -2052,6 +2059,7 @@ export function FanletterStudioPage({
         body={copy.connectRequired}
         cta={copy.actions.connect}
         href={connectHref}
+        locale={locale}
         title={copy.connectTitle}
       />
     );
@@ -2063,6 +2071,7 @@ export function FanletterStudioPage({
         body={copy.paymentRequired}
         cta={copy.actions.connect}
         href={activateHref}
+        locale={locale}
         title={copy.paymentTitle}
       />
     );
@@ -2073,6 +2082,7 @@ export function FanletterStudioPage({
       <StatusPanel
         body={state.error ?? copy.connectRequired}
         cta={copy.actions.refresh}
+        locale={locale}
         onRetry={() => {
           void loadStudio();
         }}
@@ -2103,6 +2113,10 @@ export function FanletterStudioPage({
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
@@ -2115,6 +2129,10 @@ export function FanletterStudioPage({
               </Link>
             </div>
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-end">
             <div className="min-w-0">

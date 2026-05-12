@@ -25,6 +25,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import type {
   FanletterFanRequestRecord,
   FanletterFanRequestsResponse,
@@ -305,6 +306,7 @@ function FollowingHeader({
   );
 
   return (
+    <>
     <header className="flex items-center justify-between gap-3">
       <Link className="flex min-w-0 items-center gap-2" href={homeHref}>
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
@@ -325,6 +327,10 @@ function FollowingHeader({
       </nav>
 
       <div className="flex items-center gap-2">
+        <FanletterGlobalLanguageSwitcher
+          className="hidden lg:inline-flex"
+          locale={locale}
+        />
         <FanletterAccountStatusLink locale={locale} referralCode={referralCode} />
         <Link
           className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
@@ -334,6 +340,10 @@ function FollowingHeader({
         </Link>
       </div>
     </header>
+    <div className="mt-4 flex lg:hidden">
+      <FanletterGlobalLanguageSwitcher compact locale={locale} />
+    </div>
+    </>
   );
 }
 

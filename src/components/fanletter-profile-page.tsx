@@ -27,6 +27,7 @@ import {
 } from "thirdweb/react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   CreatorCharacterPersona,
@@ -536,6 +537,7 @@ function StatusPanel({
   cta,
   eyebrow,
   href,
+  locale,
   secondaryCta,
   secondaryHref,
   title,
@@ -544,6 +546,7 @@ function StatusPanel({
   cta: string;
   eyebrow?: string;
   href: string;
+  locale: Locale;
   secondaryCta?: string;
   secondaryHref?: string;
   title: string;
@@ -552,6 +555,9 @@ function StatusPanel({
     <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl items-center sm:min-h-[70vh]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
+          <div className="mb-5 flex justify-end">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
           <CircleAlert className="size-8 text-[#44f26e]" />
           {eyebrow ? (
             <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
@@ -2283,6 +2289,7 @@ export function FanletterProfilePage({
         body={copy.loading}
         cta={copy.refresh}
         href={currentProfileHref}
+        locale={locale}
         title={copy.loading}
       />
     );
@@ -2295,6 +2302,7 @@ export function FanletterProfilePage({
         cta={copy.connectRequiredCta}
         eyebrow={copy.profileStep}
         href={connectHref}
+        locale={locale}
         secondaryCta={copy.back}
         secondaryHref={returnToHref || onboardingHref}
         title={copy.disconnected}
@@ -2309,6 +2317,7 @@ export function FanletterProfilePage({
         cta={copy.paymentRequiredCta}
         eyebrow={copy.profileStep}
         href={activateHref}
+        locale={locale}
         secondaryCta={copy.back}
         secondaryHref={returnToHref || onboardingHref}
         title={copy.paymentRequired}
@@ -2339,6 +2348,10 @@ export function FanletterProfilePage({
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
@@ -2351,6 +2364,10 @@ export function FanletterProfilePage({
               </Link>
             </div>
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
             <div>

@@ -26,6 +26,7 @@ import {
 } from "thirdweb/react";
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import {
@@ -469,14 +470,24 @@ export function FanletterConnectPage({
                 FanLetter
               </span>
             </Link>
-            <Link
-              className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-              href={returnToHref || onboardingHref}
-            >
-              {copy.back}
-            </Link>
+            <div className="hidden items-center gap-2 sm:flex">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
+              <Link
+                className="h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
+                href={returnToHref || onboardingHref}
+              >
+                {copy.back}
+              </Link>
+            </div>
             <span className="size-11 sm:hidden" />
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
             <div className="min-w-0">

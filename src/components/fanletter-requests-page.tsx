@@ -17,6 +17,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import type {
   FanletterFanRequestRecord,
   FanletterFanRequestStatus,
@@ -530,12 +531,22 @@ export function FanletterRequestsPage({
                 {copy.following}
               </Link>
             </nav>
-            <FanletterAccountStatusLink
-              compactOnMobile
-              locale={locale}
-              referralCode={referralCode}
-            />
+            <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
+              <FanletterAccountStatusLink
+                compactOnMobile
+                locale={locale}
+                referralCode={referralCode}
+              />
+            </div>
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 pt-14 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:pt-20">
             <div>

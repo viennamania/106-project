@@ -28,6 +28,7 @@ import {
 } from "thirdweb/react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   ContentPostMutationResponse,
@@ -660,6 +661,10 @@ export function FanletterVlogManagementPage({
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden xl:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
@@ -679,6 +684,10 @@ export function FanletterVlogManagementPage({
               </button>
             </div>
           </header>
+
+          <div className="mt-4 flex xl:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-end lg:py-14">
             <div className="max-w-3xl">

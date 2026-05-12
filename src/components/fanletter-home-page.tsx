@@ -18,11 +18,11 @@ import {
   FanletterMobileHeroCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import {
   AnimatedNumber,
   ScrollReveal,
 } from "@/components/fanletter-home-motion";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterFeaturedVideo,
   FanletterLiveStats,
@@ -75,7 +75,6 @@ type FanletterCopy = {
     title: string;
     description: string;
   };
-  languageLabel: string;
   liveStats: {
     content: string;
     creators: string;
@@ -199,7 +198,6 @@ const koCopy: FanletterCopy = {
     description:
       "FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
   },
-  languageLabel: "언어",
   liveStats: {
     content: "공개 브이로그",
     creators: "활성 캐릭터",
@@ -342,7 +340,6 @@ const enCopy: FanletterCopy = {
     description:
       "FanLetter helps creators make short-form vlogs with a fixed AI character, then connect them to fan feeds and paid content without showing their real face.",
   },
-  languageLabel: "Language",
   liveStats: {
     content: "public vlogs",
     creators: "active characters",
@@ -689,15 +686,20 @@ export function FanletterHomePage({
             </nav>
 
             <div className="flex items-center gap-2">
-              <div className="hidden sm:block">
-                <LanguageSwitcher label={copy.languageLabel} locale={locale} />
-              </div>
+              <FanletterGlobalLanguageSwitcher
+                className="hidden sm:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
               />
             </div>
           </header>
+
+          <div className="mt-4 flex sm:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>

@@ -33,6 +33,7 @@ import {
 } from "@/components/fanletter-channel-section-tabs";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
 import {
   FanletterSetupHeroDescription,
@@ -46,7 +47,6 @@ import {
   FanletterSetupStepText,
 } from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import type {
   FanletterCreatorPageData,
   FanletterFeedFilters,
@@ -112,7 +112,6 @@ type FanletterSubpageCopy = {
     trending: string;
     videos: string;
   };
-  languageLabel: string;
   metrics: {
     comments: string;
     likes: string;
@@ -183,7 +182,6 @@ const koCopy: FanletterSubpageCopy = {
     trending: "인기 브이로그",
     videos: "브이로그",
   },
-  languageLabel: "언어",
   metrics: {
     comments: "댓글",
     likes: "좋아요",
@@ -262,7 +260,6 @@ const enCopy: FanletterSubpageCopy = {
     trending: "Popular vlogs",
     videos: "Vlogs",
   },
-  languageLabel: "Language",
   metrics: {
     comments: "comments",
     likes: "likes",
@@ -567,13 +564,11 @@ function FanletterShell({
             </nav>
 
             <div className="flex min-w-0 shrink-0 items-center gap-2">
-              <div className="hidden sm:block">
-                <LanguageSwitcher
-                  className={isStartSection ? "sm:min-w-[136px]" : undefined}
-                  label={copy.languageLabel}
-                  locale={locale}
-                />
-              </div>
+              <FanletterGlobalLanguageSwitcher
+                className="hidden sm:inline-flex"
+                compact={isStartSection}
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 className={isStartSection ? "max-w-[8.75rem]" : undefined}
                 hideIdentity={isStartSection}
@@ -590,6 +585,10 @@ function FanletterShell({
               )}
             </div>
           </header>
+
+          <div className="mt-4 flex sm:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div
             className={`pt-14 sm:pt-24 ${
@@ -4064,6 +4063,10 @@ export function FanletterContentDetailPage({
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden lg:inline-flex"
+                locale={locale}
+              />
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={effectiveReferralCode}
@@ -4076,6 +4079,10 @@ export function FanletterContentDetailPage({
               </Link>
             </div>
           </header>
+
+          <div className="mt-4 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          </div>
 
           <div className="pt-5 lg:hidden">
             <Link
