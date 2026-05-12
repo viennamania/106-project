@@ -1587,42 +1587,38 @@ export function FanletterProfilePage({
                     </div>
 
                     <div className="grid min-w-0 gap-3">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid gap-2.5 sm:grid-cols-2">
                         {avatarKitItems.map((avatar) => (
                           <Link
-                            className="group overflow-hidden rounded-lg border border-white/10 bg-black/22 transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
+                            className="group flex min-h-[14.5rem] min-w-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-black/22 transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
                             href={avatar.href}
                             key={avatar.url}
                           >
-                            <div className="grid grid-cols-[4.75rem_minmax(0,1fr)]">
-                              <div className="relative aspect-square min-h-[4.75rem]">
-                                <Image
-                                  alt={avatar.label}
-                                  className="object-cover transition group-hover:scale-105"
-                                  fill
-                                  sizes="80px"
-                                  src={avatar.url}
-                                />
-                              </div>
-                              <div className="min-w-0 p-2.5">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="truncate text-sm font-semibold text-white">
-                                    {avatar.preset.title}
-                                  </p>
-                                  {avatar.selected ? (
-                                    <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.56rem] font-semibold text-black">
-                                      {avatarKitCopy.selected}
-                                    </span>
-                                  ) : null}
-                                </div>
-                                <p className="mt-1 line-clamp-2 text-[0.68rem] font-medium leading-4 text-white/44">
-                                  {avatar.preset.role}
-                                </p>
-                                <span className="mt-2 inline-flex items-center gap-1 text-[0.62rem] font-semibold text-[#8dffa5]">
-                                  {avatarKitCopy.action}
-                                  <ArrowRight className="size-3" />
+                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/28">
+                              <Image
+                                alt={avatar.label}
+                                className="object-cover transition group-hover:scale-105"
+                                fill
+                                sizes="(max-width: 768px) 82vw, 180px"
+                                src={avatar.url}
+                              />
+                              {avatar.selected ? (
+                                <span className="absolute right-2 top-2 rounded-full bg-[#44f26e] px-2 py-1 text-[0.62rem] font-semibold text-black shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
+                                  {avatarKitCopy.selected}
                                 </span>
-                              </div>
+                              ) : null}
+                            </div>
+                            <div className="flex min-w-0 flex-1 flex-col p-3">
+                              <p className="line-clamp-2 text-base font-semibold leading-snug text-white [word-break:keep-all]">
+                                {avatar.preset.title}
+                              </p>
+                              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/48 [word-break:keep-all]">
+                                {avatar.preset.role}
+                              </p>
+                              <span className="mt-auto inline-flex items-center gap-1 pt-3 text-xs font-semibold text-[#8dffa5]">
+                                {avatarKitCopy.action}
+                                <ArrowRight className="size-3.5" />
+                              </span>
                             </div>
                           </Link>
                         ))}
