@@ -51,6 +51,19 @@ export const fanletterFanRequestStatuses = [
   "used",
   "hidden",
 ] as const;
+export const fanletterFanRequestTemplateCategories = [
+  "daily",
+  "fanservice",
+  "message",
+  "outfit",
+  "qna",
+  "routine",
+  "seasonal",
+] as const;
+export const fanletterFanRequestTemplateStatuses = [
+  "active",
+  "hidden",
+] as const;
 export const creatorAvatarExpressions = [
   "default",
   "smile",
@@ -75,6 +88,10 @@ export type FanletterFanRequestType =
   (typeof fanletterFanRequestTypes)[number];
 export type FanletterFanRequestStatus =
   (typeof fanletterFanRequestStatuses)[number];
+export type FanletterFanRequestTemplateCategory =
+  (typeof fanletterFanRequestTemplateCategories)[number];
+export type FanletterFanRequestTemplateStatus =
+  (typeof fanletterFanRequestTemplateStatuses)[number];
 export type ContentAccessGateReason =
   | "connect"
   | "network"
@@ -221,8 +238,26 @@ export type FanletterFanRequestDocument = {
   sourceContentId: string | null;
   sourcePath: string | null;
   status: FanletterFanRequestStatus;
+  templateCategory?: FanletterFanRequestTemplateCategory | null;
+  templateId?: string | null;
+  templateTitle?: string | null;
   usedContentId?: string | null;
   updatedAt: Date;
+};
+
+export type FanletterFanRequestTemplateDocument = {
+  body: string;
+  category: FanletterFanRequestTemplateCategory;
+  createdAt: Date;
+  creatorReferralCode: string | null;
+  locale: Locale;
+  requestType: FanletterFanRequestType;
+  sortOrder: number;
+  status: FanletterFanRequestTemplateStatus;
+  templateId: string;
+  title: string;
+  updatedAt: Date;
+  usageCount: number;
 };
 
 export type FanletterCharacterFollowDocument = {
@@ -388,6 +423,9 @@ export type FanletterFanRequestRecord = {
   sourceContentId: string | null;
   sourcePath: string | null;
   status: FanletterFanRequestStatus;
+  templateCategory: FanletterFanRequestTemplateCategory | null;
+  templateId: string | null;
+  templateTitle: string | null;
   usedContentId: string | null;
   updatedAt: string;
 };
@@ -400,6 +438,7 @@ export type FanletterFanRequestCreateRequest = {
   requesterDisplayName?: string | null;
   sourceContentId?: string | null;
   sourcePath?: string | null;
+  templateId?: string | null;
 };
 
 export type FanletterFanRequestCreateResponse = {
@@ -412,6 +451,21 @@ export type FanletterFanRequestsResponse = {
     pageSize: number;
   };
   requests: FanletterFanRequestRecord[];
+};
+
+export type FanletterFanRequestTemplateRecord = {
+  body: string;
+  category: FanletterFanRequestTemplateCategory;
+  creatorReferralCode: string | null;
+  locale: Locale;
+  requestType: FanletterFanRequestType;
+  templateId: string;
+  title: string;
+  usageCount: number;
+};
+
+export type FanletterFanRequestTemplatesResponse = {
+  templates: FanletterFanRequestTemplateRecord[];
 };
 
 export type FanletterFanRequestStatusUpdateRequest = {

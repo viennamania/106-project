@@ -37,6 +37,7 @@ import type {
   ContentEntitlementDocument,
   FanletterCharacterFollowDocument,
   FanletterFanRequestDocument,
+  FanletterFanRequestTemplateDocument,
   ContentImageGenerationDocument,
   FanletterVlogPlanDocument,
   ContentOrderDocument,
@@ -135,6 +136,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterFanRequestsCollectionPromise?: Promise<
     Collection<FanletterFanRequestDocument>
+  >;
+  mongoFanletterFanRequestTemplatesCollectionPromise?: Promise<
+    Collection<FanletterFanRequestTemplateDocument>
   >;
   mongoFanletterCharacterFollowsCollectionPromise?: Promise<
     Collection<FanletterCharacterFollowDocument>
@@ -1055,6 +1059,45 @@ export async function getFanletterFanRequestsCollection() {
   }
 
   return globalForMongo.mongoFanletterFanRequestsCollectionPromise;
+}
+
+export async function getFanletterFanRequestTemplatesCollection() {
+  if (!globalForMongo.mongoFanletterFanRequestTemplatesCollectionPromise) {
+    globalForMongo.mongoFanletterFanRequestTemplatesCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_FAN_REQUEST_TEMPLATES_COLLECTION ??
+          "fanletterFanRequestTemplates";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterFanRequestTemplateDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ templateId: 1 }, { unique: true }),
+          collection.createIndex({
+            creatorReferralCode: 1,
+            locale: 1,
+            requestType: 1,
+            status: 1,
+            sortOrder: 1,
+          }),
+          collection.createIndex({
+            category: 1,
+            locale: 1,
+            requestType: 1,
+            status: 1,
+            sortOrder: 1,
+          }),
+          collection.createIndex({ usageCount: -1, updatedAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterFanRequestTemplatesCollectionPromise;
 }
 
 export async function getFanletterCharacterFollowsCollection() {

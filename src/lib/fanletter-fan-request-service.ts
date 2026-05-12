@@ -21,6 +21,10 @@ import {
   getFanletterFanRequestsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
+import {
+  incrementFanletterFanRequestTemplateUsage,
+  resolveFanletterFanRequestTemplateForSubmission,
+} from "@/lib/fanletter-fan-request-template-service";
 
 const FANLETTER_FAN_REQUEST_BODY_LIMIT = 600;
 const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
@@ -104,6 +108,9 @@ function serializeFanRequest(
     sourceContentId: request.sourceContentId,
     sourcePath: request.sourcePath,
     status: request.status,
+    templateCategory: request.templateCategory ?? null,
+    templateId: request.templateId ?? null,
+    templateTitle: request.templateTitle ?? null,
     usedContentId: request.usedContentId ?? null,
     updatedAt: request.updatedAt.toISOString(),
   };
@@ -261,6 +268,7 @@ export async function createFanletterFanRequest(input: {
   requesterFingerprint?: string | null;
   sourceContentId?: string | null;
   sourcePath?: string | null;
+  templateId?: string | null;
 }) {
   const body = trimToLength(input.body, FANLETTER_FAN_REQUEST_BODY_LIMIT);
 
@@ -282,6 +290,11 @@ export async function createFanletterFanRequest(input: {
     creatorReferralCode: creator.creatorReferralCode,
     sourceContentId: input.sourceContentId,
   });
+  const requestType = normalizeFanRequestType(input.requestType);
+  const template = await resolveFanletterFanRequestTemplateForSubmission({
+    requestType,
+    templateId: input.templateId,
+  });
   const now = new Date();
   const request: FanletterFanRequestDocument = {
     body,
@@ -291,7 +304,7 @@ export async function createFanletterFanRequest(input: {
     creatorEmail: creator.creatorEmail,
     creatorReferralCode: creator.creatorReferralCode,
     requestId: randomUUID(),
-    requestType: normalizeFanRequestType(input.requestType),
+    requestType,
     requesterDisplayName: trimToLength(
       input.requesterDisplayName,
       FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
@@ -301,6 +314,9 @@ export async function createFanletterFanRequest(input: {
     sourceContentId,
     sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),
     status: "new",
+    templateCategory: template?.category ?? null,
+    templateId: template?.templateId ?? null,
+    templateTitle: template?.title ?? null,
     usedContentId: null,
     updatedAt: now,
   };
@@ -308,6 +324,14 @@ export async function createFanletterFanRequest(input: {
 
   await assertFanRequestSubmissionAllowed({ now, request });
   await requestsCollection.insertOne(request);
+  await incrementFanletterFanRequestTemplateUsage(template?.templateId).catch(
+    (error: unknown) => {
+      console.warn("[fanletter-request] template usage increment failed", {
+        message: error instanceof Error ? error.message : String(error),
+        templateId: template?.templateId,
+      });
+    },
+  );
 
   return serializeFanRequest(request);
 }

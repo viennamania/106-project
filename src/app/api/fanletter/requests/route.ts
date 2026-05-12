@@ -165,6 +165,7 @@ export async function POST(request: Request) {
       requesterFingerprint: getRequesterFingerprint(request),
       sourceContentId: body?.sourceContentId,
       sourcePath: body?.sourcePath,
+      templateId: body?.templateId,
     });
     const response: FanletterFanRequestCreateResponse = {
       request: fanRequest,

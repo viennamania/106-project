@@ -11,7 +11,7 @@ import {
   Radio,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   FANLETTER_FAN_REQUEST_PRESET_EVENT,
@@ -19,6 +19,9 @@ import {
 } from "@/components/fanletter-fan-request-preset-link";
 import type {
   FanletterFanRequestCreateResponse,
+  FanletterFanRequestTemplateCategory,
+  FanletterFanRequestTemplateRecord,
+  FanletterFanRequestTemplatesResponse,
   FanletterFanRequestType,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
@@ -32,6 +35,9 @@ type LastSubmittedRequest = {
   requestType: FanletterFanRequestType;
 };
 
+type TemplateLoadStatus = "error" | "idle" | "loading" | "ready";
+type TemplateCategoryFilter = FanletterFanRequestTemplateCategory | "all";
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -41,12 +47,30 @@ function getCopy(locale: Locale) {
         emptyBody: "보고 싶은 장면이나 응원 메시지를 입력해 주세요.",
         errorFallback: "요청을 저장하지 못했습니다.",
         examples: [
-          "카페에서 영어 공부하는 하루",
-          "새 의상으로 팬 질문 답하기",
-          "비 오는 날 산책 브이로그",
-          "아침 루틴과 플레이리스트",
+          {
+            body: "카페에서 영어 공부하는 하루",
+            category: "daily" as const,
+            title: "카페 공부",
+          },
+          {
+            body: "새 의상으로 팬 질문 답하기",
+            category: "outfit" as const,
+            title: "새 의상 Q&A",
+          },
+          {
+            body: "비 오는 날 산책 브이로그",
+            category: "seasonal" as const,
+            title: "비 오는 날 산책",
+          },
+          {
+            body: "아침 루틴과 플레이리스트",
+            category: "routine" as const,
+            title: "아침 루틴",
+          },
         ],
-        examplesLabel: "빠른 예시",
+        examplesLabel: "장면 선택",
+        examplesStatusFallback: "기본 장면을 표시 중입니다.",
+        examplesStatusLoading: "장면을 불러오는 중입니다.",
         followChannel: "채널 팔로우",
         helper:
           "팬이 남긴 요청은 크리에이터 스튜디오 요청함에 저장되고, 좋은 요청은 다음 브이로그 소재가 됩니다.",
@@ -62,6 +86,7 @@ function getCopy(locale: Locale) {
         requestStatus: "내 요청 상태 보기",
         saved:
           "요청이 크리에이터 스튜디오에 들어갔습니다.",
+        selected: "선택됨",
         submit: "요청 남기기",
         successBody:
           "제작되면 이 캐릭터 채널의 공개 브이로그 영역에서 확인할 수 있습니다.",
@@ -82,6 +107,18 @@ function getCopy(locale: Locale) {
         successTitle: "팬 요청이 전달되었습니다",
         submitting: "저장 중...",
         title: "다음 브이로그 요청 남기기",
+        templateCategories: {
+          all: "전체",
+          daily: "일상",
+          fanservice: "팬서비스",
+          message: "응원",
+          outfit: "룩/의상",
+          qna: "Q&A",
+          routine: "루틴",
+          seasonal: "계절",
+        },
+        templatesHelper:
+          "많이 요청되는 장면을 골라 문구를 다듬거나, 아래 입력칸에 직접 적을 수 있습니다.",
         viewVlogs: "공개 브이로그 보기",
         vlogRequest: "다음 브이로그 요청",
       }
@@ -92,12 +129,30 @@ function getCopy(locale: Locale) {
         emptyBody: "Write a scene request or support message.",
         errorFallback: "Could not save the request.",
         examples: [
-          "A day studying English at a cafe",
-          "Answer fan questions in a new outfit",
-          "A rainy-day walk vlog",
-          "Morning routine and playlist",
+          {
+            body: "A day studying English at a cafe",
+            category: "daily" as const,
+            title: "Cafe study",
+          },
+          {
+            body: "Answer fan questions in a new outfit",
+            category: "outfit" as const,
+            title: "New outfit Q&A",
+          },
+          {
+            body: "A rainy-day walk vlog",
+            category: "seasonal" as const,
+            title: "Rainy-day walk",
+          },
+          {
+            body: "Morning routine and playlist",
+            category: "routine" as const,
+            title: "Morning routine",
+          },
         ],
-        examplesLabel: "Quick examples",
+        examplesLabel: "Scene picker",
+        examplesStatusFallback: "Showing default scenes.",
+        examplesStatusLoading: "Loading scenes.",
         followChannel: "Follow channel",
         helper:
           "Fan requests are saved to the creator's studio inbox, where strong ideas can become future vlogs.",
@@ -113,6 +168,7 @@ function getCopy(locale: Locale) {
         requestStatus: "Track my request",
         saved:
           "Your request entered the creator's studio inbox.",
+        selected: "Selected",
         submit: "Leave request",
         successBody:
           "If it gets produced, you can find it in this character channel's public vlogs.",
@@ -133,6 +189,18 @@ function getCopy(locale: Locale) {
         successTitle: "Fan request delivered",
         submitting: "Saving...",
         title: "Leave a request",
+        templateCategories: {
+          all: "All",
+          daily: "Daily",
+          fanservice: "Fan service",
+          message: "Support",
+          outfit: "Outfit",
+          qna: "Q&A",
+          routine: "Routine",
+          seasonal: "Seasonal",
+        },
+        templatesHelper:
+          "Pick a popular scene and refine it, or write your own request below.",
         viewVlogs: "View public vlogs",
         vlogRequest: "Next vlog request",
       };
@@ -195,7 +263,7 @@ export function FanletterFanRequestForm({
   referralCode?: string | null;
   sourceContentId?: string | null;
 }) {
-  const copy = getCopy(locale);
+  const copy = useMemo(() => getCopy(locale), [locale]);
   const resolvedFormId = formId ?? "fanletter-fan-request-form";
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -204,7 +272,17 @@ export function FanletterFanRequestForm({
   const [requesterDisplayName, setRequesterDisplayName] = useState("");
   const [requestType, setRequestType] =
     useState<FanletterFanRequestType>("vlog_request");
+  const [activeTemplateCategory, setActiveTemplateCategory] =
+    useState<TemplateCategoryFilter>("all");
+  const [requestTemplates, setRequestTemplates] = useState<
+    FanletterFanRequestTemplateRecord[]
+  >([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null,
+  );
   const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [templateLoadStatus, setTemplateLoadStatus] =
+    useState<TemplateLoadStatus>("loading");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const requestTypes = [
     {
@@ -218,6 +296,51 @@ export function FanletterFanRequestForm({
       value: "message" as const,
     },
   ];
+  const fallbackTemplates = useMemo<FanletterFanRequestTemplateRecord[]>(
+    () =>
+      copy.examples.map((example, index) => ({
+        body: example.body,
+        category:
+          requestType === "message"
+            ? "message"
+            : example.category,
+        creatorReferralCode: null,
+        locale,
+        requestType,
+        templateId: `fallback-${locale}-${requestType}-${index}`,
+        title: example.title,
+        usageCount: 0,
+      })),
+    [copy.examples, locale, requestType],
+  );
+  const displayTemplates =
+    requestTemplates.length > 0 ? requestTemplates : fallbackTemplates;
+  const templateCategoryValues = useMemo(
+    () => Array.from(new Set(displayTemplates.map((template) => template.category))),
+    [displayTemplates],
+  );
+  const effectiveTemplateCategory =
+    activeTemplateCategory !== "all" &&
+    !templateCategoryValues.includes(activeTemplateCategory)
+      ? "all"
+      : activeTemplateCategory;
+  const templateCategories = useMemo(() => {
+    return [
+      {
+        label: copy.templateCategories.all,
+        value: "all" as const,
+      },
+      ...templateCategoryValues.map((value) => ({
+        label: copy.templateCategories[value],
+        value,
+      })),
+    ];
+  }, [copy.templateCategories, templateCategoryValues]);
+  const visibleTemplates = displayTemplates.filter(
+    (template) =>
+      effectiveTemplateCategory === "all" ||
+      template.category === effectiveTemplateCategory,
+  );
 
   useEffect(() => {
     function applyPreset(event: Event) {
@@ -232,10 +355,13 @@ export function FanletterFanRequestForm({
       }
 
       setBody(detail.body.slice(0, 600));
+      setActiveTemplateCategory("all");
       setError(null);
       setLastSubmittedRequest(null);
       setRequestType(detail.requestType);
+      setSelectedTemplateId(null);
       setStatus("idle");
+      setTemplateLoadStatus("loading");
 
       window.requestAnimationFrame(() => {
         document
@@ -251,6 +377,44 @@ export function FanletterFanRequestForm({
       window.removeEventListener(FANLETTER_FAN_REQUEST_PRESET_EVENT, applyPreset);
     };
   }, [resolvedFormId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      creatorReferralCode,
+      locale,
+      requestType,
+    });
+
+    fetch(`/api/fanletter/request-templates?${params.toString()}`, {
+      signal: controller.signal,
+    })
+      .then((response) =>
+        readApiJson<FanletterFanRequestTemplatesResponse>(
+          response,
+          copy.errorFallback,
+        ),
+      )
+      .then((data) => {
+        setRequestTemplates(data.templates);
+        setTemplateLoadStatus("ready");
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.warn("[fanletter-request] template load failed", {
+          message: error instanceof Error ? error.message : String(error),
+        });
+        setRequestTemplates([]);
+        setTemplateLoadStatus("error");
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [copy.errorFallback, creatorReferralCode, locale, requestType]);
 
   async function submitRequest() {
     if (!body.trim()) {
@@ -277,6 +441,7 @@ export function FanletterFanRequestForm({
             requesterDisplayName,
             sourceContentId,
             sourcePath,
+            templateId: selectedTemplateId,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -293,6 +458,7 @@ export function FanletterFanRequestForm({
       });
       setBody("");
       setRequesterDisplayName("");
+      setSelectedTemplateId(null);
       setStatus("success");
     } catch (submitError) {
       setError(getErrorMessage(submitError, copy.errorFallback, locale));
@@ -300,21 +466,25 @@ export function FanletterFanRequestForm({
     }
   }
 
-  function applyExample(example: string) {
-    setBody((current) => {
-      const trimmed = current.trim();
-
-      return trimmed ? `${trimmed}\n${example}` : example;
-    });
+  function applyTemplate(template: FanletterFanRequestTemplateRecord) {
+    setBody(template.body.slice(0, 600));
     setError(null);
+    setLastSubmittedRequest(null);
+    setSelectedTemplateId(
+      template.templateId.startsWith("fallback-") ? null : template.templateId,
+    );
     setStatus("idle");
-    setRequestType("vlog_request");
+    setRequestType(template.requestType);
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.focus({ preventScroll: true });
+    });
   }
 
   function resetForAnotherRequest() {
     setError(null);
     setStatus("idle");
     setRequestType("vlog_request");
+    setSelectedTemplateId(null);
   }
 
   const successStepIcons = [Inbox, Clapperboard, Radio] as const;
@@ -363,8 +533,15 @@ export function FanletterFanRequestForm({
                 }`}
                 key={type.value}
                 onClick={() => {
+                  if (selectedTemplateId) {
+                    setBody("");
+                  }
                   setRequestType(type.value);
+                  setActiveTemplateCategory("all");
                   setError(null);
+                  setLastSubmittedRequest(null);
+                  setSelectedTemplateId(null);
+                  setTemplateLoadStatus("loading");
                   if (status !== "loading") {
                     setStatus("idle");
                   }
@@ -380,22 +557,90 @@ export function FanletterFanRequestForm({
       </div>
 
       <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9ffc8]">
-          {copy.examplesLabel}
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {copy.examples.map((example) => (
-            <button
-              className="rounded-full border border-[#44f26e]/22 bg-black/18 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8] transition hover:border-[#44f26e]/56 hover:bg-[#44f26e]/12"
-              key={example}
-              onClick={() => {
-                applyExample(example);
-              }}
-              type="button"
-            >
-              {example}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9ffc8]">
+              {copy.examplesLabel}
+            </p>
+            <p className="mt-1 text-xs font-medium leading-5 text-white/48">
+              {copy.templatesHelper}
+            </p>
+          </div>
+          {templateLoadStatus === "loading" ? (
+            <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#b9ffc8]">
+              <Loader2 className="size-3.5 animate-spin" />
+              {copy.examplesStatusLoading}
+            </span>
+          ) : templateLoadStatus === "error" ? (
+            <span className="text-xs font-semibold text-white/42">
+              {copy.examplesStatusFallback}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {templateCategories.map((category) => {
+            const active = effectiveTemplateCategory === category.value;
+
+            return (
+              <button
+                aria-pressed={active}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  active
+                    ? "border-[#44f26e] bg-[#44f26e] text-black"
+                    : "border-[#44f26e]/22 bg-black/18 text-[#b9ffc8] hover:border-[#44f26e]/56 hover:bg-[#44f26e]/12"
+                }`}
+                key={category.value}
+                onClick={() => {
+                  setActiveTemplateCategory(category.value);
+                }}
+                type="button"
+              >
+                {category.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {visibleTemplates.map((template) => {
+            const selected = selectedTemplateId === template.templateId;
+
+            return (
+              <button
+                aria-pressed={selected}
+                className={`min-h-24 rounded-lg border p-3 text-left transition ${
+                  selected
+                    ? "border-[#44f26e] bg-[#44f26e]/18"
+                    : "border-white/10 bg-black/18 hover:border-[#44f26e]/42 hover:bg-black/26"
+                }`}
+                key={template.templateId}
+                onClick={() => {
+                  applyTemplate(template);
+                }}
+                type="button"
+              >
+                <span className="flex items-start justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-white">
+                      {template.title}
+                    </span>
+                    <span className="mt-1 inline-flex rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-2 py-0.5 text-[0.66rem] font-semibold text-[#b9ffc8]">
+                      {copy.templateCategories[template.category]}
+                    </span>
+                  </span>
+                  {selected ? (
+                    <span className="shrink-0 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.66rem] font-semibold text-black">
+                      {copy.selected}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-3 line-clamp-2 block break-words text-xs font-medium leading-5 text-white/58 [overflow-wrap:anywhere]">
+                  {template.body}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
