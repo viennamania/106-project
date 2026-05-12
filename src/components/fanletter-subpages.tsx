@@ -196,7 +196,7 @@ const koCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "회원 세션과 지갑 연결 상태를 확인합니다. 완료 후 캐릭터 준비로 이어집니다.",
+        body: "FanLetter 계정과 시작 준비 상태를 확인합니다. 완료 후 캐릭터 준비로 이어집니다.",
         title: "계정 연결",
       },
       {
@@ -274,7 +274,7 @@ const enCopy: FanletterSubpageCopy = {
     eyebrow: "Start FanLetter",
     steps: [
       {
-        body: "Confirm the member session and wallet connection, then continue into character setup.",
+        body: "Confirm the FanLetter account and readiness state, then continue into character setup.",
         title: "Connect account",
       },
       {
@@ -6078,7 +6078,7 @@ export function FanletterOnboardingPage({
   const labels =
     locale === "ko"
       ? {
-          accountState: "기존 회원 세션과 지갑 연결을 그대로 사용합니다.",
+          accountState: "연결된 FanLetter 계정을 기준으로 시작 상태를 확인합니다.",
           asideBody:
             "처음 방문한 사용자도 필요한 작업만 순서대로 진행할 수 있게 정리했습니다.",
           asideTitle: "시작 준비",
@@ -6089,19 +6089,19 @@ export function FanletterOnboardingPage({
             "계정 연결, 캐릭터 만들기, 첫 숏폼 브이로그 생성까지 한 화면에서 순서대로 진행하세요.",
           eyebrow: "FanLetter 온보딩",
           feedCta: "브이로그 피드 보기",
-          helper: "각 단계는 기존 검증 API와 크리에이터 스튜디오 기능을 그대로 사용하면서 FanLetter AI 캐릭터 브이로그 흐름으로 묶습니다.",
+          helper: "계정 연결, 캐릭터 준비, 첫 브이로그 생성을 한 흐름으로 묶어 처음 시작하는 사용자가 길을 잃지 않게 합니다.",
           homeCta: "브이로그 스튜디오",
           progress: "빠른 시작",
           readyValue: "3단계",
           title: "AI 캐릭터 브이로그 시작하기",
           steps: [
             {
-              body: "회원 가입과 지갑 연결 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
+              body: "FanLetter 계정과 시작 준비 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
               cta: "계정 연결하기",
               href: connectHref,
               Icon: User,
               meta: "01 · 계정",
-              title: "계정과 지갑 연결",
+              title: "FanLetter 계정 연결",
             },
             {
               body: "표시 이름과 분위기만 정하면 캐릭터 설정과 대표 아바타를 자동으로 저장합니다.",
@@ -6122,7 +6122,7 @@ export function FanletterOnboardingPage({
           ],
         }
       : {
-          accountState: "This keeps the existing member session and wallet flow.",
+          accountState: "FanLetter checks readiness from the connected account.",
           asideBody:
             "A focused path for new creators to start an AI character vlogger channel quickly.",
           asideTitle: "Start today's channel",
@@ -6133,19 +6133,19 @@ export function FanletterOnboardingPage({
             "Move through account connection, character creation, and first short-form vlog creation inside FanLetter.",
           eyebrow: "FanLetter Onboarding",
           feedCta: "View vlog feed",
-          helper: "Each step reuses the existing verification APIs and Creator Studio flow inside the FanLetter AI character vlog experience.",
+          helper: "Account connection, character setup, and first vlog creation stay in one guided FanLetter flow.",
           homeCta: "Vlog studio",
           progress: "Quick start",
           readyValue: "3 steps",
           title: "Start your AI character vlog",
           steps: [
             {
-              body: "Confirm membership and wallet connection. After completion, return to this onboarding page.",
+              body: "Confirm the FanLetter account and readiness state. After completion, return to this onboarding page.",
               cta: "Connect account",
               href: connectHref,
               Icon: User,
               meta: "01 · Account",
-              title: "Connect account and wallet",
+              title: "Connect FanLetter account",
             },
             {
               body: "Choose a display name and mood to save the character setup and representative avatar automatically.",

@@ -367,10 +367,10 @@ function getOnboardingCopy(locale: Locale) {
   return locale === "ko"
     ? {
         accountCheckingBody:
-          "회원 세션과 지갑 연결 상태를 확인하고 있습니다. 확인이 끝나면 다음 단계가 자동으로 정리됩니다.",
+          "FanLetter 계정과 시작 준비 상태를 확인하고 있습니다. 확인이 끝나면 다음 단계가 자동으로 정리됩니다.",
         accountCheckingTitle: "계정 상태 확인 중",
         accountReadyBody:
-          "회원 세션과 지갑 연결이 확인되었습니다. 이제 캐릭터 상태만 이어서 확인하면 됩니다.",
+          "FanLetter 계정 연결이 확인되었습니다. 이제 캐릭터 상태만 이어서 확인하면 됩니다.",
         accountReadyTitle: "계정 연결 완료",
         accountReviewBody:
           "가입 또는 연결 상태 확인이 필요합니다. 계정 연결 페이지에서 상태를 먼저 정리하세요.",
@@ -447,10 +447,10 @@ function getOnboardingCopy(locale: Locale) {
       }
     : {
         accountCheckingBody:
-          "Checking the member session and wallet connection. The next step will update automatically.",
+          "Checking the FanLetter account and readiness state. The next step will update automatically.",
         accountCheckingTitle: "Checking account status",
         accountReadyBody:
-          "The member session and wallet connection are ready. Next, confirm the character state.",
+          "The FanLetter account is connected. Next, confirm the character state.",
         accountReadyTitle: "Account connected",
         accountReviewBody:
           "Signup or connection status needs review. Start by resolving it on the account page.",

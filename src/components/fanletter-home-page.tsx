@@ -299,7 +299,7 @@ const enCopy: FanletterCopy = {
       question: "How do vlogs monetise?",
     },
     {
-      answer: "Yes. Character setup, today's vlog creation, feed browsing, wallet connection, and sales views are designed around mobile use.",
+      answer: "Yes. Character setup, today's vlog creation, feed browsing, account connection, and sales views are designed around mobile use.",
       question: "Is it mobile first?",
     },
   ],
@@ -605,8 +605,8 @@ export function FanletterHomePage({
     locale === "ko"
       ? [
           {
-            body: "회원 세션과 지갑 연결 상태를 확인합니다.",
-            Icon: WalletCards,
+            body: "FanLetter 계정과 시작 준비 상태를 확인합니다.",
+            Icon: ShieldCheck,
             label: "01",
             title: "계정 연결",
           },
@@ -625,8 +625,8 @@ export function FanletterHomePage({
         ]
       : [
           {
-            body: "Confirm the member session and wallet connection.",
-            Icon: WalletCards,
+            body: "Confirm the FanLetter account and readiness state.",
+            Icon: ShieldCheck,
             label: "01",
             title: "Connect account",
           },

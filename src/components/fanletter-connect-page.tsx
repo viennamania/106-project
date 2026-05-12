@@ -73,7 +73,7 @@ function getCopy(locale: Locale) {
           "FanLetter에서 사용할 이메일 계정과 시작 준비 상태를 한 번에 확인합니다.",
         back: "온보딩으로 돌아가기",
         completedBody:
-          "가입 완료 회원으로 확인되었습니다. 브이로그 스튜디오에서 AI 캐릭터 프로필, 브이로그, 공개 상태를 이어서 관리하세요.",
+          "FanLetter 시작 준비가 완료되었습니다. 브이로그 스튜디오에서 AI 캐릭터 프로필, 브이로그, 공개 상태를 이어서 관리하세요.",
         completedTitle: "FanLetter 시작 준비가 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
@@ -83,13 +83,13 @@ function getCopy(locale: Locale) {
         email: "이메일",
         eyebrow: "FanLetter Account",
         helper:
-          "계정 연결과 회원 상태 확인이 끝나면 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
+          "계정 연결과 시작 준비 확인이 끝나면 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
         loginTitle: "FanLetter 계정 연결",
-        member: "회원 상태",
+        member: "시작 상태",
         missingClient:
           "현재 브라우저에서 이메일 계정 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         paymentBody:
-          "회원 정보는 연결되었지만 가입 완료 결제 확인이 필요합니다. 결제 확인 화면에서 완료한 뒤 온보딩으로 돌아오세요.",
+          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 온보딩으로 돌아오세요.",
         paymentCta: "가입 완료 확인하기",
         paymentTitle: "가입 완료 확인이 필요합니다.",
         primary: "캐릭터 만들기로 이동",
@@ -102,7 +102,7 @@ function getCopy(locale: Locale) {
         syncErrorTitle: "계정 상태 확인이 필요합니다.",
         syncing: "시작 준비 상태를 확인하고 있습니다.",
         title: "계정 연결을 FanLetter 흐름 안에서 끝내세요.",
-        wallet: "지갑",
+        wallet: "연결 ID",
       }
     : {
         account: "Account",
@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
           "Confirm the email account and readiness state used for FanLetter.",
         back: "Back to onboarding",
         completedBody:
-          "This member is completed. Manage character profile, vlogs, and publishing from the vlog studio.",
+          "Your FanLetter setup is ready. Manage character profile, vlogs, and publishing from the vlog studio.",
         completedTitle: "Your FanLetter account is ready.",
         connect: "Connect with email",
         connectBody:
@@ -120,13 +120,13 @@ function getCopy(locale: Locale) {
         email: "Email",
         eyebrow: "FanLetter Account",
         helper:
-          "After account connection and member status confirmation, you can continue to character profile and first vlog steps.",
+          "After account connection and readiness confirmation, you can continue to character profile and first vlog steps.",
         loginTitle: "Connect FanLetter account",
-        member: "Member status",
+        member: "Readiness",
         missingClient:
           "Email account connection cannot start in this browser right now. Please try again shortly.",
         paymentBody:
-          "The member is connected, but signup payment verification is still required. Complete it on the verification screen, then return here.",
+          "The account is connected, but readiness confirmation is still required. Complete it on the verification screen, then return here.",
         paymentCta: "Verify signup",
         paymentTitle: "Signup verification is required.",
         primary: "Go create character",
@@ -139,7 +139,7 @@ function getCopy(locale: Locale) {
         syncErrorTitle: "Account status needs attention.",
         syncing: "Checking readiness.",
         title: "Finish account connection inside FanLetter.",
-        wallet: "Wallet",
+        wallet: "Connection ID",
       };
 }
 
@@ -184,11 +184,11 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
 
   return member.status === "completed"
     ? locale === "ko"
-      ? "가입 완료"
-      : "Completed"
+      ? "시작 준비 완료"
+      : "Ready"
     : locale === "ko"
-      ? "결제 확인 필요"
-      : "Payment required";
+      ? "확인 필요"
+      : "Needs confirmation";
 }
 
 function StepStatus({
@@ -692,7 +692,7 @@ export function FanletterConnectPage({
                 title: copy.steps[0],
               },
               {
-                Icon: WalletCards,
+                Icon: ShieldCheck,
                 body: copy.helper,
                 title: copy.steps[1],
               },

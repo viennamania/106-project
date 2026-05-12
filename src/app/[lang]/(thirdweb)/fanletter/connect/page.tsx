@@ -37,8 +37,8 @@ export async function generateMetadata({
     locale === "ko" ? "FanLetter 계정 연결" : "FanLetter Account Connect";
   const description =
     locale === "ko"
-      ? "FanLetter 온보딩 안에서 이메일 지갑 연결과 회원 상태 동기화를 완료하세요."
-      : "Connect your email wallet and sync member status inside FanLetter onboarding.";
+      ? "FanLetter 온보딩 안에서 이메일 계정 연결과 시작 준비 확인을 완료하세요."
+      : "Connect your email account and confirm readiness inside FanLetter onboarding.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     {
