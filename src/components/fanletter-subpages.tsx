@@ -716,7 +716,7 @@ function ContentCard({
   return (
     <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
       <Link className="block" href={href}>
-        <div className="relative aspect-[9/14] overflow-hidden bg-[#07100b]">
+        <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b] sm:aspect-[9/14]">
           {item.primaryVideoUrl && showVideoPreview ? (
             <FanletterAutoplayVideo
               ariaHidden
@@ -742,20 +742,20 @@ function ContentCard({
             </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.76)_100%)]" />
-          <span className="absolute left-3 top-3 inline-flex rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
+          <span className="absolute left-2.5 top-2.5 inline-flex rounded-full bg-white px-2.5 py-1 text-[0.62rem] font-semibold text-black sm:left-3 sm:top-3 sm:px-3 sm:text-[0.68rem]">
             Video
           </span>
-          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-2 sm:bottom-3 sm:left-3 sm:right-3">
             <Avatar
               imageUrl={item.authorAvatarImageUrl}
               name={item.authorName}
-              sizeClassName="size-8"
+              sizeClassName="size-7 sm:size-8"
             />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">
+              <p className="truncate text-xs font-semibold text-white sm:text-sm">
                 {item.authorName}
               </p>
-              <p className="text-xs font-medium text-white/62">
+              <p className="text-[0.68rem] font-medium text-white/62 sm:text-xs">
                 {formatDate(item.publishedAt, locale) ?? "FanLetter"}
               </p>
             </div>
@@ -763,27 +763,48 @@ function ContentCard({
         </div>
       </Link>
 
-      <div className="p-4">
-        <h2 className="break-words text-xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
+      <div className="p-3 sm:p-4">
+        <h2 className="line-clamp-2 break-words text-base font-semibold leading-tight tracking-normal [overflow-wrap:anywhere] sm:text-xl">
           {item.title}
         </h2>
-        <p className="mt-2 min-h-[4.5rem] break-words text-sm font-medium leading-6 text-black/58 [overflow-wrap:anywhere]">
+        <p className="mt-1.5 line-clamp-2 break-words text-xs font-medium leading-5 text-black/58 [overflow-wrap:anywhere] sm:mt-2 sm:min-h-[4.5rem] sm:text-sm sm:leading-6">
           {item.summary}
         </p>
-        <FanletterSocialActions
-          commentsHref={`${href}#fanletter-comments`}
-          contentId={item.contentId}
-          initialSocial={item.social}
-          locale={locale}
-          shareHref={href}
-          summary={item.summary}
-          title={item.title}
-          variant="compact"
-        />
-        <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:hidden">
+          {[
+            { label: copy.metrics.likes, value: item.social.likeCount },
+            { label: copy.metrics.comments, value: item.social.commentCount },
+            { label: copy.metrics.saves, value: item.social.saveCount },
+          ].map((metric) => (
+            <span
+              className="min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] px-2 py-1.5 text-center"
+              key={metric.label}
+            >
+              <span className="block text-xs font-semibold leading-none">
+                {formatNumber(metric.value, locale)}
+              </span>
+              <span className="mt-1 block truncate text-[0.55rem] font-semibold text-black/38">
+                {metric.label}
+              </span>
+            </span>
+          ))}
+        </div>
+        <div className="hidden sm:block">
+          <FanletterSocialActions
+            commentsHref={`${href}#fanletter-comments`}
+            contentId={item.contentId}
+            initialSocial={item.social}
+            locale={locale}
+            shareHref={href}
+            summary={item.summary}
+            title={item.title}
+            variant="compact"
+          />
+        </div>
+        <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
           {creatorHref ? (
             <Link
-              className="inline-flex h-9 min-w-0 items-center gap-2 rounded-lg border border-black/10 px-3 text-xs font-semibold text-black/62"
+              className="hidden h-9 min-w-0 items-center gap-2 rounded-lg border border-black/10 px-3 text-xs font-semibold text-black/62 sm:inline-flex"
               href={creatorHref}
             >
               <User className="size-3.5 shrink-0" />
@@ -793,7 +814,7 @@ function ContentCard({
             <span />
           )}
           <Link
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white"
             href={href}
           >
             {copy.actions.openContent}
@@ -839,7 +860,7 @@ function ContentGrid({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
         <ContentCard
           item={item}
@@ -1039,6 +1060,319 @@ function CreatorDiscoveryCard({
   );
 }
 
+function getCreatorMomentumLabel(
+  creator: FanletterRankedCreator,
+  locale: Locale,
+) {
+  if (creator.score > 0) {
+    return locale === "ko"
+      ? `팬 반응 ${formatNumber(creator.score, locale)}`
+      : `${formatNumber(creator.score, locale)} fan reactions`;
+  }
+
+  if (creator.videoCount > 0) {
+    return locale === "ko"
+      ? `공개 영상 ${formatNumber(creator.videoCount, locale)}개`
+      : `${formatNumber(creator.videoCount, locale)} public videos`;
+  }
+
+  return locale === "ko"
+    ? `공개 브이로그 ${formatNumber(creator.postCount, locale)}개`
+    : `${formatNumber(creator.postCount, locale)} public vlogs`;
+}
+
+function FanletterFeedStoryRail({
+  items,
+  locale,
+  referralCode,
+}: {
+  items: FanletterPublicContentItem[];
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const uniqueCreatorItems = Array.from(
+    new Map(
+      items.map((item) => [
+        item.authorReferralCode ?? item.authorName,
+        item,
+      ]),
+    ).values(),
+  ).slice(0, 10);
+
+  if (uniqueCreatorItems.length === 0) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          comments: "댓글 활발",
+          latest: "새 장면",
+          reactions: "반응 높음",
+          title: "지금 둘러볼 캐릭터",
+          video: "영상",
+        }
+      : {
+          comments: "Active chat",
+          latest: "New scene",
+          reactions: "Hot",
+          title: "Characters to browse now",
+          video: "Video",
+        };
+
+  return (
+    <section className="mb-5 lg:hidden">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold tracking-normal">
+          {labels.title}
+        </h2>
+        <span className="text-xs font-semibold text-black/42">
+          {formatNumber(uniqueCreatorItems.length, locale)}
+        </span>
+      </div>
+      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        {uniqueCreatorItems.map((item, index) => {
+          const href =
+            getCreatorHref({ item, locale, referralCode }) ??
+            getContentHref({ item, locale, referralCode });
+          const badge =
+            item.social.commentCount > 0
+              ? labels.comments
+              : getContentEngagementScore(item) > 0
+                ? labels.reactions
+                : item.mediaType === "video"
+                  ? labels.video
+                  : labels.latest;
+
+          return (
+            <Link
+              className="group flex w-[4.9rem] shrink-0 snap-start flex-col items-center text-center text-black"
+              href={href}
+              key={item.authorReferralCode ?? `${item.authorName}-${index}`}
+            >
+              <span className="relative flex size-16 items-center justify-center rounded-full border-2 border-[#44f26e] bg-white p-1 shadow-[0_12px_26px_rgba(8,18,12,0.1)] transition group-hover:-translate-y-0.5">
+                <Avatar
+                  imageUrl={item.authorAvatarImageUrl}
+                  name={item.authorName}
+                  sizeClassName="size-full"
+                />
+              </span>
+              <span className="mt-2 line-clamp-1 w-full text-xs font-semibold">
+                {item.authorName}
+              </span>
+              <span className="mt-1 line-clamp-1 w-full text-[0.58rem] font-semibold text-[#16702e]">
+                {badge}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function FanletterFeedCuriosityBoard({
+  commentItem,
+  fallbackItems,
+  featuredItem,
+  latestItem,
+  locale,
+  referralCode,
+  savedItem,
+}: {
+  commentItem: FanletterPublicContentItem | null;
+  fallbackItems: FanletterPublicContentItem[];
+  featuredItem: FanletterPublicContentItem | null;
+  latestItem: FanletterPublicContentItem | null;
+  locale: Locale;
+  referralCode: string | null;
+  savedItem: FanletterPublicContentItem | null;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          comments: "댓글이 붙는 중",
+          commentsMetric: "댓글",
+          fallback: "눈길 가는 캐릭터 브이로그",
+          latest: "새로 올라온 장면",
+          latestMetric: "최근",
+          open: "보기",
+          popular: "지금 반응 높은 브이로그",
+          popularMetric: "반응",
+          saved: "다시 보고 싶은 장면",
+          savedMetric: "저장",
+          title: "먼저 볼 만한 장면",
+        }
+      : {
+          comments: "Conversation is moving",
+          commentsMetric: "Comments",
+          fallback: "Character vlog to watch",
+          latest: "Newly posted scene",
+          latestMetric: "Recent",
+          open: "Open",
+          popular: "High-reaction vlog",
+          popularMetric: "Reactions",
+          saved: "Scene worth saving",
+          savedMetric: "Saves",
+          title: "Start with these scenes",
+        };
+  const cards: Array<{
+    id: string;
+    item: FanletterPublicContentItem;
+    label: string;
+    metricLabel: string;
+    metricValue: string;
+  }> = [];
+  const usedContentIds = new Set<string>();
+  const pushCard = (
+    id: string,
+    item: FanletterPublicContentItem | null,
+    label: string,
+    metricLabel: string,
+    metricValue: string,
+  ) => {
+    if (!item || usedContentIds.has(item.contentId)) {
+      return;
+    }
+
+    usedContentIds.add(item.contentId);
+    cards.push({ id, item, label, metricLabel, metricValue });
+  };
+
+  pushCard(
+    "popular",
+    featuredItem,
+    labels.popular,
+    labels.popularMetric,
+    featuredItem
+      ? formatNumber(getContentEngagementScore(featuredItem), locale)
+      : "0",
+  );
+  pushCard(
+    "latest",
+    latestItem,
+    labels.latest,
+    labels.latestMetric,
+    latestItem ? (formatDate(latestItem.publishedAt, locale) ?? "FanLetter") : "",
+  );
+  pushCard(
+    "comments",
+    commentItem,
+    labels.comments,
+    labels.commentsMetric,
+    commentItem ? formatNumber(commentItem.social.commentCount, locale) : "0",
+  );
+  pushCard(
+    "saved",
+    savedItem,
+    labels.saved,
+    labels.savedMetric,
+    savedItem ? formatNumber(savedItem.social.saveCount, locale) : "0",
+  );
+  fallbackItems.forEach((item) => {
+    if (cards.length >= 4) {
+      return;
+    }
+
+    pushCard(
+      `fallback-${item.contentId}`,
+      item,
+      labels.fallback,
+      labels.popularMetric,
+      formatNumber(getContentEngagementScore(item), locale),
+    );
+  });
+
+  if (cards.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mb-8">
+      <div className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold text-[#1f7c38]">
+            FanLetter Pick
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-normal">
+            {labels.title}
+          </h2>
+        </div>
+      </div>
+      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
+        {cards.map(({ id, item, label, metricLabel, metricValue }) => {
+          const href = getContentHref({ item, locale, referralCode });
+
+          return (
+            <Link
+              className="group min-w-[15.75rem] max-w-[78vw] snap-start overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_16px_38px_rgba(8,18,12,0.09)] transition hover:-translate-y-0.5 hover:border-[#29d85f]/60 sm:min-w-0 sm:max-w-none"
+              href={href}
+              key={id}
+            >
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#07100b]">
+                {item.primaryVideoUrl ? (
+                  <FanletterAutoplayVideo
+                    ariaHidden
+                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    poster={item.coverImageUrl ?? undefined}
+                    src={item.primaryVideoUrl}
+                  />
+                ) : item.coverImageUrl ? (
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                    fill
+                    sizes="(max-width: 640px) 78vw, 25vw"
+                    src={item.coverImageUrl}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#07100b] text-[#44f26e]">
+                    <PlayCircle className="size-10" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.68)_100%)]" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+                  <span className="line-clamp-1 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
+                    {label}
+                  </span>
+                  <span className="shrink-0 rounded-full border border-white/18 bg-white/12 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+                    {metricValue}
+                  </span>
+                </div>
+              </div>
+              <div className="p-3">
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    imageUrl={item.authorAvatarImageUrl}
+                    name={item.authorName}
+                    sizeClassName="size-8"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
+                      {item.authorName}
+                    </p>
+                    <p className="text-[0.64rem] font-semibold text-black/42">
+                      {metricLabel}
+                    </p>
+                  </div>
+                </div>
+                <h3 className="mt-3 line-clamp-2 break-words text-base font-semibold leading-tight [overflow-wrap:anywhere]">
+                  {item.title}
+                </h3>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#16702e]">
+                  {labels.open}
+                  <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function FanletterCreatorRanking({
   items,
   locale,
@@ -1064,6 +1398,7 @@ function FanletterCreatorRanking({
           leader: "팬 반응 1위",
           publicPosts: "공개",
           rankLabel: "순위",
+          reason: "인기 이유",
           reactions: "반응",
           score: "반응 점수",
           title: "인기 AI 캐릭터 랭킹",
@@ -1077,6 +1412,7 @@ function FanletterCreatorRanking({
           leader: "Top fan reaction",
           publicPosts: "Public",
           rankLabel: "Rank",
+          reason: "Why it is rising",
           reactions: "Reactions",
           score: "Reaction score",
           title: "Popular AI character ranking",
@@ -1096,7 +1432,7 @@ function FanletterCreatorRanking({
         );
 
   return (
-    <section className="mb-10 scroll-mt-6" id="popular-characters">
+    <section className="mb-10 scroll-mt-24" id="popular-characters">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
@@ -1116,7 +1452,6 @@ function FanletterCreatorRanking({
           className="group relative min-h-[21rem] overflow-hidden rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-5 !text-white shadow-[0_22px_64px_rgba(8,18,12,0.22)] transition hover:border-[#44f26e]/60"
           href={getHref(leader)}
         >
-          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#44f26e]/18 blur-3xl" />
           <div className="relative z-10 flex h-full flex-col">
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
@@ -1135,6 +1470,9 @@ function FanletterCreatorRanking({
                   </h3>
                   <p className="mt-1 text-xs font-semibold text-[#8dffa5]">
                     {leader.authorReferralCode ?? "FanLetter"}
+                  </p>
+                  <p className="mt-2 inline-flex rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                    {getCreatorMomentumLabel(leader, locale)}
                   </p>
                 </div>
               </div>
@@ -1179,6 +1517,9 @@ function FanletterCreatorRanking({
               <p className="mt-2 line-clamp-2 break-words text-base font-semibold leading-6 text-white/76 [overflow-wrap:anywhere]">
                 {leader.latestTitle}
               </p>
+              <p className="mt-3 text-xs font-semibold text-white/42">
+                {labels.reason}
+              </p>
               <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
                 {labels.cta}
                 <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
@@ -1209,6 +1550,9 @@ function FanletterCreatorRanking({
                   </h3>
                   <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-black/50 [overflow-wrap:anywhere]">
                     {creator.latestTitle}
+                  </p>
+                  <p className="mt-1 line-clamp-1 text-[0.68rem] font-semibold text-[#16702e]">
+                    {getCreatorMomentumLabel(creator, locale)}
                   </p>
                 </div>
               </div>
@@ -2733,6 +3077,7 @@ function FanletterFeedDiscoveryControls({
     locale === "ko"
       ? {
           clear: "필터 초기화",
+          filter: "검색 및 필터",
           helper:
             "제목, 요약, 캐릭터명으로 찾고 반응 데이터 기준으로 피드를 다시 정렬합니다.",
           page: "페이지",
@@ -2749,6 +3094,7 @@ function FanletterFeedDiscoveryControls({
         }
       : {
           clear: "Reset filters",
+          filter: "Search and filters",
           helper:
             "Find vlogs by title, summary, or character name, then reorder the feed by fan signals.",
           page: "Page",
@@ -2780,103 +3126,143 @@ function FanletterFeedDiscoveryControls({
     filters.query.length > 0 ||
     (Boolean(filters.sort) && filters.sort !== "latest") ||
     filters.page > 1;
+  const renderSearchForm = (isCompact = false) => (
+    <form
+      action={`/${locale}/fanletter/feed`}
+      className={`grid gap-3 ${
+        isCompact
+          ? ""
+          : hasActiveFilters
+            ? "lg:grid-cols-[minmax(0,1fr)_auto_auto]"
+            : "lg:grid-cols-[minmax(0,1fr)_auto]"
+      }`}
+      method="get"
+    >
+      {referralCode ? <input name="ref" type="hidden" value={referralCode} /> : null}
+      {filters.sort && filters.sort !== "latest" ? (
+        <input name="sort" type="hidden" value={filters.sort} />
+      ) : null}
+      <label className="min-w-0">
+        <span className="sr-only">{labels.search}</span>
+        <input
+          className="h-12 w-full rounded-lg border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black outline-none transition placeholder:text-black/34 focus:border-[#29d85f]/70 focus:bg-white"
+          defaultValue={filters.query}
+          maxLength={80}
+          name="q"
+          placeholder={labels.placeholder}
+          type="search"
+        />
+      </label>
+      <button
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
+        type="submit"
+      >
+        <Search className="size-4" />
+        {labels.search}
+      </button>
+      {hasActiveFilters ? (
+        <Link
+          className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 px-5 text-sm font-semibold text-black/62 transition hover:border-black/24 hover:text-black"
+          href={resetHref}
+        >
+          {labels.clear}
+        </Link>
+      ) : null}
+    </form>
+  );
+  const renderSortOptions = () => (
+    <div className="mt-4 flex snap-x gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
+      {sortOptions.map((option) => {
+        const isActive = filters.sort === option;
+
+        return (
+          <Link
+            aria-current={isActive ? "page" : undefined}
+            className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full px-4 text-sm font-semibold transition ${
+              isActive
+                ? "bg-[#44f26e] text-black"
+                : "border border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black"
+            }`}
+            href={getFeedHref({
+              filters,
+              locale,
+              page: 1,
+              referralCode,
+              sort: option,
+            })}
+            key={option}
+          >
+            {labels.sortOptions[option]}
+          </Link>
+        );
+      })}
+    </div>
+  );
 
   return (
-    <section className="mb-8 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-5">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div>
-          <div className="flex items-center gap-2">
+    <>
+      <details
+        className="mb-8 rounded-lg border border-black/10 bg-white shadow-[0_16px_38px_rgba(8,18,12,0.08)] lg:hidden"
+        open={hasActiveFilters}
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+          <div className="flex min-w-0 items-center gap-2">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
               <Search className="size-5" />
             </span>
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
-                {labels.result} {formatNumber(filters.totalCount, locale)}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-black">
+                {labels.filter}
               </p>
-              <h2 className="mt-1 text-2xl font-semibold tracking-normal">
-                {labels.title}
-              </h2>
+              <p className="mt-0.5 text-xs font-semibold text-black/46">
+                {labels.result} {formatNumber(filters.totalCount, locale)} ·{" "}
+                {labels.sortOptions[filters.sort]}
+              </p>
             </div>
           </div>
-          <p className="mt-3 hidden max-w-3xl text-sm font-medium leading-6 text-black/58 sm:block">
-            {labels.helper}
-          </p>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-3 py-1.5 text-xs font-semibold text-black/58">
+            <SlidersHorizontal className="size-3.5 text-[#1f7c38]" />
+            {formatNumber(filters.page, locale)} /{" "}
+            {formatNumber(filters.pageCount, locale)}
+          </span>
+        </summary>
+        <div className="border-t border-black/10 p-4 pt-3">
+          {renderSearchForm(true)}
+          {renderSortOptions()}
         </div>
-        <div className="inline-flex w-fit items-center gap-2 justify-self-start rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-sm font-semibold text-black/58 lg:justify-self-end">
-          <SlidersHorizontal className="size-4 text-[#1f7c38]" />
-          {labels.page} {formatNumber(filters.page, locale)} /{" "}
-          {formatNumber(filters.pageCount, locale)}
+      </details>
+
+      <section className="mb-8 hidden rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-5 lg:block">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Search className="size-5" />
+              </span>
+              <div>
+                <p className="text-[0.68rem] font-semibold text-[#1f7c38]">
+                  {labels.result} {formatNumber(filters.totalCount, locale)}
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal">
+                  {labels.title}
+                </h2>
+              </div>
+            </div>
+            <p className="mt-3 hidden max-w-3xl text-sm font-medium leading-6 text-black/58 sm:block">
+              {labels.helper}
+            </p>
+          </div>
+          <div className="inline-flex w-fit items-center gap-2 justify-self-start rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-sm font-semibold text-black/58 lg:justify-self-end">
+            <SlidersHorizontal className="size-4 text-[#1f7c38]" />
+            {labels.page} {formatNumber(filters.page, locale)} /{" "}
+            {formatNumber(filters.pageCount, locale)}
+          </div>
         </div>
-      </div>
 
-      <form
-        action={`/${locale}/fanletter/feed`}
-        className={`mt-5 grid gap-3 ${
-          hasActiveFilters
-            ? "lg:grid-cols-[minmax(0,1fr)_auto_auto]"
-            : "lg:grid-cols-[minmax(0,1fr)_auto]"
-        }`}
-        method="get"
-      >
-        {referralCode ? <input name="ref" type="hidden" value={referralCode} /> : null}
-        {filters.sort && filters.sort !== "latest" ? (
-          <input name="sort" type="hidden" value={filters.sort} />
-        ) : null}
-        <label className="min-w-0">
-          <span className="sr-only">{labels.search}</span>
-          <input
-            className="h-12 w-full rounded-lg border border-black/10 bg-[#f6f8f4] px-4 text-sm font-semibold text-black outline-none transition placeholder:text-black/34 focus:border-[#29d85f]/70 focus:bg-white"
-            defaultValue={filters.query}
-            maxLength={80}
-            name="q"
-            placeholder={labels.placeholder}
-            type="search"
-          />
-        </label>
-        <button
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
-          type="submit"
-        >
-          <Search className="size-4" />
-          {labels.search}
-        </button>
-        {hasActiveFilters ? (
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 px-5 text-sm font-semibold text-black/62 transition hover:border-black/24 hover:text-black"
-            href={resetHref}
-          >
-            {labels.clear}
-          </Link>
-        ) : null}
-      </form>
-
-      <div className="mt-4 flex snap-x gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
-        {sortOptions.map((option) => {
-          const isActive = filters.sort === option;
-
-          return (
-            <Link
-              aria-current={isActive ? "page" : undefined}
-              className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full px-4 text-sm font-semibold transition ${
-                isActive
-                  ? "bg-[#44f26e] text-black"
-                  : "border border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black"
-              }`}
-              href={getFeedHref({
-                filters,
-                locale,
-                page: 1,
-                referralCode,
-                sort: option,
-              })}
-              key={option}
-            >
-              {labels.sortOptions[option]}
-            </Link>
-          );
-        })}
-      </div>
-    </section>
+        <div className="mt-5">{renderSearchForm()}</div>
+        {renderSortOptions()}
+      </section>
+    </>
   );
 }
 
@@ -2982,6 +3368,32 @@ export function FanletterFeedPage({
   const featuredItem = rankedItems[0] ?? items[0] ?? null;
   const featuredContentId = featuredItem?.contentId ?? null;
   const videoCount = items.filter((item) => item.mediaType === "video").length;
+  const latestSortedItems = [...items].sort(
+    (a, b) =>
+      new Date(b.publishedAt ?? 0).getTime() -
+      new Date(a.publishedAt ?? 0).getTime(),
+  );
+  const absoluteLatestItem = latestSortedItems[0] ?? null;
+  const commentItem =
+    items.filter((item) => item.social.commentCount > 0).sort((a, b) => {
+      const commentDelta = b.social.commentCount - a.social.commentCount;
+
+      if (commentDelta !== 0) {
+        return commentDelta;
+      }
+
+      return getPublishedTime(b.publishedAt) - getPublishedTime(a.publishedAt);
+    })[0] ?? null;
+  const savedItem =
+    items.filter((item) => item.social.saveCount > 0).sort((a, b) => {
+      const saveDelta = b.social.saveCount - a.social.saveCount;
+
+      if (saveDelta !== 0) {
+        return saveDelta;
+      }
+
+      return getPublishedTime(b.publishedAt) - getPublishedTime(a.publishedAt);
+    })[0] ?? null;
   const videoItems = items
     .filter(
       (item) =>
@@ -2992,12 +3404,7 @@ export function FanletterFeedPage({
     ...(featuredContentId ? [featuredContentId] : []),
     ...videoItems.map((item) => item.contentId),
   ]);
-  const latestItems = [...items]
-    .sort(
-      (a, b) =>
-        new Date(b.publishedAt ?? 0).getTime() -
-        new Date(a.publishedAt ?? 0).getTime(),
-    )
+  const latestItems = latestSortedItems
     .filter((item) => !curatedContentIds.has(item.contentId))
     .slice(0, 4);
   const highlightedContentIds = new Set([
@@ -3126,7 +3533,7 @@ export function FanletterFeedPage({
         <div className="mx-auto max-w-[92rem]">
           <nav
             aria-label={locale === "ko" ? "피드 섹션" : "Feed sections"}
-            className="-mx-4 mb-6 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mb-8 sm:flex-wrap sm:overflow-visible sm:px-0"
+            className="sticky top-0 z-20 -mx-4 mb-5 flex snap-x gap-2 overflow-x-auto bg-[#f6f8f4]/96 px-4 py-3 shadow-[0_12px_28px_rgba(8,18,12,0.08)] backdrop-blur [scrollbar-width:none] sm:static sm:mx-0 sm:mb-8 sm:flex-wrap sm:overflow-visible sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:backdrop-blur-none"
           >
             {sectionLinks.map((link) => (
               <Link
@@ -3139,6 +3546,22 @@ export function FanletterFeedPage({
             ))}
           </nav>
 
+          <FanletterFeedStoryRail
+            items={rankedItems}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <FanletterFeedCuriosityBoard
+            commentItem={commentItem}
+            fallbackItems={rankedItems}
+            featuredItem={featuredItem}
+            latestItem={absoluteLatestItem}
+            locale={locale}
+            referralCode={referralCode}
+            savedItem={savedItem}
+          />
+
           <FanletterFeedDiscoveryControls
             filters={filters}
             locale={locale}
@@ -3147,7 +3570,7 @@ export function FanletterFeedPage({
 
           {featuredItem ? (
             <div
-              className="mb-10 grid min-w-0 max-w-full scroll-mt-6 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
+              className="mb-10 grid min-w-0 max-w-full scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
               id="popular-vlog"
             >
               <FeaturedFeedCard
@@ -3219,13 +3642,13 @@ export function FanletterFeedPage({
           />
 
           {videoItems.length > 0 ? (
-            <section className="mb-10 scroll-mt-6" id="video-vlogs">
+            <section className="mb-10 scroll-mt-24" id="video-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.videos}
                 </h2>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
                 {videoItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -3240,13 +3663,13 @@ export function FanletterFeedPage({
           ) : null}
 
           {latestItems.length > 0 ? (
-            <section className="mb-10 scroll-mt-6" id="latest-vlogs">
+            <section className="mb-10 scroll-mt-24" id="latest-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.latest}
                 </h2>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {latestItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -3263,7 +3686,7 @@ export function FanletterFeedPage({
           {showAllContentSection ? (
             <>
               <div
-                className="mb-4 flex scroll-mt-6 items-center justify-between gap-3"
+                className="mb-4 flex scroll-mt-24 items-center justify-between gap-3"
                 id="all-vlogs"
               >
                 <h2 className="text-2xl font-semibold tracking-normal">
