@@ -103,7 +103,7 @@ function getCopy(locale: Locale) {
         amount: "결제 금액",
         cancel: "취소",
         connectBody:
-          "회원 세션과 지갑 연결을 확인한 뒤 FanLetter 안에서 바로 결제할 수 있습니다.",
+          "FanLetter 계정을 연결하면 팬 전용 브이로그를 바로 열 수 있습니다.",
         connectCta: "계정 연결하기",
         connectTitle: "팬 전용 브이로그를 열려면 계정 연결이 필요합니다.",
         fullBody: "전체 브이로그 본문",
@@ -112,7 +112,7 @@ function getCopy(locale: Locale) {
           "결제하면 이 캐릭터의 팬 전용 영상, 전체 본문, 추가 미디어가 이 화면에서 바로 열립니다.",
         lockedEyebrow: "FanLetter 팬 전용",
         lockedTitle: "팬 전용 브이로그 잠금 해제",
-        memberWallet: "회원 지갑",
+        memberWallet: "내 결제 주소",
         networkBody:
           "이 콘텐츠는 캐릭터 채널 네트워크 안에서만 결제할 수 있습니다. 초대 링크로 들어왔는지 확인해 주세요.",
         networkCta: "캐릭터 채널 보기",
@@ -120,12 +120,12 @@ function getCopy(locale: Locale) {
         order: "주문",
         pay: "결제하기",
         paymentBody:
-          "회원 지갑에서 크리에이터 지갑으로 USDT가 전송됩니다. 승인 전 금액과 받는 주소를 확인하세요.",
+          "승인 전 USDT 금액과 받는 주소를 확인하세요. 결제가 끝나면 전체 브이로그가 자동으로 열립니다.",
         paymentTitle: "USDT 결제 확인",
         preparing: "결제 정보 준비 중",
         preview: "미리보기",
         reload: "다시 확인",
-        sellerWallet: "크리에이터 지갑",
+        sellerWallet: "크리에이터 정산 주소",
         signupBody:
           "FanLetter 시작 절차를 완료하면 팬 전용 콘텐츠 결제와 댓글, 요청 기능을 이어서 사용할 수 있습니다.",
         signupCta: "FanLetter 시작 완료",
@@ -133,9 +133,9 @@ function getCopy(locale: Locale) {
         transaction: "결제 트랜잭션 보기",
         verifying: "결제 확인 중",
         walletApproval:
-          "지갑 승인 창에서 결제를 승인하면 온체인 전송 후 자동으로 전체 콘텐츠가 열립니다.",
+          "승인 창에서 결제를 확인하면 잠금 해제 상태를 자동으로 다시 확인합니다.",
         walletBalance:
-          "결제하려면 회원 지갑에 최소 {amount} USDT가 필요합니다.",
+          "결제하려면 연결된 결제 주소에 최소 {amount} USDT가 필요합니다.",
       }
     : {
         alreadyUnlocked: "Payment complete · Full access",
@@ -144,7 +144,7 @@ function getCopy(locale: Locale) {
         amount: "Amount",
         cancel: "Cancel",
         connectBody:
-          "Connect your member session and wallet to pay inside FanLetter.",
+          "Connect your FanLetter account to unlock this fan-only vlog.",
         connectCta: "Connect account",
         connectTitle: "Connect an account to unlock this fan-only vlog.",
         fullBody: "Full vlog body",
@@ -153,7 +153,7 @@ function getCopy(locale: Locale) {
           "Pay once to open the fan-only video, full body, and extra media on this page.",
         lockedEyebrow: "FanLetter fan-only",
         lockedTitle: "Unlock fan-only vlog",
-        memberWallet: "Member wallet",
+        memberWallet: "Your payment address",
         networkBody:
           "This content can be paid for only inside the character channel network. Check that you opened it from an invite link.",
         networkCta: "View character channel",
@@ -161,12 +161,12 @@ function getCopy(locale: Locale) {
         order: "Order",
         pay: "Pay",
         paymentBody:
-          "USDT is sent from your member wallet to the creator wallet. Review the amount and recipient before approval.",
+          "Review the USDT amount and recipient before approval. The full vlog opens automatically after payment.",
         paymentTitle: "Confirm USDT payment",
         preparing: "Preparing payment",
         preview: "Preview",
         reload: "Check again",
-        sellerWallet: "Creator wallet",
+        sellerWallet: "Creator settlement address",
         signupBody:
           "Complete FanLetter onboarding to use fan-only payments, comments, and requests.",
         signupCta: "Complete FanLetter setup",
@@ -174,9 +174,9 @@ function getCopy(locale: Locale) {
         transaction: "View payment transaction",
         verifying: "Verifying payment",
         walletApproval:
-          "Approve the wallet prompt to send the onchain payment and open the full content automatically.",
+          "Approve the payment prompt, then FanLetter will recheck the unlock status automatically.",
         walletBalance:
-          "Your member wallet needs at least {amount} USDT to pay.",
+          "Your connected payment address needs at least {amount} USDT to pay.",
       };
 }
 
