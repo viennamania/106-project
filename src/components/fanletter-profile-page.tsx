@@ -179,7 +179,7 @@ function getCopy(locale: Locale) {
         avatarSelect: "대표로 저장",
         avatarSelected: "대표 이미지",
         back: "온보딩으로 돌아가기",
-        characterChange: "캐릭터 변경 페이지",
+        characterChange: "FanLetter 변경 화면",
         characterLockedBody:
           "이 화면에서는 성장 상태와 다음 미션을 확인합니다. 페르소나나 대표 아바타를 바꾸려면 전용 변경 페이지에서 진행하세요.",
         characterLockedTitle: "캐릭터 정체성이 고정되어 있습니다.",
@@ -194,7 +194,7 @@ function getCopy(locale: Locale) {
             body:
               "대표 컷, 표정 컷, 팬 반응 컷을 콘텐츠 제작에 바로 쓸 수 있는 비주얼 자산으로 정리합니다.",
             changeHint:
-              "캐릭터 정체성을 바꾸지 않고, 해금된 표정과 연출 방향을 콘텐츠에 활용합니다.",
+              "정체성을 바꾸는 경우 FanLetter 전용 변경 화면에서 현재 캐릭터와 새 아바타 세트를 확인합니다.",
             directionTitle: "성장 연출",
             empty:
               "아바타를 만들면 대표 컷, 표정 컷, 팬 반응 컷이 이곳에 비주얼 키트로 정리됩니다.",
@@ -252,7 +252,7 @@ function getCopy(locale: Locale) {
           avatarSet: "아바타 세트",
           body:
             "이 프로필은 생성 설정이 아니라 팬이 소비하는 캐릭터 채널의 중심 자산입니다.",
-          changeCta: "정체성 변경",
+          changeCta: "전용 변경 화면",
           createCta: "오늘의 브이로그 만들기",
           emptySkill: "첫 브이로그를 만들면 콘텐츠 강점이 열립니다.",
           eyebrow: "Character Content Home",
@@ -410,7 +410,7 @@ function getCopy(locale: Locale) {
         avatarSelect: "Save as avatar",
         avatarSelected: "Current avatar",
         back: "Back to onboarding",
-        characterChange: "Change character",
+        characterChange: "FanLetter change screen",
         characterLockedBody:
           "This screen is for growth status and next missions. Use the dedicated change page when you need to change the persona or representative avatar.",
         characterLockedTitle: "Character identity is locked.",
@@ -425,7 +425,7 @@ function getCopy(locale: Locale) {
             body:
               "Organize the representative look, expression cuts, and fan reaction cuts as visual assets for content creation.",
             changeHint:
-              "Keep the character identity fixed while using unlocked expressions and directions in content.",
+              "When changing identity, review the current character and new avatar set in the dedicated FanLetter change screen.",
             directionTitle: "Growth directions",
             empty:
               "After avatar creation, the representative look, expression cuts, and fan reaction cuts will appear here as a visual kit.",
@@ -483,7 +483,7 @@ function getCopy(locale: Locale) {
           avatarSet: "Avatar set",
           body:
             "This profile is the core content asset for the character channel, not just setup.",
-          changeCta: "Change identity",
+          changeCta: "Dedicated change screen",
           createCta: "Create today's vlog",
           emptySkill: "Create the first vlog to unlock content strengths.",
           eyebrow: "Character Content Home",

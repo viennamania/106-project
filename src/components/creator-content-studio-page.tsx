@@ -692,6 +692,8 @@ export function CreatorContentStudioPage({
   referralCode = null,
   returnToHref = null,
   salesManagerHrefOverride = null,
+  shell = "studio",
+  surface = "creator",
   studioHomeHrefOverride = null,
   view = "hub",
 }: {
@@ -705,6 +707,8 @@ export function CreatorContentStudioPage({
   referralCode?: string | null;
   returnToHref?: string | null;
   salesManagerHrefOverride?: string | null;
+  shell?: "embedded" | "studio";
+  surface?: "creator" | "fanletter";
   studioHomeHrefOverride?: string | null;
   view?: StudioView;
 }) {
@@ -755,6 +759,7 @@ export function CreatorContentStudioPage({
     { returnTo: returnToHref },
   );
   const newPostHref = newPostHrefOverride ?? defaultNewPostHref;
+  const isFanletterSurface = surface === "fanletter";
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
     view === "character"
@@ -4913,33 +4918,69 @@ export function CreatorContentStudioPage({
       locale === "ko"
         ? {
             advancedBody:
-              "원하는 경우 후보를 직접 고르고 아바타 세트를 다시 만들 수 있습니다.",
-            advancedTitle: "직접 변경",
+              isFanletterSurface
+                ? "필요할 때만 후보를 직접 고르고 아바타 세트를 다시 만듭니다. 저장 후 FanLetter 콘텐츠 생성에 자동 적용됩니다."
+                : "원하는 경우 후보를 직접 고르고 아바타 세트를 다시 만들 수 있습니다.",
+            advancedTitle: isFanletterSurface ? "직접 바꾸기" : "직접 변경",
             currentBody:
-              "현재 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 콘텐츠는 그대로 유지됩니다.",
-            currentTitle: "현재 캐릭터",
+              isFanletterSurface
+                ? "현재 FanLetter 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 브이로그는 그대로 유지됩니다."
+                : "현재 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 콘텐츠는 그대로 유지됩니다.",
+            currentTitle: isFanletterSurface
+              ? "현재 FanLetter 캐릭터"
+              : "현재 캐릭터",
+            eyebrow: isFanletterSurface
+              ? "FanLetter Character"
+              : contentCopy.page.studioEyebrow,
             warning:
               "캐릭터를 바꾸면 이후 생성되는 이미지와 동영상의 인물 정체성이 달라질 수 있습니다.",
           }
         : {
             advancedBody:
-              "You can manually choose a candidate and regenerate the avatar set.",
-            advancedTitle: "Manual Change",
+              isFanletterSurface
+                ? "Only when needed, choose a candidate manually and regenerate the avatar set. Saved changes apply to future FanLetter content."
+                : "You can manually choose a candidate and regenerate the avatar set.",
+            advancedTitle: isFanletterSurface ? "Change manually" : "Manual Change",
             currentBody:
-              "Compare your current character with the new one before saving. Existing posts stay unchanged.",
-            currentTitle: "Current Character",
+              isFanletterSurface
+                ? "Compare the current FanLetter character with the new one before saving. Existing vlogs stay unchanged."
+                : "Compare your current character with the new one before saving. Existing posts stay unchanged.",
+            currentTitle: isFanletterSurface
+              ? "Current FanLetter character"
+              : "Current Character",
+            eyebrow: isFanletterSurface
+              ? "FanLetter Character"
+              : contentCopy.page.studioEyebrow,
             warning:
               "Changing the character can change the person used in future image and video generations.",
           };
 
     return (
-      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
+      <div
+        className={cn(
+          "border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]",
+          isFanletterSurface &&
+            "rounded-lg border-[#44f26e]/24 shadow-[0_28px_80px_rgba(0,0,0,0.26)] sm:rounded-lg sm:border-[#44f26e]/24",
+        )}
+      >
         <div className="flex items-start gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+          <div
+            className={cn(
+              "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white",
+              isFanletterSurface && "bg-[#44f26e] text-black",
+            )}
+          >
             <UserRound className="size-5" />
           </div>
           <div className="min-w-0">
-            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+            <p
+              className={cn(
+                "eyebrow",
+                isFanletterSurface && "text-[#16702e]",
+              )}
+            >
+              {changeCopy.eyebrow}
+            </p>
             <h2 className="text-xl font-semibold tracking-tight text-slate-950">
               {changeCopy.currentTitle}
             </h2>
@@ -6949,6 +6990,10 @@ export function CreatorContentStudioPage({
           },
         ]
       : [];
+
+  if (shell === "embedded" && view === "character") {
+    return <>{renderCharacterChangeCard()}</>;
+  }
 
   return (
     <>
