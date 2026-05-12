@@ -128,10 +128,10 @@ function getCopy(locale: Locale) {
         labels: {
           allPosts: "전체 브이로그",
           availableBalance: "출금 가능",
-          completedMember: "가입 완료",
+          completedMember: "시작 준비 완료",
           draftPosts: "임시저장",
           fanRequests: "팬 요청",
-          memberStatus: "회원 상태",
+          memberStatus: "시작 상태",
           paid: "유료",
           persona: "캐릭터 페르소나",
           profile: "프로필",
@@ -139,13 +139,13 @@ function getCopy(locale: Locale) {
           sales: "확정 판매",
           totalSales: "누적 판매",
           videos: "브이로그",
-          wallet: "지갑",
+          wallet: "연결 ID",
         },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         paymentRequired:
-          "가입 완료 회원만 FanLetter AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
-        paymentTitle: "가입 완료 확인이 필요합니다.",
+          "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
+        paymentTitle: "시작 준비 확인이 필요합니다.",
         priceFree: "무료",
         pricePaid: "유료",
         profileIncomplete:
@@ -288,10 +288,10 @@ function getCopy(locale: Locale) {
         labels: {
           allPosts: "All vlogs",
           availableBalance: "Available",
-          completedMember: "Completed",
+          completedMember: "Ready",
           draftPosts: "Drafts",
           fanRequests: "Fan requests",
-          memberStatus: "Member status",
+          memberStatus: "Readiness",
           paid: "Paid",
           persona: "Character persona",
           profile: "Profile",
@@ -299,13 +299,13 @@ function getCopy(locale: Locale) {
           sales: "Confirmed sales",
           totalSales: "Total sales",
           videos: "Vlogs",
-          wallet: "Wallet",
+          wallet: "Connection ID",
         },
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
         paymentRequired:
-          "Completed members can use the FanLetter AI character vlog studio.",
-        paymentTitle: "Signup verification is required.",
+          "Confirm FanLetter readiness to use the AI character vlog studio.",
+        paymentTitle: "Readiness confirmation is required.",
         priceFree: "Free",
         pricePaid: "Paid",
         profileIncomplete:
@@ -494,11 +494,11 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
 
   return member.status === "completed"
     ? locale === "ko"
-      ? "가입 완료"
-      : "Completed"
+      ? "시작 준비 완료"
+      : "Ready"
     : locale === "ko"
-      ? "결제 확인 필요"
-      : "Payment required";
+      ? "확인 필요"
+      : "Needs confirmation";
 }
 
 async function readApiJson<T>(response: Response, fallback: string) {

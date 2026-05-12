@@ -197,8 +197,9 @@ function getCopy(locale: Locale) {
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
         missingMedia: "공개하려면 먼저 브이로그 동영상을 생성하세요.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
-        paymentRequired: "가입 완료 회원만 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
-        paymentRequiredCta: "가입 완료 확인하기",
+        paymentRequired:
+          "FanLetter 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
+        paymentRequiredCta: "시작 준비 확인하기",
         personaEmpty: "프로필에서 캐릭터를 한 번 만들면 같은 인물 유지가 강해집니다.",
         price: "공개 방식",
         profileRequired: "프로필 준비가 필요합니다.",
@@ -336,8 +337,9 @@ function getCopy(locale: Locale) {
         loading: "Checking vlog setup.",
         missingMedia: "Generate a vlog video before publishing.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT paid`,
-        paymentRequired: "Only completed members can create the first AI character vlog.",
-        paymentRequiredCta: "Verify signup",
+        paymentRequired:
+          "Confirm FanLetter readiness to create your first AI character vlog.",
+        paymentRequiredCta: "Confirm readiness",
         personaEmpty:
           "Create a character once in your profile to keep the same person stronger.",
         price: "Visibility",

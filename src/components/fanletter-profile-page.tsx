@@ -372,8 +372,8 @@ function getCopy(locale: Locale) {
           "원하는 경우 성별, 연령, 페르소나 후보, 아바타 후보를 직접 고를 수 있습니다.",
         manualSetupTitle: "직접 고급 설정",
         paymentRequired:
-          "가입 완료 회원만 FanLetter 프로필을 설정할 수 있습니다.",
-        paymentRequiredCta: "가입 완료 확인하기",
+          "FanLetter 시작 준비 확인이 끝나면 캐릭터 프로필을 설정할 수 있습니다.",
+        paymentRequiredCta: "시작 준비 확인하기",
         profileStep: "02 · 캐릭터 만들기",
         persona: "캐릭터 페르소나",
         personaBody:
@@ -641,8 +641,8 @@ function getCopy(locale: Locale) {
           "Optionally choose gender, age range, persona candidates, and avatar candidates yourself.",
         manualSetupTitle: "Manual advanced setup",
         paymentRequired:
-          "Only completed members can set up a FanLetter profile.",
-        paymentRequiredCta: "Verify signup",
+          "Confirm FanLetter readiness to set up a character profile.",
+        paymentRequiredCta: "Confirm readiness",
         profileStep: "02 · Create character",
         persona: "Character persona",
         personaBody:

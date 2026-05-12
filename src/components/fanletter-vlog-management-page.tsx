@@ -111,7 +111,7 @@ function getCopy(locale: Locale) {
         loading: "브이로그 목록을 불러오고 있습니다.",
         noMatching: "조건에 맞는 브이로그가 없습니다.",
         paymentRequired:
-          "가입 완료 회원만 FanLetter 브이로그 전체 관리를 사용할 수 있습니다.",
+          "FanLetter 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
         searchPlaceholder: "제목, 요약, 본문으로 검색",
         subtitle:
           "FanLetter에 올릴 AI 캐릭터 브이로그를 검색하고 공개, 임시저장, 보관 상태를 한 화면에서 정리합니다.",
@@ -154,7 +154,7 @@ function getCopy(locale: Locale) {
         loading: "Loading vlogs.",
         noMatching: "No vlogs match the current filters.",
         paymentRequired:
-          "Completed members can manage all FanLetter vlogs.",
+          "Confirm FanLetter readiness to manage all vlogs.",
         searchPlaceholder: "Search by title, summary, or body",
         subtitle:
           "Search AI character vlogs for FanLetter and manage published, draft, and archived states from one focused page.",

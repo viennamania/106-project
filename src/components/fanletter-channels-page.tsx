@@ -139,8 +139,8 @@ function getCopy(locale: Locale) {
         },
         loading: "외부 채널 배포 상태를 확인하고 있습니다.",
         paymentRequired:
-          "가입 완료 회원만 외부 채널 배포 관리 화면을 사용할 수 있습니다.",
-        paymentTitle: "가입 완료 확인이 필요합니다.",
+          "FanLetter 시작 준비 확인이 끝나면 외부 채널 배포 관리를 사용할 수 있습니다.",
+        paymentTitle: "시작 준비 확인이 필요합니다.",
         postTypes: {
           video: "동영상",
         },
@@ -212,8 +212,8 @@ function getCopy(locale: Locale) {
         },
         loading: "Checking channel distribution state.",
         paymentRequired:
-          "Completed members can use the channel distribution manager.",
-        paymentTitle: "Signup verification is required.",
+          "Confirm FanLetter readiness to use channel distribution.",
+        paymentTitle: "Readiness confirmation is required.",
         postTypes: {
           video: "Video",
         },

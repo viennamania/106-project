@@ -329,10 +329,10 @@ function getCopy(locale: Locale) {
         nextVlog: "다음 브이로그 만들기",
         onboardingPrimary: "계정 연결하기",
         onboardingSecondary: "캐릭터 만들기",
-        signupPrimary: "가입하고 채널 시작",
+        signupPrimary: "시작 준비하고 채널 시작",
         signupSecondary: "캐릭터 만들기",
         studio: "브이로그 스튜디오",
-        verify: "가입 완료 확인하기",
+        verify: "시작 준비 확인하기",
         vlogChecking: "브이로그 확인 중",
         vlogReady: "브이로그 운영 중",
         vlogReview: "브이로그 확인 필요",
@@ -418,7 +418,7 @@ function getOnboardingCopy(locale: Locale) {
         heroChecking:
           "계정과 캐릭터 상태를 확인하고 있습니다. 확인이 끝나면 필요한 다음 작업만 보여드립니다.",
         heroPayment:
-          "가입 완료 확인이 필요합니다. 결제 또는 가입 상태를 정리한 뒤 FanLetter 흐름을 이어가세요.",
+          "FanLetter 시작 준비 확인이 필요합니다. 확인을 마친 뒤 캐릭터와 브이로그 생성을 이어가세요.",
         heroReady: (name: string | null) =>
           name
             ? `${name} 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 FanLetter 피드로 이어가세요.`
