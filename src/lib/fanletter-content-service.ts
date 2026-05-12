@@ -66,6 +66,31 @@ export type FanletterPublicContentItem = {
   title: string;
 };
 
+export type FanletterPublicCharacterGrowth = {
+  level: number;
+  maxLevel: number;
+  metrics: {
+    fanRequestCount: number;
+    publicVlogCount: number;
+    reactionCount: number;
+    saveCount: number;
+  };
+  nextMission: {
+    description: string;
+    progress: number;
+    target: number;
+    title: string;
+  } | null;
+  progressPercent: number;
+  skills: Array<{
+    description: string;
+    label: string;
+  }>;
+  summary: string;
+  title: string;
+  totalXp: number;
+};
+
 export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   authorCharacter: FanletterPublicCharacter | null;
   authorPublicContentCount: number;
@@ -109,6 +134,7 @@ export type FanletterPublicCharacter = {
     label: string | null;
     url: string;
   }>;
+  growth: FanletterPublicCharacterGrowth;
   imageContentCount: number;
   latestTitle: string | null;
   name: string;
@@ -260,12 +286,218 @@ function getPublicAvatarImageSet(profile: CreatorProfileDocument) {
     .slice(0, 4);
 }
 
+function getPublicCharacterGrowth({
+  fanRequestCount,
+  locale,
+  publicContentCount,
+  posts,
+  socialByContentId,
+}: {
+  fanRequestCount: number;
+  locale: Locale;
+  publicContentCount?: number;
+  posts: ContentPostDocument[];
+  socialByContentId?: Map<string, ContentSocialSummaryRecord>;
+}): FanletterPublicCharacterGrowth {
+  const publicVlogCount =
+    publicContentCount ??
+    posts.filter((post) => getMediaType(post) === "video").length;
+  const socialTotals = posts.reduce(
+    (totals, post) => {
+      const social = socialByContentId?.get(post.contentId);
+
+      return {
+        commentCount: totals.commentCount + (social?.commentCount ?? 0),
+        likeCount: totals.likeCount + (social?.likeCount ?? 0),
+        saveCount: totals.saveCount + (social?.saveCount ?? 0),
+      };
+    },
+    {
+      commentCount: 0,
+      likeCount: 0,
+      saveCount: 0,
+    },
+  );
+  const reactionCount =
+    socialTotals.likeCount + socialTotals.commentCount + socialTotals.saveCount;
+  const totalXp =
+    publicVlogCount * 90 +
+    Math.min(socialTotals.likeCount, 250) * 8 +
+    Math.min(socialTotals.commentCount, 150) * 14 +
+    Math.min(socialTotals.saveCount, 200) * 12 +
+    Math.min(fanRequestCount, 50) * 30;
+  const maxLevel = 10;
+  const xpPerLevel = 220;
+  const level = Math.min(
+    maxLevel,
+    Math.max(1, Math.floor(totalXp / xpPerLevel) + 1),
+  );
+  const currentFloor = (level - 1) * xpPerLevel;
+  const progressPercent =
+    level >= maxLevel
+      ? 100
+      : Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round(((totalXp - currentFloor) / xpPerLevel) * 100),
+          ),
+        );
+  const copy =
+    locale === "ko"
+      ? {
+          missions: {
+            fanRequest: {
+              description: "팬이 보고 싶은 장면을 남기면 요청 기반 브이로그 루프가 열립니다.",
+              title: "첫 팬 요청 받기",
+            },
+            reaction: {
+              description: "좋아요, 댓글, 저장 반응 10개를 모으면 팬 반응형 캐릭터 신호가 강해집니다.",
+              title: "팬 반응 10개 모으기",
+            },
+            vlog: {
+              description: "공개 브이로그 3개를 채우면 캐릭터의 기본 루틴이 더 선명해집니다.",
+              title: "공개 브이로그 3개 채우기",
+            },
+          },
+          skills: {
+            daily: {
+              description: "같은 정체성으로 일상 장면을 이어가는 기본 스킬입니다.",
+              label: "일상 브이로그",
+            },
+            request: {
+              description: "팬이 남긴 요청을 다음 장면 소재로 활용합니다.",
+              label: "팬 요청 맞춤",
+            },
+            response: {
+              description: "댓글과 좋아요 반응을 다음 숏폼 후크로 바꿉니다.",
+              label: "팬 반응 후크",
+            },
+            save: {
+              description: "저장된 장면을 반복 시청용 시그니처 컷으로 확장합니다.",
+              label: "저장 유도 장면",
+            },
+          },
+          summary: `공개 브이로그 ${publicVlogCount}개, 팬 반응 ${reactionCount}개, 팬 요청 ${fanRequestCount}개를 기반으로 Lv.${level}까지 성장했습니다.`,
+          titles: [
+            "캐릭터 준비 중",
+            "첫 브이로거",
+            "일상 브이로거",
+            "팬 반응형 캐릭터",
+            "채널 운영자",
+            "프리미엄 크리에이터",
+            "루틴 메이커",
+            "팬덤 빌더",
+            "시그니처 브이로거",
+            "대표 캐릭터",
+          ],
+        }
+      : {
+          missions: {
+            fanRequest: {
+              description: "Collect a fan scene request to open the request-to-vlog loop.",
+              title: "Receive the first fan request",
+            },
+            reaction: {
+              description: "Reach 10 likes, comments, and saves to strengthen fan-aware signals.",
+              title: "Collect 10 fan reactions",
+            },
+            vlog: {
+              description: "Publish 3 public vlogs to make the character routine clearer.",
+              title: "Publish 3 public vlogs",
+            },
+          },
+          skills: {
+            daily: {
+              description: "Keeps daily scenes aligned to the same identity.",
+              label: "Daily vlog",
+            },
+            request: {
+              description: "Turns fan requests into next-scene ideas.",
+              label: "Fan requests",
+            },
+            response: {
+              description: "Uses likes and comments as the next short-form hook.",
+              label: "Fan reaction hook",
+            },
+            save: {
+              description: "Expands saved scenes into repeatable signature cuts.",
+              label: "Save-worthy scene",
+            },
+          },
+          summary: `Reached Lv.${level} from ${publicVlogCount} public vlogs, ${reactionCount} fan reactions, and ${fanRequestCount} fan requests.`,
+          titles: [
+            "Character setup",
+            "First vlogger",
+            "Daily vlogger",
+            "Fan reaction character",
+            "Channel operator",
+            "Premium creator",
+            "Routine maker",
+            "Fandom builder",
+            "Signature vlogger",
+            "Flagship character",
+          ],
+        };
+  const skills = [
+    copy.skills.daily,
+    ...(fanRequestCount > 0 ? [copy.skills.request] : []),
+    ...(reactionCount > 0 ? [copy.skills.response] : []),
+    ...(socialTotals.saveCount > 0 ? [copy.skills.save] : []),
+  ].slice(0, 3);
+  const nextMission =
+    publicVlogCount < 3
+      ? {
+          ...copy.missions.vlog,
+          progress: publicVlogCount,
+          target: 3,
+        }
+      : fanRequestCount < 1
+        ? {
+            ...copy.missions.fanRequest,
+            progress: fanRequestCount,
+            target: 1,
+          }
+        : reactionCount < 10
+          ? {
+              ...copy.missions.reaction,
+              progress: reactionCount,
+              target: 10,
+            }
+          : null;
+
+  return {
+    level,
+    maxLevel,
+    metrics: {
+      fanRequestCount,
+      publicVlogCount,
+      reactionCount,
+      saveCount: socialTotals.saveCount,
+    },
+    nextMission,
+    progressPercent,
+    skills,
+    summary: copy.summary,
+    title: copy.titles[level - 1] ?? copy.titles[0],
+    totalXp,
+  };
+}
+
 function getPublicCharacter({
+  fanRequestCount = 0,
+  locale,
   posts,
   profile,
+  publicContentCount,
+  socialByContentId,
 }: {
+  fanRequestCount?: number;
+  locale: Locale;
   posts: ContentPostDocument[];
   profile: CreatorProfileDocument | null | undefined;
+  publicContentCount?: number;
+  socialByContentId?: Map<string, ContentSocialSummaryRecord>;
 }): FanletterPublicCharacter | null {
   const persona = profile?.characterPersona;
 
@@ -275,12 +507,21 @@ function getPublicCharacter({
 
   return {
     avatarImageSet: getPublicAvatarImageSet(profile),
+    growth: getPublicCharacterGrowth({
+      fanRequestCount,
+      locale,
+      posts,
+      publicContentCount,
+      socialByContentId,
+    }),
     imageContentCount: posts.filter((post) => getMediaType(post) === "image").length,
     latestTitle: compactText(posts[0]?.title, 72) || null,
     name: compactText(persona.name, 64) || profile.displayName,
     summary: compactText(persona.summary, 220),
     traits: getPublicCharacterTraits(persona),
-    videoContentCount: posts.filter((post) => getMediaType(post) === "video").length,
+    videoContentCount:
+      publicContentCount ??
+      posts.filter((post) => getMediaType(post) === "video").length,
   };
 }
 
@@ -496,6 +737,15 @@ async function getPublicFanRequestPreviews(referralCode: string) {
   );
 
   return requests.map(toPublicFanRequestPreview);
+}
+
+async function getPublicFanRequestCount(referralCode: string) {
+  const requestsCollection = await getFanletterFanRequestsCollection();
+
+  return requestsCollection.countDocuments({
+    creatorReferralCode: referralCode,
+    status: { $in: ["new", "reviewed", "used"] },
+  });
 }
 
 async function getPublicContentFilter({
@@ -725,7 +975,7 @@ export const getFanletterPublicContentDetail = cache(
     const authorContentFilter = authorReferralCode
       ? await getPublicContentFilter({ locale, referralCode: authorReferralCode })
       : null;
-    const [authorPosts, authorPublicContentCount] = authorContentFilter
+    const [authorPosts, authorPublicContentCount, authorFanRequestCount] = authorContentFilter
       ? await Promise.all([
           postsCollection
             .find(authorContentFilter)
@@ -737,23 +987,32 @@ export const getFanletterPublicContentDetail = cache(
             .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
             .toArray(),
           postsCollection.countDocuments(authorContentFilter),
+          authorReferralCode
+            ? getPublicFanRequestCount(authorReferralCode).catch(() => 0)
+            : 0,
         ])
-      : [[], 0];
+      : [[], 0, 0];
     const authorRecentPosts = authorPosts
       .filter((authorPost) => authorPost.contentId !== post.contentId)
       .slice(0, 4);
-    const authorRecentSocialByContentId =
-      await getSocialByContentId(authorRecentPosts);
+    const authorSocialByContentId = await getSocialByContentId(authorPosts);
 
     return {
       ...toPublicContentItem({ post, profile, social }),
-      authorCharacter: getPublicCharacter({ posts: authorPosts, profile }),
+      authorCharacter: getPublicCharacter({
+        fanRequestCount: authorFanRequestCount,
+        locale,
+        posts: authorPosts,
+        profile,
+        publicContentCount: authorPublicContentCount,
+        socialByContentId: authorSocialByContentId,
+      }),
       authorPublicContentCount,
       authorRecentContent: authorRecentPosts.map((authorPost) =>
         toPublicContentItem({
           post: authorPost,
           profile,
-          social: authorRecentSocialByContentId.get(authorPost.contentId),
+          social: authorSocialByContentId.get(authorPost.contentId),
         }),
       ),
       body: canPubliclyAccess
@@ -782,7 +1041,7 @@ export const getFanletterCreatorPageData = cache(
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const [storedProfile, posts, publicContentCount, fanRequestPreviews] =
+    const [storedProfile, posts, publicContentCount, fanRequestPreviews, fanRequestCount] =
       await Promise.all([
         profilesCollection.findOne({ referralCode }),
         postsCollection
@@ -796,6 +1055,7 @@ export const getFanletterCreatorPageData = cache(
           .toArray(),
         postsCollection.countDocuments(contentFilter),
         getPublicFanRequestPreviews(referralCode).catch(() => []),
+        getPublicFanRequestCount(referralCode).catch(() => 0),
       ]);
     const profile =
       storedProfile ??
@@ -824,7 +1084,14 @@ export const getFanletterCreatorPageData = cache(
       ),
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
-        character: getPublicCharacter({ posts, profile }),
+        character: getPublicCharacter({
+          fanRequestCount,
+          locale,
+          posts,
+          profile,
+          publicContentCount,
+          socialByContentId,
+        }),
         displayName,
         intro:
           compactText(profile?.intro, 220) ||

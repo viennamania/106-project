@@ -837,6 +837,14 @@ export async function getContentPostsCollection() {
           createdAt: -1,
           contentId: -1,
         }),
+        collection.createIndex({
+          locale: 1,
+          status: 1,
+          priceType: 1,
+          publishedAt: -1,
+          createdAt: -1,
+          contentId: -1,
+        }),
         collection.createIndex({ locale: 1, status: 1, publishedAt: -1 }),
         collection.createIndex({ status: 1, createdAt: -1 }),
       ]);
@@ -1028,6 +1036,18 @@ export async function getFanletterFanRequestsCollection() {
         }),
         collection.createIndex({ sourceContentId: 1, createdAt: -1 }),
         collection.createIndex({ usedContentId: 1, updatedAt: -1 }),
+        collection.createIndex({
+          requesterEmail: 1,
+          status: 1,
+          updatedAt: -1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          creatorReferralCode: 1,
+          status: 1,
+          updatedAt: -1,
+          createdAt: -1,
+        }),
       ]);
 
       return collection;

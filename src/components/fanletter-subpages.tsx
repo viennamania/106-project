@@ -19,6 +19,7 @@ import {
   Share2,
   SlidersHorizontal,
   Sparkles,
+  Trophy,
   User,
   Video,
 } from "lucide-react";
@@ -32,6 +33,7 @@ import {
 } from "@/components/fanletter-channel-section-tabs";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
+import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
 import {
   FanletterSetupHeroDescription,
   FanletterSetupHeroActions,
@@ -3195,10 +3197,26 @@ function CharacterPersonaShowcase({
   publicContentCount: number;
 }) {
   const copy = getCopy(locale);
-  const stageLevel = Math.min(
-    4,
-    Math.max(1, Math.floor(publicContentCount / 6) + 1),
-  );
+  const growth = character.growth;
+  const stageLevel = growth.level;
+  const growthLabels =
+    locale === "ko"
+      ? {
+          fanRequests: "팬 요청",
+          next: "다음 성장",
+          progress: "성장 진행",
+          reactions: "팬 반응",
+          skills: "대표 스킬",
+          xp: "XP",
+        }
+      : {
+          fanRequests: "Fan requests",
+          next: "Next growth",
+          progress: "Growth progress",
+          reactions: "Fan reactions",
+          skills: "Signature skills",
+          xp: "XP",
+        };
   const evolutionItems = [
     {
       label: copy.creator.characterPublicSignal,
@@ -3215,6 +3233,20 @@ function CharacterPersonaShowcase({
     {
       label: copy.creator.characterLatest,
       value: character.latestTitle ?? "FanLetter",
+    },
+  ];
+  const growthMetrics = [
+    {
+      label: growthLabels.xp,
+      value: formatNumber(growth.totalXp, locale),
+    },
+    {
+      label: growthLabels.reactions,
+      value: formatNumber(growth.metrics.reactionCount, locale),
+    },
+    {
+      label: growthLabels.fanRequests,
+      value: formatNumber(growth.metrics.fanRequestCount, locale),
     },
   ];
 
@@ -3235,6 +3267,46 @@ function CharacterPersonaShowcase({
             <p className="mt-4 text-sm font-medium leading-6 text-white/68 sm:text-base sm:leading-7">
               {character.summary || copy.creator.characterBody}
             </p>
+            <div className="mt-5 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                    {growthLabels.progress}
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold tracking-normal">
+                    {growth.title}
+                  </h3>
+                  <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                    {growth.summary}
+                  </p>
+                </div>
+                <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-semibold text-black">
+                  <Trophy className="size-3.5" />
+                  Lv.{growth.level}
+                </span>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/24">
+                <div
+                  className="h-full rounded-full bg-[#44f26e]"
+                  style={{ width: `${growth.progressPercent}%` }}
+                />
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {growthMetrics.map((metric) => (
+                  <div
+                    className="rounded-lg border border-white/10 bg-black/18 p-3"
+                    key={metric.label}
+                  >
+                    <p className="text-lg font-semibold leading-none text-white">
+                      {metric.value}
+                    </p>
+                    <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                      {metric.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 py-2 text-sm font-semibold text-[#b9ffc8]">
             <Sparkles className="size-4" />
@@ -3278,6 +3350,46 @@ function CharacterPersonaShowcase({
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,0.74fr)_minmax(16rem,0.46fr)]">
+          <div className="rounded-lg border border-white/10 bg-white/[0.045] p-4">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/44">
+              {growthLabels.skills}
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {growth.skills.map((skill) => (
+                <div
+                  className="rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-3"
+                  key={skill.label}
+                >
+                  <p className="text-sm font-semibold text-[#b9ffc8]">
+                    {skill.label}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-white/50">
+                    {skill.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {growth.nextMission ? (
+            <div className="rounded-lg border border-white/10 bg-white/[0.045] p-4">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/44">
+                {growthLabels.next}
+              </p>
+              <h3 className="mt-3 text-lg font-semibold tracking-normal">
+                {growth.nextMission.title}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/54">
+                {growth.nextMission.description}
+              </p>
+              <p className="mt-3 text-xs font-semibold text-[#b9ffc8]">
+                {formatNumber(growth.nextMission.progress, locale)} /{" "}
+                {formatNumber(growth.nextMission.target, locale)}
+              </p>
+            </div>
+          ) : null}
         </div>
       </article>
 
@@ -3591,6 +3703,13 @@ export function FanletterCreatorPage({
             startHref={startHref}
           />
 
+          <FanletterRequestStatusPanel
+            className="mb-8"
+            creatorReferralCode={data.profile.referralCode}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+          />
+
           <FanletterFanOnlyPreview
             channelName={channelName}
             followHref={followHref}
@@ -3660,13 +3779,21 @@ function FanletterCharacterMiniCard({
           aiLabel: "AI 캐릭터",
           fanOnly: "팬 전용 준비 중",
           freeFollow: "무료 공개 채널",
+          growth: "성장 상태",
+          skills: "캐릭터 스킬",
         }
       : {
           aiLabel: "AI character",
           fanOnly: "Fan-only coming soon",
           freeFollow: "Free public channel",
+          growth: "Growth status",
+          skills: "Character skills",
         };
   const stats = [
+    {
+      label: copy.creator.stage,
+      value: character ? `Lv.${character.growth.level}` : "Lv.1",
+    },
     {
       label: copy.creator.publicPosts,
       value: formatNumber(content.authorPublicContentCount, locale),
@@ -3738,6 +3865,45 @@ function FanletterCharacterMiniCard({
       <p className="mt-4 text-sm font-medium leading-6 text-white/66">
         {characterSummary}
       </p>
+
+      {character ? (
+        <div className="mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                {labels.growth}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-normal">
+                {character.growth.title}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+                {character.growth.summary}
+              </p>
+            </div>
+            <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-semibold text-black">
+              <Trophy className="size-3.5" />
+              Lv.{character.growth.level}
+            </span>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/24">
+            <div
+              className="h-full rounded-full bg-[#44f26e]"
+              style={{ width: `${character.growth.progressPercent}%` }}
+            />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {character.growth.skills.map((skill) => (
+              <span
+                className="rounded-full border border-[#44f26e]/24 bg-black/20 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8]"
+                key={skill.label}
+                title={skill.description}
+              >
+                {skill.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {traits.length > 0 ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -4090,6 +4256,14 @@ export function FanletterContentDetailPage({
                 requestHref={fanRequestHref}
                 sourceContentId={content.contentId}
                 startHref={startHref}
+              />
+
+              <FanletterRequestStatusPanel
+                className="mt-6"
+                creatorReferralCode={content.authorReferralCode}
+                locale={locale}
+                referralCode={effectiveReferralCode}
+                sourceContentId={content.contentId}
               />
 
               {!content.canPubliclyAccess ? (
