@@ -33,6 +33,8 @@ const DEFAULT_RESOLUTION = "1080p";
 const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
+export type ContentVideoQualityMode = "person_high" | "standard";
+
 type FalModelFamily =
   | "minimax-subject-reference"
   | "veo"
@@ -132,6 +134,7 @@ export type GenerateContentGalleryVideoInput = {
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
   referralCode: string;
+  qualityMode?: ContentVideoQualityMode;
   summary?: string | null;
   title?: string | null;
   visualBrief?: string | null;
@@ -193,10 +196,23 @@ function parseInteger(value: string | undefined, fallback: number) {
   return Number.isFinite(parsed) ? Math.round(parsed) : fallback;
 }
 
-function parseWanDuration(value: string | undefined, maximum = 15) {
+function parseVeoDuration(
+  value: string | undefined,
+  fallback: FalVeoVideoInput["duration"],
+) {
+  const normalized = value?.trim().toLowerCase();
+  const duration = normalized?.replace(/^(4|6|8)$/, "$1s");
+  const allowed = ["4s", "6s", "8s"] as const;
+
+  return allowed.includes(duration as FalVeoVideoInput["duration"])
+    ? (duration as FalVeoVideoInput["duration"])
+    : fallback;
+}
+
+function parseWanDuration(value: string | undefined, maximum = 15, fallback = 8) {
   const normalized = value?.trim().replace(/s$/i, "");
   const parsed = Number(normalized);
-  const duration = Number.isFinite(parsed) ? Math.round(parsed) : 8;
+  const duration = Number.isFinite(parsed) ? Math.round(parsed) : fallback;
   const clamped = Math.max(2, Math.min(maximum, duration));
 
   return clamped as FalWanVideoInput["duration"];
@@ -216,6 +232,57 @@ function getVideoNegativePrompt() {
   return (
     process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim() ||
     DEFAULT_NEGATIVE_PROMPT
+  );
+}
+
+function getVeoDuration(qualityMode: ContentVideoQualityMode) {
+  const personDuration = process.env.FAL_CONTENT_VIDEO_PERSON_DURATION?.trim();
+  const duration = parseVeoDuration(
+    qualityMode === "person_high"
+      ? personDuration || process.env.FAL_CONTENT_VIDEO_DURATION
+      : process.env.FAL_CONTENT_VIDEO_DURATION,
+    DEFAULT_DURATION,
+  );
+
+  if (qualityMode === "person_high" && !personDuration && duration === "8s") {
+    return "6s";
+  }
+
+  return duration;
+}
+
+function getVeoResolution(qualityMode: ContentVideoQualityMode) {
+  return parseEnum(
+    qualityMode === "person_high"
+      ? process.env.FAL_CONTENT_VIDEO_PERSON_RESOLUTION ||
+          process.env.FAL_CONTENT_VIDEO_RESOLUTION
+      : process.env.FAL_CONTENT_VIDEO_RESOLUTION,
+    ["720p", "1080p", "4k"] as const,
+    DEFAULT_RESOLUTION,
+  );
+}
+
+function getWanDuration(qualityMode: ContentVideoQualityMode, maximum = 15) {
+  if (qualityMode !== "person_high") {
+    return parseWanDuration(process.env.FAL_CONTENT_VIDEO_DURATION, maximum);
+  }
+
+  return parseWanDuration(
+    process.env.FAL_CONTENT_VIDEO_PERSON_DURATION ||
+      process.env.FAL_CONTENT_VIDEO_DURATION,
+    Math.min(maximum, 6),
+    6,
+  );
+}
+
+function getWanResolution(qualityMode: ContentVideoQualityMode) {
+  return parseEnum(
+    qualityMode === "person_high"
+      ? process.env.FAL_CONTENT_VIDEO_PERSON_RESOLUTION ||
+          process.env.FAL_CONTENT_VIDEO_RESOLUTION
+      : process.env.FAL_CONTENT_VIDEO_RESOLUTION,
+    ["720p", "1080p"] as const,
+    DEFAULT_RESOLUTION,
   );
 }
 
@@ -296,22 +363,15 @@ function getModelDisplayName(model: FalModelName) {
 function createVeoModelInput(
   prompt: string,
   avatarImageUrls: string[] = [],
+  qualityMode: ContentVideoQualityMode,
 ): FalVeoReferenceVideoInput | FalVeoVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
     ["16:9", "9:16"] as const,
     DEFAULT_ASPECT_RATIO,
   );
-  const duration = parseEnum(
-    process.env.FAL_CONTENT_VIDEO_DURATION,
-    ["4s", "6s", "8s"] as const,
-    DEFAULT_DURATION,
-  );
-  const resolution = parseEnum(
-    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
-    ["720p", "1080p", "4k"] as const,
-    DEFAULT_RESOLUTION,
-  );
+  const duration = getVeoDuration(qualityMode);
+  const resolution = getVeoResolution(qualityMode);
   const safetyTolerance = parseEnum(
     process.env.FAL_CONTENT_VIDEO_SAFETY_TOLERANCE,
     ["1", "2", "3", "4", "5", "6"] as const,
@@ -335,24 +395,23 @@ function createVeoModelInput(
   };
 }
 
-function createWanModelInput(prompt: string): FalWanVideoInput {
+function createWanModelInput(
+  prompt: string,
+  qualityMode: ContentVideoQualityMode,
+): FalWanVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
     ["16:9", "9:16", "1:1", "4:3", "3:4"] as const,
     DEFAULT_ASPECT_RATIO,
   );
-  const resolution = parseEnum(
-    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
-    ["720p", "1080p"] as const,
-    DEFAULT_RESOLUTION,
-  );
+  const resolution = getWanResolution(qualityMode);
   const negativePrompt = getVideoNegativePrompt();
   const audioUrl = process.env.FAL_CONTENT_VIDEO_AUDIO_URL?.trim();
 
   return {
     aspect_ratio: aspectRatio,
     ...(audioUrl ? { audio_url: audioUrl } : {}),
-    duration: parseWanDuration(process.env.FAL_CONTENT_VIDEO_DURATION),
+    duration: getWanDuration(qualityMode),
     enable_prompt_expansion: parseBoolean(
       process.env.FAL_CONTENT_VIDEO_ENABLE_PROMPT_EXPANSION,
       true,
@@ -370,25 +429,19 @@ function createWanModelInput(prompt: string): FalWanVideoInput {
 function createWanReferenceModelInput(
   prompt: string,
   avatarImageUrls: string[],
+  qualityMode: ContentVideoQualityMode,
 ): FalWanReferenceVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
     ["16:9", "9:16", "1:1", "4:3", "3:4"] as const,
     DEFAULT_ASPECT_RATIO,
   );
-  const resolution = parseEnum(
-    process.env.FAL_CONTENT_VIDEO_RESOLUTION,
-    ["720p", "1080p"] as const,
-    DEFAULT_RESOLUTION,
-  );
+  const resolution = getWanResolution(qualityMode);
   const negativePrompt = getVideoNegativePrompt();
 
   return {
     aspect_ratio: aspectRatio,
-    duration: parseWanDuration(
-      process.env.FAL_CONTENT_VIDEO_DURATION,
-      10,
-    ) as FalWanReferenceVideoInput["duration"],
+    duration: getWanDuration(qualityMode, 10) as FalWanReferenceVideoInput["duration"],
     enable_safety_checker: parseBoolean(
       process.env.FAL_CONTENT_VIDEO_ENABLE_SAFETY_CHECKER,
       true,
@@ -422,10 +475,12 @@ function createModelInput({
   avatarImageUrls,
   model,
   prompt,
+  qualityMode,
 }: {
   avatarImageUrls: string[];
   model: FalModelName;
   prompt: string;
+  qualityMode: ContentVideoQualityMode;
 }): FalVideoInput {
   const family = resolveModelFamily(model);
 
@@ -448,11 +503,11 @@ function createModelInput({
       );
     }
 
-    return createWanReferenceModelInput(prompt, avatarImageUrls);
+    return createWanReferenceModelInput(prompt, avatarImageUrls, qualityMode);
   }
 
   if (family === "wan-v2.7") {
-    return createWanModelInput(prompt);
+    return createWanModelInput(prompt, qualityMode);
   }
 
   if (family === "veo-reference") {
@@ -462,10 +517,10 @@ function createModelInput({
       );
     }
 
-    return createVeoModelInput(prompt, avatarImageUrls);
+    return createVeoModelInput(prompt, avatarImageUrls, qualityMode);
   }
 
-  return createVeoModelInput(prompt);
+  return createVeoModelInput(prompt, [], qualityMode);
 }
 
 function rewritePromptForSaferVideoGeneration(prompt: string) {
@@ -557,15 +612,27 @@ function normalizeAvatarReferenceUrls(
 function appendPersonCenteredReferenceDirection(
   prompt: string,
   avatarReferenceUrls: string[],
+  qualityMode: ContentVideoQualityMode,
 ) {
   if (avatarReferenceUrls.length === 0) {
     return prompt;
   }
 
+  const referenceDirection =
+    avatarReferenceUrls.length <= 2
+      ? "Reference plan: expression lock. Treat the first reference image as the exact facial expression, gaze, face shape, hairstyle, skin tone, and identity anchor. Use any second reference only to stabilize identity, not to change the selected expression."
+      : "Reference plan: identity set. Use the image set to stabilize the same adult character identity while keeping the scene as one continuous vertical vlog shot.";
+  const qualityDirection =
+    qualityMode === "person_high"
+      ? "High-fidelity portrait video preset: realistic human skin with visible but natural texture, stable eye direction, natural teeth and lips, clean face geometry, soft daylight or studio key light, shallow depth of field, 50mm portrait-lens feeling, shoulders-up or upper-body framing, and only subtle motion such as blink, small smile, tiny head turn, and micro-reactions. Keep the shot short, simple, and continuous; avoid fast body movement, large hand gestures near the face, sudden cuts, face smoothing, waxy skin, beauty-filter plastic skin, and expression morphing."
+      : "Photorealistic person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, skin tone, complexion, facial geometry, eye shape, mouth shape, and expression style from the references. Keep the motion simple and controlled.";
+
   return normalizeVideoPromptSpacing(
     [
       prompt,
-      "Photorealistic person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, skin tone, complexion, facial geometry, eye shape, mouth shape, and expression style from the references. Prioritize a realistic human face over stylized rendering: natural skin texture, realistic pores, soft skin detail, stable eyes, natural mouth shape, subtle facial micro-expressions, small gaze shifts, and believable micro-reactions. Keep the motion simple and controlled: mostly locked camera or very slow push-in, minimal head movement, no fast cuts, no exaggerated gestures, and hands only if they remain natural and in frame. Use flattering but realistic lighting, shallow depth of field, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, anime, cartoon, CGI, doll-like skin, uncanny valley face, text, logos, or watermark.",
+      referenceDirection,
+      qualityDirection,
+      "Avoid background-dominant scenes, object-only shots, extra people, anime, cartoon, CGI, doll-like rendering, uncanny valley face, text, logos, or watermark.",
     ].join(" "),
   );
 }
@@ -1036,6 +1103,7 @@ export async function generateAndUploadContentGalleryVideo(
     input.visualBrief,
     CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   );
+  const qualityMode = input.qualityMode ?? "standard";
 
   if (!visualBrief) {
     throw new Error(
@@ -1061,6 +1129,7 @@ export async function generateAndUploadContentGalleryVideo(
   const personCenteredPrompt = appendPersonCenteredReferenceDirection(
     personaAppliedPrompt,
     avatarReferenceUrls,
+    qualityMode,
   );
   const { prompt: safetyPrompt } =
     rewritePromptForSaferVideoGeneration(personCenteredPrompt);
@@ -1087,6 +1156,7 @@ export async function generateAndUploadContentGalleryVideo(
     avatarImageUrls: avatarReferenceUrls,
     model,
     prompt,
+    qualityMode,
   });
   const fal = createFalClient({ credentials: falKey });
   let falRequestId: string | null = null;

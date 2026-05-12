@@ -122,6 +122,9 @@ function getCopy(locale: Locale) {
           referencePreviewEmpty: "선택한 표정 컷을 불러오는 중입니다.",
           referencePreviewTitle: "선택한 표정 컷",
           referenceSetTitle: "아바타 세트 reference",
+          qualityBody:
+            "선택한 컷을 우선 reference로 고정하고 짧은 단일 컷, 안정적인 카메라, 1080p 인물 프롬프트로 얼굴 흔들림을 줄입니다.",
+          qualityTitle: "고화질 인물 모드",
           result: "표정 컷 동영상 미리보기",
           titleText: "선택한 표정 컷으로 인물 중심 브이로그를 만드세요.",
           video: "생성 결과: 표정 reference 브이로그 동영상",
@@ -254,6 +257,9 @@ function getCopy(locale: Locale) {
           referencePreviewEmpty: "Loading the selected expression cut.",
           referencePreviewTitle: "Selected expression cut",
           referenceSetTitle: "Avatar set reference",
+          qualityBody:
+            "The selected cut is prioritized as the reference, then rendered as a short single-shot 1080p portrait video with stable camera direction.",
+          qualityTitle: "High-fidelity person mode",
           result: "Expression cut video preview",
           titleText:
             "Create a person-centered vlog from the selected expression cut.",
@@ -864,7 +870,7 @@ export function FanletterCreatePage({
           (rightRank === -1 ? Number.MAX_SAFE_INTEGER : rightRank)
         );
       })
-      .slice(0, initialPlan?.avatarReferenceMode === "set" ? 4 : 3);
+      .slice(0, initialPlan?.avatarReferenceMode === "set" ? 4 : 2);
   }, [
     copy.avatarExperience.referencePreviewTitle,
     initialPlan?.avatarReferenceExpression,
@@ -1118,6 +1124,7 @@ export function FanletterCreatePage({
           avatarReferenceMode: initialPlan?.avatarReferenceMode ?? null,
           planId: initialPlanId,
           visualBrief: form.prompt,
+          videoQualityMode: isAvatarVideoExperience ? "person_high" : "standard",
           walletAddress: accountAddress,
         }),
         headers: {
@@ -1457,6 +1464,17 @@ export function FanletterCreatePage({
                       </div>
                     </div>
                   ) : null}
+                  <div className="flex items-start gap-3 border-t border-white/10 px-3 py-3">
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-white">
+                        {copy.avatarExperience.qualityTitle}
+                      </p>
+                      <p className="mt-1 text-xs font-medium leading-5 text-white/56">
+                        {copy.avatarExperience.qualityBody}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : null}
               <div className="flex items-start gap-4">
@@ -1715,10 +1733,15 @@ export function FanletterCreatePage({
               </p>
               <h2 className="mt-3 text-2xl font-semibold">{promptLabel}</h2>
               <div className="mt-5 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-4 text-[#d7ffdf]">
-                <Clapperboard className="size-5 text-[#44f26e]" />
-                <span className="mt-3 block text-sm font-semibold">
-                  {videoLabel}
-                </span>
+                <div className="flex items-start justify-between gap-3">
+                  <Clapperboard className="size-5 shrink-0 text-[#44f26e]" />
+                  {isAvatarVideoExperience ? (
+                    <span className="rounded-full border border-[#44f26e]/28 bg-black/24 px-2.5 py-1 text-[0.65rem] font-semibold text-[#9dffb0]">
+                      {copy.avatarExperience.qualityTitle}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="mt-3 block text-sm font-semibold">{videoLabel}</span>
                 <p className="mt-2 text-sm font-medium leading-6 text-white/62">
                   {videoBody}
                 </p>

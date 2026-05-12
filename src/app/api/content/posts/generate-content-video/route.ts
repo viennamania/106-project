@@ -10,6 +10,7 @@ import {
 import {
   ContentVideoGenerationError,
   generateAndUploadContentGalleryVideo,
+  type ContentVideoQualityMode,
 } from "@/lib/content-gallery-video-service";
 import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
@@ -31,6 +32,7 @@ type GenerateContentVideoRequest = {
   summary?: string | null;
   title?: string | null;
   visualBrief?: string | null;
+  videoQualityMode?: string | null;
   walletAddress?: string | null;
 };
 
@@ -79,6 +81,20 @@ function normalizeAvatarReferenceExpression(
 
 function normalizeAvatarReferenceMode(value: string | null | undefined) {
   return value === "single" || value === "set" ? value : null;
+}
+
+function normalizeVideoQualityMode(
+  value: string | null | undefined,
+): ContentVideoQualityMode | null {
+  if (value === "person_high" || value === "high") {
+    return "person_high";
+  }
+
+  if (value === "standard") {
+    return "standard";
+  }
+
+  return null;
 }
 
 function getValidatedAvatarReferenceUrls({
@@ -168,11 +184,22 @@ function getValidatedAvatarReferenceUrls({
       throw new Error("Selected avatar reference is not available.");
     }
 
-    return prioritizeCandidates(selectedCandidate.expression).slice(0, 6);
+    const stableExpressionCandidates = [
+      selectedCandidate,
+      uniqueCandidates.find(
+        (candidate) =>
+          candidate.expression === "default" &&
+          candidate.url !== selectedCandidate.url,
+      ),
+    ].filter((candidate): candidate is (typeof uniqueCandidates)[number] =>
+      Boolean(candidate),
+    );
+
+    return stableExpressionCandidates.map((candidate) => candidate.url);
   }
 
   if (mode === "set" || planId === "avatar-set-direction") {
-    return prioritizeCandidates("default").slice(0, 6);
+    return prioritizeCandidates("default").slice(0, 4);
   }
 
   return [uniqueCandidates[0].url];
@@ -280,6 +307,9 @@ export async function POST(request: Request) {
     body?.avatarReferenceMode,
   );
   const planId = trimToLength(body?.planId, 120) || null;
+  const requestedVideoQualityMode = normalizeVideoQualityMode(
+    body?.videoQualityMode,
+  );
 
   if (!visualBrief) {
     return jsonError(
@@ -340,6 +370,10 @@ export async function POST(request: Request) {
         planId,
         profile: profileSnapshot.profile,
       });
+      const videoQualityMode: ContentVideoQualityMode =
+        avatarReferenceUrls.length > 0
+          ? (requestedVideoQualityMode ?? "person_high")
+          : "standard";
 
       emit({
         progress: {
@@ -361,6 +395,7 @@ export async function POST(request: Request) {
             type: "progress",
           });
         },
+        qualityMode: videoQualityMode,
         referralCode: member.referralCode,
         summary,
         title,
@@ -425,10 +460,15 @@ export async function POST(request: Request) {
       planId,
       profile: profileSnapshot.profile,
     });
+    const videoQualityMode: ContentVideoQualityMode =
+      avatarReferenceUrls.length > 0
+        ? (requestedVideoQualityMode ?? "person_high")
+        : "standard";
     const generatedVideo = await generateAndUploadContentGalleryVideo({
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       avatarImageUrls: avatarReferenceUrls,
       characterPersona: profileSnapshot.profile.characterPersona,
+      qualityMode: videoQualityMode,
       referralCode: member.referralCode,
       summary,
       title,
