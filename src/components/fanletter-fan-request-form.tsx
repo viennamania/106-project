@@ -118,7 +118,7 @@ function getCopy(locale: Locale) {
           seasonal: "계절",
         },
         templatesHelper:
-          "많이 요청되는 장면을 골라 문구를 다듬거나, 아래 입력칸에 직접 적을 수 있습니다.",
+          "입력칸에 직접 적거나, 많이 요청되는 장면을 골라 문구를 다듬을 수 있습니다.",
         viewVlogs: "공개 브이로그 보기",
         vlogRequest: "다음 브이로그 요청",
       }
@@ -200,7 +200,7 @@ function getCopy(locale: Locale) {
           seasonal: "Seasonal",
         },
         templatesHelper:
-          "Pick a popular scene and refine it, or write your own request below.",
+          "Write your own request in the input, or pick a popular scene and refine it.",
         viewVlogs: "View public vlogs",
         vlogRequest: "Next vlog request",
       };
@@ -476,6 +476,7 @@ export function FanletterFanRequestForm({
     setStatus("idle");
     setRequestType(template.requestType);
     window.requestAnimationFrame(() => {
+      textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       textareaRef.current?.focus({ preventScroll: true });
     });
   }
@@ -526,6 +527,7 @@ export function FanletterFanRequestForm({
 
             return (
               <button
+                aria-pressed={active}
                 className={`inline-flex h-9 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold transition ${
                   active
                     ? "bg-[#44f26e] text-black"
@@ -668,7 +670,11 @@ export function FanletterFanRequestForm({
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {visibleTemplates.map((template) => {
-            const selected = selectedTemplateId === template.templateId;
+            const selected =
+              selectedTemplateId === template.templateId ||
+              (!selectedTemplateId &&
+                body === template.body &&
+                requestType === template.requestType);
 
             return (
               <button

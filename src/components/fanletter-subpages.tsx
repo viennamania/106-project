@@ -442,9 +442,18 @@ function isLowSignalContentText(title: string, summary: string) {
   return /^([a-z])\1{3,}$/i.test(normalizedTitle);
 }
 
-function getDisplayContentTitle(item: FanletterPublicContentItem, locale: Locale) {
-  const title = item.title.trim();
-  const normalizedTitle = title.toLowerCase();
+function getDisplayContentTitleText(
+  title: string | null | undefined,
+  summary: string | null | undefined,
+  locale: Locale,
+) {
+  const safeTitle = (title ?? "").trim();
+  const safeSummary = (summary ?? "").trim();
+  const normalizedTitle = safeTitle.toLowerCase();
+
+  if (!safeTitle) {
+    return locale === "ko" ? "캐릭터 브이로그" : "Character vlog";
+  }
 
   if (normalizedTitle.startsWith("a realistic mirror selfie video")) {
     return locale === "ko" ? "거울 셀피 브이로그" : "Mirror selfie vlog";
@@ -454,23 +463,48 @@ function getDisplayContentTitle(item: FanletterPublicContentItem, locale: Locale
     return locale === "ko" ? "리얼 캐릭터 브이로그" : "Realistic character vlog";
   }
 
-  if (isLowSignalContentText(title, item.summary)) {
+  if (isLowSignalContentText(safeTitle, safeSummary)) {
     return locale === "ko" ? "짧은 캐릭터 브이로그" : "Short character vlog";
   }
 
-  return title;
+  return safeTitle;
+}
+
+function getDisplayContentTitle(item: FanletterPublicContentItem, locale: Locale) {
+  return getDisplayContentTitleText(item.title, item.summary, locale);
 }
 
 function getDisplayContentSummary(item: FanletterPublicContentItem, locale: Locale) {
   const title = item.title.trim();
+  const summary = item.summary.trim();
+  const normalizedSummary = summary.toLowerCase();
+  const normalizedTitle = title.toLowerCase();
 
-  if (isLowSignalContentText(title, item.summary)) {
+  if (
+    normalizedTitle.startsWith("a realistic mirror selfie video") ||
+    normalizedSummary.startsWith("a realistic mirror selfie video")
+  ) {
+    return locale === "ko"
+      ? "거울 앞에서 캐릭터의 분위기를 담은 짧은 셀피 브이로그입니다."
+      : "A short mirror selfie vlog that captures the character's mood.";
+  }
+
+  if (
+    normalizedTitle.startsWith("a realistic ") ||
+    normalizedSummary.startsWith("a realistic ")
+  ) {
+    return locale === "ko"
+      ? "AI 캐릭터의 자연스러운 순간을 담은 리얼 브이로그입니다."
+      : "A realistic vlog moment from this AI character.";
+  }
+
+  if (isLowSignalContentText(title, summary)) {
     return locale === "ko"
       ? "채널에 공개된 짧은 AI 캐릭터 브이로그입니다."
       : "A short AI character vlog published on this channel.";
   }
 
-  return item.summary;
+  return summary || (locale === "ko" ? "AI 캐릭터 브이로그입니다." : "AI character vlog.");
 }
 
 function getPublishedTime(value: string | null) {
@@ -990,7 +1024,7 @@ function FeaturedFeedCard({
             />
           ) : item.coverImageUrl ? (
             <Image
-              alt={item.title}
+              alt={displayTitle}
               className="object-cover transition duration-500 group-hover:scale-[1.03]"
               fill
               sizes="(max-width: 1024px) 100vw, 46vw"
@@ -998,10 +1032,10 @@ function FeaturedFeedCard({
             />
           ) : (
             <MediaCard
-              alt={item.title}
+              alt={displayTitle}
               imageUrl={null}
               mediaType={item.mediaType}
-              title={item.title}
+              title={displayTitle}
               videoUrl={null}
             />
           )}
@@ -1088,6 +1122,7 @@ function CreatorDiscoveryCard({
           video: "Video",
         };
   const reactionScore = getContentEngagementScore(item);
+  const displayTitle = getDisplayContentTitle(item, locale);
 
   return (
     <Link
@@ -1111,7 +1146,7 @@ function CreatorDiscoveryCard({
             ) : null}
           </div>
           <p className="mt-1 line-clamp-2 break-words text-xs font-medium leading-5 text-black/52 [overflow-wrap:anywhere]">
-            {item.title}
+            {displayTitle}
           </p>
         </div>
       </div>
@@ -1446,7 +1481,7 @@ function FanletterFeedCuriosityBoard({
                   </div>
                 </div>
                 <h3 className="mt-3 line-clamp-2 break-words text-base font-semibold leading-tight [overflow-wrap:anywhere]">
-                  {item.title}
+                  {getDisplayContentTitle(item, locale)}
                 </h3>
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#16702e]">
                   {labels.open}
@@ -1603,7 +1638,11 @@ function FanletterCreatorRanking({
                 {labels.latest}
               </p>
               <p className="mt-2 line-clamp-2 break-words text-base font-semibold leading-6 text-white/76 [overflow-wrap:anywhere]">
-                {leader.latestTitle}
+                {getDisplayContentTitleText(
+                  leader.latestTitle,
+                  leader.latestTitle,
+                  locale,
+                )}
               </p>
               <p className="mt-3 text-xs font-semibold text-white/42">
                 {labels.reason}
@@ -1637,7 +1676,11 @@ function FanletterCreatorRanking({
                     {creator.authorName}
                   </h3>
                   <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-black/50 [overflow-wrap:anywhere]">
-                    {creator.latestTitle}
+                    {getDisplayContentTitleText(
+                      creator.latestTitle,
+                      creator.latestTitle,
+                      locale,
+                    )}
                   </p>
                   <p className="mt-1 line-clamp-1 text-[0.68rem] font-semibold text-[#16702e]">
                     {getCreatorMomentumLabel(creator, locale)}
@@ -1769,7 +1812,9 @@ function FanletterChannelHeroPreview({
         };
   const heroTitle = featuredItem
     ? getDisplayContentTitle(featuredItem, locale)
-    : character?.latestTitle ?? copy.creator.empty;
+    : character?.latestTitle
+      ? getDisplayContentTitleText(character.latestTitle, character.latestTitle, locale)
+      : copy.creator.empty;
   const heroHref = featuredItem
     ? getContentHref({ item: featuredItem, locale, referralCode })
     : null;
@@ -2492,6 +2537,8 @@ function FanletterFanOnlyPreview({
             {items.map((item) => {
               const href = getContentHref({ item, locale, referralCode });
               const publishedAt = formatDate(item.publishedAt, locale);
+              const displaySummary = getDisplayContentSummary(item, locale);
+              const displayTitle = getDisplayContentTitle(item, locale);
 
               return (
                 <Link
@@ -2533,13 +2580,13 @@ function FanletterFanOnlyPreview({
                         {labels.lockedAccess}
                       </div>
                       <h3 className="mt-2 line-clamp-2 break-words text-xl font-semibold leading-tight [overflow-wrap:anywhere]">
-                        {item.title}
+                        {displayTitle}
                       </h3>
                     </div>
                   </div>
                   <div className="p-4">
                     <p className="line-clamp-2 break-words text-sm font-medium leading-6 text-white/58 [overflow-wrap:anywhere]">
-                      {item.summary}
+                      {displaySummary}
                     </p>
                     <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
                       <span className="text-xs font-semibold text-white/42">
@@ -3126,6 +3173,8 @@ function FanletterRelatedVlogCard({
 }) {
   const href = getContentHref({ item, locale, referralCode });
   const fallbackThumbUrl = item.authorAvatarImageUrl ?? fallbackImageUrl;
+  const displaySummary = getDisplayContentSummary(item, locale);
+  const displayTitle = getDisplayContentTitle(item, locale);
 
   return (
     <Link
@@ -3159,10 +3208,10 @@ function FanletterRelatedVlogCard({
       </div>
       <div className="min-w-0 self-center">
         <p className="line-clamp-2 break-words text-base font-semibold leading-tight text-white [overflow-wrap:anywhere]">
-          {item.title}
+          {displayTitle}
         </p>
         <p className="mt-2 line-clamp-2 break-words text-sm font-medium leading-5 text-white/54 [overflow-wrap:anywhere]">
-          {item.summary}
+          {displaySummary}
         </p>
         <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-white/42">
           <Heart className="size-3.5 text-[#44f26e]" />
@@ -4845,7 +4894,9 @@ function CharacterPersonaShowcase({
     },
     {
       label: copy.creator.characterLatest,
-      value: character.latestTitle ?? "FanLetter",
+      value: character.latestTitle
+        ? getDisplayContentTitleText(character.latestTitle, character.latestTitle, locale)
+        : "FanLetter",
     },
   ];
   const growthMetrics = [
