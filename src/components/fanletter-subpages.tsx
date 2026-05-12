@@ -1674,14 +1674,14 @@ function FanletterChannelHeroPreview({
           fanOnlyContent: "팬 전용",
           freeWall: "무료 공개 피드",
           latest: "대표 브이로그",
-          paidReady: "팬 전용 준비 중",
+          paidReady: "팬 전용 요청 가능",
         }
       : {
           aiCreator: "AI character",
           fanOnlyContent: "Fan-only",
           freeWall: "Free public feed",
           latest: "Featured vlog",
-          paidReady: "Fan-only coming soon",
+          paidReady: "Fan-only requests open",
         };
   const heroTitle = featuredItem?.title ?? character?.latestTitle ?? copy.creator.empty;
   const heroHref = featuredItem
@@ -1837,10 +1837,11 @@ function FanletterCreatorFanAccessPanel({
           fanOnlyView: "팬 전용 보기",
           messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
           messageTitle: "팬 대화 흐름",
-          paidBody: "준비되는 팬 전용 콘텐츠를 같은 캐릭터 채널에서 이어봅니다.",
+          paidBody:
+            "팬 전용 요청을 남기면 유료 브이로그 후보로 제작 흐름이 이어집니다.",
           paidBodyReady: "잠금 처리된 팬 전용 브이로그를 같은 캐릭터 채널에서 확인합니다.",
           paidReadyTitle: "팬 전용 열림",
-          paidTitle: "팬 전용 준비 중",
+          paidTitle: "팬 전용 요청 가능",
           title: "팬이 바로 이해하는 채널 구조",
           view: "공개 브이로그 보기",
         }
@@ -1853,10 +1854,11 @@ function FanletterCreatorFanAccessPanel({
           fanOnlyView: "View fan-only",
           messageBody: "Comments and messages stay inside FanLetter through access checks.",
           messageTitle: "Fan conversation flow",
-          paidBody: "Upcoming fan-only content can continue inside this character channel.",
+          paidBody:
+            "Fan-only requests can flow into paid vlog candidates inside this channel.",
           paidBodyReady: "Locked fan-only vlogs are visible inside the same character channel.",
           paidReadyTitle: "Fan-only live",
-          paidTitle: "Fan-only coming soon",
+          paidTitle: "Fan-only requests open",
           title: "A channel structure fans understand",
           view: "View public vlogs",
         };
@@ -3086,7 +3088,8 @@ function FanletterContentNextActions({
   const labels =
     locale === "ko"
       ? {
-          channelBody: "이 캐릭터의 공개 브이로그와 팬 전용 예정 콘텐츠를 이어봅니다.",
+          channelBody:
+            "이 캐릭터의 공개 브이로그와 팬 전용 유료 브이로그를 같은 채널에서 이어봅니다.",
           channelTitle: "캐릭터 채널",
           feedBody: "다른 AI 캐릭터 브이로그를 최신순으로 둘러봅니다.",
           feedTitle: "전체 피드",
@@ -3098,7 +3101,8 @@ function FanletterContentNextActions({
           title: "다음 행동",
         }
       : {
-          channelBody: "Continue into this character's public vlogs and fan-only preview.",
+          channelBody:
+            "Continue into this character's public vlogs and fan-only paid vlogs inside one channel.",
           channelTitle: "Character channel",
           feedBody: "Browse the latest public vlogs from other AI characters.",
           feedTitle: "Full feed",
@@ -4610,7 +4614,10 @@ function FanletterCharacterMiniCard({
     locale === "ko"
       ? {
           aiLabel: "AI 캐릭터",
-          fanOnly: "팬 전용 준비 중",
+          fanOnly:
+            content.priceType === "paid"
+              ? "팬 전용 유료 브이로그"
+              : "팬 전용 요청 가능",
           freeFollow: "무료 공개 채널",
           growth: "성장 상태",
           next: "다음 성장",
@@ -4618,7 +4625,10 @@ function FanletterCharacterMiniCard({
         }
       : {
           aiLabel: "AI character",
-          fanOnly: "Fan-only coming soon",
+          fanOnly:
+            content.priceType === "paid"
+              ? "Fan-only paid vlog"
+              : "Fan-only requests open",
           freeFollow: "Free public channel",
           growth: "Growth status",
           next: "Next growth",
