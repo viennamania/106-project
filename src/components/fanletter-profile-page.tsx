@@ -189,6 +189,66 @@ function getCopy(locale: Locale) {
         connectRequiredCta: "계정 연결하기",
         completed: "준비 완료",
         contentHome: {
+          avatarKit: {
+            action: "이 표정으로 만들기",
+            body:
+              "대표 컷, 표정 컷, 팬 반응 컷을 콘텐츠 제작에 바로 쓸 수 있는 비주얼 자산으로 정리합니다.",
+            changeHint:
+              "캐릭터 정체성을 바꾸지 않고, 해금된 표정과 연출 방향을 콘텐츠에 활용합니다.",
+            directionTitle: "성장 연출",
+            empty:
+              "아바타를 만들면 대표 컷, 표정 컷, 팬 반응 컷이 이곳에 비주얼 키트로 정리됩니다.",
+            expressionCount: "표정 컷",
+            expressionFallbacks: [
+              {
+                planBody:
+                  "대표 아바타를 중심으로 캐릭터의 첫인상을 강하게 보여주는 세로형 브이로그를 만듭니다.",
+                prompt:
+                  "대표 아바타를 썸네일 첫 장면에 크게 보여주고 캐릭터의 고정 정체성을 선명하게 유지한다.",
+                role: "채널 대표 이미지",
+                title: "대표 컷",
+                useCase: "피드 카드, 채널 소개, 썸네일 첫 장면",
+              },
+              {
+                planBody:
+                  "미소 표정으로 팬에게 말을 거는 듯한 짧은 브이로그를 만듭니다.",
+                prompt:
+                  "미소 표정과 밝은 리액션을 활용해 팬에게 직접 답하는 느낌의 장면을 만든다.",
+                role: "팬서비스 리액션",
+                title: "미소 컷",
+                useCase: "댓글 유도, 팬 요청 답변, 친근한 오프닝",
+              },
+              {
+                planBody:
+                  "차분한 표정으로 루틴, 생각, 시크한 독백이 살아나는 브이로그를 만듭니다.",
+                prompt:
+                  "차분한 표정과 안정적인 시선을 활용해 루틴이나 독백 장면을 세련되게 구성한다.",
+                role: "시크한 장면 전환",
+                title: "차분한 컷",
+                useCase: "루틴 브이로그, 독백, 분위기 전환",
+              },
+              {
+                planBody:
+                  "리액션 표정으로 마지막 한 컷이 기억나는 짧은 브이로그를 만듭니다.",
+                prompt:
+                  "리액션 컷을 마지막 장면에 배치해 팬이 댓글로 반응하고 싶게 만든다.",
+                role: "마지막 리액션",
+                title: "리액션 컷",
+                useCase: "엔딩 컷, 밈 장면, 팬 반응 유도",
+              },
+            ],
+            lockedDirection: "다음 해금",
+            representative: "대표",
+            selected: "대표 적용",
+            title: "캐릭터 비주얼 키트",
+            unlockedDirection: "해금 완료",
+            usageItems: [
+              "썸네일 첫 장면",
+              "팬 요청 답변",
+              "댓글 유도 리액션",
+            ],
+            usageTitle: "활용처",
+          },
           avatarSet: "아바타 세트",
           body:
             "이 프로필은 생성 설정이 아니라 팬이 소비하는 캐릭터 채널의 중심 자산입니다.",
@@ -360,6 +420,66 @@ function getCopy(locale: Locale) {
         connectRequiredCta: "Connect account",
         completed: "Ready",
         contentHome: {
+          avatarKit: {
+            action: "Create with this look",
+            body:
+              "Organize the representative look, expression cuts, and fan reaction cuts as visual assets for content creation.",
+            changeHint:
+              "Keep the character identity fixed while using unlocked expressions and directions in content.",
+            directionTitle: "Growth directions",
+            empty:
+              "After avatar creation, the representative look, expression cuts, and fan reaction cuts will appear here as a visual kit.",
+            expressionCount: "expression cuts",
+            expressionFallbacks: [
+              {
+                planBody:
+                  "Create a vertical vlog that uses the representative avatar to make the character's first impression clear.",
+                prompt:
+                  "Use the representative avatar as the thumbnail opening and keep the character identity consistent.",
+                role: "Channel representative",
+                title: "Hero look",
+                useCase: "Feed cards, channel intro, thumbnail opening",
+              },
+              {
+                planBody:
+                  "Create a short vlog with a smiling expression that feels like the character is speaking to fans.",
+                prompt:
+                  "Use the smiling expression and bright reaction to make the scene feel like a direct fan response.",
+                role: "Fan-service reaction",
+                title: "Smile cut",
+                useCase: "Comment hooks, fan request replies, friendly openings",
+              },
+              {
+                planBody:
+                  "Create a routine or monologue vlog with a calm, polished expression.",
+                prompt:
+                  "Use the calm expression and steady gaze for a stylish routine or monologue scene.",
+                role: "Calm scene shift",
+                title: "Calm cut",
+                useCase: "Routine vlogs, monologues, mood changes",
+              },
+              {
+                planBody:
+                  "Create a short vlog with a memorable final reaction cut.",
+                prompt:
+                  "Place the reaction cut at the final scene so fans want to respond in comments.",
+                role: "Final reaction",
+                title: "Reaction cut",
+                useCase: "Ending cuts, meme moments, fan reactions",
+              },
+            ],
+            lockedDirection: "Next unlock",
+            representative: "Hero",
+            selected: "Active avatar",
+            title: "Character visual kit",
+            unlockedDirection: "Unlocked",
+            usageItems: [
+              "Thumbnail opening",
+              "Fan request reply",
+              "Comment reaction",
+            ],
+            usageTitle: "Use cases",
+          },
           avatarSet: "Avatar set",
           body:
             "This profile is the core content asset for the character channel, not just setup.",
@@ -1212,23 +1332,80 @@ export function FanletterProfilePage({
       })) ?? [];
     const strengths =
       contentStrengths.length > 0 ? contentStrengths : fallbackStrengths;
-    const avatarPreviewSet = [
+    const displayCharacterName =
+      selectedPersona?.name?.trim() ||
+      profile.displayName.trim() ||
+      copy.displayName;
+    const avatarKitCopy = copy.contentHome.avatarKit;
+    const selectedAvatarCandidate = profile.avatarImageSet.find(
+      (candidate) => candidate.url === profile.avatarImageUrl,
+    );
+    const avatarSources = [
       ...(profile.avatarImageUrl
         ? [
             {
-              label: copy.avatarSelected,
+              expression: selectedAvatarCandidate?.expression ?? "default",
+              label: selectedAvatarCandidate?.label ?? copy.avatarSelected,
               url: profile.avatarImageUrl,
             },
           ]
         : []),
-      ...profile.avatarImageSet
-        .filter((candidate) => candidate.url !== profile.avatarImageUrl)
-        .slice(0, 3)
-        .map((candidate) => ({
-          label: candidate.label ?? candidate.expression ?? copy.avatar,
-          url: candidate.url,
-        })),
-    ].slice(0, 4);
+      ...profile.avatarImageSet.map((candidate) => ({
+        expression: candidate.expression,
+        label: candidate.label ?? candidate.expression ?? copy.avatar,
+        url: candidate.url,
+      })),
+    ];
+    const seenAvatarUrls = new Set<string>();
+    const avatarKitItems = avatarSources
+      .filter((avatar) => {
+        if (!avatar.url || seenAvatarUrls.has(avatar.url)) {
+          return false;
+        }
+
+        seenAvatarUrls.add(avatar.url);
+        return true;
+      })
+      .slice(0, 6)
+      .map((avatar, index) => {
+        const expressionPresetIndex =
+          avatar.expression === "smile"
+            ? 1
+            : avatar.expression === "serious"
+              ? 2
+              : avatar.expression === "default"
+                ? 0
+                : index;
+        const preset =
+          avatarKitCopy.expressionFallbacks[
+            expressionPresetIndex % avatarKitCopy.expressionFallbacks.length
+          ];
+        const selected = avatar.url === profile.avatarImageUrl;
+        const planPrompt =
+          locale === "ko"
+            ? `${displayCharacterName} 캐릭터의 ${preset.title}을 활용한다. ${preset.prompt}`
+            : `Use ${displayCharacterName}'s ${preset.title}. ${preset.prompt}`;
+
+        return {
+          ...avatar,
+          href: setPathSearchParams(createHref, {
+            planBody: preset.planBody,
+            planId: `avatar-kit-${avatar.expression ?? "custom"}-${index + 1}`,
+            planPrompt,
+            planSummary: `${preset.title} · ${preset.role}`,
+            planTitle: preset.title,
+          }),
+          preset,
+          selected,
+        };
+      });
+    const representativeAvatar =
+      avatarKitItems.find((avatar) => avatar.selected) ?? avatarKitItems[0];
+    const unlockedAvatarDirections =
+      growth?.avatarUnlocks.filter((unlock) => unlock.unlocked).slice(0, 3) ??
+      [];
+    const nextLockedAvatarDirection =
+      growth?.avatarUnlocks.find((unlock) => !unlock.unlocked) ?? null;
     const signalCards = [
       {
         Icon: Video,
@@ -1362,39 +1539,162 @@ export function FanletterProfilePage({
                 </div>
               </div>
 
-              <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">
-                    {copy.contentHome.avatarSet}
-                  </h3>
-                  <ImageIcon className="size-5 text-[#44f26e]" />
+              <div className="overflow-hidden rounded-lg border border-[#44f26e]/22 bg-[linear-gradient(135deg,rgba(68,242,110,0.12),rgba(255,255,255,0.045)_42%,rgba(0,0,0,0.24))]">
+                <div className="border-b border-white/10 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
+                        {copy.contentHome.avatarSet}
+                      </p>
+                      <h3 className="mt-1 text-xl font-semibold leading-tight">
+                        {avatarKitCopy.title}
+                      </h3>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/26 bg-[#44f26e]/12 px-2.5 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+                      <ImageIcon className="size-3.5" />
+                      {numberFormatter.format(avatarKitItems.length)}{" "}
+                      {avatarKitCopy.expressionCount}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs font-medium leading-5 text-white/54">
+                    {avatarKitCopy.body}
+                  </p>
                 </div>
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {avatarPreviewSet.map((avatar) => (
-                    <div
-                      className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22"
-                      key={avatar.url}
-                    >
-                      <div className="relative aspect-square">
+
+                {representativeAvatar ? (
+                  <div className="grid gap-4 p-4 xl:grid-cols-[minmax(9rem,0.82fr)_minmax(0,1.18fr)]">
+                    <div className="min-w-0">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-[#44f26e]/26 bg-black/24">
                         <Image
-                          alt={avatar.label}
+                          alt={representativeAvatar.label}
                           className="object-cover"
                           fill
-                          sizes="72px"
-                          src={avatar.url}
+                          sizes="(max-width: 768px) 86vw, 190px"
+                          src={representativeAvatar.url}
                         />
+                        <span className="absolute left-3 top-3 inline-flex rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
+                          {avatarKitCopy.representative}
+                        </span>
+                      </div>
+                      <p className="mt-3 truncate text-base font-semibold text-white">
+                        {representativeAvatar.preset.title}
+                      </p>
+                      <p className="mt-1 text-xs font-medium leading-5 text-white/48">
+                        {representativeAvatar.preset.useCase}
+                      </p>
+                    </div>
+
+                    <div className="grid min-w-0 gap-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {avatarKitItems.map((avatar) => (
+                          <Link
+                            className="group overflow-hidden rounded-lg border border-white/10 bg-black/22 transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
+                            href={avatar.href}
+                            key={avatar.url}
+                          >
+                            <div className="grid grid-cols-[4.75rem_minmax(0,1fr)]">
+                              <div className="relative aspect-square min-h-[4.75rem]">
+                                <Image
+                                  alt={avatar.label}
+                                  className="object-cover transition group-hover:scale-105"
+                                  fill
+                                  sizes="80px"
+                                  src={avatar.url}
+                                />
+                              </div>
+                              <div className="min-w-0 p-2.5">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="truncate text-sm font-semibold text-white">
+                                    {avatar.preset.title}
+                                  </p>
+                                  {avatar.selected ? (
+                                    <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.56rem] font-semibold text-black">
+                                      {avatarKitCopy.selected}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p className="mt-1 line-clamp-2 text-[0.68rem] font-medium leading-4 text-white/44">
+                                  {avatar.preset.role}
+                                </p>
+                                <span className="mt-2 inline-flex items-center gap-1 text-[0.62rem] font-semibold text-[#8dffa5]">
+                                  {avatarKitCopy.action}
+                                  <ArrowRight className="size-3" />
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+
+                      <div className="rounded-lg border border-white/10 bg-black/18 p-3">
+                        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                          {avatarKitCopy.usageTitle}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {avatarKitCopy.usageItems.map((item) => (
+                            <span
+                              className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-2.5 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]"
+                              key={item}
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-white/10 bg-black/18 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                            {avatarKitCopy.directionTitle}
+                          </p>
+                          <Sparkles className="size-4 text-[#44f26e]" />
+                        </div>
+                        <div className="mt-2 grid gap-2">
+                          {unlockedAvatarDirections.map((unlock) => (
+                            <Link
+                              className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-2.5 transition hover:bg-[#44f26e]/14"
+                              href={getAvatarPlanHref(unlock)}
+                              key={unlock.id}
+                            >
+                              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#8dffa5]">
+                                {avatarKitCopy.unlockedDirection}
+                              </span>
+                              <span className="mt-1 block text-sm font-semibold text-white">
+                                {unlock.label}
+                              </span>
+                            </Link>
+                          ))}
+                          {nextLockedAvatarDirection ? (
+                            <div className="rounded-lg border border-white/10 bg-white/[0.045] p-2.5">
+                              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/34">
+                                {avatarKitCopy.lockedDirection}
+                              </span>
+                              <span className="mt-1 block text-sm font-semibold text-white/62">
+                                {nextLockedAvatarDirection.label}
+                              </span>
+                            </div>
+                          ) : null}
+                          {unlockedAvatarDirections.length === 0 &&
+                          !nextLockedAvatarDirection ? (
+                            <p className="text-xs font-medium leading-5 text-white/44">
+                              {avatarKitCopy.changeHint}
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
-                  ))}
-                  {avatarPreviewSet.length === 0 ? (
-                    <div className="col-span-4 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-medium text-white/50">
-                      {copy.avatarBody}
+                  </div>
+                ) : (
+                  <div className="p-4">
+                    <div className="rounded-lg border border-dashed border-white/14 bg-black/18 p-4 text-sm font-medium leading-6 text-white/50">
+                      {avatarKitCopy.empty}
                     </div>
-                  ) : null}
-                </div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  </div>
+                )}
+
+                <div className="grid gap-2 border-t border-white/10 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <p className="text-xs font-medium leading-5 text-white/50">
-                    {copy.contentHome.nextPrompt}
+                    {avatarKitCopy.changeHint}
                   </p>
                   <Link
                     className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-xs font-semibold !text-white transition hover:bg-white/8"
