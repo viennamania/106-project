@@ -25,9 +25,11 @@ const SUMMARY_LIMIT = 240;
 const DEFAULT_TEXT_MODEL = "fal-ai/wan/v2.7/text-to-video";
 const DEFAULT_REFERENCE_MODEL = "fal-ai/wan/v2.7/reference-to-video";
 const DEFAULT_ASPECT_RATIO = "9:16";
-const DEFAULT_DURATION = "8s";
+const DEFAULT_DURATION = "6s";
 const DEFAULT_GENERATE_AUDIO = false;
-const DEFAULT_RESOLUTION = "720p";
+const DEFAULT_NEGATIVE_PROMPT =
+  "waxy skin, plastic skin, blurry face, distorted eyes, asymmetrical face, face morphing, identity drift, low detail skin, over-smoothed skin, rubbery face, unstable eyes, warped mouth, deformed hands, extra fingers, extra people, text, watermark, logo";
+const DEFAULT_RESOLUTION = "1080p";
 const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
@@ -185,6 +187,12 @@ function parseEnum<T extends string>(
   return allowed.includes(normalized as T) ? (normalized as T) : fallback;
 }
 
+function parseInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value?.trim());
+
+  return Number.isFinite(parsed) ? Math.round(parsed) : fallback;
+}
+
 function parseWanDuration(value: string | undefined, maximum = 15) {
   const normalized = value?.trim().replace(/s$/i, "");
   const parsed = Number(normalized);
@@ -192,6 +200,23 @@ function parseWanDuration(value: string | undefined, maximum = 15) {
   const clamped = Math.max(2, Math.min(maximum, duration));
 
   return clamped as FalWanVideoInput["duration"];
+}
+
+function getMaxAvatarReferenceImages() {
+  return Math.max(
+    1,
+    Math.min(
+      4,
+      parseInteger(process.env.FAL_CONTENT_VIDEO_MAX_REFERENCE_IMAGES, 2),
+    ),
+  );
+}
+
+function getVideoNegativePrompt() {
+  return (
+    process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim() ||
+    DEFAULT_NEGATIVE_PROMPT
+  );
 }
 
 function isKnownTextOnlyModel(model: string) {
@@ -292,7 +317,7 @@ function createVeoModelInput(
     ["1", "2", "3", "4", "5", "6"] as const,
     DEFAULT_SAFETY_TOLERANCE,
   );
-  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
+  const negativePrompt = getVideoNegativePrompt();
 
   return {
     aspect_ratio: aspectRatio,
@@ -321,7 +346,7 @@ function createWanModelInput(prompt: string): FalWanVideoInput {
     ["720p", "1080p"] as const,
     DEFAULT_RESOLUTION,
   );
-  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
+  const negativePrompt = getVideoNegativePrompt();
   const audioUrl = process.env.FAL_CONTENT_VIDEO_AUDIO_URL?.trim();
 
   return {
@@ -356,7 +381,7 @@ function createWanReferenceModelInput(
     ["720p", "1080p"] as const,
     DEFAULT_RESOLUTION,
   );
-  const negativePrompt = process.env.FAL_CONTENT_VIDEO_NEGATIVE_PROMPT?.trim();
+  const negativePrompt = getVideoNegativePrompt();
 
   return {
     aspect_ratio: aspectRatio,
@@ -526,7 +551,7 @@ function normalizeAvatarReferenceUrls(
       seenUrls.add(url);
       return true;
     })
-    .slice(0, 4);
+    .slice(0, getMaxAvatarReferenceImages());
 }
 
 function appendPersonCenteredReferenceDirection(
@@ -540,7 +565,7 @@ function appendPersonCenteredReferenceDirection(
   return normalizeVideoPromptSpacing(
     [
       prompt,
-      "Person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, and expression style from the references, and make the character's face, gaze, gesture, and micro-reaction the main subject. Use natural subtle motion, stable camera movement, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, text, logos, or watermark.",
+      "Person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, skin tone, complexion, facial geometry, eye shape, mouth shape, and expression style from the references. Make the character's face, gaze, subtle facial micro-expressions, natural skin texture, realistic pores, soft skin detail, gesture, and micro-reaction the main subject. Keep eyes stable, mouth shape natural, skin neither waxy nor over-smoothed, and lighting flattering but realistic. Use natural subtle motion, stable camera movement, shallow depth of field, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, text, logos, or watermark.",
     ].join(" "),
   );
 }

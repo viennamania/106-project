@@ -144,11 +144,11 @@ function getValidatedAvatarReferenceUrls({
       ...uniqueCandidates
         .filter((candidate) => candidate.url !== selectedCandidate.url)
         .map((candidate) => candidate.url),
-    ].slice(0, mode === "set" ? 4 : 2);
+    ].slice(0, 2);
   }
 
   if (mode === "set" || planId === "avatar-set-direction") {
-    return uniqueCandidates.map((candidate) => candidate.url).slice(0, 4);
+    return uniqueCandidates.map((candidate) => candidate.url).slice(0, 2);
   }
 
   return [uniqueCandidates[0].url];
