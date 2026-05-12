@@ -2323,7 +2323,7 @@ function FanletterFanOnlyPreview({
           availableBody:
             "이 캐릭터가 유료 또는 팬 전용으로 공개한 브이로그를 한곳에 모았습니다. 카드를 열면 FanLetter 상세 화면에서 미리보기, 권한 확인, 다음 요청까지 같은 흐름으로 이어집니다.",
           availableCta: "첫 팬 전용 브이로그 보기",
-          availableEyebrow: "Fan-only library",
+          availableEyebrow: "팬 전용 라이브러리",
           availableNote:
             "카드에서는 제목과 공개 미리보기만 보여주고, 실제 영상 열람은 상세 페이지의 권한 확인 흐름에서 처리합니다.",
           availableTitle: "팬 전용 브이로그 모음",
@@ -2560,7 +2560,7 @@ function FanletterFanOnlyPreview({
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
                         <LockKeyhole className="size-14 text-[#44f26e]" />
                         <span className="text-xs font-semibold uppercase tracking-[0.22em]">
-                          Fan-only
+                          {labels.fanOnlyCount}
                         </span>
                       </div>
                     )}
@@ -2758,9 +2758,9 @@ function FanletterFanPromptPanel({
           body: "보고 싶은 장면을 한 줄로 남기면 크리에이터가 스튜디오 요청함에서 바로 확인하고 다음 브이로그 소재로 쓸 수 있습니다.",
           eyebrow: "팬 요청",
           guideTitle: "어떻게 쓰나요",
-          messageBody: "팔로우 후 알림과 팬 대화 흐름으로 이어집니다.",
-          messageCta: "팔로우하고 메시지",
-          messageTitle: "응원 메시지도 이어가기",
+          messageBody: "이 캐릭터 채널을 팔로우하고 새 브이로그 알림을 받을 수 있습니다.",
+          messageCta: "팔로우하고 알림 받기",
+          messageTitle: "채널 팔로우",
           ownerBody:
             "이 채널은 연결된 계정의 캐릭터 채널입니다. 팬 요청을 직접 남기는 대신 요청함을 확인하고 다음 브이로그 제작으로 이어가세요.",
           ownerCreateBody:
@@ -2795,12 +2795,13 @@ function FanletterFanPromptPanel({
             "최근 요청을 익명 중심으로 보여줍니다. 비슷한 장면을 이어서 요청해도 됩니다.",
           previewEmptyRequester: "익명 팬",
           previewMessage: "응원",
+          previewEyebrow: "팬 요청",
           previewTitle: "팬들이 보고 싶어하는 장면",
           previewVlogRequest: "브이로그 요청",
           requestCta: "요청 입력하기",
           startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
-          startCta: "채널 시작",
-          startTitle: "내 캐릭터로 답장",
+          startCta: "내 캐릭터 만들기",
+          startTitle: "내 AI 캐릭터 만들기",
           steps: [
             {
               body: "장소, 룩, 상황, 질문처럼 보고 싶은 장면을 짧게 적습니다.",
@@ -2857,6 +2858,7 @@ function FanletterFanPromptPanel({
           previewBody:
             "Recent requests are shown with privacy-friendly fan names. You can build on a similar scene.",
           previewEmptyRequester: "Anonymous fan",
+          previewEyebrow: "Fan voices",
           previewMessage: "Message",
           previewTitle: "Scenes fans want to see",
           previewVlogRequest: "Vlog request",
@@ -2995,7 +2997,7 @@ function FanletterFanPromptPanel({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
-                Fan voices
+                {labels.previewEyebrow}
               </p>
               <h3 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
                 {labels.previewTitle}
@@ -5157,10 +5159,6 @@ export function FanletterCreatorPage({
     `/${locale}/fanletter/start`,
     effectiveReferralCode,
   );
-  const feedHref = buildPathWithReferral(
-    `/${locale}/fanletter/feed`,
-    effectiveReferralCode,
-  );
   const channelHref = buildPathWithReferral(
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
@@ -5425,21 +5423,13 @@ export function FanletterCreatorPage({
           />
 
           <section className="scroll-mt-24" id="public-vlogs">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
-                  {copy.creator.characterVideoSignal}
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-                  {copy.creator.characterLatest}
-                </h2>
-              </div>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/70 transition hover:border-black/24 hover:text-black"
-                href={feedHref}
-              >
-                {copy.actions.feed}
-              </Link>
+            <div className="mb-4">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                {copy.creator.characterVideoSignal}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                {copy.creator.characterLatest}
+              </h2>
             </div>
             <ContentGrid
               authorNameOverride={channelName}
