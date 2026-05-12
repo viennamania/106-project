@@ -1179,6 +1179,8 @@ function StatePanel({
   icon,
   onRetry,
   retryLabel,
+  secondaryActionHref,
+  secondaryActionLabel,
   title,
 }: {
   actionHref?: string;
@@ -1187,6 +1189,8 @@ function StatePanel({
   icon: "connect" | "empty" | "error" | "loading";
   onRetry?: () => void;
   retryLabel?: string;
+  secondaryActionHref?: string;
+  secondaryActionLabel?: string;
   title: string;
 }) {
   const retryButtonLabel = retryLabel ?? "Retry";
@@ -1216,6 +1220,14 @@ function StatePanel({
           >
             {actionLabel}
             <ArrowRight className="size-4" />
+          </Link>
+        ) : null}
+        {secondaryActionHref && secondaryActionLabel ? (
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold !text-black transition hover:border-black/28"
+            href={secondaryActionHref}
+          >
+            {secondaryActionLabel}
           </Link>
         ) : null}
         {onRetry ? (
@@ -1569,12 +1581,20 @@ export function FanletterFollowingPage({
     };
   }, [connection.isConnected, loadFollowing]);
 
+  const isDisconnectedGraceWithoutAccount =
+    accountStatus.status === "checking" &&
+    accountStatus.connectionStatus === "disconnected" &&
+    !accountAddress &&
+    !memberSession.email &&
+    !memberSession.member;
   const isWaitingForAccount =
-    accountStatus.status === "checking" ||
-    (connection.isConnected && !email && !emailSyncAttempted);
+    !isDisconnectedGraceWithoutAccount &&
+    (accountStatus.status === "checking" ||
+      (connection.isConnected && !email && !emailSyncAttempted));
   const showConnect =
     !isWaitingForAccount &&
     (accountStatus.status === "disconnected" ||
+      isDisconnectedGraceWithoutAccount ||
       accountStatus.status === "setupMissing" ||
       accountStatus.status === "issue" ||
       !accountAddress ||
@@ -1634,6 +1654,8 @@ export function FanletterFollowingPage({
                 actionLabel={copy.connect}
                 body={copy.connectBody}
                 icon="connect"
+                secondaryActionHref={feedHref}
+                secondaryActionLabel={copy.allFeed}
                 title={copy.connectTitle}
               />
               <ProducedRequestHighlight

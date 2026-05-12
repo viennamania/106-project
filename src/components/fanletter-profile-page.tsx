@@ -911,6 +911,13 @@ export function FanletterProfilePage({
     () => new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US"),
     [locale],
   );
+  const showConnectGate =
+    connection.isDisconnected ||
+    (connection.isResolving &&
+      connectionStatus === "disconnected" &&
+      !accountAddress &&
+      !memberSession.email &&
+      !member);
 
   const resolveEmail = useCallback(async () => {
     const resolved =
@@ -2680,7 +2687,7 @@ export function FanletterProfilePage({
     );
   }
 
-  if (connection.isResolving) {
+  if (connection.isResolving && !showConnectGate) {
     return (
       <StatusPanel
         body={copy.loading}
@@ -2692,7 +2699,7 @@ export function FanletterProfilePage({
     );
   }
 
-  if (connection.isDisconnected) {
+  if (showConnectGate) {
     return (
       <StatusPanel
         body={copy.connectRequired}

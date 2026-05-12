@@ -661,6 +661,8 @@ function StatusPanel({
   locale,
   loading,
   onRetry,
+  secondaryCta,
+  secondaryHref,
   title,
 }: {
   body: string;
@@ -669,6 +671,8 @@ function StatusPanel({
   locale: Locale;
   loading?: boolean;
   onRetry?: () => void;
+  secondaryCta?: string;
+  secondaryHref?: string;
   title: string;
 }) {
   return (
@@ -708,6 +712,14 @@ function StatusPanel({
               <RefreshCw className="size-4" />
               {cta}
             </button>
+          ) : null}
+          {secondaryHref && secondaryCta ? (
+            <Link
+              className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-6 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-fit"
+              href={secondaryHref}
+            >
+              {secondaryCta}
+            </Link>
           ) : null}
         </section>
       </div>
@@ -2062,8 +2074,15 @@ export function FanletterStudioPage({
     ? copy.actions.profileManage
     : copy.actions.profileCreate;
   const memberIsPendingPayment = state.member?.status === "pending_payment";
+  const showConnectGate =
+    connection.isDisconnected ||
+    (connection.isResolving &&
+      connectionStatus === "disconnected" &&
+      !accountAddress &&
+      !memberSession.email &&
+      !state.member);
 
-  if (connection.isResolving) {
+  if (connection.isResolving && !showConnectGate) {
     return (
       <StatusPanel
         body={copy.loading}
@@ -2074,13 +2093,15 @@ export function FanletterStudioPage({
     );
   }
 
-  if (connection.isDisconnected) {
+  if (showConnectGate) {
     return (
       <StatusPanel
         body={copy.connectRequired}
         cta={copy.actions.connect}
         href={connectHref}
         locale={locale}
+        secondaryCta={copy.actions.feed}
+        secondaryHref={feedHref}
         title={copy.connectTitle}
       />
     );
