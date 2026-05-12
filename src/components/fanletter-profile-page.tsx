@@ -190,7 +190,7 @@ function getCopy(locale: Locale) {
         completed: "준비 완료",
         contentHome: {
           avatarKit: {
-            action: "이 표정으로 만들기",
+            action: "이 표정으로 동영상 만들기",
             body:
               "대표 컷, 표정 컷, 팬 반응 컷을 콘텐츠 제작에 바로 쓸 수 있는 비주얼 자산으로 정리합니다.",
             changeHint:
@@ -253,8 +253,8 @@ function getCopy(locale: Locale) {
           body:
             "이 프로필은 생성 설정이 아니라 팬이 소비하는 캐릭터 채널의 중심 자산입니다.",
           changeCta: "전용 변경 화면",
-          createCta: "오늘의 브이로그 만들기",
-          emptySkill: "첫 브이로그를 만들면 콘텐츠 강점이 열립니다.",
+          createCta: "오늘의 AI 브이로그 동영상 만들기",
+          emptySkill: "AI 브이로그 동영상을 만들면 콘텐츠 강점이 열립니다.",
           eyebrow: "Character Content Home",
           fanSignal: "팬 요청 반응력",
           identitySignal: "고정 정체성",
@@ -273,8 +273,8 @@ function getCopy(locale: Locale) {
             "대표 아바타의 표정 변화가 보이는 세로형 브이로그. 같은 캐릭터 정체성을 유지하면서 썸네일이 되는 첫 장면을 강하게 잡습니다.",
           avatarTitle: "아바타 세트 활용",
           body:
-            "캐릭터 정체성, 성장 신호, 팬 요청 흐름을 오늘 만들 브이로그 기획으로 바로 바꿉니다.",
-          cta: "이 기획으로 만들기",
+            "캐릭터 정체성, 성장 신호, 팬 요청 흐름을 오늘 만들 AI 브이로그 동영상 기획으로 바로 바꿉니다.",
+          cta: "이 기획으로 동영상 만들기",
           defaultSkill: "일상 브이로그",
           defaultTrait: "고정 페르소나",
           eyebrow: "Content Playbook",
@@ -286,7 +286,7 @@ function getCopy(locale: Locale) {
             "팬이 댓글로 이어서 반응하고 싶게 만드는 짧은 팬서비스형 브이로그. 요청에 답하는 느낌을 첫 문장에 넣습니다.",
           fanTitle: "팬 요청 에피소드",
           promptLabel: "추천 소재",
-          title: "다음 브이로그 기획",
+          title: "다음 AI 브이로그 동영상 기획",
           todayBody:
             "대표 캐릭터의 성격과 콘텐츠 강점을 앞세워 바로 올릴 수 있는 일상 장면을 만듭니다.",
           todayMeta: "오늘 업로드",
@@ -346,11 +346,11 @@ function getCopy(locale: Locale) {
           "대표 페르소나와 아바타는 고정되어 있습니다. 여기서는 성장 단계와 다음 미션을 보고, 변경이 필요할 때만 전용 페이지로 이동합니다.",
         readyTitle: "AI 캐릭터의 성장 상태를 확인하세요.",
         setupBody:
-          "표시 이름과 분위기만 정하면 캐릭터 설정을 자동으로 끝내고 첫 숏폼 브이로그 생성으로 바로 이어집니다.",
+          "표시 이름과 분위기만 정하면 캐릭터 설정을 자동으로 끝내고 AI 브이로그 동영상 생성으로 바로 이어집니다.",
         studio: "브이로그 스튜디오",
         title: "AI 캐릭터 브이로그 프로필을 빠르게 준비하세요.",
         nextContentCta: "다음 단계: AI 브이로그 동영상 만들기",
-        growthActionCta: "진행하기",
+        growthActionCta: "다음 미션 진행",
         growthAvatarCollection: "아바타 성장 컬렉션",
         growthCompleted: "완료",
         growthContentSkills: "콘텐츠 스킬",
@@ -365,14 +365,14 @@ function getCopy(locale: Locale) {
         growthMissions: "성장 미션",
         growthNext: "다음 성장",
         growthPlanAvatarBody:
-          "해금된 아바타 연출을 중심으로 대표 캐릭터의 표정 변화와 썸네일 컷이 분명한 세로형 브이로그를 만듭니다.",
+          "해금된 아바타 연출을 중심으로 대표 캐릭터의 표정 변화와 썸네일 컷이 분명한 세로형 AI 브이로그 동영상을 만듭니다.",
         growthPlanSkillBody:
-          "해금된 콘텐츠 스킬을 중심으로 캐릭터의 강점이 첫 장면부터 드러나는 세로형 브이로그를 만듭니다.",
+          "해금된 콘텐츠 스킬을 중심으로 캐릭터의 강점이 첫 장면부터 드러나는 세로형 AI 브이로그 동영상을 만듭니다.",
         growthSignals: "성장 신호",
         growthTitle: "캐릭터 성장 센터",
         growthUnlocked: "해금됨",
-        growthUseAvatar: "이 연출로 만들기",
-        growthUseSkill: "이 스킬로 만들기",
+        growthUseAvatar: "이 연출로 동영상 만들기",
+        growthUseSkill: "이 스킬로 동영상 만들기",
         growthXp: "XP",
         growthXpMax: "최고 레벨",
         growthXpToNext: "다음 레벨까지",
@@ -421,7 +421,7 @@ function getCopy(locale: Locale) {
         completed: "Ready",
         contentHome: {
           avatarKit: {
-            action: "Create with this look",
+            action: "Create video with this look",
             body:
               "Organize the representative look, expression cuts, and fan reaction cuts as visual assets for content creation.",
             changeHint:
@@ -484,8 +484,8 @@ function getCopy(locale: Locale) {
           body:
             "This profile is the core content asset for the character channel, not just setup.",
           changeCta: "Dedicated change screen",
-          createCta: "Create today's vlog",
-          emptySkill: "Create the first vlog to unlock content strengths.",
+          createCta: "Create today's AI vlog video",
+          emptySkill: "Create an AI vlog video to unlock content strengths.",
           eyebrow: "Character Content Home",
           fanSignal: "Fan request response",
           identitySignal: "Locked identity",
@@ -505,8 +505,8 @@ function getCopy(locale: Locale) {
             "A vertical vlog that makes the representative avatar's expression shift visible while keeping the same character identity and a strong thumbnail opening.",
           avatarTitle: "Use the avatar set",
           body:
-            "Turn character identity, growth signals, and fan request flow into the next vlog plan.",
-          cta: "Create with this plan",
+            "Turn character identity, growth signals, and fan request flow into the next AI vlog video plan.",
+          cta: "Create video with this plan",
           defaultSkill: "Daily vlog",
           defaultTrait: "Locked persona",
           eyebrow: "Content Playbook",
@@ -518,7 +518,7 @@ function getCopy(locale: Locale) {
             "A short fan-service vlog that makes fans want to reply in comments. Open with the feeling that the character is answering a request.",
           fanTitle: "Fan request episode",
           promptLabel: "Suggested angle",
-          title: "Next vlog plans",
+          title: "Next AI vlog video plans",
           todayBody:
             "Use the character personality and content strength for a daily scene ready to post.",
           todayMeta: "Post today",
@@ -578,11 +578,11 @@ function getCopy(locale: Locale) {
           "The representative persona and avatar are locked. Review growth progress and next missions here, and only move to the change page when needed.",
         readyTitle: "Review your AI character growth.",
         setupBody:
-          "Choose a display name and mood to finish character setup automatically, then continue to the first short-form vlog.",
+          "Choose a display name and mood to finish character setup automatically, then continue to AI vlog video generation.",
         studio: "Vlog studio",
         title: "Prepare your AI character vlogger profile quickly.",
         nextContentCta: "Next: Create AI vlog video",
-        growthActionCta: "Continue",
+        growthActionCta: "Continue mission",
         growthAvatarCollection: "Avatar growth collection",
         growthCompleted: "Done",
         growthContentSkills: "Content skills",
@@ -597,14 +597,14 @@ function getCopy(locale: Locale) {
         growthMissions: "Growth missions",
         growthNext: "Next growth",
         growthPlanAvatarBody:
-          "Create a vertical vlog around the unlocked avatar direction, with a clear expression shift and thumbnail-ready opening.",
+          "Create a vertical AI vlog video around the unlocked avatar direction, with a clear expression shift and thumbnail-ready opening.",
         growthPlanSkillBody:
-          "Create a vertical vlog around the unlocked content skill, making the character strength visible from the first scene.",
+          "Create a vertical AI vlog video around the unlocked content skill, making the character strength visible from the first scene.",
         growthSignals: "Growth signals",
         growthTitle: "Character growth center",
         growthUnlocked: "Unlocked",
-        growthUseAvatar: "Use this direction",
-        growthUseSkill: "Use this skill",
+        growthUseAvatar: "Create video with this direction",
+        growthUseSkill: "Create video with this skill",
         growthXp: "XP",
         growthXpMax: "Max level",
         growthXpToNext: "To next level",
