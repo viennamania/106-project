@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 
 import { FanletterMobileBottomNav } from "@/components/fanletter-mobile-bottom-nav";
 import { FanletterPwaMobileBridge } from "@/components/fanletter-pwa-mobile-bridge";
+import { FanletterScrollToTopButton } from "@/components/fanletter-scroll-to-top-button";
 import {
   createFanletterPwaMetadata,
   fanletterViewport,
@@ -37,6 +38,7 @@ export default async function FanletterLayout({
       <Suspense fallback={null}>
         <FanletterMobileBottomNav locale={locale} />
       </Suspense>
+      <FanletterScrollToTopButton locale={locale} />
       <Suspense fallback={null}>
         <FanletterPwaMobileBridge locale={locale} />
       </Suspense>
