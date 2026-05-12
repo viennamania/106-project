@@ -2205,14 +2205,14 @@ function FanletterFanOnlyPreview({
           availableNote:
             "카드에서는 제목과 공개 미리보기만 보여주고, 실제 영상 열람은 상세 페이지의 권한 확인 흐름에서 처리합니다.",
           availableTitle: "팬 전용 브이로그 모음",
-          body: "구독형 멤버십은 아직 준비 전이지만, 1 USDT 팬 전용 유료 브이로그는 상세 페이지에서 결제 후 열람할 수 있습니다. 먼저 보고 싶은 장면을 요청으로 남기면 크리에이터가 팬 전용 후보로 바로 제작할 수 있습니다.",
+          body: "팬 전용 요청은 유료 브이로그 후보로 바로 이어집니다. 보고 싶은 장면을 남기면 크리에이터가 스튜디오 요청함에서 확인하고 1 USDT 잠금 브이로그로 제작할 수 있습니다.",
           cta: "팬 요청 보내기",
           eyebrow: "팬 전용 제작 슬롯",
           fanOnlyCount: "팬 전용",
           locked: "요청 가능",
           lockedAccess: "잠금 콘텐츠",
           note:
-            "카드를 누르면 바로 팬 요청 폼으로 이동합니다. 크리에이터는 요청을 보고 팬 전용 브이로그 후보로 제작할 수 있습니다.",
+            "카드를 누르면 요청 문장이 자동으로 준비됩니다. 팬은 한 번에 요청하고, 크리에이터는 같은 내용을 제작 후보로 관리합니다.",
           ownerAvailableBody:
             "이 캐릭터의 팬 전용 유료 브이로그를 채널 관점에서 확인합니다. 공개 상태와 판매 흐름은 스튜디오에서 이어서 관리하세요.",
           ownerAvailableCta: "팬 전용 관리",
@@ -2242,14 +2242,14 @@ function FanletterFanOnlyPreview({
           availableNote:
             "Cards show the title and public preview only. Full video access is handled by the detail page verification flow.",
           availableTitle: "Fan-only vlog collection",
-          body: "Subscription memberships are still planned, but 1 USDT fan-only paid vlogs can now unlock from the detail page. Leave the scene you want to see and the creator can turn it into a fan-only candidate.",
+          body: "Fan-only requests can flow directly into paid vlog candidates. Leave the scene you want to see and the creator can review it in Studio, then publish it as a 1 USDT locked vlog.",
           cta: "Send fan request",
           eyebrow: "Fan-only production slot",
           fanOnlyCount: "Fan-only",
           locked: "Requestable",
           lockedAccess: "Locked content",
           note:
-            "Tap a card to open the fan request form with a ready-to-send prompt. The creator can turn it into a fan-only vlog candidate.",
+            "Tap a card to prepare the request text automatically. Fans can request in one step, while creators manage the same idea as a production candidate.",
           ownerAvailableBody:
             "Review this character's fan-only paid vlogs from the channel view, then manage visibility and sales from Studio.",
           ownerAvailableCta: "Manage fan-only",
@@ -2273,7 +2273,7 @@ function FanletterFanOnlyPreview({
     locale === "ko"
       ? [
           {
-            body: `${channelName}의 비공개 하루 루틴과 짧은 근황이 들어갈 예정인 슬롯입니다.`,
+            body: `${channelName}의 비공개 하루 루틴과 짧은 근황을 팬 전용 유료 브이로그 후보로 요청합니다.`,
             Icon: LockKeyhole,
             presetBody: `${channelName}의 아침 루틴, 쉬는 날 일정, 플레이리스트처럼 팬 전용으로 볼 수 있는 비공개 루틴 브이로그를 보고 싶어요.`,
             requestType: "vlog_request" as const,
@@ -2281,7 +2281,7 @@ function FanletterFanOnlyPreview({
             title: "비공개 루틴",
           },
           {
-            body: "댓글보다 더 가까운 팬 메시지와 답장 흐름이 붙을 예정입니다.",
+            body: "응원 메시지를 남기고 다음 팬 전용 브이로그에서 짧은 답장 장면으로 이어갑니다.",
             Icon: MessageCircleHeart,
             presetBody: `${channelName}에게 응원 메시지를 남기고, 다음 팬 전용 브이로그에서 짧게 답장받고 싶어요.`,
             requestType: "message" as const,
@@ -2289,7 +2289,7 @@ function FanletterFanOnlyPreview({
             title: "팬 메시지",
           },
           {
-            body: "공개 피드에 올리기 전의 미리보기와 제작 노트가 들어갈 수 있습니다.",
+            body: "공개 피드 전에 보고 싶은 선공개 장면과 제작 노트를 팬 전용 후보로 요청합니다.",
             Icon: Clapperboard,
             presetBody: `${channelName}의 다음 공개 브이로그 전에 선공개 장면이나 제작 노트를 팬 전용으로 보고 싶어요.`,
             requestType: "vlog_request" as const,
@@ -2299,7 +2299,7 @@ function FanletterFanOnlyPreview({
         ]
       : [
           {
-            body: `${channelName}'s private routines and short updates are planned for this slot.`,
+            body: `Request ${channelName}'s private routine or short update as a fan-only paid vlog candidate.`,
             Icon: LockKeyhole,
             presetBody: `I want to see ${channelName}'s morning routine, off-day schedule, or playlist as a fan-only private routine vlog.`,
             requestType: "vlog_request" as const,
@@ -2307,7 +2307,7 @@ function FanletterFanOnlyPreview({
             title: "Private routine",
           },
           {
-            body: "A closer fan message and reply flow is planned here.",
+            body: "Leave a support message and turn it into a short reply scene in the next fan-only vlog.",
             Icon: MessageCircleHeart,
             presetBody: `I want to leave a support message for ${channelName} and see a short reply in the next fan-only vlog.`,
             requestType: "message" as const,
@@ -2315,7 +2315,7 @@ function FanletterFanOnlyPreview({
             title: "Fan messages",
           },
           {
-            body: "Preview notes before public feed release can live here later.",
+            body: "Request early scenes or production notes before the public feed release.",
             Icon: Clapperboard,
             presetBody: `I want to see early scenes or production notes before ${channelName}'s next public vlog.`,
             requestType: "vlog_request" as const,

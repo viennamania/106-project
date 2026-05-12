@@ -171,6 +171,11 @@ function FanletterAccountStatusLinkInner({
     : `${copy.connected} · ${identityLabel}`;
   const connectedTitle = `${copy.connected} · ${identityLabel}`;
   const member = accountStatus.member;
+  const shouldShowConnectWhileResolving =
+    accountStatus.status === "checking" &&
+    !accountStatus.accountAddress &&
+    !accountStatus.email &&
+    !member;
   const view: AccountStatusView = accountStatus.status === "setupMissing"
     ? {
         Icon: CircleAlert,
@@ -181,15 +186,24 @@ function FanletterAccountStatusLinkInner({
         tone: "warning",
       }
     : accountStatus.status === "checking"
-      ? {
-          Icon: Loader2,
-          href: connectHref,
-          label: copy.checking,
-          loading: true,
-          mobileLabel: copy.checking,
-          title: copy.checking,
-          tone: "muted",
-        }
+      ? shouldShowConnectWhileResolving
+        ? {
+            Icon: Mail,
+            href: connectHref,
+            label: copy.disconnected,
+            mobileLabel: copy.disconnected,
+            title: copy.disconnected,
+            tone: "muted",
+          }
+        : {
+            Icon: Loader2,
+            href: connectHref,
+            label: copy.checking,
+            loading: true,
+            mobileLabel: copy.checking,
+            title: copy.checking,
+            tone: "muted",
+          }
       : accountStatus.status === "disconnected"
         ? {
             Icon: Mail,
