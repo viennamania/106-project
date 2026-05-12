@@ -32,6 +32,7 @@ const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
 type FalModelFamily =
+  | "minimax-subject-reference"
   | "veo"
   | "veo-reference"
   | "wan-v2.7"
@@ -74,7 +75,15 @@ type FalWanReferenceVideoInput = {
   resolution: "720p" | "1080p";
 };
 
+type FalMinimaxSubjectReferenceVideoInput = {
+  negative_prompt?: string;
+  prompt: string;
+  prompt_optimizer: boolean;
+  subject_reference_image_url: string;
+};
+
 type FalVideoInput =
+  | FalMinimaxSubjectReferenceVideoInput
   | FalVeoReferenceVideoInput
   | FalVeoVideoInput
   | FalWanReferenceVideoInput
@@ -115,6 +124,7 @@ export class ContentVideoGenerationError extends Error {
 
 export type GenerateContentGalleryVideoInput = {
   avatarImageUrl?: string | null;
+  avatarImageUrls?: string[] | null;
   characterPersona?: CreatorCharacterPersona | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
@@ -184,10 +194,24 @@ function parseWanDuration(value: string | undefined, maximum = 15) {
   return clamped as FalWanVideoInput["duration"];
 }
 
+function isKnownTextOnlyModel(model: string) {
+  return (
+    model === DEFAULT_TEXT_MODEL ||
+    model === "fal-ai/veo3.1/lite" ||
+    model.endsWith("/text-to-video")
+  );
+}
+
 function resolveModelName(hasAvatarReference: boolean): FalModelName {
-  const model =
-    process.env.FAL_CONTENT_VIDEO_MODEL?.trim() ||
-    (hasAvatarReference ? DEFAULT_REFERENCE_MODEL : DEFAULT_TEXT_MODEL);
+  const configuredModel = process.env.FAL_CONTENT_VIDEO_MODEL?.trim();
+  const configuredReferenceModel =
+    process.env.FAL_CONTENT_VIDEO_REFERENCE_MODEL?.trim();
+  const model = hasAvatarReference
+    ? configuredReferenceModel ||
+      (configuredModel && !isKnownTextOnlyModel(configuredModel)
+        ? configuredModel
+        : DEFAULT_REFERENCE_MODEL)
+    : configuredModel || DEFAULT_TEXT_MODEL;
 
   if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
     throw new Error(
@@ -199,6 +223,10 @@ function resolveModelName(hasAvatarReference: boolean): FalModelName {
 }
 
 function resolveModelFamily(model: FalModelName): FalModelFamily {
+  if (model === "fal-ai/minimax/video-01-subject-reference") {
+    return "minimax-subject-reference";
+  }
+
   if (model === "fal-ai/wan/v2.7/text-to-video") {
     return "wan-v2.7";
   }
@@ -216,6 +244,10 @@ function resolveModelFamily(model: FalModelName): FalModelFamily {
 
 function getModelDisplayName(model: FalModelName) {
   const family = resolveModelFamily(model);
+
+  if (family === "minimax-subject-reference") {
+    return "fal MiniMax Subject Reference";
+  }
 
   if (family === "wan-v2.7-reference") {
     return "fal Wan 2.7 Reference";
@@ -238,7 +270,7 @@ function getModelDisplayName(model: FalModelName) {
 
 function createVeoModelInput(
   prompt: string,
-  avatarImageUrl?: string | null,
+  avatarImageUrls: string[] = [],
 ): FalVeoReferenceVideoInput | FalVeoVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
@@ -274,7 +306,7 @@ function createVeoModelInput(
     prompt,
     resolution,
     safety_tolerance: safetyTolerance,
-    ...(avatarImageUrl ? { image_urls: [avatarImageUrl] } : {}),
+    ...(avatarImageUrls.length > 0 ? { image_urls: avatarImageUrls } : {}),
   };
 }
 
@@ -312,7 +344,7 @@ function createWanModelInput(prompt: string): FalWanVideoInput {
 
 function createWanReferenceModelInput(
   prompt: string,
-  avatarImageUrl: string,
+  avatarImageUrls: string[],
 ): FalWanReferenceVideoInput {
   const aspectRatio = parseEnum(
     process.env.FAL_CONTENT_VIDEO_ASPECT_RATIO,
@@ -342,30 +374,56 @@ function createWanReferenceModelInput(
     ),
     ...(negativePrompt ? { negative_prompt: negativePrompt } : {}),
     prompt,
-    reference_image_urls: [avatarImageUrl],
+    reference_image_urls: avatarImageUrls,
     resolution,
   };
 }
 
+function createMinimaxSubjectReferenceModelInput(
+  prompt: string,
+  avatarImageUrl: string,
+): FalMinimaxSubjectReferenceVideoInput {
+  return {
+    prompt,
+    prompt_optimizer: parseBoolean(
+      process.env.FAL_CONTENT_VIDEO_PROMPT_OPTIMIZER,
+      true,
+    ),
+    subject_reference_image_url: avatarImageUrl,
+  };
+}
+
 function createModelInput({
-  avatarImageUrl,
+  avatarImageUrls,
   model,
   prompt,
 }: {
-  avatarImageUrl: string | null;
+  avatarImageUrls: string[];
   model: FalModelName;
   prompt: string;
 }): FalVideoInput {
   const family = resolveModelFamily(model);
 
-  if (family === "wan-v2.7-reference") {
+  if (family === "minimax-subject-reference") {
+    const [avatarImageUrl] = avatarImageUrls;
+
     if (!avatarImageUrl) {
+      throw new Error(
+        "A creator avatar image is required for fal subject-reference video generation.",
+      );
+    }
+
+    return createMinimaxSubjectReferenceModelInput(prompt, avatarImageUrl);
+  }
+
+  if (family === "wan-v2.7-reference") {
+    if (avatarImageUrls.length === 0) {
       throw new Error(
         "A creator avatar image is required for fal reference-to-video generation.",
       );
     }
 
-    return createWanReferenceModelInput(prompt, avatarImageUrl);
+    return createWanReferenceModelInput(prompt, avatarImageUrls);
   }
 
   if (family === "wan-v2.7") {
@@ -373,13 +431,13 @@ function createModelInput({
   }
 
   if (family === "veo-reference") {
-    if (!avatarImageUrl) {
+    if (avatarImageUrls.length === 0) {
       throw new Error(
         "A creator avatar image is required for fal reference-to-video generation.",
       );
     }
 
-    return createVeoModelInput(prompt, avatarImageUrl);
+    return createVeoModelInput(prompt, avatarImageUrls);
   }
 
   return createVeoModelInput(prompt);
@@ -446,6 +504,45 @@ function normalizeVideoPromptSpacing(value: string) {
     .replace(/\s+([,.;:!?])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function normalizeAvatarReferenceUrls(
+  avatarImageUrls: string[] | null | undefined,
+  fallbackAvatarImageUrl: string | null | undefined,
+) {
+  const seenUrls = new Set<string>();
+  const urls = [
+    ...(Array.isArray(avatarImageUrls) ? avatarImageUrls : []),
+    fallbackAvatarImageUrl,
+  ];
+
+  return urls
+    .map((url) => trimToLength(url, 500))
+    .filter((url) => {
+      if (!url || seenUrls.has(url)) {
+        return false;
+      }
+
+      seenUrls.add(url);
+      return true;
+    })
+    .slice(0, 4);
+}
+
+function appendPersonCenteredReferenceDirection(
+  prompt: string,
+  avatarReferenceUrls: string[],
+) {
+  if (avatarReferenceUrls.length === 0) {
+    return prompt;
+  }
+
+  return normalizeVideoPromptSpacing(
+    [
+      prompt,
+      "Person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, and expression style from the references, and make the character's face, gaze, gesture, and micro-reaction the main subject. Use natural subtle motion, stable camera movement, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, text, logos, or watermark.",
+    ].join(" "),
+  );
 }
 
 function rewritePromptForFalContentChecker(prompt: string) {
@@ -747,8 +844,8 @@ function createPublicFalInputDiagnostic(input: FalVideoInput) {
   const negativePrompt = input.negative_prompt ?? "";
 
   return {
-    aspectRatio: input.aspect_ratio ?? null,
-    duration: input.duration ?? null,
+    aspectRatio: "aspect_ratio" in input ? input.aspect_ratio : null,
+    duration: "duration" in input ? input.duration : null,
     enablePromptExpansion:
       "enable_prompt_expansion" in input
         ? input.enable_prompt_expansion
@@ -764,8 +861,10 @@ function createPublicFalInputDiagnostic(input: FalVideoInput) {
         ? input.reference_image_urls.length
         : "image_urls" in input
           ? input.image_urls.length
-          : 0,
-    resolution: input.resolution ?? null,
+          : "subject_reference_image_url" in input
+            ? 1
+            : 0,
+    resolution: "resolution" in input ? input.resolution : null,
     safetyTolerance:
       "safety_tolerance" in input ? input.safety_tolerance : null,
   } satisfies ContentGenerationFailureDiagnostic["modelInput"];
@@ -930,12 +1029,19 @@ export async function generateAndUploadContentGalleryVideo(
     visualBrief,
     input.characterPersona,
   );
+  const avatarReferenceUrls = normalizeAvatarReferenceUrls(
+    input.avatarImageUrls,
+    input.avatarImageUrl,
+  );
+  const personCenteredPrompt = appendPersonCenteredReferenceDirection(
+    personaAppliedPrompt,
+    avatarReferenceUrls,
+  );
   const { prompt: safetyPrompt } =
-    rewritePromptForSaferVideoGeneration(personaAppliedPrompt);
+    rewritePromptForSaferVideoGeneration(personCenteredPrompt);
   const { prompt } = rewritePromptForFalContentChecker(safetyPrompt);
   const revisedPrompt = prompt === visualBrief ? null : prompt;
-  const avatarImageUrl = trimToLength(input.avatarImageUrl, 500);
-  const model = resolveModelName(Boolean(avatarImageUrl));
+  const model = resolveModelName(avatarReferenceUrls.length > 0);
   const modelDisplayName = getModelDisplayName(model);
 
   await reportProgress(input.onProgress, {
@@ -953,7 +1059,7 @@ export async function generateAndUploadContentGalleryVideo(
   });
 
   const modelInput = createModelInput({
-    avatarImageUrl: avatarImageUrl || null,
+    avatarImageUrls: avatarReferenceUrls,
     model,
     prompt,
   });

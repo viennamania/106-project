@@ -1475,12 +1475,14 @@ export function FanletterProfilePage({
         const selected = avatar.url === profile.avatarImageUrl;
         const planPrompt =
           locale === "ko"
-            ? `${displayCharacterName} 캐릭터의 ${preset.title}을 활용한다. ${preset.prompt}`
-            : `Use ${displayCharacterName}'s ${preset.title}. ${preset.prompt}`;
+            ? `${displayCharacterName} 캐릭터의 ${preset.title}을 fal reference 아바타 컷으로 고정해 인물 중심 세로형 브이로그를 만든다. 얼굴, 시선, 표정, 손짓이 화면의 중심이 되게 하고 동일 인물 정체성을 유지한다. ${preset.prompt}`
+            : `Use ${displayCharacterName}'s ${preset.title} as the fixed fal reference avatar cut for a person-centered vertical vlog. Keep the face, gaze, expression, and gesture as the main subject while preserving the same character identity. ${preset.prompt}`;
 
         return {
           ...avatar,
           href: setPathSearchParams(createHref, {
+            planAvatarExpression: avatar.expression,
+            planAvatarMode: "single",
             planBody: preset.planBody,
             planId: `avatar-kit-${avatar.expression ?? "custom"}-${index + 1}`,
             planPrompt,
@@ -1841,8 +1843,8 @@ export function FanletterProfilePage({
         : `${displayCharacterName} creates a short vlog that feels like a direct response to fan reactions. Use a fan request or comment as the angle and include an intimate scene that speaks to fans directly.`;
     const avatarPrompt =
       locale === "ko"
-        ? `${displayCharacterName} 캐릭터의 대표 아바타와 표정 세트를 활용해 썸네일이 되는 첫 장면, 감정 변화, 마지막 리액션 컷이 분명한 세로형 브이로그를 만든다.`
-        : `${displayCharacterName} uses the representative avatar and expression set for a vertical vlog with a clear thumbnail opening, emotion shift, and final reaction shot.`;
+        ? `${displayCharacterName} 캐릭터의 대표 아바타와 표정 세트를 fal reference로 활용해 인물 중심 세로형 브이로그를 만든다. 얼굴 클로즈업과 미디엄샷을 중심으로 시선, 표정 변화, 손짓, 마지막 리액션 컷이 분명하게 보이게 하고 동일 인물 정체성을 유지한다.`
+        : `${displayCharacterName} uses the representative avatar and expression set as fal references for a person-centered vertical vlog. Keep the same character identity and focus on face close-ups, medium shots, gaze, expression shifts, gestures, and a clear final reaction shot.`;
     const planCards = [
       {
         Icon: Video,
@@ -1874,6 +1876,7 @@ export function FanletterProfilePage({
         Icon: ImageIcon,
         body: copy.contentPlaybook.avatarBody,
         href: setPathSearchParams(createHref, {
+          planAvatarMode: "set",
           planBody: copy.contentPlaybook.avatarPlanBody,
           planId: "avatar-set-direction",
           planPrompt: avatarPrompt,

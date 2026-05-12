@@ -20,6 +20,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { creatorAvatarExpressions } from "@/lib/content";
 
 type FanletterCreateSearchParams = {
   fanRequestBody?: string | string[];
@@ -27,6 +28,8 @@ type FanletterCreateSearchParams = {
   fanRequestId?: string | string[];
   fanRequestType?: string | string[];
   planAudience?: string | string[];
+  planAvatarExpression?: string | string[];
+  planAvatarMode?: string | string[];
   planBody?: string | string[];
   planId?: string | string[];
   planMode?: string | string[];
@@ -65,6 +68,15 @@ function readInitialPlan(
     rawPriceType === "paid" || rawPriceType === "free" ? rawPriceType : undefined;
   const fanOnlyIntent =
     readPlanText(query.planAudience, 32)?.toLowerCase() === "fan-only";
+  const rawAvatarExpression = readPlanText(query.planAvatarExpression, 32);
+  const avatarReferenceExpression = creatorAvatarExpressions.find(
+    (expression) => expression === rawAvatarExpression,
+  );
+  const rawAvatarReferenceMode = readPlanText(query.planAvatarMode, 32);
+  const avatarReferenceMode =
+    rawAvatarReferenceMode === "set" || rawAvatarReferenceMode === "single"
+      ? rawAvatarReferenceMode
+      : undefined;
   const planId = readPlanText(query.planId, 120);
 
   if (
@@ -78,12 +90,16 @@ function readInitialPlan(
     !fanRequestId &&
     !fanRequestType &&
     !priceType &&
-    !fanOnlyIntent
+    !fanOnlyIntent &&
+    !avatarReferenceExpression &&
+    !avatarReferenceMode
   ) {
     return undefined;
   }
 
   return {
+    avatarReferenceExpression,
+    avatarReferenceMode,
     body,
     fanOnlyIntent,
     fanRequestBody,

@@ -1,8 +1,11 @@
 import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
+  creatorAvatarExpressions,
   type ContentGenerationFailureDiagnostic,
   type ContentPostGenerateCoverResponse,
   type ContentPostGenerateCoverStreamEvent,
+  type CreatorProfileAvatarCandidate,
+  type CreatorProfileRecord,
 } from "@/lib/content";
 import {
   ContentVideoGenerationError,
@@ -20,8 +23,11 @@ const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 
 type GenerateContentVideoRequest = {
+  avatarReferenceExpression?: string | null;
+  avatarReferenceMode?: string | null;
   email?: string | null;
   locale?: string | null;
+  planId?: string | null;
   summary?: string | null;
   title?: string | null;
   visualBrief?: string | null;
@@ -63,6 +69,89 @@ function jsonError(
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
+}
+
+function normalizeAvatarReferenceExpression(
+  value: string | null | undefined,
+): CreatorProfileAvatarCandidate["expression"] | undefined {
+  return creatorAvatarExpressions.find((expression) => expression === value);
+}
+
+function normalizeAvatarReferenceMode(value: string | null | undefined) {
+  return value === "single" || value === "set" ? value : null;
+}
+
+function getValidatedAvatarReferenceUrls({
+  expression,
+  mode,
+  planId,
+  profile,
+}: {
+  expression: CreatorProfileAvatarCandidate["expression"] | undefined;
+  mode: "set" | "single" | null;
+  planId: string | null;
+  profile: CreatorProfileRecord;
+}) {
+  const candidates = [
+    ...(profile.avatarImageUrl
+      ? [
+          {
+            expression: "default" as const,
+            url: profile.avatarImageUrl,
+          },
+        ]
+      : []),
+    ...(profile.avatarImageSet ?? []).map((candidate) => ({
+      expression: candidate.expression,
+      url: candidate.url,
+    })),
+  ].filter((candidate) => Boolean(candidate.url?.trim()));
+  const uniqueCandidates: Array<{
+    expression: CreatorProfileAvatarCandidate["expression"] | undefined;
+    url: string;
+  }> = [];
+  const seenUrls = new Set<string>();
+
+  for (const candidate of candidates) {
+    const url = candidate.url.trim();
+
+    if (!url || seenUrls.has(url)) {
+      continue;
+    }
+
+    seenUrls.add(url);
+    uniqueCandidates.push({
+      expression: candidate.expression,
+      url,
+    });
+  }
+
+  if (uniqueCandidates.length === 0) {
+    return [];
+  }
+
+  if (expression) {
+    const selectedCandidate = uniqueCandidates.find(
+      (candidate) => candidate.expression === expression,
+    );
+
+    if (!selectedCandidate) {
+      throw new Error("Selected avatar reference is not available.");
+    }
+
+    return [
+      selectedCandidate.url,
+      ...uniqueCandidates
+        .filter((candidate) => candidate.url !== selectedCandidate.url)
+        .map((candidate) => candidate.url),
+    ].slice(0, mode === "set" ? 4 : 2);
+  }
+
+  if (mode === "set" || planId === "avatar-set-direction") {
+    return uniqueCandidates.map((candidate) => candidate.url).slice(0, 4);
+  }
+
+  return [uniqueCandidates[0].url];
 }
 
 function wantsStream(request: Request) {
@@ -160,6 +249,13 @@ export async function POST(request: Request) {
     body?.visualBrief,
     CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   );
+  const avatarReferenceExpression = normalizeAvatarReferenceExpression(
+    body?.avatarReferenceExpression,
+  );
+  const avatarReferenceMode = normalizeAvatarReferenceMode(
+    body?.avatarReferenceMode,
+  );
+  const planId = trimToLength(body?.planId, 120) || null;
 
   if (!visualBrief) {
     return jsonError(
@@ -214,6 +310,13 @@ export async function POST(request: Request) {
       const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
         member,
       );
+      const avatarReferenceUrls = getValidatedAvatarReferenceUrls({
+        expression: avatarReferenceExpression,
+        mode: avatarReferenceMode,
+        planId,
+        profile: profileSnapshot.profile,
+      });
+
       emit({
         progress: {
           message: progressCopy.authorizingCompleted,
@@ -226,6 +329,7 @@ export async function POST(request: Request) {
 
       const generatedVideo = await generateAndUploadContentGalleryVideo({
         avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
+        avatarImageUrls: avatarReferenceUrls,
         characterPersona: profileSnapshot.profile.characterPersona,
         onProgress(progress) {
           emit({
@@ -291,8 +395,15 @@ export async function POST(request: Request) {
     const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
       member,
     );
+    const avatarReferenceUrls = getValidatedAvatarReferenceUrls({
+      expression: avatarReferenceExpression,
+      mode: avatarReferenceMode,
+      planId,
+      profile: profileSnapshot.profile,
+    });
     const generatedVideo = await generateAndUploadContentGalleryVideo({
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
+      avatarImageUrls: avatarReferenceUrls,
       characterPersona: profileSnapshot.profile.characterPersona,
       referralCode: member.referralCode,
       summary,
@@ -310,7 +421,11 @@ export async function POST(request: Request) {
     return Response.json(response);
   } catch (error) {
     const payload = createGenerationErrorPayload(error);
+    const status =
+      payload.error === "Selected avatar reference is not available."
+        ? 400
+        : 500;
 
-    return jsonError(payload.error, 500, payload.diagnostic);
+    return jsonError(payload.error, status, payload.diagnostic);
   }
 }

@@ -28,6 +28,7 @@ import {
   type ContentPostMutationResponse,
   type ContentPostRecord,
   type ContentPriceType,
+  type CreatorProfileAvatarCandidate,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
@@ -70,6 +71,8 @@ type CreateForm = {
 export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
 > & {
+  avatarReferenceExpression?: CreatorProfileAvatarCandidate["expression"];
+  avatarReferenceMode?: "set" | "single";
   fanOnlyIntent?: boolean;
   fanRequestBody?: string;
   fanRequestCharacterName?: string;
@@ -151,6 +154,8 @@ function getCopy(locale: Locale) {
         },
         planContext: {
           applied: "제목, 요약, 장면 프롬프트에 추천 기획이 반영되었습니다.",
+          avatarReference:
+            "선택한 아바타 컷을 fal reference 영상 생성에 적용합니다.",
           body:
             "프로필의 캐릭터 정체성, 성장 신호, 팬 반응 흐름을 바탕으로 만든 브이로그 동영상 기획입니다. 필요하면 문장만 다듬고 바로 생성하세요.",
           bodyPlanner:
@@ -253,6 +258,8 @@ function getCopy(locale: Locale) {
         planContext: {
           applied:
             "The recommended title, summary, and scene prompt have been applied.",
+          avatarReference:
+            "The selected avatar cut will be used as the fal reference for video generation.",
           body:
             "This vlog video plan comes from the character identity, growth signals, and fan reaction loop in the profile. Refine the wording if needed, then generate.",
           bodyPlanner:
@@ -659,6 +666,10 @@ export function FanletterCreatePage({
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const fanOnlyIntent = Boolean(initialPlan?.fanOnlyIntent);
+  const hasAvatarReferencePlan = Boolean(
+    initialPlan?.avatarReferenceExpression ||
+      initialPlan?.avatarReferenceMode === "set",
+  );
   const localDraftKey = useMemo(
     () =>
       buildCreateDraftKey({
@@ -693,6 +704,7 @@ export function FanletterCreatePage({
   const isCharacterPlaybookPlan = Boolean(
     initialPlanId &&
       (CHARACTER_PLAYBOOK_PLAN_IDS.has(initialPlanId) ||
+        initialPlanId.startsWith("avatar-kit-") ||
         initialPlanId.startsWith("character-playbook-")),
   );
   const hasPlanContext = Boolean(
@@ -939,6 +951,10 @@ export function FanletterCreatePage({
           locale,
           summary: inferSummary(form),
           title: inferTitle(form, copy.generate),
+          avatarReferenceExpression:
+            initialPlan?.avatarReferenceExpression ?? null,
+          avatarReferenceMode: initialPlan?.avatarReferenceMode ?? null,
+          planId: initialPlanId,
           visualBrief: form.prompt,
           walletAddress: accountAddress,
         }),
@@ -1306,6 +1322,14 @@ export function FanletterCreatePage({
                       {copy.planContext.applied}
                     </p>
                   </div>
+                  {hasAvatarReferencePlan ? (
+                    <div className="mt-2 flex items-start gap-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3">
+                      <UserRound className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                      <p className="text-xs font-semibold leading-5 text-[#d8ffe0]">
+                        {copy.planContext.avatarReference}
+                      </p>
+                    </div>
+                  ) : null}
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-3">
                       <Clapperboard className="size-4 text-[#44f26e]" />
