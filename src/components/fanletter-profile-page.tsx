@@ -1479,8 +1479,8 @@ export function FanletterProfilePage({
         const selected = avatar.url === profile.avatarImageUrl;
         const planPrompt =
           locale === "ko"
-            ? `${displayCharacterName} 캐릭터의 ${preset.title}을 fal reference 아바타 컷으로 고정해 인물 중심 세로형 브이로그를 만든다. 얼굴, 시선, 표정, 손짓이 화면의 중심이 되게 하고 동일 인물 정체성을 유지한다. ${preset.prompt}`
-            : `Use ${displayCharacterName}'s ${preset.title} as the fixed fal reference avatar cut for a person-centered vertical vlog. Keep the face, gaze, expression, and gesture as the main subject while preserving the same character identity. ${preset.prompt}`;
+            ? `${displayCharacterName} 캐릭터의 ${preset.title}을 fal reference 아바타 컷으로 고정해 실사 인물 중심 세로형 브이로그를 만든다. 얼굴 클로즈업이나 상반신 미디엄샷을 중심으로 시선, 피부결, 미세 표정 변화가 자연스럽게 보이게 하고 동일 인물 정체성을 유지한다. 카메라는 고정 또는 아주 느린 push-in으로 제한하고 손짓과 큰 동작은 최소화한다. ${preset.prompt}`
+            : `Use ${displayCharacterName}'s ${preset.title} as the fixed fal reference avatar cut for a photorealistic person-centered vertical vlog. Keep a face close-up or upper-body medium shot as the main composition, preserve the same identity, and make the gaze, skin texture, and subtle expression shift feel natural. Use a locked camera or very slow push-in, with minimal hand gestures and no large movements. ${preset.prompt}`;
 
         return {
           ...avatar,

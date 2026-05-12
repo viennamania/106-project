@@ -23,12 +23,12 @@ import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-pr
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const DEFAULT_TEXT_MODEL = "fal-ai/wan/v2.7/text-to-video";
-const DEFAULT_REFERENCE_MODEL = "fal-ai/wan/v2.7/reference-to-video";
+const DEFAULT_REFERENCE_MODEL = "fal-ai/veo3.1/reference-to-video";
 const DEFAULT_ASPECT_RATIO = "9:16";
 const DEFAULT_DURATION = "6s";
 const DEFAULT_GENERATE_AUDIO = false;
 const DEFAULT_NEGATIVE_PROMPT =
-  "waxy skin, plastic skin, blurry face, distorted eyes, asymmetrical face, face morphing, identity drift, low detail skin, over-smoothed skin, rubbery face, unstable eyes, warped mouth, deformed hands, extra fingers, extra people, text, watermark, logo";
+  "waxy skin, plastic skin, blurry face, distorted eyes, asymmetrical face, face morphing, identity drift, low detail skin, over-smoothed skin, rubbery face, unstable eyes, warped mouth, deformed hands, extra fingers, extra people, anime, cartoon, cgi, doll-like face, uncanny valley, text, watermark, logo";
 const DEFAULT_RESOLUTION = "1080p";
 const DEFAULT_SAFETY_TOLERANCE = "6";
 const DEFAULT_TIMEOUT_MS = 290_000;
@@ -47,7 +47,7 @@ type FalVeoVideoInput = {
   generate_audio: boolean;
   negative_prompt?: string;
   prompt: string;
-  resolution: "720p" | "1080p";
+  resolution: "720p" | "1080p" | "4k";
   safety_tolerance: "1" | "2" | "3" | "4" | "5" | "6";
 };
 
@@ -206,8 +206,8 @@ function getMaxAvatarReferenceImages() {
   return Math.max(
     1,
     Math.min(
-      4,
-      parseInteger(process.env.FAL_CONTENT_VIDEO_MAX_REFERENCE_IMAGES, 2),
+      8,
+      parseInteger(process.env.FAL_CONTENT_VIDEO_MAX_REFERENCE_IMAGES, 4),
     ),
   );
 }
@@ -309,7 +309,7 @@ function createVeoModelInput(
   );
   const resolution = parseEnum(
     process.env.FAL_CONTENT_VIDEO_RESOLUTION,
-    ["720p", "1080p"] as const,
+    ["720p", "1080p", "4k"] as const,
     DEFAULT_RESOLUTION,
   );
   const safetyTolerance = parseEnum(
@@ -565,7 +565,7 @@ function appendPersonCenteredReferenceDirection(
   return normalizeVideoPromptSpacing(
     [
       prompt,
-      "Person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, skin tone, complexion, facial geometry, eye shape, mouth shape, and expression style from the references. Make the character's face, gaze, subtle facial micro-expressions, natural skin texture, realistic pores, soft skin detail, gesture, and micro-reaction the main subject. Keep eyes stable, mouth shape natural, skin neither waxy nor over-smoothed, and lighting flattering but realistic. Use natural subtle motion, stable camera movement, shallow depth of field, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, text, logos, or watermark.",
+      "Photorealistic person-centered vertical short-form vlog direction: use the reference avatar image set as the fixed identity lock. Show one adult character only, keep the face clearly visible in close-up or medium shot, preserve the same facial identity, hair, age range, skin tone, complexion, facial geometry, eye shape, mouth shape, and expression style from the references. Prioritize a realistic human face over stylized rendering: natural skin texture, realistic pores, soft skin detail, stable eyes, natural mouth shape, subtle facial micro-expressions, small gaze shifts, and believable micro-reactions. Keep the motion simple and controlled: mostly locked camera or very slow push-in, minimal head movement, no fast cuts, no exaggerated gestures, and hands only if they remain natural and in frame. Use flattering but realistic lighting, shallow depth of field, and a clean mobile 9:16 creator-vlog composition. Avoid background-dominant scenes, object-only shots, face morphing, identity drift, extra people, anime, cartoon, CGI, doll-like skin, uncanny valley face, text, logos, or watermark.",
     ].join(" "),
   );
 }

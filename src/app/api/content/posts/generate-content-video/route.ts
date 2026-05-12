@@ -130,6 +130,35 @@ function getValidatedAvatarReferenceUrls({
     return [];
   }
 
+  const prioritizeCandidates = (
+    preferredExpression?: CreatorProfileAvatarCandidate["expression"],
+  ) => {
+    const expressionPriority: Array<
+      CreatorProfileAvatarCandidate["expression"]
+    > = [
+      ...(preferredExpression ? [preferredExpression] : []),
+      "default",
+      "smile",
+      "focus",
+      "serious",
+      "thumbnail",
+      "reaction",
+      "fanservice",
+      "shy",
+    ];
+    const ranked = [...uniqueCandidates].sort((left, right) => {
+      const leftRank = expressionPriority.indexOf(left.expression);
+      const rightRank = expressionPriority.indexOf(right.expression);
+
+      return (
+        (leftRank === -1 ? Number.MAX_SAFE_INTEGER : leftRank) -
+        (rightRank === -1 ? Number.MAX_SAFE_INTEGER : rightRank)
+      );
+    });
+
+    return ranked.map((candidate) => candidate.url);
+  };
+
   if (expression) {
     const selectedCandidate = uniqueCandidates.find(
       (candidate) => candidate.expression === expression,
@@ -139,16 +168,11 @@ function getValidatedAvatarReferenceUrls({
       throw new Error("Selected avatar reference is not available.");
     }
 
-    return [
-      selectedCandidate.url,
-      ...uniqueCandidates
-        .filter((candidate) => candidate.url !== selectedCandidate.url)
-        .map((candidate) => candidate.url),
-    ].slice(0, 2);
+    return prioritizeCandidates(selectedCandidate.expression).slice(0, 6);
   }
 
   if (mode === "set" || planId === "avatar-set-direction") {
-    return uniqueCandidates.map((candidate) => candidate.url).slice(0, 2);
+    return prioritizeCandidates("default").slice(0, 6);
   }
 
   return [uniqueCandidates[0].url];
