@@ -86,6 +86,7 @@ function getCopy(locale: Locale) {
           copyCaption: "캡션 복사",
           copied: "복사됨",
           create: "브이로그 만들기",
+          feed: "브이로그 피드 보기",
           openContent: "콘텐츠 보기",
           refresh: "다시 확인",
         },
@@ -116,7 +117,7 @@ function getCopy(locale: Locale) {
           "외부 채널 배포 관리는 FanLetter 계정 연결 후 사용할 수 있습니다.",
         connectTitle: "계정 연결이 필요합니다.",
         distributionBody:
-          "아직 자동 게시 API를 붙이기 전 단계입니다. 대신 FanLetter 콘텐츠를 Instagram Reels, YouTube Shorts, TikTok에 바로 옮길 수 있는 게시 패키지를 준비합니다.",
+          "FanLetter 영상, 캡션, 해시태그, 링크를 릴스·쇼츠·틱톡 업로드에 바로 쓸 수 있는 게시 패키지로 정리합니다.",
         distributionTitle: "외부 숏폼 채널에 올릴 준비를 한 화면에서 끝냅니다.",
         emptyBody:
           "먼저 AI 캐릭터 브이로그를 만들면 외부 채널용 캡션과 링크 패키지가 자동으로 준비됩니다.",
@@ -124,7 +125,7 @@ function getCopy(locale: Locale) {
         eyebrow: "FanLetter Channel Distribution",
         labels: {
           account: "계정 상태",
-          automaticLater: "자동 게시 연동은 다음 단계",
+          automaticLater: "예약 게시·성과 분석 확장 예정",
           caption: "외부 채널용 캡션",
           format: "권장 포맷",
           hashtags: "추천 해시태그",
@@ -148,7 +149,7 @@ function getCopy(locale: Locale) {
           published: "공개",
         },
         subtitle:
-          "초기에는 자동 게시보다 실패가 적은 수동 배포 패키지가 더 실용적입니다. 콘텐츠가 쌓이면 Instagram API, 예약 게시, 성과 분석으로 확장할 수 있습니다.",
+          "처음에는 실패가 적은 업로드 패키지로 시작하고, 콘텐츠가 쌓이면 예약 게시와 성과 분석까지 확장할 수 있습니다.",
         title: "AI 캐릭터 브이로그 채널 배포 관리",
       }
     : {
@@ -158,6 +159,7 @@ function getCopy(locale: Locale) {
           copyCaption: "Copy caption",
           copied: "Copied",
           create: "Create vlog",
+          feed: "View vlog feed",
           openContent: "Open content",
           refresh: "Check again",
         },
@@ -188,7 +190,7 @@ function getCopy(locale: Locale) {
           "Channel distribution is available after connecting your FanLetter account.",
         connectTitle: "Account connection is required.",
         distributionBody:
-          "This is the step before automatic publishing APIs. It prepares posting packages that move FanLetter content into Instagram Reels, YouTube Shorts, and TikTok.",
+          "Turn each FanLetter video, caption, hashtag set, and link into a posting package for Reels, Shorts, and TikTok.",
         distributionTitle: "Prepare external short-form publishing in one place.",
         emptyBody:
           "Create an AI character vlog first, then caption and link packages will appear here.",
@@ -196,7 +198,7 @@ function getCopy(locale: Locale) {
         eyebrow: "FanLetter Channel Distribution",
         labels: {
           account: "Account state",
-          automaticLater: "Automatic publishing comes later",
+          automaticLater: "Scheduling and insights next",
           caption: "External channel caption",
           format: "Recommended format",
           hashtags: "Suggested hashtags",
@@ -220,7 +222,7 @@ function getCopy(locale: Locale) {
           published: "Published",
         },
         subtitle:
-          "At the early stage, a manual posting package is more practical than full auto-publishing. Later this can grow into Instagram API publishing, scheduling, and insights.",
+          "Start with reliable posting packages, then expand into scheduled publishing and performance insights as content grows.",
         title: "AI Character Vlog Channel Distribution",
       };
 }
@@ -345,6 +347,8 @@ function StatusPanel({
   locale,
   loading,
   onRetry,
+  secondaryCta,
+  secondaryHref,
   title,
 }: {
   body: string;
@@ -353,6 +357,8 @@ function StatusPanel({
   locale: Locale;
   loading?: boolean;
   onRetry?: () => void;
+  secondaryCta?: string;
+  secondaryHref?: string;
   title: string;
 }) {
   return (
@@ -392,6 +398,14 @@ function StatusPanel({
               <RefreshCw className="size-4" />
               {cta}
             </button>
+          ) : null}
+          {secondaryHref && secondaryCta ? (
+            <Link
+              className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-full border border-white/16 px-6 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-fit"
+              href={secondaryHref}
+            >
+              {secondaryCta}
+            </Link>
           ) : null}
         </section>
       </div>
@@ -613,6 +627,10 @@ export function FanletterChannelsPage({
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: studioHref },
   );
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
+    referralCode,
+  );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: studioHref },
@@ -778,6 +796,13 @@ export function FanletterChannelsPage({
         .slice(0, 6),
     [state.posts],
   );
+  const showConnectGate =
+    connection.isDisconnected ||
+    (connection.isResolving &&
+      connectionStatus === "disconnected" &&
+      !accountAddress &&
+      !memberSession.email &&
+      !state.member);
 
   const copyCaption = useCallback(async (contentId: string, caption: string) => {
     try {
@@ -788,7 +813,7 @@ export function FanletterChannelsPage({
     }
   }, []);
 
-  if (connection.isResolving) {
+  if (connection.isResolving && !showConnectGate) {
     return (
       <StatusPanel
         body={copy.loading}
@@ -799,13 +824,15 @@ export function FanletterChannelsPage({
     );
   }
 
-  if (connection.isDisconnected) {
+  if (showConnectGate) {
     return (
       <StatusPanel
         body={copy.connectRequired}
         cta={copy.actions.connect}
         href={connectHref}
         locale={locale}
+        secondaryCta={copy.actions.feed}
+        secondaryHref={feedHref}
         title={copy.connectTitle}
       />
     );
@@ -899,13 +926,12 @@ export function FanletterChannelsPage({
                   <Sparkles className="size-4" />
                   {copy.actions.create}
                 </Link>
-                <button
+                <span
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold text-white"
-                  type="button"
                 >
                   <CalendarClock className="size-4" />
                   {copy.labels.automaticLater}
-                </button>
+                </span>
               </div>
             </div>
 

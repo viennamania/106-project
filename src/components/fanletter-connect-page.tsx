@@ -70,24 +70,24 @@ function getCopy(locale: Locale) {
     ? {
         account: "계정",
         accountBody:
-          "FanLetter 전용 온보딩에서 이메일 지갑과 회원 상태를 먼저 확인합니다.",
+          "FanLetter에서 사용할 이메일 계정과 시작 준비 상태를 한 번에 확인합니다.",
         back: "온보딩으로 돌아가기",
         completedBody:
           "가입 완료 회원으로 확인되었습니다. 브이로그 스튜디오에서 AI 캐릭터 프로필, 브이로그, 공개 상태를 이어서 관리하세요.",
         completedTitle: "FanLetter 시작 준비가 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
-          "기존 Pocket Smart Wallet 이메일 로그인을 사용하되 화면은 FanLetter 흐름에 맞춰 정리했습니다.",
+          "이메일로 FanLetter 계정을 연결하면 캐릭터 만들기와 브이로그 생성 단계가 이어집니다.",
         connecting: "연결 상태 확인 중",
         disconnected: "아직 연결되지 않았습니다.",
         email: "이메일",
         eyebrow: "FanLetter Account",
         helper:
-          "계정 연결 후 회원 API 동기화가 끝나야 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
+          "계정 연결과 회원 상태 확인이 끝나면 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
         loginTitle: "FanLetter 계정 연결",
         member: "회원 상태",
         missingClient:
-          "Thirdweb 클라이언트 설정이 없어 이메일 지갑 연결을 시작할 수 없습니다.",
+          "현재 브라우저에서 이메일 계정 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         paymentBody:
           "회원 정보는 연결되었지만 가입 완료 결제 확인이 필요합니다. 결제 확인 화면에서 완료한 뒤 온보딩으로 돌아오세요.",
         paymentCta: "가입 완료 확인하기",
@@ -98,33 +98,33 @@ function getCopy(locale: Locale) {
         secondary: "첫 브이로그 만들기",
         signOut: "연결 해제",
         studio: "브이로그 스튜디오로 이동",
-        steps: ["이메일 로그인", "스마트 지갑 연결", "회원 상태 동기화"],
-        syncErrorTitle: "회원 상태 확인이 필요합니다.",
-        syncing: "회원 상태를 동기화하고 있습니다.",
+        steps: ["이메일 로그인", "계정 연결 확인", "시작 준비 확인"],
+        syncErrorTitle: "계정 상태 확인이 필요합니다.",
+        syncing: "시작 준비 상태를 확인하고 있습니다.",
         title: "계정 연결을 FanLetter 흐름 안에서 끝내세요.",
         wallet: "지갑",
       }
     : {
         account: "Account",
         accountBody:
-          "Confirm the email wallet and member status inside the FanLetter onboarding flow.",
+          "Confirm the email account and readiness state used for FanLetter.",
         back: "Back to onboarding",
         completedBody:
           "This member is completed. Manage character profile, vlogs, and publishing from the vlog studio.",
         completedTitle: "Your FanLetter account is ready.",
         connect: "Connect with email",
         connectBody:
-          "This keeps the existing Pocket Smart Wallet login while presenting it in the FanLetter flow.",
+          "Connect your FanLetter account with email, then continue into character creation and vlog generation.",
         connecting: "Checking connection",
         disconnected: "Not connected yet.",
         email: "Email",
         eyebrow: "FanLetter Account",
         helper:
-          "After account connection, member API sync must finish before character profile and first vlog steps can continue.",
+          "After account connection and member status confirmation, you can continue to character profile and first vlog steps.",
         loginTitle: "Connect FanLetter account",
         member: "Member status",
         missingClient:
-          "Thirdweb client configuration is missing, so email wallet login cannot start.",
+          "Email account connection cannot start in this browser right now. Please try again shortly.",
         paymentBody:
           "The member is connected, but signup payment verification is still required. Complete it on the verification screen, then return here.",
         paymentCta: "Verify signup",
@@ -135,9 +135,9 @@ function getCopy(locale: Locale) {
         secondary: "Create first vlog",
         signOut: "Disconnect",
         studio: "Go to vlog studio",
-        steps: ["Email login", "Smart wallet", "Member sync"],
-        syncErrorTitle: "Member status needs attention.",
-        syncing: "Syncing member status.",
+        steps: ["Email login", "Account check", "Readiness check"],
+        syncErrorTitle: "Account status needs attention.",
+        syncing: "Checking readiness.",
         title: "Finish account connection inside FanLetter.",
         wallet: "Wallet",
       };
