@@ -266,10 +266,83 @@ function sortFeedItems(
   });
 }
 
-function getPublicCharacterTraits(persona: CreatorCharacterPersona) {
+function getPublicCharacterTraitLabel(trait: string, locale: Locale) {
+  const compactTrait = compactText(trait, 44);
+
+  if (locale !== "ko") {
+    return compactTrait;
+  }
+
+  const normalized = trait.toLowerCase();
+  const labelRules = [
+    {
+      label: "40대 여성 캐릭터",
+      pattern: /\b40s\b|40대|female adult woman|adult woman/,
+    },
+    {
+      label: "부드러운 타원형 얼굴",
+      pattern: /oval.*face|face.*oval/,
+    },
+    {
+      label: "차분한 턱선",
+      pattern: /jawline|jaw line/,
+    },
+    {
+      label: "은은한 광대 라인",
+      pattern: /cheekbone|cheek bone/,
+    },
+    {
+      label: "또렷한 눈매",
+      pattern: /almond.*eye|eye shape|eyes/,
+    },
+    {
+      label: "정돈된 눈썹",
+      pattern: /eyebrow|brow/,
+    },
+    {
+      label: "부드러운 코 라인",
+      pattern: /nose|bridge|tip/,
+    },
+    {
+      label: "애쉬 브라운 웨이브 헤어",
+      pattern: /ash.*brown|brown.*hair|wave|wavy|hair/,
+    },
+    {
+      label: "자연스러운 피부톤",
+      pattern: /skin|complexion|texture/,
+    },
+    {
+      label: "차분한 표정",
+      pattern: /expression|smile|calm/,
+    },
+    {
+      label: "균형 잡힌 실루엣",
+      pattern: /silhouette|frame|presence/,
+    },
+    {
+      label: "안정적인 자세",
+      pattern: /posture|stance|upright/,
+    },
+  ] satisfies Array<{ label: string; pattern: RegExp }>;
+  const matched = labelRules.find((rule) => rule.pattern.test(normalized));
+
+  return matched?.label ?? compactTrait;
+}
+
+function getPublicCharacterTraits(persona: CreatorCharacterPersona, locale: Locale) {
+  const uniqueTraits = new Set<string>();
+
   return persona.lockedTraits
-    .map((trait) => compactText(trait, 44))
+    .map((trait) => getPublicCharacterTraitLabel(trait, locale))
     .filter(Boolean)
+    .filter((trait) => {
+      if (uniqueTraits.has(trait)) {
+        return false;
+      }
+
+      uniqueTraits.add(trait);
+      return true;
+    })
     .slice(0, 6);
 }
 
@@ -466,7 +539,7 @@ function getPublicCharacter({
     latestTitle: compactText(posts[0]?.title, 72) || null,
     name: compactText(persona.name, 64) || profile.displayName,
     summary: compactText(persona.summary, 220),
-    traits: getPublicCharacterTraits(persona),
+    traits: getPublicCharacterTraits(persona, locale),
     videoContentCount:
       publicContentCount ??
       posts.filter((post) => getMediaType(post) === "video").length,

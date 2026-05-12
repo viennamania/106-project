@@ -423,6 +423,56 @@ function getContentEngagementScore(item: FanletterPublicContentItem) {
   );
 }
 
+function isLowSignalContentText(title: string, summary: string) {
+  const normalizedTitle = title.trim();
+  const normalizedSummary = summary.trim();
+
+  if (!normalizedTitle) {
+    return true;
+  }
+
+  if (
+    normalizedTitle.length <= 10 &&
+    normalizedSummary.toLowerCase() === normalizedTitle.toLowerCase() &&
+    /^[a-z]+$/i.test(normalizedTitle)
+  ) {
+    return true;
+  }
+
+  return /^([a-z])\1{3,}$/i.test(normalizedTitle);
+}
+
+function getDisplayContentTitle(item: FanletterPublicContentItem, locale: Locale) {
+  const title = item.title.trim();
+  const normalizedTitle = title.toLowerCase();
+
+  if (normalizedTitle.startsWith("a realistic mirror selfie video")) {
+    return locale === "ko" ? "거울 셀피 브이로그" : "Mirror selfie vlog";
+  }
+
+  if (normalizedTitle.startsWith("a realistic ")) {
+    return locale === "ko" ? "리얼 캐릭터 브이로그" : "Realistic character vlog";
+  }
+
+  if (isLowSignalContentText(title, item.summary)) {
+    return locale === "ko" ? "짧은 캐릭터 브이로그" : "Short character vlog";
+  }
+
+  return title;
+}
+
+function getDisplayContentSummary(item: FanletterPublicContentItem, locale: Locale) {
+  const title = item.title.trim();
+
+  if (isLowSignalContentText(title, item.summary)) {
+    return locale === "ko"
+      ? "채널에 공개된 짧은 AI 캐릭터 브이로그입니다."
+      : "A short AI character vlog published on this channel.";
+  }
+
+  return item.summary;
+}
+
 function getPublishedTime(value: string | null) {
   if (!value) {
     return 0;
@@ -724,11 +774,13 @@ function MediaCard({
 }
 
 function ContentCard({
+  authorNameOverride,
   item,
   locale,
   referralCode,
   showVideoPreview = false,
 }: {
+  authorNameOverride?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
@@ -737,6 +789,9 @@ function ContentCard({
   const copy = getCopy(locale);
   const href = getContentHref({ item, locale, referralCode });
   const creatorHref = getCreatorHref({ item, locale, referralCode });
+  const displayAuthorName = authorNameOverride ?? item.authorName;
+  const displaySummary = getDisplayContentSummary(item, locale);
+  const displayTitle = getDisplayContentTitle(item, locale);
 
   return (
     <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
@@ -773,12 +828,12 @@ function ContentCard({
           <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-2 sm:bottom-3 sm:left-3 sm:right-3">
             <Avatar
               imageUrl={item.authorAvatarImageUrl}
-              name={item.authorName}
+              name={displayAuthorName}
               sizeClassName="size-7 sm:size-8"
             />
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-white sm:text-sm">
-                {item.authorName}
+                {displayAuthorName}
               </p>
               <p className="text-[0.68rem] font-medium text-white/62 sm:text-xs">
                 {formatDate(item.publishedAt, locale) ?? "FanLetter"}
@@ -790,10 +845,10 @@ function ContentCard({
 
       <div className="p-3 sm:p-4">
         <h2 className="line-clamp-2 break-words text-base font-semibold leading-tight tracking-normal [overflow-wrap:anywhere] sm:text-xl">
-          {item.title}
+          {displayTitle}
         </h2>
         <p className="mt-1.5 line-clamp-2 break-words text-xs font-medium leading-5 text-black/58 [overflow-wrap:anywhere] sm:mt-2 sm:min-h-[4.5rem] sm:text-sm sm:leading-6">
-          {item.summary}
+          {displaySummary}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-1.5 sm:hidden">
           {[
@@ -821,8 +876,8 @@ function ContentCard({
             initialSocial={item.social}
             locale={locale}
             shareHref={href}
-            summary={item.summary}
-            title={item.title}
+            summary={displaySummary}
+            title={displayTitle}
             variant="compact"
           />
         </div>
@@ -833,7 +888,7 @@ function ContentCard({
               href={creatorHref}
             >
               <User className="size-3.5 shrink-0" />
-              <span className="truncate">{item.authorName}</span>
+              <span className="truncate">{displayAuthorName}</span>
             </Link>
           ) : (
             <span />
@@ -852,6 +907,7 @@ function ContentCard({
 }
 
 function ContentGrid({
+  authorNameOverride,
   empty,
   emptyActionHref,
   emptyActionLabel,
@@ -860,6 +916,7 @@ function ContentGrid({
   referralCode,
   showVideoPreview = false,
 }: {
+  authorNameOverride?: string;
   empty: string;
   emptyActionHref?: string;
   emptyActionLabel?: string;
@@ -888,6 +945,7 @@ function ContentGrid({
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
         <ContentCard
+          authorNameOverride={authorNameOverride}
           item={item}
           key={item.contentId}
           locale={locale}
@@ -900,10 +958,12 @@ function ContentGrid({
 }
 
 function FeaturedFeedCard({
+  authorNameOverride,
   item,
   locale,
   referralCode,
 }: {
+  authorNameOverride?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
@@ -913,6 +973,9 @@ function FeaturedFeedCard({
   const creatorHref = getCreatorHref({ item, locale, referralCode });
   const publishedAt = formatDate(item.publishedAt, locale);
   const engagementScore = getContentEngagementScore(item);
+  const displayAuthorName = authorNameOverride ?? item.authorName;
+  const displaySummary = getDisplayContentSummary(item, locale);
+  const displayTitle = getDisplayContentTitle(item, locale);
 
   return (
     <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]">
@@ -953,21 +1016,21 @@ function FeaturedFeedCard({
               </span>
             </div>
             <h2 className="mt-4 line-clamp-3 break-words text-[2rem] font-semibold leading-[1.02] tracking-normal [overflow-wrap:anywhere] sm:text-[2.6rem]">
-              {item.title}
+              {displayTitle}
             </h2>
             <p className="mt-3 line-clamp-3 max-w-2xl break-words text-sm font-medium leading-6 text-white/72 [overflow-wrap:anywhere] sm:text-base sm:leading-7">
-              {item.summary}
+              {displaySummary}
             </p>
             <div className="mt-5 flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
                 <Avatar
                   imageUrl={item.authorAvatarImageUrl}
-                  name={item.authorName}
+                  name={displayAuthorName}
                   sizeClassName="size-9"
                 />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">
-                    {item.authorName}
+                    {displayAuthorName}
                   </p>
                   <p className="text-xs font-medium text-white/58">
                     {publishedAt ?? "FanLetter"}
@@ -987,7 +1050,7 @@ function FeaturedFeedCard({
             className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
             href={creatorHref}
           >
-            {item.authorName}
+            {displayAuthorName}
             <ArrowRight className="ml-2 size-4" />
           </Link>
         </div>
@@ -1704,7 +1767,9 @@ function FanletterChannelHeroPreview({
           latest: "Featured vlog",
           paidReady: "Fan-only requests open",
         };
-  const heroTitle = featuredItem?.title ?? character?.latestTitle ?? copy.creator.empty;
+  const heroTitle = featuredItem
+    ? getDisplayContentTitle(featuredItem, locale)
+    : character?.latestTitle ?? copy.creator.empty;
   const heroHref = featuredItem
     ? getContentHref({ item: featuredItem, locale, referralCode })
     : null;
@@ -2047,11 +2112,13 @@ function FanletterCreatorFanAccessPanel({
 function FanletterChannelTabs({
   channelHref,
   fanOnlyContentCount,
+  hasFeaturedItem,
   locale,
   publicContentCount,
 }: {
   channelHref: string;
   fanOnlyContentCount: number;
+  hasFeaturedItem: boolean;
   locale: Locale;
   publicContentCount: number;
 }) {
@@ -2059,6 +2126,7 @@ function FanletterChannelTabs({
     locale === "ko"
       ? {
           about: "소개",
+          featured: "대표 브이로그",
           fanOnly: "팬 전용",
           fanRequests: "팬 요청",
           home: "홈",
@@ -2066,6 +2134,7 @@ function FanletterChannelTabs({
         }
       : {
           about: "About",
+          featured: "Featured",
           fanOnly: "Fan-only",
           fanRequests: "Requests",
           home: "Home",
@@ -2073,11 +2142,13 @@ function FanletterChannelTabs({
         };
   const tabs: FanletterChannelSectionTabItem[] = [
     { href: `${channelHref}#channel-home`, id: "channel-home", label: labels.home },
-    {
-      href: `${channelHref}#public-vlogs`,
-      id: "public-vlogs",
-      label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
-    },
+    hasFeaturedItem
+      ? {
+          href: `${channelHref}#featured-vlog`,
+          id: "featured-vlog",
+          label: labels.featured,
+        }
+      : null,
     { href: `${channelHref}#fan-requests`, id: "fan-requests", label: labels.fanRequests },
     {
       href: `${channelHref}#fan-only`,
@@ -2087,8 +2158,13 @@ function FanletterChannelTabs({
           ? `${labels.fanOnly} ${formatNumber(fanOnlyContentCount, locale)}`
           : labels.fanOnly,
     },
+    {
+      href: `${channelHref}#public-vlogs`,
+      id: "public-vlogs",
+      label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
+    },
     { href: `${channelHref}#about`, id: "about", label: labels.about },
-  ];
+  ].filter((tab): tab is FanletterChannelSectionTabItem => Boolean(tab));
 
   return (
     <FanletterChannelSectionTabs
@@ -5131,6 +5207,7 @@ export function FanletterCreatorPage({
         <FanletterChannelTabs
           channelHref={channelHref}
           fanOnlyContentCount={data.fanOnlyContentCount}
+          hasFeaturedItem={Boolean(featuredItem)}
           locale={locale}
           publicContentCount={data.publicContentCount}
         />
@@ -5161,9 +5238,11 @@ export function FanletterCreatorPage({
                 </div>
                 <Link
                   className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                  href={isOwner ? ownerCreateHref : startHref}
+                  href={isOwner ? ownerCreateHref : publicVlogsHref}
                 >
-                  {isOwner ? channelActionLabels.ownerCreate : copy.actions.start}
+                  {isOwner
+                    ? channelActionLabels.ownerCreate
+                    : channelActionLabels.publicVlogs}
                 </Link>
               </div>
 
@@ -5232,17 +5311,8 @@ export function FanletterCreatorPage({
             />
           </div>
 
-          {character ? (
-            <CharacterPersonaShowcase
-              character={character}
-              displayName={data.profile.displayName}
-              locale={locale}
-              publicContentCount={data.publicContentCount}
-            />
-          ) : null}
-
           {featuredItem ? (
-            <section className="mb-8">
+            <section className="mb-8 scroll-mt-24" id="featured-vlog">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
@@ -5254,6 +5324,7 @@ export function FanletterCreatorPage({
                 </div>
               </div>
               <FeaturedFeedCard
+                authorNameOverride={channelName}
                 item={featuredItem}
                 locale={locale}
                 referralCode={effectiveReferralCode}
@@ -5320,6 +5391,7 @@ export function FanletterCreatorPage({
               </Link>
             </div>
             <ContentGrid
+              authorNameOverride={channelName}
               empty={copy.creator.empty}
               emptyActionHref={isOwner ? ownerCreateHref : startHref}
               emptyActionLabel={
@@ -5331,6 +5403,15 @@ export function FanletterCreatorPage({
               showVideoPreview
             />
           </section>
+
+          {character ? (
+            <CharacterPersonaShowcase
+              character={character}
+              displayName={data.profile.displayName}
+              locale={locale}
+              publicContentCount={data.publicContentCount}
+            />
+          ) : null}
         </div>
       </section>
     </FanletterShell>

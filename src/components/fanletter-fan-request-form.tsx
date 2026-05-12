@@ -68,7 +68,7 @@ function getCopy(locale: Locale) {
             title: "아침 루틴",
           },
         ],
-        examplesLabel: "장면 선택",
+        examplesLabel: "추천 장면",
         examplesStatusFallback: "기본 장면을 표시 중입니다.",
         examplesStatusLoading: "장면을 불러오는 중입니다.",
         followChannel: "채널 팔로우",
@@ -150,7 +150,7 @@ function getCopy(locale: Locale) {
             title: "Morning routine",
           },
         ],
-        examplesLabel: "Scene picker",
+        examplesLabel: "Suggested scenes",
         examplesStatusFallback: "Showing default scenes.",
         examplesStatusLoading: "Loading scenes.",
         followChannel: "Follow channel",
@@ -556,6 +556,70 @@ export function FanletterFanRequestForm({
         </div>
       </div>
 
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem]">
+        <label className="block">
+          <span className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+              {copy.bodyLabel}
+            </span>
+            <span className="text-xs font-semibold text-white/32">
+              {body.length}/600
+            </span>
+          </span>
+          <textarea
+            className="mt-2 min-h-28 w-full resize-y rounded-lg border border-white/10 bg-white/[0.055] px-3 py-3 text-sm font-medium leading-6 text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/70"
+            maxLength={600}
+            onChange={(event) => {
+              setBody(event.target.value);
+              setError(null);
+              if (status !== "loading") {
+                setStatus("idle");
+              }
+            }}
+            placeholder={copy.bodyPlaceholder}
+            ref={textareaRef}
+            value={body}
+          />
+        </label>
+        <div>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+              {copy.nameLabel}
+            </span>
+            <input
+              className="mt-2 h-11 w-full rounded-lg border border-white/10 bg-white/[0.055] px-3 text-sm font-medium text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/70"
+              maxLength={40}
+              onChange={(event) => {
+                setRequesterDisplayName(event.target.value);
+                if (status !== "loading") {
+                  setStatus("idle");
+                }
+              }}
+              placeholder={copy.namePlaceholder}
+              value={requesterDisplayName}
+            />
+          </label>
+          <button
+            className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-64"
+            disabled={status === "loading"}
+            onClick={() => {
+              void submitRequest();
+            }}
+            type="button"
+          >
+            {status === "loading" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : status === "success" ? (
+              <CheckCircle2 className="size-4" />
+            ) : null}
+            {status === "loading" ? copy.submitting : copy.submit}
+          </button>
+          <p className="mt-3 text-xs font-medium leading-5 text-white/42">
+            {copy.note}
+          </p>
+        </div>
+      </div>
+
       <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -641,70 +705,6 @@ export function FanletterFanRequestForm({
               </button>
             );
           })}
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem]">
-        <label className="block">
-          <span className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-              {copy.bodyLabel}
-            </span>
-            <span className="text-xs font-semibold text-white/32">
-              {body.length}/600
-            </span>
-          </span>
-          <textarea
-            className="mt-2 min-h-28 w-full resize-y rounded-lg border border-white/10 bg-white/[0.055] px-3 py-3 text-sm font-medium leading-6 text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/70"
-            maxLength={600}
-            onChange={(event) => {
-              setBody(event.target.value);
-              setError(null);
-              if (status !== "loading") {
-                setStatus("idle");
-              }
-            }}
-            placeholder={copy.bodyPlaceholder}
-            ref={textareaRef}
-            value={body}
-          />
-        </label>
-        <div>
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-              {copy.nameLabel}
-            </span>
-            <input
-              className="mt-2 h-11 w-full rounded-lg border border-white/10 bg-white/[0.055] px-3 text-sm font-medium text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/70"
-              maxLength={40}
-              onChange={(event) => {
-                setRequesterDisplayName(event.target.value);
-                if (status !== "loading") {
-                  setStatus("idle");
-                }
-              }}
-              placeholder={copy.namePlaceholder}
-              value={requesterDisplayName}
-            />
-          </label>
-          <button
-            className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-64"
-            disabled={status === "loading"}
-            onClick={() => {
-              void submitRequest();
-            }}
-            type="button"
-          >
-            {status === "loading" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : status === "success" ? (
-              <CheckCircle2 className="size-4" />
-            ) : null}
-            {status === "loading" ? copy.submitting : copy.submit}
-          </button>
-          <p className="mt-3 text-xs font-medium leading-5 text-white/42">
-            {copy.note}
-          </p>
         </div>
       </div>
 
