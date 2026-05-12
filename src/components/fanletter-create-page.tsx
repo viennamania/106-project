@@ -117,6 +117,11 @@ function getCopy(locale: Locale) {
           prompt: "표정 컷 동영상 장면",
           promptPlaceholder:
             "선택한 표정을 기준으로 장소, 시선, 손짓, 짧은 대사, 카메라 움직임을 입력하세요.",
+          referencePreviewBody:
+            "이 컷을 기준으로 얼굴, 시선, 표정 정체성을 고정해 동영상을 만듭니다.",
+          referencePreviewEmpty: "선택한 표정 컷을 불러오는 중입니다.",
+          referencePreviewTitle: "선택한 표정 컷",
+          referenceSetTitle: "아바타 세트 reference",
           result: "표정 컷 동영상 미리보기",
           titleText: "선택한 표정 컷으로 인물 중심 브이로그를 만드세요.",
           video: "생성 결과: 표정 reference 브이로그 동영상",
@@ -244,6 +249,11 @@ function getCopy(locale: Locale) {
           prompt: "Expression cut video scene",
           promptPlaceholder:
             "Describe the location, gaze, gestures, short line, and camera motion based on the selected expression.",
+          referencePreviewBody:
+            "This cut is used to lock the face, gaze, expression, and identity for the video.",
+          referencePreviewEmpty: "Loading the selected expression cut.",
+          referencePreviewTitle: "Selected expression cut",
+          referenceSetTitle: "Avatar set reference",
           result: "Expression cut video preview",
           titleText:
             "Create a person-centered vlog from the selected expression cut.",
@@ -798,6 +808,77 @@ export function FanletterCreatePage({
     initialPlan?.avatarReferenceMode === "set"
       ? copy.avatarExperience.avatarReferenceSet
       : copy.avatarExperience.avatarReferenceSingle;
+  const avatarReferencePreviewItems = useMemo(() => {
+    if (!profile || !isAvatarVideoExperience) {
+      return [];
+    }
+
+    const candidates = [
+      ...(profile.avatarImageUrl
+        ? [
+            {
+              expression: "default" as const,
+              label: copy.avatarExperience.referencePreviewTitle,
+              url: profile.avatarImageUrl,
+            },
+          ]
+        : []),
+      ...(profile.avatarImageSet ?? []).map((candidate) => ({
+        expression: candidate.expression,
+        label: candidate.label ?? candidate.expression ?? null,
+        url: candidate.url,
+      })),
+    ].filter((candidate) => Boolean(candidate.url?.trim()));
+    const seenUrls = new Set<string>();
+    const uniqueCandidates = candidates.filter((candidate) => {
+      const url = candidate.url.trim();
+
+      if (!url || seenUrls.has(url)) {
+        return false;
+      }
+
+      seenUrls.add(url);
+      return true;
+    });
+    const priority = [
+      ...(initialPlan?.avatarReferenceExpression
+        ? [initialPlan.avatarReferenceExpression]
+        : []),
+      "default",
+      "smile",
+      "focus",
+      "serious",
+      "thumbnail",
+      "reaction",
+      "fanservice",
+      "shy",
+    ];
+
+    return uniqueCandidates
+      .sort((left, right) => {
+        const leftRank = priority.indexOf(left.expression ?? "");
+        const rightRank = priority.indexOf(right.expression ?? "");
+
+        return (
+          (leftRank === -1 ? Number.MAX_SAFE_INTEGER : leftRank) -
+          (rightRank === -1 ? Number.MAX_SAFE_INTEGER : rightRank)
+        );
+      })
+      .slice(0, initialPlan?.avatarReferenceMode === "set" ? 4 : 3);
+  }, [
+    copy.avatarExperience.referencePreviewTitle,
+    initialPlan?.avatarReferenceExpression,
+    initialPlan?.avatarReferenceMode,
+    isAvatarVideoExperience,
+    profile,
+  ]);
+  const primaryAvatarReference = avatarReferencePreviewItems[0] ?? null;
+  const avatarReferencePreviewTitle =
+    initialPlan?.avatarReferenceMode === "set"
+      ? copy.avatarExperience.referenceSetTitle
+      : (primaryAvatarReference?.label ||
+        form.title.trim() ||
+        copy.avatarExperience.referencePreviewTitle);
   const generatedVideoUrl = generatedMedia?.url ?? null;
   const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
   const localDraftLabel =
@@ -1306,7 +1387,13 @@ export function FanletterCreatePage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {heroEyebrow}
               </p>
-              <h1 className="mt-4 text-[2.35rem] font-semibold leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[4rem] lg:text-[4.25rem]">
+              <h1
+                className={`mt-4 font-semibold tracking-normal [word-break:keep-all] ${
+                  isAvatarVideoExperience
+                    ? "text-[2.1rem] leading-[1.08] sm:text-[3.1rem] lg:text-[3.45rem]"
+                    : "text-[2.35rem] leading-[1.04] sm:text-[4rem] lg:text-[4.25rem]"
+                }`}
+              >
                 {heroTitleText}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
@@ -1315,6 +1402,63 @@ export function FanletterCreatePage({
             </div>
 
             <aside className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-5">
+              {isAvatarVideoExperience ? (
+                <div className="mb-5 overflow-hidden rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10">
+                  <div className="grid gap-3 p-3 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[8rem_minmax(0,1fr)]">
+                    <div className="relative aspect-[4/5] min-h-36 overflow-hidden rounded-lg border border-white/12 bg-black/34">
+                      {primaryAvatarReference?.url ? (
+                        <Image
+                          alt={avatarReferencePreviewTitle}
+                          className="object-cover"
+                          fill
+                          sizes="(max-width: 640px) 128px, 144px"
+                          src={primaryAvatarReference.url}
+                        />
+                      ) : (
+                        <span className="flex size-full items-center justify-center">
+                          <UserRound className="size-8 text-[#44f26e]" />
+                        </span>
+                      )}
+                      <span className="absolute left-2 top-2 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.64rem] font-semibold text-black">
+                        Reference
+                      </span>
+                    </div>
+                    <div className="min-w-0 self-center">
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
+                        {copy.avatarExperience.referencePreviewTitle}
+                      </p>
+                      <h2 className="mt-2 line-clamp-2 text-xl font-semibold leading-tight text-white">
+                        {avatarReferencePreviewTitle}
+                      </h2>
+                      <p className="mt-2 text-xs font-semibold leading-5 text-white/62">
+                        {primaryAvatarReference
+                          ? copy.avatarExperience.referencePreviewBody
+                          : copy.avatarExperience.referencePreviewEmpty}
+                      </p>
+                    </div>
+                  </div>
+                  {avatarReferencePreviewItems.length > 1 ? (
+                    <div className="border-t border-white/10 px-3 py-3">
+                      <div className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
+                        {avatarReferencePreviewItems.map((item) => (
+                          <span
+                            className="relative block aspect-square w-12 shrink-0 overflow-hidden rounded-lg border border-white/12 bg-black/28"
+                            key={item.url}
+                          >
+                            <Image
+                              alt={item.label ?? avatarReferencePreviewTitle}
+                              className="object-cover"
+                              fill
+                              sizes="48px"
+                              src={item.url}
+                            />
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="flex items-start gap-4">
                 <span className="relative flex size-20 shrink-0 overflow-hidden rounded-full border border-white/12 bg-white/[0.06]">
                   {profile?.avatarImageUrl ? (
