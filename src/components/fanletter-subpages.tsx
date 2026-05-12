@@ -964,22 +964,76 @@ function CreatorDiscoveryCard({
     locale,
     referralCode,
   });
+  const labels =
+    locale === "ko"
+      ? {
+          latest: "최근 브이로그",
+          open: "채널 보기",
+          reaction: "반응",
+          video: "영상",
+        }
+      : {
+          latest: "Latest vlog",
+          open: "View channel",
+          reaction: "Reactions",
+          video: "Video",
+        };
+  const reactionScore = getContentEngagementScore(item);
 
   return (
     <Link
-      className="flex min-w-[11.75rem] max-w-[82vw] snap-start items-center gap-3 rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] sm:min-w-0 sm:max-w-none"
+      className="group flex min-w-[17.5rem] max-w-[86vw] snap-start flex-col rounded-lg border border-black/10 bg-white p-4 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] transition hover:-translate-y-0.5 hover:border-[#29d85f]/58 hover:shadow-[0_20px_46px_rgba(8,18,12,0.12)] sm:min-w-0 sm:max-w-none"
       href={href}
     >
-      <Avatar
-        imageUrl={item.authorAvatarImageUrl}
-        name={item.authorName}
-        sizeClassName="size-12"
-      />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{item.authorName}</p>
-        <p className="mt-1 truncate text-xs font-medium text-black/48">
-          {item.title}
-        </p>
+      <div className="flex items-start gap-3">
+        <Avatar
+          imageUrl={item.authorAvatarImageUrl}
+          name={item.authorName}
+          sizeClassName="size-12"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-base font-semibold">{item.authorName}</p>
+            {item.mediaType === "video" ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-semibold text-[#16702e]">
+                <PlayCircle className="size-3" />
+                {labels.video}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 line-clamp-2 break-words text-xs font-medium leading-5 text-black/52 [overflow-wrap:anywhere]">
+            {item.title}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="rounded-lg border border-black/10 bg-[#f6f8f4] p-2.5">
+          <p className="text-lg font-semibold leading-none">
+            {formatNumber(reactionScore, locale)}
+          </p>
+          <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-black/42">
+            {labels.reaction}
+          </p>
+        </div>
+        <div className="rounded-lg border border-black/10 bg-[#f6f8f4] p-2.5">
+          <p className="line-clamp-1 text-sm font-semibold leading-none">
+            {formatDate(item.publishedAt, locale) ?? "FanLetter"}
+          </p>
+          <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-black/42">
+            {labels.latest}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-black/10 pt-3">
+        <span className="truncate text-xs font-semibold text-black/46">
+          {item.authorReferralCode ?? "FanLetter"}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-black transition group-hover:text-[#16702e]">
+          {labels.open}
+          <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+        </span>
       </div>
     </Link>
   );
@@ -1003,25 +1057,43 @@ function FanletterCreatorRanking({
   const labels =
     locale === "ko"
       ? {
-          body: "좋아요, 댓글, 저장 반응이 높은 캐릭터를 먼저 보여줍니다.",
+          body: "좋아요, 댓글, 저장 반응이 높은 캐릭터를 성과 기반 리더보드로 보여줍니다.",
           cta: "채널 보기",
           eyebrow: "Character Ranking",
           latest: "최근 브이로그",
+          leader: "팬 반응 1위",
           publicPosts: "공개",
+          rankLabel: "순위",
           reactions: "반응",
+          score: "반응 점수",
           title: "인기 AI 캐릭터 랭킹",
           videos: "영상",
         }
       : {
-          body: "Characters with stronger likes, comments, and saves surface first.",
+          body: "A performance-based leaderboard for characters with stronger likes, comments, and saves.",
           cta: "View channel",
           eyebrow: "Character Ranking",
           latest: "Latest vlog",
+          leader: "Top fan reaction",
           publicPosts: "Public",
+          rankLabel: "Rank",
           reactions: "Reactions",
+          score: "Reaction score",
           title: "Popular AI character ranking",
           videos: "Videos",
         };
+  const [leader, ...otherCreators] = rankedCreators;
+
+  const getHref = (creator: FanletterRankedCreator) =>
+    creator.authorReferralCode
+      ? buildPathWithReferral(
+          `/${locale}/fanletter/creator/${creator.authorReferralCode}`,
+          referralCode ?? creator.authorReferralCode,
+        )
+      : buildPathWithReferral(
+          `/${locale}/fanletter/content/${creator.latestContentId}`,
+          referralCode,
+        );
 
   return (
     <section className="mb-10 scroll-mt-6" id="popular-characters">
@@ -1039,124 +1111,139 @@ function FanletterCreatorRanking({
         </p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-5">
-        {rankedCreators.map((creator, index) => {
-          const isLeader = index === 0;
-          const href = creator.authorReferralCode
-            ? buildPathWithReferral(
-                `/${locale}/fanletter/creator/${creator.authorReferralCode}`,
-                referralCode ?? creator.authorReferralCode,
-              )
-            : buildPathWithReferral(
-                `/${locale}/fanletter/content/${creator.latestContentId}`,
-                referralCode,
-              );
-          const metrics = [
-            {
-              label: labels.reactions,
-              value: formatNumber(creator.score, locale),
-            },
-            {
-              label: labels.publicPosts,
-              value: formatNumber(creator.postCount, locale),
-            },
-            {
-              label: labels.videos,
-              value: formatNumber(creator.videoCount, locale),
-            },
-          ];
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <Link
+          className="group relative min-h-[21rem] overflow-hidden rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-5 !text-white shadow-[0_22px_64px_rgba(8,18,12,0.22)] transition hover:border-[#44f26e]/60"
+          href={getHref(leader)}
+        >
+          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-[#44f26e]/18 blur-3xl" />
+          <div className="relative z-10 flex h-full flex-col">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <Avatar
+                  imageUrl={leader.authorAvatarImageUrl}
+                  name={leader.authorName}
+                  sizeClassName="size-16"
+                />
+                <div className="min-w-0">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-semibold text-black">
+                    <Crown className="size-3.5" />
+                    {labels.leader}
+                  </span>
+                  <h3 className="mt-3 truncate text-3xl font-semibold tracking-normal">
+                    {leader.authorName}
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold text-[#8dffa5]">
+                    {leader.authorReferralCode ?? "FanLetter"}
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-lg font-semibold text-black">
+                #1
+              </span>
+            </div>
 
-          return (
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {[
+                {
+                  label: labels.score,
+                  value: formatNumber(leader.score, locale),
+                },
+                {
+                  label: labels.publicPosts,
+                  value: formatNumber(leader.postCount, locale),
+                },
+                {
+                  label: labels.videos,
+                  value: formatNumber(leader.videoCount, locale),
+                },
+              ].map((metric) => (
+                <div
+                  className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                  key={metric.label}
+                >
+                  <p className="text-2xl font-semibold leading-none">
+                    {metric.value}
+                  </p>
+                  <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white/42">
+                    {metric.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-auto pt-6">
+              <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                {labels.latest}
+              </p>
+              <p className="mt-2 line-clamp-2 break-words text-base font-semibold leading-6 text-white/76 [overflow-wrap:anywhere]">
+                {leader.latestTitle}
+              </p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#44f26e]">
+                {labels.cta}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </div>
+          </div>
+        </Link>
+
+        <div className="grid gap-2">
+          {otherCreators.map((creator, index) => (
             <Link
-              className={`group flex min-h-[18rem] flex-col rounded-lg border p-4 transition ${
-                isLeader
-                  ? "border-[#44f26e]/34 bg-[#07100b] !text-white shadow-[0_22px_64px_rgba(8,18,12,0.22)] hover:border-[#44f26e]/60"
-                  : "border-black/10 bg-white text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] hover:border-[#29d85f]/60"
-              }`}
-              href={href}
+              className="group grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_12px_30px_rgba(8,18,12,0.07)] transition hover:border-[#29d85f]/60 hover:bg-[#effff3] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
+              href={getHref(creator)}
               key={creator.key}
             >
-              <div className="flex items-start justify-between gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] text-sm font-semibold text-black/64">
+                #{index + 2}
+              </span>
+              <div className="flex min-w-0 items-center gap-3">
                 <Avatar
                   imageUrl={creator.authorAvatarImageUrl}
                   name={creator.authorName}
-                  sizeClassName="size-12"
+                  sizeClassName="size-11"
                 />
-                <span
-                  className={`inline-flex h-8 shrink-0 items-center rounded-full px-3 text-xs font-semibold ${
-                    isLeader
-                      ? "bg-[#44f26e] text-black"
-                      : "border border-black/10 bg-[#f6f8f4] text-black/62"
-                  }`}
-                >
-                  #{String(index + 1).padStart(2, "0")}
-                </span>
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-semibold">
+                    {creator.authorName}
+                  </h3>
+                  <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-black/50 [overflow-wrap:anywhere]">
+                    {creator.latestTitle}
+                  </p>
+                </div>
               </div>
-
-              <div className="mt-4 min-w-0">
-                <h3 className="truncate text-xl font-semibold tracking-normal">
-                  {creator.authorName}
-                </h3>
-                <p
-                  className={`mt-1 text-xs font-semibold ${
-                    isLeader ? "text-[#44f26e]" : "text-[#1f7c38]"
-                  }`}
-                >
-                  {creator.authorReferralCode ?? "FanLetter"}
-                </p>
-              </div>
-
-              <div className="mt-5 grid grid-cols-3 gap-2">
-                {metrics.map((metric) => (
+              <div className="hidden min-w-[9.5rem] grid-cols-3 gap-1.5 sm:grid">
+                {[
+                  {
+                    label: labels.reactions,
+                    value: formatNumber(creator.score, locale),
+                  },
+                  {
+                    label: labels.publicPosts,
+                    value: formatNumber(creator.postCount, locale),
+                  },
+                  {
+                    label: labels.videos,
+                    value: formatNumber(creator.videoCount, locale),
+                  },
+                ].map((metric) => (
                   <div
-                    className={`rounded-lg border p-2 ${
-                      isLeader
-                        ? "border-white/10 bg-white/[0.055]"
-                        : "border-black/10 bg-[#f6f8f4]"
-                    }`}
+                    className="rounded-lg border border-black/10 bg-white p-2 text-center"
                     key={metric.label}
                   >
-                    <p className="text-lg font-semibold leading-none">
+                    <p className="text-sm font-semibold leading-none">
                       {metric.value}
                     </p>
-                    <p
-                      className={`mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] ${
-                        isLeader ? "text-white/42" : "text-black/42"
-                      }`}
-                    >
+                    <p className="mt-1 text-[0.52rem] font-semibold uppercase tracking-[0.08em] text-black/38">
                       {metric.label}
                     </p>
                   </div>
                 ))}
               </div>
-
-              <div className="mt-auto pt-5">
-                <p
-                  className={`text-[0.66rem] font-semibold uppercase tracking-[0.16em] ${
-                    isLeader ? "text-white/40" : "text-black/42"
-                  }`}
-                >
-                  {labels.latest}
-                </p>
-                <p
-                  className={`mt-2 line-clamp-2 break-words text-sm font-semibold leading-5 [overflow-wrap:anywhere] ${
-                    isLeader ? "text-white/72" : "text-black/62"
-                  }`}
-                >
-                  {creator.latestTitle}
-                </p>
-                <span
-                  className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${
-                    isLeader ? "text-[#44f26e]" : "text-black"
-                  }`}
-                >
-                  {labels.cta}
-                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                </span>
-              </div>
+              <ArrowRight className="size-4 shrink-0 text-black/42 transition group-hover:translate-x-0.5 group-hover:text-[#16702e]" />
             </Link>
-          );
-        })}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -2956,6 +3043,19 @@ export function FanletterFeedPage({
       value: formatNumber(creatorItems.length, locale),
     },
   ];
+  const discoveryCopy =
+    locale === "ko"
+      ? {
+          body: "처음 둘러볼 캐릭터를 최신 브이로그와 반응 신호 기준으로 추천합니다.",
+          eyebrow: "Character Discovery",
+          title: copy.feed.suggestedCreators,
+        }
+      : {
+          body:
+            "Start with characters suggested by their latest vlogs and reaction signals.",
+          eyebrow: "Character Discovery",
+          title: copy.feed.suggestedCreators,
+        };
   const feedHref = getFeedHref({ filters, locale, referralCode });
   const resetFeedHref = getFeedHref({
     locale,
@@ -3082,11 +3182,19 @@ export function FanletterFeedPage({
                 </div>
 
                 {creatorItems.length > 0 ? (
-                  <div>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <h2 className="text-xl font-semibold">
-                        {copy.feed.suggestedCreators}
-                      </h2>
+                  <section className="min-w-0">
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
+                          {discoveryCopy.eyebrow}
+                        </p>
+                        <h2 className="mt-1 text-xl font-semibold">
+                          {discoveryCopy.title}
+                        </h2>
+                      </div>
+                      <p className="max-w-sm text-xs font-medium leading-5 text-black/50">
+                        {discoveryCopy.body}
+                      </p>
                     </div>
                     <div className="flex max-w-full snap-x gap-3 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:grid-cols-2 lg:overflow-visible">
                       {creatorItems.map((item) => (
@@ -3098,7 +3206,7 @@ export function FanletterFeedPage({
                         />
                       ))}
                     </div>
-                  </div>
+                  </section>
                 ) : null}
               </div>
             </div>
