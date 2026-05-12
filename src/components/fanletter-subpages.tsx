@@ -36,6 +36,7 @@ import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-reques
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
 import {
   FanletterSetupHeroDescription,
@@ -4823,6 +4824,12 @@ export function FanletterContentDetailPage({
       returnTo: returnToHref ?? currentHref,
     },
   );
+  const connectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/connect`, effectiveReferralCode),
+    {
+      returnTo: returnToHref ?? currentHref,
+    },
+  );
   const creatorHref = content.authorReferralCode
     ? buildPathWithReferral(
         `/${locale}/fanletter/creator/${content.authorReferralCode}`,
@@ -4842,18 +4849,21 @@ export function FanletterContentDetailPage({
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
+  const paidUnlockSectionId = "fanletter-paid-unlock";
   const detailAccessLabel =
     content.priceType === "paid"
       ? `${copy.content.paid} · ${content.priceUsdt ?? "1"} USDT`
       : copy.content.public;
-  const detailActionHref = content.canPubliclyAccess ? startHref : onboardingHref;
+  const detailActionHref = content.canPubliclyAccess
+    ? startHref
+    : `#${paidUnlockSectionId}`;
   const detailActionLabel = content.canPubliclyAccess
     ? copy.actions.start
-    : copy.actions.existingDetail;
-  const creatorActionHref = content.canPubliclyAccess ? creatorHref : onboardingHref;
-  const creatorActionLabel = content.canPubliclyAccess
-    ? copy.actions.creatorChannel
-    : copy.actions.existingDetail;
+    : locale === "ko"
+      ? "팬 전용 열기"
+      : "Unlock fan-only";
+  const creatorActionHref = creatorHref;
+  const creatorActionLabel = copy.actions.creatorChannel;
   const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
   const contentCharacterAvatarUrl =
     content.authorCharacter?.avatarImageSet[0]?.url ??
@@ -5126,28 +5136,22 @@ export function FanletterContentDetailPage({
               />
 
               {!content.canPubliclyAccess ? (
-                <section className="mt-6 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/10 p-5">
-                  <div className="flex items-start gap-3">
-                    <LockKeyhole className="mt-1 size-5 shrink-0 text-[#44f26e]" />
-                    <div>
-                      <h2 className="text-xl font-semibold">
-                        {copy.content.lockedTitle}
-                      </h2>
-                      <p className="mt-2 text-sm font-medium leading-6 text-white/64">
-                        {copy.content.lockedDescription}
-                      </p>
-                      <p className="mt-4 text-sm font-medium leading-6 text-white/78">
-                        {copy.content.lockedBody}
-                      </p>
-                      <Link
-                        className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                        href={onboardingHref}
-                      >
-                        {copy.actions.existingDetail}
-                      </Link>
-                    </div>
-                  </div>
-                </section>
+                <div id={paidUnlockSectionId}>
+                  <FanletterPaidUnlockPanel
+                    connectHref={connectHref}
+                    contentId={content.contentId}
+                    creatorHref={creatorHref}
+                    currentHref={currentHref}
+                    initialBody={content.body}
+                    initialCoverImageUrl={primaryImageUrl}
+                    initialSummary={content.summary}
+                    initialTitle={content.title}
+                    locale={locale}
+                    onboardingHref={onboardingHref}
+                    priceUsdt={content.priceUsdt}
+                    referralCode={effectiveReferralCode}
+                  />
+                </div>
               ) : null}
 
               {content.canPubliclyAccess &&
@@ -5179,14 +5183,16 @@ export function FanletterContentDetailPage({
                 </section>
               ) : null}
 
-              <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/42">
-                  {copy.content.body}
-                </p>
-                <p className="mt-4 whitespace-pre-wrap break-words text-base font-medium leading-8 text-black/74">
-                  {content.body}
-                </p>
-              </section>
+              {content.canPubliclyAccess ? (
+                <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
+                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/42">
+                    {copy.content.body}
+                  </p>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-base font-medium leading-8 text-black/74">
+                    {content.body}
+                  </p>
+                </section>
+              ) : null}
 
               <FanletterRelatedVlogs
                 fallbackImageUrl={
