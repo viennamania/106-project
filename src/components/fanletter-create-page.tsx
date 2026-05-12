@@ -70,11 +70,13 @@ type CreateForm = {
 export type FanletterCreateInitialPlan = Partial<
   Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
 > & {
+  fanOnlyIntent?: boolean;
   fanRequestBody?: string;
   fanRequestCharacterName?: string;
   fanRequestId?: string;
   fanRequestType?: FanletterFanRequestType;
   planId?: string;
+  priceType?: ContentPriceType;
 };
 
 const EMPTY_FORM: CreateForm = {
@@ -134,6 +136,10 @@ function getCopy(locale: Locale) {
           eyebrow: "Fan Request",
           failed:
             "브이로그는 저장됐지만 팬 요청 상태를 갱신하지 못했습니다. 스튜디오 요청함에서 다시 처리하세요.",
+          fanOnlyDefault:
+            "팬 전용 요청으로 감지되어 공개 방식이 1 USDT 유료로 기본 설정되었습니다.",
+          fanOnlyHint:
+            "이 브이로그는 캐릭터 채널의 팬 전용 영역에 쌓이고, 상세 페이지에서 결제 후 열람됩니다.",
           publishStep: "공개하면 요청 카드가 완성된 브이로그와 연결됩니다.",
           requestTypes: {
             message: "응원 메시지",
@@ -231,6 +237,10 @@ function getCopy(locale: Locale) {
           eyebrow: "Fan Request",
           failed:
             "The vlog was saved, but the fan request status could not be updated. Retry from the studio inbox.",
+          fanOnlyDefault:
+            "Fan-only intent was detected, so visibility defaults to 1 USDT paid.",
+          fanOnlyHint:
+            "This vlog will live in the character channel's fan-only area and unlock from the detail page after payment.",
           publishStep: "Publishing links the request card to the finished vlog.",
           requestTypes: {
             message: "Support message",
@@ -326,6 +336,9 @@ function getInitialCreateForm(
     ...EMPTY_FORM,
     body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
     mode: "video",
+    priceType:
+      initialPlan?.priceType ??
+      (initialPlan?.fanOnlyIntent ? "paid" : EMPTY_FORM.priceType),
     prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
     summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
     title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
@@ -645,6 +658,7 @@ export function FanletterCreatePage({
   const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
+  const fanOnlyIntent = Boolean(initialPlan?.fanOnlyIntent);
   const localDraftKey = useMemo(
     () =>
       buildCreateDraftKey({
@@ -1415,6 +1429,9 @@ export function FanletterCreatePage({
                 <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-[24rem] lg:grid-cols-1">
                   {[
                     copy.fanRequestContext.autoFill,
+                    ...(fanOnlyIntent
+                      ? [copy.fanRequestContext.fanOnlyDefault]
+                      : []),
                     copy.fanRequestContext.publishStep,
                     copy.fanRequestContext.autoClose,
                   ].map((item) => (
@@ -1591,6 +1608,11 @@ export function FanletterCreatePage({
                     </button>
                   ))}
                 </div>
+                {fanOnlyIntent ? (
+                  <p className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
+                    {copy.fanRequestContext.fanOnlyHint}
+                  </p>
+                ) : null}
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <button

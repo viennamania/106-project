@@ -561,18 +561,36 @@ function buildFanRequestCreateHref({
     locale === "ko"
       ? `${request.characterName}가 팬이 남긴 ${requestTypeLabel}에 직접 답하듯 자연스럽게 반영한 세로형 숏폼 브이로그. 팬 요청 원문: ${normalizedBody}`
       : `${request.characterName} naturally responds to this ${requestTypeLabel} in a vertical short-form vlog. Original fan request: ${normalizedBody}`;
+  const fanOnlyIntent = shouldTreatFanRequestAsFanOnly(request);
 
   return setPathSearchParams(createHref, {
     fanRequestBody: request.body,
     fanRequestCharacterName: request.characterName,
     fanRequestId: request.requestId,
     fanRequestType: request.requestType,
+    ...(fanOnlyIntent
+      ? {
+          planAudience: "fan-only",
+          planPriceType: "paid",
+        }
+      : {}),
     planBody: body,
     planMode: "video",
     planPrompt: prompt,
     planSummary: summary,
     planTitle: title,
   });
+}
+
+function shouldTreatFanRequestAsFanOnly(request: FanletterFanRequestRecord) {
+  const normalized = request.body.toLowerCase();
+
+  return (
+    request.requestType === "vlog_request" &&
+    /팬\s*전용|비공개|잠금|유료|선공개|구독|fan[-\s]?only|private|locked|paid|early access|subscriber/.test(
+      normalized,
+    )
+  );
 }
 
 type FanRequestCategory =

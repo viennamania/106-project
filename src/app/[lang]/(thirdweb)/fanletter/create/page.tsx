@@ -26,9 +26,11 @@ type FanletterCreateSearchParams = {
   fanRequestCharacterName?: string | string[];
   fanRequestId?: string | string[];
   fanRequestType?: string | string[];
+  planAudience?: string | string[];
   planBody?: string | string[];
   planId?: string | string[];
   planMode?: string | string[];
+  planPriceType?: string | string[];
   planPrompt?: string | string[];
   planSummary?: string | string[];
   planTitle?: string | string[];
@@ -58,6 +60,11 @@ function readInitialPlan(
     rawFanRequestType === "message" || rawFanRequestType === "vlog_request"
       ? rawFanRequestType
       : undefined;
+  const rawPriceType = readPlanText(query.planPriceType, 32);
+  const priceType =
+    rawPriceType === "paid" || rawPriceType === "free" ? rawPriceType : undefined;
+  const fanOnlyIntent =
+    readPlanText(query.planAudience, 32)?.toLowerCase() === "fan-only";
   const planId = readPlanText(query.planId, 120);
 
   if (
@@ -69,19 +76,23 @@ function readInitialPlan(
     !fanRequestCharacterName &&
     !planId &&
     !fanRequestId &&
-    !fanRequestType
+    !fanRequestType &&
+    !priceType &&
+    !fanOnlyIntent
   ) {
     return undefined;
   }
 
   return {
     body,
+    fanOnlyIntent,
     fanRequestBody,
     fanRequestCharacterName,
     fanRequestId,
     fanRequestType,
     mode: "video",
     planId,
+    priceType,
     prompt,
     summary,
     title,

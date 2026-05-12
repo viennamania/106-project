@@ -2071,11 +2071,11 @@ function FanletterFanOnlyPreview({
           availableNote:
             "카드에서는 제목과 공개 미리보기만 보여주고, 실제 영상 열람은 상세 페이지의 권한 확인 흐름에서 처리합니다.",
           availableTitle: "팬 전용 브이로그 모음",
-          body: "아직 실제 구독 결제와 비공개 콘텐츠 열람은 연결하지 않았습니다. 지금은 캐릭터 채널 안에 팬 전용 영역이 어떻게 확장될지 보여주는 미리보기입니다.",
+          body: "구독형 멤버십은 아직 준비 전이지만, 1 USDT 팬 전용 유료 브이로그는 상세 페이지에서 결제 후 열람할 수 있습니다. 먼저 보고 싶은 장면을 요청으로 남기면 크리에이터가 팬 전용 후보로 바로 제작할 수 있습니다.",
           cta: "팬 요청 보내기",
-          eyebrow: "출시 예정 기능",
+          eyebrow: "팬 전용 제작 슬롯",
           fanOnlyCount: "팬 전용",
-          locked: "기능 준비 중",
+          locked: "요청 가능",
           lockedAccess: "잠금 콘텐츠",
           note:
             "카드를 누르면 바로 팬 요청 폼으로 이동합니다. 크리에이터는 요청을 보고 팬 전용 브이로그 후보로 제작할 수 있습니다.",
@@ -2096,11 +2096,11 @@ function FanletterFanOnlyPreview({
           availableNote:
             "Cards show the title and public preview only. Full video access is handled by the detail page verification flow.",
           availableTitle: "Fan-only vlog collection",
-          body: "Paid subscription and private content access are not connected yet. This preview shows where fan-only character content can expand inside the channel.",
+          body: "Subscription memberships are still planned, but 1 USDT fan-only paid vlogs can now unlock from the detail page. Leave the scene you want to see and the creator can turn it into a fan-only candidate.",
           cta: "Send fan request",
-          eyebrow: "Upcoming Feature",
+          eyebrow: "Fan-only production slot",
           fanOnlyCount: "Fan-only",
-          locked: "Feature in progress",
+          locked: "Requestable",
           lockedAccess: "Locked content",
           note:
             "Tap a card to open the fan request form with a ready-to-send prompt. The creator can turn it into a fan-only vlog candidate.",
