@@ -14,7 +14,7 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useActiveAccount,
   useActiveWalletChain,
@@ -49,6 +49,8 @@ import {
 type CreateMode = "video";
 type FanRequestSyncStatus = "failed" | "idle" | "reviewed" | "syncing" | "used";
 type GenerationStatus = "error" | "idle" | "loading" | "ready";
+type RestorableGenerationStatus = Exclude<GenerationStatus, "loading">;
+type LocalDraftStatus = "cleared" | "idle" | "restored" | "saved";
 
 type GeneratedMedia = {
   contentType: string;
@@ -89,6 +91,17 @@ const CHARACTER_PLAYBOOK_PLAN_IDS = new Set([
   "fan-request-episode",
 ]);
 const FANLETTER_CREATE_DISCONNECTED_GRACE_MS = 4500;
+const FANLETTER_CREATE_LOCAL_DRAFT_VERSION = 1;
+const FANLETTER_CREATE_LOCAL_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+type FanletterCreateLocalDraft = {
+  form: CreateForm;
+  generatedMedia: GeneratedMedia | null;
+  generationMessage: string | null;
+  generationStatus: RestorableGenerationStatus;
+  savedAt: number;
+  version: typeof FANLETTER_CREATE_LOCAL_DRAFT_VERSION;
+};
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -104,6 +117,11 @@ function getCopy(locale: Locale) {
         bodyPlaceholder: "팬에게 보여줄 브이로그 설명을 입력하세요.",
         contentReady: "오늘의 AI 캐릭터 브이로그가 준비되었습니다.",
         draft: "임시 저장",
+        draftAutosaveCleared: "로컬 자동 저장본을 정리했습니다.",
+        draftAutosaveHint:
+          "입력값과 생성된 영상 링크를 이 기기에 자동 저장해 새로고침 후에도 이어갈 수 있습니다.",
+        draftAutosaveRestored: "이전에 작성하던 브이로그를 복구했습니다.",
+        draftAutosaveSaved: "자동 저장됨",
         draftSaved: "임시 저장했습니다.",
         emptyPrompt: "오늘의 브이로그 장면을 입력하세요.",
         errorFallback: "첫 AI 캐릭터 브이로그를 처리하지 못했습니다.",
@@ -185,6 +203,11 @@ function getCopy(locale: Locale) {
         bodyPlaceholder: "Write the vlog description for fans.",
         contentReady: "Today's AI character vlog is ready.",
         draft: "Save draft",
+        draftAutosaveCleared: "Local autosave was cleared.",
+        draftAutosaveHint:
+          "Inputs and the generated video link are saved on this device so you can continue after refreshing.",
+        draftAutosaveRestored: "Restored the vlog you were editing.",
+        draftAutosaveSaved: "Autosaved",
         draftSaved: "Draft saved.",
         emptyPrompt: "Enter today's vlog scene.",
         errorFallback: "Failed to process first AI character vlog.",
@@ -276,6 +299,190 @@ async function readApiJson<T>(response: Response, fallbackMessage: string) {
   } catch {
     return { error: fallbackMessage };
   }
+}
+
+function getInitialCreateForm(
+  initialPlan?: FanletterCreateInitialPlan,
+): CreateForm {
+  return {
+    ...EMPTY_FORM,
+    body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
+    mode: "video",
+    prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
+    summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
+    title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
+  };
+}
+
+function hasMeaningfulCreateDraft(form: CreateForm, media: GeneratedMedia | null) {
+  return Boolean(
+    media?.url ||
+      form.title.trim() ||
+      form.summary.trim() ||
+      form.prompt.trim() ||
+      form.body.trim() ||
+      form.priceType !== EMPTY_FORM.priceType,
+  );
+}
+
+function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const media = value as Partial<GeneratedMedia>;
+
+  if (
+    typeof media.url !== "string" ||
+    !media.url.trim() ||
+    typeof media.contentType !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    contentType: media.contentType,
+    revisedPrompt:
+      typeof media.revisedPrompt === "string" ? media.revisedPrompt : null,
+    url: media.url,
+  };
+}
+
+function normalizeCreateDraftForm(value: unknown): CreateForm | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const form = value as Partial<CreateForm>;
+
+  return {
+    body: typeof form.body === "string" ? form.body.slice(0, 2_400) : "",
+    mode: "video",
+    priceType: form.priceType === "paid" ? "paid" : "free",
+    prompt: typeof form.prompt === "string" ? form.prompt.slice(0, 4_000) : "",
+    summary: typeof form.summary === "string" ? form.summary.slice(0, 600) : "",
+    title: typeof form.title === "string" ? form.title.slice(0, 180) : "",
+  };
+}
+
+function buildCreateDraftKey({
+  fanRequestId,
+  locale,
+  planId,
+  referralCode,
+}: {
+  fanRequestId: string | null;
+  locale: Locale;
+  planId: string | null;
+  referralCode: string | null;
+}) {
+  return [
+    "fanletter:create-draft:v1",
+    locale,
+    referralCode?.trim() || "direct",
+    planId?.trim() || "manual",
+    fanRequestId?.trim() || "no-request",
+  ].join(":");
+}
+
+function readCreateLocalDraft(key: string): FanletterCreateLocalDraft | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(key);
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<FanletterCreateLocalDraft>;
+
+    if (
+      parsed.version !== FANLETTER_CREATE_LOCAL_DRAFT_VERSION ||
+      typeof parsed.savedAt !== "number" ||
+      Date.now() - parsed.savedAt > FANLETTER_CREATE_LOCAL_DRAFT_TTL_MS
+    ) {
+      window.localStorage.removeItem(key);
+      return null;
+    }
+
+    const form = normalizeCreateDraftForm(parsed.form);
+
+    if (!form) {
+      return null;
+    }
+
+    const generatedMedia = normalizeGeneratedMedia(parsed.generatedMedia);
+    const generationStatus: RestorableGenerationStatus = generatedMedia
+      ? "ready"
+      : parsed.generationStatus === "error"
+        ? "error"
+        : "idle";
+
+    return {
+      form,
+      generatedMedia,
+      generationMessage:
+        typeof parsed.generationMessage === "string"
+          ? parsed.generationMessage
+          : null,
+      generationStatus,
+      savedAt: parsed.savedAt,
+      version: FANLETTER_CREATE_LOCAL_DRAFT_VERSION,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCreateLocalDraft(
+  key: string,
+  draft: Omit<FanletterCreateLocalDraft, "savedAt" | "version">,
+) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const savedAt = Date.now();
+
+  try {
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({
+        ...draft,
+        savedAt,
+        version: FANLETTER_CREATE_LOCAL_DRAFT_VERSION,
+      } satisfies FanletterCreateLocalDraft),
+    );
+    return savedAt;
+  } catch {
+    return null;
+  }
+}
+
+function clearCreateLocalDraft(key: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Local draft recovery is a convenience layer; saving and publishing still work.
+  }
+}
+
+function formatDraftSavedAt(value: number | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function inferTitle(form: CreateForm, fallback: string) {
@@ -387,20 +594,18 @@ export function FanletterCreatePage({
   );
   const [fanRequestSyncStatus, setFanRequestSyncStatus] =
     useState<FanRequestSyncStatus>("idle");
-  const [form, setForm] = useState<CreateForm>(() => ({
-    ...EMPTY_FORM,
-    body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
-    mode: "video",
-    prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
-    summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
-    title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
-  }));
+  const [form, setForm] = useState<CreateForm>(() =>
+    getInitialCreateForm(initialPlan),
+  );
   const [generatedMedia, setGeneratedMedia] = useState<GeneratedMedia | null>(
     null,
   );
   const [generationMessage, setGenerationMessage] = useState<string | null>(null);
   const [generationStatus, setGenerationStatus] =
     useState<GenerationStatus>("idle");
+  const [localDraftSavedAt, setLocalDraftSavedAt] = useState<number | null>(null);
+  const [localDraftStatus, setLocalDraftStatus] =
+    useState<LocalDraftStatus>("idle");
   const [isSaving, setIsSaving] = useState(false);
   const [loadStatus, setLoadStatus] =
     useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -410,12 +615,23 @@ export function FanletterCreatePage({
   const [notice, setNotice] = useState<string | null>(null);
   const [profile, setProfile] = useState<CreatorProfileRecord | null>(null);
   const loadInFlightRef = useRef(false);
+  const localDraftRestoredRef = useRef(false);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
   const hasAvatar = Boolean(profile?.avatarImageUrl);
   const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
+  const localDraftKey = useMemo(
+    () =>
+      buildCreateDraftKey({
+        fanRequestId: initialFanRequestId,
+        locale,
+        planId: initialPlanId,
+        referralCode,
+      }),
+    [initialFanRequestId, initialPlanId, locale, referralCode],
+  );
   const initialFanRequestBody =
     initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
   const initialFanRequestType = initialPlan?.fanRequestType ?? null;
@@ -453,6 +669,17 @@ export function FanletterCreatePage({
   const canPublish = Boolean(generatedMedia?.url);
   const selectedModeCopy = copy.videoBody;
   const generatedVideoUrl = generatedMedia?.url ?? null;
+  const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
+  const localDraftLabel =
+    localDraftStatus === "restored"
+      ? copy.draftAutosaveRestored
+      : localDraftStatus === "cleared"
+        ? copy.draftAutosaveCleared
+        : localDraftStatus === "saved" && localDraftSavedTime
+          ? `${copy.draftAutosaveSaved} · ${localDraftSavedTime}`
+          : localDraftStatus === "saved"
+            ? copy.draftAutosaveSaved
+            : null;
   const contentHref = createdContent
     ? buildPathWithReferral(
         `/${locale}/fanletter/content/${createdContent.contentId}`,
@@ -580,6 +807,68 @@ export function FanletterCreatePage({
 
     void loadSetup();
   }, [connection.isConnected, loadSetup]);
+
+  useEffect(() => {
+    localDraftRestoredRef.current = false;
+    const timeout = window.setTimeout(() => {
+      const draft = readCreateLocalDraft(localDraftKey);
+
+      if (draft) {
+        setForm(draft.form);
+        setGeneratedMedia(draft.generatedMedia);
+        setGenerationMessage(draft.generationMessage);
+        setGenerationStatus(draft.generationStatus);
+        setLocalDraftSavedAt(draft.savedAt);
+        setLocalDraftStatus("restored");
+      }
+
+      localDraftRestoredRef.current = true;
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [localDraftKey]);
+
+  useEffect(() => {
+    if (!localDraftRestoredRef.current) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (!hasMeaningfulCreateDraft(form, generatedMedia)) {
+        clearCreateLocalDraft(localDraftKey);
+        return;
+      }
+
+      const savedAt = writeCreateLocalDraft(localDraftKey, {
+        form,
+        generatedMedia,
+        generationMessage,
+        generationStatus:
+          generationStatus === "loading"
+            ? generatedMedia
+              ? "ready"
+              : "idle"
+            : generationStatus,
+      });
+
+      if (savedAt) {
+        setLocalDraftSavedAt(savedAt);
+        setLocalDraftStatus("saved");
+      }
+    }, 650);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [
+    form,
+    generatedMedia,
+    generationMessage,
+    generationStatus,
+    localDraftKey,
+  ]);
 
   function updateForm(patch: Partial<CreateForm>) {
     setForm((current) => ({ ...current, ...patch }));
@@ -754,6 +1043,9 @@ export function FanletterCreatePage({
         );
       }
       setNotice(status === "published" ? copy.published : copy.draftSaved);
+      clearCreateLocalDraft(localDraftKey);
+      setLocalDraftSavedAt(null);
+      setLocalDraftStatus("cleared");
     } catch (saveError) {
       const message = getErrorMessage(saveError, copy.errorFallback);
 
@@ -922,6 +1214,21 @@ export function FanletterCreatePage({
           {notice ? (
             <div className="mb-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4 text-sm font-medium leading-6 text-[#c9ffd5]">
               {notice}
+            </div>
+          ) : null}
+          {localDraftLabel ? (
+            <div className="mb-4 flex flex-col gap-2 rounded-lg border border-white/12 bg-white/[0.055] p-4 text-sm font-medium leading-6 text-white/62 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                <div>
+                  <p className="font-semibold text-[#c9ffd5]">
+                    {localDraftLabel}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-white/44">
+                    {copy.draftAutosaveHint}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : null}
 
