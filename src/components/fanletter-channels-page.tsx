@@ -885,7 +885,7 @@ export function FanletterChannelsPage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 text-[2.55rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.8rem]">
+              <h1 className="mt-4 text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.9rem] lg:text-[4.15rem]">
                 {copy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
