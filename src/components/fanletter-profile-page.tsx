@@ -64,6 +64,14 @@ type EditableFanletterProfile = {
   payoutWalletAddress: string;
 };
 
+type CharacterVisualSilhouette =
+  | "auto"
+  | "athletic"
+  | "balanced"
+  | "elegant"
+  | "slender"
+  | "soft";
+
 type PersonaGenerationState = {
   ageRange: "" | "20s" | "30s" | "40s" | "50s_plus";
   appearanceTone:
@@ -78,6 +86,7 @@ type PersonaGenerationState = {
   error: string | null;
   gender: "" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
+  visualSilhouette: CharacterVisualSilhouette;
 };
 
 type AvatarGenerationState = {
@@ -101,6 +110,7 @@ type CharacterQuickstartState = {
   gender: "auto" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
   style: "chic" | "daily" | "fan_service" | "friendly";
+  visualSilhouette: CharacterVisualSilhouette;
 };
 
 type CharacterGrowthState = {
@@ -126,6 +136,7 @@ const EMPTY_PERSONA_GENERATION: PersonaGenerationState = {
   error: null,
   gender: "",
   status: "idle",
+  visualSilhouette: "auto",
 };
 
 const EMPTY_AVATAR_GENERATION: AvatarGenerationState = {
@@ -141,6 +152,7 @@ const EMPTY_QUICK_CHARACTER: CharacterQuickstartState = {
   gender: "auto",
   status: "idle",
   style: "friendly",
+  visualSilhouette: "auto",
 };
 const EMPTY_CHARACTER_GROWTH: CharacterGrowthState = {
   data: null,
@@ -191,6 +203,17 @@ function getCopy(locale: Locale) {
           ["south_asian", "남아시아"],
           ["middle_eastern_mediterranean", "중동/지중해"],
           ["african_diaspora", "아프리카 디아스포라"],
+        ] as const,
+        visualSilhouette: "비주얼 실루엣",
+        visualSilhouetteHint:
+          "몸매가 아니라 같은 인물로 보이게 하는 전체 인상, 자세, 화면 속 존재감 기준입니다.",
+        visualSilhouetteOptions: [
+          ["auto", "자동"],
+          ["balanced", "균형 잡힌"],
+          ["slender", "슬림한"],
+          ["soft", "부드러운"],
+          ["athletic", "활동적인"],
+          ["elegant", "우아한"],
         ] as const,
         avatar: "AI 브이로그 아바타",
         avatarBody:
@@ -377,7 +400,7 @@ function getCopy(locale: Locale) {
         profileStep: "02 · 캐릭터 만들기",
         persona: "캐릭터 페르소나",
         personaBody:
-          "같은 AI 브이로그 캐릭터가 유지되도록 얼굴, 헤어, 피부 톤, 신체 실루엣의 고정 정보를 선택합니다.",
+          "같은 AI 브이로그 캐릭터가 유지되도록 얼굴, 헤어, 피부 톤, 비주얼 실루엣의 고정 정보를 선택합니다.",
         personaRequired: "성별과 연령대를 먼저 선택하세요.",
         personaSave: "선택하고 저장",
         personaSaved: "적용됨",
@@ -459,6 +482,17 @@ function getCopy(locale: Locale) {
           ["south_asian", "South Asian"],
           ["middle_eastern_mediterranean", "Middle Eastern / Mediterranean"],
           ["african_diaspora", "African diaspora"],
+        ] as const,
+        visualSilhouette: "Visual silhouette",
+        visualSilhouetteHint:
+          "A neutral consistency cue for overall impression, posture, and screen presence. It is not a body-rating setting.",
+        visualSilhouetteOptions: [
+          ["auto", "Auto"],
+          ["balanced", "Balanced"],
+          ["slender", "Slender"],
+          ["soft", "Soft"],
+          ["athletic", "Active"],
+          ["elegant", "Elegant"],
         ] as const,
         avatar: "AI vlogger avatar",
         avatarBody:
@@ -1185,6 +1219,10 @@ export function FanletterProfilePage({
           intro: profile.intro,
           locale,
           style: quickCharacter.style,
+          visualSilhouette:
+            quickCharacter.visualSilhouette === "auto"
+              ? null
+              : quickCharacter.visualSilhouette,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -1267,6 +1305,10 @@ export function FanletterProfilePage({
           gender: personaGeneration.gender,
           intro: profile.intro,
           locale,
+          visualSilhouette:
+            personaGeneration.visualSilhouette === "auto"
+              ? null
+              : personaGeneration.visualSilhouette,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -2643,6 +2685,44 @@ export function FanletterProfilePage({
                   })}
                 </div>
               </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  {copy.visualSilhouette}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {copy.visualSilhouetteOptions.map(([value, label]) => {
+                    const selected = quickCharacter.visualSilhouette === value;
+
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`min-h-10 rounded-full border px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          selected
+                            ? "border-[#44f26e] bg-[#44f26e] text-black"
+                            : "border-white/12 bg-white/[0.055] text-white"
+                        }`}
+                        disabled={isCreatingCharacter}
+                        key={value}
+                        onClick={() => {
+                          setQuickCharacter((current) => ({
+                            ...current,
+                            error: null,
+                            status: "idle",
+                            visualSilhouette:
+                              value as CharacterQuickstartState["visualSilhouette"],
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs font-medium leading-5 text-white/42">
+                  {copy.visualSilhouetteHint}
+                </p>
+              </div>
             </div>
           ) : null}
         </div>
@@ -3034,6 +3114,37 @@ export function FanletterProfilePage({
                 </div>
                 <p className="mt-2 text-xs font-medium leading-5 text-white/42">
                   {copy.appearanceHint}
+                </p>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  {copy.visualSilhouette}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {copy.visualSilhouetteOptions.map(([value, label]) => (
+                    <button
+                      className={`min-h-10 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                        personaGeneration.visualSilhouette === value
+                          ? "border-[#44f26e] bg-[#44f26e] text-black"
+                          : "border-white/12 bg-white/[0.055] text-white"
+                      }`}
+                      key={value}
+                      onClick={() => {
+                        setPersonaGeneration((current) => ({
+                          ...current,
+                          visualSilhouette:
+                            value as PersonaGenerationState["visualSilhouette"],
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs font-medium leading-5 text-white/42">
+                  {copy.visualSilhouetteHint}
                 </p>
               </div>
 

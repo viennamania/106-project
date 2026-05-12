@@ -2,6 +2,7 @@ import type {
   CreatorPersonaAgeRange,
   CreatorPersonaAppearanceTone,
   CreatorPersonaGender,
+  CreatorPersonaVisualSilhouette,
 } from "@/lib/creator-character-persona-service";
 import { generateCreatorAvatarCandidates } from "@/lib/creator-avatar-service";
 import {
@@ -36,6 +37,7 @@ type QuickCharacterRequest = {
   intro?: string | null;
   locale?: string | null;
   style?: string | null;
+  visualSilhouette?: string | null;
   walletAddress?: string | null;
 };
 
@@ -49,6 +51,14 @@ const appearanceTones = [
   "western",
 ] as const;
 const genders = ["auto", "female", "male"] as const;
+const visualSilhouettes = [
+  "athletic",
+  "balanced",
+  "elegant",
+  "slender",
+  "soft",
+  "auto",
+] as const;
 const styles = [
   "chic",
   "cinematic",
@@ -80,6 +90,14 @@ function parseGender(value: string | null | undefined): CreatorPersonaGender {
   return genders.includes(value as CreatorPersonaGender)
     ? (value as CreatorPersonaGender)
     : "auto";
+}
+
+function parseVisualSilhouette(
+  value: string | null | undefined,
+): CreatorPersonaVisualSilhouette | null {
+  return visualSilhouettes.includes(value as CreatorPersonaVisualSilhouette)
+    ? (value as CreatorPersonaVisualSilhouette)
+    : null;
 }
 
 function parseStyle(value: string | null | undefined): QuickCharacterStyle {
@@ -165,6 +183,7 @@ export async function POST(request: Request) {
       gender: parseGender(body.gender),
       intro: introParts.join("\n"),
       locale,
+      visualSilhouette: parseVisualSilhouette(body.visualSilhouette),
     });
     const [characterPersona] = personaCandidates.candidates;
 

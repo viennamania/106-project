@@ -138,15 +138,15 @@ export function applyCreatorCharacterPersonaToPrompt(
     : "If the user prompt contains any conflicting gender, age, face, hair, skin tone, ethnicity, or overall appearance details, ignore those details and use the character persona instead.";
 
   return [
-    "Character identity lock: Maintain the same adult character identity across this generation. The character's face, age range, hair, skin tone, expression, and overall presence must remain consistent.",
+    "Character identity lock: Maintain the same adult character identity across this generation. The character's face, age range, hair, skin tone, expression, neutral visual silhouette, posture, and overall presence must remain consistent.",
     `Character persona: ${identityPrompt}`,
     `Locked traits: ${formatList(
       persona.lockedTraits,
-      "same face structure, same hair, same skin tone, same age range, same overall presence",
+      "same face structure, same hair, same skin tone, same age range, same neutral visual silhouette, same posture, same overall presence",
     )}.`,
     `Do not change: ${formatList(
       persona.avoidChanges,
-      "facial structure, hair color, age range, ethnicity, overall presence",
+      "facial structure, hair color, age range, ethnicity, neutral visual silhouette, posture, overall presence",
     )}.`,
     "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, or overall visual identity.",
     sceneInstruction,

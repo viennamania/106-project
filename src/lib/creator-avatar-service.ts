@@ -220,7 +220,7 @@ function createAvatarPrompt({
     `Avatar set expression: ${expression.label}.`,
     `Fixed character persona: ${identityPrompt}`,
     "Generate this as one frame in a single consistent character expression kit. The same person must appear across every cut; only the facial expression, micro-pose, and emotional tone may change.",
-    "Preserve exact facial identity: face shape, eyes, nose, mouth, eyebrows, hairline, hairstyle, skin tone, age range, body proportions, makeup level, and recognizable features.",
+    "Preserve exact facial identity: face shape, eyes, nose, mouth, eyebrows, hairline, hairstyle, skin tone, age range, neutral visual silhouette and posture when visible, makeup level, and recognizable features.",
     "Head-and-shoulders portrait, centered composition, professional social profile avatar, high-quality digital realism, natural skin texture, clean lighting, consistent crop and lens.",
     expression.prompt,
     "Do not redesign the character, change wardrobe direction dramatically, shift ethnicity, alter age, change hair length, or make the character look like a different person.",

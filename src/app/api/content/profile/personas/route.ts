@@ -5,6 +5,7 @@ import {
   type CreatorPersonaAgeRange,
   type CreatorPersonaAppearanceTone,
   type CreatorPersonaGender,
+  type CreatorPersonaVisualSilhouette,
 } from "@/lib/creator-character-persona-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
@@ -21,6 +22,7 @@ type GeneratePersonasRequest = {
   gender?: string | null;
   intro?: string | null;
   locale?: string | null;
+  visualSilhouette?: string | null;
   walletAddress?: string | null;
 };
 
@@ -34,6 +36,13 @@ const creatorPersonaAppearanceTones = [
   "western",
 ] as const;
 const creatorPersonaGenders = ["female", "male"] as const;
+const creatorPersonaVisualSilhouettes = [
+  "athletic",
+  "balanced",
+  "elegant",
+  "slender",
+  "soft",
+] as const;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -60,6 +69,14 @@ function parsePersonaAppearanceTone(value: string | null | undefined) {
     value as CreatorPersonaAppearanceTone,
   )
     ? (value as CreatorPersonaAppearanceTone)
+    : null;
+}
+
+function parsePersonaVisualSilhouette(value: string | null | undefined) {
+  return creatorPersonaVisualSilhouettes.includes(
+    value as (typeof creatorPersonaVisualSilhouettes)[number],
+  )
+    ? (value as CreatorPersonaVisualSilhouette)
     : null;
 }
 
@@ -124,6 +141,7 @@ export async function POST(request: Request) {
       gender,
       intro: body.intro || profile.intro,
       locale,
+      visualSilhouette: parsePersonaVisualSilhouette(body.visualSilhouette),
     });
     const response: CreatorCharacterPersonaGenerateResponse = {
       candidates: generated.candidates,

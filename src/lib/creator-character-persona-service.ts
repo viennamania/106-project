@@ -24,6 +24,13 @@ export type CreatorPersonaAppearanceTone =
   | "south_asian"
   | "western";
 export type CreatorPersonaGender = "auto" | "female" | "male";
+export type CreatorPersonaVisualSilhouette =
+  | "athletic"
+  | "balanced"
+  | "elegant"
+  | "slender"
+  | "soft"
+  | "auto";
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -57,6 +64,7 @@ export type GenerateCreatorCharacterPersonasInput = {
   gender: CreatorPersonaGender;
   intro?: string | null;
   locale?: string | null;
+  visualSilhouette?: CreatorPersonaVisualSilhouette | null;
 };
 
 function trimToLength(value: string | null | undefined, limit: number) {
@@ -129,6 +137,25 @@ function getAppearanceToneInstruction(
       return "South Asian-inspired facial impression, skin tone range, and hair identity";
     case "western":
       return "Western or European-inspired facial impression, skin tone range, and hair identity";
+    default:
+      return null;
+  }
+}
+
+function getVisualSilhouetteInstruction(
+  visualSilhouette: CreatorPersonaVisualSilhouette | null | undefined,
+) {
+  switch (visualSilhouette) {
+    case "athletic":
+      return "active natural silhouette with a lightly toned frame impression and energetic upright posture";
+    case "balanced":
+      return "balanced natural silhouette with proportionate frame impression and relaxed camera-visible stance";
+    case "elegant":
+      return "elegant upright silhouette with refined posture, long-line presence, and calm camera-visible stance";
+    case "slender":
+      return "slender natural silhouette with a light frame impression and relaxed posture";
+    case "soft":
+      return "soft natural silhouette with a gentle frame impression and relaxed posture";
     default:
       return null;
   }
@@ -330,6 +357,9 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
   const appearanceToneInstruction = getAppearanceToneInstruction(
     input.appearanceTone,
   );
+  const visualSilhouetteInstruction = getVisualSilhouetteInstruction(
+    input.visualSilhouette,
+  );
   const hasAutoIdentity = input.gender === "auto" || input.ageRange === "auto";
   const identityRequirement = hasAutoIdentity
     ? "Each identityPrompt must explicitly state the chosen adult gender presentation and adult age range, then lock them as unchangeable identity traits."
@@ -348,6 +378,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           "Describe overall presence only in neutral non-sexual terms: height impression, shoulder line, neck length, posture, frame, and camera-visible stance.",
           "Every candidate must describe a consistent adult person's identity. If gender or age range is fixed, match it exactly. If either is auto, choose a coherent adult identity choice and keep it stable.",
           "When an appearance tone is provided, use it only as a stable visual design direction for face, skin, and hair details. Do not write stereotypes or broad claims about protected identity.",
+          "When a visual silhouette is provided, use it only as a neutral identity-consistency cue for overall frame impression, posture, and stance.",
           "Do not include locations, scenes, camera directions, sexualized wording, nudity, fetish roles, brands, content topics, or emphasis on breasts, hips, thighs, buttocks, cleavage, or erotic body parts.",
           "Write user-facing name and summary in Korean when requested. Write identityPrompt, lockedTraits, and avoidChanges in concise English for generation models.",
         ].join(" "),
@@ -363,6 +394,9 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           appearanceToneInstruction
             ? `Preferred appearance tone: ${appearanceToneInstruction}. Keep it consistent across all candidates.`
             : "No fixed appearance tone was selected. Choose a coherent safe appearance for each candidate.",
+          visualSilhouetteInstruction
+            ? `Preferred neutral visual silhouette: ${visualSilhouetteInstruction}. Keep this as an identity-consistency cue without body-part emphasis.`
+            : "No fixed visual silhouette was selected. Choose a coherent neutral presence for each candidate.",
           avatarImageUrl
             ? `A creator avatar URL is available for high-level context: ${avatarImageUrl}. Do not claim exact biometric analysis.`
             : "No avatar image is available.",
@@ -371,9 +405,9 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
           appearanceToneInstruction
             ? "Each identityPrompt must include concrete face, skin, and hair details consistent with the preferred appearance tone."
             : "Each identityPrompt must include concrete face, skin, and hair details that form a stable identity.",
-          "Each identityPrompt must be one detailed paragraph in English with: face lock, hair lock, skin lock, expression lock, overall presence lock, posture lock, and a clear instruction that outfit/scene/action may change but identity must not.",
-          "Each lockedTraits item should be a concrete stable visual trait, not a vague personality trait. Include at least four face/hair/skin traits and at least two neutral posture/presence traits.",
-          "Each avoidChanges item should explicitly forbid changing gender, adult age range, face structure, hair color/length, skin tone, ethnic impression, and overall presence.",
+          "Each identityPrompt must be one detailed paragraph in English with: face lock, hair lock, skin lock, expression lock, neutral visual silhouette lock, overall presence lock, posture lock, and a clear instruction that outfit/scene/action may change but identity must not.",
+          "Each lockedTraits item should be a concrete stable visual trait, not a vague personality trait. Include at least four face/hair/skin traits and at least two neutral silhouette/posture/presence traits.",
+          "Each avoidChanges item should explicitly forbid changing gender, adult age range, face structure, hair color/length, skin tone, ethnic impression, neutral visual silhouette, posture, and overall presence.",
           "Keep the wording safe for image and video models: neutral, non-erotic, and suitable for varied creator content prompts.",
         ].join(" "),
       },
