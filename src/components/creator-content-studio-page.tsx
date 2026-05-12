@@ -4589,7 +4589,7 @@ export function CreatorContentStudioPage({
       locale === "ko"
         ? {
             body:
-              "선택한 인물 페르소나를 기준으로 기본, 미소, 진지함 표정 세트를 생성합니다.",
+              "선택한 인물 페르소나를 기준으로 같은 정체성을 유지한 대표, 미소, 차분, 리액션, 팬서비스 컷을 생성합니다.",
             disabledHint: "인물 페르소나를 먼저 선택하면 AI 아바타를 만들 수 있습니다.",
             generate: "AI 아바타 세트 생성",
             generating: "아바타 세트 생성 중...",
@@ -4603,7 +4603,7 @@ export function CreatorContentStudioPage({
           }
         : {
             body:
-              "Generate default, smiling, and serious avatar expressions from the selected character persona.",
+              "Generate a consistent avatar kit with hero, smile, calm, reaction, and fan-service cuts from the selected character persona.",
             disabledHint: "Select a character persona first to generate AI avatars.",
             generate: "Generate Avatar Set",
             generating: "Generating avatar set...",
@@ -4618,6 +4618,10 @@ export function CreatorContentStudioPage({
     const getAvatarExpressionLabel = (
       candidate: CreatorProfileAvatarCandidate,
     ) => {
+      if (candidate.label?.trim()) {
+        return candidate.label;
+      }
+
       if (candidate.expression === "smile") {
         return avatarGeneratorCopy.labelSmile;
       }

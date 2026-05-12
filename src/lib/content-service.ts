@@ -10,6 +10,7 @@ import {
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
   CONTENT_VIDEO_LIMIT,
+  creatorAvatarExpressions,
   createEmptyContentSocialSummary,
   normalizeContentLocale,
   serializeContentOrder,
@@ -120,7 +121,7 @@ const CHARACTER_PERSONA_SUMMARY_LIMIT = 220;
 const CHARACTER_PERSONA_PROMPT_LIMIT = 1_200;
 const CHARACTER_PERSONA_TRAIT_LIMIT = 160;
 const CHARACTER_PERSONA_TRAIT_COUNT_LIMIT = 8;
-const CREATOR_AVATAR_SET_LIMIT = 6;
+const CREATOR_AVATAR_SET_LIMIT = 8;
 const CONTENT_TITLE_LIMIT = 88;
 const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
@@ -289,9 +290,7 @@ function normalizeCharacterPersona(
 function normalizeAvatarExpression(
   value: string | null | undefined,
 ): CreatorProfileAvatarCandidate["expression"] | undefined {
-  return value === "default" || value === "serious" || value === "smile"
-    ? value
-    : undefined;
+  return creatorAvatarExpressions.find((expression) => expression === value);
 }
 
 function normalizeCreatorAvatarSet(

@@ -51,6 +51,16 @@ export const fanletterFanRequestStatuses = [
   "used",
   "hidden",
 ] as const;
+export const creatorAvatarExpressions = [
+  "default",
+  "smile",
+  "serious",
+  "reaction",
+  "shy",
+  "focus",
+  "fanservice",
+  "thumbnail",
+] as const;
 
 export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
 export type ContentPostStatus = (typeof contentPostStatuses)[number];
@@ -589,7 +599,7 @@ export type CreatorProfileUploadResponse = {
 
 export type CreatorProfileAvatarCandidate = {
   contentType: string;
-  expression?: "default" | "serious" | "smile";
+  expression?: (typeof creatorAvatarExpressions)[number];
   label?: string;
   pathname: string;
   url: string;

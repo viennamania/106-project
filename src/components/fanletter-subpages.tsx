@@ -324,6 +324,26 @@ function getAvatarExpressionLabel(
     return locale === "ko" ? "차분함" : "Calm";
   }
 
+  if (expression === "reaction") {
+    return locale === "ko" ? "리액션" : "Reaction";
+  }
+
+  if (expression === "shy") {
+    return locale === "ko" ? "설렘" : "Delight";
+  }
+
+  if (expression === "focus") {
+    return locale === "ko" ? "집중" : "Focus";
+  }
+
+  if (expression === "fanservice") {
+    return locale === "ko" ? "팬서비스" : "Fan service";
+  }
+
+  if (expression === "thumbnail") {
+    return locale === "ko" ? "썸네일" : "Thumbnail";
+  }
+
   return locale === "ko" ? "대표" : "Default";
 }
 

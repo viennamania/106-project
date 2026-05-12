@@ -24,18 +24,51 @@ type AvatarExpressionSpec = {
 const AVATAR_EXPRESSION_SET = [
   {
     expression: "default",
-    label: "기본",
-    prompt: "neutral studio background, direct friendly expression",
+    label: "대표",
+    prompt:
+      "neutral studio background, direct confident expression, clean first-impression channel hero look",
   },
   {
     expression: "smile",
     label: "미소",
-    prompt: "soft gray studio background, gentle natural smile",
+    prompt:
+      "soft gray studio background, gentle natural smile, warm eyes, approachable fan reply mood",
   },
   {
     expression: "serious",
-    label: "진지함",
-    prompt: "clean editorial background, calm focused serious expression",
+    label: "차분",
+    prompt:
+      "clean editorial background, calm composed expression, steady gaze, polished routine vlog mood",
+  },
+  {
+    expression: "reaction",
+    label: "리액션",
+    prompt:
+      "clean studio background, vivid surprised reaction, expressive eyes, slightly raised eyebrows, memorable ending cut",
+  },
+  {
+    expression: "shy",
+    label: "설렘",
+    prompt:
+      "soft daylight studio background, shy delighted expression, subtle blush mood, gentle fan-service moment",
+  },
+  {
+    expression: "focus",
+    label: "집중",
+    prompt:
+      "minimal editorial background, focused thoughtful expression, slightly serious eyes, behind-the-scenes planning mood",
+  },
+  {
+    expression: "fanservice",
+    label: "팬서비스",
+    prompt:
+      "bright clean background, playful wink or tiny heart gesture close to face, friendly fan-service expression",
+  },
+  {
+    expression: "thumbnail",
+    label: "썸네일",
+    prompt:
+      "high-clarity thumbnail look, curious bright expression, slight head tilt, strong eye contact, clean contrast without text",
   },
 ] satisfies AvatarExpressionSpec[];
 
@@ -185,11 +218,12 @@ function createAvatarPrompt({
     `Creator label: ${name}. Do not render text or logos.`,
     `Avatar set expression: ${expression.label}.`,
     `Fixed character persona: ${identityPrompt}`,
-    "Head-and-shoulders portrait, centered composition, professional social profile avatar, high-quality digital realism, natural skin texture, clean lighting.",
+    "Generate this as one frame in a single consistent character expression kit. The same person must appear across every cut; only the facial expression, micro-pose, and emotional tone may change.",
+    "Preserve exact facial identity: face shape, eyes, nose, mouth, eyebrows, hairline, hairstyle, skin tone, age range, body proportions, makeup level, and recognizable features.",
+    "Head-and-shoulders portrait, centered composition, professional social profile avatar, high-quality digital realism, natural skin texture, clean lighting, consistent crop and lens.",
     expression.prompt,
-    "Keep the same exact character identity as the other avatars in this expression set.",
-    "Do not change the persona's gender, age range, face, hair, skin tone, ethnicity, or recognizable identity.",
-    "No full-body pose, no busy background, no extra people, no text, no watermark, no explicit styling.",
+    "Do not redesign the character, change wardrobe direction dramatically, shift ethnicity, alter age, change hair length, or make the character look like a different person.",
+    "No full-body pose, no busy background, no extra people, no text, no watermark, no explicit or adult styling.",
   ].join(" ");
 }
 

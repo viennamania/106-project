@@ -301,7 +301,7 @@ function getPublicAvatarImageSet(profile: CreatorProfileDocument) {
       uniqueUrls.add(url);
       return true;
     })
-    .slice(0, 4);
+    .slice(0, 8);
 }
 
 function getPublicPublishingStreakDays(posts: ContentPostDocument[]) {
