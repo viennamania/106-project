@@ -201,7 +201,10 @@ function getCopy(locale: Locale) {
         promptPlaceholder:
           "장소, 움직임, 행동, 대사, 카메라 느낌, 숏폼 분위기를 자연스럽게 입력하세요.",
         publish: "브이로그 동영상 공개",
+        publishCompleted: "공개 완료",
         published: "공개했습니다.",
+        publishAlreadyCompleted:
+          "이미 공개된 브이로그입니다. 같은 동영상을 다시 공개하지 않고, 상세 페이지에서 확인하세요.",
         result: "AI 동영상 미리보기",
         setupChecks: {
           character: "캐릭터 적용",
@@ -330,7 +333,10 @@ function getCopy(locale: Locale) {
         promptPlaceholder:
           "Describe location, motion, action, dialogue, camera feel, and short-form mood.",
         publish: "Publish vlog video",
+        publishCompleted: "Published",
         published: "Published.",
+        publishAlreadyCompleted:
+          "This vlog has already been published. Open the detail page instead of publishing the same video again.",
         result: "AI video preview",
         setupChecks: {
           character: "Character applied",
@@ -693,6 +699,7 @@ export function FanletterCreatePage({
   const [profile, setProfile] = useState<CreatorProfileRecord | null>(null);
   const loadInFlightRef = useRef(false);
   const localDraftRestoredRef = useRef(false);
+  const saveInFlightRef = useRef(false);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
   const hasAvatar = Boolean(profile?.avatarImageUrl);
@@ -754,7 +761,8 @@ export function FanletterCreatePage({
         form.summary.trim() ||
         form.prompt.trim()),
   );
-  const canPublish = Boolean(generatedMedia?.url);
+  const hasPublishedContent = createdContent?.status === "published";
+  const canPublish = Boolean(generatedMedia?.url) && !hasPublishedContent;
   const heroEyebrow = avatarExperienceCopy?.eyebrow ?? copy.eyebrow;
   const heroTitleText = avatarExperienceCopy?.titleText ?? copy.titleText;
   const selectedModeCopy = avatarExperienceCopy?.videoBody ?? copy.videoBody;
@@ -1062,13 +1070,27 @@ export function FanletterCreatePage({
   }
 
   async function savePost(status: "draft" | "published") {
+    if (saveInFlightRef.current) {
+      return;
+    }
+
+    saveInFlightRef.current = true;
+
     if (!accountAddress) {
       setError(copy.accountRequiredBody);
+      saveInFlightRef.current = false;
+      return;
+    }
+
+    if (status === "published" && hasPublishedContent) {
+      setNotice(copy.publishAlreadyCompleted);
+      saveInFlightRef.current = false;
       return;
     }
 
     if (status === "published" && !generatedMedia?.url) {
       setError(copy.missingMedia);
+      saveInFlightRef.current = false;
       return;
     }
 
@@ -1182,6 +1204,7 @@ export function FanletterCreatePage({
         setError(message);
       }
     } finally {
+      saveInFlightRef.current = false;
       setIsSaving(false);
     }
   }
@@ -1708,7 +1731,7 @@ export function FanletterCreatePage({
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <button
                     className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSaving}
+                    disabled={isSaving || hasPublishedContent}
                     onClick={() => {
                       void savePost("draft");
                     }}
@@ -1729,7 +1752,7 @@ export function FanletterCreatePage({
                     ) : (
                       <Clapperboard className="size-4" />
                     )}
-                    {copy.publish}
+                    {hasPublishedContent ? copy.publishCompleted : copy.publish}
                   </button>
                 </div>
 
