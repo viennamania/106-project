@@ -32,6 +32,7 @@ import {
   type FanletterChannelSectionTabItem,
 } from "@/components/fanletter-channel-section-tabs";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
+import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-request-preset-link";
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -2045,6 +2046,7 @@ function FanletterFanOnlyPreview({
   locale,
   publicVlogsHref,
   referralCode,
+  requestFormId,
   requestHref,
 }: {
   channelName: string;
@@ -2053,6 +2055,7 @@ function FanletterFanOnlyPreview({
   locale: Locale;
   publicVlogsHref: string;
   referralCode: string | null;
+  requestFormId: string;
   requestHref: string;
 }) {
   const labels =
@@ -2074,9 +2077,11 @@ function FanletterFanOnlyPreview({
           locked: "기능 준비 중",
           lockedAccess: "잠금 콘텐츠",
           note:
-            "현재는 예고 카드입니다. 실제 비공개 루틴 업로드, 결제 잠금, 구독자 열람 기능은 아직 활성화되지 않았습니다.",
+            "카드를 누르면 바로 팬 요청 폼으로 이동합니다. 크리에이터는 요청을 보고 팬 전용 브이로그 후보로 제작할 수 있습니다.",
           priceLabel: "유료",
+          presetCta: "이 요청으로 남기기",
           requestFanOnly: "다음 팬 전용 요청",
+          requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
           title: "팬 전용 브이로그 공간 미리보기",
         }
@@ -2097,9 +2102,11 @@ function FanletterFanOnlyPreview({
           locked: "Feature in progress",
           lockedAccess: "Locked content",
           note:
-            "These are preview cards. Private routine uploads, paid locks, and subscriber access are not active yet.",
+            "Tap a card to open the fan request form with a ready-to-send prompt. The creator can turn it into a fan-only vlog candidate.",
           priceLabel: "Paid",
+          presetCta: "Request this",
           requestFanOnly: "Request next fan-only",
+          requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
           title: "Fan-only vlog space preview",
         };
@@ -2109,18 +2116,24 @@ function FanletterFanOnlyPreview({
           {
             body: `${channelName}의 비공개 하루 루틴과 짧은 근황이 들어갈 예정인 슬롯입니다.`,
             Icon: LockKeyhole,
+            presetBody: `${channelName}의 아침 루틴, 쉬는 날 일정, 플레이리스트처럼 팬 전용으로 볼 수 있는 비공개 루틴 브이로그를 보고 싶어요.`,
+            requestType: "vlog_request" as const,
             stage: "콘텐츠 슬롯",
             title: "비공개 루틴",
           },
           {
             body: "댓글보다 더 가까운 팬 메시지와 답장 흐름이 붙을 예정입니다.",
             Icon: MessageCircleHeart,
+            presetBody: `${channelName}에게 응원 메시지를 남기고, 다음 팬 전용 브이로그에서 짧게 답장받고 싶어요.`,
+            requestType: "message" as const,
             stage: "대화 흐름",
             title: "팬 메시지",
           },
           {
             body: "공개 피드에 올리기 전의 미리보기와 제작 노트가 들어갈 수 있습니다.",
             Icon: Clapperboard,
+            presetBody: `${channelName}의 다음 공개 브이로그 전에 선공개 장면이나 제작 노트를 팬 전용으로 보고 싶어요.`,
+            requestType: "vlog_request" as const,
             stage: "선공개 구조",
             title: "선공개 노트",
           },
@@ -2129,18 +2142,24 @@ function FanletterFanOnlyPreview({
           {
             body: `${channelName}'s private routines and short updates are planned for this slot.`,
             Icon: LockKeyhole,
+            presetBody: `I want to see ${channelName}'s morning routine, off-day schedule, or playlist as a fan-only private routine vlog.`,
+            requestType: "vlog_request" as const,
             stage: "Content slot",
             title: "Private routine",
           },
           {
             body: "A closer fan message and reply flow is planned here.",
             Icon: MessageCircleHeart,
+            presetBody: `I want to leave a support message for ${channelName} and see a short reply in the next fan-only vlog.`,
+            requestType: "message" as const,
             stage: "Message flow",
             title: "Fan messages",
           },
           {
             body: "Preview notes before public feed release can live here later.",
             Icon: Clapperboard,
+            presetBody: `I want to see early scenes or production notes before ${channelName}'s next public vlog.`,
+            requestType: "vlog_request" as const,
             stage: "Early access",
             title: "Early notes",
           },
@@ -2209,13 +2228,16 @@ function FanletterFanOnlyPreview({
                   <LockKeyhole className="size-4" />
                   {labels.availableCta}
                 </Link>
-                <Link
+                <FanletterFanRequestPresetLink
+                  body={labels.requestFanOnlyBody}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/18 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
+                  formId={requestFormId}
                   href={requestHref}
+                  requestType="vlog_request"
                 >
                   <BellPlus className="size-4" />
                   {labels.requestFanOnly}
-                </Link>
+                </FanletterFanRequestPresetLink>
               </div>
             </aside>
           </div>
@@ -2316,13 +2338,16 @@ function FanletterFanOnlyPreview({
               {labels.actionTitle}
             </p>
             <div className="mt-3 grid gap-2">
-              <Link
+              <FanletterFanRequestPresetLink
+                body={labels.requestFanOnlyBody}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                formId={requestFormId}
                 href={requestHref}
+                requestType="vlog_request"
               >
                 <BellPlus className="size-4" />
                 {labels.cta}
-              </Link>
+              </FanletterFanRequestPresetLink>
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/18 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
                 href={publicVlogsHref}
@@ -2335,10 +2360,14 @@ function FanletterFanOnlyPreview({
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {cards.map(({ Icon, body, stage, title }) => (
-            <article
-              className="min-h-[13rem] rounded-lg border border-white/10 bg-white/[0.055] p-4"
+          {cards.map(({ Icon, body, presetBody, requestType, stage, title }) => (
+            <FanletterFanRequestPresetLink
+              body={presetBody}
+              className="group min-h-[14.5rem] rounded-lg border border-white/10 bg-white/[0.055] p-4 text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+              formId={requestFormId}
+              href={requestHref}
               key={title}
+              requestType={requestType}
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
@@ -2357,7 +2386,11 @@ function FanletterFanOnlyPreview({
               <p className="mt-3 text-sm font-medium leading-6 text-white/56">
                 {body}
               </p>
-            </article>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#b9ffc8]">
+                {labels.presetCta}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </FanletterFanRequestPresetLink>
           ))}
         </div>
       </div>
@@ -4288,7 +4321,10 @@ export function FanletterCreatorPage({
     effectiveReferralCode,
   );
   const publicVlogsHref = `${channelHref}#public-vlogs`;
-  const fanRequestsSectionHref = `${channelHref}#fan-requests`;
+  const fanRequestsSectionId = "fan-requests";
+  const fanRequestsFormId = `${fanRequestsSectionId}-form`;
+  const fanRequestsSectionHref = `${channelHref}#${fanRequestsSectionId}`;
+  const fanRequestsFormHref = `${channelHref}#${fanRequestsFormId}`;
   const followHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
     {
@@ -4485,7 +4521,7 @@ export function FanletterCreatorPage({
             className="mb-8"
             creatorReferralCode={data.profile.referralCode}
             followHref={followHref}
-            id="fan-requests"
+            id={fanRequestsSectionId}
             locale={locale}
             previewRequests={data.fanRequestPreviews}
             publicVlogsHref={publicVlogsHref}
@@ -4508,7 +4544,8 @@ export function FanletterCreatorPage({
             locale={locale}
             publicVlogsHref={publicVlogsHref}
             referralCode={effectiveReferralCode}
-            requestHref={fanRequestsSectionHref}
+            requestFormId={fanRequestsFormId}
+            requestHref={fanRequestsFormHref}
           />
 
           <section className="scroll-mt-24" id="public-vlogs">

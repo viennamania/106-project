@@ -11,8 +11,12 @@ import {
   Radio,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  FANLETTER_FAN_REQUEST_PRESET_EVENT,
+  type FanletterFanRequestPresetDetail,
+} from "@/components/fanletter-fan-request-preset-link";
 import type {
   FanletterFanRequestCreateResponse,
   FanletterFanRequestType,
@@ -192,6 +196,7 @@ export function FanletterFanRequestForm({
   sourceContentId?: string | null;
 }) {
   const copy = getCopy(locale);
+  const resolvedFormId = formId ?? "fanletter-fan-request-form";
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [lastSubmittedRequest, setLastSubmittedRequest] =
@@ -200,6 +205,7 @@ export function FanletterFanRequestForm({
   const [requestType, setRequestType] =
     useState<FanletterFanRequestType>("vlog_request");
   const [status, setStatus] = useState<SubmitStatus>("idle");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const requestTypes = [
     {
       icon: Clapperboard,
@@ -212,6 +218,39 @@ export function FanletterFanRequestForm({
       value: "message" as const,
     },
   ];
+
+  useEffect(() => {
+    function applyPreset(event: Event) {
+      const detail = (event as CustomEvent<FanletterFanRequestPresetDetail>).detail;
+
+      if (!detail?.body) {
+        return;
+      }
+
+      if (detail.formId && detail.formId !== resolvedFormId) {
+        return;
+      }
+
+      setBody(detail.body.slice(0, 600));
+      setError(null);
+      setLastSubmittedRequest(null);
+      setRequestType(detail.requestType);
+      setStatus("idle");
+
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(resolvedFormId)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        textareaRef.current?.focus({ preventScroll: true });
+      });
+    }
+
+    window.addEventListener(FANLETTER_FAN_REQUEST_PRESET_EVENT, applyPreset);
+
+    return () => {
+      window.removeEventListener(FANLETTER_FAN_REQUEST_PRESET_EVENT, applyPreset);
+    };
+  }, [resolvedFormId]);
 
   async function submitRequest() {
     if (!body.trim()) {
@@ -292,7 +331,7 @@ export function FanletterFanRequestForm({
   return (
     <div
       className="mt-6 scroll-mt-28 rounded-lg border border-white/12 bg-black/28 p-4 sm:p-5"
-      id={formId}
+      id={resolvedFormId}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
@@ -381,6 +420,7 @@ export function FanletterFanRequestForm({
               }
             }}
             placeholder={copy.bodyPlaceholder}
+            ref={textareaRef}
             value={body}
           />
         </label>
