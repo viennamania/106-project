@@ -1483,9 +1483,9 @@ export function FanletterProfilePage({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[13rem_minmax(0,1fr)]">
-            <div className="min-w-0 rounded-lg border border-white/10 bg-black/22 p-3">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-white/10 bg-black/24">
+          <div className="grid min-w-0 gap-4">
+            <div className="grid min-w-0 gap-3 rounded-lg border border-white/10 bg-black/22 p-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-center lg:grid-cols-[10rem_minmax(0,1fr)]">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border border-white/10 bg-black/24">
                 {profile.avatarImageUrl ? (
                   <Image
                     alt={profile.displayName || copy.displayName}
@@ -1500,12 +1500,14 @@ export function FanletterProfilePage({
                   </span>
                 )}
               </div>
-              <p className="mt-3 truncate text-lg font-semibold">
-                {selectedPersona?.name ?? profile.displayName}
-              </p>
-              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/50">
-                {selectedPersona?.summary ?? copy.growthIdentityBody}
-              </p>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold">
+                  {selectedPersona?.name ?? profile.displayName}
+                </p>
+                <p className="mt-1 line-clamp-3 text-xs font-medium leading-5 text-white/50">
+                  {selectedPersona?.summary ?? copy.growthIdentityBody}
+                </p>
+              </div>
             </div>
 
             <div className="grid min-w-0 gap-4">
