@@ -28,12 +28,11 @@ import {
   type ContentPostMutationResponse,
   type ContentPostRecord,
   type ContentPriceType,
-  type CreatorProfileAvatarCandidate,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
-  type FanletterFanRequestType,
 } from "@/lib/content";
+import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -66,20 +65,6 @@ type CreateForm = {
   prompt: string;
   summary: string;
   title: string;
-};
-
-export type FanletterCreateInitialPlan = Partial<
-  Pick<CreateForm, "body" | "mode" | "prompt" | "summary" | "title">
-> & {
-  avatarReferenceExpression?: CreatorProfileAvatarCandidate["expression"];
-  avatarReferenceMode?: "set" | "single";
-  fanOnlyIntent?: boolean;
-  fanRequestBody?: string;
-  fanRequestCharacterName?: string;
-  fanRequestId?: string;
-  fanRequestType?: FanletterFanRequestType;
-  planId?: string;
-  priceType?: ContentPriceType;
 };
 
 const EMPTY_FORM: CreateForm = {
@@ -115,6 +100,29 @@ function getCopy(locale: Locale) {
         accountRequiredBody:
           "첫 AI 캐릭터 브이로그를 만들려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
         accountRequiredCta: "계정 연결하기",
+        avatarExperience: {
+          avatarReferenceSet:
+            "대표 아바타와 표정 세트를 함께 reference로 사용해 인물 중심 동영상을 생성합니다.",
+          avatarReferenceSingle:
+            "선택한 표정 컷을 인물 reference로 고정해 동영상을 생성합니다.",
+          eyebrow: "Avatar Reference Video",
+          generate: "이 표정으로 브이로그 동영상 생성",
+          planBody:
+            "캐릭터 홈에서 선택한 표정 컷을 인물 reference로 적용했습니다. 제목과 장면 문장만 확인하고 바로 동영상으로 생성하세요.",
+          planEyebrow: "Avatar Cut Video",
+          planGenerateCta: "이 표정으로 동영상 생성",
+          planNextStep:
+            "버튼을 누르면 선택한 아바타 컷을 reference로 사용해 이미지가 아니라 세로형 동영상 생성을 시작합니다.",
+          planTitle: "선택한 표정 컷으로 시작합니다.",
+          prompt: "표정 컷 동영상 장면",
+          promptPlaceholder:
+            "선택한 표정을 기준으로 장소, 시선, 손짓, 짧은 대사, 카메라 움직임을 입력하세요.",
+          result: "표정 컷 동영상 미리보기",
+          titleText: "선택한 표정 컷으로 인물 중심 브이로그를 만드세요.",
+          video: "생성 결과: 표정 reference 브이로그 동영상",
+          videoBody:
+            "프로필의 아바타 표정을 reference로 고정해 얼굴, 시선, 피부결, 미세 표정이 흔들리지 않는 세로형 동영상을 생성합니다.",
+        },
         back: "프로필로 돌아가기",
         body: "공개 설명",
         bodyHint:
@@ -216,6 +224,30 @@ function getCopy(locale: Locale) {
         accountRequiredBody:
           "Connect your FanLetter account before creating the first AI character vlog.",
         accountRequiredCta: "Connect account",
+        avatarExperience: {
+          avatarReferenceSet:
+            "The representative avatar and expression set will be used together as references for a person-centered video.",
+          avatarReferenceSingle:
+            "The selected expression cut will be locked as the person reference for video generation.",
+          eyebrow: "Avatar Reference Video",
+          generate: "Generate vlog video with this expression",
+          planBody:
+            "The expression cut selected in the character home has been applied as the person reference. Review the title and scene, then generate the video.",
+          planEyebrow: "Avatar Cut Video",
+          planGenerateCta: "Generate video with this expression",
+          planNextStep:
+            "This starts vertical video generation with the selected avatar cut as the reference, not image generation.",
+          planTitle: "Starting from the selected expression cut.",
+          prompt: "Expression cut video scene",
+          promptPlaceholder:
+            "Describe the location, gaze, gestures, short line, and camera motion based on the selected expression.",
+          result: "Expression cut video preview",
+          titleText:
+            "Create a person-centered vlog from the selected expression cut.",
+          video: "Output: expression reference vlog video",
+          videoBody:
+            "Use the profile avatar expression as a reference to generate a vertical video with stable face, gaze, skin texture, and subtle expressions.",
+        },
         back: "Back to profile",
         body: "Public description",
         bodyHint:
@@ -581,11 +613,13 @@ function StatusPanel({
 }
 
 export function FanletterCreatePage({
+  experience = "default",
   initialPlan,
   locale,
   referralCode,
   returnToHref,
 }: {
+  experience?: "avatar" | "default";
   initialPlan?: FanletterCreateInitialPlan;
   locale: Locale;
   referralCode: string | null;
@@ -670,6 +704,11 @@ export function FanletterCreatePage({
     initialPlan?.avatarReferenceExpression ||
       initialPlan?.avatarReferenceMode === "set",
   );
+  const isAvatarVideoExperience =
+    experience === "avatar" || hasAvatarReferencePlan;
+  const avatarExperienceCopy = isAvatarVideoExperience
+    ? copy.avatarExperience
+    : null;
   const localDraftKey = useMemo(
     () =>
       buildCreateDraftKey({
@@ -716,7 +755,41 @@ export function FanletterCreatePage({
         form.prompt.trim()),
   );
   const canPublish = Boolean(generatedMedia?.url);
-  const selectedModeCopy = copy.videoBody;
+  const heroEyebrow = avatarExperienceCopy?.eyebrow ?? copy.eyebrow;
+  const heroTitleText = avatarExperienceCopy?.titleText ?? copy.titleText;
+  const selectedModeCopy = avatarExperienceCopy?.videoBody ?? copy.videoBody;
+  const promptLabel = avatarExperienceCopy?.prompt ?? copy.prompt;
+  const promptPlaceholder =
+    avatarExperienceCopy?.promptPlaceholder ?? copy.promptPlaceholder;
+  const generateCta = avatarExperienceCopy?.generate ?? copy.generate;
+  const resultLabel = avatarExperienceCopy?.result ?? copy.result;
+  const videoLabel = avatarExperienceCopy?.video ?? copy.video;
+  const videoBody = avatarExperienceCopy?.videoBody ?? copy.videoBody;
+  const planContextEyebrow = hasAvatarReferencePlan
+    ? copy.avatarExperience.planEyebrow
+    : isCharacterPlaybookPlan
+      ? copy.planContext.eyebrow
+      : copy.planContext.eyebrowPlanner;
+  const planContextTitle = hasAvatarReferencePlan
+    ? copy.avatarExperience.planTitle
+    : isCharacterPlaybookPlan
+      ? copy.planContext.title
+      : copy.planContext.titlePlanner;
+  const planContextBody = hasAvatarReferencePlan
+    ? copy.avatarExperience.planBody
+    : isCharacterPlaybookPlan
+      ? copy.planContext.body
+      : copy.planContext.bodyPlanner;
+  const planContextNextStep = hasAvatarReferencePlan
+    ? copy.avatarExperience.planNextStep
+    : copy.planContext.nextStep;
+  const planContextGenerateCta = hasAvatarReferencePlan
+    ? copy.avatarExperience.planGenerateCta
+    : copy.planContext.generateCta;
+  const avatarReferenceCopy =
+    initialPlan?.avatarReferenceMode === "set"
+      ? copy.avatarExperience.avatarReferenceSet
+      : copy.avatarExperience.avatarReferenceSingle;
   const generatedVideoUrl = generatedMedia?.url ?? null;
   const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
   const localDraftLabel =
@@ -950,7 +1023,7 @@ export function FanletterCreatePage({
           email: resolvedEmail,
           locale,
           summary: inferSummary(form),
-          title: inferTitle(form, copy.generate),
+          title: inferTitle(form, generateCta),
           avatarReferenceExpression:
             initialPlan?.avatarReferenceExpression ?? null,
           avatarReferenceMode: initialPlan?.avatarReferenceMode ?? null,
@@ -999,7 +1072,7 @@ export function FanletterCreatePage({
       return;
     }
 
-    const title = inferTitle(form, copy.generate);
+    const title = inferTitle(form, generateCta);
     const body = form.body.trim() || form.prompt.trim() || title;
     const summary = inferSummary(form) || body.replace(/\s+/g, " ").slice(0, 140);
     let savedContent: ContentPostRecord | null = null;
@@ -1208,10 +1281,10 @@ export function FanletterCreatePage({
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
-                {copy.eyebrow}
+                {heroEyebrow}
               </p>
               <h1 className="mt-4 text-[2.65rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:text-[5rem]">
-                {copy.titleText}
+                {heroTitleText}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
                 {selectedModeCopy}
@@ -1302,19 +1375,13 @@ export function FanletterCreatePage({
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] lg:items-start">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
-                    {isCharacterPlaybookPlan
-                      ? copy.planContext.eyebrow
-                      : copy.planContext.eyebrowPlanner}
+                    {planContextEyebrow}
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-normal [word-break:keep-all]">
-                    {isCharacterPlaybookPlan
-                      ? copy.planContext.title
-                      : copy.planContext.titlePlanner}
+                    {planContextTitle}
                   </h2>
                   <p className="mt-2 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
-                    {isCharacterPlaybookPlan
-                      ? copy.planContext.body
-                      : copy.planContext.bodyPlanner}
+                    {planContextBody}
                   </p>
                   <div className="mt-4 flex items-start gap-3 rounded-lg border border-white/10 bg-black/24 p-3">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
@@ -1326,7 +1393,7 @@ export function FanletterCreatePage({
                     <div className="mt-2 flex items-start gap-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3">
                       <UserRound className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
                       <p className="text-xs font-semibold leading-5 text-[#d8ffe0]">
-                        {copy.planContext.avatarReference}
+                        {avatarReferenceCopy}
                       </p>
                     </div>
                   ) : null}
@@ -1346,7 +1413,7 @@ export function FanletterCreatePage({
                         {copy.planContext.nextStepLabel}
                       </p>
                       <p className="mt-1 text-xs font-semibold leading-5 text-white/62">
-                        {copy.planContext.nextStep}
+                        {planContextNextStep}
                       </p>
                     </div>
                   </div>
@@ -1374,7 +1441,7 @@ export function FanletterCreatePage({
                       {copy.planContext.promptLabel}
                     </p>
                     <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-white/62 [overflow-wrap:anywhere]">
-                      {form.prompt || copy.promptPlaceholder}
+                      {form.prompt || promptPlaceholder}
                     </p>
                   </div>
                   <button
@@ -1392,7 +1459,7 @@ export function FanletterCreatePage({
                     )}
                     {generationStatus === "loading"
                       ? copy.generatingVideo
-                      : copy.planContext.generateCta}
+                      : planContextGenerateCta}
                   </button>
                 </div>
               </div>
@@ -1479,14 +1546,14 @@ export function FanletterCreatePage({
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
               </p>
-              <h2 className="mt-3 text-2xl font-semibold">{copy.prompt}</h2>
+              <h2 className="mt-3 text-2xl font-semibold">{promptLabel}</h2>
               <div className="mt-5 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-4 text-[#d7ffdf]">
                 <Clapperboard className="size-5 text-[#44f26e]" />
                 <span className="mt-3 block text-sm font-semibold">
-                  {copy.video}
+                  {videoLabel}
                 </span>
                 <p className="mt-2 text-sm font-medium leading-6 text-white/62">
-                  {copy.videoBody}
+                  {videoBody}
                 </p>
               </div>
               <div className="mt-5 grid gap-3">
@@ -1518,14 +1585,14 @@ export function FanletterCreatePage({
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-                    {copy.prompt}
+                    {promptLabel}
                   </span>
                   <textarea
                     className="mt-2 min-h-44 w-full resize-none rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
                     onChange={(event) => {
                       updateForm({ prompt: event.target.value });
                     }}
-                    placeholder={copy.promptPlaceholder}
+                    placeholder={promptPlaceholder}
                     value={form.prompt}
                   />
                 </label>
@@ -1545,7 +1612,7 @@ export function FanletterCreatePage({
                 )}
                 {generationStatus === "loading"
                   ? copy.generatingVideo
-                  : copy.generate}
+                  : generateCta}
               </button>
             </section>
 
@@ -1553,7 +1620,7 @@ export function FanletterCreatePage({
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 02
               </p>
-              <h2 className="mt-3 text-2xl font-semibold">{copy.result}</h2>
+              <h2 className="mt-3 text-2xl font-semibold">{resultLabel}</h2>
               <div className="mt-5 overflow-hidden rounded-lg border border-white/12 bg-black/32">
                 <div className="relative aspect-[4/5]">
                   {generatedVideoUrl ? (

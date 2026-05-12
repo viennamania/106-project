@@ -34,14 +34,14 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 첫 AI 캐릭터 브이로그 만들기"
-      : "Create First FanLetter AI Character Vlog";
+      ? "FanLetter 표정 컷 브이로그 만들기"
+      : "Create a FanLetter Avatar Cut Vlog";
   const description =
     locale === "ko"
-      ? "AI 캐릭터의 오늘 장면을 세로형 브이로그로 생성하고 FanLetter 피드에 게시하세요."
-      : "Generate today's AI character scene as a vertical vlog and publish it to FanLetter.";
+      ? "선택한 캐릭터 표정 컷을 reference로 사용해 인물 중심 세로형 브이로그 동영상을 생성하세요."
+      : "Use the selected character expression cut as a reference to generate a person-centered vertical vlog video.";
   const url = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/create/avatar`, referralCode),
     {
       returnTo: getSafeFanletterReturnTo({
         locale,
@@ -56,7 +56,7 @@ export async function generateMetadata({
     referralCode,
     title,
     variant: "start",
-    version: "fanletter-create-v1",
+    version: "fanletter-avatar-create-v1",
   });
   const ogImage = {
     alt: getFanletterOgAlt(locale, "start"),
@@ -89,7 +89,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function LocalizedFanletterCreatePage({
+export default async function LocalizedFanletterAvatarCreatePage({
   params,
   searchParams,
 }: {
@@ -108,6 +108,7 @@ export default async function LocalizedFanletterCreatePage({
 
   return (
     <FanletterCreatePage
+      experience="avatar"
       initialPlan={readFanletterCreateInitialPlan(query)}
       locale={locale}
       referralCode={referralCode}

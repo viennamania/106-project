@@ -853,6 +853,10 @@ export function FanletterProfilePage({
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
+  const avatarCreateHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/create/avatar`, referralCode),
+    { returnTo: returnToHref || onboardingHref },
+  );
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
@@ -1480,7 +1484,7 @@ export function FanletterProfilePage({
 
         return {
           ...avatar,
-          href: setPathSearchParams(createHref, {
+          href: setPathSearchParams(avatarCreateHref, {
             planAvatarExpression: avatar.expression,
             planAvatarMode: "single",
             planBody: preset.planBody,
@@ -1875,7 +1879,7 @@ export function FanletterProfilePage({
       {
         Icon: ImageIcon,
         body: copy.contentPlaybook.avatarBody,
-        href: setPathSearchParams(createHref, {
+        href: setPathSearchParams(avatarCreateHref, {
           planAvatarMode: "set",
           planBody: copy.contentPlaybook.avatarPlanBody,
           planId: "avatar-set-direction",
