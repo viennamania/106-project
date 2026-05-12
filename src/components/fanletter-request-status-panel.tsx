@@ -136,10 +136,10 @@ export function FanletterRequestStatusPanel({
       }),
     [creatorReferralCode, requests, sourceContentId],
   );
-  const followingHref = `${buildPathWithReferral(
-    `/${locale}/fanletter/following`,
+  const requestsHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/requests`,
     referralCode ?? creatorReferralCode,
-  )}#fanletter-my-requests`;
+  )}#fanletter-request-inbox`;
 
   useEffect(() => {
     const requestIds = readFanletterRequestReceiptIds();
@@ -219,7 +219,7 @@ export function FanletterRequestStatusPanel({
         </div>
         <Link
           className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 px-3 text-sm font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/10"
-          href={followingHref}
+          href={requestsHref}
         >
           {copy.cta}
           <ArrowRight className="size-4" />

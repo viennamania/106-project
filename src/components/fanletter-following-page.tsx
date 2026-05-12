@@ -91,6 +91,7 @@ function getCopy(locale: Locale) {
           "로그인 없이 남긴 요청도 이 기기에 저장된 영수증으로 상태를 확인합니다.",
         myRequestsRetry: "요청 상태 새로고침",
         myRequestsTitle: "내 요청 상태",
+        myRequestsViewAll: "전체 요청 보기",
         myRequestsWatch: "제작된 브이로그",
         noLatest:
           "아직 공개 브이로그가 없으면 캐릭터 채널에서 다음 장면을 먼저 요청할 수 있습니다.",
@@ -166,6 +167,7 @@ function getCopy(locale: Locale) {
           "Requests left without signing in can still be tracked from receipts saved on this device.",
         myRequestsRetry: "Refresh requests",
         myRequestsTitle: "My request status",
+        myRequestsViewAll: "View all requests",
         myRequestsWatch: "Produced vlog",
         noLatest:
           "If there is no public vlog yet, open the character channel and request the next scene first.",
@@ -898,6 +900,10 @@ function MyFanRequestsPanel({
         referralCode ?? fallbackCharacter.referralCode,
       )}#fan-requests`
     : buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const requestsHref = buildPathWithReferral(
+    `/${locale}/fanletter/requests`,
+    referralCode ?? fallbackCharacter?.referralCode ?? null,
+  );
   const visibleRequests = requests.slice(0, 4);
 
   function getStatusView(request: FanletterFanRequestRecord) {
@@ -946,19 +952,28 @@ function MyFanRequestsPanel({
             </p>
           ) : null}
         </div>
-        <button
-          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={status === "loading"}
-          onClick={onRetry}
-          type="button"
-        >
-          {status === "loading" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <RefreshCw className="size-4" />
-          )}
-          {copy.myRequestsRetry}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+            href={requestsHref}
+          >
+            {copy.myRequestsViewAll}
+            <ArrowRight className="size-4" />
+          </Link>
+          <button
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={status === "loading"}
+            onClick={onRetry}
+            type="button"
+          >
+            {status === "loading" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="size-4" />
+            )}
+            {copy.myRequestsRetry}
+          </button>
+        </div>
       </div>
 
       {status === "loading" ? (

@@ -36,7 +36,7 @@ const dismissedStorageKey = "fanletter:pwa-install-dismissed:v1";
 const installPromptSnoozeMs = 7 * 24 * 60 * 60 * 1000;
 const installAcceptedSnoozeMs = 90 * 24 * 60 * 60 * 1000;
 const publicSurfacePattern =
-  /^\/(?:ko|en|ja|zh|vi|id)\/fanletter(?:\/?$|\/(?:feed|start|onboarding|content|creator)(?:\/|$))/;
+  /^\/(?:ko|en|ja|zh|vi|id)\/fanletter(?:\/?$|\/(?:feed|start|onboarding|content|creator|requests)(?:\/|$))/;
 
 function isStandaloneDisplayMode() {
   if (typeof window === "undefined") {

@@ -83,6 +83,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/content`,
         `${basePath}/creator`,
         `${basePath}/following`,
+        `${basePath}/requests`,
       ],
       href: buildHref(`${basePath}/feed`),
       icon: Clapperboard,

@@ -285,9 +285,9 @@ export function FanletterFanRequestForm({
       : copy.vlogRequest
     : null;
   const requestStatusHref = `${buildPathWithReferral(
-    `/${locale}/fanletter/following`,
+    `/${locale}/fanletter/requests`,
     referralCode ?? creatorReferralCode,
-  )}#fanletter-my-requests`;
+  )}#fanletter-request-inbox`;
 
   return (
     <div
