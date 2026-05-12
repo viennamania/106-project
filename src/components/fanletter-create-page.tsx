@@ -11,7 +11,6 @@ import {
   Loader2,
   MessageCircleHeart,
   Play,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -112,11 +111,11 @@ function getCopy(locale: Locale) {
           "첫 AI 캐릭터 브이로그를 만들려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
         accountRequiredCta: "계정 연결하기",
         back: "프로필로 돌아가기",
-        body: "브이로그 본문",
+        body: "공개 설명",
         bodyHint:
-          "비워두면 브이로그 장면 프롬프트를 본문으로 사용합니다. 팬에게 보여줄 설명을 짧게 다듬어도 됩니다.",
-        bodyPlaceholder: "팬에게 보여줄 브이로그 설명을 입력하세요.",
-        contentReady: "오늘의 AI 캐릭터 브이로그가 준비되었습니다.",
+          "생성된 동영상과 함께 피드에 보일 설명입니다. 비워두면 장면 프롬프트를 설명으로 사용합니다.",
+        bodyPlaceholder: "팬에게 보여줄 동영상 설명을 입력하세요.",
+        contentReady: "오늘의 AI 캐릭터 브이로그 동영상이 준비되었습니다.",
         draft: "임시 저장",
         draftAutosaveCleared: "로컬 자동 저장본을 정리했습니다.",
         draftAutosaveHint:
@@ -124,7 +123,7 @@ function getCopy(locale: Locale) {
         draftAutosaveRestored: "이전에 작성하던 브이로그를 복구했습니다.",
         draftAutosaveSaved: "자동 저장됨",
         draftSaved: "임시 저장했습니다.",
-        emptyPrompt: "오늘의 브이로그 장면을 입력하세요.",
+        emptyPrompt: "동영상으로 만들 브이로그 장면을 입력하세요.",
         errorFallback: "첫 AI 캐릭터 브이로그를 처리하지 못했습니다.",
         eyebrow: "FanLetter AI 캐릭터 브이로그",
         fanRequestContext: {
@@ -147,12 +146,16 @@ function getCopy(locale: Locale) {
         planContext: {
           applied: "제목, 요약, 장면 프롬프트에 추천 기획이 반영되었습니다.",
           body:
-            "프로필의 캐릭터 정체성, 성장 신호, 팬 반응 흐름을 바탕으로 만든 기획입니다. 필요하면 문장만 다듬고 바로 생성하세요.",
+            "프로필의 캐릭터 정체성, 성장 신호, 팬 반응 흐름을 바탕으로 만든 브이로그 동영상 기획입니다. 필요하면 문장만 다듬고 바로 생성하세요.",
           bodyPlanner:
-            "스튜디오에서 선택한 기획이 입력값에 반영되었습니다. 장면만 다듬고 바로 브이로그를 생성할 수 있습니다.",
+            "스튜디오에서 선택한 기획이 입력값에 반영되었습니다. 장면만 다듬고 바로 브이로그 동영상을 생성할 수 있습니다.",
           eyebrow: "Character Playbook",
           eyebrowPlanner: "Selected Plan",
-          generateCta: "이 기획으로 바로 생성",
+          generateCta: "브이로그 동영상 생성",
+          nextStep: "버튼을 누르면 이미지가 아니라 세로형 동영상 생성이 시작됩니다.",
+          nextStepLabel: "다음 동작",
+          outputLabel: "생성 결과",
+          outputValue: "세로형 AI 브이로그 동영상",
           promptLabel: "추천 장면",
           summaryLabel: "기획 포인트",
           title: "프로필 추천 기획으로 시작합니다.",
@@ -161,11 +164,11 @@ function getCopy(locale: Locale) {
         },
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
-        generate: "브이로그 생성",
+        generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
-        missingMedia: "공개하려면 먼저 브이로그를 생성하세요.",
+        missingMedia: "공개하려면 먼저 브이로그 동영상을 생성하세요.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
         paymentRequired: "가입 완료 회원만 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "가입 완료 확인하기",
@@ -175,21 +178,26 @@ function getCopy(locale: Locale) {
         profileRequiredBody:
           "표시 이름, 페르소나, 대표 아바타까지 준비하면 첫 브이로그에 자동 적용됩니다.",
         profileRequiredCta: "캐릭터 만들기",
-        prompt: "브이로그 장면",
+        prompt: "브이로그 동영상 장면",
         promptPlaceholder:
           "장소, 움직임, 행동, 대사, 카메라 느낌, 숏폼 분위기를 자연스럽게 입력하세요.",
-        publish: "브이로그 공개",
+        publish: "브이로그 동영상 공개",
         published: "공개했습니다.",
-        result: "브이로그 미리보기",
-        summary: "요약",
+        result: "AI 동영상 미리보기",
+        setupChecks: {
+          character: "캐릭터 적용",
+          title: "제목 입력",
+          video: "동영상 생성",
+        },
+        summary: "동영상 요약",
         summaryPlaceholder: "짧은 소개 문구",
         studio: "브이로그 스튜디오",
         title: "제목",
         titlePlaceholder: "오늘의 브이로그 제목",
         titleText: "오늘의 AI 캐릭터 브이로그를 바로 만드세요.",
-        video: "숏폼 브이로그",
+        video: "생성 결과: 숏폼 브이로그 동영상",
         videoBody:
-          "세로형 브이로그를 생성해 모바일 캐릭터 피드에 바로 연결합니다.",
+          "이미지가 아니라 세로형 AI 브이로그 동영상을 생성해 모바일 캐릭터 피드에 바로 연결합니다.",
         viewContent: "브이로그 보기",
       }
     : {
@@ -198,11 +206,11 @@ function getCopy(locale: Locale) {
           "Connect your FanLetter account before creating the first AI character vlog.",
         accountRequiredCta: "Connect account",
         back: "Back to profile",
-        body: "Vlog body",
+        body: "Public description",
         bodyHint:
-          "When empty, the vlog scene prompt is used as the body. You can also write a shorter fan-facing description.",
-        bodyPlaceholder: "Write the vlog description for fans.",
-        contentReady: "Today's AI character vlog is ready.",
+          "This appears with the generated video in the feed. When empty, the scene prompt is used as the description.",
+        bodyPlaceholder: "Write the video description for fans.",
+        contentReady: "Today's AI character vlog video is ready.",
         draft: "Save draft",
         draftAutosaveCleared: "Local autosave was cleared.",
         draftAutosaveHint:
@@ -210,7 +218,7 @@ function getCopy(locale: Locale) {
         draftAutosaveRestored: "Restored the vlog you were editing.",
         draftAutosaveSaved: "Autosaved",
         draftSaved: "Draft saved.",
-        emptyPrompt: "Enter today's vlog scene.",
+        emptyPrompt: "Enter the vlog scene to turn into a video.",
         errorFallback: "Failed to process first AI character vlog.",
         eyebrow: "FanLetter AI Character Vlog",
         fanRequestContext: {
@@ -236,12 +244,16 @@ function getCopy(locale: Locale) {
           applied:
             "The recommended title, summary, and scene prompt have been applied.",
           body:
-            "This plan comes from the character identity, growth signals, and fan reaction loop in the profile. Refine the wording if needed, then generate.",
+            "This vlog video plan comes from the character identity, growth signals, and fan reaction loop in the profile. Refine the wording if needed, then generate.",
           bodyPlanner:
-            "The selected studio plan has been applied to the inputs. Refine the scene and generate the vlog.",
+            "The selected studio plan has been applied to the inputs. Refine the scene and generate the vlog video.",
           eyebrow: "Character Playbook",
           eyebrowPlanner: "Selected Plan",
-          generateCta: "Generate from this plan",
+          generateCta: "Generate vlog video",
+          nextStep: "This button starts vertical video generation, not image generation.",
+          nextStepLabel: "Next action",
+          outputLabel: "Output",
+          outputValue: "Vertical AI vlog video",
           promptLabel: "Suggested scene",
           summaryLabel: "Plan angle",
           title: "Starting from a profile recommendation.",
@@ -250,11 +262,11 @@ function getCopy(locale: Locale) {
         },
         feed: "View FanLetter vlog feed",
         free: "Free public",
-        generate: "Generate vlog",
+        generate: "Generate AI vlog video",
         generated: "Generated",
         generatingVideo: "Generating AI video...",
         loading: "Checking vlog setup.",
-        missingMedia: "Generate a vlog before publishing.",
+        missingMedia: "Generate a vlog video before publishing.",
         paid: `${CONTENT_PAID_USDT_AMOUNT} USDT paid`,
         paymentRequired: "Only completed members can create the first AI character vlog.",
         paymentRequiredCta: "Verify signup",
@@ -265,21 +277,26 @@ function getCopy(locale: Locale) {
         profileRequiredBody:
           "Prepare a display name, persona, and representative avatar so the character is applied to the first vlog automatically.",
         profileRequiredCta: "Create character",
-        prompt: "Vlog scene",
+        prompt: "Vlog video scene",
         promptPlaceholder:
           "Describe location, motion, action, dialogue, camera feel, and short-form mood.",
-        publish: "Publish vlog",
+        publish: "Publish vlog video",
         published: "Published.",
-        result: "Vlog preview",
-        summary: "Summary",
+        result: "AI video preview",
+        setupChecks: {
+          character: "Character applied",
+          title: "Title ready",
+          video: "Video generated",
+        },
+        summary: "Video summary",
         summaryPlaceholder: "Short intro",
         studio: "Vlog studio",
         title: "Title",
         titlePlaceholder: "Today's vlog title",
         titleText: "Create today's AI character vlog inside FanLetter.",
-        video: "Short-form vlog",
+        video: "Output: short-form vlog video",
         videoBody:
-          "Generate a vertical vlog that connects directly to the mobile character feed.",
+          "Generate a vertical AI vlog video, not an image, and connect it directly to the mobile character feed.",
         viewContent: "View vlog",
       };
 }
@@ -1202,9 +1219,9 @@ export function FanletterCreatePage({
               </div>
               <div className="mt-5 grid grid-cols-3 gap-2">
                 {[
-                  [Boolean(profile?.displayName), copy.title],
-                  [hasPersona, copy.profileRequiredCta],
-                  [Boolean(profile?.avatarImageUrl), copy.generated],
+                  [Boolean(profile?.displayName), copy.setupChecks.title],
+                  [hasPersona, copy.setupChecks.character],
+                  [Boolean(generatedVideoUrl), copy.setupChecks.video],
                 ].map(([done, label]) => (
                   <div
                     className={`rounded-lg border p-3 ${
@@ -1275,6 +1292,26 @@ export function FanletterCreatePage({
                       {copy.planContext.applied}
                     </p>
                   </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-3">
+                      <Clapperboard className="size-4 text-[#44f26e]" />
+                      <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#8dffa5]">
+                        {copy.planContext.outputLabel}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {copy.planContext.outputValue}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/24 p-3">
+                      <Play className="size-4 text-[#44f26e]" />
+                      <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/40">
+                        {copy.planContext.nextStepLabel}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-white/62">
+                        {copy.planContext.nextStep}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -1313,9 +1350,11 @@ export function FanletterCreatePage({
                     {generationStatus === "loading" ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
-                      <Sparkles className="size-4" />
+                      <Clapperboard className="size-4" />
                     )}
-                    {copy.planContext.generateCta}
+                    {generationStatus === "loading"
+                      ? copy.generatingVideo
+                      : copy.planContext.generateCta}
                   </button>
                 </div>
               </div>
@@ -1409,30 +1448,47 @@ export function FanletterCreatePage({
                   {copy.videoBody}
                 </p>
               </div>
-              <input
-                className="mt-5 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
-                onChange={(event) => {
-                  updateForm({ title: event.target.value });
-                }}
-                placeholder={copy.titlePlaceholder}
-                value={form.title}
-              />
-              <input
-                className="mt-3 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
-                onChange={(event) => {
-                  updateForm({ summary: event.target.value });
-                }}
-                placeholder={copy.summaryPlaceholder}
-                value={form.summary}
-              />
-              <textarea
-                className="mt-3 min-h-44 w-full resize-none rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
-                onChange={(event) => {
-                  updateForm({ prompt: event.target.value });
-                }}
-                placeholder={copy.promptPlaceholder}
-                value={form.prompt}
-              />
+              <div className="mt-5 grid gap-3">
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                    {copy.title}
+                  </span>
+                  <input
+                    className="mt-2 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                    onChange={(event) => {
+                      updateForm({ title: event.target.value });
+                    }}
+                    placeholder={copy.titlePlaceholder}
+                    value={form.title}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                    {copy.summary}
+                  </span>
+                  <input
+                    className="mt-2 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                    onChange={(event) => {
+                      updateForm({ summary: event.target.value });
+                    }}
+                    placeholder={copy.summaryPlaceholder}
+                    value={form.summary}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                    {copy.prompt}
+                  </span>
+                  <textarea
+                    className="mt-2 min-h-44 w-full resize-none rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                    onChange={(event) => {
+                      updateForm({ prompt: event.target.value });
+                    }}
+                    placeholder={copy.promptPlaceholder}
+                    value={form.prompt}
+                  />
+                </label>
+              </div>
               <button
                 className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={generationStatus === "loading"}
@@ -1444,7 +1500,7 @@ export function FanletterCreatePage({
                 {generationStatus === "loading" ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <Sparkles className="size-4" />
+                  <Clapperboard className="size-4" />
                 )}
                 {generationStatus === "loading"
                   ? copy.generatingVideo
