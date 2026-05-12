@@ -31,6 +31,7 @@ import {
 
 const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
 const FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT = 5;
+const FANLETTER_FAN_ONLY_CONTENT_LIMIT = 6;
 const FANLETTER_FEED_PAGE_SIZE = 24;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
@@ -165,6 +166,8 @@ export type FanletterFeedPageData = {
 };
 
 export type FanletterCreatorPageData = {
+  fanOnlyContentCount: number;
+  fanOnlyItems: FanletterPublicContentItem[];
   fanRequestPreviews: FanletterPublicFanRequestPreview[];
   items: FanletterPublicContentItem[];
   profile: FanletterCreatorProfile;
@@ -766,6 +769,22 @@ async function getPublicContentFilter({
   };
 }
 
+function getFanOnlyContentFilter({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode: string;
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    authorReferralCode: referralCode,
+    "contentVideoUrls.0": { $exists: true },
+    priceType: "paid",
+    status: "published",
+  };
+}
+
 export async function getFanletterPublicContentItems({
   locale,
   limit = FANLETTER_PUBLIC_CONTENT_LIMIT,
@@ -1007,10 +1026,13 @@ export const getFanletterCreatorPageData = cache(
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
+    const fanOnlyContentFilter = getFanOnlyContentFilter({ locale, referralCode });
     const [
       storedProfile,
       posts,
+      fanOnlyPosts,
       publicContentCount,
+      fanOnlyContentCount,
       fanRequestPreviews,
       fanRequestMetrics,
     ] = await Promise.all([
@@ -1024,29 +1046,48 @@ export const getFanletterCreatorPageData = cache(
           })
           .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
           .toArray(),
+        postsCollection
+          .find(fanOnlyContentFilter)
+          .sort({
+            publishedAt: -1,
+            createdAt: -1,
+            contentId: -1,
+          })
+          .limit(FANLETTER_FAN_ONLY_CONTENT_LIMIT)
+          .toArray(),
         postsCollection.countDocuments(contentFilter),
+        postsCollection.countDocuments(fanOnlyContentFilter),
         getPublicFanRequestPreviews(referralCode).catch(() => []),
         getPublicFanRequestMetrics(referralCode).catch(
           () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
         ),
       ]);
+    const creatorPosts = [...posts, ...fanOnlyPosts];
     const profile =
       storedProfile ??
-      (posts[0]?.authorEmail
-        ? await profilesCollection.findOne({ email: posts[0].authorEmail })
+      (creatorPosts[0]?.authorEmail
+        ? await profilesCollection.findOne({ email: creatorPosts[0].authorEmail })
         : null);
 
-    if (!profile && posts.length === 0) {
+    if (!profile && creatorPosts.length === 0) {
       return null;
     }
 
-    const socialByContentId = await getSocialByContentId(posts);
+    const socialByContentId = await getSocialByContentId(creatorPosts);
     const displayName =
       compactText(profile?.displayName, 48) ||
-      posts[0]?.authorEmail.split("@")[0] ||
+      creatorPosts[0]?.authorEmail.split("@")[0] ||
       "FanLetter Creator";
 
     return {
+      fanOnlyContentCount,
+      fanOnlyItems: fanOnlyPosts.map((post) =>
+        toPublicContentItem({
+          post,
+          profile,
+          social: socialByContentId.get(post.contentId),
+        }),
+      ),
       fanRequestPreviews,
       items: posts.map((post) =>
         toPublicContentItem({
