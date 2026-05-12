@@ -3780,6 +3780,7 @@ function FanletterCharacterMiniCard({
           fanOnly: "팬 전용 준비 중",
           freeFollow: "무료 공개 채널",
           growth: "성장 상태",
+          next: "다음 성장",
           skills: "캐릭터 스킬",
         }
       : {
@@ -3787,6 +3788,7 @@ function FanletterCharacterMiniCard({
           fanOnly: "Fan-only coming soon",
           freeFollow: "Free public channel",
           growth: "Growth status",
+          next: "Next growth",
           skills: "Character skills",
         };
   const stats = [
@@ -3902,6 +3904,23 @@ function FanletterCharacterMiniCard({
               </span>
             ))}
           </div>
+          {character.growth.nextMission ? (
+            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                {labels.next}
+              </p>
+              <p className="mt-2 text-sm font-semibold text-white">
+                {character.growth.nextMission.title}
+              </p>
+              <p className="mt-1 text-xs font-medium leading-5 text-white/52">
+                {character.growth.nextMission.description}
+              </p>
+              <p className="mt-2 text-xs font-semibold text-[#b9ffc8]">
+                {formatNumber(character.growth.nextMission.progress, locale)} /{" "}
+                {formatNumber(character.growth.nextMission.target, locale)}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

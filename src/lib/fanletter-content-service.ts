@@ -17,6 +17,10 @@ import {
   normalizeContentLocale,
 } from "@/lib/content";
 import { getContentSocialSummaryForViewer } from "@/lib/content-service";
+import {
+  buildFanletterCharacterGrowthRecord,
+  type FanletterCharacterGrowthMetrics,
+} from "@/lib/fanletter-character-growth";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 import {
@@ -31,6 +35,11 @@ const FANLETTER_FEED_PAGE_SIZE = 24;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
 const TITLE_LIMIT = 96;
+const EMPTY_PUBLIC_FAN_REQUEST_METRICS: FanletterPublicFanRequestMetrics = {
+  completedCount: 0,
+  pendingCount: 0,
+  totalCount: 0,
+};
 
 export const fanletterFeedSortOptions = [
   "latest",
@@ -126,6 +135,12 @@ export type FanletterCreatorProfile = {
   displayName: string;
   intro: string;
   referralCode: string;
+};
+
+type FanletterPublicFanRequestMetrics = {
+  completedCount: number;
+  pendingCount: number;
+  totalCount: number;
 };
 
 export type FanletterPublicCharacter = {
@@ -286,14 +301,46 @@ function getPublicAvatarImageSet(profile: CreatorProfileDocument) {
     .slice(0, 4);
 }
 
+function getPublicPublishingStreakDays(posts: ContentPostDocument[]) {
+  const dayValues = [
+    ...new Set(
+      posts
+        .map((post) => (post.publishedAt ?? post.createdAt).toISOString().slice(0, 10)),
+    ),
+  ].sort((a, b) => (a < b ? 1 : -1));
+
+  if (dayValues.length === 0) {
+    return 0;
+  }
+
+  let streak = 1;
+  let previous = new Date(`${dayValues[0]}T00:00:00.000Z`).getTime();
+
+  for (const dayValue of dayValues.slice(1)) {
+    const current = new Date(`${dayValue}T00:00:00.000Z`).getTime();
+    const diffDays = Math.round((previous - current) / (24 * 60 * 60 * 1000));
+
+    if (diffDays !== 1) {
+      break;
+    }
+
+    streak += 1;
+    previous = current;
+  }
+
+  return streak;
+}
+
 function getPublicCharacterGrowth({
-  fanRequestCount,
+  characterReady,
+  fanRequestMetrics,
   locale,
   publicContentCount,
   posts,
   socialByContentId,
 }: {
-  fanRequestCount: number;
+  characterReady: boolean;
+  fanRequestMetrics: FanletterPublicFanRequestMetrics;
   locale: Locale;
   publicContentCount?: number;
   posts: ContentPostDocument[];
@@ -309,190 +356,83 @@ function getPublicCharacterGrowth({
       return {
         commentCount: totals.commentCount + (social?.commentCount ?? 0),
         likeCount: totals.likeCount + (social?.likeCount ?? 0),
+        paidBuyerCount: totals.paidBuyerCount + (social?.paidBuyerCount ?? 0),
         saveCount: totals.saveCount + (social?.saveCount ?? 0),
       };
     },
     {
       commentCount: 0,
       likeCount: 0,
+      paidBuyerCount: 0,
       saveCount: 0,
     },
   );
   const reactionCount =
     socialTotals.likeCount + socialTotals.commentCount + socialTotals.saveCount;
-  const totalXp =
-    publicVlogCount * 90 +
-    Math.min(socialTotals.likeCount, 250) * 8 +
-    Math.min(socialTotals.commentCount, 150) * 14 +
-    Math.min(socialTotals.saveCount, 200) * 12 +
-    Math.min(fanRequestCount, 50) * 30;
-  const maxLevel = 10;
-  const xpPerLevel = 220;
-  const level = Math.min(
-    maxLevel,
-    Math.max(1, Math.floor(totalXp / xpPerLevel) + 1),
-  );
-  const currentFloor = (level - 1) * xpPerLevel;
-  const progressPercent =
-    level >= maxLevel
-      ? 100
-      : Math.min(
-          100,
-          Math.max(
-            0,
-            Math.round(((totalXp - currentFloor) / xpPerLevel) * 100),
-          ),
-        );
-  const copy =
-    locale === "ko"
-      ? {
-          missions: {
-            fanRequest: {
-              description: "팬이 보고 싶은 장면을 남기면 요청 기반 브이로그 루프가 열립니다.",
-              title: "첫 팬 요청 받기",
-            },
-            reaction: {
-              description: "좋아요, 댓글, 저장 반응 10개를 모으면 팬 반응형 캐릭터 신호가 강해집니다.",
-              title: "팬 반응 10개 모으기",
-            },
-            vlog: {
-              description: "공개 브이로그 3개를 채우면 캐릭터의 기본 루틴이 더 선명해집니다.",
-              title: "공개 브이로그 3개 채우기",
-            },
-          },
-          skills: {
-            daily: {
-              description: "같은 정체성으로 일상 장면을 이어가는 기본 스킬입니다.",
-              label: "일상 브이로그",
-            },
-            request: {
-              description: "팬이 남긴 요청을 다음 장면 소재로 활용합니다.",
-              label: "팬 요청 맞춤",
-            },
-            response: {
-              description: "댓글과 좋아요 반응을 다음 숏폼 후크로 바꿉니다.",
-              label: "팬 반응 후크",
-            },
-            save: {
-              description: "저장된 장면을 반복 시청용 시그니처 컷으로 확장합니다.",
-              label: "저장 유도 장면",
-            },
-          },
-          summary: `공개 브이로그 ${publicVlogCount}개, 팬 반응 ${reactionCount}개, 팬 요청 ${fanRequestCount}개를 기반으로 Lv.${level}까지 성장했습니다.`,
-          titles: [
-            "캐릭터 준비 중",
-            "첫 브이로거",
-            "일상 브이로거",
-            "팬 반응형 캐릭터",
-            "채널 운영자",
-            "프리미엄 크리에이터",
-            "루틴 메이커",
-            "팬덤 빌더",
-            "시그니처 브이로거",
-            "대표 캐릭터",
-          ],
-        }
-      : {
-          missions: {
-            fanRequest: {
-              description: "Collect a fan scene request to open the request-to-vlog loop.",
-              title: "Receive the first fan request",
-            },
-            reaction: {
-              description: "Reach 10 likes, comments, and saves to strengthen fan-aware signals.",
-              title: "Collect 10 fan reactions",
-            },
-            vlog: {
-              description: "Publish 3 public vlogs to make the character routine clearer.",
-              title: "Publish 3 public vlogs",
-            },
-          },
-          skills: {
-            daily: {
-              description: "Keeps daily scenes aligned to the same identity.",
-              label: "Daily vlog",
-            },
-            request: {
-              description: "Turns fan requests into next-scene ideas.",
-              label: "Fan requests",
-            },
-            response: {
-              description: "Uses likes and comments as the next short-form hook.",
-              label: "Fan reaction hook",
-            },
-            save: {
-              description: "Expands saved scenes into repeatable signature cuts.",
-              label: "Save-worthy scene",
-            },
-          },
-          summary: `Reached Lv.${level} from ${publicVlogCount} public vlogs, ${reactionCount} fan reactions, and ${fanRequestCount} fan requests.`,
-          titles: [
-            "Character setup",
-            "First vlogger",
-            "Daily vlogger",
-            "Fan reaction character",
-            "Channel operator",
-            "Premium creator",
-            "Routine maker",
-            "Fandom builder",
-            "Signature vlogger",
-            "Flagship character",
-          ],
-        };
-  const skills = [
-    copy.skills.daily,
-    ...(fanRequestCount > 0 ? [copy.skills.request] : []),
-    ...(reactionCount > 0 ? [copy.skills.response] : []),
-    ...(socialTotals.saveCount > 0 ? [copy.skills.save] : []),
-  ].slice(0, 3);
+  const metrics: FanletterCharacterGrowthMetrics = {
+    commentCount: socialTotals.commentCount,
+    draftVlogCount: 0,
+    fanRequestCompletedCount: fanRequestMetrics.completedCount,
+    fanRequestPendingCount: fanRequestMetrics.pendingCount,
+    fanRequestTotalCount: fanRequestMetrics.totalCount,
+    likeCount: socialTotals.likeCount,
+    paidBuyerCount: socialTotals.paidBuyerCount,
+    publishedVlogCount: publicVlogCount,
+    saveCount: socialTotals.saveCount,
+    streakDays: getPublicPublishingStreakDays(posts),
+    totalVlogCount: publicVlogCount,
+  };
+  const growth = buildFanletterCharacterGrowthRecord({
+    characterReady,
+    locale,
+    metrics,
+  });
   const nextMission =
-    publicVlogCount < 3
-      ? {
-          ...copy.missions.vlog,
-          progress: publicVlogCount,
-          target: 3,
-        }
-      : fanRequestCount < 1
-        ? {
-            ...copy.missions.fanRequest,
-            progress: fanRequestCount,
-            target: 1,
-          }
-        : reactionCount < 10
-          ? {
-              ...copy.missions.reaction,
-              progress: reactionCount,
-              target: 10,
-            }
-          : null;
+    growth.missions.find(
+      (mission) => mission.id !== "character_ready" && !mission.completed,
+    ) ?? null;
+  const unlockedSkills = growth.contentSkills.filter((skill) => skill.unlocked);
+  const skills = (unlockedSkills.length > 0 ? unlockedSkills : growth.contentSkills)
+    .slice(0, 3)
+    .map((skill) => ({
+      description: skill.description,
+      label: skill.label,
+    }));
 
   return {
-    level,
-    maxLevel,
+    level: growth.level,
+    maxLevel: growth.maxLevel,
     metrics: {
-      fanRequestCount,
+      fanRequestCount: fanRequestMetrics.totalCount,
       publicVlogCount,
       reactionCount,
       saveCount: socialTotals.saveCount,
     },
-    nextMission,
-    progressPercent,
+    nextMission: nextMission
+      ? {
+          description: nextMission.description,
+          progress: nextMission.progress,
+          target: nextMission.target,
+          title: nextMission.title,
+        }
+      : null,
+    progressPercent: growth.progressPercent,
     skills,
-    summary: copy.summary,
-    title: copy.titles[level - 1] ?? copy.titles[0],
-    totalXp,
+    summary: growth.summary,
+    title: growth.title,
+    totalXp: growth.totalXp,
   };
 }
 
 function getPublicCharacter({
-  fanRequestCount = 0,
+  fanRequestMetrics = EMPTY_PUBLIC_FAN_REQUEST_METRICS,
   locale,
   posts,
   profile,
   publicContentCount,
   socialByContentId,
 }: {
-  fanRequestCount?: number;
+  fanRequestMetrics?: FanletterPublicFanRequestMetrics;
   locale: Locale;
   posts: ContentPostDocument[];
   profile: CreatorProfileDocument | null | undefined;
@@ -508,7 +448,10 @@ function getPublicCharacter({
   return {
     avatarImageSet: getPublicAvatarImageSet(profile),
     growth: getPublicCharacterGrowth({
-      fanRequestCount,
+      characterReady: Boolean(
+        profile.displayName.trim() && persona && profile.avatarImageUrl,
+      ),
+      fanRequestMetrics,
       locale,
       posts,
       publicContentCount,
@@ -739,13 +682,33 @@ async function getPublicFanRequestPreviews(referralCode: string) {
   return requests.map(toPublicFanRequestPreview);
 }
 
-async function getPublicFanRequestCount(referralCode: string) {
+async function getPublicFanRequestMetrics(
+  referralCode: string,
+): Promise<FanletterPublicFanRequestMetrics> {
   const requestsCollection = await getFanletterFanRequestsCollection();
+  const counts = await requestsCollection
+    .aggregate<{ _id: FanletterFanRequestStatus; count: number }>([
+      {
+        $match: {
+          creatorReferralCode: referralCode,
+          status: { $in: ["new", "reviewed", "used"] },
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+  const countByStatus = new Map(counts.map((item) => [item._id, item.count]));
 
-  return requestsCollection.countDocuments({
-    creatorReferralCode: referralCode,
-    status: { $in: ["new", "reviewed", "used"] },
-  });
+  return {
+    completedCount: countByStatus.get("used") ?? 0,
+    pendingCount: (countByStatus.get("new") ?? 0) + (countByStatus.get("reviewed") ?? 0),
+    totalCount: counts.reduce((total, item) => total + item.count, 0),
+  };
 }
 
 async function getPublicContentFilter({
@@ -975,23 +938,26 @@ export const getFanletterPublicContentDetail = cache(
     const authorContentFilter = authorReferralCode
       ? await getPublicContentFilter({ locale, referralCode: authorReferralCode })
       : null;
-    const [authorPosts, authorPublicContentCount, authorFanRequestCount] = authorContentFilter
-      ? await Promise.all([
-          postsCollection
-            .find(authorContentFilter)
-            .sort({
-              publishedAt: -1,
-              createdAt: -1,
-              contentId: -1,
-            })
-            .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
-            .toArray(),
-          postsCollection.countDocuments(authorContentFilter),
-          authorReferralCode
-            ? getPublicFanRequestCount(authorReferralCode).catch(() => 0)
-            : 0,
-        ])
-      : [[], 0, 0];
+    const [authorPosts, authorPublicContentCount, authorFanRequestMetrics] =
+      authorContentFilter
+        ? await Promise.all([
+            postsCollection
+              .find(authorContentFilter)
+              .sort({
+                publishedAt: -1,
+                createdAt: -1,
+                contentId: -1,
+              })
+              .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
+              .toArray(),
+            postsCollection.countDocuments(authorContentFilter),
+            authorReferralCode
+              ? getPublicFanRequestMetrics(authorReferralCode).catch(
+                  () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
+                )
+              : EMPTY_PUBLIC_FAN_REQUEST_METRICS,
+          ])
+        : [[], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS];
     const authorRecentPosts = authorPosts
       .filter((authorPost) => authorPost.contentId !== post.contentId)
       .slice(0, 4);
@@ -1000,7 +966,7 @@ export const getFanletterPublicContentDetail = cache(
     return {
       ...toPublicContentItem({ post, profile, social }),
       authorCharacter: getPublicCharacter({
-        fanRequestCount: authorFanRequestCount,
+        fanRequestMetrics: authorFanRequestMetrics,
         locale,
         posts: authorPosts,
         profile,
@@ -1041,8 +1007,13 @@ export const getFanletterCreatorPageData = cache(
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const [storedProfile, posts, publicContentCount, fanRequestPreviews, fanRequestCount] =
-      await Promise.all([
+    const [
+      storedProfile,
+      posts,
+      publicContentCount,
+      fanRequestPreviews,
+      fanRequestMetrics,
+    ] = await Promise.all([
         profilesCollection.findOne({ referralCode }),
         postsCollection
           .find(contentFilter)
@@ -1055,7 +1026,9 @@ export const getFanletterCreatorPageData = cache(
           .toArray(),
         postsCollection.countDocuments(contentFilter),
         getPublicFanRequestPreviews(referralCode).catch(() => []),
-        getPublicFanRequestCount(referralCode).catch(() => 0),
+        getPublicFanRequestMetrics(referralCode).catch(
+          () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
+        ),
       ]);
     const profile =
       storedProfile ??
@@ -1085,7 +1058,7 @@ export const getFanletterCreatorPageData = cache(
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
         character: getPublicCharacter({
-          fanRequestCount,
+          fanRequestMetrics,
           locale,
           posts,
           profile,
