@@ -32,6 +32,7 @@ import {
   type FanletterChannelSectionTabItem,
 } from "@/components/fanletter-channel-section-tabs";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
+import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
@@ -532,6 +533,7 @@ function FanletterShell({
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
+      <FanletterHashScroller />
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
@@ -2003,30 +2005,36 @@ function FanletterFollowCta({
 function FanletterFanOnlyPreview({
   channelName,
   locale,
+  publicVlogsHref,
   requestHref,
 }: {
   channelName: string;
   locale: Locale;
+  publicVlogsHref: string;
   requestHref: string;
 }) {
   const labels =
     locale === "ko"
       ? {
+          actionTitle: "지금 할 수 있는 일",
           body: "아직 실제 구독 결제와 비공개 콘텐츠 열람은 연결하지 않았습니다. 지금은 캐릭터 채널 안에 팬 전용 영역이 어떻게 확장될지 보여주는 미리보기입니다.",
           cta: "팬 요청 보내기",
           eyebrow: "출시 예정 기능",
           locked: "기능 준비 중",
           note:
             "현재는 예고 카드입니다. 실제 비공개 루틴 업로드, 결제 잠금, 구독자 열람 기능은 아직 활성화되지 않았습니다.",
+          secondaryCta: "공개 브이로그 보기",
           title: "팬 전용 브이로그 공간 미리보기",
         }
       : {
+          actionTitle: "What you can do now",
           body: "Paid subscription and private content access are not connected yet. This preview shows where fan-only character content can expand inside the channel.",
           cta: "Send fan request",
           eyebrow: "Upcoming Feature",
           locked: "Feature in progress",
           note:
             "These are preview cards. Private routine uploads, paid locks, and subscriber access are not active yet.",
+          secondaryCta: "View public vlogs",
           title: "Fan-only vlog space preview",
         };
   const cards =
@@ -2034,36 +2042,48 @@ function FanletterFanOnlyPreview({
       ? [
           {
             body: `${channelName}의 비공개 하루 루틴과 짧은 근황이 들어갈 예정인 슬롯입니다.`,
+            Icon: LockKeyhole,
+            stage: "콘텐츠 슬롯",
             title: "비공개 루틴",
           },
           {
             body: "댓글보다 더 가까운 팬 메시지와 답장 흐름이 붙을 예정입니다.",
+            Icon: MessageCircleHeart,
+            stage: "대화 흐름",
             title: "팬 메시지",
           },
           {
             body: "공개 피드에 올리기 전의 미리보기와 제작 노트가 들어갈 수 있습니다.",
+            Icon: Clapperboard,
+            stage: "선공개 구조",
             title: "선공개 노트",
           },
         ]
       : [
           {
             body: `${channelName}'s private routines and short updates are planned for this slot.`,
+            Icon: LockKeyhole,
+            stage: "Content slot",
             title: "Private routine",
           },
           {
             body: "A closer fan message and reply flow is planned here.",
+            Icon: MessageCircleHeart,
+            stage: "Message flow",
             title: "Fan messages",
           },
           {
             body: "Preview notes before public feed release can live here later.",
+            Icon: Clapperboard,
+            stage: "Early access",
             title: "Early notes",
           },
         ];
 
   return (
     <section className="mb-8 scroll-mt-24" id="fan-only">
-      <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 lg:p-7">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,0.46fr)] lg:items-start">
           <div className="max-w-2xl">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
               {labels.eyebrow}
@@ -2078,34 +2098,52 @@ function FanletterFanOnlyPreview({
               {labels.note}
             </p>
           </div>
-          <Link
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={requestHref}
-          >
-            <BellPlus className="size-4" />
-            {labels.cta}
-          </Link>
+
+          <aside className="rounded-lg border border-[#44f26e]/20 bg-[#44f26e]/10 p-4">
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+              {labels.actionTitle}
+            </p>
+            <div className="mt-3 grid gap-2">
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={requestHref}
+              >
+                <BellPlus className="size-4" />
+                {labels.cta}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/18 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
+                href={publicVlogsHref}
+              >
+                <Video className="size-4" />
+                {labels.secondaryCta}
+              </Link>
+            </div>
+          </aside>
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {cards.map((card) => (
+          {cards.map(({ Icon, body, stage, title }) => (
             <article
-              className="min-h-[12rem] rounded-lg border border-white/10 bg-white/[0.055] p-4"
-              key={card.title}
+              className="min-h-[13rem] rounded-lg border border-white/10 bg-white/[0.055] p-4"
+              key={title}
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="flex size-10 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                  <LockKeyhole className="size-5" />
+                  <Icon className="size-5" />
                 </span>
                 <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#b9ffc8]">
                   {labels.locked}
                 </span>
               </div>
-              <h3 className="mt-5 text-xl font-semibold tracking-normal">
-                {card.title}
+              <p className="mt-5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#8dffa5]">
+                {stage}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-normal">
+                {title}
               </h3>
               <p className="mt-3 text-sm font-medium leading-6 text-white/56">
-                {card.body}
+                {body}
               </p>
             </article>
           ))}
@@ -4250,6 +4288,7 @@ export function FanletterCreatorPage({
           <FanletterFanOnlyPreview
             channelName={channelName}
             locale={locale}
+            publicVlogsHref={publicVlogsHref}
             requestHref={fanRequestsSectionHref}
           />
 
