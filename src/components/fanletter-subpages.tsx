@@ -2002,56 +2002,60 @@ function FanletterFollowCta({
 
 function FanletterFanOnlyPreview({
   channelName,
-  followHref,
   locale,
+  requestHref,
 }: {
   channelName: string;
-  followHref: string;
   locale: Locale;
+  requestHref: string;
 }) {
   const labels =
     locale === "ko"
       ? {
-          body: "아직 실제 구독 결제 기능은 열지 않고, 캐릭터 채널 안에서 팬 전용 콘텐츠가 어디에 붙을지 먼저 보여줍니다.",
-          cta: "오픈 알림 받기",
-          eyebrow: "팬 전용 미리보기",
-          locked: "준비 중",
-          title: "팬 전용 브이로그 공간",
+          body: "아직 실제 구독 결제와 비공개 콘텐츠 열람은 연결하지 않았습니다. 지금은 캐릭터 채널 안에 팬 전용 영역이 어떻게 확장될지 보여주는 미리보기입니다.",
+          cta: "팬 요청 보내기",
+          eyebrow: "출시 예정 기능",
+          locked: "기능 준비 중",
+          note:
+            "현재는 예고 카드입니다. 실제 비공개 루틴 업로드, 결제 잠금, 구독자 열람 기능은 아직 활성화되지 않았습니다.",
+          title: "팬 전용 브이로그 공간 미리보기",
         }
       : {
-          body: "Paid subscription is not open yet. This shows where fan-only character content can live inside the channel.",
-          cta: "Get launch updates",
-          eyebrow: "Fan-only Preview",
-          locked: "Coming soon",
-          title: "Fan-only vlog space",
+          body: "Paid subscription and private content access are not connected yet. This preview shows where fan-only character content can expand inside the channel.",
+          cta: "Send fan request",
+          eyebrow: "Upcoming Feature",
+          locked: "Feature in progress",
+          note:
+            "These are preview cards. Private routine uploads, paid locks, and subscriber access are not active yet.",
+          title: "Fan-only vlog space preview",
         };
   const cards =
     locale === "ko"
       ? [
           {
-            body: `${channelName}의 비공개 하루 루틴과 짧은 근황을 모아 보여줍니다.`,
+            body: `${channelName}의 비공개 하루 루틴과 짧은 근황이 들어갈 예정인 슬롯입니다.`,
             title: "비공개 루틴",
           },
           {
-            body: "댓글보다 더 가까운 팬 메시지와 답장 흐름을 준비합니다.",
+            body: "댓글보다 더 가까운 팬 메시지와 답장 흐름이 붙을 예정입니다.",
             title: "팬 메시지",
           },
           {
-            body: "공개 피드에 올리기 전의 미리보기와 제작 노트를 담습니다.",
+            body: "공개 피드에 올리기 전의 미리보기와 제작 노트가 들어갈 수 있습니다.",
             title: "선공개 노트",
           },
         ]
       : [
           {
-            body: `${channelName}'s private routines and short updates can live here.`,
+            body: `${channelName}'s private routines and short updates are planned for this slot.`,
             title: "Private routine",
           },
           {
-            body: "A closer fan message and reply flow can continue here.",
+            body: "A closer fan message and reply flow is planned here.",
             title: "Fan messages",
           },
           {
-            body: "Preview notes before public feed release can be collected here.",
+            body: "Preview notes before public feed release can live here later.",
             title: "Early notes",
           },
         ];
@@ -2070,10 +2074,13 @@ function FanletterFanOnlyPreview({
             <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
               {labels.body}
             </p>
+            <p className="mt-3 rounded-lg border border-white/10 bg-white/[0.055] p-3 text-xs font-semibold leading-5 text-white/52">
+              {labels.note}
+            </p>
           </div>
           <Link
             className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={followHref}
+            href={requestHref}
           >
             <BellPlus className="size-4" />
             {labels.cta}
@@ -4242,8 +4249,8 @@ export function FanletterCreatorPage({
 
           <FanletterFanOnlyPreview
             channelName={channelName}
-            followHref={followHref}
             locale={locale}
+            requestHref={fanRequestsSectionHref}
           />
 
           <section className="scroll-mt-24" id="public-vlogs">
