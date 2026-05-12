@@ -6,6 +6,7 @@ import type {
   ContentCoverGenerationProgressStep,
   ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
+import { applyImagePhotoQualityPreset } from "@/lib/image-prompt-quality";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
@@ -61,7 +62,7 @@ function buildImagePrompt(input: {
   title: string;
   visualBrief: string;
 }) {
-  return [
+  return applyImagePhotoQualityPreset([
     "Create a premium editorial cover image for a network content feed.",
     "Do not include any text, letters, numbers, logos, watermarks, or UI chrome.",
     "Use a clean, modern, visually striking composition with one clear subject and strong depth.",
@@ -73,14 +74,14 @@ function buildImagePrompt(input: {
     input.visualBrief ? `Visual direction: ${input.visualBrief}.` : null,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" "));
 }
 
 function buildSafeRetryPrompt(input: {
   summary: string;
   title: string;
 }) {
-  return [
+  return applyImagePhotoQualityPreset([
     "Create a premium editorial cover image for a network content feed.",
     "Safe-for-work only. Use a non-human symbolic composition: refined objects, architecture, interiors, landscape details, abstract light, natural textures, or product-like still life.",
     "Do not depict people, faces, bodies, silhouettes, skin, crowds, hands, clothing, celebrities, real people, lookalikes, minors, nudity, erotic framing, violence, gore, weapons, or medical injury.",
@@ -92,18 +93,18 @@ function buildSafeRetryPrompt(input: {
     input.summary ? `Summary context: ${input.summary}.` : null,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" "));
 }
 
 function buildNeutralFallbackPrompt() {
-  return [
+  return applyImagePhotoQualityPreset([
     "Create a premium editorial cover image for a creator network content feed.",
     "Use a completely non-human, safe-for-work abstract composition with polished light, refined materials, soft depth, subtle geometric structure, and a trustworthy modern tone.",
     "Do not depict people, faces, bodies, silhouettes, skin, clothing, text, typography, letters, numbers, logos, watermarks, weapons, violence, medical scenes, or sexual content.",
     "Landscape aspect ratio, suitable for a feed card and article header.",
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" "));
 }
 
 function isSafetyRejection(error: unknown) {

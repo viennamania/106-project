@@ -7,6 +7,7 @@ import type {
   CreatorCharacterPersona,
   CreatorProfileAvatarCandidate,
 } from "@/lib/content";
+import { applyImagePhotoQualityPreset } from "@/lib/image-prompt-quality";
 
 const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
 const DEFAULT_ASPECT_RATIO = "1:1";
@@ -213,7 +214,7 @@ function createAvatarPrompt({
   );
   const name = trimToLength(displayName, 80) || "creator";
 
-  return [
+  return applyImagePhotoQualityPreset([
     "Create a square creator profile avatar using the fixed character persona.",
     `Creator label: ${name}. Do not render text or logos.`,
     `Avatar set expression: ${expression.label}.`,
@@ -224,7 +225,7 @@ function createAvatarPrompt({
     expression.prompt,
     "Do not redesign the character, change wardrobe direction dramatically, shift ethnicity, alter age, change hair length, or make the character look like a different person.",
     "No full-body pose, no busy background, no extra people, no text, no watermark, no explicit or adult styling.",
-  ].join(" ");
+  ].join(" "));
 }
 
 function getAvatarModel(): ReplicateModelName {

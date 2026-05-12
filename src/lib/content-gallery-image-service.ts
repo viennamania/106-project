@@ -14,6 +14,7 @@ import {
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
 import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
+import { applyImagePhotoQualityPreset } from "@/lib/image-prompt-quality";
 import { getContentImageGenerationsCollection } from "@/lib/mongodb";
 
 const TITLE_LIMIT = 120;
@@ -1357,9 +1358,11 @@ export async function generateAndUploadContentGalleryImage(
     step: "preparing_prompt",
   });
 
-  const modelVisualBrief = normalizeContentImagePromptForModel(
-    visualBrief,
-    Boolean(input.characterPersona?.identityPrompt),
+  const modelVisualBrief = applyImagePhotoQualityPreset(
+    normalizeContentImagePromptForModel(
+      visualBrief,
+      Boolean(input.characterPersona?.identityPrompt),
+    ),
   );
   const prompt = applyCreatorCharacterPersonaToPrompt(
     modelVisualBrief,
