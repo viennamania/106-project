@@ -10,6 +10,7 @@ import {
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterContentSearchParams = {
   ref?: string | string[];
@@ -83,7 +84,12 @@ export default async function LocalizedFanletterContentDetailPage({
   }
 
   const locale = lang as Locale;
-  const content = await getFanletterPublicContentDetail(contentId, locale);
+  const memberSession = await readMemberServerSession();
+  const content = await getFanletterPublicContentDetail(
+    contentId,
+    locale,
+    memberSession?.email ?? null,
+  );
 
   if (!content) {
     notFound();

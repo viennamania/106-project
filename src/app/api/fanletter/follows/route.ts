@@ -16,6 +16,7 @@ function getErrorStatus(message: string) {
   if (
     message === "creatorReferralCode is required." ||
     message === "followerEmail is required." ||
+    message === "Creators cannot follow their own character." ||
     message === "Unsupported follow action."
   ) {
     return 400;

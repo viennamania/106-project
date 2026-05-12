@@ -42,6 +42,7 @@ type FanletterSocialActionsProps = {
   commentsHref?: string;
   contentId: string;
   initialSocial: ContentSocialSummaryRecord;
+  isOwnContent?: boolean;
   locale: Locale;
   shareHref: string;
   summary?: string;
@@ -67,6 +68,10 @@ function getCopy(locale: Locale) {
         loading: "확인 중",
         loadingComments: "댓글을 불러오는 중",
         noComments: "아직 댓글이 없습니다.",
+        ownerActionBlocked: "내 브이로그에는 팬 반응만 집계합니다.",
+        ownerCommentsHelper:
+          "이 브이로그는 내 콘텐츠입니다. 공유와 댓글 확인은 가능하고 좋아요/저장은 팬 반응만 집계합니다.",
+        ownerCommentPlaceholder: "내 브이로그에 고정할 답글이나 공지를 남기기...",
         post: "게시",
         refresh: "새로고침",
         save: "저장",
@@ -96,6 +101,10 @@ function getCopy(locale: Locale) {
         loading: "Checking",
         loadingComments: "Loading comments",
         noComments: "No comments yet.",
+        ownerActionBlocked: "Only fan reactions are counted on my vlogs.",
+        ownerCommentsHelper:
+          "This is your content. Sharing and comments remain available, while likes and saves count fan reactions only.",
+        ownerCommentPlaceholder: "Add a reply or note to your vlog...",
         post: "Post",
         refresh: "Refresh",
         save: "Save",
@@ -187,6 +196,7 @@ export function FanletterSocialActions({
   commentsHref,
   contentId,
   initialSocial,
+  isOwnContent = false,
   locale,
   shareHref,
   summary,
@@ -366,6 +376,11 @@ export function FanletterSocialActions({
     async (action: "like" | "save", value: boolean) => {
       const previous = social;
 
+      if (isOwnContent) {
+        setToast(copy.ownerActionBlocked);
+        return;
+      }
+
       setToast(null);
       setBusyAction(action);
       setSocial(getNextSocial(previous, action, value));
@@ -423,7 +438,9 @@ export function FanletterSocialActions({
       connection.isResolving,
       contentId,
       copy.loading,
+      copy.ownerActionBlocked,
       copy.signInRequired,
+      isOwnContent,
       resolveEmail,
       social,
     ],
@@ -563,6 +580,12 @@ export function FanletterSocialActions({
   const actionIconClassName = isPanel ? "size-4" : "size-3.5";
   const likeLabel = social.likedByViewer ? copy.liked : copy.like;
   const saveLabel = social.savedByViewer ? copy.saved : copy.save;
+  const commentsHelper = isOwnContent
+    ? copy.ownerCommentsHelper
+    : copy.commentsHelper;
+  const commentPlaceholder = isOwnContent
+    ? copy.ownerCommentPlaceholder
+    : copy.commentPlaceholder;
 
   if (!isPanel) {
     return (
@@ -573,6 +596,7 @@ export function FanletterSocialActions({
             className={cn(
               actionButtonClassName,
               social.likedByViewer && activeClassName,
+              isOwnContent && "opacity-70",
             )}
             disabled={busyAction === "like"}
             onClick={() => {
@@ -603,6 +627,7 @@ export function FanletterSocialActions({
             className={cn(
               actionButtonClassName,
               social.savedByViewer && activeClassName,
+              isOwnContent && "opacity-70",
             )}
             disabled={busyAction === "save"}
             onClick={() => {
@@ -666,7 +691,7 @@ export function FanletterSocialActions({
             {copy.commentsTitle}
           </h2>
           <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
-            {copy.commentsHelper}
+            {commentsHelper}
           </p>
         </div>
         <button
@@ -686,7 +711,11 @@ export function FanletterSocialActions({
 
       <div className="mt-6 grid gap-2 sm:grid-cols-4">
         <button
-          className={cn(actionButtonClassName, social.likedByViewer && activeClassName)}
+          className={cn(
+            actionButtonClassName,
+            social.likedByViewer && activeClassName,
+            isOwnContent && "opacity-70",
+          )}
           disabled={busyAction === "like"}
           onClick={() => {
             void updateSocialAction("like", !social.likedByViewer);
@@ -709,7 +738,11 @@ export function FanletterSocialActions({
           </span>
         </a>
         <button
-          className={cn(actionButtonClassName, social.savedByViewer && activeClassName)}
+          className={cn(
+            actionButtonClassName,
+            social.savedByViewer && activeClassName,
+            isOwnContent && "opacity-70",
+          )}
           disabled={busyAction === "save"}
           onClick={() => {
             void updateSocialAction("save", !social.savedByViewer);
@@ -835,7 +868,7 @@ export function FanletterSocialActions({
             onChange={(event) => {
               setCommentBody(event.target.value);
             }}
-            placeholder={copy.commentPlaceholder}
+            placeholder={commentPlaceholder}
             rows={1}
             value={commentBody}
           />

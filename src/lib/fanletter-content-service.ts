@@ -22,7 +22,7 @@ import {
   type FanletterCharacterGrowthMetrics,
 } from "@/lib/fanletter-character-growth";
 import { defaultLocale, type Locale } from "@/lib/i18n";
-import { normalizeReferralCode } from "@/lib/member";
+import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
   getContentPostsCollection,
   getCreatorProfilesCollection,
@@ -111,6 +111,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   contentVideoUrls: string[];
   fanRequestSource: FanletterPublicFanRequestSource | null;
   tags: string[];
+  viewerRelation: "audience" | "owner";
 };
 
 export type FanletterPublicFanRequestSource = {
@@ -927,6 +928,7 @@ export const getFanletterPublicContentDetail = cache(
   async (
     contentId: string,
     locale: Locale,
+    viewerEmailInput?: string | null,
   ): Promise<FanletterPublicContentDetail | null> => {
     const postsCollection = await getContentPostsCollection();
     const post = await postsCollection.findOne({
@@ -943,14 +945,18 @@ export const getFanletterPublicContentDetail = cache(
     }
 
     const profilesCollection = await getCreatorProfilesCollection();
+    const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
+    const isOwner =
+      Boolean(viewerEmail) && normalizeEmail(post.authorEmail) === viewerEmail;
     const [profile, social, fanRequestSource] = await Promise.all([
       profilesCollection.findOne({ email: post.authorEmail }),
-      getContentSocialSummaryForViewer(post.contentId, null).catch(() =>
+      getContentSocialSummaryForViewer(post.contentId, viewerEmail || null).catch(() =>
         createEmptyContentSocialSummary(),
       ),
       getFanRequestSourceForContent(post.contentId),
     ]);
     const canPubliclyAccess = post.priceType === "free";
+    const canViewerAccess = canPubliclyAccess || isOwner;
     const authorReferralCode = normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     );
@@ -1000,14 +1006,15 @@ export const getFanletterPublicContentDetail = cache(
           social: authorSocialByContentId.get(authorPost.contentId),
         }),
       ),
-      body: canPubliclyAccess
+      body: canViewerAccess
         ? post.body
         : post.previewText?.trim() || post.summary,
       canPubliclyAccess,
-      contentImageUrls: canPubliclyAccess ? post.contentImageUrls ?? [] : [],
-      contentVideoUrls: canPubliclyAccess ? post.contentVideoUrls ?? [] : [],
+      contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
+      contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
       fanRequestSource,
       tags: post.tags,
+      viewerRelation: isOwner ? "owner" : "audience",
     };
   },
 );

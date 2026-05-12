@@ -194,6 +194,10 @@ export async function updateFanletterFollowForMember({
     throw new Error("followerEmail is required.");
   }
 
+  if (normalizedFollowerEmail === creator.creatorEmail) {
+    throw new Error("Creators cannot follow their own character.");
+  }
+
   if (action !== "follow" && action !== "unfollow") {
     throw new Error("Unsupported follow action.");
   }

@@ -2899,12 +2899,16 @@ function FanletterRelatedVlogs({
 function FanletterFanRequestSourceCard({
   channelHref,
   content,
+  isOwnContent = false,
   locale,
+  ownerManageHref,
   requestHref,
 }: {
   channelHref: string;
   content: FanletterPublicContentDetail;
+  isOwnContent?: boolean;
   locale: Locale;
+  ownerManageHref?: string;
   requestHref: string;
 }) {
   const source = content.fanRequestSource;
@@ -2925,6 +2929,9 @@ function FanletterFanRequestSourceCard({
           requestedBy: "요청",
           result:
             "팬이 남긴 한마디가 실제 브이로그 소재로 반영되었습니다. 같은 방식으로 다음 장면도 요청할 수 있습니다.",
+          ownerCta: "요청함에서 관리",
+          ownerResult:
+            "팬 요청을 반영해 만든 내 브이로그입니다. 요청 상태와 다음 제작 후보는 스튜디오에서 이어서 관리하세요.",
           title: "팬 요청으로 만든 브이로그",
           vlogRequest: "다음 브이로그 요청 기반",
         }
@@ -2938,6 +2945,9 @@ function FanletterFanRequestSourceCard({
           requestedBy: "Request",
           result:
             "A fan note became the idea behind this vlog. You can request the next scene the same way.",
+          ownerCta: "Manage in inbox",
+          ownerResult:
+            "This is your vlog made from a fan request. Continue managing request status and next production candidates in Studio.",
           title: "Vlog made from a fan request",
           vlogRequest: "Inspired by a next-vlog request",
         };
@@ -2964,7 +2974,7 @@ function FanletterFanRequestSourceCard({
               {labels.title}
             </h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-[#b9ffc8]">
-              {labels.result}
+              {isOwnContent ? labels.ownerResult : labels.result}
             </p>
             <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3">
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#8dffa5]">
@@ -3007,10 +3017,10 @@ function FanletterFanRequestSourceCard({
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:w-56 lg:flex-col">
           <Link
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={requestHref}
+            href={isOwnContent ? ownerManageHref ?? channelHref : requestHref}
           >
             <PenLine className="size-4" />
-            {labels.cta}
+            {isOwnContent ? labels.ownerCta : labels.cta}
           </Link>
           <Link
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
@@ -3028,11 +3038,15 @@ function FanletterFanRequestSourceCard({
 function FanletterDetailRequestCta({
   characterName,
   fanRequestHref,
+  isOwnContent = false,
   locale,
+  ownerManageHref,
 }: {
   characterName: string;
   fanRequestHref: string;
+  isOwnContent?: boolean;
   locale: Locale;
+  ownerManageHref?: string;
 }) {
   const labels =
     locale === "ko"
@@ -3040,6 +3054,11 @@ function FanletterDetailRequestCta({
           body: `${characterName}에게 보고 싶은 룩, 장소, 질문을 남기면 크리에이터가 스튜디오 요청함에서 바로 다음 브이로그 소재로 확인할 수 있습니다.`,
           cta: "다음 장면 요청하기",
           eyebrow: "Fan Request",
+          ownerBody:
+            "이 브이로그는 현재 로그인한 계정의 콘텐츠입니다. 팬 요청을 남기는 대신 스튜디오에서 공개 상태, 팬 반응, 다음 제작 후보를 관리하세요.",
+          ownerCta: "스튜디오에서 관리",
+          ownerSteps: ["공개 상태 확인", "팬 반응 확인", "다음 소재 관리"],
+          ownerTitle: "내 브이로그 관리로 이어가기",
           steps: ["장면 남기기", "제작 후보 검토", "채널에서 공개 확인"],
           title: "이 브이로그 다음 장면을 요청하세요",
         }
@@ -3047,9 +3066,19 @@ function FanletterDetailRequestCta({
           body: `Leave the outfit, place, or question you want ${characterName} to answer. The creator can review it from the studio inbox as a next-vlog idea.`,
           cta: "Request next scene",
           eyebrow: "Fan Request",
+          ownerBody:
+            "This vlog belongs to the currently signed-in account. Manage visibility, fan reactions, and next production candidates in Studio instead of leaving a fan request.",
+          ownerCta: "Manage in studio",
+          ownerSteps: ["Check visibility", "Review reactions", "Plan next idea"],
+          ownerTitle: "Continue into my vlog management",
           steps: ["Leave a scene", "Reviewed for production", "Watch it on channel"],
           title: "Request the next scene after this vlog",
         };
+  const displayBody = isOwnContent ? labels.ownerBody : labels.body;
+  const displayCta = isOwnContent ? labels.ownerCta : labels.cta;
+  const displayHref = isOwnContent ? ownerManageHref ?? fanRequestHref : fanRequestHref;
+  const displaySteps = isOwnContent ? labels.ownerSteps : labels.steps;
+  const displayTitle = isOwnContent ? labels.ownerTitle : labels.title;
 
   return (
     <section className="mt-6 rounded-lg border border-[#44f26e]/26 bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.045)_48%,rgba(3,5,4,0.86))] p-4 text-white sm:p-5">
@@ -3063,13 +3092,13 @@ function FanletterDetailRequestCta({
               {labels.eyebrow}
             </p>
             <h2 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
-              {labels.title}
+              {displayTitle}
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
-              {labels.body}
+              {displayBody}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {labels.steps.map((step, index) => (
+              {displaySteps.map((step, index) => (
                 <span
                   className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]"
                   key={step}
@@ -3082,9 +3111,9 @@ function FanletterDetailRequestCta({
         </div>
         <Link
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-          href={fanRequestHref}
+          href={displayHref}
         >
-          {labels.cta}
+          {displayCta}
           <ArrowRight className="size-4" />
         </Link>
       </div>
@@ -3094,15 +3123,21 @@ function FanletterDetailRequestCta({
 
 function FanletterContentNextActions({
   channelHref,
+  createHref,
   feedHref,
   followHref,
+  isOwnContent = false,
   locale,
+  manageHref,
   startHref,
 }: {
   channelHref: string;
+  createHref?: string;
   feedHref: string;
   followHref: string;
+  isOwnContent?: boolean;
   locale: Locale;
+  manageHref?: string;
   startHref: string;
 }) {
   const labels =
@@ -3115,7 +3150,12 @@ function FanletterContentNextActions({
           feedTitle: "전체 피드",
           followBody: "FanLetter 온보딩 후 이 캐릭터 흐름으로 다시 돌아옵니다.",
           followTitle: "팔로우/알림",
+          manageBody: "내 브이로그의 공개 상태, 판매, 팬 반응을 관리합니다.",
+          manageTitle: "브이로그 관리",
           open: "열기",
+          ownerCreateBody: "같은 캐릭터로 다음 숏폼 브이로그를 바로 만듭니다.",
+          ownerCreateTitle: "다음 브이로그 만들기",
+          ownerTitle: "작성자 다음 행동",
           startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 시작합니다.",
           startTitle: "내 채널 시작",
           title: "다음 행동",
@@ -3128,42 +3168,75 @@ function FanletterContentNextActions({
           feedTitle: "Full feed",
           followBody: "Complete FanLetter onboarding, then return to this character flow.",
           followTitle: "Follow updates",
+          manageBody: "Manage this vlog's visibility, sales, and fan reactions.",
+          manageTitle: "Manage vlog",
           open: "Open",
+          ownerCreateBody: "Create the next short-form vlog with the same character.",
+          ownerCreateTitle: "Create next vlog",
+          ownerTitle: "Author next actions",
           startBody: "Start your own AI character vlog channel without complex setup.",
           startTitle: "Start my channel",
           title: "Next actions",
         };
-  const actions = [
-    {
-      body: labels.channelBody,
-      href: channelHref,
-      icon: User,
-      title: labels.channelTitle,
-    },
-    {
-      body: labels.followBody,
-      href: followHref,
-      icon: BellPlus,
-      title: labels.followTitle,
-    },
-    {
-      body: labels.feedBody,
-      href: feedHref,
-      icon: Grid2X2,
-      title: labels.feedTitle,
-    },
-    {
-      body: labels.startBody,
-      href: startHref,
-      icon: Rocket,
-      title: labels.startTitle,
-    },
-  ];
+  const actions = isOwnContent
+    ? [
+        {
+          body: labels.manageBody,
+          href: manageHref ?? startHref,
+          icon: Clapperboard,
+          title: labels.manageTitle,
+        },
+        {
+          body: labels.ownerCreateBody,
+          href: createHref ?? startHref,
+          icon: Rocket,
+          title: labels.ownerCreateTitle,
+        },
+        {
+          body: labels.channelBody,
+          href: channelHref,
+          icon: User,
+          title: labels.channelTitle,
+        },
+        {
+          body: labels.feedBody,
+          href: feedHref,
+          icon: Grid2X2,
+          title: labels.feedTitle,
+        },
+      ]
+    : [
+        {
+          body: labels.channelBody,
+          href: channelHref,
+          icon: User,
+          title: labels.channelTitle,
+        },
+        {
+          body: labels.followBody,
+          href: followHref,
+          icon: BellPlus,
+          title: labels.followTitle,
+        },
+        {
+          body: labels.feedBody,
+          href: feedHref,
+          icon: Grid2X2,
+          title: labels.feedTitle,
+        },
+        {
+          body: labels.startBody,
+          href: startHref,
+          icon: Rocket,
+          title: labels.startTitle,
+        },
+      ];
+  const title = isOwnContent ? labels.ownerTitle : labels.title;
 
   return (
     <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4 sm:p-5">
       <h2 className="text-xl font-semibold tracking-normal text-white">
-        {labels.title}
+        {title}
       </h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {actions.map((action) => {
@@ -3265,20 +3338,24 @@ function FanletterDetailWatchPanel({
 
 function FanletterDetailQuickActions({
   characterName,
+  createHref,
   creatorActionHref,
   creatorActionLabel,
   detailActionHref,
   detailActionLabel,
   fanRequestHref,
+  isOwnContent = false,
   locale,
   startHref,
 }: {
   characterName: string;
+  createHref?: string;
   creatorActionHref: string;
   creatorActionLabel: string;
   detailActionHref: string;
   detailActionLabel: string;
   fanRequestHref: string;
+  isOwnContent?: boolean;
   locale: Locale;
   startHref: string;
 }) {
@@ -3292,6 +3369,15 @@ function FanletterDetailQuickActions({
           requestTitle: "다음 장면 요청",
           startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 만듭니다.",
           startTitle: "내 채널 시작",
+          ownerBody:
+            "작성자 화면에서는 팬 행동 대신 공개 상태, 판매, 반응 데이터를 바로 관리할 수 있게 연결합니다.",
+          ownerManageBody:
+            "이 브이로그의 공개/유료 상태와 상세 이동 흐름을 스튜디오에서 확인합니다.",
+          ownerManageTitle: "브이로그 관리",
+          ownerCreateBody:
+            "현재 캐릭터 설정을 유지한 채 다음 숏폼 브이로그 제작으로 이동합니다.",
+          ownerCreateTitle: "다음 브이로그 만들기",
+          ownerTitle: "내 브이로그에서 이어가기",
           title: "이 브이로그에서 이어가기",
         }
       : {
@@ -3302,28 +3388,60 @@ function FanletterDetailQuickActions({
           requestTitle: "Request next scene",
           startBody: "Create your own AI character vlog channel without complex setup.",
           startTitle: "Start my channel",
+          ownerBody:
+            "Author view replaces fan actions with direct access to visibility, sales, and reaction management.",
+          ownerManageBody:
+            "Review this vlog's public or paid status and detail flow in Studio.",
+          ownerManageTitle: "Manage vlog",
+          ownerCreateBody:
+            "Keep the current character setup and move into the next short-form vlog.",
+          ownerCreateTitle: "Create next vlog",
+          ownerTitle: "Continue from my vlog",
           title: "Continue from this vlog",
         };
-  const actions = [
-    {
-      body: labels.creatorBody,
-      href: creatorActionHref,
-      icon: User,
-      title: creatorActionLabel,
-    },
-    {
-      body: labels.requestBody,
-      href: fanRequestHref,
-      icon: Clapperboard,
-      title: labels.requestTitle,
-    },
-    {
-      body: labels.startBody,
-      href: startHref,
-      icon: Rocket,
-      title: labels.startTitle,
-    },
-  ];
+  const actions = isOwnContent
+    ? [
+        {
+          body: labels.creatorBody,
+          href: creatorActionHref,
+          icon: User,
+          title: creatorActionLabel,
+        },
+        {
+          body: labels.ownerManageBody,
+          href: detailActionHref,
+          icon: Clapperboard,
+          title: labels.ownerManageTitle,
+        },
+        {
+          body: labels.ownerCreateBody,
+          href: createHref ?? startHref,
+          icon: Rocket,
+          title: labels.ownerCreateTitle,
+        },
+      ]
+    : [
+        {
+          body: labels.creatorBody,
+          href: creatorActionHref,
+          icon: User,
+          title: creatorActionLabel,
+        },
+        {
+          body: labels.requestBody,
+          href: fanRequestHref,
+          icon: Clapperboard,
+          title: labels.requestTitle,
+        },
+        {
+          body: labels.startBody,
+          href: startHref,
+          icon: Rocket,
+          title: labels.startTitle,
+        },
+      ];
+  const headerBody = isOwnContent ? labels.ownerBody : labels.body;
+  const headerTitle = isOwnContent ? labels.ownerTitle : labels.title;
 
   return (
     <section className="mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
@@ -3333,10 +3451,10 @@ function FanletterDetailQuickActions({
             FanLetter Flow
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-normal [word-break:keep-all]">
-            {labels.title}
+            {headerTitle}
           </h2>
           <p className="mt-2 text-sm font-medium leading-6 text-white/58">
-            {labels.body}
+            {headerBody}
           </p>
         </div>
         <Link
@@ -3374,6 +3492,103 @@ function FanletterDetailQuickActions({
             </Link>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function FanletterOwnerContentPanel({
+  channelHref,
+  className = "",
+  createHref,
+  locale,
+  manageHref,
+}: {
+  channelHref: string;
+  className?: string;
+  createHref: string;
+  locale: Locale;
+  manageHref: string;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          body:
+            "현재 로그인한 계정의 브이로그입니다. 팬 요청을 직접 남기는 화면 대신, 공개 상태와 팬 반응을 확인하고 다음 브이로그 제작으로 이어가세요.",
+          channel: "내 캐릭터 채널",
+          create: "다음 브이로그 만들기",
+          eyebrow: "Creator view",
+          manage: "브이로그 관리",
+          signals: ["소유자 전체 열람", "팬 요청은 스튜디오에서 관리", "좋아요/저장은 팬 반응만 집계"],
+          title: "작성자 관리 모드",
+        }
+      : {
+          body:
+            "This vlog belongs to the signed-in account. Instead of leaving fan requests here, review visibility and fan reactions, then continue into the next vlog.",
+          channel: "My character channel",
+          create: "Create next vlog",
+          eyebrow: "Creator view",
+          manage: "Manage vlog",
+          signals: [
+            "Owner full access",
+            "Fan requests live in Studio",
+            "Likes and saves count fan reactions only",
+          ],
+          title: "Author management mode",
+        };
+
+  return (
+    <section
+      className={`rounded-lg border border-[#44f26e]/24 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.22)] sm:p-5 ${className}`}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            <BadgeCheck className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {labels.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
+              {labels.title}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+              {labels.body}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {labels.signals.map((signal) => (
+                <span
+                  className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]"
+                  key={signal}
+                >
+                  {signal}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3 lg:w-72 lg:grid-cols-1">
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={manageHref}
+          >
+            {labels.manage}
+            <ArrowRight className="size-4" />
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={createHref}
+          >
+            {labels.create}
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={channelHref}
+          >
+            {labels.channel}
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -4612,6 +4827,7 @@ function FanletterCharacterMiniCard({
   locale,
   primaryActionHref,
   primaryActionLabel,
+  secondaryActionLabel,
   startHref,
 }: {
   channelHref: string;
@@ -4619,6 +4835,7 @@ function FanletterCharacterMiniCard({
   locale: Locale;
   primaryActionHref: string;
   primaryActionLabel: string;
+  secondaryActionLabel?: string;
   startHref: string;
 }) {
   const copy = getCopy(locale);
@@ -4812,7 +5029,7 @@ function FanletterCharacterMiniCard({
           className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
           href={startHref}
         >
-          {copy.actions.start}
+          {secondaryActionLabel ?? copy.actions.start}
         </Link>
       </div>
     </section>
@@ -4832,6 +5049,8 @@ export function FanletterContentDetailPage({
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? content.authorReferralCode;
+  const isOwnContent = content.viewerRelation === "owner";
+  const canViewerAccess = content.canPubliclyAccess || isOwnContent;
   const fallbackBackHref = buildPathWithReferral(
     `/${locale}/fanletter/feed`,
     effectiveReferralCode,
@@ -4843,6 +5062,21 @@ export function FanletterContentDetailPage({
   const startHref = buildPathWithReferral(
     `/${locale}/fanletter/start`,
     effectiveReferralCode,
+  );
+  const createHref = buildPathWithReferral(
+    `/${locale}/fanletter/create`,
+    effectiveReferralCode,
+  );
+  const ownerManageHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/studio/vlogs`, effectiveReferralCode),
+    {
+      returnTo:
+        returnToHref ??
+        buildPathWithReferral(
+          `/${locale}/fanletter/content/${content.contentId}`,
+          effectiveReferralCode,
+        ),
+    },
   );
   const currentHref = buildPathWithReferral(
     `/${locale}/fanletter/content/${content.contentId}`,
@@ -4880,14 +5114,27 @@ export function FanletterContentDetailPage({
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
   const paidUnlockSectionId = "fanletter-paid-unlock";
-  const detailAccessLabel =
-    content.priceType === "paid"
+  const detailAccessLabel = isOwnContent
+    ? content.priceType === "paid"
+      ? locale === "ko"
+        ? "내 팬 전용 브이로그"
+        : "My fan-only vlog"
+      : locale === "ko"
+        ? "내 공개 브이로그"
+        : "My public vlog"
+    : content.priceType === "paid"
       ? `${copy.content.paid} · ${content.priceUsdt ?? "1"} USDT`
       : copy.content.public;
-  const detailActionHref = content.canPubliclyAccess
+  const detailActionHref = isOwnContent
+    ? ownerManageHref
+    : content.canPubliclyAccess
     ? startHref
     : `#${paidUnlockSectionId}`;
-  const detailActionLabel = content.canPubliclyAccess
+  const detailActionLabel = isOwnContent
+    ? locale === "ko"
+      ? "스튜디오에서 관리"
+      : "Manage in studio"
+    : content.canPubliclyAccess
     ? copy.actions.start
     : locale === "ko"
       ? "팬 전용 열기"
@@ -4903,12 +5150,14 @@ export function FanletterContentDetailPage({
       ? {
           character: "캐릭터",
           heroEyebrow: "FanLetter 전용 브이로그",
+          ownerManage: "내 브이로그 관리",
           requestCta: "장면 요청",
           watchBadge: "세로 브이로그",
         }
       : {
           character: "Character",
           heroEyebrow: "FanLetter vlog detail",
+          ownerManage: "Manage my vlog",
           requestCta: "Request scene",
           watchBadge: "Vertical vlog",
         };
@@ -5010,9 +5259,9 @@ export function FanletterContentDetailPage({
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-sm font-semibold !text-white transition hover:bg-white/10"
-                href={fanRequestHref}
+                href={isOwnContent ? ownerManageHref : fanRequestHref}
               >
-                {detailLabels.requestCta}
+                {isOwnContent ? detailLabels.ownerManage : detailLabels.requestCta}
               </Link>
             </div>
           </div>
@@ -5102,6 +5351,7 @@ export function FanletterContentDetailPage({
               <FanletterSocialActions
                 contentId={content.contentId}
                 initialSocial={content.social}
+                isOwnContent={isOwnContent}
                 locale={locale}
                 shareHref={currentHref}
                 summary={content.summary}
@@ -5112,24 +5362,30 @@ export function FanletterContentDetailPage({
                 <FanletterFanRequestSourceCard
                   channelHref={creatorHref}
                   content={content}
+                  isOwnContent={isOwnContent}
                   locale={locale}
+                  ownerManageHref={ownerManageHref}
                   requestHref={fanRequestHref}
                 />
               ) : (
                 <FanletterDetailRequestCta
                   characterName={contentCharacterName}
                   fanRequestHref={fanRequestHref}
+                  isOwnContent={isOwnContent}
                   locale={locale}
+                  ownerManageHref={ownerManageHref}
                 />
               )}
 
               <FanletterDetailQuickActions
                 characterName={contentCharacterName}
+                createHref={createHref}
                 creatorActionHref={creatorActionHref}
                 creatorActionLabel={creatorActionLabel}
                 detailActionHref={detailActionHref}
                 detailActionLabel={detailActionLabel}
                 fanRequestHref={fanRequestHref}
+                isOwnContent={isOwnContent}
                 locale={locale}
                 startHref={startHref}
               />
@@ -5140,32 +5396,51 @@ export function FanletterContentDetailPage({
                 locale={locale}
                 primaryActionHref={creatorActionHref}
                 primaryActionLabel={creatorActionLabel}
-                startHref={startHref}
+                secondaryActionLabel={
+                  isOwnContent
+                    ? locale === "ko"
+                      ? "다음 브이로그 만들기"
+                      : "Create next vlog"
+                    : undefined
+                }
+                startHref={isOwnContent ? createHref : startHref}
               />
 
-              <FanletterFanPromptPanel
-                characterName={contentCharacterName}
-                className="mt-6"
-                creatorReferralCode={content.authorReferralCode}
-                followHref={onboardingHref}
-                id={fanRequestSectionId}
-                locale={locale}
-                publicVlogsHref={`${creatorHref}#public-vlogs`}
-                referralCode={effectiveReferralCode}
-                requestHref={fanRequestHref}
-                sourceContentId={content.contentId}
-                startHref={startHref}
-              />
+              {isOwnContent ? (
+                <FanletterOwnerContentPanel
+                  channelHref={creatorHref}
+                  className="mt-6"
+                  createHref={createHref}
+                  locale={locale}
+                  manageHref={ownerManageHref}
+                />
+              ) : (
+                <>
+                  <FanletterFanPromptPanel
+                    characterName={contentCharacterName}
+                    className="mt-6"
+                    creatorReferralCode={content.authorReferralCode}
+                    followHref={onboardingHref}
+                    id={fanRequestSectionId}
+                    locale={locale}
+                    publicVlogsHref={`${creatorHref}#public-vlogs`}
+                    referralCode={effectiveReferralCode}
+                    requestHref={fanRequestHref}
+                    sourceContentId={content.contentId}
+                    startHref={startHref}
+                  />
 
-              <FanletterRequestStatusPanel
-                className="mt-6"
-                creatorReferralCode={content.authorReferralCode}
-                locale={locale}
-                referralCode={effectiveReferralCode}
-                sourceContentId={content.contentId}
-              />
+                  <FanletterRequestStatusPanel
+                    className="mt-6"
+                    creatorReferralCode={content.authorReferralCode}
+                    locale={locale}
+                    referralCode={effectiveReferralCode}
+                    sourceContentId={content.contentId}
+                  />
+                </>
+              )}
 
-              {!content.canPubliclyAccess ? (
+              {!canViewerAccess ? (
                 <div id={paidUnlockSectionId}>
                   <FanletterPaidUnlockPanel
                     connectHref={connectHref}
@@ -5184,7 +5459,7 @@ export function FanletterContentDetailPage({
                 </div>
               ) : null}
 
-              {content.canPubliclyAccess &&
+              {canViewerAccess &&
               content.contentVideoUrls.length > 1 ? (
                 <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4">
                   <div className="mb-4 flex items-center gap-2">
@@ -5213,7 +5488,7 @@ export function FanletterContentDetailPage({
                 </section>
               ) : null}
 
-              {content.canPubliclyAccess ? (
+              {canViewerAccess ? (
                 <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
                   <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/42">
                     {copy.content.body}
@@ -5236,9 +5511,12 @@ export function FanletterContentDetailPage({
 
               <FanletterContentNextActions
                 channelHref={creatorHref}
+                createHref={createHref}
                 feedHref={fallbackBackHref}
                 followHref={onboardingHref}
+                isOwnContent={isOwnContent}
                 locale={locale}
+                manageHref={ownerManageHref}
                 startHref={startHref}
               />
             </section>

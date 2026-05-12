@@ -272,6 +272,12 @@ export async function createFanletterFanRequest(input: {
     characterName: input.characterName,
     creatorReferralCode: input.creatorReferralCode,
   });
+  const requesterEmail = normalizeEmail(input.requesterEmail ?? "") || null;
+
+  if (requesterEmail && requesterEmail === creator.creatorEmail) {
+    throw new Error("Creators cannot request their own character.");
+  }
+
   const sourceContentId = await normalizeSourceContentId({
     creatorReferralCode: creator.creatorReferralCode,
     sourceContentId: input.sourceContentId,
@@ -290,7 +296,7 @@ export async function createFanletterFanRequest(input: {
       input.requesterDisplayName,
       FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
     ),
-    requesterEmail: normalizeEmail(input.requesterEmail ?? "") || null,
+    requesterEmail,
     requesterFingerprint: normalizeRequesterFingerprint(input.requesterFingerprint),
     sourceContentId,
     sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),

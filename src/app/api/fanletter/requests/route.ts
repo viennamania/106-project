@@ -29,6 +29,7 @@ function getErrorStatus(message: string) {
     message === "creatorReferralCode is required." ||
     message === "Fan request body is required." ||
     message === "Fan request contains blocked content." ||
+    message === "Creators cannot request their own character." ||
     message === "requestId is required." ||
     message === "Published content is required." ||
     message === "Unsupported fan request status."
