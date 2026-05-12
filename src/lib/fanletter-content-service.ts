@@ -173,6 +173,7 @@ export type FanletterCreatorPageData = {
   items: FanletterPublicContentItem[];
   profile: FanletterCreatorProfile;
   publicContentCount: number;
+  viewerRelation: "audience" | "owner";
 };
 
 function getPublishedContentLocaleFilter(
@@ -1023,6 +1024,7 @@ export const getFanletterCreatorPageData = cache(
   async (
     locale: Locale,
     referralCodeInput: string,
+    viewerEmailInput?: string | null,
   ): Promise<FanletterCreatorPageData | null> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
 
@@ -1081,6 +1083,10 @@ export const getFanletterCreatorPageData = cache(
     }
 
     const socialByContentId = await getSocialByContentId(creatorPosts);
+    const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
+    const creatorEmail = normalizeEmail(profile?.email ?? creatorPosts[0]?.authorEmail ?? "");
+    const viewerRelation =
+      viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
@@ -1122,6 +1128,7 @@ export const getFanletterCreatorPageData = cache(
         referralCode,
       },
       publicContentCount,
+      viewerRelation,
     };
   },
 );

@@ -896,7 +896,10 @@ function FanRequestsSection({
     requestTabs.find((tab) => tab.value === activeFilter)?.Icon ??
     MessageCircleHeart;
   return (
-    <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+    <section
+      className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+      id="fan-requests"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
