@@ -830,7 +830,7 @@ function ContentCard({
   const displayTitle = getDisplayContentTitle(item, locale);
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
+    <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
       <Link className="block" href={href}>
         <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b] sm:aspect-[9/14]">
           {item.primaryVideoUrl && showVideoPreview ? (
@@ -879,11 +879,11 @@ function ContentCard({
         </div>
       </Link>
 
-      <div className="p-3 sm:p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         <h2 className="line-clamp-2 break-words text-base font-semibold leading-tight tracking-normal [overflow-wrap:anywhere] sm:text-xl">
           {displayTitle}
         </h2>
-        <p className="mt-1.5 line-clamp-2 break-words text-xs font-medium leading-5 text-black/58 [overflow-wrap:anywhere] sm:mt-2 sm:min-h-[4.5rem] sm:text-sm sm:leading-6">
+        <p className="mt-1.5 line-clamp-2 min-h-10 break-words text-xs font-medium leading-5 text-black/58 [overflow-wrap:anywhere] sm:mt-2 sm:min-h-[4.5rem] sm:text-sm sm:leading-6">
           {displaySummary}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-1.5 sm:hidden">
@@ -917,7 +917,7 @@ function ContentCard({
             variant="compact"
           />
         </div>
-        <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-auto flex flex-col gap-2 pt-3 sm:mt-0 sm:pt-4 sm:flex-row sm:items-center sm:justify-between">
           {creatorHref ? (
             <Link
               className="hidden h-9 min-w-0 items-center gap-2 rounded-lg border border-black/10 px-3 text-xs font-semibold text-black/62 sm:inline-flex"
