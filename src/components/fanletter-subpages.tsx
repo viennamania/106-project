@@ -2367,9 +2367,17 @@ function FanletterFanOnlyPreview({
           availableCta: "첫 팬 전용 브이로그 보기",
           availableEyebrow: "팬 전용 라이브러리",
           availableNote:
-            "카드에서는 제목과 공개 미리보기만 보여주고, 실제 영상 열람은 상세 페이지의 권한 확인 흐름에서 처리합니다.",
+            "미결제 카드는 미리보기와 잠금 해제 흐름으로, 결제 완료 카드는 바로 보기로 표시합니다.",
           availableTitle: "팬 전용 브이로그 모음",
+          basePrice: "기본 가격",
           body: "팬 전용 요청은 유료 브이로그 후보로 바로 이어집니다. 보고 싶은 장면을 남기면 크리에이터가 스튜디오 요청함에서 확인하고 1 USDT 잠금 브이로그로 제작할 수 있습니다.",
+          cardLockedCta: "미리보기",
+          cardOwnerAccess: "관리 가능",
+          cardOwnerBadge: "내 팬 전용",
+          cardOwnerCta: "관리",
+          cardUnlocked: "결제 완료",
+          cardUnlockedAccess: "열람 가능",
+          cardUnlockedCta: "바로 보기",
           cta: "팬 요청 보내기",
           eyebrow: "팬 전용 제작 슬롯",
           fanOnlyCount: "팬 전용",
@@ -2389,12 +2397,14 @@ function FanletterFanOnlyPreview({
             "팬 요청 링크 대신 제작 화면과 스튜디오 관리로 연결됩니다.",
           ownerPresetCta: "이 주제로 제작",
           ownerSlotBadge: "제작 후보",
+          paidDone: (amount: string) => `${amount} 결제됨`,
           priceLabel: "유료",
           presetCta: "이 요청으로 남기기",
           requestFanOnly: "다음 팬 전용 요청",
           requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
           title: "팬 전용 브이로그 공간 미리보기",
+          unlockedCount: "열람 가능",
         }
       : {
           actionTitle: "What you can do now",
@@ -2404,9 +2414,17 @@ function FanletterFanOnlyPreview({
           availableCta: "Open first fan-only vlog",
           availableEyebrow: "Fan-only library",
           availableNote:
-            "Cards show the title and public preview only. Full video access is handled by the detail page verification flow.",
+            "Locked cards open preview and unlock, while purchased cards are marked as ready to watch.",
           availableTitle: "Fan-only vlog collection",
+          basePrice: "Base price",
           body: "Fan-only requests can flow directly into paid vlog candidates. Leave the scene you want to see and the creator can review it in Studio, then publish it as a 1 USDT locked vlog.",
+          cardLockedCta: "Preview",
+          cardOwnerAccess: "Manageable",
+          cardOwnerBadge: "My fan-only",
+          cardOwnerCta: "Manage",
+          cardUnlocked: "Unlocked",
+          cardUnlockedAccess: "Ready to watch",
+          cardUnlockedCta: "Watch now",
           cta: "Send fan request",
           eyebrow: "Fan-only production slot",
           fanOnlyCount: "Fan-only",
@@ -2426,12 +2444,14 @@ function FanletterFanOnlyPreview({
             "Owner actions open creation and Studio management instead of the fan request form.",
           ownerPresetCta: "Create from this",
           ownerSlotBadge: "Candidate",
+          paidDone: (amount: string) => `${amount} paid`,
           priceLabel: "Paid",
           presetCta: "Request this",
           requestFanOnly: "Request next fan-only",
           requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
           title: "Fan-only vlog space preview",
+          unlockedCount: "Unlocked",
         };
   const cards =
     locale === "ko"
@@ -2494,13 +2514,20 @@ function FanletterFanOnlyPreview({
       locale,
       referralCode,
     });
+    const unlockedFanOnlyContentCount = isOwner
+      ? fanOnlyContentCount
+      : items.filter((item) => item.canViewerAccess).length;
     const fanOnlyStats = [
       {
         label: labels.fanOnlyCount,
         value: formatNumber(fanOnlyContentCount, locale),
       },
       {
-        label: labels.lockedAccess,
+        label: labels.unlockedCount,
+        value: formatNumber(unlockedFanOnlyContentCount, locale),
+      },
+      {
+        label: labels.basePrice,
         value: `${items[0]?.priceUsdt ?? "1"} USDT`,
       },
     ];
@@ -2528,7 +2555,7 @@ function FanletterFanOnlyPreview({
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
                 {labels.availableActionTitle}
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
                 {fanOnlyStats.map((stat) => (
                   <div
                     className="rounded-lg border border-white/10 bg-black/18 p-3"
@@ -2581,6 +2608,32 @@ function FanletterFanOnlyPreview({
               const publishedAt = formatDate(item.publishedAt, locale);
               const displaySummary = getDisplayContentSummary(item, locale);
               const displayTitle = getDisplayContentTitle(item, locale);
+              const hasAccess = isOwner || item.canViewerAccess;
+              const StatusIcon = isOwner
+                ? Clapperboard
+                : hasAccess
+                  ? BadgeCheck
+                  : LockKeyhole;
+              const statusLabel = isOwner
+                ? labels.cardOwnerAccess
+                : hasAccess
+                  ? labels.cardUnlockedAccess
+                  : labels.lockedAccess;
+              const primaryBadgeLabel = isOwner
+                ? labels.cardOwnerBadge
+                : hasAccess
+                  ? labels.cardUnlocked
+                  : labels.priceLabel;
+              const secondaryBadgeLabel = isOwner
+                ? labels.cardOwnerAccess
+                : hasAccess
+                  ? labels.paidDone(`${item.priceUsdt ?? "1"} USDT`)
+                  : `${item.priceUsdt ?? "1"} USDT`;
+              const cardCtaLabel = isOwner
+                ? labels.cardOwnerCta
+                : hasAccess
+                  ? labels.cardUnlockedCta
+                  : labels.cardLockedCta;
 
               return (
                 <Link
@@ -2600,7 +2653,7 @@ function FanletterFanOnlyPreview({
                       />
                     ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
-                        <LockKeyhole className="size-14 text-[#44f26e]" />
+                        <StatusIcon className="size-14 text-[#44f26e]" />
                         <span className="text-xs font-semibold uppercase tracking-[0.22em]">
                           {labels.fanOnlyCount}
                         </span>
@@ -2608,18 +2661,30 @@ function FanletterFanOnlyPreview({
                     )}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.2)_42%,rgba(0,0,0,0.86)_100%)]" />
                     <div className="absolute left-3 right-3 top-3 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black">
-                        <Crown className="size-3.5" />
-                        {labels.priceLabel}
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] ${
+                          hasAccess
+                            ? "bg-[#44f26e] text-black"
+                            : "border border-white/16 bg-black/54 text-white"
+                        }`}
+                      >
+                        <StatusIcon className="size-3.5" />
+                        {primaryBadgeLabel}
                       </span>
-                      <span className="inline-flex rounded-full border border-white/16 bg-black/48 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white">
-                        {item.priceUsdt ?? "1"} USDT
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] ${
+                          hasAccess
+                            ? "border-[#44f26e]/45 bg-[#44f26e]/14 text-[#b9ffc8]"
+                            : "border-white/16 bg-black/48 text-white"
+                        }`}
+                      >
+                        {secondaryBadgeLabel}
                       </span>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="flex items-center gap-2 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-[#b9ffc8]">
-                        <LockKeyhole className="size-3.5" />
-                        {labels.lockedAccess}
+                        <StatusIcon className="size-3.5" />
+                        {statusLabel}
                       </div>
                       <h3 className="mt-2 line-clamp-2 break-words text-xl font-semibold leading-tight [overflow-wrap:anywhere]">
                         {displayTitle}
@@ -2635,7 +2700,7 @@ function FanletterFanOnlyPreview({
                         {publishedAt ?? "FanLetter"}
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#b9ffc8]">
-                        {labels.availableCta}
+                        {cardCtaLabel}
                         <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                       </span>
                     </div>

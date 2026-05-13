@@ -72,6 +72,7 @@ export type FanletterPublicContentItem = {
   priceUsdt: string | null;
   primaryVideoUrl: string | null;
   publishedAt: string | null;
+  canViewerAccess: boolean;
   social: ContentSocialSummaryRecord;
   summary: string;
   title: string;
@@ -652,14 +653,18 @@ async function getSocialByContentId(posts: ContentPostDocument[]) {
 }
 
 function toPublicContentItem({
+  canViewerAccess,
   post,
   profile,
   social,
 }: {
+  canViewerAccess?: boolean;
   post: ContentPostDocument;
   profile: CreatorProfileDocument | null | undefined;
   social?: ContentSocialSummaryRecord;
 }): FanletterPublicContentItem {
+  const resolvedCanViewerAccess = canViewerAccess ?? post.priceType === "free";
+
   return {
     authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
     authorName: getAuthorName(post, profile),
@@ -672,10 +677,42 @@ function toPublicContentItem({
     priceUsdt: post.priceUsdt ?? null,
     primaryVideoUrl: getPrimaryVideoUrl(post),
     publishedAt: post.publishedAt?.toISOString() ?? null,
+    canViewerAccess: resolvedCanViewerAccess,
     social: social ?? createEmptyContentSocialSummary(),
     summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
     title: compactText(post.title, TITLE_LIMIT),
   };
+}
+
+async function getViewerEntitlementContentIds({
+  contentIds,
+  viewerEmail,
+}: {
+  contentIds: string[];
+  viewerEmail: string;
+}) {
+  const normalizedViewerEmail = normalizeEmail(viewerEmail);
+
+  if (!normalizedViewerEmail || contentIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const entitlementsCollection = await getContentEntitlementsCollection();
+  const entitlements = await entitlementsCollection
+    .find(
+      {
+        contentId: { $in: [...new Set(contentIds)] },
+        memberEmail: normalizedViewerEmail,
+      },
+      {
+        projection: {
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+
+  return new Set(entitlements.map((entitlement) => entitlement.contentId));
 }
 
 function toPublicFanRequestSource(
@@ -1082,7 +1119,12 @@ export const getFanletterPublicContentDetail = cache(
     const authorSocialByContentId = await getSocialByContentId(authorPosts);
 
     return {
-      ...toPublicContentItem({ post, profile, social }),
+      ...toPublicContentItem({
+        canViewerAccess,
+        post,
+        profile,
+        social,
+      }),
       authorCharacter: getPublicCharacter({
         fanRequestMetrics: authorFanRequestMetrics,
         locale,
@@ -1175,11 +1217,19 @@ export const getFanletterCreatorPageData = cache(
       return null;
     }
 
-    const socialByContentId = await getSocialByContentId(creatorPosts);
     const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
     const creatorEmail = normalizeEmail(profile?.email ?? creatorPosts[0]?.authorEmail ?? "");
     const viewerRelation =
       viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
+    const [socialByContentId, viewerEntitlementContentIds] = await Promise.all([
+      getSocialByContentId(creatorPosts),
+      viewerRelation === "audience"
+        ? getViewerEntitlementContentIds({
+            contentIds: fanOnlyPosts.map((post) => post.contentId),
+            viewerEmail,
+          })
+        : Promise.resolve(new Set<string>()),
+    ]);
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
@@ -1189,6 +1239,9 @@ export const getFanletterCreatorPageData = cache(
       fanOnlyContentCount,
       fanOnlyItems: fanOnlyPosts.map((post) =>
         toPublicContentItem({
+          canViewerAccess:
+            viewerRelation === "owner" ||
+            viewerEntitlementContentIds.has(post.contentId),
           post,
           profile,
           social: socialByContentId.get(post.contentId),
