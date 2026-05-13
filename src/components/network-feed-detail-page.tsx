@@ -245,6 +245,20 @@ function getReadableContentVideoCount(
   );
 }
 
+function getContentAccessLabel({
+  contentCopy,
+  item,
+}: {
+  contentCopy: ContentCopy;
+  item: Pick<ContentFeedItemRecord, "priceType" | "priceUsdt">;
+}) {
+  if (item.priceType === "paid") {
+    return `${contentCopy.labels.paid} · ${item.priceUsdt ?? "1"} USDT`;
+  }
+
+  return contentCopy.labels.free;
+}
+
 function canViewContentMedia(
   item: ContentFeedItemRecord,
   detailState: DetailLoadState | null,
@@ -1660,11 +1674,7 @@ function NetworkFeedDetailSlide({
     isPaid &&
     contentMediaCount > 0 &&
     !canViewContentMedia(item, detailState);
-  const accessLabel = isPaid
-    ? locale === "ko"
-      ? `${item.priceUsdt ?? "1"} USDT`
-      : `${item.priceUsdt ?? "1"} USDT`
-    : contentCopy.labels.free;
+  const accessLabel = getContentAccessLabel({ contentCopy, item });
   const gateLabel =
     detailState?.gateReason === "paid"
       ? locale === "ko"
@@ -2268,10 +2278,7 @@ function NetworkFeedBodySheet({
   const avatarFallback = getAvatarFallback(displayName);
   const bodyText = getReadableBodyText(item, detailState);
   const actionLabel = getFullContentActionLabel(item, detailState, locale);
-  const isPaid = item.priceType === "paid";
-  const accessLabel = isPaid
-    ? `${item.priceUsdt ?? "1"} USDT`
-    : contentCopy.labels.free;
+  const accessLabel = getContentAccessLabel({ contentCopy, item });
   const dateLabel = formatDate(item.publishedAt ?? item.createdAt, locale);
   const gateLabel =
     detailState?.gateReason === "paid"

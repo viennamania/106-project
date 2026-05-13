@@ -242,7 +242,7 @@ function getStatusLabel(
 
 function getPriceLabel(copy: ReturnType<typeof getCopy>, post: ContentPostRecord) {
   if (post.priceType === "paid") {
-    return `${copy.labels.paid}${post.priceUsdt ? ` · ${post.priceUsdt} USDT` : ""}`;
+    return `${copy.labels.paid} · ${post.priceUsdt ?? "1"} USDT`;
   }
 
   return copy.labels.free;

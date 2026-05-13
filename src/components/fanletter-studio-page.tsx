@@ -490,6 +490,18 @@ function resolvePostVideo(post: ContentPostRecord) {
   return post.contentVideoUrls[0] ?? null;
 }
 
+function getPostPriceLabel(
+  post: ContentPostRecord,
+  copy: ReturnType<typeof getCopy>,
+  locale: Locale,
+) {
+  if (post.priceType === "paid") {
+    return `${copy.pricePaid} · ${formatUsdt(post.priceUsdt ?? "1", locale)}`;
+  }
+
+  return copy.priceFree;
+}
+
 function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
   if (!member) {
     return locale === "ko" ? "확인 전" : "Not checked";
@@ -1518,10 +1530,12 @@ function PlannerSection({
 }
 
 function PostPreviewCard({
+  copy,
   href,
   locale,
   post,
 }: {
+  copy: ReturnType<typeof getCopy>;
   href: string;
   locale: Locale;
   post: ContentPostRecord;
@@ -1529,6 +1543,7 @@ function PostPreviewCard({
   const imageUrl = resolvePostImage(post);
   const videoUrl = resolvePostVideo(post);
   const dateLabel = formatDate(post.publishedAt ?? post.updatedAt, locale);
+  const priceLabel = getPostPriceLabel(post, copy, locale);
 
   return (
     <Link
@@ -1581,7 +1596,7 @@ function PostPreviewCard({
         </p>
         <div className="mt-5 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
           <span>{dateLabel ?? "-"}</span>
-          <span>{post.priceType}</span>
+          <span>{priceLabel}</span>
         </div>
       </div>
     </Link>
@@ -2419,6 +2434,7 @@ export function FanletterStudioPage({
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {state.posts.map((post) => (
                     <PostPreviewCard
+                      copy={copy}
                       href={buildPathWithReferral(
                         `/${locale}/fanletter/content/${post.contentId}`,
                         referralCode ?? post.authorReferralCode,

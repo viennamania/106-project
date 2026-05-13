@@ -286,6 +286,16 @@ function getStatusLabel(
   return status;
 }
 
+function getPriceLabel(post: ContentPostRecord, locale: Locale) {
+  if (post.priceType === "paid") {
+    const paidLabel = locale === "ko" ? "유료" : "Paid";
+
+    return `${paidLabel} · ${post.priceUsdt ?? "1"} USDT`;
+  }
+
+  return locale === "ko" ? "무료 공개" : "Free public";
+}
+
 function buildHashtags(post: ContentPostRecord, locale: Locale) {
   const normalizedTags = post.tags
     .map((tag) => tag.replace(/^#/, "").trim())
@@ -536,7 +546,7 @@ function PostingPackageCard({
             {[
               ["9:16", copy.labels.format],
               [copy.postTypes.video, copy.labels.mediaReady],
-              [post.priceType === "paid" ? `${post.priceUsdt ?? "1"} USDT` : locale === "ko" ? "무료 공개" : "Free", copy.labels.status],
+              [getPriceLabel(post, locale), copy.labels.status],
             ].map(([value, label]) => (
               <div
                 className="rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
