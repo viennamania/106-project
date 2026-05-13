@@ -5902,6 +5902,7 @@ export function FanletterContentDetailPage({
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
   const paidUnlockSectionId = "fanletter-paid-unlock";
+  const shouldShowPaidUnlockPanel = content.priceType === "paid" && !canViewerAccess;
   const detailAccessLabel = isOwnContent
     ? content.priceType === "paid"
       ? locale === "ko"
@@ -5921,16 +5922,20 @@ export function FanletterContentDetailPage({
     ? ownerManageHref
     : canViewerAccess
     ? startHref
-    : `#${paidUnlockSectionId}`;
+    : content.priceType === "paid"
+      ? `#${paidUnlockSectionId}`
+      : startHref;
   const detailActionLabel = isOwnContent
     ? locale === "ko"
       ? "스튜디오에서 관리"
       : "Manage in studio"
     : canViewerAccess
     ? copy.actions.start
-    : locale === "ko"
-      ? "팬 전용 열기"
-      : "Unlock fan-only";
+    : content.priceType === "paid"
+      ? locale === "ko"
+        ? "결제하고 잠금 해제"
+        : "Pay to unlock"
+      : copy.actions.start;
   const creatorActionHref = creatorHref;
   const creatorActionLabel = copy.actions.creatorChannel;
   const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
@@ -5953,6 +5958,16 @@ export function FanletterContentDetailPage({
           requestCta: "Request scene",
           watchBadge: "Vertical vlog",
         };
+  const mobileSecondaryActionHref = shouldShowPaidUnlockPanel
+    ? detailActionHref
+    : isOwnContent
+      ? ownerManageHref
+      : fanRequestHref;
+  const mobileSecondaryActionLabel = shouldShowPaidUnlockPanel
+    ? detailActionLabel
+    : isOwnContent
+      ? detailLabels.ownerManage
+      : detailLabels.requestCta;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -6051,9 +6066,9 @@ export function FanletterContentDetailPage({
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-sm font-semibold !text-white transition hover:bg-white/10"
-                href={isOwnContent ? ownerManageHref : fanRequestHref}
+                href={mobileSecondaryActionHref}
               >
-                {isOwnContent ? detailLabels.ownerManage : detailLabels.requestCta}
+                {mobileSecondaryActionLabel}
               </Link>
             </div>
           </div>
@@ -6139,6 +6154,25 @@ export function FanletterContentDetailPage({
                   {content.summary}
                 </p>
               </div>
+
+              {shouldShowPaidUnlockPanel ? (
+                <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
+                  <FanletterPaidUnlockPanel
+                    connectHref={connectHref}
+                    contentId={content.contentId}
+                    creatorHref={creatorHref}
+                    currentHref={currentHref}
+                    initialBody={content.body}
+                    initialCoverImageUrl={primaryImageUrl}
+                    initialSummary={content.summary}
+                    initialTitle={content.title}
+                    locale={locale}
+                    onboardingHref={onboardingHref}
+                    priceUsdt={content.priceUsdt}
+                    referralCode={effectiveReferralCode}
+                  />
+                </div>
+              ) : null}
 
               <FanletterSocialActions
                 contentId={content.contentId}
@@ -6231,25 +6265,6 @@ export function FanletterContentDetailPage({
                   />
                 </>
               )}
-
-              {!canViewerAccess ? (
-                <div id={paidUnlockSectionId}>
-                  <FanletterPaidUnlockPanel
-                    connectHref={connectHref}
-                    contentId={content.contentId}
-                    creatorHref={creatorHref}
-                    currentHref={currentHref}
-                    initialBody={content.body}
-                    initialCoverImageUrl={primaryImageUrl}
-                    initialSummary={content.summary}
-                    initialTitle={content.title}
-                    locale={locale}
-                    onboardingHref={onboardingHref}
-                    priceUsdt={content.priceUsdt}
-                    referralCode={effectiveReferralCode}
-                  />
-                </div>
-              ) : null}
 
               {canViewerAccess &&
               content.contentVideoUrls.length > 1 ? (
