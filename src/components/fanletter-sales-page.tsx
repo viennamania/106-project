@@ -17,6 +17,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Upload,
   WalletCards,
   WalletMinimal,
 } from "lucide-react";
@@ -80,6 +81,7 @@ function getCopy(locale: Locale) {
           creatingWallet: "정산 주소 준비 중",
           feed: "피드 보기",
           next: "다음",
+          paidUpload: "유료 콘텐츠 직접 업로드",
           previous: "이전",
           refresh: "새로고침",
           unlock: "정산 기능 열기",
@@ -92,6 +94,8 @@ function getCopy(locale: Locale) {
           "유료 브이로그 판매, 구매자 확인, 정산 가능 잔고, 회수 상태를 FanLetter 안에서 관리합니다.",
         emptyHistory:
           "아직 판매 내역이 없습니다. 유료 브이로그를 공개하면 구매 내역이 이곳에 표시됩니다.",
+        emptyPaidUpload:
+          "유료 등록은 AI 생성이 아니라 직접 업로드한 동영상으로 진행합니다.",
         eyebrow: "FanLetter Sales",
         labels: {
           balance: "정산 가능 잔고",
@@ -130,6 +134,7 @@ function getCopy(locale: Locale) {
           creatingWallet: "Creating settlement address",
           feed: "View feed",
           next: "Next",
+          paidUpload: "Upload paid content",
           previous: "Previous",
           refresh: "Refresh",
           unlock: "Unlock settlement",
@@ -142,6 +147,8 @@ function getCopy(locale: Locale) {
           "Manage paid vlog sales, buyers, settlement balance, and withdrawals inside FanLetter.",
         emptyHistory:
           "No sales yet. Paid vlog purchases will appear here after you publish paid content.",
+        emptyPaidUpload:
+          "Paid registration uses directly uploaded videos, not AI-generated videos.",
         eyebrow: "FanLetter Sales",
         labels: {
           balance: "Settlement balance",
@@ -304,6 +311,10 @@ export function FanletterSalesPage({
   );
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
+    { returnTo: currentManagerHref },
+  );
+  const paidUploadHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
     { returnTo: currentManagerHref },
   );
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
@@ -723,6 +734,13 @@ export function FanletterSalesPage({
                   {copy.actions.create}
                 </Link>
                 <Link
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-4 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16"
+                  href={paidUploadHref}
+                >
+                  <Upload className="size-4" />
+                  {copy.actions.paidUpload}
+                </Link>
+                <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
                   href={feedHref}
                 >
@@ -844,7 +862,19 @@ export function FanletterSalesPage({
               </div>
             ) : sales.length === 0 ? (
               <div className="mt-5">
-                <MessagePanel>{copy.emptyHistory}</MessagePanel>
+                <MessagePanel>
+                  <p>{copy.emptyHistory}</p>
+                  <p className="mt-1 text-xs font-semibold text-black/42">
+                    {copy.emptyPaidUpload}
+                  </p>
+                  <Link
+                    className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
+                    href={paidUploadHref}
+                  >
+                    <Upload className="size-4" />
+                    {copy.actions.paidUpload}
+                  </Link>
+                </MessagePanel>
               </div>
             ) : (
               <div className="mt-5 grid gap-3">

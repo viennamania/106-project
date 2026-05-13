@@ -19,6 +19,7 @@ import {
   Share2,
   ShieldCheck,
   Sparkles,
+  Upload,
   UserRound,
   WalletCards,
 } from "lucide-react";
@@ -112,6 +113,7 @@ function getCopy(locale: Locale) {
           feed: "브이로그 피드 보기",
           fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
+          paidUpload: "유료 콘텐츠 직접 업로드",
           profileCreate: "캐릭터 만들기",
           profileManage: "캐릭터 확인/변경",
           refresh: "다시 확인",
@@ -143,6 +145,8 @@ function getCopy(locale: Locale) {
         },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
+        paidUploadBody:
+          "NSFW 가능성이 있는 직접 업로드 동영상은 1 USDT 유료 콘텐츠로 등록합니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
         paymentTitle: "시작 준비 확인이 필요합니다.",
@@ -272,6 +276,7 @@ function getCopy(locale: Locale) {
           feed: "View vlog feed",
           fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
+          paidUpload: "Upload paid content",
           profileCreate: "Create character",
           profileManage: "Review/change character",
           refresh: "Check again",
@@ -303,6 +308,8 @@ function getCopy(locale: Locale) {
         },
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
+        paidUploadBody:
+          "Directly uploaded videos that may be NSFW are registered as 1 USDT paid content.",
         paymentRequired:
           "Confirm FanLetter readiness to use the AI character vlog studio.",
         paymentTitle: "Readiness confirmation is required.",
@@ -1629,6 +1636,10 @@ export function FanletterStudioPage({
     buildPathWithReferral(`/${locale}/fanletter/studio/sales`, referralCode),
     { returnTo: studioHref },
   );
+  const paidUploadHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    { returnTo: studioHref },
+  );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: studioHref },
@@ -2196,6 +2207,13 @@ export function FanletterStudioPage({
                   {copy.actions.create}
                 </Link>
                 <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/10 px-6 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16"
+                  href={paidUploadHref}
+                >
+                  <Upload className="size-4" />
+                  {copy.actions.paidUpload}
+                </Link>
+                <Link
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12"
                   href={profileHref}
                 >
@@ -2336,7 +2354,7 @@ export function FanletterStudioPage({
               updatingPlanId={updatingPlanId}
             />
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               <ActionCard
                 Icon={Sparkles}
                 body={copy.steps[1].body}
@@ -2360,6 +2378,12 @@ export function FanletterStudioPage({
                 body={copy.steps[2].body}
                 href={postsHref}
                 title={copy.actions.managePosts}
+              />
+              <ActionCard
+                Icon={Upload}
+                body={copy.paidUploadBody}
+                href={paidUploadHref}
+                title={copy.actions.paidUpload}
               />
             </div>
 
@@ -2484,6 +2508,13 @@ export function FanletterStudioPage({
               >
                 {copy.actions.sales}
                 <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.06] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.1]"
+                href={paidUploadHref}
+              >
+                <Upload className="size-4" />
+                {copy.actions.paidUpload}
               </Link>
             </section>
 

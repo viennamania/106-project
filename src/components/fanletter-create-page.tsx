@@ -191,6 +191,7 @@ function getCopy(locale: Locale) {
         free: "무료 공개",
         freeOnlyPolicy:
           "AI로 생성한 브이로그 동영상은 NSFW 콘텐츠가 아니므로 무료 공개로만 등록됩니다. 유료 콘텐츠는 스튜디오에서 직접 업로드한 동영상으로 등록하세요.",
+        paidUpload: "유료 콘텐츠 직접 업로드",
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
@@ -332,6 +333,7 @@ function getCopy(locale: Locale) {
         free: "Free public",
         freeOnlyPolicy:
           "AI-generated vlog videos are non-NSFW and can only be saved as free public content. Use Studio with a directly uploaded video for paid content.",
+        paidUpload: "Upload paid content",
         generate: "Generate AI vlog video",
         generated: "Generated",
         generatingVideo: "Generating AI video...",
@@ -682,6 +684,10 @@ export function FanletterCreatePage({
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
+  );
+  const paidUploadHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    { returnTo: returnToHref || studioHref },
   );
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
@@ -1878,6 +1884,13 @@ export function FanletterCreatePage({
                   <p className="mt-2 text-xs font-medium leading-5 text-white/58">
                     {copy.freeOnlyPolicy}
                   </p>
+                  <Link
+                    className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-white/14 sm:w-auto"
+                    href={paidUploadHref}
+                  >
+                    {copy.paidUpload}
+                    <ArrowRight className="size-4" />
+                  </Link>
                 </div>
                 {fanOnlyIntent ? (
                   <p className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
