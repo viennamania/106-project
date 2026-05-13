@@ -66,6 +66,14 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const pathname = trimTrailingSlash(usePathname());
   const searchParams = useSearchParams();
   const basePath = `/${locale}/fanletter`;
+  const isFocusedStudioFlow =
+    pathname === `${basePath}/studio/paid-upload` ||
+    pathname.startsWith(`${basePath}/studio/paid-upload/`);
+
+  if (isFocusedStudioFlow) {
+    return null;
+  }
+
   const referralCode =
     normalizeReferralCode(searchParams.get("ref")) ??
     readCreatorReferralCodeFromPathname(pathname, basePath);

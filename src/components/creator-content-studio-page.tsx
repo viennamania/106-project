@@ -1463,6 +1463,7 @@ export function CreatorContentStudioPage({
           title: "Change character",
         };
   const isPaidUploadComposer = postComposerMode === "paid-upload";
+  const isFanletterPaidUpload = isFanletterSurface && isPaidUploadComposer;
   const paidUploadComposerCopy =
     locale === "ko"
       ? {
@@ -1473,12 +1474,27 @@ export function CreatorContentStudioPage({
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
+          manageVlogs: "브이로그 관리",
           priceBody:
             "직접 업로드한 동영상과 상세 본문은 결제 후 열람됩니다. 커버 이미지는 피드에 공개됩니다.",
+          processTitle: "등록 흐름",
+          publishCta: "유료 브이로그 게시",
+          rules: [
+            "직접 업로드한 동영상만 유료 등록",
+            "AI 생성 동영상은 무료 생성 화면에서만 사용",
+            "커버 이미지는 공개, 본문과 영상은 결제 후 열람",
+          ],
+          salesCta: "판매 내역 보기",
+          studioCta: "스튜디오로 돌아가기",
           title: "유료 콘텐츠 직접 업로드",
           uploadVideo: "유료 동영상 업로드",
           videoHint:
             "직접 업로드한 MP4, MOV, WEBM 동영상만 1 USDT 유료 콘텐츠로 저장됩니다. 최대 1개, 200MB 이하입니다.",
+          workflow: [
+            "커버와 제목으로 공개 미리보기 구성",
+            "직접 업로드한 동영상 1개 추가",
+            "1 USDT 유료 브이로그로 게시",
+          ],
         }
       : {
           description:
@@ -1487,12 +1503,27 @@ export function CreatorContentStudioPage({
           helper: "Paid content requires one directly uploaded video.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
+          manageVlogs: "Manage vlogs",
           priceBody:
             "The uploaded video and detail body unlock after payment. Cover images stay visible in the feed.",
+          processTitle: "Publishing flow",
+          publishCta: "Publish paid vlog",
+          rules: [
+            "Only directly uploaded video can be paid",
+            "AI-generated video stays in the free creation flow",
+            "Cover is public, body and video unlock after payment",
+          ],
+          salesCta: "View sales",
+          studioCta: "Back to studio",
           title: "Upload paid content",
           uploadVideo: "Upload paid video",
           videoHint:
             "Only directly uploaded MP4, MOV, or WEBM videos are saved as 1 USDT paid content. One video, 200MB max.",
+          workflow: [
+            "Prepare the public cover, title, and summary",
+            "Upload one direct video file",
+            "Publish as a 1 USDT paid vlog",
+          ],
         };
   const pageTitle =
     view === "character"
@@ -1520,7 +1551,9 @@ export function CreatorContentStudioPage({
       : view === "profile"
       ? newPostHref
       : view === "new"
-        ? profileHref
+        ? isFanletterPaidUpload
+          ? postsManagerHref
+          : profileHref
         : null;
   const headerShortcutLabel =
     view === "character"
@@ -1528,7 +1561,9 @@ export function CreatorContentStudioPage({
       : view === "profile"
       ? contentCopy.actions.createPost
       : view === "new"
-        ? contentCopy.labels.creatorSettings
+        ? isFanletterPaidUpload
+          ? paidUploadComposerCopy.manageVlogs
+          : contentCopy.labels.creatorSettings
         : null;
   const salesManagerLabel = locale === "ko" ? "판매 관리" : "Sales";
   const feedShareCopy =
@@ -3888,15 +3923,27 @@ export function CreatorContentStudioPage({
 
   function renderBlockedState() {
     if (isConnectionResolving) {
-      return <MessageCard>{contentCopy.messages.postsLoading}</MessageCard>;
+      return (
+        <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
+          {contentCopy.messages.postsLoading}
+        </MessageCard>
+      );
     }
 
     if (isDisconnected) {
-      return <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>;
+      return (
+        <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
+          {contentCopy.messages.connectRequired}
+        </MessageCard>
+      );
     }
 
     if (state.status === "loading" && !state.member) {
-      return <MessageCard>{contentCopy.actions.refresh}...</MessageCard>;
+      return (
+        <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
+          {contentCopy.actions.refresh}...
+        </MessageCard>
+      );
     }
 
     if (state.error && state.member?.status !== "completed") {
@@ -5516,6 +5563,83 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderFanletterPaidUploadGuide() {
+    if (!isFanletterPaidUpload) {
+      return null;
+    }
+
+    const guideItems = [
+      {
+        Icon: Film,
+        label: paidUploadComposerCopy.rules[0],
+        value: locale === "ko" ? "직접 업로드" : "Direct upload",
+      },
+      {
+        Icon: Coins,
+        label: paidUploadComposerCopy.rules[1],
+        value: `${CONTENT_PAID_USDT_AMOUNT} USDT`,
+      },
+      {
+        Icon: Check,
+        label: paidUploadComposerCopy.rules[2],
+        value: locale === "ko" ? "결제 후 열람" : "Unlock after payment",
+      },
+    ];
+
+    return (
+      <section className="overflow-hidden rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] sm:p-5 lg:p-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">
+          <div>
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {paidUploadComposerCopy.eyebrow}
+            </p>
+            <h2 className="mt-3 max-w-3xl text-[2rem] font-semibold leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[2.7rem]">
+              {paidUploadComposerCopy.title}
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/64 sm:text-base sm:leading-7">
+              {paidUploadComposerCopy.description}
+            </p>
+          </div>
+          <div className="rounded-lg border border-[#44f26e]/20 bg-[#44f26e]/10 p-4">
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+              {paidUploadComposerCopy.processTitle}
+            </p>
+            <ol className="mt-3 space-y-2">
+              {paidUploadComposerCopy.workflow.map((step, index) => (
+                <li
+                  className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-semibold leading-5 text-white/72"
+                  key={step}
+                >
+                  <span className="mt-0.5 text-[0.64rem] font-semibold text-[#44f26e]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          {guideItems.map(({ Icon, label, value }) => (
+            <div
+              className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+              key={value}
+            >
+              <span className="inline-flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <Icon className="size-4" />
+              </span>
+              <p className="mt-3 text-base font-semibold text-white">{value}</p>
+              <p className="mt-1 text-xs font-medium leading-5 text-white/50">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   function renderComposerCard() {
     const blockedState = renderBlockedState();
     const coverUploadLabel =
@@ -5547,30 +5671,75 @@ export function CreatorContentStudioPage({
     const publishDisabled = composerBusy || !hasRequiredPostMedia;
 
     return (
-      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
+      <div
+        className={cn(
+          "border-y p-4 shadow-none sm:rounded-[30px] sm:border sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]",
+          isFanletterPaidUpload
+            ? "border-[#44f26e]/20 bg-[#07100b] text-white sm:border-[#44f26e]/20 sm:bg-[#07100b]"
+            : "border-slate-200/80 bg-white sm:border-white/80 sm:bg-white/80",
+        )}
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">
+            <p
+              className={cn(
+                "eyebrow",
+                isFanletterPaidUpload && "!text-[#44f26e]",
+              )}
+            >
               {isPaidUploadComposer
                 ? paidUploadComposerCopy.eyebrow
                 : contentCopy.page.studioEyebrow}
             </p>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+            <h2
+              className={cn(
+                "text-xl font-semibold tracking-tight",
+                isFanletterPaidUpload ? "text-white" : "text-slate-950",
+              )}
+            >
               {isPaidUploadComposer
                 ? paidUploadComposerCopy.title
                 : contentCopy.actions.createPost}
             </h2>
           </div>
-          <div className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900">
+          <div
+            className={cn(
+              "rounded-full border px-3 py-2 text-sm font-medium",
+              isFanletterPaidUpload
+                ? "border-[#44f26e]/28 bg-[#44f26e]/10 text-[#b9ffc8]"
+                : "border-slate-200 bg-white text-slate-900",
+            )}
+          >
             {publishedCount} {contentCopy.labels.published}
           </div>
         </div>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+        <p
+          className={cn(
+            "mt-3 text-sm leading-6",
+            isFanletterPaidUpload ? "text-white/64" : "text-slate-600",
+          )}
+        >
           {isPaidUploadComposer
             ? paidUploadComposerCopy.description
             : contentCopy.labels.studioNotice}
         </p>
+
+        {isFanletterPaidUpload ? (
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {paidUploadComposerCopy.rules.map((rule, index) => (
+              <div
+                className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-semibold leading-5 text-white/64"
+                key={rule}
+              >
+                <span className="mr-2 text-[#44f26e]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {rule}
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {blockedState ? (
           blockedState
@@ -6570,7 +6739,12 @@ export function CreatorContentStudioPage({
       },
     ];
 
-    return <CreatorStudioTabs items={tabs} />;
+    return (
+      <CreatorStudioTabs
+        items={tabs}
+        tone={isFanletterPaidUpload ? "fanletter" : "default"}
+      />
+    );
   }
 
   function renderWorkspaceOverviewCard() {
@@ -6853,9 +7027,11 @@ export function CreatorContentStudioPage({
   function renderRecentPostsPanel(options?: {
     compact?: boolean;
     hideManageLink?: boolean;
+    tone?: "default" | "fanletter";
   }) {
     const compact = options?.compact ?? false;
     const hideManageLink = options?.hideManageLink ?? false;
+    const isFanletterPanel = options?.tone === "fanletter";
     const posts = sortedPosts.slice(
       0,
       compact ? HUB_COMPACT_POST_PAGE_SIZE : HUB_FULL_POST_PAGE_SIZE,
@@ -6870,18 +7046,37 @@ export function CreatorContentStudioPage({
             : null;
 
     return (
-      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
+      <div
+        className={cn(
+          "border-y p-4 shadow-none sm:rounded-[30px] sm:border sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]",
+          isFanletterPanel
+            ? "border-[#44f26e]/18 bg-[#07100b] text-white sm:border-[#44f26e]/18 sm:bg-[#07100b]"
+            : "border-slate-200/80 bg-white sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))]",
+        )}
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">{contentCopy.page.feedEyebrow}</p>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+            <p className={cn("eyebrow", isFanletterPanel && "!text-[#44f26e]")}>
+              {contentCopy.page.feedEyebrow}
+            </p>
+            <h2
+              className={cn(
+                "text-xl font-semibold tracking-tight",
+                isFanletterPanel ? "text-white" : "text-slate-950",
+              )}
+            >
               {contentCopy.labels.recentPosts}
             </h2>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {canUseWorkspace && !hideManageLink ? (
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                className={cn(
+                  "inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-medium transition",
+                  isFanletterPanel
+                    ? "border-[#44f26e]/34 bg-[#44f26e] !text-black hover:border-[#64ff84] hover:bg-[#64ff84]"
+                    : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
+                )}
                 href={postsManagerHref}
               >
                 {contentCopy.actions.managePosts}
@@ -6899,18 +7094,45 @@ export function CreatorContentStudioPage({
         </div>
 
         {isConnectionResolving ? (
-          <StudioLoadingCard />
+          isFanletterPanel ? (
+            <MessageCard tone="fanletter">
+              {contentCopy.messages.postsLoading}
+            </MessageCard>
+          ) : (
+            <StudioLoadingCard />
+          )
         ) : isDisconnected ? (
-          <MessageCard>{contentCopy.messages.connectRequired}</MessageCard>
+          <MessageCard tone={isFanletterPanel ? "fanletter" : "neutral"}>
+            {contentCopy.messages.connectRequired}
+          </MessageCard>
         ) : state.status === "loading" ? (
-          <StudioLoadingCard />
+          isFanletterPanel ? (
+            <MessageCard tone="fanletter">
+              {contentCopy.messages.postsLoading}
+            </MessageCard>
+          ) : (
+            <StudioLoadingCard />
+          )
         ) : state.error && state.posts.length === 0 ? (
           <MessageCard tone="error">{state.error}</MessageCard>
         ) : posts.length === 0 ? (
-          renderEmptyPostsGuide()
+          isFanletterPanel ? (
+            <MessageCard tone="fanletter">
+              {contentCopy.messages.noMatchingPosts}
+            </MessageCard>
+          ) : (
+            renderEmptyPostsGuide()
+          )
         ) : (
           <div className="mt-4 space-y-3">
-            <div className="rounded-[24px] border border-slate-900/10 bg-[linear-gradient(135deg,#020617_0%,#0f172a_58%,#155e75_100%)] p-4 text-white shadow-[0_20px_48px_rgba(15,23,42,0.24)]">
+            <div
+              className={cn(
+                "rounded-[24px] border p-4 text-white shadow-[0_20px_48px_rgba(15,23,42,0.24)]",
+                isFanletterPanel
+                  ? "border-[#44f26e]/20 bg-[#44f26e]/10"
+                  : "border-slate-900/10 bg-[linear-gradient(135deg,#020617_0%,#0f172a_58%,#155e75_100%)]",
+              )}
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/12 text-cyan-100 ring-1 ring-white/14">
@@ -6958,7 +7180,12 @@ export function CreatorContentStudioPage({
 
               return (
                 <article
-                  className="rounded-[24px] border border-white/80 bg-white/90 p-4"
+                  className={cn(
+                    "rounded-[24px] border p-4",
+                    isFanletterPanel
+                      ? "border-white/10 bg-white/[0.055]"
+                      : "border-white/80 bg-white/90",
+                  )}
                   key={post.contentId}
                 >
                 {previewImageUrl || previewVideoUrl ? (
@@ -6993,15 +7220,30 @@ export function CreatorContentStudioPage({
                   <StatusBadge status={post.status} />
                   <StatusBadge status={post.priceType} />
                 </div>
-                <h3 className="mt-3 text-lg font-semibold tracking-tight text-slate-950">
+                <h3
+                  className={cn(
+                    "mt-3 text-lg font-semibold tracking-tight",
+                    isFanletterPanel ? "text-white" : "text-slate-950",
+                  )}
+                >
                   {post.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                <p
+                  className={cn(
+                    "mt-2 text-sm leading-6",
+                    isFanletterPanel ? "text-white/60" : "text-slate-600",
+                  )}
+                >
                   {post.summary}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
-                    className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                    className={cn(
+                      "inline-flex h-10 w-full items-center justify-center rounded-full border px-4 text-sm font-medium transition sm:w-auto",
+                      isFanletterPanel
+                        ? "border-[#44f26e]/28 bg-[#44f26e] !text-black hover:bg-[#64ff84]"
+                        : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
+                    )}
                     href={setPathSearchParams(
                       buildPathWithReferral(
                         `/${locale}/content/${post.contentId}`,
@@ -7016,7 +7258,12 @@ export function CreatorContentStudioPage({
                   </Link>
                   {!compact && post.status !== "published" ? (
                     <button
-                      className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
+                      className={cn(
+                        "inline-flex h-10 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition sm:w-auto",
+                        isFanletterPanel
+                          ? "bg-[#44f26e] text-black hover:bg-[#64ff84]"
+                          : "bg-slate-950 text-white hover:bg-slate-800",
+                      )}
                       onClick={() => {
                         void updatePostStatus(post, "published");
                       }}
@@ -7026,16 +7273,21 @@ export function CreatorContentStudioPage({
                     </button>
                   ) : null}
                   {!compact && post.status !== "archived" ? (
-                  <button
-                    className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                    onClick={() => {
-                      void updatePostStatus(post, "archived");
-                    }}
-                    type="button"
-                  >
-                    {contentCopy.labels.archived}
-                  </button>
-                ) : null}
+                    <button
+                      className={cn(
+                        "inline-flex h-10 w-full items-center justify-center rounded-full border px-4 text-sm font-medium transition sm:w-auto",
+                        isFanletterPanel
+                          ? "border-white/14 bg-white/[0.04] text-white hover:bg-white/10"
+                          : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
+                      )}
+                      onClick={() => {
+                        void updatePostStatus(post, "archived");
+                      }}
+                      type="button"
+                    >
+                      {contentCopy.labels.archived}
+                    </button>
+                  ) : null}
                 </div>
                 </article>
               );
@@ -7044,7 +7296,12 @@ export function CreatorContentStudioPage({
             {!compact && state.summary.all > HUB_FULL_POST_PAGE_SIZE ? (
               <div className="flex flex-wrap gap-2 pt-2">
                 <Link
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50"
+                  className={cn(
+                    "inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-medium transition",
+                    isFanletterPanel
+                      ? "border-[#44f26e]/28 bg-[#44f26e] !text-black hover:bg-[#64ff84]"
+                      : "border-slate-200 bg-white text-slate-950 hover:border-slate-300 hover:bg-slate-50",
+                  )}
                   href={postsManagerHref}
                 >
                   {contentCopy.actions.managePosts}
@@ -7124,6 +7381,64 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderFanletterPaidUploadRail() {
+    if (!isFanletterPaidUpload) {
+      return null;
+    }
+
+    return (
+      <div className="hidden space-y-4 xl:sticky xl:top-6 xl:block xl:self-start">
+        <div className="rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            FanLetter
+          </p>
+          <h2 className="mt-3 text-xl font-semibold tracking-normal">
+            {paidUploadComposerCopy.processTitle}
+          </h2>
+          <div className="mt-4 space-y-2">
+            {paidUploadComposerCopy.workflow.map((step, index) => (
+              <div
+                className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                key={step}
+              >
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-5 text-white/74">
+                  {step}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-2">
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={postsManagerHref}
+            >
+              <LayoutGrid className="size-4" />
+              {paidUploadComposerCopy.manageVlogs}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
+              href={salesManagerHref}
+            >
+              <Coins className="size-4" />
+              {paidUploadComposerCopy.salesCta}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white/72 transition hover:bg-white/8 hover:!text-white"
+              href={studioHomeHref}
+            >
+              <ArrowLeft className="size-4" />
+              {paidUploadComposerCopy.studioCta}
+            </Link>
+          </div>
+        </div>
+        {renderRecentPostsPanel({ compact: true, tone: "fanletter" })}
+      </div>
+    );
+  }
+
   const celebrationDetailHref = automationCelebration?.contentId
     ? setPathSearchParams(
         buildPathWithReferral(
@@ -7168,19 +7483,29 @@ export function CreatorContentStudioPage({
   return (
     <>
       <main
-        className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8"
+        className={cn(
+          "mx-auto flex min-h-screen w-full flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8",
+          isFanletterPaidUpload
+            ? "max-w-7xl bg-[#030504] sm:px-5 lg:px-8"
+            : "max-w-6xl",
+        )}
       >
 
       <CreatorStudioHeader
         backHref={backHref}
         description={headerDescription}
-        eyebrow={contentCopy.page.studioEyebrow}
+        eyebrow={
+          isFanletterPaidUpload
+            ? paidUploadComposerCopy.eyebrow
+            : contentCopy.page.studioEyebrow
+        }
         refreshDisabled={state.status === "loading"}
         refreshLabel={contentCopy.actions.refresh}
         refreshLoading={state.status === "loading"}
         shortcutHref={headerShortcutHref}
         shortcutLabel={headerShortcutLabel}
         stats={headerStats}
+        tone={isFanletterPaidUpload ? "fanletter" : "default"}
         title={pageTitle}
         onRefresh={() => {
           void loadStudio();
@@ -7188,6 +7513,7 @@ export function CreatorContentStudioPage({
       />
 
       {renderStudioTabs()}
+      {renderFanletterPaidUploadGuide()}
 
       {view === "hub" ? (
         <>
@@ -7217,9 +7543,18 @@ export function CreatorContentStudioPage({
           {renderCharacterChangeCard()}
         </section>
       ) : (
-        <section className="grid gap-3 sm:gap-5 xl:grid-cols-[1.02fr_0.98fr]">
+        <section
+          className={cn(
+            "grid gap-3 sm:gap-5",
+            isFanletterPaidUpload
+              ? "xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.38fr)]"
+              : "xl:grid-cols-[1.02fr_0.98fr]",
+          )}
+        >
           {renderComposerCard()}
-          {renderSideRail("profile")}
+          {isFanletterPaidUpload
+            ? renderFanletterPaidUploadRail()
+            : renderSideRail("profile")}
         </section>
       )}
       </main>
@@ -8704,13 +9039,15 @@ function MessageCard({
   tone = "neutral",
 }: {
   children: React.ReactNode;
-  tone?: "error" | "neutral";
+  tone?: "error" | "fanletter" | "neutral";
 }) {
   return (
     <div
       className={
         tone === "error"
           ? "mt-4 rounded-[24px] border border-rose-200 bg-[linear-gradient(180deg,#fff1f2,#ffe4e6)] px-4 py-4 text-sm leading-6 text-rose-900 shadow-[0_18px_44px_rgba(244,63,94,0.08)]"
+          : tone === "fanletter"
+            ? "mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-4 py-4 text-sm font-medium leading-6 text-[#d8ffe0] shadow-[0_18px_44px_rgba(0,0,0,0.12)]"
           : "mt-4 rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] px-4 py-4 text-sm leading-6 text-slate-600 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
       }
     >
