@@ -22,8 +22,8 @@ const FEATURED_PAID_VIDEO_LIMIT = 4;
 const FEATURED_VIDEO_CANDIDATE_LIMIT = 48;
 const RECENCY_DECAY_DAYS = 21;
 const TEXT_LIMIT = 170;
-const PAID_TEASER_SENSITIVE_PATTERN =
-  /(adult|bikini|create a|dramatic lighting|erotic|fluid motion|hyper-realistic|intricate design|lingerie|lust|motion blur|naked|nude|nsfw|porn|prompt|sex|sexy|standard iphone selfie|textures|underwear|uploaded reference|노출|비키니|섹시|성인|속옷|야한)/i;
+const LANDING_TEXT_SENSITIVE_PATTERN =
+  /(adult|big bust|bikini|create a|dramatic lighting|erotic|face shape|flirty|fluid motion|give a kiss|hands behind|hyper-realistic|intricate design|lingerie|lust|make me|motion blur|my hand|naked|nude|nsfw|porn|prompt|ring light|selfie|sex|sexy|soft oval face|standard iphone selfie|standing pose|textures|underwear|uploaded reference|with my hand|노출|비키니|섹시|성인|속옷|야한)/i;
 
 export type FanletterFeaturedVideo = {
   authorAvatarImageUrl: string | null;
@@ -91,11 +91,19 @@ function compactText(value: string | null | undefined, limit = TEXT_LIMIT) {
 function isReadableLandingText(value: string) {
   const compacted = value.replace(/\s+/g, "").trim();
 
-  if (compacted.length < 4) {
+  if (/[�Ÿÿ]/.test(value)) {
     return false;
   }
 
   if (/(.)\1{3,}/i.test(compacted)) {
+    return false;
+  }
+
+  if (/[가-힣]/.test(compacted) && compacted.length >= 2) {
+    return true;
+  }
+
+  if (compacted.length < 4) {
     return false;
   }
 
@@ -111,7 +119,7 @@ function isReadableLandingText(value: string) {
   return true;
 }
 
-function getSafePaidLandingText({
+function getSafeLandingText({
   fallback,
   limit,
   value,
@@ -125,7 +133,7 @@ function getSafePaidLandingText({
   if (
     !text ||
     !isReadableLandingText(text) ||
-    PAID_TEASER_SENSITIVE_PATTERN.test(text)
+    LANDING_TEXT_SENSITIVE_PATTERN.test(text)
   ) {
     return fallback;
   }
@@ -453,30 +461,52 @@ function toFeaturedVideo({
     locale === "ko"
       ? `${authorName} 팬 전용 브이로그`
       : `${authorName} fan-only vlog`;
+  const publicTitleFallback =
+    locale === "ko"
+      ? `${authorName} 공개 브이로그`
+      : `${authorName} public vlog`;
   const paidPreviewFallback =
     locale === "ko"
       ? "결제 후 전체 영상과 상세 본문이 열리는 팬 전용 브이로그입니다."
       : "A fan-only vlog where the full video and detail body unlock after payment.";
+  const publicPreviewFallback =
+    locale === "ko"
+      ? "캐릭터 분위기를 먼저 확인할 수 있는 무료 공개 브이로그입니다."
+      : "A free public vlog that previews the character's vibe.";
   const title =
     post.priceType === "paid"
-      ? getSafePaidLandingText({
+      ? getSafeLandingText({
           fallback: paidTitleFallback,
           limit: 92,
           value: post.title,
         })
-      : compactText(post.title, 92);
+      : getSafeLandingText({
+          fallback: publicTitleFallback,
+          limit: 92,
+          value: post.title,
+        });
   const previewText =
     post.priceType === "paid"
-      ? getSafePaidLandingText({
+      ? getSafeLandingText({
           fallback: paidPreviewFallback,
           limit: 120,
           value: post.previewText || post.summary,
         })
-      : compactText(post.previewText, 120) || null;
+      : post.previewText
+        ? getSafeLandingText({
+            fallback: publicPreviewFallback,
+            limit: 120,
+            value: post.previewText,
+          })
+        : null;
   const summary =
     post.priceType === "paid"
       ? previewText || paidPreviewFallback
-      : compactText(post.summary || post.previewText || post.body);
+      : getSafeLandingText({
+          fallback: publicPreviewFallback,
+          limit: TEXT_LIMIT,
+          value: post.summary || post.previewText || post.body,
+        });
 
   return {
     authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
@@ -591,7 +621,7 @@ export const getFanletterLandingData = unstable_cache(
       },
     };
   },
-  ["fanletter-landing-data-v3"],
+  ["fanletter-landing-data-v6"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],

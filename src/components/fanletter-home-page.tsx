@@ -108,7 +108,6 @@ type FanletterCopy = {
     emptyBody: string;
     emptyTitle: string;
     eyebrow: string;
-    open: string;
     priceNote: string;
     previewLabel: string;
     purchaseLibrary: string;
@@ -251,7 +250,6 @@ const koCopy: FanletterCopy = {
       "유료 팬 전용 브이로그가 준비되면 공개 티저와 잠금 해제 항목이 이곳에 먼저 표시됩니다.",
     emptyTitle: "팬 전용 브이로그를 준비 중입니다.",
     eyebrow: "Fan-only paid vlogs",
-    open: "미리보기",
     priceNote: "결제 후 전체 영상과 상세 본문이 열립니다.",
     previewLabel: "공개 티저",
     purchaseLibrary: "구매함 보기",
@@ -414,7 +412,6 @@ const enCopy: FanletterCopy = {
       "When paid fan-only vlogs are ready, their public teaser and unlock details will appear here first.",
     emptyTitle: "Fan-only vlogs are being prepared.",
     eyebrow: "Fan-only paid vlogs",
-    open: "Preview",
     priceNote: "Full video and detail body unlock after payment.",
     previewLabel: "Public teaser",
     purchaseLibrary: "Purchases",
@@ -645,6 +642,10 @@ function FanletterPaidSpotlightSection({
                   ? `${video.authorName} 팬 전용 브이로그`
                   : `${video.authorName} fan-only vlog`;
               const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
+              const unlockLabel =
+                locale === "ko"
+                  ? `${priceLabel} 잠금 해제`
+                  : `Unlock ${priceLabel}`;
 
               return (
                 <ScrollReveal
@@ -740,7 +741,7 @@ function FanletterPaidSpotlightSection({
                       </div>
                       <div className="mt-auto pt-4">
                         <span className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white">
-                          {copy.paidSpotlight.open}
+                          {unlockLabel}
                           <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                         </span>
                       </div>
@@ -936,6 +937,48 @@ export function FanletterHomePage({
           studio: "Studio",
         };
   const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
+  const mobileQuickLinks =
+    locale === "ko"
+      ? [
+          {
+            body: "무료 공개",
+            href: feedHref,
+            Icon: Clapperboard,
+            label: "피드",
+          },
+          {
+            body: "1 USDT",
+            href: "#fan-only-paid",
+            Icon: LockKeyhole,
+            label: "팬 전용",
+          },
+          {
+            body: "구매 콘텐츠",
+            href: purchasesHref,
+            Icon: WalletCards,
+            label: "구매함",
+          },
+        ]
+      : [
+          {
+            body: "Free public",
+            href: feedHref,
+            Icon: Clapperboard,
+            label: "Feed",
+          },
+          {
+            body: "1 USDT",
+            href: "#fan-only-paid",
+            Icon: LockKeyhole,
+            label: "Fan-only",
+          },
+          {
+            body: "Purchased",
+            href: purchasesHref,
+            Icon: WalletCards,
+            label: "Library",
+          },
+        ];
   const heroSetupSteps =
     locale === "ko"
       ? [
@@ -1189,6 +1232,37 @@ export function FanletterHomePage({
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/8 bg-[#030504] px-4 py-3 sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+          {mobileQuickLinks.map((item) => {
+            const Icon = item.Icon;
+
+            return (
+              <Link
+                className="flex min-h-20 flex-col justify-between rounded-lg border border-white/10 bg-white/[0.06] p-3 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
+                href={item.href}
+                key={item.label}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                    <Icon className="size-4" />
+                  </span>
+                  <ArrowRight className="size-4 text-white/42" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">
+                    {item.label}
+                  </span>
+                  <span className="mt-1 block truncate text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-white/48">
+                    {item.body}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
