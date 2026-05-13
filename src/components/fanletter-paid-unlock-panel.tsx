@@ -356,12 +356,18 @@ export function FanletterPaidUnlockPanel({
         );
       }
 
+      const searchParams = new URLSearchParams({
+        email,
+        locale,
+        walletAddress: accountAddress,
+      });
+
+      if (referralCode) {
+        searchParams.set("ref", referralCode);
+      }
+
       const response = await fetchFanletterAccess(
-        `/api/content/posts/${encodeURIComponent(contentId)}?${new URLSearchParams({
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }).toString()}`,
+        `/api/content/posts/${encodeURIComponent(contentId)}?${searchParams.toString()}`,
       );
       const data = (await response.json()) as
         | ContentDetailLoadResponse
@@ -428,6 +434,7 @@ export function FanletterPaidUnlockPanel({
     locale,
     memberSession,
     memberSessionEmail,
+    referralCode,
   ]);
 
   useEffect(() => {
@@ -514,6 +521,7 @@ export function FanletterPaidUnlockPanel({
       body: JSON.stringify({
         contentId,
         email,
+        referralCode,
         walletAddress: accountAddress,
       }),
       headers: {
@@ -571,6 +579,7 @@ export function FanletterPaidUnlockPanel({
     locale,
     memberSessionEmail,
     paidUnlockAmount,
+    referralCode,
   ]);
 
   const createPaidUnlockTransaction = useCallback(async () => {

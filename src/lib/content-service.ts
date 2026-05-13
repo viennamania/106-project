@@ -2368,9 +2368,16 @@ async function verifyContentPaymentTransaction({
 async function assertContentVisibleToBuyer(
   post: ContentPostDocument,
   buyer: MemberDocument,
+  options: {
+    referralCode?: string | null;
+  } = {},
 ) {
   if (post.status !== "published") {
     throw new Error("Content not found.");
+  }
+
+  if (isContentAuthorReferralLink(post, options.referralCode)) {
+    return;
   }
 
   const ancestors = await resolveNetworkAncestors(buyer);
@@ -2381,6 +2388,22 @@ async function assertContentVisibleToBuyer(
   if (!visibleReferralCodes.has(post.authorReferralCode)) {
     throw new Error("Content is not available in your network.");
   }
+}
+
+function isContentAuthorReferralLink(
+  post: ContentPostDocument,
+  referralCode?: string | null,
+) {
+  const normalizedReferralCode = normalizeReferralCode(referralCode);
+  const normalizedAuthorReferralCode = normalizeReferralCode(
+    post.authorReferralCode,
+  );
+
+  return Boolean(
+    normalizedReferralCode &&
+      normalizedAuthorReferralCode &&
+      normalizedReferralCode === normalizedAuthorReferralCode,
+  );
 }
 
 export async function createContentOrderForMember(
@@ -2408,7 +2431,9 @@ export async function createContentOrderForMember(
     throw new Error("This content is free.");
   }
 
-  await assertContentVisibleToBuyer(post, buyer);
+  await assertContentVisibleToBuyer(post, buyer, {
+    referralCode: input.referralCode,
+  });
 
   const existingEntitlement = await getContentEntitlementForMember(
     post.contentId,
@@ -2771,6 +2796,9 @@ export async function withdrawCreatorSalesBalanceForMember(
 export async function getContentDetailForMember(
   contentId: string,
   email: string,
+  options: {
+    referralCode?: string | null;
+  } = {},
 ): Promise<ContentDetailResponse> {
   const member = await getCompletedMemberOrThrow(email);
   const postsCollection = await getContentPostsCollection();
@@ -2803,7 +2831,10 @@ export async function getContentDetailForMember(
         ancestors.map((ancestor) => ancestor.referralCode),
       );
 
-      if (!visibleReferralCodes.has(post.authorReferralCode)) {
+      if (
+        !visibleReferralCodes.has(post.authorReferralCode) &&
+        !isContentAuthorReferralLink(post, options.referralCode)
+      ) {
         throw new Error("Content is not available in your network.");
       }
 

@@ -9,7 +9,11 @@ import {
   getMemberRegistrationStatus,
   syncMemberRegistration,
 } from "@/lib/member-service";
-import { serializeMember, type SyncMemberRequest } from "@/lib/member";
+import {
+  normalizeReferralCode,
+  serializeMember,
+  type SyncMemberRequest,
+} from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { setMemberServerSessionCookie } from "@/lib/member-server-session";
 import {
@@ -31,6 +35,9 @@ export async function GET(
   const url = new URL(request.url);
   const rawEmail = url.searchParams.get("email");
   const rawWalletAddress = url.searchParams.get("walletAddress");
+  const referralCode = normalizeReferralCode(
+    url.searchParams.get("ref") ?? url.searchParams.get("referralCode"),
+  );
 
   try {
     const authorization = await validateMemberWalletOwner({
@@ -65,6 +72,7 @@ export async function GET(
       const detail: ContentDetailResponse = await getContentDetailForMember(
         contentId,
         authorization.normalizedEmail,
+        { referralCode },
       );
 
       const response: ContentDetailLoadResponse = {
@@ -221,7 +229,9 @@ export async function POST(
     let detail;
 
     try {
-      detail = await getContentDetailForMember(contentId, sync.member.email);
+      detail = await getContentDetailForMember(contentId, sync.member.email, {
+        referralCode: body.referredByCode,
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to load content.";

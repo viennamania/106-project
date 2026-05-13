@@ -902,6 +902,7 @@ export type ContentPostMutationResponse = {
 export type ContentOrderCreateRequest = {
   contentId: string;
   email: string;
+  referralCode?: string | null;
   walletAddress?: string;
 };
 

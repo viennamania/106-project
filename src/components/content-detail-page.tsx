@@ -485,12 +485,18 @@ export function ContentDetailPage({
         throw new Error(dictionary.member.errors.missingEmail);
       }
 
+      const searchParams = new URLSearchParams({
+        email,
+        locale,
+        walletAddress: accountAddress,
+      });
+
+      if (shareReferralCode) {
+        searchParams.set("ref", shareReferralCode);
+      }
+
       const response = await fetch(
-        `/api/content/posts/${encodeURIComponent(contentId)}?${new URLSearchParams({
-          email,
-          locale,
-          walletAddress: accountAddress,
-        }).toString()}`,
+        `/api/content/posts/${encodeURIComponent(contentId)}?${searchParams.toString()}`,
       );
       const data = (await response.json()) as
         | ContentDetailLoadResponse
@@ -571,6 +577,7 @@ export function ContentDetailPage({
     initialPreview,
     locale,
     memberSessionEmail,
+    shareReferralCode,
     updateMemberSession,
   ]);
 
@@ -1104,6 +1111,7 @@ export function ContentDetailPage({
       body: JSON.stringify({
         contentId,
         email,
+        referralCode: shareReferralCode,
         walletAddress: accountAddress,
       }),
       headers: {
@@ -1159,6 +1167,7 @@ export function ContentDetailPage({
     loadDetail,
     locale,
     paidUnlockAmount,
+    shareReferralCode,
     state.content,
   ]);
 
