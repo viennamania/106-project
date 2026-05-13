@@ -653,15 +653,15 @@ function buildFanRequestPaidUploadHref({
   const title =
     locale === "ko"
       ? request.requestType === "message"
-        ? `팬 메시지 유료 업로드: ${titleSeed}`
-        : `팬 요청 유료 업로드: ${titleSeed}`
+        ? `팬 메시지 답장: ${titleSeed}`
+        : `팬 요청 답장: ${titleSeed}`
       : request.requestType === "message"
-        ? `Paid fan message upload: ${titleSeed}`
-        : `Paid fan request upload: ${titleSeed}`;
+        ? `Fan message reply: ${titleSeed}`
+        : `Fan request reply: ${titleSeed}`;
   const summary =
     locale === "ko"
-      ? `${request.characterName}에게 들어온 ${requestTypeLabel}을 직접 업로드한 1 USDT 유료 브이로그로 등록합니다.`
-      : `A 1 USDT paid vlog uploaded directly from a ${requestTypeLabel} for ${request.characterName}.`;
+      ? `${request.characterName}가 ${requestTypeLabel}에 답하는 팬 전용 브이로그입니다. 결제 후 전체 영상과 상세 본문이 열립니다.`
+      : `${request.characterName} responds to this ${requestTypeLabel} in a fan-only vlog. Full video and detail body unlock after payment.`;
   const body =
     locale === "ko"
       ? `${request.characterName}가 팬 요청에 답하는 팬 전용 유료 브이로그입니다. 팬이 남긴 말: ${normalizedBody}`

@@ -184,6 +184,42 @@ function looksLikePlaceholderLandingText(value: string) {
   );
 }
 
+function normalizeFanFacingLandingText(value: string) {
+  const text = value.trim();
+  const koPaidUploadSummaryMatch = text.match(
+    /^(.+?)에게 들어온 .+?을 직접 업로드한 1 USDT 유료 브이로그로 등록합니다\.?$/,
+  );
+  const enPaidUploadSummaryMatch = text.match(
+    /^A 1 USDT paid vlog uploaded directly from .+ for (.+)\.?$/i,
+  );
+
+  if (koPaidUploadSummaryMatch?.[1]) {
+    return `${koPaidUploadSummaryMatch[1]}가 팬에게 답하는 팬 전용 브이로그입니다. 결제 후 전체 영상과 상세 본문이 열립니다.`;
+  }
+
+  if (enPaidUploadSummaryMatch?.[1]) {
+    return `${enPaidUploadSummaryMatch[1]} responds to a fan request in a fan-only vlog. Full video and detail body unlock after payment.`;
+  }
+
+  return text
+    .replace(/^(.{1,24}?)\s*·\s*.+?페르소나에게/g, "$1에게")
+    .replace(/\bpersona\b/gi, "character")
+    .replace(/페르소나/g, "캐릭터")
+    .replace(/^팬 메시지 유료 업로드:\s*/i, "팬 메시지 답장: ")
+    .replace(/^팬 요청 유료 업로드:\s*/i, "팬 요청 답장: ")
+    .replace(/^Paid fan message upload:\s*/i, "Fan message reply: ")
+    .replace(/^Paid fan request upload:\s*/i, "Fan request reply: ");
+}
+
+function looksLikeInternalAssetText(value: string) {
+  const text = value.trim();
+
+  return (
+    /^(\d+\s*)?아바타\s*세트(\s*활용)?$/i.test(text) ||
+    /^avatar\s*set(\s*(reference|usage))?$/i.test(text)
+  );
+}
+
 function getSafeLandingText({
   fallback,
   limit,
@@ -193,7 +229,7 @@ function getSafeLandingText({
   limit: number;
   value: string | null | undefined;
 }) {
-  const text = compactText(value, limit);
+  const text = normalizeFanFacingLandingText(compactText(value, limit));
 
   if (
     !text ||
@@ -201,6 +237,7 @@ function getSafeLandingText({
     LANDING_TEXT_SENSITIVE_PATTERN.test(text) ||
     looksLikeGenerationPromptText(text) ||
     looksLikePlaceholderLandingText(text) ||
+    looksLikeInternalAssetText(text) ||
     looksLikePersonaDescriptorText(text)
   ) {
     return fallback;
@@ -713,7 +750,7 @@ export const getFanletterLandingData = unstable_cache(
       },
     };
   },
-  ["fanletter-landing-data-v8"],
+  ["fanletter-landing-data-v10"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],
