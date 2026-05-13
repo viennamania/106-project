@@ -13,6 +13,7 @@ import type { ComponentType } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+import { normalizeReferralCode } from "@/lib/member";
 import { cn } from "@/lib/utils";
 
 type FanletterNavItem = {
@@ -45,11 +46,29 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
   });
 }
 
+function readCreatorReferralCodeFromPathname(pathname: string, basePath: string) {
+  const creatorPrefix = `${basePath}/creator/`;
+
+  if (!pathname.startsWith(creatorPrefix)) {
+    return null;
+  }
+
+  const [segment] = pathname.slice(creatorPrefix.length).split("/");
+
+  try {
+    return normalizeReferralCode(decodeURIComponent(segment));
+  } catch {
+    return normalizeReferralCode(segment);
+  }
+}
+
 export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const pathname = trimTrailingSlash(usePathname());
   const searchParams = useSearchParams();
-  const referralCode = searchParams.get("ref");
   const basePath = `/${locale}/fanletter`;
+  const referralCode =
+    normalizeReferralCode(searchParams.get("ref")) ??
+    readCreatorReferralCodeFromPathname(pathname, basePath);
   const copy =
     locale === "ko"
       ? {
@@ -81,7 +100,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       activePaths: [
         `${basePath}/feed`,
         `${basePath}/content`,
-        `${basePath}/creator`,
         `${basePath}/following`,
         `${basePath}/requests`,
       ],

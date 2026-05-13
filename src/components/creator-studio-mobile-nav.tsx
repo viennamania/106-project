@@ -90,6 +90,7 @@ export function CreatorStudioMobileNav({
 
           return (
             <Link
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex h-14 min-w-0 flex-col items-center justify-end gap-1 rounded-2xl px-1 pb-1 text-[0.7rem] font-semibold text-slate-600 transition",
                 isActive && "text-slate-950",
@@ -104,6 +105,9 @@ export function CreatorStudioMobileNav({
                   isActive && !isCreate && "bg-slate-100 text-slate-950",
                   isCreate &&
                     "size-12 bg-slate-950 text-white shadow-[0_16px_32px_rgba(15,23,42,0.24)]",
+                  isActive &&
+                    isCreate &&
+                    "ring-2 ring-slate-300 ring-offset-2 ring-offset-white",
                 )}
               >
                 {item.icon}

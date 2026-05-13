@@ -1558,7 +1558,7 @@ function FanletterCreatorRanking({
         );
 
   return (
-    <section className="mb-10 scroll-mt-24" id="popular-characters">
+    <section className="mb-10 scroll-mt-36 sm:scroll-mt-24" id="popular-characters">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
@@ -2506,7 +2506,7 @@ function FanletterFanOnlyPreview({
     ];
 
     return (
-      <section className="mb-8 scroll-mt-32 sm:scroll-mt-24" id="fan-only">
+      <section className="mb-8 scroll-mt-36 sm:scroll-mt-24" id="fan-only">
         <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 lg:p-7">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.42fr)] lg:items-start">
             <div className="max-w-3xl">
@@ -2650,7 +2650,7 @@ function FanletterFanOnlyPreview({
   }
 
   return (
-    <section className="mb-8 scroll-mt-32 sm:scroll-mt-24" id="fan-only">
+    <section className="mb-8 scroll-mt-36 sm:scroll-mt-24" id="fan-only">
       <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 lg:p-7">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,0.46fr)] lg:items-start">
           <div className="max-w-2xl">
@@ -2986,7 +2986,7 @@ function FanletterFanPromptPanel({
 
   return (
     <section
-      className={`scroll-mt-32 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:scroll-mt-24 sm:p-6 ${className}`}
+      className={`scroll-mt-36 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:scroll-mt-24 sm:p-6 ${className}`}
       id={id}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -4660,27 +4660,57 @@ export function FanletterFeedPage({
         : "More public vlogs"
       : copy.feed.allContent;
   const showAllContentSection = items.length === 0 || remainingItems.length > 0;
-  const sectionLinks = [
-    { href: followingHref, label: copy.actions.following },
+  const sectionTabCandidates: Array<FanletterChannelSectionTabItem | null> = [
+    {
+      href: followingHref,
+      id: "following",
+      label: copy.actions.following,
+      sectionId: null,
+    },
     featuredItem
-      ? { href: `${feedHref}#popular-vlog`, label: copy.feed.trending }
+      ? {
+          href: `${feedHref}#popular-vlog`,
+          id: "popular-vlog",
+          label: copy.feed.trending,
+          mobileLabel: locale === "ko" ? "인기" : "Popular",
+        }
       : null,
     rankedCreatorCount > 0
       ? {
           href: `${feedHref}#popular-characters`,
+          id: "popular-characters",
           label: locale === "ko" ? "캐릭터 랭킹" : "Character ranking",
+          mobileLabel: locale === "ko" ? "랭킹" : "Ranking",
         }
       : null,
     videoItems.length > 0
-      ? { href: `${feedHref}#video-vlogs`, label: copy.feed.videos }
+      ? {
+          href: `${feedHref}#video-vlogs`,
+          id: "video-vlogs",
+          label: copy.feed.videos,
+          mobileLabel: locale === "ko" ? "영상" : "Videos",
+        }
       : null,
     latestItems.length > 0
-      ? { href: `${feedHref}#latest-vlogs`, label: copy.feed.latest }
+      ? {
+          href: `${feedHref}#latest-vlogs`,
+          id: "latest-vlogs",
+          label: copy.feed.latest,
+          mobileLabel: locale === "ko" ? "최신" : "Latest",
+        }
       : null,
     showAllContentSection
-      ? { href: `${feedHref}#all-vlogs`, label: allContentSectionLabel }
+      ? {
+          href: `${feedHref}#all-vlogs`,
+          id: "all-vlogs",
+          label: allContentSectionLabel,
+          mobileLabel: locale === "ko" ? "더 보기" : "More",
+        }
       : null,
-  ].filter((link): link is { href: string; label: string } => Boolean(link));
+  ];
+  const sectionTabs = sectionTabCandidates.filter(
+    (tab): tab is FanletterChannelSectionTabItem => tab !== null,
+  );
 
   return (
     <FanletterShell
@@ -4694,20 +4724,10 @@ export function FanletterFeedPage({
     >
       <section className="overflow-hidden bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
-          <nav
-            aria-label={locale === "ko" ? "피드 섹션" : "Feed sections"}
-            className="sticky top-0 z-20 -mx-4 mb-5 flex snap-x gap-2 overflow-x-auto bg-[#f6f8f4]/96 px-4 py-3 shadow-[0_12px_28px_rgba(8,18,12,0.08)] backdrop-blur [scrollbar-width:none] sm:static sm:mx-0 sm:mb-8 sm:flex-wrap sm:overflow-visible sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:backdrop-blur-none"
-          >
-            {sectionLinks.map((link) => (
-              <Link
-                className="inline-flex h-9 shrink-0 snap-start items-center rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/70 transition hover:border-[#29d85f]/70 hover:bg-[#effff3] hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#29d85f]"
-                href={link.href}
-                key={link.href}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <FanletterChannelSectionTabs
+            ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
+            items={sectionTabs}
+          />
 
           <FanletterFeedStoryRail
             items={rankedItems}
@@ -4746,7 +4766,7 @@ export function FanletterFeedPage({
 
           {featuredItem ? (
             <div
-              className="mb-10 grid min-w-0 max-w-full scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
+              className="mb-10 grid min-w-0 max-w-full scroll-mt-36 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
               id="popular-vlog"
             >
               <FeaturedFeedCard
@@ -4818,7 +4838,7 @@ export function FanletterFeedPage({
           />
 
           {videoItems.length > 0 ? (
-            <section className="mb-10 scroll-mt-24" id="video-vlogs">
+            <section className="mb-10 scroll-mt-36 sm:scroll-mt-24" id="video-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.videos}
@@ -4839,7 +4859,7 @@ export function FanletterFeedPage({
           ) : null}
 
           {latestItems.length > 0 ? (
-            <section className="mb-10 scroll-mt-24" id="latest-vlogs">
+            <section className="mb-10 scroll-mt-36 sm:scroll-mt-24" id="latest-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
                   {copy.feed.latest}
@@ -4862,7 +4882,7 @@ export function FanletterFeedPage({
           {showAllContentSection ? (
             <>
               <div
-                className="mb-4 flex scroll-mt-24 items-center justify-between gap-3"
+                className="mb-4 flex scroll-mt-36 items-center justify-between gap-3 sm:scroll-mt-24"
                 id="all-vlogs"
               >
                 <h2 className="text-2xl font-semibold tracking-normal">
@@ -4960,7 +4980,7 @@ function CharacterPersonaShowcase({
 
   return (
     <section
-      className="mb-8 grid scroll-mt-32 gap-4 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]"
+      className="mb-8 grid scroll-mt-36 gap-4 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]"
       id="about"
     >
       <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
@@ -5296,7 +5316,6 @@ export function FanletterCreatorPage({
         />
       }
       description={channelSummary}
-      currentSection="feed"
       eyebrow={copy.creator.eyebrow}
       locale={locale}
       referralCode={effectiveReferralCode}
@@ -5314,7 +5333,7 @@ export function FanletterCreatorPage({
         />
         <div className="mx-auto max-w-[92rem]">
           <div
-            className="mb-8 grid scroll-mt-32 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
+            className="mb-8 grid scroll-mt-36 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
             id="channel-home"
           >
             <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7">
@@ -5414,7 +5433,7 @@ export function FanletterCreatorPage({
 
           {featuredItem ? (
             <section
-              className="mb-8 scroll-mt-32 sm:scroll-mt-24"
+              className="mb-8 scroll-mt-36 sm:scroll-mt-24"
               id="featured-vlog"
             >
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -5478,7 +5497,7 @@ export function FanletterCreatorPage({
           />
 
           <section
-            className="mb-8 scroll-mt-32 sm:scroll-mt-24"
+            className="mb-8 scroll-mt-36 sm:scroll-mt-24"
             id="public-vlogs"
           >
             <div className="mb-4">
