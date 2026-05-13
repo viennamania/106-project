@@ -490,6 +490,8 @@ const platformBrandLogos = [
     src: "/brand/platforms/tiktok.svg",
   },
 ] as const;
+const homePromptTextPattern =
+  /(black eyeline|black eyeliner|blue eyes|cinematic lighting|hyper-realistic|long eyelashes|lora|messy wet hair|negative prompt|photo-realistic|photorealistic|seed|standard iphone selfie|uploaded reference|wet hair|white beauty)/i;
 
 function getFanletterCopy(locale: Locale) {
   return locale === "ko" ? koCopy : enCopy;
@@ -536,6 +538,82 @@ function getPaidSignalBadge(video: FanletterFeaturedVideo, locale: Locale) {
   }
 
   return locale === "ko" ? "새 팬 전용" : "New fan-only";
+}
+
+function getPaidCardFallbackTitle(
+  video: FanletterFeaturedVideo,
+  locale: Locale,
+) {
+  return locale === "ko"
+    ? `${video.authorName} 팬 전용 브이로그`
+    : `${video.authorName} fan-only vlog`;
+}
+
+function isSafePaidCardText(value: string | null | undefined): value is string {
+  const text = value?.trim();
+
+  return (
+    Boolean(text) &&
+    !homePromptTextPattern.test(text ?? "") &&
+    !looksLikePlaceholderText(text)
+  );
+}
+
+function looksLikePlaceholderText(value: string | undefined) {
+  const text = value?.trim();
+
+  if (!text) {
+    return false;
+  }
+
+  if (/^(sample|test|testing|샘플|테스트)$/i.test(text)) {
+    return true;
+  }
+
+  if (!/^[A-Za-z]{6,18}$/.test(text)) {
+    return false;
+  }
+
+  const lowerText = text.toLowerCase();
+
+  if (
+    /(behind|daily|date|fan|letter|live|mood|morning|preview|reply|routine|scene|short|studio|story|teaser|update|upload|video|vlog|walk)/.test(
+      lowerText,
+    )
+  ) {
+    return false;
+  }
+
+  const vowelCount = (lowerText.match(/[aeiou]/g) ?? []).length;
+  const rareLetterCount = (lowerText.match(/[jqxz]/g) ?? []).length;
+
+  return (
+    vowelCount === 0 ||
+    rareLetterCount > 0 ||
+    /([a-z]{2})\1/.test(lowerText) ||
+    /w.*w/.test(lowerText)
+  );
+}
+
+function getPaidCardTitle(video: FanletterFeaturedVideo, locale: Locale) {
+  return isSafePaidCardText(video.title)
+    ? video.title
+    : getPaidCardFallbackTitle(video, locale);
+}
+
+function getPaidCardPreviewText(
+  video: FanletterFeaturedVideo,
+  fallback: string,
+) {
+  if (isSafePaidCardText(video.previewText)) {
+    return video.previewText;
+  }
+
+  if (isSafePaidCardText(video.summary)) {
+    return video.summary;
+  }
+
+  return fallback;
 }
 
 function FanletterPaidSpotlightSection({
@@ -654,11 +732,11 @@ function FanletterPaidSpotlightSection({
                 ),
                 { returnTo: homeHref },
               );
-              const previewText = copy.paidSpotlight.priceNote;
-              const cardTitle =
-                locale === "ko"
-                  ? `${video.authorName} 팬 전용 브이로그`
-                  : `${video.authorName} fan-only vlog`;
+              const previewText = getPaidCardPreviewText(
+                video,
+                copy.paidSpotlight.priceNote,
+              );
+              const cardTitle = getPaidCardTitle(video, locale);
               const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
               const unlockLabel =
                 locale === "ko"

@@ -23,7 +23,30 @@ const FEATURED_VIDEO_CANDIDATE_LIMIT = 48;
 const RECENCY_DECAY_DAYS = 21;
 const TEXT_LIMIT = 170;
 const LANDING_TEXT_SENSITIVE_PATTERN =
-  /(adult|big bust|bikini|create a|dramatic lighting|erotic|face shape|flirty|fluid motion|give a kiss|hands behind|hyper-realistic|intricate design|lingerie|lust|make me|motion blur|my hand|naked|nude|nsfw|porn|prompt|ring light|selfie|sex|sexy|soft oval face|standard iphone selfie|standing pose|textures|underwear|uploaded reference|with my hand|노출|비키니|섹시|성인|속옷|야한)/i;
+  /(adult|big bust|bikini|black eyeliner|blue eyes|cinematic lighting|create a|dramatic lighting|erotic|face shape|flirty|fluid motion|give a kiss|hands behind|hyper-realistic|intricate design|lingerie|long eyelashes|lora|lust|make me|masterpiece|messy wet hair|motion blur|my hand|naked|negative prompt|nude|nsfw|photo-realistic|photorealistic|porn|prompt|ring light|seed|selfie|sex|sexy|soft oval face|standard iphone selfie|standing pose|textures|underwear|uploaded reference|wet hair|white beauty|with my hand|노출|비키니|섹시|성인|속옷|야한)/i;
+
+const LANDING_PROMPT_DESCRIPTOR_TOKENS = [
+  "8k",
+  "black eyeliner",
+  "blue eyes",
+  "cinematic lighting",
+  "freckles",
+  "hyper realistic",
+  "hyper-realistic",
+  "long eyelashes",
+  "masterpiece",
+  "messy wet hair",
+  "negative prompt",
+  "photo realistic",
+  "photo-realistic",
+  "photorealistic",
+  "portrait lens",
+  "realistic skin",
+  "seed",
+  "skin texture",
+  "wet hair",
+  "white beauty",
+] as const;
 
 export type FanletterFeaturedVideo = {
   authorAvatarImageUrl: string | null;
@@ -119,6 +142,48 @@ function isReadableLandingText(value: string) {
   return true;
 }
 
+function looksLikeGenerationPromptText(value: string) {
+  const lowerValue = value.toLowerCase();
+  const commaCount = (value.match(/,/g) ?? []).length;
+  const promptTokenHits = LANDING_PROMPT_DESCRIPTOR_TOKENS.filter((token) =>
+    lowerValue.includes(token),
+  ).length;
+
+  return promptTokenHits >= 3 || (commaCount >= 4 && promptTokenHits >= 2);
+}
+
+function looksLikePlaceholderLandingText(value: string) {
+  const text = value.trim();
+
+  if (/^(sample|test|testing|샘플|테스트)$/i.test(text)) {
+    return true;
+  }
+
+  if (!/^[A-Za-z]{6,18}$/.test(text)) {
+    return false;
+  }
+
+  const lowerText = text.toLowerCase();
+
+  if (
+    /(behind|daily|date|fan|letter|live|mood|morning|preview|reply|routine|scene|short|studio|story|teaser|update|upload|video|vlog|walk)/.test(
+      lowerText,
+    )
+  ) {
+    return false;
+  }
+
+  const vowelCount = (lowerText.match(/[aeiou]/g) ?? []).length;
+  const rareLetterCount = (lowerText.match(/[jqxz]/g) ?? []).length;
+
+  return (
+    vowelCount === 0 ||
+    rareLetterCount > 0 ||
+    /([a-z]{2})\1/.test(lowerText) ||
+    /w.*w/.test(lowerText)
+  );
+}
+
 function getSafeLandingText({
   fallback,
   limit,
@@ -133,12 +198,39 @@ function getSafeLandingText({
   if (
     !text ||
     !isReadableLandingText(text) ||
-    LANDING_TEXT_SENSITIVE_PATTERN.test(text)
+    LANDING_TEXT_SENSITIVE_PATTERN.test(text) ||
+    looksLikeGenerationPromptText(text) ||
+    looksLikePlaceholderLandingText(text) ||
+    looksLikePersonaDescriptorText(text)
   ) {
     return fallback;
   }
 
   return text;
+}
+
+function normalizeLandingAuthorName(value: string | null | undefined) {
+  const text = compactText(value, 36);
+  const descriptorMatch = text.match(
+    /^(.{1,18}?)\s+\d+[.)]?\s*[.:·-]\s+(.+)$/,
+  );
+
+  if (
+    descriptorMatch &&
+    /(face|face shape|look|mood|persona|style|둥근형|무드|스타일|얼굴|얼굴형|인상)/i.test(
+      descriptorMatch[2],
+    )
+  ) {
+    return descriptorMatch[1].trim();
+  }
+
+  return text;
+}
+
+function looksLikePersonaDescriptorText(value: string) {
+  return /\b\d+[.)]?\s*[.:·-]\s*.*(face|face shape|look|mood|persona|style|둥근형|무드|스타일|얼굴|얼굴형|인상)/i.test(
+    value,
+  );
 }
 
 function getVideoUrl(post: ContentPostDocument) {
@@ -150,8 +242,8 @@ function getAuthorName(
   profile: CreatorProfileDocument | undefined,
 ) {
   return (
-    compactText(profile?.characterPersona?.name, 36) ||
-    compactText(profile?.displayName, 36) ||
+    normalizeLandingAuthorName(profile?.characterPersona?.name) ||
+    normalizeLandingAuthorName(profile?.displayName) ||
     post.authorEmail.split("@")[0]
   );
 }
@@ -621,7 +713,7 @@ export const getFanletterLandingData = unstable_cache(
       },
     };
   },
-  ["fanletter-landing-data-v6"],
+  ["fanletter-landing-data-v8"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],
