@@ -285,6 +285,81 @@ function getAuthorName(
   );
 }
 
+function getPaidLandingFallbackCopy({
+  authorName,
+  locale,
+  post,
+}: {
+  authorName: string;
+  locale: Locale;
+  post: ContentPostDocument;
+}) {
+  const text = [
+    post.title,
+    post.summary,
+    post.previewText,
+    post.body,
+    post.tags.join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/(답장|메시지|질문|응원|reply|message|question|q&a|qa)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          preview:
+            "팬 메시지에 이어지는 답장 장면과 전체 영상을 결제 후 확인할 수 있습니다.",
+          title: `${authorName} 팬 답장 브이로그`,
+        }
+      : {
+          preview:
+            "A fan reply scene and the full video unlock after payment.",
+          title: `${authorName} fan reply vlog`,
+        };
+  }
+
+  if (/(루틴|일상|아침|밤|쉬는|오프|routine|daily|morning|night|off-day|off day)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          preview:
+            "공개 피드에는 없는 가까운 루틴과 상세 본문을 결제 후 확인할 수 있습니다.",
+          title: `${authorName} 비공개 루틴 브이로그`,
+        }
+      : {
+          preview:
+            "A closer routine and detail body outside the public feed unlock after payment.",
+          title: `${authorName} private routine vlog`,
+        };
+  }
+
+  if (/(선공개|early access|early|before public)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          preview:
+            "공개 전 장면과 제작 노트를 팬 전용으로 먼저 확인할 수 있습니다.",
+          title: `${authorName} 선공개 장면 브이로그`,
+        }
+      : {
+          preview:
+            "Early scenes and creator notes unlock before the public feed release.",
+          title: `${authorName} early access vlog`,
+        };
+  }
+
+  return locale === "ko"
+    ? {
+        preview:
+          "공개 티저 뒤에 숨겨진 전체 영상과 상세 본문을 결제 후 확인할 수 있습니다.",
+        title: `${authorName} 팬 전용 하이라이트`,
+      }
+    : {
+        preview:
+          "The full video and detail body behind the public teaser unlock after payment.",
+        title: `${authorName} fan-only highlight`,
+      };
+}
+
 function createEmptyCandidateSignals(): FanletterCandidateSignals {
   return {
     commentCount: 0,
@@ -586,18 +661,17 @@ function toFeaturedVideo({
   }
 
   const authorName = getAuthorName(post, profile);
-  const paidTitleFallback =
-    locale === "ko"
-      ? `${authorName} 팬 전용 브이로그`
-      : `${authorName} fan-only vlog`;
+  const paidFallback = getPaidLandingFallbackCopy({
+    authorName,
+    locale,
+    post,
+  });
+  const paidTitleFallback = paidFallback.title;
   const publicTitleFallback =
     locale === "ko"
       ? `${authorName} 공개 브이로그`
       : `${authorName} public vlog`;
-  const paidPreviewFallback =
-    locale === "ko"
-      ? "결제 후 전체 영상과 상세 본문이 열리는 팬 전용 브이로그입니다."
-      : "A fan-only vlog where the full video and detail body unlock after payment.";
+  const paidPreviewFallback = paidFallback.preview;
   const publicPreviewFallback =
     locale === "ko"
       ? "캐릭터 분위기를 먼저 확인할 수 있는 무료 공개 브이로그입니다."
@@ -750,7 +824,7 @@ export const getFanletterLandingData = unstable_cache(
       },
     };
   },
-  ["fanletter-landing-data-v10"],
+  ["fanletter-landing-data-v11"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],

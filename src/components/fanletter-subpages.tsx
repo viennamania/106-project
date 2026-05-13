@@ -436,6 +436,7 @@ function getContentEngagementScore(item: FanletterPublicContentItem) {
 function isLowSignalContentText(title: string, summary: string) {
   const normalizedTitle = title.trim();
   const normalizedSummary = summary.trim();
+  const compactTitle = normalizedTitle.replace(/\s+/g, "");
 
   if (!normalizedTitle) {
     return true;
@@ -447,6 +448,21 @@ function isLowSignalContentText(title: string, summary: string) {
     /^[a-z]+$/i.test(normalizedTitle)
   ) {
     return true;
+  }
+
+  if (/^[a-z]{6,18}$/i.test(compactTitle)) {
+    const lowerTitle = compactTitle.toLowerCase();
+
+    if (
+      !/(daily|date|fan|letter|live|mood|morning|preview|reply|routine|scene|short|studio|story|teaser|update|video|vlog|walk)/.test(
+        lowerTitle,
+      ) &&
+      (!/[aeiou]/.test(lowerTitle) ||
+        (lowerTitle.match(/[jqxz]/g) ?? []).length > 1 ||
+        /w.*w/.test(lowerTitle))
+    ) {
+      return true;
+    }
   }
 
   return /^([a-z])\1{3,}$/i.test(normalizedTitle);
@@ -526,8 +542,8 @@ function getDisplayPaidTeaser(item: FanletterPublicContentItem, locale: Locale) 
 
   return item.priceType === "paid"
     ? locale === "ko"
-      ? "결제 후 전체 영상과 상세 본문이 열리는 팬 전용 브이로그입니다."
-      : "A fan-only vlog where the full video and body unlock after payment."
+      ? "공개 티저 뒤에 숨겨진 전체 영상과 상세 본문을 결제 후 확인할 수 있습니다."
+      : "The full video and detail body behind the public teaser unlock after payment."
     : getDisplayContentSummary(item, locale);
 }
 
@@ -2433,10 +2449,15 @@ function FanletterFanOnlyPreview({
           availableTitle: "팬 전용 브이로그 모음",
           basePrice: "기본 가격",
           body: "팬 전용 요청은 유료 브이로그 후보로 바로 이어집니다. 보고 싶은 장면을 남기면 크리에이터가 스튜디오 요청함에서 확인하고 1 USDT 잠금 브이로그로 제작할 수 있습니다.",
+          buyerProof: (count: string) => `${count}명 구매`,
           cardLockedCta: "미리보기",
           cardOwnerAccess: "관리 가능",
           cardOwnerBadge: "내 팬 전용",
           cardOwnerCta: "관리",
+          cardProofHot: "인기 팬 전용",
+          cardProofNew: "새 잠금 공개",
+          cardProofProven: "결제 검증",
+          cardProofRising: "반응 상승",
           cardUnlocked: "결제 완료",
           cardUnlockedAccess: "열람 가능",
           cardUnlockedCta: "바로 보기",
@@ -2462,6 +2483,7 @@ function FanletterFanOnlyPreview({
           paidDone: (amount: string) => `${amount} 결제됨`,
           priceLabel: "유료",
           presetCta: "이 요청으로 남기기",
+          reactionProof: (count: string) => `${count}개 반응`,
           requestFanOnly: "다음 팬 전용 요청",
           requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
@@ -2482,10 +2504,15 @@ function FanletterFanOnlyPreview({
           availableTitle: "Fan-only vlog collection",
           basePrice: "Base price",
           body: "Fan-only requests can flow directly into paid vlog candidates. Leave the scene you want to see and the creator can review it in Studio, then publish it as a 1 USDT locked vlog.",
+          buyerProof: (count: string) => `${count} buyers`,
           cardLockedCta: "Preview",
           cardOwnerAccess: "Manageable",
           cardOwnerBadge: "My fan-only",
           cardOwnerCta: "Manage",
+          cardProofHot: "Popular fan-only",
+          cardProofNew: "New locked drop",
+          cardProofProven: "Payment-proven",
+          cardProofRising: "Rising reactions",
           cardUnlocked: "Unlocked",
           cardUnlockedAccess: "Ready to watch",
           cardUnlockedCta: "Watch now",
@@ -2511,6 +2538,7 @@ function FanletterFanOnlyPreview({
           paidDone: (amount: string) => `${amount} paid`,
           priceLabel: "Paid",
           presetCta: "Request this",
+          reactionProof: (count: string) => `${count} reactions`,
           requestFanOnly: "Request next fan-only",
           requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
@@ -2682,6 +2710,26 @@ function FanletterFanOnlyPreview({
               const displayTitle = getDisplayContentTitle(item, locale);
               const hasAccess = isOwner || item.canViewerAccess;
               const lockedMediaLabel = getLockedMediaLabel(item, locale);
+              const reactionCount =
+                item.social.commentCount + item.social.saveCount;
+              const fanOnlyProofLabel =
+                item.social.paidBuyerCount >= 10
+                  ? labels.cardProofHot
+                  : item.social.paidBuyerCount > 0
+                    ? labels.cardProofProven
+                    : reactionCount > 0
+                      ? labels.cardProofRising
+                      : labels.cardProofNew;
+              const buyerProofLabel =
+                item.social.paidBuyerCount > 0
+                  ? labels.buyerProof(
+                      formatNumber(item.social.paidBuyerCount, locale),
+                    )
+                  : `${item.priceUsdt ?? "1"} USDT`;
+              const reactionProofLabel =
+                reactionCount > 0
+                  ? labels.reactionProof(formatNumber(reactionCount, locale))
+                  : lockedMediaLabel;
               const StatusIcon = isOwner
                 ? Clapperboard
                 : hasAccess
@@ -2768,6 +2816,23 @@ function FanletterFanOnlyPreview({
                     <p className="line-clamp-2 break-words text-sm font-medium leading-6 text-white/58 [overflow-wrap:anywhere]">
                       {displaySummary}
                     </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-[0.62rem] font-semibold ${
+                          item.social.paidBuyerCount > 0
+                            ? "bg-[#44f26e] text-black"
+                            : "border border-[#44f26e]/20 bg-[#44f26e]/10 text-[#b9ffc8]"
+                        }`}
+                      >
+                        {fanOnlyProofLabel}
+                      </span>
+                      <span className="inline-flex rounded-full border border-white/12 bg-white/[0.055] px-2.5 py-1 text-[0.62rem] font-semibold text-white/64">
+                        {buyerProofLabel}
+                      </span>
+                      <span className="inline-flex rounded-full border border-white/12 bg-white/[0.055] px-2.5 py-1 text-[0.62rem] font-semibold text-white/64">
+                        {reactionProofLabel}
+                      </span>
+                    </div>
                     {!hasAccess ? (
                       <div className="mt-3 rounded-lg border border-[#44f26e]/18 bg-black/18 p-3">
                         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">

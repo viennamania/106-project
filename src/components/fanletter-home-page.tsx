@@ -109,10 +109,19 @@ type FanletterCopy = {
     emptyTitle: string;
     eyebrow: string;
     priceNote: string;
+    proofHot: string;
+    proofNew: string;
+    proofProven: string;
+    proofRising: string;
     previewLabel: string;
     purchaseLibrary: string;
+    railBody: string;
+    railCta: string;
+    railEyebrow: string;
+    railTitle: string;
     saveMetric: string;
     title: string;
+    unlockHint: string;
     unlockItems: string[];
     unlockTitle: string;
   };
@@ -249,12 +258,22 @@ const koCopy: FanletterCopy = {
     emptyBody:
       "유료 팬 전용 브이로그가 준비되면 공개 티저와 잠금 해제 항목이 이곳에 먼저 표시됩니다.",
     emptyTitle: "팬 전용 브이로그를 준비 중입니다.",
-    eyebrow: "Fan-only paid vlogs",
+    eyebrow: "팬 전용 유료 브이로그",
     priceNote: "결제 후 전체 영상과 상세 본문이 열립니다.",
+    proofHot: "인기 팬 전용",
+    proofNew: "새 잠금 공개",
+    proofProven: "결제 검증",
+    proofRising: "반응 상승",
     previewLabel: "공개 티저",
     purchaseLibrary: "구매함 보기",
+    railBody:
+      "공개 피드 전에 결제 검증, 팬 답장, 비공개 루틴이 보이는 유료 브이로그를 먼저 확인하세요.",
+    railCta: "팬 전용 전체 보기",
+    railEyebrow: "팬 전용 하이라이트",
+    railTitle: "지금 잠금 해제할 만한 유료 브이로그",
     saveMetric: "저장",
     title: "공개 브이로그 다음에 열리는 팬 전용.",
+    unlockHint: "전체 영상 + 상세 본문",
     unlockItems: ["전체 업로드 영상", "상세 본문과 이미지", "댓글과 다음 요청"],
     unlockTitle: "결제 후 열리는 항목",
   },
@@ -413,10 +432,20 @@ const enCopy: FanletterCopy = {
     emptyTitle: "Fan-only vlogs are being prepared.",
     eyebrow: "Fan-only paid vlogs",
     priceNote: "Full video and detail body unlock after payment.",
+    proofHot: "Popular fan-only",
+    proofNew: "New locked drop",
+    proofProven: "Payment-proven",
+    proofRising: "Rising reactions",
     previewLabel: "Public teaser",
     purchaseLibrary: "Purchases",
+    railBody:
+      "Preview paid vlogs with purchase proof, fan replies, and private routines before entering the full feed.",
+    railCta: "View all fan-only",
+    railEyebrow: "Fan-only highlights",
+    railTitle: "Paid vlogs worth unlocking now",
     saveMetric: "saves",
     title: "Fan-only opens after the public vlog.",
+    unlockHint: "Full video + detail body",
     unlockItems: ["Full uploaded video", "Detail body and images", "Comments and next requests"],
     unlockTitle: "Unlock includes",
   },
@@ -540,13 +569,128 @@ function getPaidSignalBadge(video: FanletterFeaturedVideo, locale: Locale) {
   return locale === "ko" ? "새 팬 전용" : "New fan-only";
 }
 
+function getPaidCardProofLabel(
+  video: FanletterFeaturedVideo,
+  copy: FanletterCopy,
+) {
+  if (video.social.paidBuyerCount >= 10) {
+    return copy.paidSpotlight.proofHot;
+  }
+
+  if (video.social.paidBuyerCount > 0) {
+    return copy.paidSpotlight.proofProven;
+  }
+
+  if (video.social.commentCount + video.social.saveCount > 0) {
+    return copy.paidSpotlight.proofRising;
+  }
+
+  return copy.paidSpotlight.proofNew;
+}
+
+function getPaidCardHook(video: FanletterFeaturedVideo, locale: Locale) {
+  const text = [video.title, video.summary, video.previewText]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/(답장|메시지|질문|응원|reply|message|question|q&a|qa)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          badge: "팬 답장",
+          preview: "팬 메시지에 이어지는 답장 장면과 전체 영상을 잠금 해제합니다.",
+          title: "팬 답장 브이로그",
+        }
+      : {
+          badge: "Fan reply",
+          preview: "Unlock the full video and reply scene connected to a fan message.",
+          title: "fan reply vlog",
+        };
+  }
+
+  if (/(루틴|일상|아침|밤|쉬는|오프|routine|daily|morning|night|off-day|off day)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          badge: "비공개 루틴",
+          preview: "공개 피드에는 없는 가까운 루틴과 상세 본문을 결제 후 확인합니다.",
+          title: "비공개 루틴 브이로그",
+        }
+      : {
+          badge: "Private routine",
+          preview: "Unlock a closer routine and detail body that are not in the public feed.",
+          title: "private routine vlog",
+        };
+  }
+
+  if (/(선공개|early access|early|before public)/i.test(text)) {
+    return locale === "ko"
+      ? {
+          badge: "선공개 장면",
+          preview: "공개 전 장면과 제작 노트를 팬 전용으로 먼저 확인합니다.",
+          title: "선공개 장면 브이로그",
+        }
+      : {
+          badge: "Early access",
+          preview: "Unlock early scenes and notes before the public feed release.",
+          title: "early access vlog",
+        };
+  }
+
+  return locale === "ko"
+    ? {
+        badge: "팬 전용 하이라이트",
+        preview: "공개 티저 뒤에 숨겨진 전체 영상과 상세 본문을 잠금 해제합니다.",
+        title: "팬 전용 하이라이트",
+      }
+    : {
+        badge: "Fan-only highlight",
+        preview: "Unlock the full video and detail body behind the public teaser.",
+        title: "fan-only highlight",
+      };
+}
+
+function isGenericPaidUnlockText(value: string, locale: Locale) {
+  const text = value.trim().toLowerCase();
+
+  return locale === "ko"
+    ? /결제 후.*전체 영상.*상세 본문|팬 전용 브이로그입니다/.test(text)
+    : /full video.*detail body.*unlock|fan-only vlog where/i.test(text);
+}
+
+function isGenericPaidCardTitle(
+  title: string,
+  authorName: string,
+  locale: Locale,
+) {
+  const normalizedTitle = title.trim().toLowerCase();
+  const normalizedAuthorName = authorName.trim().toLowerCase();
+
+  if (locale === "ko") {
+    return (
+      normalizedTitle === `${normalizedAuthorName} 팬 전용 브이로그` ||
+      normalizedTitle === `${normalizedAuthorName} 팬 전용 하이라이트` ||
+      normalizedTitle.endsWith(" 팬 전용 브이로그") ||
+      normalizedTitle.endsWith(" 팬 전용 하이라이트")
+    );
+  }
+
+  return (
+    normalizedTitle === `${normalizedAuthorName} fan-only vlog` ||
+    normalizedTitle === `${normalizedAuthorName} fan-only highlight` ||
+    normalizedTitle.endsWith(" fan-only vlog") ||
+    normalizedTitle.endsWith(" fan-only highlight")
+  );
+}
+
 function getPaidCardFallbackTitle(
   video: FanletterFeaturedVideo,
   locale: Locale,
 ) {
+  const hook = getPaidCardHook(video, locale);
+
   return locale === "ko"
-    ? `${video.authorName} 팬 전용 브이로그`
-    : `${video.authorName} fan-only vlog`;
+    ? `${video.authorName} ${hook.title}`
+    : `${video.authorName} ${hook.title}`;
 }
 
 function isSafePaidCardText(value: string | null | undefined): value is string {
@@ -596,7 +740,8 @@ function looksLikePlaceholderText(value: string | undefined) {
 }
 
 function getPaidCardTitle(video: FanletterFeaturedVideo, locale: Locale) {
-  return isSafePaidCardText(video.title)
+  return isSafePaidCardText(video.title) &&
+    !isGenericPaidCardTitle(video.title, video.authorName, locale)
     ? video.title
     : getPaidCardFallbackTitle(video, locale);
 }
@@ -604,16 +749,134 @@ function getPaidCardTitle(video: FanletterFeaturedVideo, locale: Locale) {
 function getPaidCardPreviewText(
   video: FanletterFeaturedVideo,
   fallback: string,
+  locale: Locale,
 ) {
-  if (isSafePaidCardText(video.previewText)) {
+  if (
+    isSafePaidCardText(video.previewText) &&
+    !isGenericPaidUnlockText(video.previewText, locale)
+  ) {
     return video.previewText;
   }
 
-  if (isSafePaidCardText(video.summary)) {
+  if (
+    isSafePaidCardText(video.summary) &&
+    !isGenericPaidUnlockText(video.summary, locale)
+  ) {
     return video.summary;
   }
 
-  return fallback;
+  const hook = getPaidCardHook(video, locale);
+
+  return hook.preview || fallback;
+}
+
+function FanletterPaidPreviewRail({
+  copy,
+  featuredPaidVideos,
+  homeHref,
+  locale,
+  referralCode,
+}: {
+  copy: FanletterCopy;
+  featuredPaidVideos: FanletterFeaturedVideo[];
+  homeHref: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const previewVideos = featuredPaidVideos.slice(0, 3);
+
+  if (previewVideos.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-b border-white/8 bg-[#07100b] px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8">
+      <div className="mx-auto grid max-w-[92rem] gap-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)] lg:items-center">
+        <ScrollReveal>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            {copy.paidSpotlight.railEyebrow}
+          </p>
+          <h2 className="mt-3 max-w-2xl text-[1.9rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.55rem]">
+            {copy.paidSpotlight.railTitle}
+          </h2>
+          <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/64 sm:text-base">
+            {copy.paidSpotlight.railBody}
+          </p>
+          <a
+            className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+            href="#fan-only-paid"
+          >
+            {copy.paidSpotlight.railCta}
+            <ArrowRight className="size-4" />
+          </a>
+        </ScrollReveal>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {previewVideos.map((video, index) => {
+            const hook = getPaidCardHook(video, locale);
+            const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
+            const videoHref = setPathSearchParams(
+              buildPathWithReferral(
+                `/${locale}/fanletter/content/${video.contentId}`,
+                video.authorReferralCode ?? referralCode,
+              ),
+              { returnTo: homeHref },
+            );
+
+            return (
+              <ScrollReveal
+                className="min-w-0"
+                delay={index * 70}
+                key={video.contentId}
+              >
+                <Link
+                  className="group block h-full overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] text-white transition hover:-translate-y-0.5 hover:border-[#44f26e]/42 hover:bg-white/[0.09]"
+                  href={videoHref}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                    {video.coverImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover opacity-86 transition duration-500 group-hover:scale-[1.03]"
+                        fill
+                        sizes="(min-width: 1024px) 22vw, 33vw"
+                        src={video.coverImageUrl}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#132519_58%,#030504)]" />
+                    )}
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.30)_48%,rgba(0,0,0,0.88)_100%)]" />
+                    <div className="absolute left-3 top-3 rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-black">
+                      {priceLabel}
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                        {hook.badge}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-white">
+                        {getPaidCardTitle(video, locale)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-xs font-semibold text-white/56">
+                        {getPaidCardProofLabel(video, copy)}
+                      </span>
+                      <span className="shrink-0 text-xs font-semibold text-[#9bffad]">
+                        {copy.paidSpotlight.unlockHint}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function FanletterPaidSpotlightSection({
@@ -735,14 +998,17 @@ function FanletterPaidSpotlightSection({
               const previewText = getPaidCardPreviewText(
                 video,
                 copy.paidSpotlight.priceNote,
+                locale,
               );
               const cardTitle = getPaidCardTitle(video, locale);
+              const hook = getPaidCardHook(video, locale);
               const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
               const unlockLabel =
                 locale === "ko"
                   ? `${priceLabel} 잠금 해제`
                   : `Unlock ${priceLabel}`;
               const signalBadge = getPaidSignalBadge(video, locale);
+              const proofLabel = getPaidCardProofLabel(video, copy);
 
               return (
                 <ScrollReveal
@@ -773,11 +1039,11 @@ function FanletterPaidSpotlightSection({
                         {priceLabel}
                       </div>
                       <div className="absolute right-3 top-3 max-w-[8rem] truncate rounded-full border border-white/18 bg-black/64 px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-white backdrop-blur">
-                        {signalBadge}
+                        {proofLabel}
                       </div>
                       <div className="absolute bottom-3 left-3 right-3">
                         <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
-                          {copy.paidSpotlight.previewLabel}
+                          {hook.badge} · {copy.paidSpotlight.previewLabel}
                         </p>
                         <p className="mt-2 line-clamp-3 text-sm font-semibold leading-5 text-white">
                           {previewText}
@@ -813,6 +1079,14 @@ function FanletterPaidSpotlightSection({
                       <h3 className="mt-4 line-clamp-2 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
                         {cardTitle}
                       </h3>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <span className="inline-flex rounded-full border border-black/8 bg-[#ecfff0] px-2.5 py-1 text-[0.62rem] font-semibold text-[#1f7c38]">
+                          {copy.paidSpotlight.unlockHint}
+                        </span>
+                        <span className="inline-flex rounded-full border border-black/8 bg-[#f6f8f4] px-2.5 py-1 text-[0.62rem] font-semibold text-black/58">
+                          {signalBadge}
+                        </span>
+                      </div>
                       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                         <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
                           <p className="text-sm font-semibold">
@@ -1365,6 +1639,14 @@ export function FanletterHomePage({
           })}
         </div>
       </section>
+
+      <FanletterPaidPreviewRail
+        copy={copy}
+        featuredPaidVideos={featuredPaidVideos}
+        homeHref={homeHref}
+        locale={locale}
+        referralCode={referralCode}
+      />
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
