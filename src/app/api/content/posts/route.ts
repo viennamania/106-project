@@ -1,7 +1,8 @@
-import type {
-  ContentPostCreateRequest,
-  ContentPostMutationResponse,
-  CreatorStudioPostsResponse,
+import {
+  isContentVideoPolicyErrorMessage,
+  type ContentPostCreateRequest,
+  type ContentPostMutationResponse,
+  type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
         : message === "Completed signup is required."
           ? 403
           : message.endsWith("is required.") ||
+              isContentVideoPolicyErrorMessage(message) ||
               message ===
                 "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
               message === "Failed to create seller wallet."

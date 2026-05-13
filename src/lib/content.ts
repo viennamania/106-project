@@ -6,6 +6,19 @@ export const CONTENT_LIBRARY_PAGE_SIZE = 24;
 export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
 export const CONTENT_PAID_USDT_AMOUNT = "1";
 export const CONTENT_PAID_USDT_AMOUNT_WEI = "1000000000000000000";
+export const CONTENT_POSTS_BLOB_PATH_SEGMENT = "content-posts";
+export const CONTENT_UPLOADED_VIDEO_PATH_SEGMENT = "videos";
+export const CONTENT_GENERATED_VIDEO_PATH_SEGMENT = "generated-content-videos";
+export const CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR =
+  "Paid content requires a directly uploaded video.";
+export const CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR =
+  "Uploaded videos must be saved as paid content.";
+export const CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR =
+  "AI-generated videos must be saved as free content.";
+export const CONTENT_VIDEO_SOURCE_REQUIRED_ERROR =
+  "Content videos must come from AI generation or direct video upload.";
+export const CONTENT_VIDEO_SOURCE_MIXED_ERROR =
+  "Use either an AI-generated video or an uploaded video, not both.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
 export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
@@ -104,6 +117,74 @@ export type ContentImageGenerationProvider =
   | "fal-text"
   | "replicate";
 export type ContentImageGenerationStatus = "failed" | "running" | "succeeded";
+export type ContentVideoAssetSource = "generated" | "unknown" | "uploaded";
+
+const contentVideoPolicyErrorMessages = new Set([
+  CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
+  CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR,
+  CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR,
+  CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
+  CONTENT_VIDEO_SOURCE_MIXED_ERROR,
+]);
+
+function safelyDecodePathSegment(segment: string) {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
+function getPathSegmentsFromContentUrl(url: string) {
+  const trimmedUrl = url.trim();
+  let pathname = trimmedUrl;
+
+  try {
+    pathname = new URL(trimmedUrl).pathname;
+  } catch {
+    pathname = trimmedUrl.split(/[?#]/, 1)[0] ?? trimmedUrl;
+  }
+
+  return pathname
+    .split("/")
+    .map((segment) => safelyDecodePathSegment(segment.trim()))
+    .filter(Boolean);
+}
+
+export function getContentVideoAssetSource(
+  url: string | null | undefined,
+): ContentVideoAssetSource {
+  if (!url?.trim()) {
+    return "unknown";
+  }
+
+  const segments = getPathSegmentsFromContentUrl(url);
+  const contentRootIndex = segments.indexOf(CONTENT_POSTS_BLOB_PATH_SEGMENT);
+  const sourceSegment =
+    contentRootIndex >= 0 ? segments[contentRootIndex + 2] : undefined;
+
+  if (sourceSegment === CONTENT_GENERATED_VIDEO_PATH_SEGMENT) {
+    return "generated";
+  }
+
+  if (sourceSegment === CONTENT_UPLOADED_VIDEO_PATH_SEGMENT) {
+    return "uploaded";
+  }
+
+  return "unknown";
+}
+
+export function hasGeneratedContentVideoUrl(urls: string[] | undefined) {
+  return (urls ?? []).some((url) => getContentVideoAssetSource(url) === "generated");
+}
+
+export function hasUploadedContentVideoUrl(urls: string[] | undefined) {
+  return (urls ?? []).some((url) => getContentVideoAssetSource(url) === "uploaded");
+}
+
+export function isContentVideoPolicyErrorMessage(message: string) {
+  return contentVideoPolicyErrorMessages.has(message);
+}
 
 export type ContentImageGenerationAttemptDocument = {
   attemptId: string;

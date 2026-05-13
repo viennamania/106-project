@@ -6,12 +6,18 @@ import type { Filter } from "mongodb";
 
 import {
   CONTENT_FEED_PAGE_SIZE,
+  CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR,
+  CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
   CONTENT_NETWORK_LEVEL_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
+  CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR,
   CONTENT_VIDEO_LIMIT,
+  CONTENT_VIDEO_SOURCE_MIXED_ERROR,
+  CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   creatorAvatarExpressions,
   createEmptyContentSocialSummary,
+  getContentVideoAssetSource,
   normalizeContentLocale,
   serializeContentOrder,
   serializeContentSaleOrder,
@@ -353,6 +359,39 @@ function normalizeContentVideoUrls(urls?: string[]) {
 
 function normalizePriceType(priceType?: ContentPriceType | null) {
   return priceType === "paid" ? "paid" : "free";
+}
+
+function validateContentVideoPricingPolicy({
+  contentVideoUrls,
+  priceType,
+}: {
+  contentVideoUrls: string[];
+  priceType: ContentPriceType;
+}) {
+  const videoSources = contentVideoUrls.map((url) => getContentVideoAssetSource(url));
+  const hasGeneratedVideo = videoSources.includes("generated");
+  const hasUploadedVideo = videoSources.includes("uploaded");
+  const hasUnknownVideo = videoSources.includes("unknown");
+
+  if (hasUnknownVideo) {
+    throw new Error(CONTENT_VIDEO_SOURCE_REQUIRED_ERROR);
+  }
+
+  if (hasGeneratedVideo && hasUploadedVideo) {
+    throw new Error(CONTENT_VIDEO_SOURCE_MIXED_ERROR);
+  }
+
+  if (hasGeneratedVideo && priceType === "paid") {
+    throw new Error(CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR);
+  }
+
+  if (hasUploadedVideo && priceType === "free") {
+    throw new Error(CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR);
+  }
+
+  if (priceType === "paid" && !hasUploadedVideo) {
+    throw new Error(CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR);
+  }
 }
 
 function resolveContentPriceUsdt(priceType: ContentPriceType) {
@@ -2030,6 +2069,8 @@ export async function createContentPostForMember(
     throw new Error("media is required.");
   }
 
+  validateContentVideoPricingPolicy({ contentVideoUrls, priceType });
+
   if (priceType === "paid") {
     await ensureCreatorPaidWalletForMember(member.email);
   }
@@ -2124,7 +2165,14 @@ export async function updateContentPostForMember(
     throw new Error("media is required.");
   }
 
-  if (nextPriceType === "paid") {
+  if (nextStatus !== "archived") {
+    validateContentVideoPricingPolicy({
+      contentVideoUrls: nextContentVideoUrls,
+      priceType: nextPriceType,
+    });
+  }
+
+  if (nextPriceType === "paid" && nextStatus !== "archived") {
     await ensureCreatorPaidWalletForMember(member.email);
   }
 

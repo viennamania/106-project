@@ -54,6 +54,7 @@ import {
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_MAX_BYTES,
   contentCoverGenerationProgressSteps,
+  getContentVideoAssetSource,
 } from "@/lib/content";
 import type {
   CreatorCharacterPersona,
@@ -1605,6 +1606,14 @@ export function CreatorContentStudioPage({
       postForm.contentImageUrls.length > 0 ||
       postForm.contentVideoUrls.length > 0,
   );
+  const postVideoSource = getContentVideoAssetSource(
+    postForm.contentVideoUrls[0] ?? null,
+  );
+  const hasUploadedPostVideo = postVideoSource === "uploaded";
+  const hasGeneratedPostVideo = postVideoSource === "generated";
+  const effectivePostPriceType: ContentPriceType = hasUploadedPostVideo
+    ? "paid"
+    : "free";
   const postBodyRequiredMessage =
     locale === "ko"
       ? "본문을 입력한 뒤 저장하거나 게시해주세요."
@@ -1613,6 +1622,18 @@ export function CreatorContentStudioPage({
     locale === "ko"
       ? "이미지 또는 동영상을 1개 이상 추가해야 바로 게시할 수 있습니다."
       : "Add at least one image or video before publishing.";
+  const paidUploadRequiredMessage =
+    locale === "ko"
+      ? "유료 콘텐츠는 직접 업로드한 동영상이 필요합니다."
+      : "Paid content requires a directly uploaded video.";
+  const uploadedVideoPaidPolicyMessage =
+    locale === "ko"
+      ? "직접 업로드한 동영상은 유료 콘텐츠로만 저장됩니다."
+      : "Directly uploaded videos are saved as paid content only.";
+  const aiVideoFreePolicyMessage =
+    locale === "ko"
+      ? "AI 생성 동영상은 무료 공개 콘텐츠로만 저장됩니다."
+      : "AI-generated videos are saved as free public content only.";
   const postSaveProgressCopy =
     locale === "ko"
       ? {
@@ -2685,8 +2706,9 @@ export function CreatorContentStudioPage({
           .slice(0, 72) || contentCopy.actions.createPost;
       const fallbackSummary = normalizedBody.replace(/\s+/g, " ").slice(0, 140);
       const email = await resolveMemberEmail();
+      const priceTypeToSave = effectivePostPriceType;
 
-      if (postForm.priceType === "paid" && !state.profile.payoutWalletAddress) {
+      if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
         await createSellerWallet(email);
       }
 
@@ -2698,9 +2720,9 @@ export function CreatorContentStudioPage({
           coverImageUrl: postForm.coverImageUrl || null,
           email,
           locale,
-          priceType: postForm.priceType,
+          priceType: priceTypeToSave,
           priceUsdt:
-            postForm.priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
+            priceTypeToSave === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
           status: statusToSave,
           summary: postForm.summary.trim() || fallbackSummary,
           title: postForm.title.trim() || fallbackTitle,
@@ -2995,14 +3017,15 @@ export function CreatorContentStudioPage({
         ...current,
         contentVideoUrls: [uploaded.url].slice(0, CONTENT_VIDEO_LIMIT),
         generatedContentVideoUrls: [],
+        priceType: "paid",
       }));
       setState((current) => ({
         ...current,
         error: null,
         notice:
           locale === "ko"
-            ? "동영상을 업로드했습니다."
-            : "Video uploaded.",
+            ? "동영상을 업로드했습니다. 업로드 동영상은 유료 콘텐츠로 저장됩니다."
+            : "Video uploaded. Uploaded videos are saved as paid content.",
       }));
     } catch (error) {
       setState((current) => ({
@@ -3474,14 +3497,15 @@ export function CreatorContentStudioPage({
         ...current,
         contentVideoUrls: [generatedVideo.url].slice(0, CONTENT_VIDEO_LIMIT),
         generatedContentVideoUrls: [generatedVideo.url],
+        priceType: "free",
       }));
       setState((current) => ({
         ...current,
         error: null,
         notice:
           locale === "ko"
-            ? "AI 콘텐츠 동영상을 생성해 콘텐츠 동영상에 추가했습니다."
-            : "Generated an AI content video and added it to content video.",
+            ? "AI 콘텐츠 동영상을 생성해 무료 공개 동영상으로 추가했습니다."
+            : "Generated an AI content video and added it as free public content.",
       }));
       setContentVideoGenerationProgress((current) => ({
         ...current,
@@ -5742,6 +5766,7 @@ export function CreatorContentStudioPage({
                         ...current,
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
+                        priceType: "free",
                       }));
                     }}
                     type="button"
@@ -5778,12 +5803,15 @@ export function CreatorContentStudioPage({
 
               <div className="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
                 {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
-                  const isSelected = postForm.priceType === priceType;
+                  const isSelected = effectivePostPriceType === priceType;
+                  const isDisabled =
+                    priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
 
                   return (
                     <button
+                      disabled={isDisabled}
                       className={cn(
-                        "inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition",
+                        "inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45",
                         isSelected
                           ? "bg-white text-slate-950 shadow-sm"
                           : "text-slate-500",
@@ -5809,6 +5837,17 @@ export function CreatorContentStudioPage({
                   );
                 })}
               </div>
+              {hasUploadedPostVideo || hasGeneratedPostVideo ? (
+                <p className="text-center text-xs font-medium leading-5 text-slate-500">
+                  {hasUploadedPostVideo
+                    ? uploadedVideoPaidPolicyMessage
+                    : aiVideoFreePolicyMessage}
+                </p>
+              ) : (
+                <p className="text-center text-xs font-medium leading-5 text-slate-500">
+                  {paidUploadRequiredMessage}
+                </p>
+              )}
 
               <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
                 <button
@@ -5922,7 +5961,9 @@ export function CreatorContentStudioPage({
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
-                  const isSelected = postForm.priceType === priceType;
+                  const isSelected = effectivePostPriceType === priceType;
+                  const isDisabled =
+                    priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
                   const title =
                     priceType === "paid"
                       ? locale === "ko"
@@ -5931,17 +5972,20 @@ export function CreatorContentStudioPage({
                       : contentCopy.labels.free;
                   const description =
                     priceType === "paid"
-                      ? locale === "ko"
-                        ? "상세 본문과 콘텐츠 이미지를 1 USDT로 잠급니다."
-                        : "Lock the detail body and gallery for 1 USDT."
+                      ? hasUploadedPostVideo
+                        ? locale === "ko"
+                          ? "직접 업로드한 동영상과 상세 본문을 1 USDT로 잠급니다."
+                          : "Lock the uploaded video and detail body for 1 USDT."
+                        : paidUploadRequiredMessage
                       : locale === "ko"
-                        ? "모든 회원이 바로 열람할 수 있습니다."
-                        : "Members can read it immediately.";
+                        ? "AI 생성 동영상과 일반 콘텐츠는 무료 공개로 저장됩니다."
+                        : "AI-generated videos and regular content are saved as free public.";
 
                   return (
                     <button
+                      disabled={isDisabled}
                       className={cn(
-                        "rounded-[18px] border px-4 py-3 text-left transition",
+                        "rounded-[18px] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
                         isSelected
                           ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
                           : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
@@ -5970,7 +6014,14 @@ export function CreatorContentStudioPage({
                   );
                 })}
               </div>
-              {postForm.priceType === "paid" ? (
+              <p className="mt-3 text-xs font-medium leading-5 text-slate-500">
+                {hasUploadedPostVideo
+                  ? uploadedVideoPaidPolicyMessage
+                  : hasGeneratedPostVideo
+                    ? aiVideoFreePolicyMessage
+                    : paidUploadRequiredMessage}
+              </p>
+              {effectivePostPriceType === "paid" ? (
                 <div className="mt-4 rounded-[18px] border border-white bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
@@ -6201,8 +6252,8 @@ export function CreatorContentStudioPage({
                   </p>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
                     {locale === "ko"
-                      ? "상세 페이지에서 재생할 MP4, MOV, WEBM 동영상입니다. 최대 1개, 200MB 이하로 업로드할 수 있습니다."
-                      : "Upload one MP4, MOV, or WEBM video for the detail page. Maximum size is 200MB."}
+                      ? "직접 업로드한 MP4, MOV, WEBM 동영상은 유료 콘텐츠로 저장되고, AI 생성 동영상은 무료 공개로 저장됩니다. 최대 1개, 200MB 이하입니다."
+                      : "Direct MP4, MOV, or WEBM uploads are saved as paid content, while AI-generated videos are saved as free public content. One video, 200MB max."}
                   </p>
                 </div>
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
@@ -6262,6 +6313,7 @@ export function CreatorContentStudioPage({
                         ...current,
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
+                        priceType: "free",
                       }));
                     }}
                     type="button"

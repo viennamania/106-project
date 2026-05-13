@@ -24,10 +24,8 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
-  CONTENT_PAID_USDT_AMOUNT,
   type ContentPostMutationResponse,
   type ContentPostRecord,
-  type ContentPriceType,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
@@ -61,7 +59,7 @@ type GeneratedMedia = {
 type CreateForm = {
   body: string;
   mode: CreateMode;
-  priceType: ContentPriceType;
+  priceType: "free";
   prompt: string;
   summary: string;
   title: string;
@@ -156,9 +154,9 @@ function getCopy(locale: Locale) {
           failed:
             "브이로그는 저장됐지만 팬 요청 상태를 갱신하지 못했습니다. 스튜디오 요청함에서 다시 처리하세요.",
           fanOnlyDefault:
-            "팬 전용 요청으로 감지되어 공개 방식이 1 USDT 유료로 기본 설정되었습니다.",
+            "AI 생성 동영상은 무료 공개로 저장됩니다. 유료 팬 전용 콘텐츠는 스튜디오에서 직접 업로드 동영상으로 등록하세요.",
           fanOnlyHint:
-            "이 브이로그는 캐릭터 채널의 팬 전용 영역에 쌓이고, 상세 페이지에서 결제 후 열람됩니다.",
+            "이 AI 생성 브이로그는 무료 공개로 등록됩니다. NSFW 가능성이 있는 업로드 동영상만 유료 팬 전용으로 운영합니다.",
           publishStep: "공개하면 요청 카드가 완성된 브이로그와 연결됩니다.",
           requestTypes: {
             message: "응원 메시지",
@@ -191,17 +189,18 @@ function getCopy(locale: Locale) {
         },
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
+        freeOnlyPolicy:
+          "AI로 생성한 브이로그 동영상은 NSFW 콘텐츠가 아니므로 무료 공개로만 등록됩니다. 유료 콘텐츠는 스튜디오에서 직접 업로드한 동영상으로 등록하세요.",
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
         missingMedia: "공개하려면 먼저 브이로그 동영상을 생성하세요.",
-        paid: `${CONTENT_PAID_USDT_AMOUNT} USDT 유료`,
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "시작 준비 확인하기",
         personaEmpty: "프로필에서 캐릭터를 한 번 만들면 같은 인물 유지가 강해집니다.",
-        price: "공개 방식",
+        price: "등록 정책",
         profileRequired: "프로필 준비가 필요합니다.",
         profileRequiredBody:
           "표시 이름, 페르소나, 대표 아바타까지 준비하면 첫 브이로그에 자동 적용됩니다.",
@@ -295,9 +294,9 @@ function getCopy(locale: Locale) {
           failed:
             "The vlog was saved, but the fan request status could not be updated. Retry from the studio inbox.",
           fanOnlyDefault:
-            "Fan-only intent was detected, so visibility defaults to 1 USDT paid.",
+            "AI-generated videos are saved as free public content. Register paid fan-only content from Studio with a directly uploaded video.",
           fanOnlyHint:
-            "This vlog will live in the character channel's fan-only area and unlock from the detail page after payment.",
+            "This AI-generated vlog is saved as free public content. Only directly uploaded videos can be used for paid fan-only content.",
           publishStep: "Publishing links the request card to the finished vlog.",
           requestTypes: {
             message: "Support message",
@@ -331,18 +330,19 @@ function getCopy(locale: Locale) {
         },
         feed: "View FanLetter vlog feed",
         free: "Free public",
+        freeOnlyPolicy:
+          "AI-generated vlog videos are non-NSFW and can only be saved as free public content. Use Studio with a directly uploaded video for paid content.",
         generate: "Generate AI vlog video",
         generated: "Generated",
         generatingVideo: "Generating AI video...",
         loading: "Checking vlog setup.",
         missingMedia: "Generate a vlog video before publishing.",
-        paid: `${CONTENT_PAID_USDT_AMOUNT} USDT paid`,
         paymentRequired:
           "Confirm FanLetter readiness to create your first AI character vlog.",
         paymentRequiredCta: "Confirm readiness",
         personaEmpty:
           "Create a character once in your profile to keep the same person stronger.",
-        price: "Visibility",
+        price: "Publishing policy",
         profileRequired: "Profile setup required.",
         profileRequiredBody:
           "Prepare a display name, persona, and representative avatar so the character is applied to the first vlog automatically.",
@@ -399,9 +399,7 @@ function getInitialCreateForm(
     ...EMPTY_FORM,
     body: initialPlan?.body?.trim() ?? EMPTY_FORM.body,
     mode: "video",
-    priceType:
-      initialPlan?.priceType ??
-      (initialPlan?.fanOnlyIntent ? "paid" : EMPTY_FORM.priceType),
+    priceType: "free",
     prompt: initialPlan?.prompt?.trim() ?? EMPTY_FORM.prompt,
     summary: initialPlan?.summary?.trim() ?? EMPTY_FORM.summary,
     title: initialPlan?.title?.trim() ?? EMPTY_FORM.title,
@@ -414,8 +412,7 @@ function hasMeaningfulCreateDraft(form: CreateForm, media: GeneratedMedia | null
       form.title.trim() ||
       form.summary.trim() ||
       form.prompt.trim() ||
-      form.body.trim() ||
-      form.priceType !== EMPTY_FORM.priceType,
+      form.body.trim(),
   );
 }
 
@@ -452,7 +449,7 @@ function normalizeCreateDraftForm(value: unknown): CreateForm | null {
   return {
     body: typeof form.body === "string" ? form.body.slice(0, 2_400) : "",
     mode: "video",
-    priceType: form.priceType === "paid" ? "paid" : "free",
+    priceType: "free",
     prompt: typeof form.prompt === "string" ? form.prompt.slice(0, 4_000) : "",
     summary: typeof form.summary === "string" ? form.summary.slice(0, 600) : "",
     title: typeof form.title === "string" ? form.title.slice(0, 180) : "",
@@ -1210,9 +1207,8 @@ export function FanletterCreatePage({
           coverImageUrl: null,
           email: resolvedEmail,
           locale,
-          priceType: form.priceType,
-          priceUsdt:
-            form.priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
+          priceType: "free",
+          priceUsdt: null,
           status,
           summary,
           title,
@@ -1874,26 +1870,14 @@ export function FanletterCreatePage({
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
                   {copy.price}
                 </p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {[
-                    ["free", copy.free],
-                    ["paid", copy.paid],
-                  ].map(([value, label]) => (
-                    <button
-                      className={`h-11 rounded-full border px-3 text-sm font-semibold transition ${
-                        form.priceType === value
-                          ? "border-[#44f26e] bg-[#44f26e] text-black"
-                          : "border-white/12 bg-white/[0.055] text-white"
-                      }`}
-                      key={value}
-                      onClick={() => {
-                        updateForm({ priceType: value as ContentPriceType });
-                      }}
-                      type="button"
-                    >
-                      {label}
-                    </button>
-                  ))}
+                <div className="mt-2 rounded-2xl border border-[#44f26e]/24 bg-[#44f26e]/10 px-4 py-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#d8ffe0]">
+                    <CheckCircle2 className="size-4 text-[#44f26e]" />
+                    {copy.free}
+                  </div>
+                  <p className="mt-2 text-xs font-medium leading-5 text-white/58">
+                    {copy.freeOnlyPolicy}
+                  </p>
                 </div>
                 {fanOnlyIntent ? (
                   <p className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">

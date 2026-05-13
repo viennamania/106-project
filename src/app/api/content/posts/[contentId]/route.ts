@@ -1,8 +1,9 @@
-import type {
-  ContentDetailLoadResponse,
-  ContentDetailResponse,
-  ContentPostMutationResponse,
-  ContentPostUpdateRequest,
+import {
+  isContentVideoPolicyErrorMessage,
+  type ContentDetailLoadResponse,
+  type ContentDetailResponse,
+  type ContentPostMutationResponse,
+  type ContentPostUpdateRequest,
 } from "@/lib/content";
 import {
   getMemberRegistrationStatus,
@@ -330,6 +331,7 @@ export async function PATCH(
           : message === "Only the author can update this content."
             ? 403
             : message.endsWith("is required.") ||
+                isContentVideoPolicyErrorMessage(message) ||
                 message ===
                   "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
                 message === "Failed to create seller wallet."
