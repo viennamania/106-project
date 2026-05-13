@@ -143,6 +143,15 @@ function getCopy(locale: Locale) {
           videos: "브이로그",
           wallet: "연결 ID",
         },
+        mobile: {
+          shortcutsLabel: "스튜디오 빠른 이동",
+          shortcuts: {
+            planner: "AI 플랜",
+            recent: "최근",
+            requests: "요청",
+            sales: "판매",
+          },
+        },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         paidUploadBody:
@@ -305,6 +314,15 @@ function getCopy(locale: Locale) {
           totalSales: "Total sales",
           videos: "Vlogs",
           wallet: "Connection ID",
+        },
+        mobile: {
+          shortcutsLabel: "Studio quick navigation",
+          shortcuts: {
+            planner: "AI plan",
+            recent: "Recent",
+            requests: "Requests",
+            sales: "Sales",
+          },
         },
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
@@ -756,17 +774,55 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+    <div className="rounded-lg border border-white/10 bg-white/[0.055] p-3 sm:p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white/42 sm:text-xs sm:tracking-[0.14em]">
           {label}
         </p>
         <Icon className="size-4 text-[#44f26e]" />
       </div>
-      <p className="mt-5 text-3xl font-semibold leading-none text-white">
+      <p className="mt-4 break-words text-2xl font-semibold leading-none text-white sm:mt-5 sm:text-3xl">
         {value}
       </p>
     </div>
+  );
+}
+
+function MobileShortcutGrid({
+  items,
+  label,
+}: {
+  items: Array<{
+    Icon: typeof FileText;
+    href: string;
+    label: string;
+    value: string;
+  }>;
+  label: string;
+}) {
+  return (
+    <nav aria-label={label} className="grid grid-cols-2 gap-2 lg:hidden">
+      {items.map(({ Icon, href, label: itemLabel, value }) => (
+        <Link
+          className="group rounded-lg border border-white/10 bg-white/[0.055] p-3 text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+          href={href}
+          key={href}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <Icon className="size-4" />
+            </span>
+            <ArrowRight className="size-4 text-white/30 transition group-hover:text-[#44f26e]" />
+          </div>
+          <p className="mt-3 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+            {itemLabel}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold leading-tight">
+            {value}
+          </p>
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -783,17 +839,21 @@ function ActionCard({
 }) {
   return (
     <Link
-      className="group rounded-lg border border-black/10 bg-white p-4 text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)]"
+      className="group rounded-lg border border-black/10 bg-white p-3 text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)] sm:p-4"
       href={href}
     >
       <div className="flex items-start justify-between gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-          <Icon className="size-5" />
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-11">
+          <Icon className="size-4 sm:size-5" />
         </span>
         <ArrowRight className="size-5 text-black/30 transition group-hover:text-black" />
       </div>
-      <h2 className="mt-5 text-xl font-semibold leading-tight">{title}</h2>
-      <p className="mt-2 text-sm font-medium leading-6 text-black/54">{body}</p>
+      <h2 className="mt-4 text-base font-semibold leading-tight sm:mt-5 sm:text-xl">
+        {title}
+      </h2>
+      <p className="mt-2 line-clamp-3 text-xs font-medium leading-5 text-black/54 sm:text-sm sm:leading-6">
+        {body}
+      </p>
     </Link>
   );
 }
@@ -1355,7 +1415,10 @@ function PlannerSection({
   const isLoading = status === "loading";
 
   return (
-    <section className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
+    <section
+      className="scroll-mt-24 overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)]"
+      id="vlog-planner"
+    >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)]">
         <div className="bg-[#07100b] p-5 text-white sm:p-6">
           <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
@@ -1547,10 +1610,10 @@ function PostPreviewCard({
 
   return (
     <Link
-      className="overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)]"
+      className="group flex overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)] sm:block"
       href={href}
     >
-      <div className="relative aspect-[4/5] bg-black">
+      <div className="relative h-40 w-[7.5rem] shrink-0 bg-black sm:aspect-[4/5] sm:h-auto sm:w-full">
         {videoUrl ? (
           <video
             autoPlay
@@ -1576,25 +1639,25 @@ function PostPreviewCard({
             <ImageIcon className="size-8" />
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/76 to-transparent p-3">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/76 to-transparent p-2 sm:p-3">
           <div className="flex flex-wrap gap-1.5">
             <span className="rounded-full bg-white px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-black">
               {post.status}
             </span>
-            <span className="rounded-full bg-black/64 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white">
+            <span className="hidden rounded-full bg-black/64 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white sm:inline-flex">
               video
             </span>
           </div>
         </div>
       </div>
-      <div className="p-4">
-        <h3 className="line-clamp-2 text-lg font-semibold leading-tight">
+      <div className="flex min-w-0 flex-1 flex-col p-3 sm:block sm:p-4">
+        <h3 className="line-clamp-2 break-words text-base font-semibold leading-tight [overflow-wrap:anywhere] sm:text-lg">
           {post.title}
         </h3>
-        <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/54">
+        <p className="mt-2 line-clamp-2 break-words text-xs font-medium leading-5 text-black/54 [overflow-wrap:anywhere] sm:text-sm sm:leading-6">
           {post.summary || post.previewText || post.title}
         </p>
-        <div className="mt-5 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
+        <div className="mt-auto flex flex-col gap-1 pt-3 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-black/42 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-0 sm:text-xs sm:tracking-[0.12em]">
           <span>{dateLabel ?? "-"}</span>
           <span>{priceLabel}</span>
         </div>
@@ -2160,10 +2223,45 @@ export function FanletterStudioPage({
   }
 
   const isLoading = state.status === "idle" || state.status === "loading";
+  const readyFanRequestCount = state.fanRequests.filter(
+    (request) => request.status === "new" || request.status === "reviewed",
+  ).length;
+  const fanRequestsHref = `${studioHref}#fan-requests`;
+  const plannerHref = `${studioHref}#vlog-planner`;
+  const recentVlogsHref = `${studioHref}#recent-vlogs`;
+  const salesSummaryHref = `${studioHref}#sales-summary`;
+  const mobileShortcutItems = [
+    {
+      Icon: MessageCircleHeart,
+      href: fanRequestsHref,
+      label: copy.mobile.shortcuts.requests,
+      value: isLoading ? "-" : formatNumber(readyFanRequestCount, locale),
+    },
+    {
+      Icon: CalendarClock,
+      href: plannerHref,
+      label: copy.mobile.shortcuts.planner,
+      value: isLoading ? "-" : formatNumber(plannerState.plans.length, locale),
+    },
+    {
+      Icon: Clapperboard,
+      href: recentVlogsHref,
+      label: copy.mobile.shortcuts.recent,
+      value: isLoading ? "-" : formatNumber(state.posts.length, locale),
+    },
+    {
+      Icon: BadgeDollarSign,
+      href: salesSummaryHref,
+      label: copy.mobile.shortcuts.sales,
+      value: isLoading
+        ? "-"
+        : formatUsdt(state.salesSummary?.totalSalesUsdt, locale),
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
-      <section className="border-b border-white/10 px-4 pb-8 pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:px-6 lg:px-8">
+      <section className="border-b border-white/10 px-4 pb-6 pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
             <Link
@@ -2202,34 +2300,34 @@ export function FanletterStudioPage({
             <FanletterGlobalLanguageSwitcher compact locale={locale} />
           </div>
 
-          <div className="grid gap-8 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-end">
+          <div className="grid gap-6 py-8 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-end">
             <div className="min-w-0">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.9rem] lg:text-[4.25rem]">
+              <h1 className="mt-4 text-[2.08rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.9rem] lg:text-[4.25rem]">
                 {copy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
                 {copy.subtitle}
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-row sm:gap-3">
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 py-2 text-center text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-12 sm:px-6"
                   href={createHref}
                 >
                   <Sparkles className="size-4" />
                   {copy.actions.create}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/10 px-6 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/10 px-4 py-2 text-center text-xs font-semibold leading-5 !text-[#d8ffe0] transition hover:bg-[#44f26e]/16 sm:h-12 sm:px-6 sm:text-sm"
                   href={paidUploadHref}
                 >
                   <Upload className="size-4" />
                   {copy.actions.paidUpload}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-6 text-sm font-semibold !text-white transition hover:bg-white/12"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-4 py-2 text-center text-xs font-semibold leading-5 !text-white transition hover:bg-white/12 sm:h-12 sm:px-6 sm:text-sm"
                   href={profileHref}
                 >
                   <PenLine className="size-4" />
@@ -2306,7 +2404,12 @@ export function FanletterStudioPage({
             </div>
           </div>
 
-          <div className="grid gap-2 pb-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MobileShortcutGrid
+            items={mobileShortcutItems}
+            label={copy.mobile.shortcutsLabel}
+          />
+
+          <div className="grid grid-cols-2 gap-2 pb-4 pt-4 sm:grid-cols-2 lg:grid-cols-4 lg:pt-0">
             <MetricCard
               Icon={FileText}
               label={copy.labels.allPosts}
@@ -2369,7 +2472,7 @@ export function FanletterStudioPage({
               updatingPlanId={updatingPlanId}
             />
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-5">
               <ActionCard
                 Icon={Sparkles}
                 body={copy.steps[1].body}
@@ -2402,7 +2505,10 @@ export function FanletterStudioPage({
               />
             </div>
 
-            <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+            <section
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+              id="recent-vlogs"
+            >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
@@ -2425,7 +2531,7 @@ export function FanletterStudioPage({
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {[0, 1, 2].map((item) => (
                     <div
-                      className="min-h-[22rem] animate-pulse rounded-lg bg-black/5"
+                      className="min-h-40 animate-pulse rounded-lg bg-black/5 sm:min-h-[22rem]"
                       key={item}
                     />
                   ))}
@@ -2467,7 +2573,10 @@ export function FanletterStudioPage({
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-6">
-            <section className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.16)]">
+            <section
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.16)]"
+              id="sales-summary"
+            >
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
