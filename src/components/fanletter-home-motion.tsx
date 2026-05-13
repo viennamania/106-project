@@ -140,8 +140,8 @@ export function AnimatedNumber({
   value: number;
 }) {
   const { isInView, prefersReducedMotion, ref } = useInView<HTMLSpanElement>();
-  const [displayValue, setDisplayValue] = useState(0);
-  const displayValueRef = useRef(0);
+  const [displayValue, setDisplayValue] = useState(value);
+  const displayValueRef = useRef(value);
   const shouldRenderFinalValue = isInView && (prefersReducedMotion || duration <= 0);
 
   useEffect(() => {

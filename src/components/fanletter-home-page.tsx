@@ -520,6 +520,24 @@ function formatMetric(value: number, locale: Locale) {
   }).format(value);
 }
 
+function getPaidSignalBadge(video: FanletterFeaturedVideo, locale: Locale) {
+  if (video.social.paidBuyerCount > 0) {
+    return locale === "ko"
+      ? `${formatMetric(video.social.paidBuyerCount, locale)}명 열람`
+      : `${formatMetric(video.social.paidBuyerCount, locale)} unlocked`;
+  }
+
+  const reactionCount = video.social.commentCount + video.social.saveCount;
+
+  if (reactionCount > 0) {
+    return locale === "ko"
+      ? `${formatMetric(reactionCount, locale)}개 반응`
+      : `${formatMetric(reactionCount, locale)} reactions`;
+  }
+
+  return locale === "ko" ? "새 팬 전용" : "New fan-only";
+}
+
 function FanletterPaidSpotlightSection({
   copy,
   featuredPaidVideos,
@@ -646,6 +664,7 @@ function FanletterPaidSpotlightSection({
                 locale === "ko"
                   ? `${priceLabel} 잠금 해제`
                   : `Unlock ${priceLabel}`;
+              const signalBadge = getPaidSignalBadge(video, locale);
 
               return (
                 <ScrollReveal
@@ -674,6 +693,9 @@ function FanletterPaidSpotlightSection({
                       <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-black">
                         <LockKeyhole className="size-3.5" />
                         {priceLabel}
+                      </div>
+                      <div className="absolute right-3 top-3 max-w-[8rem] truncate rounded-full border border-white/18 bg-black/64 px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-white backdrop-blur">
+                        {signalBadge}
                       </div>
                       <div className="absolute bottom-3 left-3 right-3">
                         <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
