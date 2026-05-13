@@ -695,7 +695,7 @@ export function FanletterSocialActions({
           </p>
         </div>
         <button
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 shrink-0 self-start items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.045] px-3 text-xs font-semibold text-white/72 transition hover:border-[#44f26e]/42 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 lg:self-auto"
           disabled={commentsStatus === "loading"}
           onClick={() => {
             void loadComments();

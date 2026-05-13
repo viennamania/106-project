@@ -6044,8 +6044,9 @@ export function FanletterContentDetailPage({
     },
   );
   const fanRequestSectionId = "fanletter-request";
+  const fanRequestFormId = `${fanRequestSectionId}-form`;
   const fanRequestHref = content.authorReferralCode
-    ? `#${fanRequestSectionId}`
+    ? `#${fanRequestFormId}`
     : fallbackFanRequestHref;
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
@@ -6107,16 +6108,18 @@ export function FanletterContentDetailPage({
           requestCta: "Request scene",
           watchBadge: "Vertical vlog",
         };
-  const mobileSecondaryActionHref = shouldShowPaidUnlockPanel
+  const mobilePrimaryActionHref = shouldShowPaidUnlockPanel
     ? detailActionHref
     : isOwnContent
       ? ownerManageHref
       : fanRequestHref;
-  const mobileSecondaryActionLabel = shouldShowPaidUnlockPanel
+  const mobilePrimaryActionLabel = shouldShowPaidUnlockPanel
     ? detailActionLabel
     : isOwnContent
       ? detailLabels.ownerManage
       : detailLabels.requestCta;
+  const mobileSecondaryActionHref = creatorActionHref;
+  const mobileSecondaryActionLabel = creatorActionLabel;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -6209,9 +6212,9 @@ export function FanletterContentDetailPage({
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={creatorActionHref}
+                href={mobilePrimaryActionHref}
               >
-                {creatorActionLabel}
+                {mobilePrimaryActionLabel}
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-sm font-semibold !text-white transition hover:bg-white/10"

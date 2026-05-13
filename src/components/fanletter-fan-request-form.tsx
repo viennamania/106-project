@@ -498,6 +498,7 @@ export function FanletterFanRequestForm({
     `/${locale}/fanletter/requests`,
     referralCode ?? creatorReferralCode,
   )}#fanletter-request-inbox`;
+  const isSubmitDisabled = status === "loading" || !body.trim();
 
   return (
     <div
@@ -602,8 +603,12 @@ export function FanletterFanRequestForm({
             />
           </label>
           <button
-            className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-64"
-            disabled={status === "loading"}
+            className={`mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border px-4 text-sm font-semibold transition disabled:cursor-not-allowed ${
+              isSubmitDisabled
+                ? "border-white/10 bg-white/[0.06] text-white/38"
+                : "border-transparent bg-[#44f26e] text-black hover:bg-[#64ff84]"
+            }`}
+            disabled={isSubmitDisabled}
             onClick={() => {
               void submitRequest();
             }}
