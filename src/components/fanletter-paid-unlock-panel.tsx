@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
+import { toUnits } from "thirdweb/utils";
 import {
   TransactionButton,
   useActiveAccount,
@@ -96,6 +97,40 @@ function formatAddressLabel(address?: string | null) {
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
 }
 
+function formatTokenDisplay(value: string, locale: Locale) {
+  const normalized = value.trim();
+
+  if (!/^-?\d+(\.\d+)?$/u.test(normalized)) {
+    const numericValue = Number(normalized);
+
+    return Number.isFinite(numericValue)
+      ? new Intl.NumberFormat(locale, {
+          maximumFractionDigits: 4,
+        }).format(numericValue)
+      : normalized;
+  }
+
+  const [integerPartRaw, fractionPartRaw = ""] = normalized.split(".");
+  const prefix = integerPartRaw.startsWith("-") ? "-" : "";
+  const integerPart = prefix ? integerPartRaw.slice(1) : integerPartRaw;
+  const formattedInteger = new Intl.NumberFormat(locale).format(
+    BigInt(integerPart || "0"),
+  );
+  const trimmedFraction = fractionPartRaw.slice(0, 4).replace(/0+$/u, "");
+
+  return `${prefix}${formattedInteger}${
+    trimmedFraction ? `.${trimmedFraction}` : ""
+  }`;
+}
+
+function getUsdtAmountWei(amount: string) {
+  try {
+    return toUnits(amount, 18);
+  } catch {
+    return BigInt(CONTENT_PAID_USDT_AMOUNT_WEI);
+  }
+}
+
 async function fetchFanletterAccess(url: string) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -119,6 +154,10 @@ function getCopy(locale: Locale) {
           "이 팬 전용 브이로그는 이미 잠금 해제되어 전체 영상과 본문을 볼 수 있습니다.",
         accessChecking: "열람 권한 확인 중",
         amount: "결제 금액",
+        balanceAvailable: "결제 가능",
+        balanceChecking: "잔고 확인 중",
+        balanceInsufficient: "잔고 부족",
+        balanceUnknown: "확인 필요",
         cancel: "취소",
         connectBody:
           "FanLetter 계정을 연결하면 팬 전용 브이로그를 바로 열 수 있습니다.",
@@ -155,6 +194,7 @@ function getCopy(locale: Locale) {
           "승인 창에서 결제를 확인하면 잠금 해제 상태를 자동으로 다시 확인합니다.",
         walletBalance:
           "결제하려면 연결된 결제 주소에 최소 {amount} USDT가 필요합니다.",
+        walletBalanceLabel: "내 지갑 잔고",
         walletMismatch:
           "현재 결제 주소가 이 FanLetter 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.",
       }
@@ -164,6 +204,10 @@ function getCopy(locale: Locale) {
           "This fan-only vlog is unlocked. You can view the full video and body here.",
         accessChecking: "Checking access",
         amount: "Amount",
+        balanceAvailable: "Can pay",
+        balanceChecking: "Checking balance",
+        balanceInsufficient: "Low balance",
+        balanceUnknown: "Needs check",
         cancel: "Cancel",
         connectBody:
           "Connect your FanLetter account to unlock this fan-only vlog.",
@@ -200,6 +244,7 @@ function getCopy(locale: Locale) {
           "Approve the payment prompt, then FanLetter will recheck the unlock status automatically.",
         walletBalance:
           "Your connected payment address needs at least {amount} USDT to pay.",
+        walletBalanceLabel: "Wallet balance",
         walletMismatch:
           "The current payment address is not registered to this FanLetter account. Reconnect your account.",
       };
@@ -301,12 +346,22 @@ export function FanletterPaidUnlockPanel({
     accountAddress,
     status: connectionStatus,
   });
-  const { data: usdtBalance } = useWalletBalance({
-    address: accountAddress ?? undefined,
-    chain: smartWalletChain,
-    client: thirdwebClient,
-    tokenAddress: BSC_USDT_ADDRESS,
-  });
+  const {
+    data: usdtBalance,
+    isFetching: isUsdtBalanceFetching,
+    isLoading: isUsdtBalanceLoading,
+  } = useWalletBalance(
+    {
+      address: accountAddress ?? undefined,
+      chain: smartWalletChain,
+      client: thirdwebClient,
+      tokenAddress: BSC_USDT_ADDRESS,
+    },
+    {
+      refetchInterval: connectionStatus === "connected" ? 5000 : false,
+      refetchIntervalInBackground: true,
+    },
+  );
   const walletUnlock = useWalletUnlockGate({
     email: memberSessionEmail,
     locale,
@@ -334,15 +389,49 @@ export function FanletterPaidUnlockPanel({
   const accessLoadKeyRef = useRef<string | null>(null);
   const accessRefreshRequestedRef = useRef(false);
 
+  const paidUnlockAmountWei = getUsdtAmountWei(paidUnlockAmount);
+  const hasResolvedUsdtBalance = typeof usdtBalance?.value === "bigint";
+  const isUsdtBalancePending =
+    Boolean(accountAddress) &&
+    !hasResolvedUsdtBalance &&
+    (isUsdtBalanceLoading || isUsdtBalanceFetching);
   const isInsufficientPaidUnlockBalance =
-    typeof usdtBalance?.value === "bigint" &&
-    usdtBalance.value < BigInt(CONTENT_PAID_USDT_AMOUNT_WEI);
+    hasResolvedUsdtBalance && usdtBalance.value < paidUnlockAmountWei;
+  const paidUnlockBalanceLabel = hasResolvedUsdtBalance
+    ? `${formatTokenDisplay(usdtBalance.displayValue ?? "0", locale)} ${
+        usdtBalance.symbol ?? "USDT"
+      }`
+    : isUsdtBalancePending
+      ? copy.balanceChecking
+      : "-";
+  const paidUnlockBalanceStatus = hasResolvedUsdtBalance
+    ? isInsufficientPaidUnlockBalance
+      ? copy.balanceInsufficient
+      : copy.balanceAvailable
+    : isUsdtBalancePending
+      ? copy.balanceChecking
+      : copy.balanceUnknown;
+  const paidUnlockBalanceStatusClassName = hasResolvedUsdtBalance
+    ? isInsufficientPaidUnlockBalance
+      ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
+      : "border-[#44f26e]/30 bg-[#44f26e]/10 text-[#c9ffd3]"
+    : "border-white/12 bg-white/[0.06] text-white/58";
   const isUnlocked = Boolean(detail?.canAccess);
   const displayBody = detail?.body ?? initialBody;
   const displayTitle = detail?.title ?? initialTitle;
   const displaySummary = detail?.summary ?? initialSummary;
   const displayCoverImageUrl = detail?.coverImageUrl ?? initialCoverImageUrl;
   const shouldShowLoading = loadStatus === "loading" || isResolving;
+  const paidUnlockPaymentButtonLabel =
+    paidUnlock.status === "creating"
+      ? copy.preparing
+      : paidUnlock.status === "sent" || paidUnlock.status === "verifying"
+        ? copy.verifying
+        : isUsdtBalancePending
+          ? copy.balanceChecking
+          : isInsufficientPaidUnlockBalance
+            ? copy.balanceInsufficient
+            : `${paidUnlockAmount} USDT ${copy.pay}`;
 
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
@@ -528,6 +617,10 @@ export function FanletterPaidUnlockPanel({
       throw new Error(copy.connectTitle);
     }
 
+    if (isUsdtBalancePending) {
+      throw new Error(copy.balanceChecking);
+    }
+
     if (isInsufficientPaidUnlockBalance) {
       throw new Error(
         copy.walletBalance.replace("{amount}", paidUnlockAmount),
@@ -607,10 +700,12 @@ export function FanletterPaidUnlockPanel({
     };
   }, [
     accountAddress,
+    copy.balanceChecking,
     contentId,
     copy.connectTitle,
     copy.walletBalance,
     isInsufficientPaidUnlockBalance,
+    isUsdtBalancePending,
     loadDetail,
     locale,
     memberSessionEmail,
@@ -985,6 +1080,12 @@ export function FanletterPaidUnlockPanel({
               </p>
               <div className="mt-4 grid gap-3 text-sm">
                 <PaymentRow label={copy.amount} value={`${paidUnlockAmount} USDT`} />
+                <PaymentBalanceRow
+                  label={copy.walletBalanceLabel}
+                  status={paidUnlockBalanceStatus}
+                  statusClassName={paidUnlockBalanceStatusClassName}
+                  value={paidUnlockBalanceLabel}
+                />
                 <PaymentRow
                   label={copy.memberWallet}
                   value={formatAddressLabel(accountAddress)}
@@ -1062,6 +1163,7 @@ export function FanletterPaidUnlockPanel({
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={
                     !accountAddress ||
+                    isUsdtBalancePending ||
                     isInsufficientPaidUnlockBalance ||
                     paidUnlock.status === "creating" ||
                     paidUnlock.status === "sent" ||
@@ -1076,14 +1178,7 @@ export function FanletterPaidUnlockPanel({
                 >
                   <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                     <Coins className="size-4 shrink-0" />
-                    <span>
-                      {paidUnlock.status === "creating"
-                        ? copy.preparing
-                        : paidUnlock.status === "sent" ||
-                            paidUnlock.status === "verifying"
-                          ? copy.verifying
-                          : `${paidUnlockAmount} USDT ${copy.pay}`}
-                    </span>
+                    <span>{paidUnlockPaymentButtonLabel}</span>
                   </span>
                 </TransactionButton>
               )}
@@ -1216,6 +1311,34 @@ function PaymentRow({ label, value }: { label: string; value: string }) {
       <span className="text-white/50">{label}</span>
       <span className="min-w-0 truncate font-mono text-xs font-semibold text-white">
         {value}
+      </span>
+    </div>
+  );
+}
+
+function PaymentBalanceRow({
+  label,
+  status,
+  statusClassName,
+  value,
+}: {
+  label: string;
+  status: string;
+  statusClassName: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-white/50">{label}</span>
+      <span className="flex min-w-0 items-center justify-end gap-2">
+        <span className="min-w-0 truncate font-mono text-xs font-semibold text-white">
+          {value}
+        </span>
+        <span
+          className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold ${statusClassName}`}
+        >
+          {status}
+        </span>
       </span>
     </div>
   );
