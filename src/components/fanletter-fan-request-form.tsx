@@ -84,6 +84,7 @@ function getCopy(locale: Locale) {
         requestReceipt:
           "이 요청은 이 기기에 저장되어 계정 연결 전에도 상태를 다시 확인할 수 있습니다.",
         requestStatus: "내 요청 상태 보기",
+        requestReady: "문구를 수정하거나 바로 요청을 남길 수 있습니다.",
         saved:
           "요청이 크리에이터 스튜디오에 들어갔습니다.",
         selected: "선택됨",
@@ -106,7 +107,7 @@ function getCopy(locale: Locale) {
         ],
         successTitle: "팬 요청이 전달되었습니다",
         submitting: "저장 중...",
-        title: "다음 브이로그 요청 남기기",
+        title: "다음 장면 요청",
         templateCategories: {
           all: "전체",
           daily: "일상",
@@ -120,7 +121,7 @@ function getCopy(locale: Locale) {
         templatesHelper:
           "입력칸에 직접 적거나, 많이 요청되는 장면을 골라 문구를 다듬을 수 있습니다.",
         viewVlogs: "공개 브이로그 보기",
-        vlogRequest: "다음 브이로그 요청",
+        vlogRequest: "다음 장면 요청",
       }
     : {
         bodyLabel: "Scene to request",
@@ -166,6 +167,7 @@ function getCopy(locale: Locale) {
         requestReceipt:
           "This request is saved on this device, so you can track it before connecting an account.",
         requestStatus: "Track my request",
+        requestReady: "Edit the wording, or leave this request now.",
         saved:
           "Your request entered the creator's studio inbox.",
         selected: "Selected",
@@ -188,7 +190,7 @@ function getCopy(locale: Locale) {
         ],
         successTitle: "Fan request delivered",
         submitting: "Saving...",
-        title: "Leave a request",
+        title: "Request next scene",
         templateCategories: {
           all: "All",
           daily: "Daily",
@@ -202,7 +204,7 @@ function getCopy(locale: Locale) {
         templatesHelper:
           "Write your own request in the input, or pick a popular scene and refine it.",
         viewVlogs: "View public vlogs",
-        vlogRequest: "Next vlog request",
+        vlogRequest: "Next scene request",
       };
 }
 
@@ -379,6 +381,25 @@ export function FanletterFanRequestForm({
   }, [resolvedFormId]);
 
   useEffect(() => {
+    function focusRequestTextareaFromHash() {
+      if (window.location.hash !== `#${resolvedFormId}`) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        textareaRef.current?.focus({ preventScroll: true });
+      });
+    }
+
+    focusRequestTextareaFromHash();
+    window.addEventListener("hashchange", focusRequestTextareaFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", focusRequestTextareaFromHash);
+    };
+  }, [resolvedFormId]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({
       creatorReferralCode,
@@ -499,6 +520,7 @@ export function FanletterFanRequestForm({
     referralCode ?? creatorReferralCode,
   )}#fanletter-request-inbox`;
   const isSubmitDisabled = status === "loading" || !body.trim();
+  const hasRequestDraft = Boolean(body.trim());
 
   return (
     <div
@@ -621,8 +643,12 @@ export function FanletterFanRequestForm({
             ) : null}
             {status === "loading" ? copy.submitting : copy.submit}
           </button>
-          <p className="mt-3 text-xs font-medium leading-5 text-white/42">
-            {copy.note}
+          <p
+            className={`mt-3 text-xs font-medium leading-5 ${
+              hasRequestDraft ? "text-[#b9ffc8]" : "text-white/42"
+            }`}
+          >
+            {hasRequestDraft ? copy.requestReady : copy.note}
           </p>
         </div>
       </div>
@@ -791,6 +817,13 @@ export function FanletterFanRequestForm({
             </div>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={requestStatusHref}
+            >
+              {copy.requestStatus}
+              <ArrowRight className="size-4" />
+            </Link>
             <button
               className="inline-flex h-10 items-center justify-center rounded-full border border-[#44f26e]/28 px-3 text-sm font-semibold text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
               onClick={resetForAnotherRequest}
@@ -798,13 +831,6 @@ export function FanletterFanRequestForm({
             >
               {copy.newRequest}
             </button>
-            <Link
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold !text-black transition hover:bg-white/90"
-              href={requestStatusHref}
-            >
-              {copy.requestStatus}
-              <ArrowRight className="size-4" />
-            </Link>
             {publicVlogsHref ? (
               <Link
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/12 px-3 text-sm font-semibold !text-white transition hover:bg-white/8"
@@ -816,7 +842,7 @@ export function FanletterFanRequestForm({
             ) : null}
             {followHref ? (
               <Link
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/12 px-3 text-sm font-semibold !text-white transition hover:bg-white/8"
                 href={followHref}
               >
                 {copy.followChannel}

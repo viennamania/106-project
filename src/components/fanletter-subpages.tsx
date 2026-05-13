@@ -3061,7 +3061,7 @@ function FanletterFanPromptPanel({
           previewEyebrow: "팬 요청",
           previewTitle: "팬들이 보고 싶어하는 장면",
           previewVlogRequest: "브이로그 요청",
-          requestCta: "요청 입력하기",
+          requestCta: "다음 장면 요청",
           startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
           startCta: "내 캐릭터 만들기",
           startTitle: "내 AI 캐릭터 만들기",
@@ -3125,7 +3125,7 @@ function FanletterFanPromptPanel({
           previewMessage: "Message",
           previewTitle: "Scenes fans want to see",
           previewVlogRequest: "Vlog request",
-          requestCta: "Write request",
+          requestCta: "Request next scene",
           startBody: "Create your own AI character and collect fan participation the same way.",
           startCta: "Start channel",
           startTitle: "Reply with my character",
@@ -3566,7 +3566,7 @@ function FanletterFanRequestSourceCard({
     locale === "ko"
       ? {
           channelCta: "캐릭터 채널 보기",
-          cta: "나도 다음 요청 남기기",
+          cta: "다음 장면 요청",
           eyebrow: "Fan Request",
           flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
           message: "팬 메시지 기반",
@@ -3582,7 +3582,7 @@ function FanletterFanRequestSourceCard({
         }
       : {
           channelCta: "View character channel",
-          cta: "Leave my next request",
+          cta: "Request next scene",
           eyebrow: "Fan Request",
           flow: ["Request received", "Vlog produced", "Next request open"],
           message: "Inspired by a fan message",
@@ -3697,7 +3697,7 @@ function FanletterDetailRequestCta({
     locale === "ko"
       ? {
           body: `${characterName}에게 보고 싶은 룩, 장소, 질문을 남기면 크리에이터가 스튜디오 요청함에서 바로 다음 브이로그 소재로 확인할 수 있습니다.`,
-          cta: "다음 장면 요청하기",
+          cta: "다음 장면 요청",
           eyebrow: "Fan Request",
           ownerBody:
             "이 브이로그는 현재 로그인한 계정의 콘텐츠입니다. 팬 요청을 남기는 대신 스튜디오에서 공개 상태, 팬 반응, 다음 제작 후보를 관리하세요.",
@@ -6098,7 +6098,7 @@ export function FanletterContentDetailPage({
           character: "캐릭터",
           heroEyebrow: "FanLetter 전용 브이로그",
           ownerManage: "내 브이로그 관리",
-          requestCta: "장면 요청",
+          requestCta: "다음 장면 요청",
           watchBadge: "세로 브이로그",
         }
       : {
@@ -6120,6 +6120,10 @@ export function FanletterContentDetailPage({
       : detailLabels.requestCta;
   const mobileSecondaryActionHref = creatorActionHref;
   const mobileSecondaryActionLabel = creatorActionLabel;
+  const desktopPrimaryActionHref = mobilePrimaryActionHref;
+  const desktopPrimaryActionLabel = mobilePrimaryActionLabel;
+  const desktopSecondaryActionHref = creatorActionHref;
+  const desktopSecondaryActionLabel = creatorActionLabel;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -6305,6 +6309,26 @@ export function FanletterContentDetailPage({
                 <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
                   {content.summary}
                 </p>
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <Link
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                    href={desktopPrimaryActionHref}
+                  >
+                    {shouldShowPaidUnlockPanel ? (
+                      <LockKeyhole className="size-4" />
+                    ) : (
+                      <PenLine className="size-4" />
+                    )}
+                    {desktopPrimaryActionLabel}
+                  </Link>
+                  <Link
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
+                    href={desktopSecondaryActionHref}
+                  >
+                    {desktopSecondaryActionLabel}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
               </div>
 
               {shouldShowPaidUnlockPanel ? (
