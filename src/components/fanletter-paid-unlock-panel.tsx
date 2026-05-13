@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
@@ -280,6 +281,7 @@ export function FanletterPaidUnlockPanel({
   referralCode,
 }: FanletterPaidUnlockPanelProps) {
   const copy = getCopy(locale);
+  const router = useRouter();
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const account = useActiveAccount();
   const connectionStatus = useActiveWalletConnectionStatus();
@@ -330,6 +332,7 @@ export function FanletterPaidUnlockPanel({
   const paidOrderRef = useRef<ContentOrderRecord | null>(null);
   const paidRecipientWalletRef = useRef<string | null>(null);
   const accessLoadKeyRef = useRef<string | null>(null);
+  const accessRefreshRequestedRef = useRef(false);
 
   const isInsufficientPaidUnlockBalance =
     typeof usdtBalance?.value === "bigint" &&
@@ -445,6 +448,7 @@ export function FanletterPaidUnlockPanel({
 
   useEffect(() => {
     accessLoadKeyRef.current = null;
+    accessRefreshRequestedRef.current = false;
     paidOrderRef.current = null;
     paidRecipientWalletRef.current = null;
     setIsPaymentOpen(false);
@@ -456,6 +460,15 @@ export function FanletterPaidUnlockPanel({
       txHash: null,
     });
   }, [accountAddress, contentId]);
+
+  useEffect(() => {
+    if (!detail?.canAccess || accessRefreshRequestedRef.current) {
+      return;
+    }
+
+    accessRefreshRequestedRef.current = true;
+    router.refresh();
+  }, [detail?.canAccess, router]);
 
   useEffect(() => {
     if (isResolving) {

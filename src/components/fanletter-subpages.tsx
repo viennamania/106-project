@@ -5765,7 +5765,7 @@ export function FanletterContentDetailPage({
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? content.authorReferralCode;
   const isOwnContent = content.viewerRelation === "owner";
-  const canViewerAccess = content.canPubliclyAccess || isOwnContent;
+  const canViewerAccess = content.canViewerAccess || isOwnContent;
   const fallbackBackHref = buildPathWithReferral(
     `/${locale}/fanletter/feed`,
     effectiveReferralCode,
@@ -5838,18 +5838,22 @@ export function FanletterContentDetailPage({
         ? "내 공개 브이로그"
         : "My public vlog"
     : content.priceType === "paid"
-      ? `${copy.content.paid} · ${content.priceUsdt ?? "1"} USDT`
+      ? canViewerAccess
+        ? locale === "ko"
+          ? `결제 완료 · ${content.priceUsdt ?? "1"} USDT`
+          : `Unlocked · ${content.priceUsdt ?? "1"} USDT`
+        : `${copy.content.paid} · ${content.priceUsdt ?? "1"} USDT`
       : copy.content.public;
   const detailActionHref = isOwnContent
     ? ownerManageHref
-    : content.canPubliclyAccess
+    : canViewerAccess
     ? startHref
     : `#${paidUnlockSectionId}`;
   const detailActionLabel = isOwnContent
     ? locale === "ko"
       ? "스튜디오에서 관리"
       : "Manage in studio"
-    : content.canPubliclyAccess
+    : canViewerAccess
     ? copy.actions.start
     : locale === "ko"
       ? "팬 전용 열기"

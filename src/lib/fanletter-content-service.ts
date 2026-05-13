@@ -24,6 +24,7 @@ import {
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
+  getContentEntitlementsCollection,
   getContentPostsCollection,
   getCreatorProfilesCollection,
   getFanletterFanRequestsCollection,
@@ -107,6 +108,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   authorRecentContent: FanletterPublicContentItem[];
   body: string;
   canPubliclyAccess: boolean;
+  canViewerAccess: boolean;
   contentImageUrls: string[];
   contentVideoUrls: string[];
   fanRequestSource: FanletterPublicFanRequestSource | null;
@@ -1023,15 +1025,31 @@ export const getFanletterPublicContentDetail = cache(
     const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
     const isOwner =
       Boolean(viewerEmail) && normalizeEmail(post.authorEmail) === viewerEmail;
-    const [profile, social, fanRequestSource] = await Promise.all([
+    const [profile, social, fanRequestSource, viewerEntitlement] = await Promise.all([
       profilesCollection.findOne({ email: post.authorEmail }),
       getContentSocialSummaryForViewer(post.contentId, viewerEmail || null).catch(() =>
         createEmptyContentSocialSummary(),
       ),
       getFanRequestSourceForContent(post.contentId),
+      !isOwner && viewerEmail && post.priceType === "paid"
+        ? getContentEntitlementsCollection().then((collection) =>
+            collection.findOne(
+              {
+                contentId: post.contentId,
+                memberEmail: viewerEmail,
+              },
+              {
+                projection: {
+                  _id: 1,
+                },
+              },
+            ),
+          )
+        : Promise.resolve(null),
     ]);
     const canPubliclyAccess = post.priceType === "free";
-    const canViewerAccess = canPubliclyAccess || isOwner;
+    const canViewerAccess =
+      canPubliclyAccess || isOwner || Boolean(viewerEntitlement);
     const authorReferralCode = normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     );
@@ -1085,6 +1103,7 @@ export const getFanletterPublicContentDetail = cache(
         ? post.body
         : post.previewText?.trim() || post.summary,
       canPubliclyAccess,
+      canViewerAccess,
       contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
       contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
       fanRequestSource,
