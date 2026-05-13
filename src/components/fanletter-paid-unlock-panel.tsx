@@ -79,6 +79,7 @@ const usdtContract = getContract({
   chain: smartWalletChain,
   client: thirdwebClient,
 });
+const FANLETTER_ACCESS_REQUEST_TIMEOUT_MS = 12000;
 
 function formatAddressLabel(address?: string | null) {
   const trimmed = address?.trim();
@@ -92,6 +93,21 @@ function formatAddressLabel(address?: string | null) {
   }
 
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+async function fetchFanletterAccess(url: string) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, FANLETTER_ACCESS_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, {
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function getCopy(locale: Locale) {
@@ -274,13 +290,6 @@ export function FanletterPaidUnlockPanel({
     memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
       ? memberSession.email
       : null;
-  const isMemberSessionRestorePending =
-    connectionStatus === "connected" &&
-    Boolean(accountAddress) &&
-    !memberSessionEmail &&
-    (memberSession.status === "idle" ||
-      memberSession.status === "validating" ||
-      memberSession.isValidating);
   const { isDisconnected, isResolving } = useThirdwebConnectionState({
     accountAddress,
     status: connectionStatus,
@@ -324,8 +333,7 @@ export function FanletterPaidUnlockPanel({
   const displayTitle = detail?.title ?? initialTitle;
   const displaySummary = detail?.summary ?? initialSummary;
   const displayCoverImageUrl = detail?.coverImageUrl ?? initialCoverImageUrl;
-  const shouldShowLoading =
-    loadStatus === "loading" || isResolving || isMemberSessionRestorePending;
+  const shouldShowLoading = loadStatus === "loading" || isResolving;
 
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
@@ -348,7 +356,7 @@ export function FanletterPaidUnlockPanel({
         );
       }
 
-      const response = await fetch(
+      const response = await fetchFanletterAccess(
         `/api/content/posts/${encodeURIComponent(contentId)}?${new URLSearchParams({
           email,
           locale,
@@ -382,7 +390,11 @@ export function FanletterPaidUnlockPanel({
       setLoadStatus("ready");
     } catch (error) {
       const message =
-        error instanceof Error
+        error instanceof Error && error.name === "AbortError"
+          ? locale === "ko"
+            ? "열람 권한 확인 시간이 초과되었습니다. 다시 확인해 주세요."
+            : "Checking content access timed out. Please try again."
+          : error instanceof Error
           ? error.message
           : locale === "ko"
             ? "콘텐츠 권한을 확인하지 못했습니다."
@@ -432,7 +444,7 @@ export function FanletterPaidUnlockPanel({
   }, [accountAddress, contentId]);
 
   useEffect(() => {
-    if (isResolving || isMemberSessionRestorePending) {
+    if (isResolving) {
       return;
     }
 
@@ -452,7 +464,6 @@ export function FanletterPaidUnlockPanel({
   }, [
     accountAddress,
     connectionStatus,
-    isMemberSessionRestorePending,
     isResolving,
     loadDetail,
   ]);

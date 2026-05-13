@@ -9,6 +9,7 @@ import {
 } from "@/lib/thirdweb";
 
 const THIRDWEB_EMAIL_RETRY_DELAYS_MS = [0, 250, 500, 1000, 1500];
+const THIRDWEB_EMAIL_ATTEMPT_TIMEOUT_MS = 2500;
 const THIRDWEB_CONNECTION_RESOLVE_GRACE_MS = 3000;
 let thirdwebEmailPromise: Promise<string | null> | null = null;
 
@@ -43,7 +44,7 @@ async function resolveThirdwebUserEmail(
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
 
-    lastEmail = await getUserEmail(options);
+    lastEmail = await getThirdwebUserEmailAttempt(options);
 
     if (lastEmail) {
       return lastEmail;
@@ -51,6 +52,28 @@ async function resolveThirdwebUserEmail(
   }
 
   return lastEmail ?? null;
+}
+
+async function getThirdwebUserEmailAttempt(
+  options: Parameters<typeof getUserEmail>[0],
+) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    return await Promise.race([
+      getUserEmail(options).catch(() => null),
+      new Promise<null>((resolve) => {
+        timeoutId = setTimeout(
+          () => resolve(null),
+          THIRDWEB_EMAIL_ATTEMPT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 export function useThirdwebConnectionState({

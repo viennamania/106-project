@@ -25,6 +25,7 @@ const serverSessionValidationRequests = new Map<
   Promise<ServerMemberSessionResult>
 >();
 const memberSyncRequests = new Map<string, Promise<ServerMemberSyncResult>>();
+const MEMBER_SESSION_REQUEST_TIMEOUT_MS = 10000;
 
 export type ServerMemberSyncResult =
   | (SyncMemberResponse & { ok: true })
@@ -52,6 +53,25 @@ function getMemberSyncRequestKey(input: SyncMemberRequest) {
     syncMode: input.syncMode ?? "full",
     walletAddress: normalizeWalletAddress(input.walletAddress),
   });
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, MEMBER_SESSION_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 async function parseServerMemberSessionResponse(
@@ -98,7 +118,7 @@ async function parseServerMemberSessionResponse(
 }
 
 export async function readServerMemberSession() {
-  const response = await fetch("/api/session/member", {
+  const response = await fetchWithTimeout("/api/session/member", {
     cache: "no-store",
   });
 
@@ -130,7 +150,7 @@ export async function validateServerMemberSession({
     return existingRequest;
   }
 
-  const request = fetch("/api/session/member", {
+  const request = fetchWithTimeout("/api/session/member", {
     body: JSON.stringify({
       email: normalizedEmail,
       walletAddress: normalizedWalletAddress,
@@ -151,7 +171,9 @@ export async function validateServerMemberSession({
 }
 
 export async function clearServerMemberSession() {
-  await fetch("/api/session/member", { method: "DELETE" }).catch(() => null);
+  await fetchWithTimeout("/api/session/member", { method: "DELETE" }).catch(
+    () => null,
+  );
 }
 
 export async function syncServerMemberRegistration(input: SyncMemberRequest) {
@@ -162,7 +184,7 @@ export async function syncServerMemberRegistration(input: SyncMemberRequest) {
     return existingRequest;
   }
 
-  const request = fetch("/api/members", {
+  const request = fetchWithTimeout("/api/members", {
     body: JSON.stringify(input),
     headers: {
       "Content-Type": "application/json",
