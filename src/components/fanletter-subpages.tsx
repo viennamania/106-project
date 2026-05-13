@@ -2334,6 +2334,7 @@ function FanletterFollowCta({
 
 function FanletterFanOnlyPreview({
   channelName,
+  fanOnlyHref,
   fanOnlyContentCount,
   isOwner = false,
   items,
@@ -2346,6 +2347,7 @@ function FanletterFanOnlyPreview({
   requestHref,
 }: {
   channelName: string;
+  fanOnlyHref: string;
   fanOnlyContentCount: number;
   isOwner?: boolean;
   items: FanletterPublicContentItem[];
@@ -2509,11 +2511,16 @@ function FanletterFanOnlyPreview({
         ];
 
   if (items.length > 0) {
-    const firstItemHref = getContentHref({
-      item: items[0],
-      locale,
-      referralCode,
-    });
+    const buildFanOnlyContentHref = (item: FanletterPublicContentItem) =>
+      setPathSearchParams(
+        getContentHref({
+          item,
+          locale,
+          referralCode,
+        }),
+        { returnTo: fanOnlyHref },
+      );
+    const firstItemHref = buildFanOnlyContentHref(items[0]);
     const unlockedFanOnlyContentCount = isOwner
       ? fanOnlyContentCount
       : items.filter((item) => item.canViewerAccess).length;
@@ -2604,7 +2611,7 @@ function FanletterFanOnlyPreview({
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => {
-              const href = getContentHref({ item, locale, referralCode });
+              const href = buildFanOnlyContentHref(item);
               const publishedAt = formatDate(item.publishedAt, locale);
               const displaySummary = getDisplayContentSummary(item, locale);
               const displayTitle = getDisplayContentTitle(item, locale);
@@ -5549,6 +5556,7 @@ export function FanletterCreatorPage({
 
           <FanletterFanOnlyPreview
             channelName={channelName}
+            fanOnlyHref={fanOnlyHref}
             fanOnlyContentCount={data.fanOnlyContentCount}
             isOwner={isOwner}
             items={data.fanOnlyItems}
