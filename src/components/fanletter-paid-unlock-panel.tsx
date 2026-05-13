@@ -100,6 +100,7 @@ function getCopy(locale: Locale) {
         alreadyUnlocked: "결제 완료 · 전체 열람 가능",
         alreadyUnlockedBody:
           "이 팬 전용 브이로그는 이미 잠금 해제되어 전체 영상과 본문을 볼 수 있습니다.",
+        accessChecking: "열람 권한 확인 중",
         amount: "결제 금액",
         cancel: "취소",
         connectBody:
@@ -125,6 +126,7 @@ function getCopy(locale: Locale) {
         preparing: "결제 정보 준비 중",
         preview: "미리보기",
         reload: "다시 확인",
+        retryVerification: "결제 다시 확인",
         sellerWallet: "크리에이터 정산 주소",
         signupBody:
           "FanLetter 시작 절차를 완료하면 팬 전용 콘텐츠 결제와 댓글, 요청 기능을 이어서 사용할 수 있습니다.",
@@ -136,11 +138,14 @@ function getCopy(locale: Locale) {
           "승인 창에서 결제를 확인하면 잠금 해제 상태를 자동으로 다시 확인합니다.",
         walletBalance:
           "결제하려면 연결된 결제 주소에 최소 {amount} USDT가 필요합니다.",
+        walletMismatch:
+          "현재 결제 주소가 이 FanLetter 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.",
       }
     : {
         alreadyUnlocked: "Payment complete · Full access",
         alreadyUnlockedBody:
           "This fan-only vlog is unlocked. You can view the full video and body here.",
+        accessChecking: "Checking access",
         amount: "Amount",
         cancel: "Cancel",
         connectBody:
@@ -166,6 +171,7 @@ function getCopy(locale: Locale) {
         preparing: "Preparing payment",
         preview: "Preview",
         reload: "Check again",
+        retryVerification: "Check payment again",
         sellerWallet: "Creator settlement address",
         signupBody:
           "Complete FanLetter onboarding to use fan-only payments, comments, and requests.",
@@ -177,7 +183,70 @@ function getCopy(locale: Locale) {
           "Approve the payment prompt, then FanLetter will recheck the unlock status automatically.",
         walletBalance:
           "Your connected payment address needs at least {amount} USDT to pay.",
+        walletMismatch:
+          "The current payment address is not registered to this FanLetter account. Reconnect your account.",
       };
+}
+
+function translatePaidUnlockError(message: string, locale: Locale) {
+  if (locale !== "ko") {
+    return message;
+  }
+
+  if (message === "Content already unlocked.") {
+    return "이미 잠금 해제된 콘텐츠입니다.";
+  }
+
+  if (message === "Member not found.") {
+    return "FanLetter 회원 정보를 찾지 못했습니다. 계정을 다시 연결해 주세요.";
+  }
+
+  if (
+    message === "Completed signup is required." ||
+    message === "This member status is not authorized for this action."
+  ) {
+    return "FanLetter 시작 절차를 완료한 뒤 결제를 확인할 수 있습니다.";
+  }
+
+  if (message === "Content order not found.") {
+    return "결제 주문을 찾지 못했습니다. 페이지를 새로 확인한 뒤 다시 시도해 주세요.";
+  }
+
+  if (message === "Content order is not payable.") {
+    return "이 결제 주문은 더 이상 결제할 수 없습니다. 다시 확인 후 새로 시도해 주세요.";
+  }
+
+  if (message === "Transaction has already been used.") {
+    return "이미 처리된 결제 트랜잭션입니다. 다시 확인을 눌러 열람 권한을 갱신해 주세요.";
+  }
+
+  if (message === "Transaction is not confirmed successfully.") {
+    return "트랜잭션이 성공 상태로 확인되지 않았습니다.";
+  }
+
+  if (message === "Matching USDT transfer log not found in receipt.") {
+    return "결제 트랜잭션에서 일치하는 USDT 전송 내역을 찾지 못했습니다.";
+  }
+
+  if (message === "Transaction is outside the order payment window.") {
+    return "결제 주문 유효 시간이 지났습니다. 새로 결제를 진행해 주세요.";
+  }
+
+  if (
+    message === "This wallet is not authorized for the requested member." ||
+    message === "Member session does not match this request."
+  ) {
+    return "현재 결제 주소가 이 FanLetter 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.";
+  }
+
+  if (
+    message === "Valid transaction hash is required." ||
+    message.endsWith("is required.")
+  ) {
+    return "결제 확인에 필요한 정보가 누락되었습니다. 페이지를 다시 확인해 주세요.";
+  }
+
+  return message;
 }
 
 export function FanletterPaidUnlockPanel({
@@ -312,17 +381,37 @@ export function FanletterPaidUnlockPanel({
       setGateReason("gateReason" in data ? data.gateReason : null);
       setLoadStatus("ready");
     } catch (error) {
-      setLoadError(
+      const message =
         error instanceof Error
           ? error.message
           : locale === "ko"
             ? "콘텐츠 권한을 확인하지 못했습니다."
-            : "Failed to verify content access.",
-      );
+            : "Failed to verify content access.";
+
+      if (message === "Member not found.") {
+        setDetail(null);
+        setGateReason("signup");
+        setLoadError(null);
+        setLoadStatus("ready");
+        return;
+      }
+
+      if (
+        message === "This wallet is not authorized for the requested member." ||
+        message === "Member session does not match this request."
+      ) {
+        setGateReason("connect");
+        setLoadError(copy.walletMismatch);
+        setLoadStatus("error");
+        return;
+      }
+
+      setLoadError(translatePaidUnlockError(message, locale));
       setLoadStatus("error");
     }
   }, [
     accountAddress,
+    copy.walletMismatch,
     contentId,
     locale,
     memberSession,
@@ -510,11 +599,9 @@ export function FanletterPaidUnlockPanel({
     [],
   );
 
-  const handlePaidUnlockConfirmed = useCallback(
-    (receipt: { transactionHash: string }) => {
+  const verifyPaidUnlockTransaction = useCallback(
+    ({ order, txHash }: { order: ContentOrderRecord; txHash: string }) => {
       void (async () => {
-        const order = paidOrderRef.current;
-
         if (!order || !accountAddress) {
           setPaidUnlock((current) => ({
             ...current,
@@ -531,7 +618,7 @@ export function FanletterPaidUnlockPanel({
           ...current,
           error: null,
           status: "verifying",
-          txHash: receipt.transactionHash,
+          txHash,
         }));
 
         try {
@@ -552,7 +639,7 @@ export function FanletterPaidUnlockPanel({
             {
               body: JSON.stringify({
                 email,
-                txHash: receipt.transactionHash,
+                txHash,
                 walletAddress: accountAddress,
               }),
               headers: {
@@ -580,19 +667,21 @@ export function FanletterPaidUnlockPanel({
             error: null,
             order: data.order,
             status: "unlocked",
-            txHash: receipt.transactionHash,
+            txHash,
           }));
+          paidOrderRef.current = data.order;
           setIsPaymentOpen(false);
           await loadDetail();
         } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : locale === "ko"
+                ? "결제 검증에 실패했습니다."
+                : "Failed to verify payment.";
           setPaidUnlock((current) => ({
             ...current,
-            error:
-              error instanceof Error
-                ? error.message
-                : locale === "ko"
-                  ? "결제 검증에 실패했습니다."
-                  : "Failed to verify payment.",
+            error: translatePaidUnlockError(message, locale),
             status: "error",
           }));
         }
@@ -600,6 +689,54 @@ export function FanletterPaidUnlockPanel({
     },
     [accountAddress, loadDetail, locale, memberSessionEmail],
   );
+
+  const handlePaidUnlockConfirmed = useCallback(
+    (receipt: { transactionHash: string }) => {
+      const order = paidOrderRef.current;
+
+      if (!order) {
+        setPaidUnlock((current) => ({
+          ...current,
+          error:
+            locale === "ko"
+              ? "결제 주문 정보를 확인하지 못했습니다."
+              : "Payment order is missing.",
+          status: "error",
+        }));
+        return;
+      }
+
+      verifyPaidUnlockTransaction({
+        order,
+        txHash: receipt.transactionHash,
+      });
+    },
+    [locale, verifyPaidUnlockTransaction],
+  );
+
+  const reloadOrRetryPaidUnlock = useCallback(() => {
+    const order = paidOrderRef.current ?? paidUnlock.order;
+
+    if (
+      order &&
+      paidUnlock.txHash &&
+      (paidUnlock.status === "error" || paidUnlock.status === "sent")
+    ) {
+      verifyPaidUnlockTransaction({
+        order,
+        txHash: paidUnlock.txHash,
+      });
+      return;
+    }
+
+    void loadDetail();
+  }, [
+    loadDetail,
+    paidUnlock.order,
+    paidUnlock.status,
+    paidUnlock.txHash,
+    verifyPaidUnlockTransaction,
+  ]);
 
   const handlePaidUnlockError = useCallback(
     (error: Error) => {
@@ -616,9 +753,11 @@ export function FanletterPaidUnlockPanel({
 
       setPaidUnlock((current) => ({
         ...current,
-        error:
+        error: translatePaidUnlockError(
           error.message ||
-          (locale === "ko" ? "결제에 실패했습니다." : "Payment failed."),
+            (locale === "ko" ? "결제에 실패했습니다." : "Payment failed."),
+          locale,
+        ),
         status: "error",
       }));
     },
@@ -710,7 +849,7 @@ export function FanletterPaidUnlockPanel({
               {shouldShowLoading ? (
                 <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-3 py-2 text-sm font-semibold text-white/72">
                   <LoaderCircle className="size-4 animate-spin" />
-                  {copy.verifying}
+                  {copy.accessChecking}
                 </div>
               ) : null}
 
@@ -741,9 +880,7 @@ export function FanletterPaidUnlockPanel({
                 isInsufficientPaidUnlockBalance={isInsufficientPaidUnlockBalance}
                 isResolving={shouldShowLoading}
                 onOpenPayment={openPayment}
-                onReload={() => {
-                  void loadDetail();
-                }}
+                onReload={reloadOrRetryPaidUnlock}
                 onboardingHref={onboardingHref}
                 paidUnlockAmount={paidUnlockAmount}
                 paidUnlockStatus={paidUnlock.status}
@@ -853,6 +990,17 @@ export function FanletterPaidUnlockPanel({
                 >
                   {walletUnlock.copy.unlockAction}
                 </WalletUnlockAction>
+              ) : paidUnlock.status === "error" &&
+                paidUnlock.txHash &&
+                paidUnlock.order ? (
+                <button
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={reloadOrRetryPaidUnlock}
+                  type="button"
+                >
+                  <RefreshCw className="size-4" />
+                  {copy.retryVerification}
+                </button>
               ) : (
                 <TransactionButton
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60"
