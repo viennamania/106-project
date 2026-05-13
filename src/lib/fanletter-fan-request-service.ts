@@ -142,7 +142,7 @@ async function resolveFanRequestCreator({
   const profilesCollection = await getCreatorProfilesCollection();
   const profile = await profilesCollection.findOne({ email: member.email });
   const fallbackDisplayName = member.email.split("@")[0] || "FanLetter";
-  const creatorDisplayName =
+  const accountDisplayName =
     profile?.displayName?.trim() || fallbackDisplayName;
   const resolvedCharacterName =
     trimToLength(characterName, FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT) ??
@@ -150,11 +150,11 @@ async function resolveFanRequestCreator({
       profile?.characterPersona?.name ?? profile?.displayName,
       FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT,
     ) ??
-    creatorDisplayName;
+    accountDisplayName;
 
   return {
     characterName: resolvedCharacterName,
-    creatorDisplayName,
+    creatorDisplayName: resolvedCharacterName,
     creatorEmail: member.email,
     creatorReferralCode: normalizedReferralCode,
   };

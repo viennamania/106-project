@@ -354,7 +354,7 @@ export function FanletterRequestsPage({
         const typeMatches =
           typeFilter === "all" ? true : request.requestType === typeFilter;
         const queryMatches = normalizedQuery
-          ? `${request.characterName} ${request.creatorDisplayName} ${request.body}`
+          ? `${request.characterName} ${request.creatorReferralCode} ${request.body}`
               .toLowerCase()
               .includes(normalizedQuery)
           : true;
@@ -794,9 +794,6 @@ export function FanletterRequestsPage({
                       <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
                         {request.characterName}
                       </h2>
-                      <p className="mt-1 text-sm font-semibold text-[#1f7c38]">
-                        {request.creatorDisplayName}
-                      </p>
                       <p className="mt-4 break-words text-base font-semibold leading-7 text-black/76 [overflow-wrap:anywhere]">
                         {request.body}
                       </p>

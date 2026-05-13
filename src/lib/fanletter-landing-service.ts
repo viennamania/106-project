@@ -88,7 +88,11 @@ function getAuthorName(
   post: ContentPostDocument,
   profile: CreatorProfileDocument | undefined,
 ) {
-  return compactText(profile?.displayName, 36) || post.authorEmail.split("@")[0];
+  return (
+    compactText(profile?.characterPersona?.name, 36) ||
+    compactText(profile?.displayName, 36) ||
+    post.authorEmail.split("@")[0]
+  );
 }
 
 function createEmptyCandidateSignals(): FanletterCandidateSignals {

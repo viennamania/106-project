@@ -311,7 +311,8 @@ function buildCaption({
   post: ContentPostRecord;
   profile: CreatorProfileRecord | null;
 }) {
-  const author = profile?.displayName?.trim();
+  const author =
+    profile?.characterPersona?.name?.trim() || profile?.displayName?.trim();
   const summary = post.summary || post.previewText || post.title;
   const hashtags = buildHashtags(post, locale);
 

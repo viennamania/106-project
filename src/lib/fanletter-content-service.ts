@@ -571,6 +571,7 @@ function getAuthorName(
   profile: CreatorProfileDocument | undefined | null,
 ) {
   return (
+    compactText(profile?.characterPersona?.name, 36) ||
     compactText(profile?.displayName, 36) ||
     post.authorEmail.split("@")[0] ||
     "FanLetter"

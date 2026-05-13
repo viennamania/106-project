@@ -5448,7 +5448,7 @@ export function FanletterCreatorPage({
           {character ? (
             <CharacterPersonaShowcase
               character={character}
-              displayName={data.profile.displayName}
+              displayName={channelName}
               locale={locale}
               publicContentCount={data.publicContentCount}
             />

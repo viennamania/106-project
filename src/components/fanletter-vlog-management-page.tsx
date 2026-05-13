@@ -309,6 +309,10 @@ export function FanletterVlogManagementPage({
     status: "idle",
     summary: EMPTY_SUMMARY,
   });
+  const profileCharacterName =
+    state.profile?.characterPersona?.name?.trim() ||
+    state.profile?.displayName?.trim() ||
+    copy.title;
 
   useEffect(() => {
     setSearchInput(appliedQuery);
@@ -760,7 +764,7 @@ export function FanletterVlogManagementPage({
                   {copy.labels.status}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-                  {state.profile?.displayName || copy.title}
+                  {profileCharacterName}
                 </h2>
               </div>
               <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">

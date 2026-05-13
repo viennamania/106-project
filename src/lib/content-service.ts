@@ -900,9 +900,11 @@ async function getPublishedContentShareMetadata(contentId: string) {
   const defaultAuthorProfile = authorMember
     ? createDefaultCreatorProfile(authorMember)
     : null;
-  const authorDisplayName = storedProfile?.displayName?.trim()
-    ? storedProfile.displayName.trim()
-    : defaultAuthorProfile?.displayName ?? null;
+  const authorDisplayName =
+    storedProfile?.characterPersona?.name?.trim() ||
+    storedProfile?.displayName?.trim() ||
+    defaultAuthorProfile?.displayName ||
+    null;
   const authorAvatarImageUrl =
     storedProfile?.avatarImageUrl ?? defaultAuthorProfile?.avatarImageUrl ?? null;
 
@@ -980,6 +982,7 @@ async function emitPublishedContentNotifications(options: {
   try {
     const storedProfile = await readStoredCreatorProfile(options.author.email);
     const authorDisplayName =
+      storedProfile?.characterPersona?.name?.trim() ||
       storedProfile?.displayName?.trim() ||
       createDefaultCreatorProfile(options.author).displayName;
 

@@ -752,6 +752,10 @@ export function FanletterCreatePage({
     profile?.characterPersona?.name?.trim() ||
     profile?.displayName?.trim() ||
     null;
+  const profileCharacterName =
+    profile?.characterPersona?.name?.trim() ||
+    profile?.displayName?.trim() ||
+    copy.profileRequired;
   const fanRequestTypeLabel = initialFanRequestType
     ? copy.fanRequestContext.requestTypes[initialFanRequestType]
     : null;
@@ -1483,7 +1487,7 @@ export function FanletterCreatePage({
                 <span className="relative flex size-20 shrink-0 overflow-hidden rounded-full border border-white/12 bg-white/[0.06]">
                   {profile?.avatarImageUrl ? (
                     <Image
-                      alt={profile.displayName || copy.title}
+                      alt={profileCharacterName}
                       className="object-cover"
                       fill
                       sizes="80px"
@@ -1500,7 +1504,7 @@ export function FanletterCreatePage({
                     Creator Persona
                   </p>
                   <h2 className="mt-2 truncate text-2xl font-semibold">
-                    {profile?.displayName || copy.profileRequired}
+                    {profileCharacterName}
                   </h2>
                   <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/56">
                     {profile?.characterPersona?.summary ?? copy.personaEmpty}
