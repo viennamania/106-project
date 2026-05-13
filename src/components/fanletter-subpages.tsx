@@ -2505,7 +2505,7 @@ function FanletterFanOnlyPreview({
     ];
 
     return (
-      <section className="mb-8 scroll-mt-24" id="fan-only">
+      <section className="mb-8 scroll-mt-32 sm:scroll-mt-24" id="fan-only">
         <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 lg:p-7">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.42fr)] lg:items-start">
             <div className="max-w-3xl">
@@ -2649,7 +2649,7 @@ function FanletterFanOnlyPreview({
   }
 
   return (
-    <section className="mb-8 scroll-mt-24" id="fan-only">
+    <section className="mb-8 scroll-mt-32 sm:scroll-mt-24" id="fan-only">
       <div className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 lg:p-7">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,0.46fr)] lg:items-start">
           <div className="max-w-2xl">
@@ -2985,7 +2985,7 @@ function FanletterFanPromptPanel({
 
   return (
     <section
-      className={`scroll-mt-24 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6 ${className}`}
+      className={`scroll-mt-32 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:scroll-mt-24 sm:p-6 ${className}`}
       id={id}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -4959,7 +4959,7 @@ function CharacterPersonaShowcase({
 
   return (
     <section
-      className="mb-8 grid scroll-mt-24 gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]"
+      className="mb-8 grid scroll-mt-32 gap-4 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]"
       id="about"
     >
       <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6">
@@ -5304,7 +5304,7 @@ export function FanletterCreatorPage({
         />
         <div className="mx-auto max-w-[92rem]">
           <div
-            className="mb-8 grid scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
+            className="mb-8 grid scroll-mt-32 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
             id="channel-home"
           >
             <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7">
@@ -5403,7 +5403,10 @@ export function FanletterCreatorPage({
           </div>
 
           {featuredItem ? (
-            <section className="mb-8 scroll-mt-24" id="featured-vlog">
+            <section
+              className="mb-8 scroll-mt-32 sm:scroll-mt-24"
+              id="featured-vlog"
+            >
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
@@ -5464,7 +5467,10 @@ export function FanletterCreatorPage({
             requestHref={fanRequestsFormHref}
           />
 
-          <section className="mb-8 scroll-mt-24" id="public-vlogs">
+          <section
+            className="mb-8 scroll-mt-32 sm:scroll-mt-24"
+            id="public-vlogs"
+          >
             <div className="mb-4">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
                 {copy.creator.characterVideoSignal}
