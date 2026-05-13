@@ -1968,19 +1968,22 @@ function FanletterCreatorFanAccessPanel({
   const labels =
     locale === "ko"
       ? {
-          body: "공개 브이로그는 바로 둘러보고, 더 깊은 팬 전용 흐름은 같은 캐릭터 채널 안에서 이어가도록 정리했습니다.",
-          create: "내 캐릭터 만들기",
-          eyebrow: "팬 접근",
-          freeBody: "가입 전에도 공개 브이로그와 캐릭터 분위기를 먼저 확인합니다.",
-          freeTitle: "무료 공개 보기",
+          body: "처음 온 팬은 공개 브이로그로 분위기를 보고, 마음에 들면 팔로우한 뒤 팬 전용 요청으로 이어가면 됩니다.",
+          create: "내 채널 만들기",
+          createPrefix: "나도 AI 캐릭터로 시작하려면",
+          eyebrow: "팬 이용 안내",
+          fanOnlyBody:
+            "보고 싶은 장면이나 팬 전용 콘텐츠는 이 채널 안에서 요청하고 확인합니다.",
+          fanOnlyReadyBody:
+            "잠금 처리된 팬 전용 브이로그와 다음 요청 흐름을 같은 채널에서 이어갑니다.",
           fanOnlyView: "팬 전용 보기",
-          messageBody: "댓글과 메시지는 FanLetter 안에서 이어질 수 있게 권한 확인으로 연결합니다.",
-          messageTitle: "팬 대화 흐름",
-          paidBody:
-            "팬 전용 요청을 남기면 유료 브이로그 후보로 제작 흐름이 이어집니다.",
-          paidBodyReady: "잠금 처리된 팬 전용 브이로그를 같은 캐릭터 채널에서 확인합니다.",
-          paidReadyTitle: "팬 전용 열림",
-          paidTitle: "팬 전용 요청 가능",
+          fanOnlyReadyTitle: "팬 전용 콘텐츠 보기",
+          fanOnlyTitle: "팬 전용 요청 보기",
+          followBody:
+            "계정을 연결해 팔로우하면 새 브이로그와 팬 요청 흐름을 이어갈 수 있습니다.",
+          followTitle: "팔로우하고 알림 받기",
+          freeBody: "가입 전에도 최근 공개 브이로그와 캐릭터 분위기를 바로 확인합니다.",
+          freeTitle: "공개 브이로그 먼저 보기",
           ownerBody:
             "지금 보고 있는 채널은 연결된 계정의 캐릭터 채널입니다. 팬용 행동 대신 제작, 요청함, 공개 상태 관리로 이어갑니다.",
           ownerCreate: "새 브이로그 만들기",
@@ -2000,23 +2003,29 @@ function FanletterCreatorFanAccessPanel({
               : "팬 전용 제작 준비",
           ownerStudio: "스튜디오 관리",
           ownerTitle: "내 캐릭터 채널 관리",
-          title: "팬이 바로 이해하는 채널 구조",
+          stepOne: "1",
+          stepThree: "3",
+          stepTwo: "2",
+          title: "팬은 이렇게 이용하면 됩니다",
           view: "공개 브이로그 보기",
         }
       : {
-          body: "Public vlogs are easy to browse, while deeper fan-only flows stay inside the same character channel.",
-          create: "Create my character",
-          eyebrow: "Fan Access",
-          freeBody: "Fans can preview public vlogs and the character mood before signing up.",
-          freeTitle: "Free public view",
+          body: "Fans can preview public vlogs first, follow the channel if it feels right, then continue into fan-only requests.",
+          create: "Start my channel",
+          createPrefix: "To start as an AI character creator,",
+          eyebrow: "Fan guide",
+          fanOnlyBody:
+            "Request the scenes you want or continue into fan-only content inside this channel.",
+          fanOnlyReadyBody:
+            "Continue into locked fan-only vlogs and the next request flow inside this channel.",
           fanOnlyView: "View fan-only",
-          messageBody: "Comments and messages stay inside FanLetter through access checks.",
-          messageTitle: "Fan conversation flow",
-          paidBody:
-            "Fan-only requests can flow into paid vlog candidates inside this channel.",
-          paidBodyReady: "Locked fan-only vlogs are visible inside the same character channel.",
-          paidReadyTitle: "Fan-only live",
-          paidTitle: "Fan-only requests open",
+          fanOnlyReadyTitle: "View fan-only content",
+          fanOnlyTitle: "View fan-only requests",
+          followBody:
+            "Connect an account and follow to keep new vlog alerts and fan requests in one place.",
+          followTitle: "Follow and get updates",
+          freeBody: "Preview recent public vlogs and the character mood before signing up.",
+          freeTitle: "Watch public vlogs first",
           ownerBody:
             "You are viewing the character channel connected to this account. Continue into creation, requests, and publishing management instead of fan actions.",
           ownerCreate: "Create new vlog",
@@ -2036,10 +2045,18 @@ function FanletterCreatorFanAccessPanel({
               : "Prepare fan-only",
           ownerStudio: "Manage studio",
           ownerTitle: "Manage my character channel",
-          title: "A channel structure fans understand",
+          stepOne: "1",
+          stepThree: "3",
+          stepTwo: "2",
+          title: "How fans can use this channel",
           view: "View public vlogs",
         };
-  const accessItems = isOwner
+  const accessItems: Array<{
+    body: string;
+    icon: LucideIcon;
+    step?: string;
+    title: string;
+  }> = isOwner
     ? [
         {
           body: labels.ownerFreeBody,
@@ -2060,21 +2077,27 @@ function FanletterCreatorFanAccessPanel({
     : [
         {
           body: labels.freeBody,
-          icon: BellPlus,
+          icon: Video,
+          step: labels.stepOne,
           title: labels.freeTitle,
         },
         {
-          body: fanOnlyContentCount > 0 ? labels.paidBodyReady : labels.paidBody,
-          icon: Crown,
-          title:
-            fanOnlyContentCount > 0
-              ? `${labels.paidReadyTitle} · ${formatNumber(fanOnlyContentCount, locale)}`
-              : labels.paidTitle,
+          body: labels.followBody,
+          icon: BellPlus,
+          step: labels.stepTwo,
+          title: labels.followTitle,
         },
         {
-          body: labels.messageBody,
-          icon: MessageCircleHeart,
-          title: labels.messageTitle,
+          body:
+            fanOnlyContentCount > 0
+              ? labels.fanOnlyReadyBody
+              : labels.fanOnlyBody,
+          icon: Crown,
+          step: labels.stepThree,
+          title:
+            fanOnlyContentCount > 0
+              ? `${labels.fanOnlyReadyTitle} · ${formatNumber(fanOnlyContentCount, locale)}`
+              : labels.fanOnlyTitle,
         },
       ];
   const panelTitle = isOwner ? labels.ownerTitle : labels.title;
@@ -2102,10 +2125,17 @@ function FanletterCreatorFanAccessPanel({
               key={item.title}
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <Icon className="size-5" />
+                {item.step ? (
+                  <span className="text-sm font-bold">{item.step}</span>
+                ) : (
+                  <Icon className="size-5" />
+                )}
               </span>
-              <div>
-                <p className="text-sm font-semibold">{item.title}</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Icon className="size-4 shrink-0 text-[#1f7c38]" />
+                  <p className="text-sm font-semibold">{item.title}</p>
+                </div>
                 <p className="mt-1 text-sm font-medium leading-5 text-black/52">
                   {item.body}
                 </p>
@@ -2145,12 +2175,15 @@ function FanletterCreatorFanAccessPanel({
         {isOwner ? labels.ownerCreate : labels.fanOnlyView}
       </Link>
       {!isOwner ? (
-        <Link
-          className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full border border-black/12 px-4 text-sm font-semibold text-black transition hover:border-black/28"
-          href={startHref}
-        >
-          {labels.create}
-        </Link>
+        <p className="mt-3 text-center text-xs font-medium leading-5 text-black/44">
+          {labels.createPrefix}{" "}
+          <Link
+            className="font-semibold text-black underline decoration-black/24 underline-offset-4 transition hover:decoration-black"
+            href={startHref}
+          >
+            {labels.create}
+          </Link>
+        </p>
       ) : null}
     </aside>
   );
