@@ -2210,6 +2210,8 @@ function FanletterChannelTabs({
           fanOnly: "팬 전용",
           fanRequests: "팬 요청",
           home: "홈",
+          mobileFeatured: "대표",
+          mobilePublicVlogs: "공개",
           publicVlogs: "공개 브이로그",
         }
       : {
@@ -2218,6 +2220,8 @@ function FanletterChannelTabs({
           fanOnly: "Fan-only",
           fanRequests: "Requests",
           home: "Home",
+          mobileFeatured: "Featured",
+          mobilePublicVlogs: "Public",
           publicVlogs: "Public vlogs",
         };
   const tabs: FanletterChannelSectionTabItem[] = [
@@ -2227,6 +2231,7 @@ function FanletterChannelTabs({
           href: `${channelHref}#featured-vlog`,
           id: "featured-vlog",
           label: labels.featured,
+          mobileLabel: labels.mobileFeatured,
         }
       : null,
     { href: `${channelHref}#fan-requests`, id: "fan-requests", label: labels.fanRequests },
@@ -2242,6 +2247,7 @@ function FanletterChannelTabs({
       href: `${channelHref}#public-vlogs`,
       id: "public-vlogs",
       label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
+      mobileLabel: `${labels.mobilePublicVlogs} ${formatNumber(publicContentCount, locale)}`,
     },
     { href: `${channelHref}#about`, id: "about", label: labels.about },
   ].filter((tab): tab is FanletterChannelSectionTabItem => Boolean(tab));

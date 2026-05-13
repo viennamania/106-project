@@ -9,6 +9,7 @@ export type FanletterChannelSectionTabItem = {
   href: string;
   id: string;
   label: string;
+  mobileLabel?: string;
 };
 
 export function FanletterChannelSectionTabs({
@@ -87,9 +88,9 @@ export function FanletterChannelSectionTabs({
   return (
     <nav
       aria-label={ariaLabel}
-      className="sticky top-0 z-20 -mx-4 mb-8 border-b border-black/10 bg-[#f6f8f4]/94 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      className="sticky top-0 z-20 -mx-4 mb-6 border-b border-black/10 bg-[#f6f8f4]/94 px-3 py-3 backdrop-blur sm:-mx-6 sm:mb-8 sm:px-6 lg:-mx-8 lg:px-8"
     >
-      <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto [scrollbar-width:none]">
+      <div className="mx-auto grid max-w-[92rem] grid-cols-3 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:[scrollbar-width:none]">
         {items.map((tab) => {
           const active = tab.id === activeId;
 
@@ -97,7 +98,7 @@ export function FanletterChannelSectionTabs({
             <Link
               aria-current={active ? "location" : undefined}
               className={cn(
-                "inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition",
+                "inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2 text-center text-[0.78rem] font-semibold leading-none transition sm:h-10 sm:shrink-0 sm:px-4 sm:text-sm",
                 active
                   ? "bg-black !text-white"
                   : "border border-black/10 bg-white !text-black/62 hover:border-[#29d85f]/60 hover:!text-black",
@@ -106,7 +107,8 @@ export function FanletterChannelSectionTabs({
               key={tab.id}
               onClick={() => setActiveId(tab.id)}
             >
-              {tab.label}
+              <span className="truncate sm:hidden">{tab.mobileLabel ?? tab.label}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
             </Link>
           );
         })}
