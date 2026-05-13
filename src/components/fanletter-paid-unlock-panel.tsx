@@ -285,10 +285,15 @@ export function FanletterPaidUnlockPanel({
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address ?? null;
   const memberSession = useMemberSession();
+  const {
+    accountAddress: memberSessionAccountAddress,
+    email: memberSessionResolvedEmail,
+    updateMemberSession,
+  } = memberSession;
   const memberSessionEmail =
     accountAddress &&
-    memberSession.accountAddress?.toLowerCase() === accountAddress.toLowerCase()
-      ? memberSession.email
+    memberSessionAccountAddress?.toLowerCase() === accountAddress.toLowerCase()
+      ? memberSessionResolvedEmail
       : null;
   const { isDisconnected, isResolving } = useThirdwebConnectionState({
     accountAddress,
@@ -324,6 +329,7 @@ export function FanletterPaidUnlockPanel({
   });
   const paidOrderRef = useRef<ContentOrderRecord | null>(null);
   const paidRecipientWalletRef = useRef<string | null>(null);
+  const accessLoadKeyRef = useRef<string | null>(null);
 
   const isInsufficientPaidUnlockBalance =
     typeof usdtBalance?.value === "bigint" &&
@@ -384,7 +390,7 @@ export function FanletterPaidUnlockPanel({
       }
 
       if ("member" in data && data.member) {
-        memberSession.updateMemberSession({
+        updateMemberSession({
           email: data.member.email,
           member: data.member,
           walletAddress: accountAddress,
@@ -432,12 +438,13 @@ export function FanletterPaidUnlockPanel({
     copy.walletMismatch,
     contentId,
     locale,
-    memberSession,
     memberSessionEmail,
     referralCode,
+    updateMemberSession,
   ]);
 
   useEffect(() => {
+    accessLoadKeyRef.current = null;
     paidOrderRef.current = null;
     paidRecipientWalletRef.current = null;
     setIsPaymentOpen(false);
@@ -464,15 +471,31 @@ export function FanletterPaidUnlockPanel({
       setGateReason("connect");
       setLoadStatus("idle");
       setLoadError(null);
+      accessLoadKeyRef.current = null;
       return;
     }
 
+    const accessLoadKey = [
+      accountAddress,
+      contentId,
+      referralCode ?? "",
+      memberSessionEmail ?? "",
+    ].join(":");
+
+    if (accessLoadKeyRef.current === accessLoadKey) {
+      return;
+    }
+
+    accessLoadKeyRef.current = accessLoadKey;
     void loadDetail();
   }, [
     accountAddress,
+    contentId,
     connectionStatus,
     isResolving,
     loadDetail,
+    memberSessionEmail,
+    referralCode,
   ]);
 
   const ensurePaidUnlockOrder = useCallback(async () => {
