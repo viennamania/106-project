@@ -66,8 +66,11 @@ export type FanletterPublicContentItem = {
   authorName: string;
   authorReferralCode: string | null;
   contentId: string;
+  contentImageCount: number;
+  contentVideoCount: number;
   coverImageUrl: string | null;
   mediaType: "image" | "text" | "video";
+  previewText: string | null;
   priceType: ContentPriceType;
   priceUsdt: string | null;
   primaryVideoUrl: string | null;
@@ -671,8 +674,13 @@ function toPublicContentItem({
     authorReferralCode:
       profile?.referralCode ?? post.authorReferralCode?.trim() ?? null,
     contentId: post.contentId,
+    contentImageCount: post.contentImageUrls?.length ?? 0,
+    contentVideoCount: post.contentVideoUrls?.length ?? 0,
     coverImageUrl: getCoverImageUrl(post),
     mediaType: getMediaType(post),
+    previewText: post.previewText?.trim()
+      ? compactText(post.previewText, SUMMARY_LIMIT)
+      : null,
     priceType: post.priceType,
     priceUsdt: post.priceUsdt ?? null,
     primaryVideoUrl: getPrimaryVideoUrl(post),

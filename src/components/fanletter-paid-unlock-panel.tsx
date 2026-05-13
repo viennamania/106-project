@@ -8,10 +8,13 @@ import {
   CheckCircle2,
   Coins,
   ExternalLink,
+  FileText,
+  Film,
   LoaderCircle,
   LockKeyhole,
   PlayCircle,
   RefreshCw,
+  ImageIcon,
   X,
 } from "lucide-react";
 import { getContract } from "thirdweb";
@@ -66,6 +69,8 @@ type FanletterPaidUnlockPanelProps = {
   contentId: string;
   creatorHref: string;
   currentHref: string;
+  contentImageCount: number;
+  contentVideoCount: number;
   initialBody: string;
   initialCoverImageUrl: string | null;
   initialSummary: string;
@@ -169,6 +174,10 @@ function getCopy(locale: Locale) {
           "결제하면 이 캐릭터의 팬 전용 영상, 전체 본문, 추가 미디어가 이 화면에서 바로 열립니다.",
         lockedEyebrow: "FanLetter 팬 전용",
         lockedTitle: "팬 전용 브이로그 잠금 해제",
+        unlockBody: "결제 후 열리는 항목",
+        unlockImages: "추가 이미지",
+        unlockText: "전체 본문",
+        unlockVideo: "전체 영상",
         memberWallet: "내 결제 주소",
         networkBody:
           "이 콘텐츠는 캐릭터 채널 네트워크 안에서만 결제할 수 있습니다. 초대 링크로 들어왔는지 확인해 주세요.",
@@ -219,6 +228,10 @@ function getCopy(locale: Locale) {
           "Pay once to open the fan-only video, full body, and extra media on this page.",
         lockedEyebrow: "FanLetter fan-only",
         lockedTitle: "Unlock fan-only vlog",
+        unlockBody: "What unlocks",
+        unlockImages: "Extra images",
+        unlockText: "Full body",
+        unlockVideo: "Full video",
         memberWallet: "Your payment address",
         networkBody:
           "This content can be paid for only inside the character channel network. Check that you opened it from an invite link.",
@@ -314,6 +327,8 @@ function translatePaidUnlockError(message: string, locale: Locale) {
 export function FanletterPaidUnlockPanel({
   connectHref,
   contentId,
+  contentImageCount,
+  contentVideoCount,
   creatorHref,
   currentHref,
   initialBody,
@@ -422,6 +437,37 @@ export function FanletterPaidUnlockPanel({
   const displaySummary = detail?.summary ?? initialSummary;
   const displayCoverImageUrl = detail?.coverImageUrl ?? initialCoverImageUrl;
   const shouldShowLoading = loadStatus === "loading" || isResolving;
+  const unlockItems = [
+    {
+      Icon: Film,
+      label: copy.unlockVideo,
+      value:
+        contentVideoCount > 0
+          ? `${formatTokenDisplay(String(contentVideoCount), locale)}${
+              locale === "ko" ? "개" : ""
+            }`
+          : locale === "ko"
+            ? "포함"
+            : "Included",
+    },
+    {
+      Icon: FileText,
+      label: copy.unlockText,
+      value: locale === "ko" ? "전체" : "Full",
+    },
+    {
+      Icon: ImageIcon,
+      label: copy.unlockImages,
+      value:
+        contentImageCount > 0
+          ? `${formatTokenDisplay(String(contentImageCount), locale)}${
+              locale === "ko" ? "개" : ""
+            }`
+          : locale === "ko"
+            ? "선택"
+            : "Optional",
+    },
+  ];
   const paidUnlockPaymentButtonLabel =
     paidUnlock.status === "creating"
       ? copy.preparing
@@ -995,6 +1041,30 @@ export function FanletterPaidUnlockPanel({
                 <p className="mt-3 whitespace-pre-wrap break-words text-sm font-medium leading-7 text-white/74">
                   {displayBody}
                 </p>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9ffc8]">
+                  {copy.unlockBody}
+                </p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {unlockItems.map(({ Icon, label, value }) => (
+                    <div
+                      className="rounded-lg border border-white/10 bg-black/22 p-3"
+                      key={label}
+                    >
+                      <span className="inline-flex size-8 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                        <Icon className="size-4" />
+                      </span>
+                      <p className="mt-3 text-lg font-semibold leading-none text-white">
+                        {value}
+                      </p>
+                      <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/44">
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {shouldShowLoading ? (

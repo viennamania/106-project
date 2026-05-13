@@ -232,6 +232,7 @@ const EMPTY_POST_FORM = {
   coverImageUrl: "",
   generatedContentImageUrls: [] as string[],
   generatedContentVideoUrls: [] as string[],
+  previewText: "",
   priceType: "free" as ContentPriceType,
   summary: "",
   title: "",
@@ -244,6 +245,7 @@ function createInitialPostForm(
   return {
     ...EMPTY_POST_FORM,
     body: initialPostPlan?.body ?? "",
+    previewText: initialPostPlan?.summary ?? "",
     priceType: postComposerMode === "paid-upload" ? "paid" : "free",
     summary: initialPostPlan?.summary ?? "",
     title: initialPostPlan?.title ?? "",
@@ -1499,6 +1501,11 @@ export function CreatorContentStudioPage({
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
+          previewHint:
+            "잠금 화면과 팬 전용 카드에 공개되는 짧은 티저입니다. 전체 내용이나 민감한 장면은 노출하지 마세요.",
+          previewLabel: "공개 티저",
+          previewPlaceholder:
+            "예: 결제 후 엘라 하트의 비공개 루틴 전체 영상과 상세 본문이 열립니다.",
           fanRequestContext:
             "팬 요청 내용이 제목, 요약, 본문에 반영되었습니다. 직접 업로드한 동영상을 추가하면 이 요청은 1 USDT 유료 브이로그로 연결됩니다.",
           fanRequestEyebrow: "Fan Request",
@@ -1532,6 +1539,11 @@ export function CreatorContentStudioPage({
           helper: "Paid content requires one directly uploaded video.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
+          previewHint:
+            "A short public teaser shown on locked cards and unlock screens. Do not expose the full story or sensitive scenes.",
+          previewLabel: "Public teaser",
+          previewPlaceholder:
+            "Example: Unlock the private routine video and full note after payment.",
           fanRequestContext:
             "The fan request has been applied to the title, summary, and body. Add a directly uploaded video to connect this request to a 1 USDT paid vlog.",
           fanRequestEyebrow: "Fan Request",
@@ -2846,6 +2858,12 @@ export function CreatorContentStudioPage({
           coverImageUrl: postForm.coverImageUrl || null,
           email,
           locale,
+          previewText:
+            priceTypeToSave === "paid"
+              ? postForm.previewText.trim() ||
+                postForm.summary.trim() ||
+                fallbackSummary
+              : null,
           priceType: priceTypeToSave,
           priceUsdt:
             priceTypeToSave === "paid" ? CONTENT_PAID_USDT_AMOUNT : null,
@@ -6166,6 +6184,29 @@ export function CreatorContentStudioPage({
               ) : null}
 
               {isPaidUploadComposer ? (
+                <label className="block text-left">
+                  <span className="text-sm font-medium text-slate-900">
+                    {paidUploadComposerCopy.previewLabel}
+                  </span>
+                  <textarea
+                    className="mt-2 min-h-24 w-full resize-none rounded-[22px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-amber-400"
+                    onChange={(event) => {
+                      setPostForm((current) => ({
+                        ...current,
+                        previewText: event.target.value,
+                      }));
+                    }}
+                    placeholder={paidUploadComposerCopy.previewPlaceholder}
+                    rows={3}
+                    value={postForm.previewText}
+                  />
+                  <span className="mt-2 block text-xs leading-5 text-slate-500">
+                    {paidUploadComposerCopy.previewHint}
+                  </span>
+                </label>
+              ) : null}
+
+              {isPaidUploadComposer ? (
                 <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-left">
                   <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-950">
                     <Coins className="size-4 text-amber-600" />
@@ -6296,130 +6337,145 @@ export function CreatorContentStudioPage({
                 isAdvancedComposerOpen ? "block" : "hidden sm:block",
               )}
             >
-            <InputField
-              hint={contentCopy.hints.title}
-              label={contentCopy.fields.title}
-              onChange={(value) => {
-                setPostForm((current) => ({
-                  ...current,
-                  title: value,
-                }));
-              }}
-              value={postForm.title}
-            />
-            <TextAreaField
-              hint={contentCopy.hints.summary}
-              label={contentCopy.fields.summary}
-              onChange={(value) => {
-                setPostForm((current) => ({
-                  ...current,
-                  summary: value,
-                }));
-              }}
-              rows={3}
-              value={postForm.summary}
-            />
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {locale === "ko" ? "판매 방식" : "Access type"}
-                  </p>
-                  <p className="mt-2 text-xs leading-5 text-slate-500">
-                    {locale === "ko"
-                      ? "커버 이미지는 항상 피드에 공개되고, 유료 콘텐츠 이미지와 본문은 결제 후 열람됩니다."
-                      : "Cover images stay visible in the feed. Paid body and gallery images unlock after payment."}
-                  </p>
-                </div>
-                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
-                  {CONTENT_PAID_USDT_AMOUNT} USDT
-                </span>
-              </div>
+              <InputField
+                hint={contentCopy.hints.title}
+                label={contentCopy.fields.title}
+                onChange={(value) => {
+                  setPostForm((current) => ({
+                    ...current,
+                    title: value,
+                  }));
+                }}
+                value={postForm.title}
+              />
+              <TextAreaField
+                hint={contentCopy.hints.summary}
+                label={contentCopy.fields.summary}
+                onChange={(value) => {
+                  setPostForm((current) => ({
+                    ...current,
+                    summary: value,
+                  }));
+                }}
+                rows={3}
+                value={postForm.summary}
+              />
               {isPaidUploadComposer ? (
-                <div className="mt-4 rounded-[18px] border border-slate-950 bg-white px-4 py-3 text-left shadow-[0_16px_34px_rgba(15,23,42,0.08)]">
-                  <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-                    <Coins className="size-4 text-amber-600" />
+                <TextAreaField
+                  hint={paidUploadComposerCopy.previewHint}
+                  label={paidUploadComposerCopy.previewLabel}
+                  onChange={(value) => {
+                    setPostForm((current) => ({
+                      ...current,
+                      previewText: value,
+                    }));
+                  }}
+                  placeholder={paidUploadComposerCopy.previewPlaceholder}
+                  rows={3}
+                  value={postForm.previewText}
+                />
+              ) : null}
+              <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {locale === "ko" ? "판매 방식" : "Access type"}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      {locale === "ko"
+                        ? "커버 이미지는 항상 피드에 공개되고, 유료 콘텐츠 이미지와 본문은 결제 후 열람됩니다."
+                        : "Cover images stay visible in the feed. Paid body and gallery images unlock after payment."}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
                     {CONTENT_PAID_USDT_AMOUNT} USDT
                   </span>
-                  <span className="mt-1 block text-xs leading-5 text-slate-500">
-                    {paidUploadComposerCopy.priceBody}
-                  </span>
                 </div>
-              ) : (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
-                    const isSelected = effectivePostPriceType === priceType;
-                    const isDisabled =
-                      priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
-                    const title =
-                      priceType === "paid"
-                        ? locale === "ko"
-                          ? "유료"
-                          : "Paid"
-                        : contentCopy.labels.free;
-                    const description =
-                      priceType === "paid"
-                        ? hasUploadedPostVideo
+                {isPaidUploadComposer ? (
+                  <div className="mt-4 rounded-[18px] border border-slate-950 bg-white px-4 py-3 text-left shadow-[0_16px_34px_rgba(15,23,42,0.08)]">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                      <Coins className="size-4 text-amber-600" />
+                      {CONTENT_PAID_USDT_AMOUNT} USDT
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500">
+                      {paidUploadComposerCopy.priceBody}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
+                      const isSelected = effectivePostPriceType === priceType;
+                      const isDisabled =
+                        priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
+                      const title =
+                        priceType === "paid"
                           ? locale === "ko"
-                            ? "직접 업로드한 동영상과 상세 본문을 1 USDT로 잠급니다."
-                            : "Lock the uploaded video and detail body for 1 USDT."
-                          : paidUploadRequiredMessage
-                        : locale === "ko"
-                          ? "AI 생성 동영상과 일반 콘텐츠는 무료 공개로 저장됩니다."
-                          : "AI-generated videos and regular content are saved as free public.";
+                            ? "유료"
+                            : "Paid"
+                          : contentCopy.labels.free;
+                      const description =
+                        priceType === "paid"
+                          ? hasUploadedPostVideo
+                            ? locale === "ko"
+                              ? "직접 업로드한 동영상과 상세 본문을 1 USDT로 잠급니다."
+                              : "Lock the uploaded video and detail body for 1 USDT."
+                            : paidUploadRequiredMessage
+                          : locale === "ko"
+                            ? "AI 생성 동영상과 일반 콘텐츠는 무료 공개로 저장됩니다."
+                            : "AI-generated videos and regular content are saved as free public.";
 
-                    return (
-                      <button
-                        disabled={isDisabled}
-                        className={cn(
-                          "rounded-[18px] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
-                          isSelected
-                            ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
-                            : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
-                        )}
-                        key={priceType}
-                        onClick={() => {
-                          setPostForm((current) => ({
-                            ...current,
-                            priceType,
-                          }));
-                        }}
-                        type="button"
-                      >
-                        <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-                          {priceType === "paid" ? (
-                            <Coins className="size-4 text-amber-600" />
-                          ) : (
-                            <Check className="size-4 text-emerald-600" />
+                      return (
+                        <button
+                          disabled={isDisabled}
+                          className={cn(
+                            "rounded-[18px] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
+                            isSelected
+                              ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
+                              : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
                           )}
-                          {title}
-                        </span>
-                        <span className="mt-1 block text-xs leading-5 text-slate-500">
-                          {description}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              <p className="mt-3 text-xs font-medium leading-5 text-slate-500">
-                {hasUploadedPostVideo
-                  ? uploadedVideoPaidPolicyMessage
-                  : hasGeneratedPostVideo
-                    ? aiVideoFreePolicyMessage
-                    : paidUploadRequiredMessage}
-              </p>
-              {effectivePostPriceType === "paid" ? (
-                <div className="mt-4 rounded-[18px] border border-white bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                        thirdweb server wallet
-                      </p>
-                      <p className="mt-1 break-all text-sm font-medium text-slate-900">
-                        {state.profile.payoutWalletAddress ||
-                          (locale === "ko"
-                            ? "유료 게시 전에 자동 생성됩니다."
+                          key={priceType}
+                          onClick={() => {
+                            setPostForm((current) => ({
+                              ...current,
+                              priceType,
+                            }));
+                          }}
+                          type="button"
+                        >
+                          <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                            {priceType === "paid" ? (
+                              <Coins className="size-4 text-amber-600" />
+                            ) : (
+                              <Check className="size-4 text-emerald-600" />
+                            )}
+                            {title}
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-slate-500">
+                            {description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="mt-3 text-xs font-medium leading-5 text-slate-500">
+                  {hasUploadedPostVideo
+                    ? uploadedVideoPaidPolicyMessage
+                    : hasGeneratedPostVideo
+                      ? aiVideoFreePolicyMessage
+                      : paidUploadRequiredMessage}
+                </p>
+                {effectivePostPriceType === "paid" ? (
+                  <div className="mt-4 rounded-[18px] border border-white bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          thirdweb server wallet
+                        </p>
+                        <p className="mt-1 break-all text-sm font-medium text-slate-900">
+                          {state.profile.payoutWalletAddress ||
+                            (locale === "ko"
+                              ? "유료 게시 전에 자동 생성됩니다."
                             : "Created before publishing paid content.")}
                       </p>
                     </div>
@@ -7852,6 +7908,7 @@ function TextAreaField({
   hint,
   label,
   onChange,
+  placeholder,
   rows,
   value,
 }: {
@@ -7859,6 +7916,7 @@ function TextAreaField({
   hint: string;
   label: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   rows: number;
   value: string;
 }) {
@@ -7875,6 +7933,7 @@ function TextAreaField({
         onChange={(event) => {
           onChange(event.target.value);
         }}
+        placeholder={placeholder}
         rows={rows}
         value={value}
       />

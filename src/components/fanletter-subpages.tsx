@@ -508,6 +508,52 @@ function getDisplayContentSummary(item: FanletterPublicContentItem, locale: Loca
   return summary || (locale === "ko" ? "AI 캐릭터 브이로그입니다." : "AI character vlog.");
 }
 
+function getDisplayPaidTeaser(item: FanletterPublicContentItem, locale: Locale) {
+  const teaser = item.previewText?.trim();
+
+  if (teaser && !isLowSignalContentText(item.title, teaser)) {
+    return teaser;
+  }
+
+  return item.priceType === "paid"
+    ? locale === "ko"
+      ? "결제 후 전체 영상과 상세 본문이 열리는 팬 전용 브이로그입니다."
+      : "A fan-only vlog where the full video and body unlock after payment."
+    : getDisplayContentSummary(item, locale);
+}
+
+function getLockedMediaLabel(item: FanletterPublicContentItem, locale: Locale) {
+  const segments: string[] = [];
+
+  if (item.contentVideoCount > 0) {
+    segments.push(
+      locale === "ko"
+        ? `영상 ${formatNumber(item.contentVideoCount, locale)}개`
+        : `${formatNumber(item.contentVideoCount, locale)} video${
+            item.contentVideoCount === 1 ? "" : "s"
+          }`,
+    );
+  }
+
+  if (item.contentImageCount > 0) {
+    segments.push(
+      locale === "ko"
+        ? `추가 이미지 ${formatNumber(item.contentImageCount, locale)}개`
+        : `${formatNumber(item.contentImageCount, locale)} extra image${
+            item.contentImageCount === 1 ? "" : "s"
+          }`,
+    );
+  }
+
+  if (segments.length === 0) {
+    return locale === "ko" ? "전체 본문 잠금" : "Full body locked";
+  }
+
+  return locale === "ko"
+    ? `${segments.join(" + ")} 잠금`
+    : `${segments.join(" + ")} locked`;
+}
+
 function getPublishedTime(value: string | null) {
   if (!value) {
     return 0;
@@ -2405,7 +2451,9 @@ function FanletterFanOnlyPreview({
           requestFanOnly: "다음 팬 전용 요청",
           requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
+          teaserTitle: "공개 티저",
           title: "팬 전용 브이로그 공간 미리보기",
+          unlockIncludes: "결제 후 열림",
           unlockedCount: "열람 가능",
         }
       : {
@@ -2452,7 +2500,9 @@ function FanletterFanOnlyPreview({
           requestFanOnly: "Request next fan-only",
           requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
+          teaserTitle: "Public teaser",
           title: "Fan-only vlog space preview",
+          unlockIncludes: "Unlocks after payment",
           unlockedCount: "Unlocked",
         };
   const cards =
@@ -2614,8 +2664,10 @@ function FanletterFanOnlyPreview({
               const href = buildFanOnlyContentHref(item);
               const publishedAt = formatDate(item.publishedAt, locale);
               const displaySummary = getDisplayContentSummary(item, locale);
+              const displayTeaser = getDisplayPaidTeaser(item, locale);
               const displayTitle = getDisplayContentTitle(item, locale);
               const hasAccess = isOwner || item.canViewerAccess;
+              const lockedMediaLabel = getLockedMediaLabel(item, locale);
               const StatusIcon = isOwner
                 ? Clapperboard
                 : hasAccess
@@ -2702,6 +2754,24 @@ function FanletterFanOnlyPreview({
                     <p className="line-clamp-2 break-words text-sm font-medium leading-6 text-white/58 [overflow-wrap:anywhere]">
                       {displaySummary}
                     </p>
+                    {!hasAccess ? (
+                      <div className="mt-3 rounded-lg border border-[#44f26e]/18 bg-black/18 p-3">
+                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                          {labels.teaserTitle}
+                        </p>
+                        <p className="mt-2 line-clamp-3 break-words text-sm font-medium leading-6 text-white/78 [overflow-wrap:anywhere]">
+                          {displayTeaser}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          <span className="inline-flex rounded-full border border-white/12 bg-white/[0.055] px-2.5 py-1 text-[0.62rem] font-semibold text-white/64">
+                            {labels.unlockIncludes}
+                          </span>
+                          <span className="inline-flex rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-2.5 py-1 text-[0.62rem] font-semibold text-[#b9ffc8]">
+                            {lockedMediaLabel}
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
                       <span className="text-xs font-semibold text-white/42">
                         {publishedAt ?? "FanLetter"}
@@ -6159,7 +6229,9 @@ export function FanletterContentDetailPage({
                 <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
                   <FanletterPaidUnlockPanel
                     connectHref={connectHref}
+                    contentImageCount={content.contentImageCount}
                     contentId={content.contentId}
+                    contentVideoCount={content.contentVideoCount}
                     creatorHref={creatorHref}
                     currentHref={currentHref}
                     initialBody={content.body}
