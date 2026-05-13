@@ -5422,7 +5422,7 @@ export function FanletterCreatorPage({
             requestHref={fanRequestsFormHref}
           />
 
-          <section className="scroll-mt-24" id="public-vlogs">
+          <section className="mb-8 scroll-mt-24" id="public-vlogs">
             <div className="mb-4">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
                 {copy.creator.characterVideoSignal}
