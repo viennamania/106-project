@@ -76,6 +76,7 @@ type FanletterSubpageCopy = {
     following: string;
     home: string;
     openContent: string;
+    purchases: string;
     start: string;
   };
   content: {
@@ -133,7 +134,13 @@ type FanletterSubpageCopy = {
   };
 };
 
-type FanletterShellSection = "feed" | "following" | "home" | "start" | "studio";
+type FanletterShellSection =
+  | "feed"
+  | "following"
+  | "home"
+  | "purchases"
+  | "start"
+  | "studio";
 
 const koCopy: FanletterSubpageCopy = {
   actions: {
@@ -144,6 +151,7 @@ const koCopy: FanletterSubpageCopy = {
     following: "팔로잉",
     home: "홈",
     openContent: "브이로그 보기",
+    purchases: "구매함",
     start: "내 채널 만들기",
   },
   content: {
@@ -222,6 +230,7 @@ const enCopy: FanletterSubpageCopy = {
     following: "Following",
     home: "Home",
     openContent: "View vlog",
+    purchases: "Purchases",
     start: "Start my channel",
   },
   content: {
@@ -666,6 +675,10 @@ function FanletterShell({
     `/${locale}/fanletter/following`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/purchases`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(`/${locale}/fanletter/start`, referralCode);
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
@@ -679,6 +692,7 @@ function FanletterShell({
     { href: homeHref, label: copy.actions.home, section: "home" },
     { href: feedHref, label: copy.actions.feed, section: "feed" },
     { href: followingHref, label: copy.actions.following, section: "following" },
+    { href: purchasesHref, label: copy.actions.purchases, section: "purchases" },
     { href: studioHref, label: copy.actions.creatorStudio, section: "studio" },
     { href: startHref, label: copy.actions.start, section: "start" },
   ];

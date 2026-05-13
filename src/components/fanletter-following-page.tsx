@@ -98,6 +98,7 @@ function getCopy(locale: Locale) {
           "아직 공개 브이로그가 없으면 캐릭터 채널에서 다음 장면을 먼저 요청할 수 있습니다.",
         openLatest: "최신 브이로그 보기",
         publicVlogs: "공개 브이로그",
+        purchases: "구매함",
         quickActions: "바로 이어가기",
         retry: "다시 확인",
         requestBody:
@@ -174,6 +175,7 @@ function getCopy(locale: Locale) {
           "If there is no public vlog yet, open the character channel and request the next scene first.",
         openLatest: "Open latest vlog",
         publicVlogs: "Public vlogs",
+        purchases: "Purchases",
         quickActions: "Continue",
         retry: "Retry",
         requestBody:
@@ -296,6 +298,10 @@ function FollowingHeader({
     `/${locale}/fanletter/following`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/purchases`,
+    referralCode,
+  );
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
@@ -322,6 +328,7 @@ function FollowingHeader({
         <Link className="text-[#44f26e]" href={followingHref}>
           {copy.title}
         </Link>
+        <Link href={purchasesHref}>{copy.purchases}</Link>
         <Link href={studioHref}>{copy.studio}</Link>
         <Link href={startHref}>{copy.start}</Link>
       </nav>
@@ -559,6 +566,10 @@ function FanHomeDashboard({
     `/${locale}/fanletter/feed`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/purchases`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(
     `/${locale}/fanletter/start`,
     referralCode,
@@ -579,6 +590,11 @@ function FanHomeDashboard({
       href: feedHref,
       icon: Sparkles,
       label: copy.allFeed,
+    },
+    {
+      href: purchasesHref,
+      icon: BadgeCheck,
+      label: copy.purchases,
     },
     {
       href: startHref,
@@ -1294,6 +1310,10 @@ export function FanletterFollowingPage({
     `/${locale}/fanletter/feed`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/purchases`,
+    referralCode,
+  );
   const stats = useMemo(
     () => [
       {
@@ -1622,6 +1642,13 @@ export function FanletterFollowingPage({
               >
                 <Sparkles className="size-4" />
                 {copy.allFeed}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+                href={purchasesHref}
+              >
+                <BadgeCheck className="size-4" />
+                {copy.purchases}
               </Link>
               <button
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/8"
