@@ -990,7 +990,12 @@ export function FanletterPaidUnlockPanel({
               src={displayCoverImageUrl}
             />
           ) : (
-            <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#102019_56%,#1a3722)]" />
+            <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(145deg,#07100b,#102019_56%,#1a3722)]">
+              <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(68,242,110,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(68,242,110,0.12)_1px,transparent_1px)] [background-size:34px_34px]" />
+              <div className="absolute left-1/2 top-[38%] flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-[#44f26e]/26 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_0_44px_rgba(68,242,110,0.16)]">
+                <LockKeyhole className="size-9" />
+              </div>
+            </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.68)_100%)]" />
           <div className="absolute inset-x-0 bottom-0 p-5">
