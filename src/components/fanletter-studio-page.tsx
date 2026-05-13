@@ -170,7 +170,7 @@ function getCopy(locale: Locale) {
         salesFallback: "판매 요약을 불러오지 못했습니다.",
         fanRequests: {
           body: "팬이 남긴 메시지를 오늘 만들 브이로그 소재로 바로 넘길 수 있게 모아봅니다.",
-          create: "이 요청으로 만들기",
+          create: "AI 무료 브이로그 만들기",
           createdContent: "만든 브이로그 보기",
           empty:
             "아직 팬 요청이 없습니다. 캐릭터 채널을 공유하면 이곳에 요청이 쌓입니다.",
@@ -196,11 +196,15 @@ function getCopy(locale: Locale) {
           candidateQueueTop: "최우선",
           recommendedBody:
             "신규/확인함 요청 중 바로 브이로그 소재로 옮기기 좋은 요청을 먼저 띄웁니다.",
-          recommendedCta: "이 요청으로 바로 만들기",
+          recommendedCta: "AI 무료로 바로 만들기",
           recommendedEyebrow: "오늘의 추천 요청",
           recommendedTitle: "지금 만들기 좋은 팬 요청",
           markReviewed: "확인",
           openCount: "제작 대기",
+          paidIntentBadge: "팬 전용 의도",
+          paidUploadCta: "1 USDT 업로드 등록",
+          paidUploadHint:
+            "직접 업로드 동영상은 팬 전용 유료 콘텐츠로 등록됩니다.",
           requester: "보낸 사람",
           source: "요청 위치 보기",
           sourceVlog: "브이로그 기반",
@@ -231,7 +235,7 @@ function getCopy(locale: Locale) {
             support: "응원",
           },
           usedNotice: "게시된 브이로그와 연결된 요청입니다.",
-          workflow: ["요청 확인", "소재 자동 반영", "게시 후 자동 정리"],
+          workflow: ["요청 확인", "무료 AI 생성 또는 유료 업로드 선택", "게시 후 자동 정리"],
         },
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
@@ -342,7 +346,7 @@ function getCopy(locale: Locale) {
         salesFallback: "Could not load sales summary.",
         fanRequests: {
           body: "Turn fan messages into the next vlog idea without leaving the studio.",
-          create: "Create from request",
+          create: "Create free AI vlog",
           createdContent: "View created vlog",
           empty:
             "No fan requests yet. Share the character channel to collect them here.",
@@ -372,11 +376,15 @@ function getCopy(locale: Locale) {
           candidateQueueTop: "Top pick",
           recommendedBody:
             "Among new and reviewed requests, this one is ready to move into a vlog.",
-          recommendedCta: "Create this now",
+          recommendedCta: "Create free AI vlog now",
           recommendedEyebrow: "Today's request pick",
           recommendedTitle: "A fan request ready to create",
           markReviewed: "Reviewed",
           openCount: "Ready to create",
+          paidIntentBadge: "Fan-only intent",
+          paidUploadCta: "Upload as 1 USDT",
+          paidUploadHint:
+            "Directly uploaded video is registered as fan-only paid content.",
           requester: "From",
           source: "View source",
           sourceVlog: "Source vlog",
@@ -407,7 +415,11 @@ function getCopy(locale: Locale) {
             support: "Support",
           },
           usedNotice: "This request is linked to a published vlog.",
-          workflow: ["Review request", "Apply as an idea", "Auto-organise after publish"],
+          workflow: [
+            "Review request",
+            "Choose free AI generation or paid upload",
+            "Auto-organise after publish",
+          ],
         },
         channelDistribution:
           "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
@@ -614,6 +626,56 @@ function buildFanRequestCreateHref({
     planBody: body,
     planMode: "video",
     planPrompt: prompt,
+    planSummary: summary,
+    planTitle: title,
+  });
+}
+
+function buildFanRequestPaidUploadHref({
+  locale,
+  paidUploadHref,
+  request,
+}: {
+  locale: Locale;
+  paidUploadHref: string;
+  request: FanletterFanRequestRecord;
+}) {
+  const normalizedBody = request.body.trim().replace(/\s+/g, " ");
+  const titleSeed = normalizedBody.slice(0, 52);
+  const requestTypeLabel =
+    locale === "ko"
+      ? request.requestType === "message"
+        ? "팬 응원 메시지"
+        : "다음 브이로그 요청"
+      : request.requestType === "message"
+        ? "fan support message"
+        : "next vlog request";
+  const title =
+    locale === "ko"
+      ? request.requestType === "message"
+        ? `팬 메시지 유료 업로드: ${titleSeed}`
+        : `팬 요청 유료 업로드: ${titleSeed}`
+      : request.requestType === "message"
+        ? `Paid fan message upload: ${titleSeed}`
+        : `Paid fan request upload: ${titleSeed}`;
+  const summary =
+    locale === "ko"
+      ? `${request.characterName}에게 들어온 ${requestTypeLabel}을 직접 업로드한 1 USDT 유료 브이로그로 등록합니다.`
+      : `A 1 USDT paid vlog uploaded directly from a ${requestTypeLabel} for ${request.characterName}.`;
+  const body =
+    locale === "ko"
+      ? `${request.characterName}가 팬 요청에 답하는 팬 전용 유료 브이로그입니다. 팬이 남긴 말: ${normalizedBody}`
+      : `${request.characterName} responds to this fan request in a fan-only paid vlog. Fan note: ${normalizedBody}`;
+
+  return setPathSearchParams(paidUploadHref, {
+    fanRequestBody: request.body,
+    fanRequestCharacterName: request.characterName,
+    fanRequestId: request.requestId,
+    fanRequestType: request.requestType,
+    planAudience: "fan-only",
+    planBody: body,
+    planMode: "video",
+    planPriceType: "paid",
     planSummary: summary,
     planTitle: title,
   });
@@ -864,6 +926,7 @@ function FanRequestsSection({
   error,
   locale,
   onUpdateStatus,
+  paidUploadHref,
   referralCode,
   requests,
   updatingRequestId,
@@ -876,6 +939,7 @@ function FanRequestsSection({
     requestId: string,
     status: FanletterFanRequestRecord["status"],
   ) => void;
+  paidUploadHref: string;
   referralCode: string | null;
   requests: FanletterFanRequestRecord[];
   updatingRequestId: string | null;
@@ -1066,8 +1130,14 @@ function FanRequestsSection({
                 locale,
                 request,
               });
+              const paidUploadFromRequestHref = buildFanRequestPaidUploadHref({
+                locale,
+                paidUploadHref,
+                request,
+              });
               const isUpdating = updatingRequestId === request.requestId;
               const isTopPick = index === 0;
+              const hasFanOnlyIntent = shouldTreatFanRequestAsFanOnly(request);
 
               return (
                 <article
@@ -1093,6 +1163,11 @@ function FanRequestsSection({
                     <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[0.64rem] font-semibold text-white/56">
                       {copy.fanRequests.statuses[request.status]}
                     </span>
+                    {hasFanOnlyIntent ? (
+                      <span className="rounded-full border border-amber-300/28 bg-amber-300/12 px-3 py-1 text-[0.64rem] font-semibold text-amber-100">
+                        {copy.fanRequests.paidIntentBadge}
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-4 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
                     {request.body}
@@ -1115,6 +1190,16 @@ function FanRequestsSection({
                         : copy.fanRequests.create}
                       <ArrowRight className="size-3.5" />
                     </Link>
+                    <Link
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-amber-300/34 bg-amber-300/10 px-3 text-xs font-semibold !text-amber-100 transition hover:bg-amber-300/16"
+                      href={paidUploadFromRequestHref}
+                    >
+                      <Upload className="size-3.5" />
+                      {copy.fanRequests.paidUploadCta}
+                    </Link>
+                    <p className="text-xs font-medium leading-5 text-white/42">
+                      {copy.fanRequests.paidUploadHint}
+                    </p>
                     <div className="grid grid-cols-2 gap-2">
                       {request.status === "new" ? (
                         <button
@@ -1246,7 +1331,13 @@ function FanRequestsSection({
               locale,
               request,
             });
+            const paidUploadFromRequestHref = buildFanRequestPaidUploadHref({
+              locale,
+              paidUploadHref,
+              request,
+            });
             const category = getFanRequestCategory(request);
+            const hasFanOnlyIntent = shouldTreatFanRequestAsFanOnly(request);
             const createdLabel = formatDate(request.createdAt, locale);
             const sourceHref = request.sourcePath?.startsWith("/")
               ? request.sourcePath
@@ -1297,6 +1388,11 @@ function FanRequestsSection({
                       {copy.fanRequests.sourceVlog}
                     </span>
                   ) : null}
+                  {hasFanOnlyIntent ? (
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                      {copy.fanRequests.paidIntentBadge}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="mt-4 grid gap-2 text-xs font-semibold text-black/44 sm:grid-cols-2">
                   <span>
@@ -1326,13 +1422,22 @@ function FanRequestsSection({
                       <ArrowRight className="size-3.5" />
                     </Link>
                   ) : (
-                    <Link
-                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold !text-white transition hover:bg-black/82 sm:min-w-52"
-                      href={createFromRequestHref}
-                    >
-                      {copy.fanRequests.create}
-                      <ArrowRight className="size-3.5" />
-                    </Link>
+                    <>
+                      <Link
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold !text-white transition hover:bg-black/82 sm:min-w-52"
+                        href={createFromRequestHref}
+                      >
+                        {copy.fanRequests.create}
+                        <ArrowRight className="size-3.5" />
+                      </Link>
+                      <Link
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold !text-amber-900 transition hover:bg-amber-100 sm:min-w-48"
+                        href={paidUploadFromRequestHref}
+                      >
+                        <Upload className="size-3.5" />
+                        {copy.fanRequests.paidUploadCta}
+                      </Link>
+                    </>
                   )}
                   {sourceHref ? (
                     <Link
@@ -2451,6 +2556,7 @@ export function FanletterStudioPage({
               onUpdateStatus={(requestId, nextStatus) => {
                 void updateFanRequestStatus(requestId, nextStatus);
               }}
+              paidUploadHref={paidUploadHref}
               referralCode={referralCode}
               requests={state.fanRequests}
               updatingRequestId={updatingRequestId}

@@ -7,16 +7,17 @@ import {
   getSafeFanletterReturnTo,
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
+import {
+  readFanletterCreateInitialPlan,
+  type FanletterCreateSearchParams,
+} from "@/lib/fanletter-create-plan";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 
-type FanletterPaidUploadSearchParams = {
-  ref?: string | string[];
-  returnTo?: string | string[];
-};
+type FanletterPaidUploadSearchParams = FanletterCreateSearchParams;
 
 function getMetaCopy(locale: Locale) {
   return locale === "ko"
@@ -83,6 +84,7 @@ export default async function LocalizedFanletterPaidUploadPage({
     <CreatorContentStudioPage
       dictionary={dictionary}
       homeHrefOverride={buildPathWithReferral(`/${locale}/fanletter`, referralCode)}
+      initialPostPlan={readFanletterCreateInitialPlan(query)}
       locale={locale}
       newPostHrefOverride={setPathSearchParams(paidUploadHref, {
         returnTo: returnToHref,

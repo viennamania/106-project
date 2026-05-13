@@ -72,8 +72,10 @@ import type {
   ContentPostUploadResponse,
   CreatorProfileResponse,
   CreatorStudioPostsLoadResponse,
+  FanletterFanRequestStatusUpdateResponse,
 } from "@/lib/content";
 import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
+import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -234,6 +236,19 @@ const EMPTY_POST_FORM = {
   summary: "",
   title: "",
 };
+
+function createInitialPostForm(
+  initialPostPlan: FanletterCreateInitialPlan | null | undefined,
+  postComposerMode: PostComposerMode,
+): typeof EMPTY_POST_FORM {
+  return {
+    ...EMPTY_POST_FORM,
+    body: initialPostPlan?.body ?? "",
+    priceType: postComposerMode === "paid-upload" ? "paid" : "free",
+    summary: initialPostPlan?.summary ?? "",
+    title: initialPostPlan?.title ?? "",
+  };
+}
 
 const EMPTY_AUTOMATION_FORM = {
   allowedDomains: "",
@@ -687,6 +702,7 @@ export function CreatorContentStudioPage({
   characterHrefOverride = null,
   dictionary,
   homeHrefOverride = null,
+  initialPostPlan = null,
   locale,
   newPostHrefOverride = null,
   postComposerMode = "standard",
@@ -704,6 +720,7 @@ export function CreatorContentStudioPage({
   characterHrefOverride?: string | null;
   dictionary: CreatorStudioDictionary;
   homeHrefOverride?: string | null;
+  initialPostPlan?: FanletterCreateInitialPlan | null;
   locale: Locale;
   newPostHrefOverride?: string | null;
   postComposerMode?: PostComposerMode;
@@ -766,6 +783,12 @@ export function CreatorContentStudioPage({
   );
   const newPostHref = newPostHrefOverride ?? defaultNewPostHref;
   const isFanletterSurface = surface === "fanletter";
+  const initialFanRequestId = initialPostPlan?.fanRequestId?.trim() || null;
+  const initialFanRequestBody =
+    initialPostPlan?.fanRequestBody?.trim() || initialPostPlan?.body?.trim() || null;
+  const initialFanRequestCharacterName =
+    initialPostPlan?.fanRequestCharacterName?.trim() || null;
+  const initialFanRequestType = initialPostPlan?.fanRequestType ?? null;
   const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
   const currentStudioHref =
     view === "character"
@@ -785,7 +808,9 @@ export function CreatorContentStudioPage({
     summary: EMPTY_STUDIO_SUMMARY,
     status: "idle",
   });
-  const [postForm, setPostForm] = useState(EMPTY_POST_FORM);
+  const [postForm, setPostForm] = useState(() =>
+    createInitialPostForm(initialPostPlan, postComposerMode),
+  );
   const [postBodyError, setPostBodyError] = useState<string | null>(null);
   const [isAdvancedComposerOpen, setIsAdvancedComposerOpen] = useState(false);
   const [automation, setAutomation] = useState<AutomationState>({
@@ -1474,6 +1499,10 @@ export function CreatorContentStudioPage({
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
+          fanRequestContext:
+            "팬 요청 내용이 제목, 요약, 본문에 반영되었습니다. 직접 업로드한 동영상을 추가하면 이 요청은 1 USDT 유료 브이로그로 연결됩니다.",
+          fanRequestEyebrow: "Fan Request",
+          fanRequestTitle: "팬 요청 기반 유료 업로드",
           manageVlogs: "브이로그 관리",
           priceBody:
             "직접 업로드한 동영상과 상세 본문은 결제 후 열람됩니다. 커버 이미지는 피드에 공개됩니다.",
@@ -1503,6 +1532,10 @@ export function CreatorContentStudioPage({
           helper: "Paid content requires one directly uploaded video.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
+          fanRequestContext:
+            "The fan request has been applied to the title, summary, and body. Add a directly uploaded video to connect this request to a 1 USDT paid vlog.",
+          fanRequestEyebrow: "Fan Request",
+          fanRequestTitle: "Paid upload from fan request",
           manageVlogs: "Manage vlogs",
           priceBody:
             "The uploaded video and detail body unlock after payment. Cover images stay visible in the feed.",
@@ -2836,6 +2869,37 @@ export function CreatorContentStudioPage({
             ? data.error
             : contentCopy.messages.studioLoadFailed,
         );
+      }
+
+      if (initialFanRequestId) {
+        const fanRequestResponse = await fetch("/api/fanletter/requests", {
+          body: JSON.stringify({
+            contentId:
+              statusToSave === "published" ? data.content.contentId : null,
+            email,
+            requestId: initialFanRequestId,
+            status: statusToSave === "published" ? "used" : "reviewed",
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
+        const fanRequestData =
+          (await fanRequestResponse.json()) as
+            | FanletterFanRequestStatusUpdateResponse
+            | { error?: string };
+
+        if (!fanRequestResponse.ok || !("request" in fanRequestData)) {
+          throw new Error(
+            "error" in fanRequestData && fanRequestData.error
+              ? fanRequestData.error
+              : locale === "ko"
+                ? "콘텐츠는 저장됐지만 팬 요청 상태를 갱신하지 못했습니다."
+                : "The content was saved, but the fan request status could not be updated.",
+          );
+        }
       }
 
       setPostForm(EMPTY_POST_FORM);
@@ -5738,6 +5802,50 @@ export function CreatorContentStudioPage({
                 {rule}
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {isFanletterPaidUpload && initialFanRequestId ? (
+          <div className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <PenSquare className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                  {paidUploadComposerCopy.fanRequestEyebrow}
+                </p>
+                <h3 className="mt-1 text-base font-semibold text-white">
+                  {paidUploadComposerCopy.fanRequestTitle}
+                </h3>
+                <p className="mt-2 text-xs font-medium leading-5 text-white/58">
+                  {paidUploadComposerCopy.fanRequestContext}
+                </p>
+                {initialFanRequestBody ? (
+                  <p className="mt-3 break-words rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-xs font-semibold leading-5 text-white/70 [overflow-wrap:anywhere]">
+                    {initialFanRequestBody}
+                  </p>
+                ) : null}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {initialFanRequestCharacterName ? (
+                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[0.64rem] font-semibold text-white/54">
+                      {initialFanRequestCharacterName}
+                    </span>
+                  ) : null}
+                  {initialFanRequestType ? (
+                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[0.64rem] font-semibold text-white/54">
+                      {initialFanRequestType === "message"
+                        ? locale === "ko"
+                          ? "응원 메시지"
+                          : "Support message"
+                        : locale === "ko"
+                          ? "브이로그 요청"
+                          : "Vlog request"}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
 
