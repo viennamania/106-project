@@ -211,6 +211,7 @@ type CoverGenerationProgressState = {
 };
 
 type StudioView = "character" | "hub" | "new" | "profile";
+type PostComposerMode = "paid-upload" | "standard";
 
 const EMPTY_PROFILE = {
   avatarImageSet: [] as CreatorProfileAvatarCandidate[],
@@ -688,12 +689,14 @@ export function CreatorContentStudioPage({
   homeHrefOverride = null,
   locale,
   newPostHrefOverride = null,
+  postComposerMode = "standard",
   postsManagerHrefOverride = null,
   profileHrefOverride = null,
   referralCode = null,
   returnToHref = null,
   salesManagerHrefOverride = null,
   shell = "studio",
+  showMobileNav = true,
   surface = "creator",
   studioHomeHrefOverride = null,
   view = "hub",
@@ -703,12 +706,14 @@ export function CreatorContentStudioPage({
   homeHrefOverride?: string | null;
   locale: Locale;
   newPostHrefOverride?: string | null;
+  postComposerMode?: PostComposerMode;
   postsManagerHrefOverride?: string | null;
   profileHrefOverride?: string | null;
   referralCode?: string | null;
   returnToHref?: string | null;
   salesManagerHrefOverride?: string | null;
   shell?: "embedded" | "studio";
+  showMobileNav?: boolean;
   surface?: "creator" | "fanletter";
   studioHomeHrefOverride?: string | null;
   view?: StudioView;
@@ -1457,13 +1462,47 @@ export function CreatorContentStudioPage({
           shortcut: "Back to profile",
           title: "Change character",
         };
+  const isPaidUploadComposer = postComposerMode === "paid-upload";
+  const paidUploadComposerCopy =
+    locale === "ko"
+      ? {
+          description:
+            "직접 업로드한 MP4, MOV, WEBM 동영상을 1 USDT 유료 콘텐츠로 등록합니다. AI 생성 브이로그는 무료 생성 화면에서만 사용하세요.",
+          eyebrow: "FanLetter Paid Upload",
+          helper:
+            "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
+          imageEmpty:
+            "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
+          priceBody:
+            "직접 업로드한 동영상과 상세 본문은 결제 후 열람됩니다. 커버 이미지는 피드에 공개됩니다.",
+          title: "유료 콘텐츠 직접 업로드",
+          uploadVideo: "유료 동영상 업로드",
+          videoHint:
+            "직접 업로드한 MP4, MOV, WEBM 동영상만 1 USDT 유료 콘텐츠로 저장됩니다. 최대 1개, 200MB 이하입니다.",
+        }
+      : {
+          description:
+            "Register a directly uploaded MP4, MOV, or WEBM video as 1 USDT paid content. AI-generated vlogs stay in the free creation flow.",
+          eyebrow: "FanLetter Paid Upload",
+          helper: "Paid content requires one directly uploaded video.",
+          imageEmpty:
+            "Add directly uploaded images that should appear on the paid detail page.",
+          priceBody:
+            "The uploaded video and detail body unlock after payment. Cover images stay visible in the feed.",
+          title: "Upload paid content",
+          uploadVideo: "Upload paid video",
+          videoHint:
+            "Only directly uploaded MP4, MOV, or WEBM videos are saved as 1 USDT paid content. One video, 200MB max.",
+        };
   const pageTitle =
     view === "character"
       ? characterPageCopy.title
       : view === "profile"
       ? contentCopy.labels.creatorSettings
       : view === "new"
-        ? contentCopy.actions.createPost
+        ? isPaidUploadComposer
+          ? paidUploadComposerCopy.title
+          : contentCopy.actions.createPost
         : contentCopy.page.studioTitle;
   const pageDescription =
     view === "character"
@@ -1471,7 +1510,9 @@ export function CreatorContentStudioPage({
       : view === "profile"
       ? contentCopy.page.profileDescription
       : view === "new"
-        ? contentCopy.page.newDescription
+        ? isPaidUploadComposer
+          ? paidUploadComposerCopy.description
+          : contentCopy.page.newDescription
         : contentCopy.page.studioDescription;
   const headerShortcutHref =
     view === "character"
@@ -1611,9 +1652,12 @@ export function CreatorContentStudioPage({
   );
   const hasUploadedPostVideo = postVideoSource === "uploaded";
   const hasGeneratedPostVideo = postVideoSource === "generated";
-  const effectivePostPriceType: ContentPriceType = hasUploadedPostVideo
+  const effectivePostPriceType: ContentPriceType = isPaidUploadComposer || hasUploadedPostVideo
     ? "paid"
     : "free";
+  const hasRequiredPostMedia = isPaidUploadComposer
+    ? hasUploadedPostVideo
+    : hasPostMedia;
   const postBodyRequiredMessage =
     locale === "ko"
       ? "본문을 입력한 뒤 저장하거나 게시해주세요."
@@ -1626,6 +1670,9 @@ export function CreatorContentStudioPage({
     locale === "ko"
       ? "유료 콘텐츠는 직접 업로드한 동영상이 필요합니다."
       : "Paid content requires a directly uploaded video.";
+  const requiredPostMediaMessage = isPaidUploadComposer
+    ? paidUploadRequiredMessage
+    : postImageRequiredMessage;
   const uploadedVideoPaidPolicyMessage =
     locale === "ko"
       ? "직접 업로드한 동영상은 유료 콘텐츠로만 저장됩니다."
@@ -2685,10 +2732,19 @@ export function CreatorContentStudioPage({
       return;
     }
 
-    if (statusToSave === "published" && !hasPostMedia) {
+    if (isPaidUploadComposer && !hasUploadedPostVideo) {
       setState((current) => ({
         ...current,
-        error: postImageRequiredMessage,
+        error: paidUploadRequiredMessage,
+        notice: null,
+      }));
+      return;
+    }
+
+    if (statusToSave === "published" && !hasRequiredPostMedia) {
+      setState((current) => ({
+        ...current,
+        error: requiredPostMediaMessage,
         notice: null,
       }));
       return;
@@ -2706,7 +2762,9 @@ export function CreatorContentStudioPage({
           .slice(0, 72) || contentCopy.actions.createPost;
       const fallbackSummary = normalizedBody.replace(/\s+/g, " ").slice(0, 140);
       const email = await resolveMemberEmail();
-      const priceTypeToSave = effectivePostPriceType;
+      const priceTypeToSave: ContentPriceType = isPaidUploadComposer
+        ? "paid"
+        : effectivePostPriceType;
 
       if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
         await createSellerWallet(email);
@@ -5465,7 +5523,11 @@ export function CreatorContentStudioPage({
     const contentImagesUploadLabel =
       locale === "ko" ? "콘텐츠 이미지 추가" : "Add content images";
     const contentVideoUploadLabel =
-      locale === "ko" ? "동영상 추가" : "Add video";
+      isPaidUploadComposer
+        ? paidUploadComposerCopy.uploadVideo
+        : locale === "ko"
+          ? "동영상 추가"
+          : "Add video";
     const aiContentImageLabel =
       locale === "ko" ? "AI 콘텐츠 이미지 생성" : "Generate AI content image";
     const aiContentVideoLabel =
@@ -5480,14 +5542,23 @@ export function CreatorContentStudioPage({
       isUploadingPostImage ||
       isUploadingPostVideo ||
       isGeneratingPostImage;
+    const draftDisabled =
+      composerBusy || (isPaidUploadComposer && !hasUploadedPostVideo);
+    const publishDisabled = composerBusy || !hasRequiredPostMedia;
 
     return (
       <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-white/80 sm:p-5 sm:shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:backdrop-blur-[18px]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
+            <p className="eyebrow">
+              {isPaidUploadComposer
+                ? paidUploadComposerCopy.eyebrow
+                : contentCopy.page.studioEyebrow}
+            </p>
             <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-              {contentCopy.actions.createPost}
+              {isPaidUploadComposer
+                ? paidUploadComposerCopy.title
+                : contentCopy.actions.createPost}
             </h2>
           </div>
           <div className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900">
@@ -5496,7 +5567,9 @@ export function CreatorContentStudioPage({
         </div>
 
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          {contentCopy.labels.studioNotice}
+          {isPaidUploadComposer
+            ? paidUploadComposerCopy.description
+            : contentCopy.labels.studioNotice}
         </p>
 
         {blockedState ? (
@@ -5639,7 +5712,12 @@ export function CreatorContentStudioPage({
                 </span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div
+                className={cn(
+                  "grid gap-2",
+                  isPaidUploadComposer ? "grid-cols-1" : "grid-cols-2",
+                )}
+              >
                 <button
                   className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-950"
                   disabled={
@@ -5655,25 +5733,27 @@ export function CreatorContentStudioPage({
                   <LayoutGrid className="size-4" />
                   {locale === "ko" ? "이미지 추가" : "Add images"}
                 </button>
-                <button
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-950 disabled:opacity-50"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    !canGeneratePostCover ||
-                    postForm.generatedContentImageUrls.length >=
-                      GENERATED_CONTENT_IMAGE_LIMIT ||
-                    postForm.contentImageUrls.length >= 10
-                  }
-                  onClick={() => {
-                    openContentImageGenerationDialog();
-                  }}
-                  type="button"
-                >
-                  <Sparkles className="size-4" />
-                  {locale === "ko" ? "AI 이미지" : "AI image"}
-                </button>
+                {isPaidUploadComposer ? null : (
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-950 disabled:opacity-50"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      !canGeneratePostCover ||
+                      postForm.generatedContentImageUrls.length >=
+                        GENERATED_CONTENT_IMAGE_LIMIT ||
+                      postForm.contentImageUrls.length >= 10
+                    }
+                    onClick={() => {
+                      openContentImageGenerationDialog();
+                    }}
+                    type="button"
+                  >
+                    <Sparkles className="size-4" />
+                    {locale === "ko" ? "AI 이미지" : "AI image"}
+                  </button>
+                )}
               </div>
 
               <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-3">
@@ -5685,7 +5765,12 @@ export function CreatorContentStudioPage({
                     {postForm.contentVideoUrls.length}/{CONTENT_VIDEO_LIMIT}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                <div
+                  className={cn(
+                    "mt-3 grid gap-2",
+                    isPaidUploadComposer ? "grid-cols-1" : "grid-cols-2",
+                  )}
+                >
                   <button
                     className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-white px-2 text-xs font-semibold text-slate-950 disabled:opacity-50"
                     disabled={
@@ -5704,22 +5789,24 @@ export function CreatorContentStudioPage({
                       ? `${Math.round(postVideoUploadProgress)}%`
                       : contentVideoUploadLabel}
                   </button>
-                  <button
-                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-100 px-2 text-xs font-semibold text-sky-950 disabled:opacity-50"
-                    disabled={
-                      isUploadingPostImage ||
-                      isUploadingPostVideo ||
-                      isGeneratingPostImage ||
-                      postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
-                    }
-                    onClick={() => {
-                      openContentVideoGenerationDialog();
-                    }}
-                    type="button"
-                  >
-                    <WandSparkles className="size-4" />
-                    {locale === "ko" ? "AI 동영상 생성" : "Generate AI video"}
-                  </button>
+                  {isPaidUploadComposer ? null : (
+                    <button
+                      className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-100 px-2 text-xs font-semibold text-sky-950 disabled:opacity-50"
+                      disabled={
+                        isUploadingPostImage ||
+                        isUploadingPostVideo ||
+                        isGeneratingPostImage ||
+                        postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                      }
+                      onClick={() => {
+                        openContentVideoGenerationDialog();
+                      }}
+                      type="button"
+                    >
+                      <WandSparkles className="size-4" />
+                      {locale === "ko" ? "AI 동영상 생성" : "Generate AI video"}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -5766,7 +5853,7 @@ export function CreatorContentStudioPage({
                         ...current,
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
-                        priceType: "free",
+                        priceType: isPaidUploadComposer ? "paid" : "free",
                       }));
                     }}
                     type="button"
@@ -5801,42 +5888,54 @@ export function CreatorContentStudioPage({
                 <p className="text-xs font-medium text-rose-600">{postBodyError}</p>
               ) : null}
 
-              <div className="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
-                {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
-                  const isSelected = effectivePostPriceType === priceType;
-                  const isDisabled =
-                    priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
+              {isPaidUploadComposer ? (
+                <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-950">
+                    <Coins className="size-4 text-amber-600" />
+                    {CONTENT_PAID_USDT_AMOUNT} USDT
+                  </span>
+                  <p className="mt-1 text-xs font-medium leading-5 text-amber-900/80">
+                    {paidUploadComposerCopy.priceBody}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
+                  {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
+                    const isSelected = effectivePostPriceType === priceType;
+                    const isDisabled =
+                      priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
 
-                  return (
-                    <button
-                      disabled={isDisabled}
-                      className={cn(
-                        "inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45",
-                        isSelected
-                          ? "bg-white text-slate-950 shadow-sm"
-                          : "text-slate-500",
-                      )}
-                      key={`mobile-${priceType}`}
-                      onClick={() => {
-                        setPostForm((current) => ({
-                          ...current,
-                          priceType,
-                        }));
-                      }}
-                      type="button"
-                    >
-                      {priceType === "paid" ? (
-                        <Coins className="size-4 text-amber-600" />
-                      ) : (
-                        <Check className="size-4 text-emerald-600" />
-                      )}
-                      {priceType === "paid"
-                        ? `${CONTENT_PAID_USDT_AMOUNT} USDT`
-                        : contentCopy.labels.free}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        disabled={isDisabled}
+                        className={cn(
+                          "inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45",
+                          isSelected
+                            ? "bg-white text-slate-950 shadow-sm"
+                            : "text-slate-500",
+                        )}
+                        key={`mobile-${priceType}`}
+                        onClick={() => {
+                          setPostForm((current) => ({
+                            ...current,
+                            priceType,
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {priceType === "paid" ? (
+                          <Coins className="size-4 text-amber-600" />
+                        ) : (
+                          <Check className="size-4 text-emerald-600" />
+                        )}
+                        {priceType === "paid"
+                          ? `${CONTENT_PAID_USDT_AMOUNT} USDT`
+                          : contentCopy.labels.free}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {hasUploadedPostVideo || hasGeneratedPostVideo ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
                   {hasUploadedPostVideo
@@ -5853,7 +5952,7 @@ export function CreatorContentStudioPage({
                 <button
                   aria-busy={savingPostStatus === "draft"}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-                  disabled={composerBusy}
+                  disabled={draftDisabled}
                   onClick={() => {
                     void createPost("draft");
                   }}
@@ -5872,11 +5971,11 @@ export function CreatorContentStudioPage({
                   aria-busy={savingPostStatus === "published"}
                   className={cn(
                     "inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed",
-                    !hasPostMedia && savingPostStatus !== "published"
+                    !hasRequiredPostMedia && savingPostStatus !== "published"
                       ? "bg-slate-200 text-slate-500 shadow-none"
                       : "bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
                   )}
-                  disabled={composerBusy || !hasPostMedia}
+                  disabled={publishDisabled}
                   onClick={() => {
                     void createPost("published");
                   }}
@@ -5892,9 +5991,9 @@ export function CreatorContentStudioPage({
                   )}
                 </button>
               </div>
-              {!hasPostMedia ? (
+              {!hasRequiredPostMedia ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
-                  {postImageRequiredMessage}
+                  {requiredPostMediaMessage}
                 </p>
               ) : null}
 
@@ -5959,61 +6058,73 @@ export function CreatorContentStudioPage({
                   {CONTENT_PAID_USDT_AMOUNT} USDT
                 </span>
               </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
-                  const isSelected = effectivePostPriceType === priceType;
-                  const isDisabled =
-                    priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
-                  const title =
-                    priceType === "paid"
-                      ? locale === "ko"
-                        ? "유료"
-                        : "Paid"
-                      : contentCopy.labels.free;
-                  const description =
-                    priceType === "paid"
-                      ? hasUploadedPostVideo
+              {isPaidUploadComposer ? (
+                <div className="mt-4 rounded-[18px] border border-slate-950 bg-white px-4 py-3 text-left shadow-[0_16px_34px_rgba(15,23,42,0.08)]">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                    <Coins className="size-4 text-amber-600" />
+                    {CONTENT_PAID_USDT_AMOUNT} USDT
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">
+                    {paidUploadComposerCopy.priceBody}
+                  </span>
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {(["free", "paid"] as ContentPriceType[]).map((priceType) => {
+                    const isSelected = effectivePostPriceType === priceType;
+                    const isDisabled =
+                      priceType === "paid" ? !hasUploadedPostVideo : hasUploadedPostVideo;
+                    const title =
+                      priceType === "paid"
                         ? locale === "ko"
-                          ? "직접 업로드한 동영상과 상세 본문을 1 USDT로 잠급니다."
-                          : "Lock the uploaded video and detail body for 1 USDT."
-                        : paidUploadRequiredMessage
-                      : locale === "ko"
-                        ? "AI 생성 동영상과 일반 콘텐츠는 무료 공개로 저장됩니다."
-                        : "AI-generated videos and regular content are saved as free public.";
+                          ? "유료"
+                          : "Paid"
+                        : contentCopy.labels.free;
+                    const description =
+                      priceType === "paid"
+                        ? hasUploadedPostVideo
+                          ? locale === "ko"
+                            ? "직접 업로드한 동영상과 상세 본문을 1 USDT로 잠급니다."
+                            : "Lock the uploaded video and detail body for 1 USDT."
+                          : paidUploadRequiredMessage
+                        : locale === "ko"
+                          ? "AI 생성 동영상과 일반 콘텐츠는 무료 공개로 저장됩니다."
+                          : "AI-generated videos and regular content are saved as free public.";
 
-                  return (
-                    <button
-                      disabled={isDisabled}
-                      className={cn(
-                        "rounded-[18px] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
-                        isSelected
-                          ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
-                          : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
-                      )}
-                      key={priceType}
-                      onClick={() => {
-                        setPostForm((current) => ({
-                          ...current,
-                          priceType,
-                        }));
-                      }}
-                      type="button"
-                    >
-                      <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-                        {priceType === "paid" ? (
-                          <Coins className="size-4 text-amber-600" />
-                        ) : (
-                          <Check className="size-4 text-emerald-600" />
+                    return (
+                      <button
+                        disabled={isDisabled}
+                        className={cn(
+                          "rounded-[18px] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55",
+                          isSelected
+                            ? "border-slate-950 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
+                            : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white",
                         )}
-                        {title}
-                      </span>
-                      <span className="mt-1 block text-xs leading-5 text-slate-500">
-                        {description}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                        key={priceType}
+                        onClick={() => {
+                          setPostForm((current) => ({
+                            ...current,
+                            priceType,
+                          }));
+                        }}
+                        type="button"
+                      >
+                        <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                          {priceType === "paid" ? (
+                            <Coins className="size-4 text-amber-600" />
+                          ) : (
+                            <Check className="size-4 text-emerald-600" />
+                          )}
+                          {title}
+                        </span>
+                        <span className="mt-1 block text-xs leading-5 text-slate-500">
+                          {description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <p className="mt-3 text-xs font-medium leading-5 text-slate-500">
                 {hasUploadedPostVideo
                   ? uploadedVideoPaidPolicyMessage
@@ -6088,26 +6199,28 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : coverUploadLabel}
                 </button>
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    !canGeneratePostCover
-                  }
-                  onClick={() => {
-                    openCoverGenerationDialog();
-                  }}
-                  type="button"
-                >
-                  <Sparkles className="size-4" />
-                  {isGeneratingPostImage &&
-                  isCoverGenerationDialogOpen &&
-                  coverGenerationProgress.active
-                    ? contentCopy.actions.generatingAiCover
-                    : contentCopy.actions.generateAiCover}
-                </button>
+                {isPaidUploadComposer ? null : (
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      !canGeneratePostCover
+                    }
+                    onClick={() => {
+                      openCoverGenerationDialog();
+                    }}
+                    type="button"
+                  >
+                    <Sparkles className="size-4" />
+                    {isGeneratingPostImage &&
+                    isCoverGenerationDialogOpen &&
+                    coverGenerationProgress.active
+                      ? contentCopy.actions.generatingAiCover
+                      : contentCopy.actions.generateAiCover}
+                  </button>
+                )}
                 {postForm.coverImageUrl ? (
                   <button
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
@@ -6148,9 +6261,13 @@ export function CreatorContentStudioPage({
                   <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
                     {postForm.contentImageUrls.length}/10
                   </span>
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
-                    {locale === "ko" ? "AI" : "AI"} {postForm.generatedContentImageUrls.length}/{GENERATED_CONTENT_IMAGE_LIMIT}
-                  </span>
+                  {isPaidUploadComposer ? null : (
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+                      {locale === "ko" ? "AI" : "AI"}{" "}
+                      {postForm.generatedContentImageUrls.length}/
+                      {GENERATED_CONTENT_IMAGE_LIMIT}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -6171,31 +6288,33 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : contentImagesUploadLabel}
                 </button>
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    !canGeneratePostCover ||
-                    postForm.generatedContentImageUrls.length >=
-                      GENERATED_CONTENT_IMAGE_LIMIT ||
-                    postForm.contentImageUrls.length >= 10
-                  }
-                  onClick={() => {
-                    openContentImageGenerationDialog();
-                  }}
-                  type="button"
-                >
-                  <Sparkles className="size-4" />
-                  {isGeneratingPostImage &&
-                  isContentImageGenerationDialogOpen &&
-                  contentImageGenerationProgress.active
-                    ? locale === "ko"
-                      ? "AI 이미지 생성 중..."
-                      : "Generating AI image..."
-                    : aiContentImageLabel}
-                </button>
+                {isPaidUploadComposer ? null : (
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      !canGeneratePostCover ||
+                      postForm.generatedContentImageUrls.length >=
+                        GENERATED_CONTENT_IMAGE_LIMIT ||
+                      postForm.contentImageUrls.length >= 10
+                    }
+                    onClick={() => {
+                      openContentImageGenerationDialog();
+                    }}
+                    type="button"
+                  >
+                    <Sparkles className="size-4" />
+                    {isGeneratingPostImage &&
+                    isContentImageGenerationDialogOpen &&
+                    contentImageGenerationProgress.active
+                      ? locale === "ko"
+                        ? "AI 이미지 생성 중..."
+                        : "Generating AI image..."
+                      : aiContentImageLabel}
+                  </button>
+                )}
               </div>
               {postForm.contentImageUrls.length > 0 ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -6239,8 +6358,12 @@ export function CreatorContentStudioPage({
               ) : (
                 <div className="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
                   {locale === "ko"
-                    ? `상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지 생성할 수 있습니다.`
-                    : `Add content images for the swipeable detail page. You can upload your own or generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} with AI.`}
+                    ? isPaidUploadComposer
+                      ? paidUploadComposerCopy.imageEmpty
+                      : `상세 페이지에서 좌우로 넘겨볼 콘텐츠 이미지를 추가해보세요. 직접 업로드하거나 AI로 최대 ${GENERATED_CONTENT_IMAGE_LIMIT}장까지 생성할 수 있습니다.`
+                    : isPaidUploadComposer
+                      ? paidUploadComposerCopy.imageEmpty
+                      : `Add content images for the swipeable detail page. You can upload your own or generate up to ${GENERATED_CONTENT_IMAGE_LIMIT} with AI.`}
                 </div>
               )}
             </div>
@@ -6251,9 +6374,11 @@ export function CreatorContentStudioPage({
                     {locale === "ko" ? "콘텐츠 동영상" : "Content video"}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
-                    {locale === "ko"
-                      ? "직접 업로드한 MP4, MOV, WEBM 동영상은 유료 콘텐츠로 저장되고, AI 생성 동영상은 무료 공개로 저장됩니다. 최대 1개, 200MB 이하입니다."
-                      : "Direct MP4, MOV, or WEBM uploads are saved as paid content, while AI-generated videos are saved as free public content. One video, 200MB max."}
+                    {isPaidUploadComposer
+                      ? paidUploadComposerCopy.videoHint
+                      : locale === "ko"
+                        ? "직접 업로드한 MP4, MOV, WEBM 동영상은 유료 콘텐츠로 저장되고, AI 생성 동영상은 무료 공개로 저장됩니다. 최대 1개, 200MB 이하입니다."
+                        : "Direct MP4, MOV, or WEBM uploads are saved as paid content, while AI-generated videos are saved as free public content. One video, 200MB max."}
                   </p>
                 </div>
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
@@ -6283,28 +6408,30 @@ export function CreatorContentStudioPage({
                     ? `${Math.round(postVideoUploadProgress)}%`
                     : contentVideoUploadLabel}
                 </button>
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 text-sm font-medium text-sky-950 transition hover:border-sky-300 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={
-                    isUploadingPostImage ||
-                    isUploadingPostVideo ||
-                    isGeneratingPostImage ||
-                    postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
-                  }
-                  onClick={() => {
-                    openContentVideoGenerationDialog();
-                  }}
-                  type="button"
-                >
-                  <WandSparkles className="size-4" />
-                  {isGeneratingPostImage &&
-                  isContentVideoGenerationDialogOpen &&
-                  contentVideoGenerationProgress.active
-                    ? locale === "ko"
-                      ? "AI 동영상 생성 중..."
-                      : "Generating AI video..."
-                    : aiContentVideoLabel}
-                </button>
+                {isPaidUploadComposer ? null : (
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 text-sm font-medium text-sky-950 transition hover:border-sky-300 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage ||
+                      postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+                    }
+                    onClick={() => {
+                      openContentVideoGenerationDialog();
+                    }}
+                    type="button"
+                  >
+                    <WandSparkles className="size-4" />
+                    {isGeneratingPostImage &&
+                    isContentVideoGenerationDialogOpen &&
+                    contentVideoGenerationProgress.active
+                      ? locale === "ko"
+                        ? "AI 동영상 생성 중..."
+                        : "Generating AI video..."
+                      : aiContentVideoLabel}
+                  </button>
+                )}
                 {postForm.contentVideoUrls.length > 0 ? (
                   <button
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
@@ -6313,7 +6440,7 @@ export function CreatorContentStudioPage({
                         ...current,
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
-                        priceType: "free",
+                        priceType: isPaidUploadComposer ? "paid" : "free",
                       }));
                     }}
                     type="button"
@@ -6361,14 +6488,7 @@ export function CreatorContentStudioPage({
               <button
                 aria-busy={savingPostStatus === "draft"}
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 sm:w-auto"
-                disabled={
-                  isSavingPost ||
-                  isCreatingSellerWallet ||
-                  isDisconnected ||
-                  isUploadingPostImage ||
-                  isUploadingPostVideo ||
-                  isGeneratingPostImage
-                }
+                disabled={draftDisabled}
                 onClick={() => {
                   void createPost("draft");
                 }}
@@ -6387,19 +6507,11 @@ export function CreatorContentStudioPage({
                 aria-busy={savingPostStatus === "published"}
                 className={cn(
                   "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed sm:w-auto",
-                  !hasPostMedia && savingPostStatus !== "published"
+                  !hasRequiredPostMedia && savingPostStatus !== "published"
                     ? "bg-slate-200 text-slate-500 shadow-none"
                     : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
                 )}
-                disabled={
-                  isSavingPost ||
-                  isCreatingSellerWallet ||
-                  isDisconnected ||
-                  isUploadingPostImage ||
-                  isUploadingPostVideo ||
-                  isGeneratingPostImage ||
-                  !hasPostMedia
-                }
+                disabled={publishDisabled}
                 onClick={() => {
                   void createPost("published");
                 }}
@@ -6415,9 +6527,9 @@ export function CreatorContentStudioPage({
                 )}
               </button>
             </div>
-            {!hasPostMedia ? (
+            {!hasRequiredPostMedia ? (
               <p className="text-sm font-medium leading-6 text-slate-500">
-                {postImageRequiredMessage}
+                {requiredPostMediaMessage}
               </p>
             ) : null}
             </div>
@@ -6442,7 +6554,9 @@ export function CreatorContentStudioPage({
       {
         href: newPostHref,
         isActive: view === "new",
-        label: contentCopy.actions.createPost,
+        label: isPaidUploadComposer
+          ? paidUploadComposerCopy.title
+          : contentCopy.actions.createPost,
       },
       {
         href: postsManagerHref,
@@ -7200,12 +7314,14 @@ export function CreatorContentStudioPage({
           onPromptValueChange={setContentVideoPrompt}
         />
       ) : null}
-      <CreatorStudioMobileNav
-        active={view === "character" ? "profile" : view}
-        locale={locale}
-        referralCode={referralCode}
-        returnToHref={returnToHref}
-      />
+      {showMobileNav ? (
+        <CreatorStudioMobileNav
+          active={view === "character" ? "profile" : view}
+          locale={locale}
+          referralCode={referralCode}
+          returnToHref={returnToHref}
+        />
+      ) : null}
     </>
   );
 }

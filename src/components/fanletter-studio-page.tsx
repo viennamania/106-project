@@ -1637,7 +1637,7 @@ export function FanletterStudioPage({
     { returnTo: studioHref },
   );
   const paidUploadHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
     { returnTo: studioHref },
   );
   const activateHref = setPathSearchParams(

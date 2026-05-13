@@ -314,7 +314,7 @@ export function FanletterSalesPage({
     { returnTo: currentManagerHref },
   );
   const paidUploadHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio/new`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
     { returnTo: currentManagerHref },
   );
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
