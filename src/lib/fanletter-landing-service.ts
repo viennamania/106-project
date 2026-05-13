@@ -18,17 +18,24 @@ import {
 } from "@/lib/mongodb";
 
 const FEATURED_VIDEO_LIMIT = 6;
+const FEATURED_PAID_VIDEO_LIMIT = 4;
 const FEATURED_VIDEO_CANDIDATE_LIMIT = 48;
 const RECENCY_DECAY_DAYS = 21;
 const TEXT_LIMIT = 170;
+const PAID_TEASER_SENSITIVE_PATTERN =
+  /(adult|bikini|create a|dramatic lighting|erotic|fluid motion|hyper-realistic|intricate design|lingerie|lust|motion blur|naked|nude|nsfw|porn|prompt|sex|sexy|standard iphone selfie|textures|underwear|uploaded reference|노출|비키니|섹시|성인|속옷|야한)/i;
 
 export type FanletterFeaturedVideo = {
   authorAvatarImageUrl: string | null;
   authorName: string;
+  authorReferralCode: string | null;
   contentId: string;
   coverImageUrl: string | null;
   priceLabel: "free" | "paid";
+  priceUsdt: string | null;
+  previewText: string | null;
   publishedAt: string | null;
+  social: FanletterCandidateSignals;
   summary: string;
   title: string;
   videoUrl: string;
@@ -43,11 +50,12 @@ export type FanletterLiveStats = {
 };
 
 export type FanletterLandingData = {
+  featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   liveStats: FanletterLiveStats;
 };
 
-type FanletterCandidateSignals = {
+export type FanletterCandidateSignals = {
   commentCount: number;
   likeCount: number;
   paidBuyerCount: number;
@@ -78,6 +86,51 @@ function compactText(value: string | null | undefined, limit = TEXT_LIMIT) {
   }
 
   return `${text.slice(0, limit - 1).trimEnd()}...`;
+}
+
+function isReadableLandingText(value: string) {
+  const compacted = value.replace(/\s+/g, "").trim();
+
+  if (compacted.length < 4) {
+    return false;
+  }
+
+  if (/(.)\1{3,}/i.test(compacted)) {
+    return false;
+  }
+
+  const latinText = compacted.replace(/[^a-z]/gi, "");
+
+  if (
+    latinText.length >= Math.ceil(compacted.length * 0.72) &&
+    !/[aeiou]/i.test(latinText)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function getSafePaidLandingText({
+  fallback,
+  limit,
+  value,
+}: {
+  fallback: string;
+  limit: number;
+  value: string | null | undefined;
+}) {
+  const text = compactText(value, limit);
+
+  if (
+    !text ||
+    !isReadableLandingText(text) ||
+    PAID_TEASER_SENSITIVE_PATTERN.test(text)
+  ) {
+    return fallback;
+  }
+
+  return text;
 }
 
 function getVideoUrl(post: ContentPostDocument) {
@@ -268,9 +321,11 @@ async function getCandidateSignals(posts: ContentPostDocument[]) {
 }
 
 function pickWeightedFeaturedPosts({
+  limit = FEATURED_VIDEO_LIMIT,
   posts,
   signalsByContentId,
 }: {
+  limit?: number;
   posts: ContentPostDocument[];
   signalsByContentId: Map<string, FanletterCandidateSignals>;
 }) {
@@ -285,7 +340,7 @@ function pickWeightedFeaturedPosts({
   const selected: ContentPostDocument[] = [];
   const selectedCountByAuthor = new Map<string, number>();
 
-  while (remaining.length > 0 && selected.length < FEATURED_VIDEO_LIMIT) {
+  while (remaining.length > 0 && selected.length < limit) {
     const weightedCandidates = remaining.map((candidate) => {
       const selectedAuthorCount =
         selectedCountByAuthor.get(candidate.post.authorEmail) ?? 0;
@@ -325,15 +380,19 @@ function pickWeightedFeaturedPosts({
 }
 
 async function getFeaturedVideoPosts({
+  limit,
   locale,
+  priceType,
 }: {
+  limit?: number;
   locale: Locale;
+  priceType: "free" | "paid";
 }) {
   const postsCollection = await getContentPostsCollection();
   const baseFilter: Filter<ContentPostDocument> = {
     ...getPublishedContentLocaleFilter(locale),
     "contentVideoUrls.0": { $exists: true },
-    priceType: "free",
+    priceType,
     status: "published",
   };
   const sort = {
@@ -349,6 +408,7 @@ async function getFeaturedVideoPosts({
   const signalsByContentId = await getCandidateSignals(candidates);
 
   return pickWeightedFeaturedPosts({
+    limit,
     posts: candidates,
     signalsByContentId,
   });
@@ -369,6 +429,71 @@ async function getProfileByEmail(posts: ContentPostDocument[]) {
     .toArray();
 
   return new Map(profiles.map((profile) => [profile.email, profile]));
+}
+
+function toFeaturedVideo({
+  locale,
+  post,
+  profile,
+  signals,
+}: {
+  locale: Locale;
+  post: ContentPostDocument;
+  profile: CreatorProfileDocument | undefined;
+  signals?: FanletterCandidateSignals | null;
+}): FanletterFeaturedVideo | null {
+  const videoUrl = getVideoUrl(post);
+
+  if (!videoUrl) {
+    return null;
+  }
+
+  const authorName = getAuthorName(post, profile);
+  const paidTitleFallback =
+    locale === "ko"
+      ? `${authorName} 팬 전용 브이로그`
+      : `${authorName} fan-only vlog`;
+  const paidPreviewFallback =
+    locale === "ko"
+      ? "결제 후 전체 영상과 상세 본문이 열리는 팬 전용 브이로그입니다."
+      : "A fan-only vlog where the full video and detail body unlock after payment.";
+  const title =
+    post.priceType === "paid"
+      ? getSafePaidLandingText({
+          fallback: paidTitleFallback,
+          limit: 92,
+          value: post.title,
+        })
+      : compactText(post.title, 92);
+  const previewText =
+    post.priceType === "paid"
+      ? getSafePaidLandingText({
+          fallback: paidPreviewFallback,
+          limit: 120,
+          value: post.previewText || post.summary,
+        })
+      : compactText(post.previewText, 120) || null;
+  const summary =
+    post.priceType === "paid"
+      ? previewText || paidPreviewFallback
+      : compactText(post.summary || post.previewText || post.body);
+
+  return {
+    authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
+    authorName,
+    authorReferralCode: post.authorReferralCode || null,
+    contentId: post.contentId,
+    coverImageUrl:
+      post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null,
+    priceLabel: post.priceType,
+    priceUsdt: post.priceUsdt ?? null,
+    previewText,
+    publishedAt: post.publishedAt?.toISOString() ?? null,
+    social: signals ?? createEmptyCandidateSignals(),
+    summary,
+    title,
+    videoUrl,
+  };
 }
 
 export const getFanletterLandingData = unstable_cache(
@@ -416,6 +541,7 @@ export const getFanletterLandingData = unstable_cache(
       confirmedSalesCount,
       totalSalesRows,
       featuredPosts,
+      featuredPaidPosts,
     ] = await Promise.all([
       postsCollection.countDocuments(publishedContentFilter),
       postsCollection.countDocuments(publicVideoFilter),
@@ -424,34 +550,37 @@ export const getFanletterLandingData = unstable_cache(
       ordersCollection
         .aggregate<{ _id: null; totalSalesUsdt: number }>(totalSalesPipeline)
         .toArray(),
-      getFeaturedVideoPosts({ locale }),
+      getFeaturedVideoPosts({ locale, priceType: "free" }),
+      getFeaturedVideoPosts({
+        limit: FEATURED_PAID_VIDEO_LIMIT,
+        locale,
+        priceType: "paid",
+      }),
     ]);
-    const profileByEmail = await getProfileByEmail(featuredPosts);
+    const [profileByEmail, paidSignalsByContentId] = await Promise.all([
+      getProfileByEmail([...featuredPosts, ...featuredPaidPosts]),
+      getCandidateSignals(featuredPaidPosts),
+    ]);
 
     return {
+      featuredPaidVideos: featuredPaidPosts.flatMap((post) => {
+        const video = toFeaturedVideo({
+          locale,
+          post,
+          profile: profileByEmail.get(post.authorEmail),
+          signals: paidSignalsByContentId.get(post.contentId),
+        });
+
+        return video ? [video] : [];
+      }),
       featuredVideos: featuredPosts.flatMap((post) => {
-        const videoUrl = getVideoUrl(post);
+        const video = toFeaturedVideo({
+          locale,
+          post,
+          profile: profileByEmail.get(post.authorEmail),
+        });
 
-        if (!videoUrl) {
-          return [];
-        }
-
-        const profile = profileByEmail.get(post.authorEmail);
-
-        return [
-          {
-            authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
-            authorName: getAuthorName(post, profile),
-            contentId: post.contentId,
-            coverImageUrl:
-              post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null,
-            priceLabel: post.priceType,
-            publishedAt: post.publishedAt?.toISOString() ?? null,
-            summary: compactText(post.summary || post.previewText || post.body),
-            title: compactText(post.title, 92),
-            videoUrl,
-          },
-        ];
+        return video ? [video] : [];
       }),
       liveStats: {
         activeCreatorCount,
@@ -462,7 +591,7 @@ export const getFanletterLandingData = unstable_cache(
       },
     };
   },
-  ["fanletter-landing-data"],
+  ["fanletter-landing-data-v3"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],

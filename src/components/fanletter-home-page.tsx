@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowRight,
   BadgeDollarSign,
   Bot,
   ChartNoAxesCombined,
   Clapperboard,
   Crown,
+  LockKeyhole,
+  MessageCircle,
   MessageCircleHeart,
   Network,
   ShieldCheck,
@@ -93,7 +96,26 @@ type FanletterCopy = {
     creators: string;
     faq: string;
     features: string;
+    paid: string;
     studio: string;
+  };
+  paidSpotlight: {
+    badge: string;
+    body: string;
+    buyerMetric: string;
+    commentMetric: string;
+    cta: string;
+    emptyBody: string;
+    emptyTitle: string;
+    eyebrow: string;
+    open: string;
+    priceNote: string;
+    previewLabel: string;
+    purchaseLibrary: string;
+    saveMetric: string;
+    title: string;
+    unlockItems: string[];
+    unlockTitle: string;
   };
   niche: {
     body: string;
@@ -216,7 +238,27 @@ const koCopy: FanletterCopy = {
     creators: "캐릭터",
     faq: "FAQ",
     features: "기능",
+    paid: "팬 전용",
     studio: "스튜디오",
+  },
+  paidSpotlight: {
+    badge: "팬 전용 · 1 USDT",
+    body: "무료 공개 브이로그로 캐릭터 분위기를 확인한 뒤, 더 가까운 루틴과 답장 장면은 팬 전용에서 잠금 해제합니다.",
+    buyerMetric: "구매",
+    commentMetric: "댓글",
+    cta: "팬 전용 보기",
+    emptyBody:
+      "유료 팬 전용 브이로그가 준비되면 공개 티저와 잠금 해제 항목이 이곳에 먼저 표시됩니다.",
+    emptyTitle: "팬 전용 브이로그를 준비 중입니다.",
+    eyebrow: "Fan-only paid vlogs",
+    open: "미리보기",
+    priceNote: "결제 후 전체 영상과 상세 본문이 열립니다.",
+    previewLabel: "공개 티저",
+    purchaseLibrary: "구매함 보기",
+    saveMetric: "저장",
+    title: "공개 브이로그 다음에 열리는 팬 전용.",
+    unlockItems: ["전체 업로드 영상", "상세 본문과 이미지", "댓글과 다음 요청"],
+    unlockTitle: "결제 후 열리는 항목",
   },
   niche: {
     body: "개인, AI 인플루언서, 브랜드 마스코트, 웹툰·게임·버추얼 아이돌 IP까지 하나의 캐릭터 채널로 숏폼화합니다.",
@@ -358,7 +400,28 @@ const enCopy: FanletterCopy = {
     creators: "Characters",
     faq: "FAQ",
     features: "Features",
+    paid: "Fan-only",
     studio: "Studio",
+  },
+  paidSpotlight: {
+    badge: "Fan-only · 1 USDT",
+    body:
+      "Fans can preview the public vibe first, then unlock closer routines and reply scenes from fan-only paid vlogs.",
+    buyerMetric: "buyers",
+    commentMetric: "comments",
+    cta: "View fan-only",
+    emptyBody:
+      "When paid fan-only vlogs are ready, their public teaser and unlock details will appear here first.",
+    emptyTitle: "Fan-only vlogs are being prepared.",
+    eyebrow: "Fan-only paid vlogs",
+    open: "Preview",
+    priceNote: "Full video and detail body unlock after payment.",
+    previewLabel: "Public teaser",
+    purchaseLibrary: "Purchases",
+    saveMetric: "saves",
+    title: "Fan-only opens after the public vlog.",
+    unlockItems: ["Full uploaded video", "Detail body and images", "Comments and next requests"],
+    unlockTitle: "Unlock includes",
   },
   niche: {
     body: "Individuals, AI influencers, brand mascots, and webtoon, game, or virtual idol IP can become short-form character channels.",
@@ -454,12 +517,280 @@ function getAuthorInitial(name: string) {
   return name.trim().charAt(0).toUpperCase() || "F";
 }
 
+function formatMetric(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US", {
+    notation: value >= 1000 ? "compact" : "standard",
+  }).format(value);
+}
+
+function FanletterPaidSpotlightSection({
+  copy,
+  featuredPaidVideos,
+  homeHref,
+  locale,
+  purchasesHref,
+  referralCode,
+}: {
+  copy: FanletterCopy;
+  featuredPaidVideos: FanletterFeaturedVideo[];
+  homeHref: string;
+  locale: Locale;
+  purchasesHref: string;
+  referralCode: string | null;
+}) {
+  const fallbackCards = copy.paidSpotlight.unlockItems.map((item, index) => {
+    const Icon = index === 0 ? LockKeyhole : index === 1 ? Clapperboard : MessageCircle;
+
+    return {
+      Icon,
+      body:
+        index === 0
+          ? copy.paidSpotlight.priceNote
+          : index === 1
+            ? copy.paidSpotlight.body
+            : copy.paidSpotlight.emptyBody,
+      title: item,
+    };
+  });
+
+  return (
+    <section
+      className="border-b border-white/8 bg-[#07100b] px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8"
+      id="fan-only-paid"
+    >
+      <div className="mx-auto max-w-[92rem]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(20rem,0.54fr)] lg:items-end">
+          <ScrollReveal>
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
+              {copy.paidSpotlight.eyebrow}
+            </p>
+            <h2 className="mt-4 max-w-4xl text-[2.35rem] font-semibold leading-[1] tracking-normal [word-break:keep-all] sm:text-[3.8rem]">
+              {copy.paidSpotlight.title}
+            </h2>
+            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
+              {copy.paidSpotlight.body}
+            </p>
+            <div className="mt-7 flex flex-col gap-2 sm:flex-row">
+              <a
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+                href="#fan-only-paid-cards"
+              >
+                {copy.paidSpotlight.cta}
+                <ArrowRight className="size-4" />
+              </a>
+              <Link
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                href={purchasesHref}
+              >
+                {copy.paidSpotlight.purchaseLibrary}
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal className="rounded-lg border border-[#44f26e]/22 bg-black/34 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.24)] sm:p-5">
+            <div className="flex items-center gap-3">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                <BadgeDollarSign className="size-6" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-[#44f26e]">
+                  {copy.paidSpotlight.badge}
+                </p>
+                <p className="mt-1 text-xs font-medium leading-5 text-white/56">
+                  {copy.paidSpotlight.priceNote}
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-2">
+              <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/44">
+                {copy.paidSpotlight.unlockTitle}
+              </p>
+              {copy.paidSpotlight.unlockItems.map((item, index) => {
+                const Icon = index === 0 ? LockKeyhole : index === 1 ? Clapperboard : MessageCircleHeart;
+
+                return (
+                  <div
+                    className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.06] p-3"
+                    key={item}
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-black">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="text-sm font-semibold text-white">
+                      {item}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollReveal>
+        </div>
+
+        {featuredPaidVideos.length > 0 ? (
+          <div
+            className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+            id="fan-only-paid-cards"
+          >
+            {featuredPaidVideos.map((video, index) => {
+              const videoHref = setPathSearchParams(
+                buildPathWithReferral(
+                  `/${locale}/fanletter/content/${video.contentId}`,
+                  video.authorReferralCode ?? referralCode,
+                ),
+                { returnTo: homeHref },
+              );
+              const previewText = copy.paidSpotlight.priceNote;
+              const cardTitle =
+                locale === "ko"
+                  ? `${video.authorName} 팬 전용 브이로그`
+                  : `${video.authorName} fan-only vlog`;
+              const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
+
+              return (
+                <ScrollReveal
+                  className="min-w-0"
+                  delay={index * 80}
+                  key={video.contentId}
+                >
+                  <Link
+                    className="group flex h-full min-h-[34rem] flex-col overflow-hidden rounded-lg border border-white/12 bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:shadow-[0_30px_82px_rgba(0,0,0,0.34)]"
+                    href={videoHref}
+                  >
+                    <div className="relative h-[20rem] shrink-0 overflow-hidden bg-[#030504]">
+                      {video.coverImageUrl ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                          fill
+                          sizes="(min-width: 1280px) 22vw, (min-width: 768px) 46vw, 100vw"
+                          src={video.coverImageUrl}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#142517_54%,#030504)]" />
+                      )}
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.26)_45%,rgba(0,0,0,0.88)_100%)]" />
+                      <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-black">
+                        <LockKeyhole className="size-3.5" />
+                        {priceLabel}
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                          {copy.paidSpotlight.previewLabel}
+                        </p>
+                        <p className="mt-2 line-clamp-3 text-sm font-semibold leading-5 text-white">
+                          {previewText}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-1 flex-col p-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] bg-cover bg-center text-xs font-semibold text-black"
+                          style={
+                            video.authorAvatarImageUrl
+                              ? {
+                                  backgroundImage: `url(${video.authorAvatarImageUrl})`,
+                                }
+                              : undefined
+                          }
+                        >
+                          {video.authorAvatarImageUrl
+                            ? null
+                            : getAuthorInitial(video.authorName)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">
+                            {video.authorName}
+                          </p>
+                          <p className="text-xs font-semibold text-[#1f7c38]">
+                            {copy.paidSpotlight.badge}
+                          </p>
+                        </div>
+                      </div>
+                      <h3 className="mt-4 line-clamp-2 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+                        {cardTitle}
+                      </h3>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
+                          <p className="text-sm font-semibold">
+                            {formatMetric(video.social.paidBuyerCount, locale)}
+                          </p>
+                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
+                            {copy.paidSpotlight.buyerMetric}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
+                          <p className="text-sm font-semibold">
+                            {formatMetric(video.social.commentCount, locale)}
+                          </p>
+                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
+                            {copy.paidSpotlight.commentMetric}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
+                          <p className="text-sm font-semibold">
+                            {formatMetric(video.social.saveCount, locale)}
+                          </p>
+                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
+                            {copy.paidSpotlight.saveMetric}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-auto pt-4">
+                        <span className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white">
+                          {copy.paidSpotlight.open}
+                          <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </ScrollReveal>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            className="mt-10 grid gap-3 md:grid-cols-3"
+            id="fan-only-paid-cards"
+          >
+            {fallbackCards.map((card, index) => {
+              const Icon = card.Icon;
+
+              return (
+                <ScrollReveal
+                  className="rounded-lg border border-white/10 bg-white/[0.06] p-5"
+                  delay={index * 80}
+                  key={card.title}
+                >
+                  <span className="flex size-11 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                    <Icon className="size-5" />
+                  </span>
+                  <h3 className="mt-5 text-xl font-semibold leading-tight tracking-normal text-white">
+                    {index === 0 ? copy.paidSpotlight.emptyTitle : card.title}
+                  </h3>
+                  <p className="mt-3 text-sm font-medium leading-6 text-white/62">
+                    {index === 0 ? copy.paidSpotlight.emptyBody : card.body}
+                  </p>
+                </ScrollReveal>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterHomePage({
+  featuredPaidVideos,
   featuredVideos,
   locale,
   liveStats,
   referralCode,
 }: {
+  featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   locale: Locale;
   liveStats: FanletterLiveStats;
@@ -468,6 +799,10 @@ export function FanletterHomePage({
   const copy = getFanletterCopy(locale);
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/purchases`,
+    referralCode,
+  );
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
@@ -680,6 +1015,7 @@ export function FanletterHomePage({
 
             <nav className="hidden items-center gap-8 text-sm font-semibold text-white/82 md:flex">
               <a href="#features">{copy.nav.features}</a>
+              <a href="#fan-only-paid">{copy.nav.paid}</a>
               <a href="#creators">{copy.nav.creators}</a>
               <Link href={studioHref}>{copy.nav.studio}</Link>
               <a href="#faq">{copy.nav.faq}</a>
@@ -1011,6 +1347,15 @@ export function FanletterHomePage({
           )}
         </div>
       </section>
+
+      <FanletterPaidSpotlightSection
+        copy={copy}
+        featuredPaidVideos={featuredPaidVideos}
+        homeHref={homeHref}
+        locale={locale}
+        purchasesHref={purchasesHref}
+        referralCode={referralCode}
+      />
 
       <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
         <div className="mx-auto max-w-[92rem]">

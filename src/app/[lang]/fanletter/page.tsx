@@ -98,6 +98,7 @@ export default async function FanletterRoutePage({
 
   return (
     <FanletterHomePage
+      featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
       locale={lang}
       liveStats={landingData.liveStats}
