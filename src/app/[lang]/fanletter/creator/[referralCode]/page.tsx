@@ -5,6 +5,7 @@ import { FanletterCreatorPage } from "@/components/fanletter-subpages";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import {
   buildFanletterOgImagePath,
+  buildFanletterOgVersionToken,
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
@@ -39,16 +40,33 @@ export async function generateMetadata({
       : "A public FanLetter virtual character channel.");
   const normalizedReferralCode = normalizeReferralCode(referralCode);
   const url = `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}`;
+  const ogVisualUrl =
+    data?.profile.character?.avatarImageSet[0]?.url ??
+    data?.profile.avatarImageUrl ??
+    data?.items[0]?.coverImageUrl ??
+    null;
   const ogImagePath = buildFanletterOgImagePath({
     description,
     locale,
     referralCode: normalizedReferralCode,
     title,
     variant: "creator",
-    version: normalizedReferralCode ?? referralCode,
+    version:
+      buildFanletterOgVersionToken(
+        normalizedReferralCode ?? referralCode,
+        title,
+        description,
+        ogVisualUrl,
+      ) ??
+      normalizedReferralCode ??
+      referralCode,
   });
   const ogImage = {
-    alt: getFanletterOgAlt(locale, "creator"),
+    alt: data
+      ? locale === "ko"
+        ? `${characterName} FanLetter 채널 미리보기`
+        : `${characterName} FanLetter channel preview`
+      : getFanletterOgAlt(locale, "creator"),
     height: FANLETTER_OG_IMAGE_SIZE.height,
     type: "image/png",
     url: ogImagePath,

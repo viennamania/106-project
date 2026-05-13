@@ -5,11 +5,13 @@ import {
   isFanletterOgVariant,
   type FanletterOgVariant,
 } from "@/lib/fanletter-og";
+import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import {
   defaultLocale,
   hasLocale,
   type Locale,
 } from "@/lib/i18n";
+import { normalizeReferralCode } from "@/lib/member";
 
 export const contentType = "image/png";
 export const runtime = "nodejs";
@@ -81,18 +83,64 @@ function getLocaleCopy(locale: Locale) {
   return locale === "ko" ? copyByLocale.ko : copyByLocale.en;
 }
 
+function getRenderableImageUrl(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const locale = readLocale(url.searchParams.get("lang"));
   const variantInput = url.searchParams.get("variant");
   const variant = isFanletterOgVariant(variantInput) ? variantInput : "home";
   const copy = getLocaleCopy(locale);
+  const referralCode = normalizeReferralCode(url.searchParams.get("ref") ?? "");
+  const creatorData =
+    variant === "creator" && referralCode
+      ? await getFanletterCreatorPageData(locale, referralCode).catch(() => null)
+      : null;
+  const creatorVisualUrl = getRenderableImageUrl(
+    creatorData?.profile.character?.avatarImageSet[0]?.url ??
+      creatorData?.profile.avatarImageUrl ??
+      creatorData?.items[0]?.coverImageUrl,
+  );
   const title = truncateText(url.searchParams.get("title") || copy.title, 62);
   const description = truncateText(
     url.searchParams.get("description") || copy.description,
     122,
   );
   const variantLabel = copy.variantLabels[variant];
+  const metrics = creatorData
+    ? [
+        {
+          label: locale === "ko" ? "공개 브이로그" : "Public vlogs",
+          value: new Intl.NumberFormat(locale).format(creatorData.publicContentCount),
+        },
+        {
+          label: locale === "ko" ? "팬 전용" : "Fan-only",
+          value: new Intl.NumberFormat(locale).format(
+            creatorData.fanOnlyContentCount,
+          ),
+        },
+        {
+          label: locale === "ko" ? "캐릭터 레벨" : "Character level",
+          value: creatorData.profile.character
+            ? `Lv.${creatorData.profile.character.growth.level}`
+            : "Lv.1",
+        },
+      ]
+    : copy.metrics;
 
   return new ImageResponse(
     (
@@ -142,6 +190,7 @@ export async function GET(request: Request) {
               flexDirection: "column",
               justifyContent: "space-between",
               minWidth: 0,
+              ...(creatorVisualUrl ? { maxWidth: 700 } : {}),
             }}
           >
             <div
@@ -245,7 +294,7 @@ export async function GET(request: Request) {
                   display: "flex",
                   fontSize: 72,
                   fontWeight: 900,
-                  letterSpacing: -1,
+                  letterSpacing: 0,
                   lineHeight: 0.98,
                   whiteSpace: "pre-wrap",
                 }}
@@ -285,9 +334,81 @@ export async function GET(request: Request) {
               flexDirection: "column",
               gap: 18,
               justifyContent: "center",
-              width: 350,
+              width: creatorVisualUrl ? 366 : 350,
             }}
           >
+            {creatorVisualUrl ? (
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: 38,
+                  boxShadow: "0 28px 90px rgba(0,0,0,0.28)",
+                  display: "flex",
+                  height: 424,
+                  overflow: "hidden",
+                  position: "relative",
+                  width: "100%",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                <img
+                  alt=""
+                  height="424"
+                  src={creatorVisualUrl}
+                  style={{
+                    display: "flex",
+                    height: "100%",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
+                  width="366"
+                />
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(3,5,4,0.02) 0%, rgba(3,5,4,0.1) 42%, rgba(3,5,4,0.78) 100%)",
+                    inset: 0,
+                    position: "absolute",
+                  }}
+                />
+                <div
+                  style={{
+                    bottom: 18,
+                    color: "white",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    left: 20,
+                    position: "absolute",
+                    right: 20,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#44f26e",
+                      display: "flex",
+                      fontSize: 18,
+                      fontWeight: 900,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "ko" ? "대표 페르소나" : "Character identity"}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 32,
+                      fontWeight: 900,
+                      lineHeight: 1.05,
+                    }}
+                  >
+                    {title.replace(/\s*\|\s*FanLetter$/, "")}
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <div
               style={{
                 background: "rgba(255,255,255,0.95)",
@@ -301,7 +422,7 @@ export async function GET(request: Request) {
                 width: "100%",
               }}
             >
-              {copy.metrics.map((metric, index) => (
+              {metrics.map((metric, index) => (
                 <div
                   key={metric.label}
                   style={{

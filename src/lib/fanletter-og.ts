@@ -86,3 +86,24 @@ export function buildFanletterOgImagePath({
 
   return `/api/og/fanletter?${searchParams.toString()}`;
 }
+
+export function buildFanletterOgVersionToken(
+  ...parts: Array<string | null | undefined>
+) {
+  const source = parts
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .join("|");
+
+  if (!source) {
+    return null;
+  }
+
+  let hash = 0;
+
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 31 + source.charCodeAt(index)) | 0;
+  }
+
+  return Math.abs(hash).toString(36);
+}

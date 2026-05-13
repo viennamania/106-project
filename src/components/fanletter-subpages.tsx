@@ -28,6 +28,7 @@ import type { ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
 import {
   FanletterChannelSectionTabs,
   type FanletterChannelSectionTabItem,
@@ -5263,15 +5264,24 @@ export function FanletterCreatorPage({
   return (
     <FanletterShell
       actions={
-        <FanletterFollowCta
-          creatorReferralCode={data.profile.referralCode}
-          fanOnlyHref={fanOnlyHref}
-          followHref={followHref}
-          isOwner={isOwner}
-          locale={locale}
-          ownerCreateHref={ownerCreateHref}
-          ownerStudioHref={ownerStudioHref}
-        />
+        <>
+          <FanletterFollowCta
+            creatorReferralCode={data.profile.referralCode}
+            fanOnlyHref={fanOnlyHref}
+            followHref={followHref}
+            isOwner={isOwner}
+            locale={locale}
+            ownerCreateHref={ownerCreateHref}
+            ownerStudioHref={ownerStudioHref}
+          />
+          <FanletterChannelShareButton
+            href={channelHref}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+            summary={channelSummary}
+            title={`${channelName} | FanLetter`}
+          />
+        </>
       }
       aside={
         <FanletterChannelHeroPreview
