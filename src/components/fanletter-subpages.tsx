@@ -143,7 +143,7 @@ const koCopy: FanletterSubpageCopy = {
     following: "팔로잉",
     home: "홈",
     openContent: "브이로그 보기",
-    start: "채널 시작",
+    start: "내 채널 만들기",
   },
   content: {
     body: "브이로그 본문",
@@ -221,7 +221,7 @@ const enCopy: FanletterSubpageCopy = {
     following: "Following",
     home: "Home",
     openContent: "View vlog",
-    start: "Start channel",
+    start: "Start my channel",
   },
   content: {
     body: "Vlog body",
@@ -596,6 +596,7 @@ function FanletterShell({
   eyebrow,
   locale,
   referralCode,
+  showStartAction = true,
   title,
   titleClassName,
 }: {
@@ -607,6 +608,7 @@ function FanletterShell({
   eyebrow: string;
   locale: Locale;
   referralCode: string | null;
+  showStartAction?: boolean;
   title: string;
   titleClassName?: string;
 }) {
@@ -684,7 +686,7 @@ function FanletterShell({
                 locale={locale}
                 referralCode={referralCode}
               />
-              {isStartSection ? null : (
+              {isStartSection || !showStartAction ? null : (
                 <Link
                   className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
                   href={startHref}
@@ -5249,6 +5251,7 @@ export function FanletterCreatorPage({
       eyebrow={copy.creator.eyebrow}
       locale={locale}
       referralCode={effectiveReferralCode}
+      showStartAction={false}
       title={channelName}
       titleClassName="mt-4 max-w-5xl text-[2.5rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
     >
