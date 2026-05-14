@@ -3456,6 +3456,7 @@ function FanletterFanPromptPanel({
           previewTitle: "팬들이 보고 싶어하는 장면",
           previewVlogRequest: "브이로그 요청",
           requestCta: "다음 장면 요청",
+          requestFormCta: "요청 입력하기",
           startBody: "내 AI 캐릭터를 만들고 같은 방식으로 팬 참여를 받을 수 있습니다.",
           startCta: "내 캐릭터 만들기",
           startTitle: "내 AI 캐릭터 만들기",
@@ -3533,6 +3534,7 @@ function FanletterFanPromptPanel({
           previewTitle: "Scenes fans want to see",
           previewVlogRequest: "Vlog request",
           requestCta: "Request next scene",
+          requestFormCta: "Write request",
           startBody: "Create your own AI character and collect fan participation the same way.",
           startCta: "Start channel",
           startTitle: "Reply with my character",
@@ -3559,6 +3561,9 @@ function FanletterFanPromptPanel({
   const displayBody = isOwner ? labels.ownerBody : labels.body;
   const displaySteps = isOwner ? labels.ownerSteps : labels.steps;
   const displayRequestCta = isOwner ? labels.ownerRequestCta : labels.requestCta;
+  const displayPrimaryRequestCta = isOwner
+    ? labels.ownerRequestCta
+    : labels.requestFormCta;
   const displayRequestHref = isOwner
     ? ownerRequestsHref ?? ownerStudioHref ?? requestHref
     : requestFormHref;
@@ -3709,7 +3714,7 @@ function FanletterFanPromptPanel({
           href={displayRequestHref}
         >
           <PenLine className="size-4" />
-          {displayRequestCta}
+          {displayPrimaryRequestCta}
         </Link>
       </div>
 

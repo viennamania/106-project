@@ -86,6 +86,7 @@ function getCopy(locale: Locale) {
         helper:
           "팬이 남긴 요청은 크리에이터 스튜디오 요청함에 저장되고, 좋은 요청은 다음 브이로그 소재가 됩니다.",
         message: "응원 메시지",
+        messageDescription: "응원/짧은 메시지",
         nameLabel: "이름",
         namePlaceholder: "선택 사항",
         newRequest: "다른 요청 남기기",
@@ -135,6 +136,7 @@ function getCopy(locale: Locale) {
           "입력칸에 직접 적거나, 많이 요청되는 장면을 골라 문구를 다듬을 수 있습니다.",
         viewVlogs: "공개 브이로그 보기",
         vlogRequest: "다음 장면 요청",
+        vlogRequestDescription: "장면/룩/장소 요청",
       }
     : {
         bodyLabel: "Scene to request",
@@ -171,6 +173,7 @@ function getCopy(locale: Locale) {
         helper:
           "Fan requests are saved to the creator's studio inbox, where strong ideas can become future vlogs.",
         message: "Support message",
+        messageDescription: "Short support note",
         nameLabel: "Name",
         namePlaceholder: "Optional",
         newRequest: "Leave another",
@@ -220,6 +223,7 @@ function getCopy(locale: Locale) {
           "Write your own request in the input, or pick a popular scene and refine it.",
         viewVlogs: "View public vlogs",
         vlogRequest: "Next scene request",
+        vlogRequestDescription: "Scene, look, place",
       };
 }
 
@@ -313,11 +317,13 @@ export function FanletterFanRequestForm({
   const hashHighlightTimeoutRef = useRef<number | null>(null);
   const requestTypes = [
     {
+      description: copy.vlogRequestDescription,
       icon: Clapperboard,
       label: copy.vlogRequest,
       value: "vlog_request" as const,
     },
     {
+      description: copy.messageDescription,
       icon: MessageCircleHeart,
       label: copy.message,
       value: "message" as const,
@@ -610,7 +616,7 @@ export function FanletterFanRequestForm({
         </div>
         <div
           aria-label={copy.requestKind}
-          className="grid shrink-0 grid-cols-1 gap-2 rounded-lg border border-white/10 bg-white/[0.045] p-1 sm:grid-cols-2 lg:w-[24rem]"
+          className="grid shrink-0 grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.045] p-1 lg:w-[26rem]"
           role="group"
         >
           {requestTypes.map((type) => {
@@ -620,10 +626,10 @@ export function FanletterFanRequestForm({
             return (
               <button
                 aria-pressed={active}
-                className={`inline-flex h-9 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold transition ${
+                className={`flex min-h-[4.9rem] flex-col items-start justify-center rounded-lg border px-3 py-2.5 text-left text-xs font-semibold transition ${
                   active
-                    ? "bg-[#44f26e] text-black"
-                    : "text-white/62 hover:bg-white/8 hover:text-white"
+                    ? "border-[#44f26e] bg-[#44f26e] text-black"
+                    : "border-white/10 bg-black/18 text-white/62 hover:border-[#44f26e]/38 hover:bg-white/8 hover:text-white"
                 }`}
                 key={type.value}
                 onClick={() => {
@@ -642,8 +648,19 @@ export function FanletterFanRequestForm({
                 }}
                 type="button"
               >
-                <Icon className="size-3.5" />
-                {type.label}
+                <span className="flex items-center gap-1.5">
+                  <Icon className="size-3.5 shrink-0" />
+                  <span className="leading-4 [word-break:keep-all]">
+                    {type.label}
+                  </span>
+                </span>
+                <span
+                  className={`mt-1.5 text-[0.68rem] font-semibold leading-4 ${
+                    active ? "text-black/62" : "text-white/38"
+                  }`}
+                >
+                  {type.description}
+                </span>
               </button>
             );
           })}
