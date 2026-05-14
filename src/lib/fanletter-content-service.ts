@@ -172,6 +172,15 @@ export type FanletterFeedPageData = {
   referralCode: string | null;
 };
 
+export type FanletterCreatorVlogsPageData = {
+  fanOnlyContentCount: number;
+  filters: FanletterFeedFilters;
+  items: FanletterPublicContentItem[];
+  profile: FanletterCreatorProfile;
+  publicContentCount: number;
+  viewerRelation: "audience" | "owner";
+};
+
 export type FanletterCreatorPageData = {
   fanOnlyContentCount: number;
   fanOnlyItems: FanletterPublicContentItem[];
@@ -1062,6 +1071,142 @@ export const getFanletterFeedPageData = cache(
       },
       items,
       referralCode,
+    };
+  },
+);
+
+export const getFanletterCreatorVlogsPageData = cache(
+  async (
+    locale: Locale,
+    referralCodeInput: string,
+    viewerEmailInput?: string | null,
+    options?: {
+      page?: number | null;
+      sort?: string | null;
+    },
+  ): Promise<FanletterCreatorVlogsPageData | null> => {
+    const referralCode = normalizeReferralCode(referralCodeInput);
+
+    if (!referralCode) {
+      return null;
+    }
+
+    const sort = isFanletterFeedSort(options?.sort) ? options.sort : "latest";
+    const pageSize = FANLETTER_FEED_PAGE_SIZE;
+    const profilesCollection = await getCreatorProfilesCollection();
+    const postsCollection = await getContentPostsCollection();
+    const contentFilter = await getPublicContentFilter({ locale, referralCode });
+    const fanOnlyContentFilter = getFanOnlyContentFilter({ locale, referralCode });
+    const [storedProfile, publicContentCount, fanOnlyContentCount, fanRequestMetrics] =
+      await Promise.all([
+        profilesCollection.findOne({ referralCode }),
+        postsCollection.countDocuments(contentFilter),
+        postsCollection.countDocuments(fanOnlyContentFilter),
+        getPublicFanRequestMetrics(referralCode).catch(
+          () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
+        ),
+      ]);
+    const totalCount =
+      sort === "latest"
+        ? publicContentCount
+        : Math.min(publicContentCount, FANLETTER_FEED_MAX_SORT_CANDIDATES);
+    const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+    const page = Math.min(normalizeFeedPage(options?.page), pageCount);
+    const offset = (page - 1) * pageSize;
+    let profile: CreatorProfileDocument | null = storedProfile;
+    let items: FanletterPublicContentItem[] = [];
+    let characterPosts: ContentPostDocument[] = [];
+    let characterSocialByContentId = new Map<string, ContentSocialSummaryRecord>();
+
+    if (publicContentCount > 0) {
+      const posts =
+        sort === "latest"
+          ? await postsCollection
+              .find(contentFilter)
+              .sort({
+                publishedAt: -1,
+                createdAt: -1,
+                contentId: -1,
+              })
+              .skip(offset)
+              .limit(pageSize)
+              .toArray()
+          : await postsCollection
+              .find(contentFilter)
+              .sort({
+                publishedAt: -1,
+                createdAt: -1,
+                contentId: -1,
+              })
+              .limit(FANLETTER_FEED_MAX_SORT_CANDIDATES)
+              .toArray();
+      const [profileByEmail, socialByContentId] = await Promise.all([
+        getProfilesByAuthorEmail(posts),
+        getSocialByContentId(posts),
+      ]);
+
+      profile = profile ?? profileByEmail.get(posts[0]?.authorEmail ?? "") ?? null;
+      characterPosts = posts.slice(0, FANLETTER_PUBLIC_CONTENT_LIMIT);
+      characterSocialByContentId = socialByContentId;
+
+      const candidateItems = posts.map((post) =>
+        toPublicContentItem({
+          post,
+          profile,
+          social: socialByContentId.get(post.contentId),
+        }),
+      );
+
+      items =
+        sort === "latest"
+          ? candidateItems
+          : sortFeedItems(candidateItems, sort).slice(offset, offset + pageSize);
+    }
+
+    if (!profile && publicContentCount === 0) {
+      return null;
+    }
+
+    const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
+    const creatorEmail = normalizeEmail(profile?.email ?? "");
+    const viewerRelation =
+      viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
+    const displayName =
+      compactText(profile?.displayName, 48) ||
+      characterPosts[0]?.authorEmail.split("@")[0] ||
+      "FanLetter Creator";
+
+    return {
+      fanOnlyContentCount,
+      filters: {
+        page,
+        pageCount,
+        pageSize,
+        query: "",
+        sort,
+        totalCount,
+      },
+      items,
+      profile: {
+        avatarImageUrl: profile?.avatarImageUrl ?? null,
+        character: getPublicCharacter({
+          fanRequestMetrics,
+          locale,
+          posts: characterPosts,
+          profile,
+          publicContentCount,
+          socialByContentId: characterSocialByContentId,
+        }),
+        displayName,
+        intro:
+          compactText(profile?.intro, 220) ||
+          (locale === "ko"
+            ? "FanLetter에서 공개 콘텐츠를 운영하는 크리에이터입니다."
+            : "A creator publishing public content on FanLetter."),
+        referralCode,
+      },
+      publicContentCount,
+      viewerRelation,
     };
   },
 );

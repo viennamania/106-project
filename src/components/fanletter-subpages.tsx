@@ -56,6 +56,7 @@ import {
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import type {
   FanletterCreatorPageData,
+  FanletterCreatorVlogsPageData,
   FanletterFeedFilters,
   FanletterFeedSort,
   FanletterPublicCharacter,
@@ -429,6 +430,36 @@ function getFeedHref({
     {
       page: nextPage > 1 ? String(nextPage) : null,
       q: nextQuery,
+      sort: nextSort === "latest" ? null : nextSort,
+    },
+  );
+}
+
+function getCreatorVlogsHref({
+  creatorReferralCode,
+  filters,
+  locale,
+  page,
+  referralCode,
+  sort,
+}: {
+  creatorReferralCode: string;
+  filters?: FanletterFeedFilters;
+  locale: Locale;
+  page?: number;
+  referralCode: string | null;
+  sort?: FanletterFeedSort;
+}) {
+  const nextSort = sort ?? filters?.sort ?? "latest";
+  const nextPage = page ?? filters?.page ?? 1;
+
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/creator/${creatorReferralCode}/vlogs`,
+      referralCode,
+    ),
+    {
+      page: nextPage > 1 ? String(nextPage) : null,
       sort: nextSort === "latest" ? null : nextSort,
     },
   );
@@ -2522,12 +2553,14 @@ function FanletterChannelTabs({
   hasFeaturedItem,
   locale,
   publicContentCount,
+  recentPublicContentCount,
 }: {
   channelHref: string;
   fanOnlyContentCount: number;
   hasFeaturedItem: boolean;
   locale: Locale;
   publicContentCount: number;
+  recentPublicContentCount: number;
 }) {
   const labels =
     locale === "ko"
@@ -2538,8 +2571,9 @@ function FanletterChannelTabs({
           fanRequests: "팬 요청",
           home: "홈",
           mobileFeatured: "대표",
-          mobilePublicVlogs: "공개",
+          mobilePublicVlogs: "최근",
           publicVlogs: "공개 브이로그",
+          recentPublicVlogs: "최근 브이로그",
         }
       : {
           about: "About",
@@ -2548,9 +2582,15 @@ function FanletterChannelTabs({
           fanRequests: "Requests",
           home: "Home",
           mobileFeatured: "Featured",
-          mobilePublicVlogs: "Public",
+          mobilePublicVlogs: "Latest",
           publicVlogs: "Public vlogs",
+          recentPublicVlogs: "Latest vlogs",
         };
+  const showsRecentSubset =
+    recentPublicContentCount > 0 && recentPublicContentCount < publicContentCount;
+  const publicVlogTabLabel = showsRecentSubset
+    ? `${labels.recentPublicVlogs} ${formatNumber(recentPublicContentCount, locale)}`
+    : `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`;
   const tabs: FanletterChannelSectionTabItem[] = [
     { href: `${channelHref}#channel-home`, id: "channel-home", label: labels.home },
     hasFeaturedItem
@@ -2573,8 +2613,8 @@ function FanletterChannelTabs({
     {
       href: `${channelHref}#public-vlogs`,
       id: "public-vlogs",
-      label: `${labels.publicVlogs} ${formatNumber(publicContentCount, locale)}`,
-      mobileLabel: `${labels.mobilePublicVlogs} ${formatNumber(publicContentCount, locale)}`,
+      label: publicVlogTabLabel,
+      mobileLabel: `${labels.mobilePublicVlogs} ${formatNumber(showsRecentSubset ? recentPublicContentCount : publicContentCount, locale)}`,
     },
     { href: `${channelHref}#about`, id: "about", label: labels.about },
   ].filter((tab): tab is FanletterChannelSectionTabItem => Boolean(tab));
@@ -2617,14 +2657,14 @@ function FanletterFollowCta({
           fanOnly: "팬 전용 보기",
           ownerCreate: "새 브이로그",
           ownerStudio: "스튜디오 관리",
-          publicFirst: "공개 브이로그 먼저 보기",
+          publicFirst: "무료 공개 브이로그 보기",
         }
       : {
           connect: "Connect and follow",
           fanOnly: "View fan-only",
           ownerCreate: "New vlog",
           ownerStudio: "Manage studio",
-          publicFirst: "Watch public vlogs first",
+          publicFirst: "Watch free public vlogs",
         };
 
   if (isOwner) {
@@ -5030,6 +5070,85 @@ function FanletterFeedPagination({
   );
 }
 
+function FanletterCreatorVlogsPagination({
+  creatorReferralCode,
+  filters,
+  locale,
+  referralCode,
+}: {
+  creatorReferralCode: string;
+  filters: FanletterFeedFilters;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  if (filters.pageCount <= 1) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          next: "다음",
+          page: "페이지",
+          previous: "이전",
+        }
+      : {
+          next: "Next",
+          page: "Page",
+          previous: "Previous",
+        };
+  const previousHref = getCreatorVlogsHref({
+    creatorReferralCode,
+    filters,
+    locale,
+    page: Math.max(1, filters.page - 1),
+    referralCode,
+  });
+  const nextHref = getCreatorVlogsHref({
+    creatorReferralCode,
+    filters,
+    locale,
+    page: Math.min(filters.pageCount, filters.page + 1),
+    referralCode,
+  });
+
+  return (
+    <nav
+      aria-label={labels.page}
+      className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="text-sm font-semibold text-black/50">
+        {labels.page} {formatNumber(filters.page, locale)} /{" "}
+        {formatNumber(filters.pageCount, locale)}
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:flex">
+        <Link
+          aria-disabled={filters.page <= 1}
+          className={`inline-flex h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold transition ${
+            filters.page <= 1
+              ? "pointer-events-none border-black/8 !text-black/28"
+              : "border-black/10 !text-black/62 hover:border-black/24 hover:!text-black"
+          }`}
+          href={previousHref}
+        >
+          {labels.previous}
+        </Link>
+        <Link
+          aria-disabled={filters.page >= filters.pageCount}
+          className={`inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
+            filters.page >= filters.pageCount
+              ? "pointer-events-none border border-black/8 !text-black/28"
+              : "bg-black !text-white hover:bg-black/82"
+          }`}
+          href={nextHref}
+        >
+          {labels.next}
+        </Link>
+      </div>
+    </nav>
+  );
+}
+
 export function FanletterFeedPage({
   filters,
   items,
@@ -5437,6 +5556,203 @@ export function FanletterFeedPage({
   );
 }
 
+export function FanletterCreatorVlogsPage({
+  data,
+  locale,
+  referralCode,
+}: {
+  data: FanletterCreatorVlogsPageData;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const effectiveReferralCode = referralCode ?? data.profile.referralCode;
+  const character = data.profile.character;
+  const channelName = character?.name ?? data.profile.displayName;
+  const channelSummary = character?.summary || data.profile.intro;
+  const channelHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const vlogsHref = getCreatorVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    filters: data.filters,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
+  const fanOnlyHref = `${channelHref}#fan-only`;
+  const featuredItem = data.items[0] ?? null;
+  const labels =
+    locale === "ko"
+      ? {
+          allPublic: "전체 공개 브이로그",
+          allPublicCount: `전체 공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개`,
+          backToChannel: "채널 홈으로",
+          description: `${channelName} 채널의 공개 브이로그를 최신순, 인기순으로 전체 확인할 수 있습니다.`,
+          empty: "아직 공개된 브이로그가 없습니다.",
+          eyebrow: "AI 캐릭터 공개 아카이브",
+          fanOnly: "팬 전용 보기",
+          latest: "최신순",
+          popular: "인기순",
+          comments: "댓글순",
+          saves: "저장순",
+          sort: "정렬",
+          title: `${channelName} 공개 브이로그`,
+        }
+      : {
+          allPublic: "All public vlogs",
+          allPublicCount: `${formatNumber(data.publicContentCount, locale)} public vlogs`,
+          backToChannel: "Channel home",
+          description: `Browse every public vlog from ${channelName}, ordered by latest or fan signals.`,
+          empty: "No public vlogs have been published yet.",
+          eyebrow: "AI character public archive",
+          fanOnly: "View fan-only",
+          latest: "Latest",
+          popular: "Popular",
+          comments: "Comments",
+          saves: "Saves",
+          sort: "Sort",
+          title: `${channelName} public vlogs`,
+        };
+  const sortOptions: Array<{
+    label: string;
+    sort: FanletterFeedSort;
+  }> = [
+    { label: labels.latest, sort: "latest" },
+    { label: labels.popular, sort: "popular" },
+    { label: labels.comments, sort: "comments" },
+    { label: labels.saves, sort: "saves" },
+  ];
+  const shareTitle =
+    locale === "ko" ? `${channelName} 공개 브이로그` : `${channelName} public vlogs`;
+  const shareSummary =
+    locale === "ko"
+      ? `${labels.allPublicCount}를 볼 수 있는 FanLetter AI 캐릭터 채널입니다.`
+      : `A FanLetter AI character channel with ${labels.allPublicCount}.`;
+
+  return (
+    <FanletterShell
+      actions={
+        <>
+          <Link
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={channelHref}
+          >
+            <ArrowLeft className="size-4" />
+            {labels.backToChannel}
+          </Link>
+          <FanletterChannelShareButton
+            href={vlogsHref}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+            summary={shareSummary}
+            title={shareTitle}
+          />
+        </>
+      }
+      aside={
+        <FanletterChannelHeroPreview
+          channelAvatarUrl={character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl}
+          channelName={channelName}
+          character={character}
+          fanOnlyContentCount={data.fanOnlyContentCount}
+          featuredItem={featuredItem}
+          locale={locale}
+          publicContentCount={data.publicContentCount}
+          referralCode={effectiveReferralCode}
+          returnToHref={vlogsHref}
+        />
+      }
+      description={labels.description}
+      eyebrow={labels.eyebrow}
+      hideStartNavItem={data.viewerRelation === "owner"}
+      heroGridClassName="lg:items-start"
+      heroSpacingClassName="pt-10 sm:pt-16"
+      locale={locale}
+      referralCode={effectiveReferralCode}
+      showStartAction={false}
+      title={labels.title}
+      titleClassName="mt-4 max-w-5xl text-[2.4rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.4rem]"
+    >
+      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                {labels.allPublic}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                {labels.allPublicCount}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/56">
+                {channelSummary}
+              </p>
+            </div>
+            <Link
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold !text-black transition hover:border-black/28"
+              href={fanOnlyHref}
+            >
+              <Crown className="size-4" />
+              {labels.fanOnly}
+            </Link>
+          </div>
+
+          <div className="mb-5 flex flex-col gap-2 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_32px_rgba(8,18,12,0.06)] sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-black/42">
+              {labels.sort}
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              {sortOptions.map((option) => {
+                const active = option.sort === data.filters.sort;
+
+                return (
+                  <Link
+                    aria-current={active ? "page" : undefined}
+                    className={`inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold transition ${
+                      active
+                        ? "bg-black !text-white"
+                        : "border border-black/10 !text-black/58 hover:border-black/24 hover:!text-black"
+                    }`}
+                    href={getCreatorVlogsHref({
+                      creatorReferralCode: data.profile.referralCode,
+                      locale,
+                      referralCode: effectiveReferralCode,
+                      sort: option.sort,
+                    })}
+                    key={option.sort}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <ContentGrid
+            authorNameOverride={channelName}
+            contentActionLabel={copy.actions.openContent}
+            empty={labels.empty}
+            emptyActionHref={channelHref}
+            emptyActionLabel={labels.backToChannel}
+            items={data.items}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+            returnToHref={vlogsHref}
+            showVideoPreview
+          />
+
+          <FanletterCreatorVlogsPagination
+            creatorReferralCode={data.profile.referralCode}
+            filters={data.filters}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+          />
+        </div>
+      </section>
+    </FanletterShell>
+  );
+}
+
 function CharacterPersonaShowcase({
   character,
   displayName,
@@ -5767,7 +6083,12 @@ export function FanletterCreatorPage({
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
-  const publicVlogsHref = `${channelHref}#public-vlogs`;
+  const recentPublicVlogsHref = `${channelHref}#public-vlogs`;
+  const publicVlogsHref = getCreatorVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
   const fanRequestsSectionId = "fan-requests";
   const fanRequestsFormId = `${fanRequestsSectionId}-form`;
   const fanRequestsSectionHref = `${channelHref}#${fanRequestsSectionId}`;
@@ -5801,14 +6122,18 @@ export function FanletterCreatorPage({
           fanRequest: "팬 요청 보내기",
           ownerCreate: "새 브이로그 만들기",
           ownerRequests: "요청함 관리",
+          recentPublicVlogs: "최근 공개 브이로그",
           publicVlogs: "공개 브이로그 보기",
+          publicVlogsAll: `전체 공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개 보기`,
         }
       : {
           contentDetail: "View details",
           fanRequest: "Send fan request",
           ownerCreate: "Create new vlog",
           ownerRequests: "Manage requests",
+          recentPublicVlogs: "Latest public vlogs",
           publicVlogs: "View public vlogs",
+          publicVlogsAll: `View all ${formatNumber(data.publicContentCount, locale)} public vlogs`,
         };
   const channelStats = [
     {
@@ -5969,6 +6294,7 @@ export function FanletterCreatorPage({
           hasFeaturedItem={Boolean(featuredItem)}
           locale={locale}
           publicContentCount={data.publicContentCount}
+          recentPublicContentCount={contentItems.length}
         />
         <div className="mx-auto max-w-[92rem]">
           <div
@@ -6165,13 +6491,24 @@ export function FanletterCreatorPage({
             delayMs={80}
             id="public-vlogs"
           >
-            <div className="mb-4">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
-                {copy.creator.characterVideoSignal}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-                {copy.creator.characterLatest}
-              </h2>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                  {copy.creator.characterVideoSignal}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                  {channelActionLabels.recentPublicVlogs}
+                </h2>
+              </div>
+              {data.publicContentCount > contentItems.length ? (
+                <Link
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold !text-black transition hover:border-black/28"
+                  href={publicVlogsHref}
+                >
+                  {channelActionLabels.publicVlogsAll}
+                  <ArrowRight className="size-4" />
+                </Link>
+              ) : null}
             </div>
             <ContentGrid
               authorNameOverride={channelName}
@@ -6185,7 +6522,7 @@ export function FanletterCreatorPage({
               locale={locale}
               referralCode={effectiveReferralCode}
               revealItems
-              returnToHref={`${channelHref}#public-vlogs`}
+              returnToHref={recentPublicVlogsHref}
               showVideoPreview
             />
           </FanletterScrollReveal>
