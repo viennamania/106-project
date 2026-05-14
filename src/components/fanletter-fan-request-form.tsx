@@ -27,6 +27,10 @@ import type {
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { rememberFanletterRequestReceiptId } from "@/lib/fanletter-request-receipts";
+import {
+  FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
+  type FanletterFanRequestSubmittedDetail,
+} from "@/lib/fanletter-request-events";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
 
@@ -285,7 +289,9 @@ export function FanletterFanRequestForm({
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [templateLoadStatus, setTemplateLoadStatus] =
     useState<TemplateLoadStatus>("loading");
+  const [isHashHighlighted, setIsHashHighlighted] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const hashHighlightTimeoutRef = useRef<number | null>(null);
   const requestTypes = [
     {
       icon: Clapperboard,
@@ -388,6 +394,16 @@ export function FanletterFanRequestForm({
 
       window.requestAnimationFrame(() => {
         textareaRef.current?.focus({ preventScroll: true });
+
+        if (hashHighlightTimeoutRef.current !== null) {
+          window.clearTimeout(hashHighlightTimeoutRef.current);
+        }
+
+        setIsHashHighlighted(true);
+        hashHighlightTimeoutRef.current = window.setTimeout(() => {
+          setIsHashHighlighted(false);
+          hashHighlightTimeoutRef.current = null;
+        }, 1400);
       });
     }
 
@@ -396,6 +412,10 @@ export function FanletterFanRequestForm({
 
     return () => {
       window.removeEventListener("hashchange", focusRequestTextareaFromHash);
+
+      if (hashHighlightTimeoutRef.current !== null) {
+        window.clearTimeout(hashHighlightTimeoutRef.current);
+      }
     };
   }, [resolvedFormId]);
 
@@ -473,6 +493,18 @@ export function FanletterFanRequestForm({
       );
 
       rememberFanletterRequestReceiptId(data.request.requestId);
+      window.dispatchEvent(
+        new CustomEvent<FanletterFanRequestSubmittedDetail>(
+          FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
+          {
+            detail: {
+              creatorReferralCode,
+              requestId: data.request.requestId,
+              sourceContentId: sourceContentId ?? null,
+            },
+          },
+        ),
+      );
       setLastSubmittedRequest({
         body: body.trim(),
         requestType,
@@ -524,7 +556,11 @@ export function FanletterFanRequestForm({
 
   return (
     <div
-      className="mt-6 scroll-mt-28 rounded-lg border border-white/12 bg-black/28 p-4 sm:p-5"
+      className={`mt-6 scroll-mt-28 rounded-lg border p-4 transition duration-500 sm:p-5 ${
+        isHashHighlighted
+          ? "border-[#44f26e]/70 bg-[#44f26e]/10 shadow-[0_18px_54px_rgba(68,242,110,0.16)] ring-1 ring-[#44f26e]/50"
+          : "border-white/12 bg-black/28"
+      }`}
       id={resolvedFormId}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

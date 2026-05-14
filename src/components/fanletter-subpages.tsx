@@ -33,6 +33,7 @@ import {
   FanletterChannelSectionTabs,
   type FanletterChannelSectionTabItem,
 } from "@/components/fanletter-channel-section-tabs";
+import { FanletterContentDetailCtaGroup } from "@/components/fanletter-content-detail-cta-group";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-request-preset-link";
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
@@ -4087,6 +4088,8 @@ function FanletterDetailQuickActions({
       ];
   const headerBody = isOwnContent ? labels.ownerBody : labels.body;
   const headerTitle = isOwnContent ? labels.ownerTitle : labels.title;
+  const headerActionHref = isOwnContent ? detailActionHref : fanRequestHref;
+  const headerActionLabel = isOwnContent ? detailActionLabel : labels.requestTitle;
 
   return (
     <section className="mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
@@ -4104,9 +4107,9 @@ function FanletterDetailQuickActions({
         </div>
         <Link
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-          href={detailActionHref}
+          href={headerActionHref}
         >
-          {detailActionLabel}
+          {headerActionLabel}
           <ArrowRight className="size-4" />
         </Link>
       </div>
@@ -6048,6 +6051,10 @@ export function FanletterContentDetailPage({
   const fanRequestHref = content.authorReferralCode
     ? `#${fanRequestFormId}`
     : fallbackFanRequestHref;
+  const requestStatusHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/requests`,
+    effectiveReferralCode,
+  )}#fanletter-request-inbox`;
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
@@ -6099,6 +6106,7 @@ export function FanletterContentDetailPage({
           heroEyebrow: "FanLetter 전용 브이로그",
           ownerManage: "내 브이로그 관리",
           requestCta: "다음 장면 요청",
+          requestStatusCta: "내 요청 상태 보기",
           watchBadge: "세로 브이로그",
         }
       : {
@@ -6106,6 +6114,7 @@ export function FanletterContentDetailPage({
           heroEyebrow: "FanLetter vlog detail",
           ownerManage: "Manage my vlog",
           requestCta: "Request scene",
+          requestStatusCta: "Track my request",
           watchBadge: "Vertical vlog",
         };
   const mobilePrimaryActionHref = shouldShowPaidUnlockPanel
@@ -6127,7 +6136,7 @@ export function FanletterContentDetailPage({
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
-      <section className="px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-8 lg:px-8">
+      <section className="px-4 pb-8 pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
             <Link
@@ -6213,20 +6222,18 @@ export function FanletterContentDetailPage({
               {content.summary}
             </p>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Link
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={mobilePrimaryActionHref}
-              >
-                {mobilePrimaryActionLabel}
-              </Link>
-              <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-sm font-semibold !text-white transition hover:bg-white/10"
-                href={mobileSecondaryActionHref}
-              >
-                {mobileSecondaryActionLabel}
-              </Link>
-            </div>
+            <FanletterContentDetailCtaGroup
+              creatorReferralCode={content.authorReferralCode}
+              defaultPrimaryHref={mobilePrimaryActionHref}
+              defaultPrimaryLabel={mobilePrimaryActionLabel}
+              primaryIcon={shouldShowPaidUnlockPanel ? "lock" : "pen"}
+              requestStatusHref={requestStatusHref}
+              requestStatusLabel={detailLabels.requestStatusCta}
+              secondaryHref={mobileSecondaryActionHref}
+              secondaryLabel={mobileSecondaryActionLabel}
+              sourceContentId={content.contentId}
+              variant="mobile"
+            />
           </div>
 
           <div className="grid gap-4 pt-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
@@ -6309,26 +6316,18 @@ export function FanletterContentDetailPage({
                 <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
                   {content.summary}
                 </p>
-                <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <Link
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                    href={desktopPrimaryActionHref}
-                  >
-                    {shouldShowPaidUnlockPanel ? (
-                      <LockKeyhole className="size-4" />
-                    ) : (
-                      <PenLine className="size-4" />
-                    )}
-                    {desktopPrimaryActionLabel}
-                  </Link>
-                  <Link
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
-                    href={desktopSecondaryActionHref}
-                  >
-                    {desktopSecondaryActionLabel}
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </div>
+                <FanletterContentDetailCtaGroup
+                  creatorReferralCode={content.authorReferralCode}
+                  defaultPrimaryHref={desktopPrimaryActionHref}
+                  defaultPrimaryLabel={desktopPrimaryActionLabel}
+                  primaryIcon={shouldShowPaidUnlockPanel ? "lock" : "pen"}
+                  requestStatusHref={requestStatusHref}
+                  requestStatusLabel={detailLabels.requestStatusCta}
+                  secondaryHref={desktopSecondaryActionHref}
+                  secondaryLabel={desktopSecondaryActionLabel}
+                  sourceContentId={content.contentId}
+                  variant="desktop"
+                />
               </div>
 
               {shouldShowPaidUnlockPanel ? (
