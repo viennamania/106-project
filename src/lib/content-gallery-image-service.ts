@@ -9,7 +9,9 @@ import {
   CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   type ContentImageGenerationAttemptDocument,
   type ContentImageGenerationProvider,
+  type CreatorCharacterMemoryEntry,
   type CreatorCharacterPersona,
+  type CreatorCharacterTimelineEvent,
   type ContentCoverGenerationProgressStep,
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
@@ -191,7 +193,9 @@ type ContentImageGenerationRecordPatch = {
 
 export type GenerateContentGalleryImageInput = {
   avatarImageUrl?: string | null;
+  characterMemory?: CreatorCharacterMemoryEntry[] | null;
   characterPersona?: CreatorCharacterPersona | null;
+  characterTimeline?: CreatorCharacterTimelineEvent[] | null;
   memberEmail: string;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
@@ -1391,6 +1395,10 @@ export async function generateAndUploadContentGalleryImage(
   const personaPrompt = applyCreatorCharacterPersonaToPrompt(
     modelVisualBrief,
     input.characterPersona,
+    {
+      memory: input.characterMemory,
+      timeline: input.characterTimeline,
+    },
   );
   const worldContextPrompt = await createFanletterWorldContextPrompt(
     input.characterPersona,

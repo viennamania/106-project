@@ -388,7 +388,9 @@ export async function POST(request: Request) {
       const generatedVideo = await generateAndUploadContentGalleryVideo({
         avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
         avatarImageUrls: avatarReferenceUrls,
+        characterMemory: profileSnapshot.profile.characterMemory,
         characterPersona: profileSnapshot.profile.characterPersona,
+        characterTimeline: profileSnapshot.profile.characterTimeline,
         onProgress(progress) {
           emit({
             progress,
@@ -467,7 +469,9 @@ export async function POST(request: Request) {
     const generatedVideo = await generateAndUploadContentGalleryVideo({
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
       avatarImageUrls: avatarReferenceUrls,
+      characterMemory: profileSnapshot.profile.characterMemory,
       characterPersona: profileSnapshot.profile.characterPersona,
+      characterTimeline: profileSnapshot.profile.characterTimeline,
       qualityMode: videoQualityMode,
       referralCode: member.referralCode,
       summary,

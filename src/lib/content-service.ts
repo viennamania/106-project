@@ -55,6 +55,10 @@ import {
   type CreatorProfileCharacterUpdateRequest,
   type CreatorProfileUpsertRequest,
   type CreatorCharacterPersona,
+  type CreatorCharacterMemoryDocument,
+  type CreatorCharacterMemoryEntry,
+  type CreatorCharacterTimelineDocument,
+  type CreatorCharacterTimelineEvent,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import {
@@ -130,6 +134,12 @@ const CHARACTER_PERSONA_SUMMARY_LIMIT = 220;
 const CHARACTER_PERSONA_PROMPT_LIMIT = 1_200;
 const CHARACTER_PERSONA_TRAIT_LIMIT = 160;
 const CHARACTER_PERSONA_TRAIT_COUNT_LIMIT = 8;
+const CHARACTER_MEMORY_LIMIT = 24;
+const CHARACTER_MEMORY_TITLE_LIMIT = 80;
+const CHARACTER_MEMORY_BODY_LIMIT = 420;
+const CHARACTER_TIMELINE_LIMIT = 48;
+const CHARACTER_TIMELINE_TITLE_LIMIT = 100;
+const CHARACTER_TIMELINE_SUMMARY_LIMIT = 260;
 const CREATOR_AVATAR_SET_LIMIT = 8;
 const CONTENT_TITLE_LIMIT = 88;
 const CONTENT_SUMMARY_LIMIT = 180;
@@ -297,6 +307,123 @@ function normalizeCharacterPersona(
     ),
     summary: trimToLength(persona.summary, CHARACTER_PERSONA_SUMMARY_LIMIT),
   };
+}
+
+function normalizeDateLike(value: Date | string | null | undefined) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return new Date();
+}
+
+function normalizeCharacterMemoryStatus(
+  value: string | null | undefined,
+): CreatorCharacterMemoryDocument["status"] {
+  return value === "draft" ? "draft" : "confirmed";
+}
+
+function normalizeCharacterMemorySource(
+  value: string | null | undefined,
+): CreatorCharacterMemoryDocument["source"] {
+  return value === "content" || value === "fan_request" ? value : "manual";
+}
+
+function normalizeCharacterMemory(
+  values: CreatorCharacterMemoryEntry[] | CreatorCharacterMemoryDocument[] | null | undefined,
+) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values
+    .map((entry): CreatorCharacterMemoryDocument | null => {
+      const title = trimToLength(entry.title, CHARACTER_MEMORY_TITLE_LIMIT);
+      const body = trimToLength(entry.body, CHARACTER_MEMORY_BODY_LIMIT);
+
+      if (!title || !body) {
+        return null;
+      }
+
+      const createdAt = normalizeDateLike(entry.createdAt);
+
+      return {
+        body,
+        createdAt,
+        id:
+          trimToLength(entry.id, 80) ||
+          `memory-${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+        source: normalizeCharacterMemorySource(entry.source),
+        status: normalizeCharacterMemoryStatus(entry.status),
+        title,
+        updatedAt: normalizeDateLike(entry.updatedAt) ?? createdAt,
+      };
+    })
+    .filter((entry): entry is CreatorCharacterMemoryDocument => Boolean(entry))
+    .slice(0, CHARACTER_MEMORY_LIMIT);
+}
+
+function normalizeCharacterTimelineKind(
+  value: string | null | undefined,
+): CreatorCharacterTimelineDocument["kind"] {
+  if (
+    value === "content_created" ||
+    value === "content_published" ||
+    value === "fan_request_used"
+  ) {
+    return value;
+  }
+
+  return "manual";
+}
+
+function normalizeCharacterTimeline(
+  values:
+    | CreatorCharacterTimelineEvent[]
+    | CreatorCharacterTimelineDocument[]
+    | null
+    | undefined,
+) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values
+    .map((event): CreatorCharacterTimelineDocument | null => {
+      const title = trimToLength(event.title, CHARACTER_TIMELINE_TITLE_LIMIT);
+      const summary = trimToLength(
+        event.summary,
+        CHARACTER_TIMELINE_SUMMARY_LIMIT,
+      );
+
+      if (!title || !summary) {
+        return null;
+      }
+
+      const happenedAt = normalizeDateLike(event.happenedAt);
+
+      return {
+        contentId: normalizeOptionalText(event.contentId, 80),
+        createdAt: normalizeDateLike(event.createdAt),
+        happenedAt,
+        id:
+          trimToLength(event.id, 100) ||
+          `timeline-${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+        kind: normalizeCharacterTimelineKind(event.kind),
+        summary,
+        title,
+      };
+    })
+    .filter((event): event is CreatorCharacterTimelineDocument => Boolean(event))
+    .slice(0, CHARACTER_TIMELINE_LIMIT);
 }
 
 function normalizeAvatarExpression(
@@ -592,7 +719,9 @@ function createDefaultCreatorProfile(member: MemberDocument): CreatorProfileReco
   return {
     avatarImageSet: [],
     avatarImageUrl: member.landingBranding?.heroImageUrl ?? null,
+    characterMemory: [],
     characterPersona: null,
+    characterTimeline: [],
     displayName: inferDisplayName(member),
     heroImageUrl: member.landingBranding?.heroImageUrl ?? null,
     intro: inferIntro(member),
@@ -1118,7 +1247,13 @@ export async function upsertCreatorProfileForMember(
     avatarImageUrl: existing
       ? existing.avatarImageUrl ?? null
       : defaultProfile.avatarImageUrl,
+    characterMemory: normalizeCharacterMemory(
+      input.characterMemory ?? existing?.characterMemory ?? [],
+    ),
     characterPersona: existing?.characterPersona ?? null,
+    characterTimeline: normalizeCharacterTimeline(
+      input.characterTimeline ?? existing?.characterTimeline ?? [],
+    ),
     createdAt: now,
     displayName,
     email: member.email,
@@ -1197,7 +1332,13 @@ export async function upsertCreatorCharacterForMember(
       $set: {
         avatarImageSet,
         avatarImageUrl,
+        characterMemory: normalizeCharacterMemory(
+          input.characterMemory ?? existing?.characterMemory ?? [],
+        ),
         characterPersona,
+        characterTimeline: normalizeCharacterTimeline(
+          input.characterTimeline ?? existing?.characterTimeline ?? [],
+        ),
         configuredAt: existing?.configuredAt ?? now,
         displayName,
         email: member.email,
@@ -1222,6 +1363,68 @@ export async function upsertCreatorCharacterForMember(
   }
 
   return serializeCreatorProfile(stored);
+}
+
+function createContentTimelineEvent(
+  post: ContentPostDocument,
+  kind: "content_created" | "content_published",
+): CreatorCharacterTimelineDocument {
+  const now = new Date();
+  const isKorean = normalizeContentLocale(post.locale) === "ko";
+  const title =
+    kind === "content_published"
+      ? isKorean
+        ? `콘텐츠 공개: ${post.title}`
+        : `Published content: ${post.title}`
+      : isKorean
+        ? `콘텐츠 초안 생성: ${post.title}`
+        : `Drafted content: ${post.title}`;
+
+  return {
+    contentId: post.contentId,
+    createdAt: now,
+    happenedAt: kind === "content_published" ? post.publishedAt ?? now : now,
+    id: `${kind}-${post.contentId}`,
+    kind,
+    summary: trimToLength(post.summary, CHARACTER_TIMELINE_SUMMARY_LIMIT),
+    title,
+  };
+}
+
+async function recordCreatorCharacterTimelineEventForMember(
+  memberEmail: string,
+  event: CreatorCharacterTimelineDocument,
+) {
+  const [timelineEvent] = normalizeCharacterTimeline([event]);
+
+  if (!timelineEvent) {
+    return;
+  }
+
+  const collection = await getCreatorProfilesCollection();
+  await collection.updateOne(
+    { email: memberEmail },
+    {
+      $pull: {
+        characterTimeline: { id: timelineEvent.id },
+      },
+    },
+  );
+  await collection.updateOne(
+    { email: memberEmail },
+    {
+      $push: {
+        characterTimeline: {
+          $each: [timelineEvent],
+          $position: 0,
+          $slice: CHARACTER_TIMELINE_LIMIT,
+        },
+      },
+      $set: {
+        updatedAt: new Date(),
+      },
+    },
+  );
 }
 
 function buildFeedItem({
@@ -2106,8 +2309,16 @@ export async function createContentPostForMember(
 
   const postsCollection = await getContentPostsCollection();
   await postsCollection.insertOne(post);
+  await recordCreatorCharacterTimelineEventForMember(
+    member.email,
+    createContentTimelineEvent(post, "content_created"),
+  );
 
   if (post.status === "published") {
+    await recordCreatorCharacterTimelineEventForMember(
+      member.email,
+      createContentTimelineEvent(post, "content_published"),
+    );
     await emitPublishedContentNotifications({
       author: member,
       contentId: post.contentId,
@@ -2241,6 +2452,10 @@ export async function updateContentPostForMember(
   }
 
   if (post.status !== "published" && nextPost.status === "published") {
+    await recordCreatorCharacterTimelineEventForMember(
+      member.email,
+      createContentTimelineEvent(nextPost, "content_published"),
+    );
     await emitPublishedContentNotifications({
       author: member,
       contentId: nextPost.contentId,

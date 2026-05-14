@@ -237,7 +237,9 @@ export type ContentImageGenerationDocument = {
 export type CreatorProfileDocument = {
   avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
   avatarImageUrl?: string | null;
+  characterMemory?: CreatorCharacterMemoryDocument[] | null;
   characterPersona?: CreatorCharacterPersona | null;
+  characterTimeline?: CreatorCharacterTimelineDocument[] | null;
   configuredAt?: Date | null;
   createdAt: Date;
   displayName: string;
@@ -277,6 +279,55 @@ export type CreatorCharacterRealismProfile = {
   realPersonPolicy: "no_real_person_impersonation";
   timePolicy: "timezone_season_consistent";
   worldLocation?: CreatorCharacterWorldLocation | null;
+};
+
+export type CreatorCharacterMemorySource = "content" | "fan_request" | "manual";
+export type CreatorCharacterMemoryStatus = "confirmed" | "draft";
+
+export type CreatorCharacterMemoryDocument = {
+  body: string;
+  createdAt: Date;
+  id: string;
+  source: CreatorCharacterMemorySource;
+  status: CreatorCharacterMemoryStatus;
+  title: string;
+  updatedAt: Date;
+};
+
+export type CreatorCharacterMemoryEntry = {
+  body: string;
+  createdAt: string;
+  id: string;
+  source: CreatorCharacterMemorySource;
+  status: CreatorCharacterMemoryStatus;
+  title: string;
+  updatedAt: string;
+};
+
+export type CreatorCharacterTimelineKind =
+  | "content_created"
+  | "content_published"
+  | "fan_request_used"
+  | "manual";
+
+export type CreatorCharacterTimelineDocument = {
+  contentId?: string | null;
+  createdAt: Date;
+  happenedAt: Date;
+  id: string;
+  kind: CreatorCharacterTimelineKind;
+  summary: string;
+  title: string;
+};
+
+export type CreatorCharacterTimelineEvent = {
+  contentId: string | null;
+  createdAt: string;
+  happenedAt: string;
+  id: string;
+  kind: CreatorCharacterTimelineKind;
+  summary: string;
+  title: string;
 };
 
 export type FanletterVlogPlanMediaMode = "video";
@@ -460,7 +511,9 @@ export type ContentCommentDocument = {
 export type CreatorProfileRecord = {
   avatarImageSet: CreatorProfileAvatarCandidate[];
   avatarImageUrl: string | null;
+  characterMemory: CreatorCharacterMemoryEntry[];
   characterPersona: CreatorCharacterPersona | null;
+  characterTimeline: CreatorCharacterTimelineEvent[];
   displayName: string;
   heroImageUrl: string | null;
   intro: string;
@@ -887,7 +940,9 @@ export type CreatorStudioPostsLoadResponse = {
 export type CreatorProfileUpsertRequest = {
   avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
   avatarImageUrl?: string | null;
+  characterMemory?: CreatorCharacterMemoryEntry[] | null;
   characterPersona?: CreatorCharacterPersona | null;
+  characterTimeline?: CreatorCharacterTimelineEvent[] | null;
   displayName: string;
   email: string;
   heroImageUrl?: string | null;
@@ -899,7 +954,9 @@ export type CreatorProfileUpsertRequest = {
 export type CreatorProfileCharacterUpdateRequest = {
   avatarImageSet?: CreatorProfileAvatarCandidate[] | null;
   avatarImageUrl?: string | null;
+  characterMemory?: CreatorCharacterMemoryEntry[] | null;
   characterPersona: CreatorCharacterPersona;
+  characterTimeline?: CreatorCharacterTimelineEvent[] | null;
   displayName?: string | null;
   email: string;
   intro?: string | null;
@@ -989,13 +1046,63 @@ export type ContentCommentCreateResponse = {
   social: ContentSocialSummaryRecord;
 };
 
+function serializeDateValue(value: Date | string | null | undefined) {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  return new Date(0).toISOString();
+}
+
+function serializeCreatorCharacterMemory(
+  entry: CreatorCharacterMemoryDocument,
+): CreatorCharacterMemoryEntry {
+  return {
+    body: entry.body,
+    createdAt: serializeDateValue(entry.createdAt),
+    id: entry.id,
+    source: entry.source,
+    status: entry.status,
+    title: entry.title,
+    updatedAt: serializeDateValue(entry.updatedAt),
+  };
+}
+
+function serializeCreatorCharacterTimelineEvent(
+  event: CreatorCharacterTimelineDocument,
+): CreatorCharacterTimelineEvent {
+  return {
+    contentId: event.contentId ?? null,
+    createdAt: serializeDateValue(event.createdAt),
+    happenedAt: serializeDateValue(event.happenedAt),
+    id: event.id,
+    kind: event.kind,
+    summary: event.summary,
+    title: event.title,
+  };
+}
+
 export function serializeCreatorProfile(
   profile: CreatorProfileDocument,
 ): CreatorProfileRecord {
   return {
     avatarImageSet: profile.avatarImageSet ?? [],
     avatarImageUrl: profile.avatarImageUrl ?? null,
+    characterMemory: (profile.characterMemory ?? []).map(
+      serializeCreatorCharacterMemory,
+    ),
     characterPersona: profile.characterPersona ?? null,
+    characterTimeline: (profile.characterTimeline ?? []).map(
+      serializeCreatorCharacterTimelineEvent,
+    ),
     displayName: profile.displayName,
     heroImageUrl: profile.heroImageUrl ?? null,
     intro: profile.intro,

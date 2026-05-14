@@ -16,7 +16,9 @@ import {
   type ContentGenerationFailureDiagnostic,
   type ContentGenerationFailureKind,
   type ContentPostGenerateCoverProgressEvent,
+  type CreatorCharacterMemoryEntry,
   type CreatorCharacterPersona,
+  type CreatorCharacterTimelineEvent,
 } from "@/lib/content";
 import {
   applyCreatorCharacterPersonaToPrompt,
@@ -133,7 +135,9 @@ export class ContentVideoGenerationError extends Error {
 export type GenerateContentGalleryVideoInput = {
   avatarImageUrl?: string | null;
   avatarImageUrls?: string[] | null;
+  characterMemory?: CreatorCharacterMemoryEntry[] | null;
   characterPersona?: CreatorCharacterPersona | null;
+  characterTimeline?: CreatorCharacterTimelineEvent[] | null;
   onProgress?: (
     event: ContentPostGenerateCoverProgressEvent,
   ) => Promise<void> | void;
@@ -1125,6 +1129,10 @@ export async function generateAndUploadContentGalleryVideo(
   const personaAppliedPrompt = applyCreatorCharacterPersonaToPrompt(
     visualBrief,
     input.characterPersona,
+    {
+      memory: input.characterMemory,
+      timeline: input.characterTimeline,
+    },
   );
   const worldContextPrompt = await createFanletterWorldContextPrompt(
     input.characterPersona,

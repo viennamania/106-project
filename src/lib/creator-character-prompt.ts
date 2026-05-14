@@ -1,4 +1,8 @@
-import type { CreatorCharacterPersona } from "@/lib/content";
+import type {
+  CreatorCharacterMemoryEntry,
+  CreatorCharacterPersona,
+  CreatorCharacterTimelineEvent,
+} from "@/lib/content";
 import {
   createFanletterRealismPromptBlock,
   normalizeFanletterRealismRequestText,
@@ -18,6 +22,50 @@ function formatList(values: string[], fallback: string) {
     .slice(0, 8);
 
   return normalized.length > 0 ? normalized.join("; ") : fallback;
+}
+
+function createCharacterContinuityPromptBlock({
+  memory,
+  timeline,
+}: {
+  memory?: CreatorCharacterMemoryEntry[] | null;
+  timeline?: CreatorCharacterTimelineEvent[] | null;
+}) {
+  const memoryLines = (memory ?? [])
+    .filter((entry) => entry.status === "confirmed")
+    .map((entry) => {
+      const title = trimToLength(entry.title, 80);
+      const body = trimToLength(entry.body, 260);
+
+      return title && body ? `- ${title}: ${body}` : "";
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+  const timelineLines = (timeline ?? [])
+    .map((event) => {
+      const title = trimToLength(event.title, 90);
+      const summary = trimToLength(event.summary, 220);
+
+      return title && summary ? `- ${title}: ${summary}` : "";
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+
+  if (memoryLines.length === 0 && timelineLines.length === 0) {
+    return "";
+  }
+
+  return [
+    "Character continuity records: Use these as soft continuity context for personality, routines, relationships, and recent content history. Do not override the fixed identity lock, realism policy, or the user's current scene request.",
+    memoryLines.length > 0
+      ? `Confirmed memories:\n${memoryLines.join("\n")}`
+      : "",
+    timelineLines.length > 0
+      ? `Recent content timeline:\n${timelineLines.join("\n")}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function createCharacterDescriptionReplacements() {
@@ -124,6 +172,10 @@ function replaceCharacterDescriptionsWithPersona(scenePrompt: string) {
 export function applyCreatorCharacterPersonaToPrompt(
   scenePrompt: string,
   persona: CreatorCharacterPersona | null | undefined,
+  continuity?: {
+    memory?: CreatorCharacterMemoryEntry[] | null;
+    timeline?: CreatorCharacterTimelineEvent[] | null;
+  },
 ) {
   const normalizedScenePrompt = normalizeFanletterRealismRequestText(
     scenePrompt,
@@ -134,12 +186,18 @@ export function applyCreatorCharacterPersonaToPrompt(
     CHARACTER_PROMPT_LIMIT,
   );
   const realismPromptBlock = createFanletterRealismPromptBlock(persona);
+  const continuityPromptBlock = createCharacterContinuityPromptBlock(
+    continuity ?? {},
+  );
 
   if (!persona || !identityPrompt) {
     return [
       realismPromptBlock,
+      continuityPromptBlock,
       `User scene prompt: ${normalizedScenePrompt}`,
-    ].join("\n\n");
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
   const normalizedUserScene =
@@ -160,11 +218,14 @@ export function applyCreatorCharacterPersonaToPrompt(
       "facial structure, hair color, age range, ethnicity, neutral visual silhouette, posture, overall presence",
     )}.`,
     realismPromptBlock,
+    continuityPromptBlock,
     "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, or overall visual identity.",
     "Reality grounding also overrides any user prompt details that would require impossible physics, age changes, exact real-time private location claims, or real-person impersonation.",
     sceneInstruction,
     `User scene prompt: ${normalizedUserScene.prompt}`,
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export function insertCreatorCharacterWorldContextPrompt(

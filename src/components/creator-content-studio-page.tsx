@@ -59,8 +59,10 @@ import {
   getContentVideoAssetSource,
 } from "@/lib/content";
 import type {
+  CreatorCharacterMemoryEntry,
   CreatorCharacterPersona,
   CreatorCharacterPersonaGenerateResponse,
+  CreatorCharacterTimelineEvent,
   CreatorCharacterWorldLocation,
   CreatorProfileAvatarCandidate,
   CreatorProfileAvatarGenerateResponse,
@@ -109,7 +111,9 @@ type StudioState = {
   profile: {
     avatarImageSet: CreatorProfileAvatarCandidate[];
     avatarImageUrl: string;
+    characterMemory: CreatorCharacterMemoryEntry[];
     characterPersona: CreatorCharacterPersona | null;
+    characterTimeline: CreatorCharacterTimelineEvent[];
     displayName: string;
     heroImageUrl: string;
     intro: string;
@@ -219,6 +223,11 @@ type CharacterIdentityLockDraft = {
   personaId: string | null;
 };
 
+type CharacterMemoryFormState = {
+  body: string;
+  title: string;
+};
+
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
 
 type CoverGenerationProgressState = {
@@ -241,7 +250,9 @@ type PostComposerMode = "paid-upload" | "standard";
 const EMPTY_PROFILE = {
   avatarImageSet: [] as CreatorProfileAvatarCandidate[],
   avatarImageUrl: "",
+  characterMemory: [] as CreatorCharacterMemoryEntry[],
   characterPersona: null as CreatorCharacterPersona | null,
+  characterTimeline: [] as CreatorCharacterTimelineEvent[],
   displayName: "",
   heroImageUrl: "",
   intro: "",
@@ -388,6 +399,10 @@ const CHARACTER_IDENTITY_SUMMARY_LIMIT = 220;
 const CHARACTER_IDENTITY_PROMPT_LIMIT = 1_200;
 const CHARACTER_IDENTITY_TRAIT_LIMIT = 160;
 const CHARACTER_IDENTITY_TRAIT_COUNT_LIMIT = 8;
+const CHARACTER_MEMORY_LIMIT = 24;
+const CHARACTER_MEMORY_TITLE_LIMIT = 80;
+const CHARACTER_MEMORY_BODY_LIMIT = 420;
+const CHARACTER_TIMELINE_LIMIT = 48;
 
 function resolveStudioPostPreviewImage(
   post: Pick<ContentPostRecord, "coverImageUrl" | "contentImageUrls">,
@@ -424,7 +439,9 @@ function createEditableCreatorProfile(
   return {
     avatarImageSet: profile.avatarImageSet ?? [],
     avatarImageUrl: profile.avatarImageUrl ?? "",
+    characterMemory: profile.characterMemory ?? [],
     characterPersona: profile.characterPersona ?? null,
+    characterTimeline: profile.characterTimeline ?? [],
     displayName: profile.displayName,
     heroImageUrl: profile.heroImageUrl ?? "",
     intro: profile.intro,
@@ -528,6 +545,14 @@ function parseCharacterTraitText(value: string) {
 
 function formatCharacterTraitText(values: string[]) {
   return values.join("\n");
+}
+
+function createCharacterStudioRecordId(prefix: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function summarizeNonJsonApiResponse(text: string) {
@@ -1040,6 +1065,11 @@ export function CreatorContentStudioPage({
       avoidChangesText: "",
       lockedTraitsText: "",
       personaId: null,
+    });
+  const [characterMemoryForm, setCharacterMemoryForm] =
+    useState<CharacterMemoryFormState>({
+      body: "",
+      title: "",
     });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
@@ -2598,7 +2628,9 @@ export function CreatorContentStudioPage({
         body: JSON.stringify({
           avatarImageSet: profileOverride.avatarImageSet,
           avatarImageUrl: profileOverride.avatarImageUrl || null,
+          characterMemory: profileOverride.characterMemory,
           characterPersona: profileOverride.characterPersona,
+          characterTimeline: profileOverride.characterTimeline,
           displayName: profileOverride.displayName,
           email,
           intro: profileOverride.intro,
@@ -3065,6 +3097,75 @@ export function CreatorContentStudioPage({
       lockedTraitsText: formatCharacterTraitText(nextPersona.lockedTraits),
       personaId: nextPersona.id,
     });
+    await saveCharacterProfile(nextProfile);
+  }
+
+  async function saveCharacterMemoryEntry() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return;
+    }
+
+    const title = normalizeCharacterStudioText(
+      characterMemoryForm.title,
+      CHARACTER_MEMORY_TITLE_LIMIT,
+    );
+    const body = normalizeCharacterStudioText(
+      characterMemoryForm.body,
+      CHARACTER_MEMORY_BODY_LIMIT,
+    );
+
+    if (!title || !body) {
+      setState((current) => ({
+        ...current,
+        error:
+          locale === "ko"
+            ? "기록 제목과 내용을 입력하세요."
+            : "Enter a memory title and body.",
+        notice: null,
+      }));
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const nextMemory: CreatorCharacterMemoryEntry = {
+      body,
+      createdAt: now,
+      id: createCharacterStudioRecordId("memory"),
+      source: "manual",
+      status: "confirmed",
+      title,
+      updatedAt: now,
+    };
+    const nextProfile = {
+      ...state.profile,
+      characterMemory: [
+        nextMemory,
+        ...state.profile.characterMemory,
+      ].slice(0, CHARACTER_MEMORY_LIMIT),
+    };
+
+    setCharacterMemoryForm({ body: "", title: "" });
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
+    await saveCharacterProfile(nextProfile);
+  }
+
+  async function removeCharacterMemoryEntry(memoryId: string) {
+    const nextProfile = {
+      ...state.profile,
+      characterMemory: state.profile.characterMemory.filter(
+        (entry) => entry.id !== memoryId,
+      ),
+    };
+
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
     await saveCharacterProfile(nextProfile);
   }
 
@@ -5605,6 +5706,245 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderCharacterMemoryTimelinePanel() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return null;
+    }
+
+    const memoryItems = state.profile.characterMemory;
+    const timelineItems = state.profile.characterTimeline;
+    const dateFormatter = new Intl.DateTimeFormat(
+      locale === "ko" ? "ko-KR" : "en-US",
+      {
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        month: "short",
+        year: "numeric",
+      },
+    );
+    const formatRecordDate = (value: string) => {
+      const parsed = new Date(value);
+
+      return Number.isNaN(parsed.getTime())
+        ? value
+        : dateFormatter.format(parsed);
+    };
+    const memoryCopy =
+      locale === "ko"
+        ? {
+            add: "기록 저장",
+            body:
+              "캐릭터가 기억해야 할 확정 설정과 콘텐츠 사건을 쌓아 다음 제작 기준으로 사용합니다.",
+            bodyHint:
+              "캐릭터의 말투, 취향, 반복 루틴, 관계, 지난 콘텐츠 맥락처럼 이후에도 유지할 내용을 적습니다.",
+            bodyLabel: "기억 내용",
+            emptyMemory: "아직 저장된 캐릭터 기억이 없습니다.",
+            emptyTimeline:
+              "새 콘텐츠를 저장하거나 공개하면 이곳에 제작 타임라인이 자동 기록됩니다.",
+            memoryTitle: "캐릭터 메모리",
+            remove: "삭제",
+            title: "캐릭터 기록",
+            titleLabel: "기억 제목",
+            timelineTitle: "콘텐츠 타임라인",
+          }
+        : {
+            add: "Save memory",
+            body:
+              "Build confirmed character memories and content events that can guide future production.",
+            bodyHint:
+              "Save durable context such as voice, tastes, recurring routines, relationships, or past content continuity.",
+            bodyLabel: "Memory body",
+            emptyMemory: "No character memories are saved yet.",
+            emptyTimeline:
+              "New saved or published content will automatically appear in this production timeline.",
+            memoryTitle: "Character Memory",
+            remove: "Remove",
+            title: "Character Records",
+            titleLabel: "Memory title",
+            timelineTitle: "Content Timeline",
+          };
+    const timelineKindLabel = (
+      kind: CreatorCharacterTimelineEvent["kind"],
+    ) => {
+      if (locale === "ko") {
+        if (kind === "content_published") {
+          return "공개";
+        }
+
+        if (kind === "content_created") {
+          return "초안";
+        }
+
+        if (kind === "fan_request_used") {
+          return "팬 요청";
+        }
+
+        return "수동";
+      }
+
+      if (kind === "content_published") {
+        return "Published";
+      }
+
+      if (kind === "content_created") {
+        return "Draft";
+      }
+
+      if (kind === "fan_request_used") {
+        return "Fan request";
+      }
+
+      return "Manual";
+    };
+
+    return (
+      <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <LayoutGrid className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-950">
+              {memoryCopy.title}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {memoryCopy.body}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-3">
+            <p className="text-sm font-semibold text-slate-950">
+              {memoryCopy.memoryTitle}
+            </p>
+            <div className="mt-3 space-y-3">
+              <InputField
+                label={memoryCopy.titleLabel}
+                onChange={(value) => {
+                  setCharacterMemoryForm((current) => ({
+                    ...current,
+                    title: value.slice(0, CHARACTER_MEMORY_TITLE_LIMIT),
+                  }));
+                }}
+                value={characterMemoryForm.title}
+              />
+              <TextAreaField
+                hint={memoryCopy.bodyHint}
+                label={memoryCopy.bodyLabel}
+                onChange={(value) => {
+                  setCharacterMemoryForm((current) => ({
+                    ...current,
+                    body: value.slice(0, CHARACTER_MEMORY_BODY_LIMIT),
+                  }));
+                }}
+                rows={5}
+                value={characterMemoryForm.body}
+              />
+              <button
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={
+                  isSavingProfile ||
+                  isDisconnected ||
+                  !characterMemoryForm.title.trim() ||
+                  !characterMemoryForm.body.trim()
+                }
+                onClick={() => {
+                  void saveCharacterMemoryEntry();
+                }}
+                type="button"
+              >
+                {isSavingProfile ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+                {memoryCopy.add}
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {memoryItems.length > 0 ? (
+                memoryItems.map((entry) => (
+                  <article
+                    className="rounded-[18px] border border-slate-200 bg-white px-3 py-3"
+                    key={entry.id}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-950">
+                          {entry.title}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                          {entry.body}
+                        </p>
+                        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                          {formatRecordDate(entry.updatedAt)}
+                        </p>
+                      </div>
+                      <button
+                        className="shrink-0 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={isSavingProfile}
+                        onClick={() => {
+                          void removeCharacterMemoryEntry(entry.id);
+                        }}
+                        type="button"
+                      >
+                        {memoryCopy.remove}
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="rounded-[18px] border border-dashed border-slate-200 bg-white px-3 py-3 text-xs leading-5 text-slate-500">
+                  {memoryCopy.emptyMemory}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-3 py-3">
+            <p className="text-sm font-semibold text-slate-950">
+              {memoryCopy.timelineTitle}
+            </p>
+            <div className="mt-3 space-y-2">
+              {timelineItems.length > 0 ? (
+                timelineItems.slice(0, CHARACTER_TIMELINE_LIMIT).map((event) => (
+                  <article
+                    className="rounded-[18px] border border-slate-200 bg-white px-3 py-3"
+                    key={event.id}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                        {timelineKindLabel(event.kind)}
+                      </span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        {formatRecordDate(event.happenedAt)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-slate-950">
+                      {event.title}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      {event.summary}
+                    </p>
+                  </article>
+                ))
+              ) : (
+                <p className="rounded-[18px] border border-dashed border-slate-200 bg-white px-3 py-3 text-xs leading-5 text-slate-500">
+                  {memoryCopy.emptyTimeline}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   function renderActiveCharacterCard() {
     const persona = state.profile.characterPersona;
     const cardCopy =
@@ -6119,6 +6459,7 @@ export function CreatorContentStudioPage({
             </div>
             {renderActiveCharacterCard()}
             {renderCharacterIdentityLockPanel()}
+            {renderCharacterMemoryTimelinePanel()}
             {renderCharacterRealitySettingsPanel()}
             {renderQuickCharacterPanel()}
             <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
