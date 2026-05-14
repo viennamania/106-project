@@ -174,6 +174,11 @@ function getCopy(locale: Locale) {
           "결제하면 이 캐릭터의 팬 전용 영상, 전체 본문, 추가 미디어가 이 화면에서 바로 열립니다.",
         lockedEyebrow: "FanLetter 팬 전용",
         lockedTitle: "팬 전용 브이로그 잠금 해제",
+        paymentCtaHelper:
+          "1회 결제로 전체 영상, 전체 본문, 추가 미디어를 바로 엽니다.",
+        instantAccess: "즉시 열람",
+        oneTimePayment: "1회 결제",
+        teaserBadge: "팬 전용 티저",
         unlockBody: "결제 후 열리는 항목",
         unlockImages: "추가 이미지",
         unlockText: "전체 본문",
@@ -228,6 +233,11 @@ function getCopy(locale: Locale) {
           "Pay once to open the fan-only video, full body, and extra media on this page.",
         lockedEyebrow: "FanLetter fan-only",
         lockedTitle: "Unlock fan-only vlog",
+        paymentCtaHelper:
+          "One payment unlocks the full video, full body, and extra media immediately.",
+        instantAccess: "Instant access",
+        oneTimePayment: "One-time payment",
+        teaserBadge: "Fan-only teaser",
         unlockBody: "What unlocks",
         unlockImages: "Extra images",
         unlockText: "Full body",
@@ -998,6 +1008,12 @@ export function FanletterPaidUnlockPanel({
             </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.68)_100%)]" />
+          <div className="absolute left-4 top-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/56 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur">
+              <PlayCircle className="size-3.5 text-[#44f26e]" />
+              {copy.teaserBadge}
+            </span>
+          </div>
           <div className="absolute inset-x-0 bottom-0 p-5">
             <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
               {paidUnlockAmount} USDT
@@ -1096,6 +1112,20 @@ export function FanletterPaidUnlockPanel({
                   <ExternalLink className="size-3.5" />
                 </a>
               ) : null}
+
+              <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.055] p-3">
+                <p className="text-sm font-semibold leading-6 text-white">
+                  {copy.paymentCtaHelper}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+                    {copy.oneTimePayment}
+                  </span>
+                  <span className="inline-flex rounded-full border border-white/12 bg-black/20 px-3 py-1 text-xs font-semibold text-white/64">
+                    {copy.instantAccess}
+                  </span>
+                </div>
+              </div>
 
               <FanletterPaidUnlockActions
                 connectHref={connectHref}

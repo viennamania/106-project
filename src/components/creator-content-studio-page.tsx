@@ -256,6 +256,7 @@ type GeneratePostCoverImageOptions = {
   failureNotice?: string;
   softFail?: boolean;
   successNotice?: string;
+  throwOnError?: boolean;
   visualBrief?: string;
 };
 
@@ -1687,6 +1688,10 @@ export function CreatorContentStudioPage({
             "AI 티저 커버가 적용되었습니다. 팬에게 공개되는 미리보기로 사용됩니다.",
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
+          publishCoverFailed:
+            "유료 브이로그를 게시하려면 공개 티저 커버가 필요합니다. 다시 생성하거나 커버를 직접 업로드해 주세요.",
+          publishCoverGenerating:
+            "커버가 비어 있어 게시 전에 AI 티저 커버를 생성합니다.",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
           previewHint:
@@ -1733,6 +1738,10 @@ export function CreatorContentStudioPage({
             "AI teaser cover applied. It will be used as the public preview for fans.",
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
+          publishCoverFailed:
+            "A public teaser cover is required before publishing this paid vlog. Generate again or upload a cover manually.",
+          publishCoverGenerating:
+            "No cover is set, so FanLetter is generating an AI teaser cover before publishing.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
           previewHint:
@@ -3297,9 +3306,36 @@ export function CreatorContentStudioPage({
       const priceTypeToSave: ContentPriceType = isPaidUploadComposer
         ? "paid"
         : effectivePostPriceType;
+      let coverImageUrlToSave = postForm.coverImageUrl || null;
 
       if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
         await createSellerWallet(email);
+      }
+
+      if (
+        statusToSave === "published" &&
+        priceTypeToSave === "paid" &&
+        hasUploadedPostVideo &&
+        !coverImageUrlToSave
+      ) {
+        setIsCoverGenerationDialogOpen(true);
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: paidUploadComposerCopy.publishCoverGenerating,
+        }));
+        const generatedCover = await generatePostCoverImage({
+          failureNotice: paidUploadComposerCopy.publishCoverFailed,
+          successNotice: paidUploadComposerCopy.autoCoverReady,
+          throwOnError: true,
+          visualBrief: buildPaidUploadTeaserVisualBrief(),
+        });
+
+        coverImageUrlToSave = generatedCover?.url ?? null;
+
+        if (!coverImageUrlToSave) {
+          throw new Error(paidUploadComposerCopy.publishCoverFailed);
+        }
       }
 
       const response = await fetch("/api/content/posts", {
@@ -3307,7 +3343,7 @@ export function CreatorContentStudioPage({
           body: normalizedBody,
           contentImageUrls: postForm.contentImageUrls,
           contentVideoUrls: postForm.contentVideoUrls,
-          coverImageUrl: postForm.coverImageUrl || null,
+          coverImageUrl: coverImageUrlToSave,
           email,
           locale,
           previewText:
@@ -3776,7 +3812,9 @@ export function CreatorContentStudioPage({
     setContentVideoGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
-  async function generatePostCoverImage(options: GeneratePostCoverImageOptions = {}) {
+  async function generatePostCoverImage(
+    options: GeneratePostCoverImageOptions = {},
+  ) {
     try {
       setIsGeneratingPostImage(true);
       setCoverGenerationProgress({
@@ -3880,6 +3918,8 @@ export function CreatorContentStudioPage({
           finalizing: "done",
         },
       }));
+
+      return generatedCover;
     } catch (error) {
       const errorMessage = getGenerationErrorMessage(
         error,
@@ -3896,6 +3936,12 @@ export function CreatorContentStudioPage({
       setCoverGenerationProgress((current) =>
         applyCoverGenerationFailure(current, errorMessage),
       );
+
+      if (options.throwOnError) {
+        throw new Error(errorMessage);
+      }
+
+      return null;
     } finally {
       setIsGeneratingPostImage(false);
     }
