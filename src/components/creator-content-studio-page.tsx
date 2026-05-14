@@ -213,6 +213,12 @@ type CharacterQuickstartState = {
   visualSilhouette: CharacterVisualSilhouetteSelection;
 };
 
+type CharacterIdentityLockDraft = {
+  avoidChangesText: string;
+  lockedTraitsText: string;
+  personaId: string | null;
+};
+
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
 
 type CoverGenerationProgressState = {
@@ -377,6 +383,11 @@ const AUTOMATION_RESTRICTED_MESSAGE =
   "Content automation is not enabled for this member.";
 const HUB_FULL_POST_PAGE_SIZE = 6;
 const HUB_COMPACT_POST_PAGE_SIZE = 4;
+const CHARACTER_IDENTITY_NAME_LIMIT = 80;
+const CHARACTER_IDENTITY_SUMMARY_LIMIT = 220;
+const CHARACTER_IDENTITY_PROMPT_LIMIT = 1_200;
+const CHARACTER_IDENTITY_TRAIT_LIMIT = 160;
+const CHARACTER_IDENTITY_TRAIT_COUNT_LIMIT = 8;
 
 function resolveStudioPostPreviewImage(
   post: Pick<ContentPostRecord, "coverImageUrl" | "contentImageUrls">,
@@ -499,6 +510,24 @@ function parseBoundedCoordinate(
   }
 
   return Math.min(max, Math.max(min, parsed));
+}
+
+function normalizeCharacterStudioText(value: string, limit: number) {
+  return value.trim().replace(/[ \t]{2,}/g, " ").slice(0, limit);
+}
+
+function parseCharacterTraitText(value: string) {
+  return value
+    .split(/\n|,/u)
+    .map((item) =>
+      normalizeCharacterStudioText(item, CHARACTER_IDENTITY_TRAIT_LIMIT),
+    )
+    .filter(Boolean)
+    .slice(0, CHARACTER_IDENTITY_TRAIT_COUNT_LIMIT);
+}
+
+function formatCharacterTraitText(values: string[]) {
+  return values.join("\n");
 }
 
 function summarizeNonJsonApiResponse(text: string) {
@@ -1006,6 +1035,12 @@ export function CreatorContentStudioPage({
     style: "friendly",
     visualSilhouette: "auto",
   });
+  const [identityLockDraft, setIdentityLockDraft] =
+    useState<CharacterIdentityLockDraft>({
+      avoidChangesText: "",
+      lockedTraitsText: "",
+      personaId: null,
+    });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
@@ -2356,6 +2391,26 @@ export function CreatorContentStudioPage({
     };
   }, [feedShareState]);
 
+  useEffect(() => {
+    const persona = state.profile.characterPersona;
+
+    setIdentityLockDraft((current) => {
+      if (current.personaId === (persona?.id ?? null)) {
+        return current;
+      }
+
+      return {
+        avoidChangesText: persona
+          ? formatCharacterTraitText(persona.avoidChanges)
+          : "",
+        lockedTraitsText: persona
+          ? formatCharacterTraitText(persona.lockedTraits)
+          : "",
+        personaId: persona?.id ?? null,
+      };
+    });
+  }, [state.profile.characterPersona]);
+
   const copyCreatorFeedLink = useCallback(
     async (nextShareUrl = creatorFeedShareUrl) => {
       if (!nextShareUrl) {
@@ -2927,6 +2982,89 @@ export function CreatorContentStudioPage({
       ...current,
       profile: nextProfile,
     }));
+    await saveCharacterProfile(nextProfile);
+  }
+
+  function updateCharacterPersonaDraft(patch: Partial<CreatorCharacterPersona>) {
+    setState((current) => {
+      const persona = current.profile.characterPersona;
+
+      if (!persona) {
+        return current;
+      }
+
+      return {
+        ...current,
+        profile: {
+          ...current.profile,
+          characterPersona: {
+            ...persona,
+            ...patch,
+          },
+        },
+      };
+    });
+  }
+
+  async function saveCharacterIdentityLock() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return;
+    }
+
+    const nextPersona = {
+      ...persona,
+      avoidChanges: parseCharacterTraitText(
+        identityLockDraft.personaId === persona.id
+          ? identityLockDraft.avoidChangesText
+          : formatCharacterTraitText(persona.avoidChanges),
+      ),
+      identityPrompt: normalizeCharacterStudioText(
+        persona.identityPrompt,
+        CHARACTER_IDENTITY_PROMPT_LIMIT,
+      ),
+      lockedTraits: parseCharacterTraitText(
+        identityLockDraft.personaId === persona.id
+          ? identityLockDraft.lockedTraitsText
+          : formatCharacterTraitText(persona.lockedTraits),
+      ),
+      name: normalizeCharacterStudioText(
+        persona.name,
+        CHARACTER_IDENTITY_NAME_LIMIT,
+      ),
+      summary: normalizeCharacterStudioText(
+        persona.summary,
+        CHARACTER_IDENTITY_SUMMARY_LIMIT,
+      ),
+    };
+
+    if (!nextPersona.name || !nextPersona.identityPrompt) {
+      setState((current) => ({
+        ...current,
+        error:
+          locale === "ko"
+            ? "캐릭터 이름과 정체성 프롬프트를 입력하세요."
+            : "Enter a character name and identity prompt.",
+        notice: null,
+      }));
+      return;
+    }
+
+    const nextProfile = {
+      ...state.profile,
+      characterPersona: nextPersona,
+    };
+
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
+    setIdentityLockDraft({
+      avoidChangesText: formatCharacterTraitText(nextPersona.avoidChanges),
+      lockedTraitsText: formatCharacterTraitText(nextPersona.lockedTraits),
+      personaId: nextPersona.id,
+    });
     await saveCharacterProfile(nextProfile);
   }
 
@@ -5311,6 +5449,162 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderCharacterIdentityLockPanel() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return null;
+    }
+
+    const identityCopy =
+      locale === "ko"
+        ? {
+            avoid: "변경 금지 목록",
+            body:
+              "AI 이미지와 동영상 생성에서 같은 인물로 유지해야 하는 핵심 기준을 직접 다듬습니다.",
+            identityHint:
+              "생성 모델에 들어가는 핵심 정체성 문장입니다. 얼굴, 헤어, 피부, 성인 연령대, 자세, 전체 프레임 기준을 유지하세요.",
+            identityPrompt: "정체성 프롬프트",
+            lineHint:
+              "한 줄에 하나씩 입력하세요. 쉼표로 붙여 넣어도 저장 시 줄 단위 목록으로 정리됩니다.",
+            locked: "고정 특징",
+            name: "캐릭터 이름",
+            save: "정체성 락 저장",
+            saving: "저장 중...",
+            summary: "요약",
+            title: "정체성 락 편집",
+          }
+        : {
+            avoid: "Do-not-change list",
+            body:
+              "Edit the core identity lock used to keep the same person across AI image and video generation.",
+            identityHint:
+              "This is the core identity paragraph sent to generation models. Keep face, hair, skin, adult age range, posture, and overall frame stable.",
+            identityPrompt: "Identity prompt",
+            lineHint:
+              "Use one item per line. Comma-pasted text is normalized into a list on save.",
+            locked: "Locked traits",
+            name: "Character name",
+            save: "Save identity lock",
+            saving: "Saving...",
+            summary: "Summary",
+            title: "Identity Lock Editor",
+          };
+
+    return (
+      <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <PenSquare className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-950">
+              {identityCopy.title}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {identityCopy.body}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <InputField
+            label={identityCopy.name}
+            onChange={(value) => {
+              updateCharacterPersonaDraft({
+                name: value.slice(0, CHARACTER_IDENTITY_NAME_LIMIT),
+              });
+            }}
+            value={persona.name}
+          />
+          <InputField
+            label={identityCopy.summary}
+            onChange={(value) => {
+              updateCharacterPersonaDraft({
+                summary: value.slice(0, CHARACTER_IDENTITY_SUMMARY_LIMIT),
+              });
+            }}
+            value={persona.summary}
+          />
+        </div>
+
+        <div className="mt-4">
+          <TextAreaField
+            hint={identityCopy.identityHint}
+            label={identityCopy.identityPrompt}
+            onChange={(value) => {
+              updateCharacterPersonaDraft({
+                identityPrompt: value.slice(0, CHARACTER_IDENTITY_PROMPT_LIMIT),
+              });
+            }}
+            rows={5}
+            value={persona.identityPrompt}
+          />
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <TextAreaField
+            hint={identityCopy.lineHint}
+            label={identityCopy.locked}
+            onChange={(value) => {
+              setIdentityLockDraft((current) => ({
+                ...current,
+                lockedTraitsText: value,
+                personaId: persona.id,
+              }));
+            }}
+            rows={5}
+            value={
+              identityLockDraft.personaId === persona.id
+                ? identityLockDraft.lockedTraitsText
+                : formatCharacterTraitText(persona.lockedTraits)
+            }
+          />
+          <TextAreaField
+            hint={identityCopy.lineHint}
+            label={identityCopy.avoid}
+            onChange={(value) => {
+              setIdentityLockDraft((current) => ({
+                ...current,
+                avoidChangesText: value,
+                personaId: persona.id,
+              }));
+            }}
+            rows={5}
+            value={
+              identityLockDraft.personaId === persona.id
+                ? identityLockDraft.avoidChangesText
+                : formatCharacterTraitText(persona.avoidChanges)
+            }
+          />
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            disabled={
+              isSavingProfile ||
+              isDisconnected ||
+              !persona.name.trim() ||
+              !persona.identityPrompt.trim()
+            }
+            onClick={() => {
+              void saveCharacterIdentityLock();
+            }}
+            type="button"
+          >
+            {isSavingProfile ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isSavingProfile ? identityCopy.saving : identityCopy.save}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   function renderActiveCharacterCard() {
     const persona = state.profile.characterPersona;
     const cardCopy =
@@ -5824,6 +6118,7 @@ export function CreatorContentStudioPage({
               </div>
             </div>
             {renderActiveCharacterCard()}
+            {renderCharacterIdentityLockPanel()}
             {renderCharacterRealitySettingsPanel()}
             {renderQuickCharacterPanel()}
             <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
