@@ -671,11 +671,15 @@ export function FanletterPurchasesPage({
               className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex"
             >
               <Link href={feedHref}>{copy.allFeed}</Link>
-              <Link className="text-[#44f26e]" href={purchasesHref}>
+              <Link href={followingHref}>{copy.fanHome}</Link>
+              <Link
+                aria-current="page"
+                className="text-[#44f26e]"
+                href={purchasesHref}
+              >
                 {copy.purchased}
               </Link>
               <Link href={studioHref}>{copy.studio}</Link>
-              <Link href={startHref}>{copy.start}</Link>
             </nav>
 
             <div className="flex items-center gap-2">
@@ -687,6 +691,12 @@ export function FanletterPurchasesPage({
                 locale={locale}
                 referralCode={referralCode}
               />
+              <Link
+                className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+                href={startHref}
+              >
+                {copy.start}
+              </Link>
             </div>
           </header>
 
@@ -703,6 +713,13 @@ export function FanletterPurchasesPage({
             <div className="mt-8 flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={followingHref}
+              >
+                <BadgeCheck className="size-4" />
+                {copy.fanHome}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
                 href={feedHref}
               >
                 <Sparkles className="size-4" />
@@ -737,8 +754,8 @@ export function FanletterPurchasesPage({
               actionLabel={copy.connect}
               body={copy.accountRequiredBody}
               icon="connect"
-              secondaryActionHref={feedHref}
-              secondaryActionLabel={copy.allFeed}
+              secondaryActionHref={followingHref}
+              secondaryActionLabel={copy.fanHome}
               title={copy.accountRequiredTitle}
             />
           ) : state.status === "error" ? (

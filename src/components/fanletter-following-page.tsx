@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
         statusNew: "접수됨",
         statusReviewed: "검토 중",
         statusUsed: "제작 완료",
-        start: "채널 시작",
+        start: "내 채널 만들기",
         studio: "스튜디오",
         summary:
           "내가 팔로우한 AI 캐릭터의 최신 공개 브이로그, 팬 요청, 채널 이동을 한 화면에서 이어봅니다.",
@@ -187,7 +187,7 @@ function getCopy(locale: Locale) {
         statusNew: "Received",
         statusReviewed: "Reviewing",
         statusUsed: "Produced",
-        start: "Start channel",
+        start: "Start my channel",
         studio: "Studio",
         summary:
           "Continue into latest public vlogs, fan requests, and channels from AI characters you follow.",
@@ -325,7 +325,11 @@ function FollowingHeader({
 
       <nav className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex">
         <Link href={feedHref}>{copy.feed}</Link>
-        <Link className="text-[#44f26e]" href={followingHref}>
+        <Link
+          aria-current="page"
+          className="text-[#44f26e]"
+          href={followingHref}
+        >
           {copy.title}
         </Link>
         <Link href={purchasesHref}>{copy.purchases}</Link>

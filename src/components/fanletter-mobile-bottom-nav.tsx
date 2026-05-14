@@ -109,6 +109,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/feed`,
         `${basePath}/content`,
         `${basePath}/following`,
+        `${basePath}/purchases`,
         `${basePath}/requests`,
       ],
       href: buildHref(`${basePath}/feed`),
