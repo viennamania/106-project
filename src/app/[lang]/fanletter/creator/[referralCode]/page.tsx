@@ -98,9 +98,9 @@ export async function generateMetadata({
   const normalizedReferralCode = normalizeReferralCode(referralCode);
   const url = `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}`;
   const ogVisualUrl =
+    data?.items[0]?.coverImageUrl ??
     data?.profile.character?.avatarImageSet[0]?.url ??
     data?.profile.avatarImageUrl ??
-    data?.items[0]?.coverImageUrl ??
     null;
   const ogImagePath = buildFanletterOgImagePath({
     description: shareMetadata.description,
@@ -110,10 +110,12 @@ export async function generateMetadata({
     variant: "creator",
     version:
       buildFanletterOgVersionToken(
+        "creator-content-og-v2",
         normalizedReferralCode ?? referralCode,
         shareMetadata.title,
         shareMetadata.description,
         ogVisualUrl,
+        data?.items[0]?.contentId,
       ) ??
       normalizedReferralCode ??
       referralCode,

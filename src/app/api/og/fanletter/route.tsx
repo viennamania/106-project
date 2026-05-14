@@ -316,6 +316,310 @@ export async function GET(request: Request) {
       ? ["캐릭터", "숏폼", "팬 전용"]
       : ["Persona", "Vlog", "Fan-only"];
 
+  if (creatorData && visualUrl) {
+    const creatorDisplayName = truncateText(
+      visualName ?? stripFanletterTitleSuffix(title),
+      34,
+    );
+    const posterTitle = latestTitle
+      ? truncateText(latestTitle, 48)
+      : truncateText(title, 48);
+    const posterBadge = creatorCoverImageUrl ? visualLabel : badge;
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            background: "#030504",
+            color: "white",
+            display: "flex",
+            fontFamily: "Arial, Helvetica, sans-serif",
+            height: "100%",
+            overflow: "hidden",
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+          <img
+            alt=""
+            height="630"
+            src={visualUrl}
+            style={{
+              display: "flex",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              width: "100%",
+              ...(shouldBlurVisual
+                ? {
+                    filter: "blur(7px) brightness(0.72) saturate(0.9)",
+                    transform: "scale(1.035)",
+                  }
+                : {}),
+            }}
+            width="1200"
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(3,5,4,0.88) 0%, rgba(3,5,4,0.36) 43%, rgba(3,5,4,0.08) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(0deg, rgba(3,5,4,0.9) 0%, rgba(3,5,4,0.42) 24%, rgba(3,5,4,0.08) 58%, rgba(3,5,4,0.42) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.16)",
+              borderRadius: 42,
+              inset: 24,
+              position: "absolute",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              justifyContent: "space-between",
+              padding: 44,
+              position: "relative",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                alignItems: "center",
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  alignItems: "center",
+                  background: "rgba(3,5,4,0.62)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 999,
+                  display: "flex",
+                  gap: 14,
+                  padding: "10px 18px 10px 10px",
+                }}
+              >
+                <div
+                  style={{
+                    alignItems: "center",
+                    background: "#44f26e",
+                    borderRadius: 15,
+                    color: "#030504",
+                    display: "flex",
+                    fontSize: 26,
+                    fontWeight: 900,
+                    height: 50,
+                    justifyContent: "center",
+                    width: 50,
+                  }}
+                >
+                  F
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <div style={{ display: "flex", fontSize: 27, fontWeight: 900 }}>
+                    FanLetter
+                  </div>
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.62)",
+                      display: "flex",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    AI CHARACTER VLOG
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "#44f26e",
+                  borderRadius: 999,
+                  color: "#07100b",
+                  display: "flex",
+                  fontSize: 18,
+                  fontWeight: 900,
+                  padding: "14px 20px",
+                }}
+              >
+                {variantLabel}
+              </div>
+            </div>
+
+            <div
+              style={{
+                alignItems: "flex-end",
+                display: "flex",
+                gap: 24,
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(3,5,4,0.66)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 30,
+                  boxShadow: "0 24px 90px rgba(0,0,0,0.32)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 15,
+                  maxWidth: 640,
+                  padding: "24px 28px",
+                }}
+              >
+                <div
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    gap: 14,
+                  }}
+                >
+                  {creatorAvatarImageUrl && creatorAvatarImageUrl !== visualUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets.
+                    <img
+                      alt=""
+                      height="62"
+                      src={creatorAvatarImageUrl}
+                      style={{
+                        border: "2px solid rgba(68,242,110,0.78)",
+                        borderRadius: 999,
+                        display: "flex",
+                        height: 62,
+                        objectFit: "cover",
+                        width: 62,
+                      }}
+                      width="62"
+                    />
+                  ) : null}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#44f26e",
+                        display: "flex",
+                        fontSize: 17,
+                        fontWeight: 900,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {posterBadge}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 44,
+                        fontWeight: 900,
+                        lineHeight: 0.98,
+                      }}
+                    >
+                      {creatorDisplayName}
+                    </div>
+                  </div>
+                </div>
+                {creatorCoverImageUrl ? (
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.78)",
+                      display: "flex",
+                      fontSize: 22,
+                      fontWeight: 800,
+                      lineHeight: 1.18,
+                    }}
+                  >
+                    {posterTitle}
+                  </div>
+                ) : null}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                }}
+              >
+                {metrics.map((metric, index) => (
+                  <div
+                    key={metric.label}
+                    style={{
+                      background:
+                        index === 0 ? "#44f26e" : "rgba(255,255,255,0.92)",
+                      border:
+                        index === 0
+                          ? "1px solid rgba(68,242,110,0.85)"
+                          : "1px solid rgba(255,255,255,0.18)",
+                      borderRadius: 24,
+                      color: "#07100b",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                      minWidth: 132,
+                      padding: "17px 18px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color:
+                          index === 0 ? "#07100b" : "rgba(7,16,11,0.62)",
+                        display: "flex",
+                        fontSize: 14,
+                        fontWeight: 900,
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {metric.label}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 38,
+                        fontWeight: 900,
+                        lineHeight: 0.95,
+                      }}
+                    >
+                      {metric.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      FANLETTER_OG_IMAGE_SIZE,
+    );
+  }
+
   return new ImageResponse(
     (
       <div
