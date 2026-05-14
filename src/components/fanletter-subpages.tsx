@@ -41,6 +41,7 @@ import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
+import { FanletterScrollReveal } from "@/components/fanletter-scroll-reveal";
 import {
   FanletterSetupHeroDescription,
   FanletterSetupHeroActions,
@@ -1150,6 +1151,7 @@ function ContentGrid({
   items,
   locale,
   referralCode,
+  revealItems = false,
   returnToHref,
   showVideoPreview = false,
 }: {
@@ -1161,6 +1163,7 @@ function ContentGrid({
   items: FanletterPublicContentItem[];
   locale: Locale;
   referralCode: string | null;
+  revealItems?: boolean;
   returnToHref?: string | null;
   showVideoPreview?: boolean;
 }) {
@@ -1182,18 +1185,40 @@ function ContentGrid({
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map((item) => (
-        <ContentCard
-          authorNameOverride={authorNameOverride}
-          contentActionLabel={contentActionLabel}
-          item={item}
-          key={item.contentId}
-          locale={locale}
-          referralCode={referralCode}
-          returnToHref={returnToHref}
-          showVideoPreview={showVideoPreview}
-        />
-      ))}
+      {items.map((item, index) => {
+        if (!revealItems) {
+          return (
+            <ContentCard
+              authorNameOverride={authorNameOverride}
+              contentActionLabel={contentActionLabel}
+              item={item}
+              key={item.contentId}
+              locale={locale}
+              referralCode={referralCode}
+              returnToHref={returnToHref}
+              showVideoPreview={showVideoPreview}
+            />
+          );
+        }
+
+        return (
+          <FanletterScrollReveal
+            className="h-full"
+            delayMs={Math.min(index, 5) * 70}
+            key={item.contentId}
+          >
+            <ContentCard
+              authorNameOverride={authorNameOverride}
+              contentActionLabel={contentActionLabel}
+              item={item}
+              locale={locale}
+              referralCode={referralCode}
+              returnToHref={returnToHref}
+              showVideoPreview={showVideoPreview}
+            />
+          </FanletterScrollReveal>
+        );
+      })}
     </div>
   );
 }
@@ -5948,7 +5973,10 @@ export function FanletterCreatorPage({
             className="mb-8 grid scroll-mt-36 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(20rem,0.72fr)]"
             id="channel-home"
           >
-            <article className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7">
+            <FanletterScrollReveal
+              as="article"
+              className="rounded-lg bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.2)] sm:p-6 lg:p-7"
+            >
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
                   <Avatar
@@ -6033,26 +6061,30 @@ export function FanletterCreatorPage({
                   {roleLabels.fanRequest}
                 </Link>
               </div>
-            </article>
+            </FanletterScrollReveal>
 
-            <FanletterCreatorFanAccessPanel
-              creatorReferralCode={data.profile.referralCode}
-              fanOnlyContentCount={data.fanOnlyContentCount}
-              fanOnlyHref={fanOnlyHref}
-              followHref={followHref}
-              isAuthenticated={isAuthenticated}
-              isOwner={isOwner}
-              locale={locale}
-              ownerCreateHref={ownerCreateHref}
-              ownerStudioHref={ownerStudioHref}
-              publicVlogsHref={publicVlogsHref}
-              startHref={startHref}
-            />
+            <FanletterScrollReveal className="h-full" delayMs={90}>
+              <FanletterCreatorFanAccessPanel
+                creatorReferralCode={data.profile.referralCode}
+                fanOnlyContentCount={data.fanOnlyContentCount}
+                fanOnlyHref={fanOnlyHref}
+                followHref={followHref}
+                isAuthenticated={isAuthenticated}
+                isOwner={isOwner}
+                locale={locale}
+                ownerCreateHref={ownerCreateHref}
+                ownerStudioHref={ownerStudioHref}
+                publicVlogsHref={publicVlogsHref}
+                startHref={startHref}
+              />
+            </FanletterScrollReveal>
           </div>
 
           {featuredItem ? (
-            <section
+            <FanletterScrollReveal
+              as="section"
               className="mb-8 scroll-mt-36 sm:scroll-mt-24"
+              delayMs={80}
               id="featured-vlog"
             >
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -6072,29 +6104,31 @@ export function FanletterCreatorPage({
                 referralCode={effectiveReferralCode}
                 returnToHref={`${channelHref}#featured-vlog`}
               />
-            </section>
+            </FanletterScrollReveal>
           ) : null}
 
-          <FanletterFanPromptPanel
-            characterName={channelName}
-            className="mb-8"
-            creatorReferralCode={data.profile.referralCode}
-            fanOnlyHref={fanOnlyHref}
-            followHref={followHref}
-            id={fanRequestsSectionId}
-            isAuthenticated={isAuthenticated}
-            isOwner={isOwner}
-            locale={locale}
-            ownerCreateHref={ownerCreateHref}
-            ownerRequestsHref={ownerRequestsHref}
-            ownerStudioHref={ownerStudioHref}
-            previewRequests={data.fanRequestPreviews}
-            publicVlogsHref={publicVlogsHref}
-            referralCode={effectiveReferralCode}
-            requestHref={fanRequestsSectionHref}
-            returnToHref={`${channelHref}#${fanRequestsSectionId}`}
-            startHref={startHref}
-          />
+          <FanletterScrollReveal delayMs={90}>
+            <FanletterFanPromptPanel
+              characterName={channelName}
+              className="mb-8"
+              creatorReferralCode={data.profile.referralCode}
+              fanOnlyHref={fanOnlyHref}
+              followHref={followHref}
+              id={fanRequestsSectionId}
+              isAuthenticated={isAuthenticated}
+              isOwner={isOwner}
+              locale={locale}
+              ownerCreateHref={ownerCreateHref}
+              ownerRequestsHref={ownerRequestsHref}
+              ownerStudioHref={ownerStudioHref}
+              previewRequests={data.fanRequestPreviews}
+              publicVlogsHref={publicVlogsHref}
+              referralCode={effectiveReferralCode}
+              requestHref={fanRequestsSectionHref}
+              returnToHref={`${channelHref}#${fanRequestsSectionId}`}
+              startHref={startHref}
+            />
+          </FanletterScrollReveal>
 
           {isLoggedInFan ? (
             <FanletterRequestStatusPanel
@@ -6105,23 +6139,27 @@ export function FanletterCreatorPage({
             />
           ) : null}
 
-          <FanletterFanOnlyPreview
-            channelName={channelName}
-            fanOnlyHref={fanOnlyHref}
-            fanOnlyContentCount={data.fanOnlyContentCount}
-            isOwner={isOwner}
-            items={data.fanOnlyItems}
-            locale={locale}
-            ownerCreateHref={ownerCreateHref}
-            ownerManageHref={ownerVlogsHref}
-            publicVlogsHref={publicVlogsHref}
-            referralCode={effectiveReferralCode}
-            requestFormId={fanRequestsFormId}
-            requestHref={fanRequestsFormHref}
-          />
+          <FanletterScrollReveal delayMs={100}>
+            <FanletterFanOnlyPreview
+              channelName={channelName}
+              fanOnlyHref={fanOnlyHref}
+              fanOnlyContentCount={data.fanOnlyContentCount}
+              isOwner={isOwner}
+              items={data.fanOnlyItems}
+              locale={locale}
+              ownerCreateHref={ownerCreateHref}
+              ownerManageHref={ownerVlogsHref}
+              publicVlogsHref={publicVlogsHref}
+              referralCode={effectiveReferralCode}
+              requestFormId={fanRequestsFormId}
+              requestHref={fanRequestsFormHref}
+            />
+          </FanletterScrollReveal>
 
-          <section
+          <FanletterScrollReveal
+            as="section"
             className="mb-8 scroll-mt-36 sm:scroll-mt-24"
+            delayMs={80}
             id="public-vlogs"
           >
             <div className="mb-4">
@@ -6143,18 +6181,21 @@ export function FanletterCreatorPage({
               items={contentItems}
               locale={locale}
               referralCode={effectiveReferralCode}
+              revealItems
               returnToHref={`${channelHref}#public-vlogs`}
               showVideoPreview
             />
-          </section>
+          </FanletterScrollReveal>
 
           {character ? (
-            <CharacterPersonaShowcase
-              character={character}
-              displayName={channelName}
-              locale={locale}
-              publicContentCount={data.publicContentCount}
-            />
+            <FanletterScrollReveal delayMs={100}>
+              <CharacterPersonaShowcase
+                character={character}
+                displayName={channelName}
+                locale={locale}
+                publicContentCount={data.publicContentCount}
+              />
+            </FanletterScrollReveal>
           ) : null}
         </div>
       </section>
