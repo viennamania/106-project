@@ -998,12 +998,14 @@ function MediaCard({
 
 function ContentCard({
   authorNameOverride,
+  contentActionLabel,
   item,
   locale,
   referralCode,
   showVideoPreview = false,
 }: {
   authorNameOverride?: string;
+  contentActionLabel?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
@@ -1120,7 +1122,7 @@ function ContentCard({
             className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white"
             href={href}
           >
-            {copy.actions.openContent}
+            {contentActionLabel ?? copy.actions.openContent}
             <ArrowRight className="size-3.5" />
           </Link>
         </div>
@@ -1131,6 +1133,7 @@ function ContentCard({
 
 function ContentGrid({
   authorNameOverride,
+  contentActionLabel,
   empty,
   emptyActionHref,
   emptyActionLabel,
@@ -1140,6 +1143,7 @@ function ContentGrid({
   showVideoPreview = false,
 }: {
   authorNameOverride?: string;
+  contentActionLabel?: string;
   empty: string;
   emptyActionHref?: string;
   emptyActionLabel?: string;
@@ -1169,6 +1173,7 @@ function ContentGrid({
       {items.map((item) => (
         <ContentCard
           authorNameOverride={authorNameOverride}
+          contentActionLabel={contentActionLabel}
           item={item}
           key={item.contentId}
           locale={locale}
@@ -1990,6 +1995,7 @@ function FanletterChannelHeroPreview({
           fanOnlyContent: "팬 전용",
           freeWall: "무료 공개 피드",
           latest: "대표 브이로그",
+          openFeatured: "대표 브이로그 보기",
           paidReady: "팬 전용 요청 가능",
         }
       : {
@@ -1997,6 +2003,7 @@ function FanletterChannelHeroPreview({
           fanOnlyContent: "Fan-only",
           freeWall: "Free public feed",
           latest: "Featured vlog",
+          openFeatured: "View featured vlog",
           paidReady: "Fan-only requests open",
         };
   const heroTitle = featuredItem
@@ -2112,7 +2119,7 @@ function FanletterChannelHeroPreview({
         </div>
         {heroHref ? (
           <div className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition group-hover:bg-[#64ff84]">
-            {copy.actions.openContent}
+            {labels.openFeatured}
             <ArrowRight className="size-4" />
           </div>
         ) : null}
@@ -2552,7 +2559,7 @@ function FanletterFanOnlyPreview({
           availableActionTitle: "팬 전용 진입",
           availableBody:
             "이 캐릭터가 유료 또는 팬 전용으로 공개한 브이로그를 한곳에 모았습니다. 카드를 열면 FanLetter 상세 화면에서 미리보기, 권한 확인, 다음 요청까지 같은 흐름으로 이어집니다.",
-          availableCta: "첫 팬 전용 브이로그 보기",
+          availableCta: "첫 팬 전용 콘텐츠 보기",
           availableEyebrow: "팬 전용 라이브러리",
           availableNote:
             "미결제 카드는 미리보기와 잠금 해제 흐름으로, 결제 완료 카드는 바로 보기로 표시합니다.",
@@ -3166,7 +3173,7 @@ function FanletterFanPromptPanel({
           fulfilledBadge: "제작 완료",
           fulfilledBody:
             "팬이 남긴 요청이 실제 공개 브이로그로 연결된 사례입니다.",
-          fulfilledCta: "브이로그 보기",
+          fulfilledCta: "제작 결과 보기",
           fulfilledTitle: "요청이 브이로그가 된 사례",
           previewBody:
             "최근 요청을 익명 중심으로 보여줍니다. 비슷한 장면을 이어서 요청해도 됩니다.",
@@ -3230,7 +3237,7 @@ function FanletterFanPromptPanel({
           fulfilledBadge: "Produced",
           fulfilledBody:
             "These fan notes were turned into published vlogs.",
-          fulfilledCta: "Watch vlog",
+          fulfilledCta: "View result",
           fulfilledTitle: "Requests that became vlogs",
           previewBody:
             "Recent requests are shown with privacy-friendly fan names. You can build on a similar scene.",
@@ -5582,12 +5589,14 @@ export function FanletterCreatorPage({
   const channelActionLabels =
     locale === "ko"
       ? {
+          contentDetail: "상세 보기",
           fanRequest: "팬 요청 보내기",
           ownerCreate: "새 브이로그 만들기",
           ownerRequests: "요청함 관리",
           publicVlogs: "공개 브이로그 보기",
         }
       : {
+          contentDetail: "View details",
           fanRequest: "Send fan request",
           ownerCreate: "Create new vlog",
           ownerRequests: "Manage requests",
@@ -5848,6 +5857,7 @@ export function FanletterCreatorPage({
             </div>
             <ContentGrid
               authorNameOverride={channelName}
+              contentActionLabel={channelActionLabels.contentDetail}
               empty={copy.creator.empty}
               emptyActionHref={isOwner ? ownerCreateHref : startHref}
               emptyActionLabel={
