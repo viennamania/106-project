@@ -325,6 +325,10 @@ function getAvatarExpressionLabel(
   label: string | null,
   locale: Locale,
 ) {
+  if (expression === "fanservice") {
+    return locale === "ko" ? "팬 리액션" : "Fan reaction";
+  }
+
   if (label?.trim()) {
     return label;
   }
@@ -347,10 +351,6 @@ function getAvatarExpressionLabel(
 
   if (expression === "focus") {
     return locale === "ko" ? "집중" : "Focus";
-  }
-
-  if (expression === "fanservice") {
-    return locale === "ko" ? "팬서비스" : "Fan service";
   }
 
   if (expression === "thumbnail") {

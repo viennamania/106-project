@@ -183,6 +183,24 @@ function getAvatarKitPresetIndex(
     : AVATAR_KIT_PRESET_INDEX_BY_EXPRESSION[expression];
 }
 
+function getAvatarDisplayLabel({
+  expression,
+  fallback,
+  label,
+  locale,
+}: {
+  expression: CreatorProfileAvatarCandidate["expression"];
+  fallback: string;
+  label: string | null | undefined;
+  locale: Locale;
+}) {
+  if (expression === "fanservice") {
+    return locale === "ko" ? "팬 리액션" : "Fan reaction";
+  }
+
+  return label?.trim() || expression || fallback;
+}
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -217,7 +235,7 @@ function getCopy(locale: Locale) {
         ] as const,
         avatar: "AI 브이로그 아바타",
         avatarBody:
-          "선택한 캐릭터 페르소나의 같은 얼굴과 정체성을 유지하면서 대표, 미소, 차분, 리액션, 팬서비스 컷까지 콘텐츠용 아바타 세트를 만듭니다.",
+          "선택한 캐릭터 페르소나의 같은 얼굴과 정체성을 유지하면서 대표, 미소, 차분, 리액션, 팬 반응 컷까지 콘텐츠용 아바타 세트를 만듭니다.",
         avatarGenerate: "AI 아바타 생성",
         avatarGenerating: "아바타 생성 중...",
         avatarRequired: "캐릭터 페르소나를 먼저 선택하세요.",
@@ -242,7 +260,7 @@ function getCopy(locale: Locale) {
               "정체성을 바꾸는 경우 FanLetter 전용 변경 화면에서 현재 캐릭터와 새 아바타 세트를 확인합니다.",
             directionTitle: "성장 연출",
             empty:
-              "아바타를 만들면 같은 캐릭터의 대표, 미소, 차분, 리액션, 팬서비스 컷이 이곳에 비주얼 키트로 정리됩니다.",
+              "아바타를 만들면 같은 캐릭터의 대표, 미소, 차분, 리액션, 팬 반응 컷이 이곳에 비주얼 키트로 정리됩니다.",
             expressionCount: "표정 컷",
             expressionFallbacks: [
               {
@@ -259,7 +277,7 @@ function getCopy(locale: Locale) {
                   "미소 표정으로 팬에게 말을 거는 듯한 짧은 브이로그를 만듭니다.",
                 prompt:
                   "미소 표정과 밝은 리액션을 활용해 팬에게 직접 답하는 느낌의 장면을 만든다.",
-                role: "팬서비스 리액션",
+                role: "팬 반응 리액션",
                 title: "미소 컷",
                 useCase: "댓글 유도, 팬 요청 답변, 친근한 오프닝",
               },
@@ -301,11 +319,11 @@ function getCopy(locale: Locale) {
               },
               {
                 planBody:
-                  "팬서비스 표정으로 저장하고 싶어지는 짧은 반응형 브이로그를 만듭니다.",
+                  "팬 반응 표정으로 저장하고 싶어지는 짧은 반응형 브이로그를 만듭니다.",
                 prompt:
-                  "팬서비스 컷을 활용해 팬이 저장하거나 댓글을 남기고 싶어지는 장면을 만든다.",
+                  "팬 반응 컷을 활용해 팬이 저장하거나 댓글을 남기고 싶어지는 장면을 만든다.",
                 role: "저장 유도",
-                title: "팬서비스 컷",
+                title: "팬 반응 컷",
                 useCase: "저장 유도, 유료 티저, 팬 전용 컷",
               },
               {
@@ -365,7 +383,7 @@ function getCopy(locale: Locale) {
           fanMetaEmpty: "댓글 유도",
           fanMetaReady: "대기 요청",
           fanPlanBody:
-            "팬이 댓글로 이어서 반응하고 싶게 만드는 짧은 팬서비스형 브이로그. 요청에 답하는 느낌을 첫 문장에 넣습니다.",
+            "팬이 댓글로 이어서 반응하고 싶게 만드는 짧은 팬 소통형 브이로그. 요청에 답하는 느낌을 첫 문장에 넣습니다.",
           fanTitle: "팬 요청 에피소드",
           promptLabel: "추천 소재",
           title: "다음 AI 브이로그 동영상 기획",
@@ -415,7 +433,7 @@ function getCopy(locale: Locale) {
         quickStyle: "분위기",
         quickStyleChic: "시크한",
         quickStyleDaily: "일상 브이로그",
-        quickStyleFanService: "팬서비스형",
+        quickStyleFanService: "팬 소통형",
         quickStyleFriendly: "친근한",
         quickSuccess: "캐릭터를 만들고 FanLetter 프로필에 저장했습니다.",
         quickPanelTitle: "표시 이름과 분위기만 정하면 끝",
@@ -496,7 +514,7 @@ function getCopy(locale: Locale) {
         ] as const,
         avatar: "AI vlogger avatar",
         avatarBody:
-          "Create a content-ready avatar kit that keeps the same character identity while adding hero, smile, calm, reaction, fan-service, and thumbnail cuts.",
+          "Create a content-ready avatar kit that keeps the same character identity while adding hero, smile, calm, fan reaction, and thumbnail cuts.",
         avatarGenerate: "Generate AI avatar",
         avatarGenerating: "Generating avatar...",
         avatarRequired: "Select a character persona first.",
@@ -521,7 +539,7 @@ function getCopy(locale: Locale) {
               "When changing identity, review the current character and new avatar set in the dedicated FanLetter change screen.",
             directionTitle: "Growth directions",
             empty:
-              "After avatar creation, the character's hero, smile, calm, reaction, and fan-service cuts will appear here as a visual kit.",
+              "After avatar creation, the character's hero, smile, calm, reaction, and fan-reaction cuts will appear here as a visual kit.",
             expressionCount: "expression cuts",
             expressionFallbacks: [
               {
@@ -538,7 +556,7 @@ function getCopy(locale: Locale) {
                   "Create a short vlog with a smiling expression that feels like the character is speaking to fans.",
                 prompt:
                   "Use the smiling expression and bright reaction to make the scene feel like a direct fan response.",
-                role: "Fan-service reaction",
+                role: "Fan reaction",
                 title: "Smile cut",
                 useCase: "Comment hooks, fan request replies, friendly openings",
               },
@@ -580,11 +598,11 @@ function getCopy(locale: Locale) {
               },
               {
                 planBody:
-                  "Create a save-worthy fan-service moment for short reaction videos.",
+                  "Create a save-worthy fan-reaction moment for short reaction videos.",
                 prompt:
-                  "Use the fan-service cut to make a moment fans want to save or comment on.",
+                  "Use the fan-reaction cut to make a moment fans want to save or comment on.",
                 role: "Save trigger",
-                title: "Fan-service cut",
+                title: "Fan-reaction cut",
                 useCase: "Save prompts, paid teasers, fan-only cuts",
               },
               {
@@ -645,7 +663,7 @@ function getCopy(locale: Locale) {
           fanMetaEmpty: "Comment hook",
           fanMetaReady: "Pending requests",
           fanPlanBody:
-            "A short fan-service vlog that makes fans want to reply in comments. Open with the feeling that the character is answering a request.",
+            "A short fan-reaction vlog that makes fans want to reply in comments. Open with the feeling that the character is answering a request.",
           fanTitle: "Fan request episode",
           promptLabel: "Suggested angle",
           title: "Next AI vlog video plans",
@@ -695,7 +713,7 @@ function getCopy(locale: Locale) {
         quickStyle: "Mood",
         quickStyleChic: "Chic",
         quickStyleDaily: "Daily vlog",
-        quickStyleFanService: "Fan service",
+        quickStyleFanService: "Fan communication",
         quickStyleFriendly: "Friendly",
         quickSuccess: "Character created and saved to your FanLetter profile.",
         quickPanelTitle: "Name and mood are enough",
@@ -1494,14 +1512,24 @@ export function FanletterProfilePage({
         ? [
             {
               expression: selectedAvatarCandidate?.expression ?? "default",
-              label: selectedAvatarCandidate?.label ?? copy.avatarSelected,
+              label: getAvatarDisplayLabel({
+                expression: selectedAvatarCandidate?.expression ?? "default",
+                fallback: copy.avatarSelected,
+                label: selectedAvatarCandidate?.label,
+                locale,
+              }),
               url: profile.avatarImageUrl,
             },
           ]
         : []),
       ...profile.avatarImageSet.map((candidate) => ({
         expression: candidate.expression,
-        label: candidate.label ?? candidate.expression ?? copy.avatar,
+        label: getAvatarDisplayLabel({
+          expression: candidate.expression,
+          fallback: copy.avatar,
+          label: candidate.label,
+          locale,
+        }),
         url: candidate.url,
       })),
     ];
@@ -3270,6 +3298,12 @@ export function FanletterProfilePage({
                 {avatarCandidates.length > 0 ? (
                   avatarCandidates.map((candidate) => {
                     const selected = profile.avatarImageUrl === candidate.url;
+                    const avatarLabel = getAvatarDisplayLabel({
+                      expression: candidate.expression,
+                      fallback: copy.avatar,
+                      label: candidate.label,
+                      locale,
+                    });
 
                     return (
                       <article
@@ -3280,14 +3314,14 @@ export function FanletterProfilePage({
                       >
                         <div className="relative aspect-square">
                           <Image
-                            alt={candidate.label ?? copy.avatar}
+                            alt={avatarLabel}
                             className="object-cover"
                             fill
                             sizes="(max-width: 640px) 45vw, 180px"
                             src={candidate.url}
                           />
                           <span className="absolute left-2 top-2 rounded-full bg-black/68 px-2.5 py-1 text-[0.68rem] font-semibold text-white backdrop-blur">
-                            {candidate.label ?? copy.avatar}
+                            {avatarLabel}
                           </span>
                         </div>
                         <button

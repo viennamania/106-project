@@ -118,7 +118,7 @@ function getCopy(locale: Locale) {
         templateCategories: {
           all: "전체",
           daily: "일상",
-          fanservice: "팬서비스",
+          fanservice: "팬 반응",
           message: "응원",
           outfit: "룩/의상",
           qna: "Q&A",
@@ -202,7 +202,7 @@ function getCopy(locale: Locale) {
         templateCategories: {
           all: "All",
           daily: "Daily",
-          fanservice: "Fan service",
+          fanservice: "Fan reaction",
           message: "Support",
           outfit: "Outfit",
           qna: "Q&A",

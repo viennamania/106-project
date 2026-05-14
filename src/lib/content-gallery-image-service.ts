@@ -35,8 +35,8 @@ const DEFAULT_FAL_REFERENCE_RESOLUTION = "1K";
 const DEFAULT_FAL_TEXT_IMAGE_PROMPT_STRENGTH = 0.2;
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 100;
-const DEFAULT_DISABLE_SAFETY_CHECKER = true;
-const DEFAULT_FAL_SAFETY_TOLERANCE = "6";
+const DEFAULT_DISABLE_SAFETY_CHECKER = false;
+const DEFAULT_FAL_SAFETY_TOLERANCE = "2";
 const DEFAULT_FAL_TIMEOUT_MS = 90_000;
 const DEFAULT_REPLICATE_TIMEOUT_MS = 90_000;
 const DEFAULT_REPLICATE_COMPACT_PROMPT_LIMIT = 1_600;
@@ -849,7 +849,7 @@ function createFalReferenceImageInput({
       ),
       enable_safety_checker: parseBoolean(
         process.env.FAL_CONTENT_IMAGE_ENABLE_SAFETY_CHECKER,
-        false,
+        true,
       ),
       image_url: avatarImageUrl,
       num_images: 1,

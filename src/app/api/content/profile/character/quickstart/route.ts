@@ -112,7 +112,7 @@ function createStyleIntro(style: QuickCharacterStyle, locale: Locale) {
     chic: "시크하고 절제된 톤으로 짧은 코멘트와 스타일 컷에 잘 맞는 AI 캐릭터 콘텐츠.",
     cinematic: "영화적인 분위기와 감정선이 있는 AI 캐릭터 콘텐츠.",
     daily: "일상 브이로그와 루틴형 숏폼에 잘 맞는 AI 캐릭터 콘텐츠.",
-    fan_service: "팬에게 다정하게 반응하고 답장하는 팬서비스형 AI 캐릭터 콘텐츠.",
+    fan_service: "팬에게 다정하게 반응하고 답장하는 팬 소통형 AI 캐릭터 콘텐츠.",
     friendly: "팬에게 친근하게 말을 거는 밝은 AI 캐릭터 콘텐츠.",
     premium: "차분하고 세련된 프리미엄 톤의 AI 캐릭터 콘텐츠.",
   } satisfies Record<QuickCharacterStyle, string>;

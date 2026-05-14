@@ -36,7 +36,7 @@ const DEFAULT_GENERATE_AUDIO = false;
 const DEFAULT_NEGATIVE_PROMPT =
   "waxy skin, plastic skin, blurry face, distorted eyes, asymmetrical face, face morphing, identity drift, low detail skin, over-smoothed skin, rubbery face, unstable eyes, warped mouth, deformed hands, extra fingers, extra people, anime, cartoon, cgi, doll-like face, uncanny valley, text, watermark, logo";
 const DEFAULT_RESOLUTION = "1080p";
-const DEFAULT_SAFETY_TOLERANCE = "6";
+const DEFAULT_SAFETY_TOLERANCE = "2";
 const DEFAULT_TIMEOUT_MS = 290_000;
 
 export type ContentVideoQualityMode = "person_high" | "standard";

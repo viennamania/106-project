@@ -70,7 +70,7 @@ const DEFAULT_TEMPLATES = [
     requestType: "vlog_request",
     sortOrder: 50,
     templateId: "global-ko-fanservice-reaction",
-    title: "팬서비스 리액션",
+    title: "팬 리액션",
   },
   {
     body: "요즘 가장 좋아하는 음식, 음악, 장소를 답하는 Q&A 브이로그를 보고 싶어요.",

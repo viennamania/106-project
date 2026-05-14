@@ -15,6 +15,7 @@ const DEFAULT_ASPECT_RATIO = "1:1";
 const DEFAULT_MEGAPIXELS = "1";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_OUTPUT_QUALITY = 96;
+const DEFAULT_DISABLE_SAFETY_CHECKER = false;
 const CHARACTER_PROMPT_LIMIT = 1_800;
 
 type AvatarExpressionSpec = {
@@ -52,7 +53,7 @@ const AVATAR_EXPRESSION_SET = [
     expression: "shy",
     label: "설렘",
     prompt:
-      "soft daylight studio background, shy delighted expression, subtle blush mood, gentle fan-service moment",
+      "soft daylight studio background, shy delighted expression, subtle blush mood, gentle fan-reply moment",
   },
   {
     expression: "focus",
@@ -62,9 +63,9 @@ const AVATAR_EXPRESSION_SET = [
   },
   {
     expression: "fanservice",
-    label: "팬서비스",
+    label: "팬 리액션",
     prompt:
-      "bright clean background, playful wink or tiny heart gesture close to face, friendly fan-service expression",
+      "bright clean background, playful wink or tiny heart gesture close to face, friendly fan-reaction expression",
   },
   {
     expression: "thumbnail",
@@ -109,6 +110,24 @@ function sanitizeBaseName(name: string) {
     .slice(0, 48);
 
   return normalized || "creator-avatar";
+}
+
+function parseBoolean(value: string | undefined, fallback: boolean) {
+  const normalized = value?.trim().toLowerCase();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
 }
 
 function resolveFileExtension(contentType: string, sourceUrl: string | null) {
@@ -352,7 +371,10 @@ async function generateAvatarCandidate({
   const prompt = createAvatarPrompt({ displayName, expression, persona });
   const modelInput = {
     aspect_ratio: DEFAULT_ASPECT_RATIO,
-    disable_safety_checker: true,
+    disable_safety_checker: parseBoolean(
+      process.env.CREATOR_AVATAR_DISABLE_SAFETY_CHECKER,
+      DEFAULT_DISABLE_SAFETY_CHECKER,
+    ),
     go_fast: false,
     megapixels: DEFAULT_MEGAPIXELS,
     output_format: DEFAULT_OUTPUT_FORMAT,

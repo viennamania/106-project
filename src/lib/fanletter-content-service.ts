@@ -282,8 +282,28 @@ function getPublicCharacterTraitLabel(trait: string, locale: Locale) {
   const normalized = trait.toLowerCase();
   const labelRules = [
     {
-      label: "40대 여성 캐릭터",
-      pattern: /\b40s\b|40대|female adult woman|adult woman/,
+      label: "20대 성인 캐릭터",
+      pattern: /\b20s\b|20대/,
+    },
+    {
+      label: "30대 성인 캐릭터",
+      pattern: /\b30s\b|30대/,
+    },
+    {
+      label: "40대 성인 캐릭터",
+      pattern: /\b40s\b|40대/,
+    },
+    {
+      label: "50대 이상 성인 캐릭터",
+      pattern: /\b50s\b|50대|50s\+|50대\s*이상|50s_plus/,
+    },
+    {
+      label: "성인 여성 캐릭터",
+      pattern: /female adult woman|adult woman|adult female/,
+    },
+    {
+      label: "성인 남성 캐릭터",
+      pattern: /male adult man|adult man|adult male/,
     },
     {
       label: "부드러운 타원형 얼굴",

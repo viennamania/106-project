@@ -9,6 +9,7 @@ import {
   getContentPostsCollection,
   getFanletterFanRequestsCollection,
 } from "@/lib/mongodb";
+import type { FanletterCharacterReadinessIssue } from "@/lib/fanletter-readiness";
 
 type StatusCount = {
   _id: string;
@@ -77,16 +78,48 @@ export async function getFanletterReadinessForMember(
       })(),
     ]);
   const persona = profileSnapshot.profile.characterPersona;
+  const avatarSetCount = profileSnapshot.profile.avatarImageSet.filter(
+    (candidate) => Boolean(candidate.url?.trim()),
+  ).length;
+  const worldLocation =
+    persona?.realismProfile?.worldLocation?.label?.trim() || null;
+  const memoryCount = profileSnapshot.profile.characterMemory.length;
+  const timelineCount = profileSnapshot.profile.characterTimeline.length;
+  const characterIssues: FanletterCharacterReadinessIssue[] = [];
   const characterReady = Boolean(
     profileSnapshot.profile.displayName.trim() &&
       persona &&
       profileSnapshot.profile.avatarImageUrl,
   );
 
+  if (characterReady && avatarSetCount < 4) {
+    characterIssues.push("avatar_set");
+  }
+
+  if (characterReady && !worldLocation) {
+    characterIssues.push("world_location");
+  }
+
+  if (characterReady && memoryCount + timelineCount === 0) {
+    characterIssues.push("character_memory");
+  }
+
   return {
     character: {
       avatarImageUrl: profileSnapshot.profile.avatarImageUrl,
+      healthScore: characterReady
+        ? Math.max(0, 100 - characterIssues.length * 18)
+        : 0,
+      issues: characterIssues,
       name: persona?.name ?? profileSnapshot.profile.displayName ?? null,
+      quality: {
+        avatarSetCount,
+        avatarSetReady: avatarSetCount >= 4,
+        memoryCount,
+        timelineCount,
+        worldLocationLabel: worldLocation,
+        worldLocationReady: Boolean(worldLocation),
+      },
       ready: characterReady,
     },
     fanRequests: {

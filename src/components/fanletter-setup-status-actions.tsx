@@ -15,7 +15,10 @@ import {
   type FanletterAccountStatusKind,
   useFanletterAccountStatus,
 } from "@/lib/fanletter-account-status";
-import type { FanletterReadinessResponse } from "@/lib/fanletter-readiness";
+import type {
+  FanletterCharacterReadinessIssue,
+  FanletterReadinessResponse,
+} from "@/lib/fanletter-readiness";
 import type { Locale } from "@/lib/i18n";
 
 type SetupStatus = FanletterAccountStatusKind;
@@ -70,6 +73,8 @@ const CONNECTION_RESOLVE_GRACE_MS = 3000;
 const EMPTY_CHARACTER_STATE = {
   avatarImageUrl: null,
   error: null,
+  healthScore: 0,
+  issues: [] as FanletterCharacterReadinessIssue[],
   name: null,
   status: "unavailable" as CharacterStatus,
 };
@@ -83,6 +88,8 @@ const EMPTY_VLOG_STATE = {
 type CharacterState = {
   avatarImageUrl: string | null;
   error: string | null;
+  healthScore: number;
+  issues: FanletterCharacterReadinessIssue[];
   name: string | null;
   status: CharacterStatus;
 };
@@ -114,6 +121,19 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
 
 function getSetupLookupKey(email: string, walletAddress: string) {
   return `${email.toLowerCase()}:${walletAddress.toLowerCase()}`;
+}
+
+function getCharacterReadinessIssueLabels(
+  issues: FanletterCharacterReadinessIssue[],
+  locale: Locale,
+) {
+  const labels = {
+    avatar_set: locale === "ko" ? "아바타 세트" : "avatar set",
+    character_memory: locale === "ko" ? "캐릭터 기록" : "character records",
+    world_location: locale === "ko" ? "현실 기준 위치" : "reality location",
+  } satisfies Record<FanletterCharacterReadinessIssue, string>;
+
+  return issues.map((issue) => labels[issue]);
 }
 
 export function FanletterSetupStatusProvider({
@@ -175,6 +195,8 @@ export function FanletterSetupStatusProvider({
         character: {
           avatarImageUrl: data.character.avatarImageUrl,
           error: null,
+          healthScore: data.character.healthScore ?? 0,
+          issues: data.character.issues ?? [],
           name: data.character.name,
           status: data.character.ready ? "ready" : "empty",
         },
@@ -377,6 +399,10 @@ function getOnboardingCopy(locale: Locale) {
         accountReviewTitle: "계정 상태 확인 필요",
         characterCardChecking: "캐릭터 확인 중",
         characterCardFallback: "저장된 AI 캐릭터",
+        characterCardNeedsDetail: (issueLabels: string[]) =>
+          issueLabels.length > 0
+            ? `보강: ${issueLabels.slice(0, 2).join(", ")}`
+            : "운영 설정 보강 권장",
         characterCardReady: "콘텐츠에 자동 적용됩니다",
         characterCardReview: "상태 확인이 필요합니다",
         characterCheckingBody:
@@ -385,10 +411,15 @@ function getOnboardingCopy(locale: Locale) {
         characterEmptyBody:
           "표시 이름과 분위기만 정하면 대표 아바타까지 자동으로 준비합니다.",
         characterEmptyTitle: "AI 캐릭터 만들기",
-        characterReadyBody: (name: string | null) =>
-          name
-            ? `${name} 캐릭터가 준비되어 있습니다. 필요하면 전용 페이지에서 확인하거나 변경할 수 있습니다.`
-            : "AI 캐릭터가 준비되어 있습니다. 필요하면 전용 페이지에서 확인하거나 변경할 수 있습니다.",
+        characterReadyBody: (name: string | null, issueLabels: string[]) => {
+          const base = name
+            ? `${name} 캐릭터가 준비되어 있습니다.`
+            : "AI 캐릭터가 준비되어 있습니다.";
+
+          return issueLabels.length > 0
+            ? `${base} 다음 항목을 보강하면 콘텐츠 일관성이 더 좋아집니다: ${issueLabels.join(", ")}.`
+            : `${base} 필요하면 전용 페이지에서 확인하거나 변경할 수 있습니다.`;
+        },
         characterReadyTitle: "AI 캐릭터 준비 완료",
         characterReviewBody:
           "저장된 캐릭터 정보를 확인하지 못했습니다. 캐릭터 페이지에서 상태를 다시 확인하세요.",
@@ -457,6 +488,10 @@ function getOnboardingCopy(locale: Locale) {
         accountReviewTitle: "Review account status",
         characterCardChecking: "Checking character",
         characterCardFallback: "Saved AI character",
+        characterCardNeedsDetail: (issueLabels: string[]) =>
+          issueLabels.length > 0
+            ? `Improve: ${issueLabels.slice(0, 2).join(", ")}`
+            : "Improve operating setup",
         characterCardReady: "Applied automatically to content",
         characterCardReview: "Needs review",
         characterCheckingBody:
@@ -465,10 +500,15 @@ function getOnboardingCopy(locale: Locale) {
         characterEmptyBody:
           "Choose a display name and mood to prepare the representative avatar automatically.",
         characterEmptyTitle: "Create AI character",
-        characterReadyBody: (name: string | null) =>
-          name
-            ? `${name} is ready. You can review or change the character on the dedicated page.`
-            : "The AI character is ready. You can review or change it on the dedicated page.",
+        characterReadyBody: (name: string | null, issueLabels: string[]) => {
+          const base = name
+            ? `${name} is ready.`
+            : "The AI character is ready.";
+
+          return issueLabels.length > 0
+            ? `${base} Improve these items for more consistent content: ${issueLabels.join(", ")}.`
+            : `${base} You can review or change it on the dedicated page.`;
+        },
         characterReadyTitle: "AI character ready",
         characterReviewBody:
           "The saved character could not be confirmed. Review it on the character page.",
@@ -681,8 +721,13 @@ function getStepText({
 
   if (stepIndex === 1 && status === "connected") {
     if (character.status === "ready") {
+      const issueLabels = getCharacterReadinessIssueLabels(
+        character.issues,
+        locale,
+      );
+
       return {
-        body: copy.characterReadyBody(character.name),
+        body: copy.characterReadyBody(character.name, issueLabels),
         title: copy.characterReadyTitle,
       };
     }
@@ -1402,9 +1447,15 @@ export function FanletterSetupStepText({
   const characterName =
     setupState.character.name?.trim() || copy.characterCardFallback;
   const characterInitial = characterName.charAt(0).toUpperCase() || "F";
+  const characterIssueLabels = getCharacterReadinessIssueLabels(
+    setupState.character.issues,
+    locale,
+  );
   const characterCardLabel =
     setupState.character.status === "ready"
-      ? copy.characterCardReady
+      ? setupState.character.issues.length > 0
+        ? copy.characterCardNeedsDetail(characterIssueLabels)
+        : copy.characterCardReady
       : setupState.character.status === "checking"
         ? copy.characterCardChecking
         : copy.characterCardReview;
