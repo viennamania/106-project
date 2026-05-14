@@ -77,6 +77,12 @@ export const fanletterFanRequestTemplateStatuses = [
   "active",
   "hidden",
 ] as const;
+export const fanletterRealismRevisionReasons = [
+  "adult_age_continuity",
+  "impossible_physics",
+  "private_location",
+  "real_person_impersonation",
+] as const;
 export const creatorAvatarExpressions = [
   "default",
   "smile",
@@ -105,6 +111,8 @@ export type FanletterFanRequestTemplateCategory =
   (typeof fanletterFanRequestTemplateCategories)[number];
 export type FanletterFanRequestTemplateStatus =
   (typeof fanletterFanRequestTemplateStatuses)[number];
+export type FanletterRealismRevisionReason =
+  (typeof fanletterRealismRevisionReasons)[number];
 export type ContentAccessGateReason =
   | "connect"
   | "network"
@@ -327,6 +335,9 @@ export type FanletterFanRequestDocument = {
   requesterDisplayName: string | null;
   requesterEmail: string | null;
   requesterFingerprint?: string | null;
+  originalBody?: string | null;
+  realismReviewedAt?: Date | null;
+  realismRevisionReasons?: FanletterRealismRevisionReason[] | null;
   sourceContentId: string | null;
   sourcePath: string | null;
   status: FanletterFanRequestStatus;
@@ -512,6 +523,9 @@ export type FanletterFanRequestRecord = {
   requestType: FanletterFanRequestType;
   requesterDisplayName: string | null;
   requesterEmail: string | null;
+  realismReviewedAt: string | null;
+  realismRevised: boolean;
+  realismRevisionReasons: FanletterRealismRevisionReason[];
   sourceContentId: string | null;
   sourcePath: string | null;
   status: FanletterFanRequestStatus;

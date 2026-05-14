@@ -1,6 +1,7 @@
 import type {
   CreatorCharacterPersona,
   CreatorCharacterRealismProfile,
+  FanletterRealismRevisionReason,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 
@@ -17,39 +18,57 @@ const DEFAULT_REALISM_PROFILE: CreatorCharacterRealismProfile = {
 };
 
 const REALISM_REPLACEMENTS = [
-  [
-    /\b(?:teleport(?:ing|ation)?|time travel(?:ing)?|superpower|magic|levitat(?:e|ion)|fly through the air)\b/gi,
-    "a realistic practical-filming moment",
-  ],
-  [
-    /\b(?:minor|underage|teen(?:age)?|schoolgirl|schoolboy|child|kid)\b/gi,
-    "adult character",
-  ],
-  [
-    /\b(?:real[-\s]?time location|current location|exact address|home address|private address|where (?:is|are) (?:she|he|they|you) now)\b/gi,
-    "a public, non-identifying location",
-  ],
-  [
-    /\b(?:impersonat(?:e|ing)|pretend to be a real person|specific celebrity|specific public figure)\b/gi,
-    "depict the fictional AI character",
-  ],
-  [
-    /(?:순간이동|텔레포트|시간여행|초능력|마법|공중부양|하늘을\s*날(?:기|아)?)/g,
-    "현실적인 촬영 연출",
-  ],
-  [
-    /(?:미성년자?|고등학생|중학생|초등학생|여고생|남고생|교복)/g,
-    "성인 캐릭터의 일상 복장",
-  ],
-  [
-    /(?:실시간\s*위치|현재\s*위치|정확한\s*주소|집\s*주소|자택\s*주소)/g,
-    "공개 가능한 일반 장소",
-  ],
-  [
-    /(?:실존\s*인물|특정\s*연예인|특정\s*유명인|특정\s*아이돌|본인인\s*척|실제\s*사람인\s*척)/g,
-    "가상의 AI 캐릭터",
-  ],
-] satisfies Array<[RegExp, string]>;
+  {
+    pattern:
+      /\b(?:teleport(?:ing|ation)?|time travel(?:ing)?|superpower|magic|levitat(?:e|ion)|fly through the air)\b/gi,
+    reason: "impossible_physics",
+    replacement: "a realistic practical-filming moment",
+  },
+  {
+    pattern:
+      /\b(?:minor|underage|teen(?:age)?|schoolgirl|schoolboy|child|kid)\b/gi,
+    reason: "adult_age_continuity",
+    replacement: "adult character",
+  },
+  {
+    pattern:
+      /\b(?:real[-\s]?time location|current location|exact address|home address|private address|where (?:is|are) (?:she|he|they|you) now)\b/gi,
+    reason: "private_location",
+    replacement: "a public, non-identifying location",
+  },
+  {
+    pattern:
+      /\b(?:impersonat(?:e|ing)|pretend to be a real person|specific celebrity|specific public figure)\b/gi,
+    reason: "real_person_impersonation",
+    replacement: "depict the fictional AI character",
+  },
+  {
+    pattern:
+      /(?:순간이동|텔레포트|시간여행|초능력|마법|공중부양|하늘을\s*날(?:기|아)?)/g,
+    reason: "impossible_physics",
+    replacement: "현실적인 촬영 연출",
+  },
+  {
+    pattern: /(?:미성년자?|고등학생|중학생|초등학생|여고생|남고생|교복)/g,
+    reason: "adult_age_continuity",
+    replacement: "성인 캐릭터의 일상 복장",
+  },
+  {
+    pattern: /(?:실시간\s*위치|현재\s*위치|정확한\s*주소|집\s*주소|자택\s*주소)/g,
+    reason: "private_location",
+    replacement: "공개 가능한 일반 장소",
+  },
+  {
+    pattern:
+      /(?:실존\s*인물|특정\s*연예인|특정\s*유명인|특정\s*아이돌|본인인\s*척|실제\s*사람인\s*척)/g,
+    reason: "real_person_impersonation",
+    replacement: "가상의 AI 캐릭터",
+  },
+] satisfies Array<{
+  pattern: RegExp;
+  reason: FanletterRealismRevisionReason;
+  replacement: string;
+}>;
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
@@ -109,13 +128,28 @@ export function normalizeFanletterRealismRequestText(
   value: string | null | undefined,
   limit = PROMPT_LIMIT,
 ) {
-  let normalized = trimToLength(value, limit);
+  return createFanletterRealismRevision(value, limit).text;
+}
 
-  for (const [pattern, replacement] of REALISM_REPLACEMENTS) {
-    normalized = normalized.replace(pattern, replacement);
+export function createFanletterRealismRevision(
+  value: string | null | undefined,
+  limit = PROMPT_LIMIT,
+) {
+  let normalized = trimToLength(value, limit);
+  const reasons = new Set<FanletterRealismRevisionReason>();
+
+  for (const { pattern, reason, replacement } of REALISM_REPLACEMENTS) {
+    normalized = normalized.replace(pattern, () => {
+      reasons.add(reason);
+      return replacement;
+    });
   }
 
-  return trimToLength(normalizeSpacing(normalized), limit);
+  return {
+    reasons: [...reasons],
+    revised: reasons.size > 0,
+    text: trimToLength(normalizeSpacing(normalized), limit),
+  };
 }
 
 export const FANLETTER_REALISM_POLICY_PROMPT = [

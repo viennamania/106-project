@@ -37,6 +37,7 @@ type SubmitStatus = "error" | "idle" | "loading" | "success";
 
 type LastSubmittedRequest = {
   body: string;
+  realismRevised: boolean;
   requestType: FanletterFanRequestType;
 };
 
@@ -90,6 +91,7 @@ function getCopy(locale: Locale) {
           "이 요청은 이 기기에 저장되어 계정 연결 전에도 상태를 다시 확인할 수 있습니다.",
         requestStatus: "내 요청 상태 보기",
         requestReady: "문구를 수정하거나 바로 요청을 남길 수 있습니다.",
+        revised: "현실 기반 보정",
         saved:
           "요청이 크리에이터 스튜디오에 들어갔습니다.",
         selected: "선택됨",
@@ -173,6 +175,7 @@ function getCopy(locale: Locale) {
           "This request is saved on this device, so you can track it before connecting an account.",
         requestStatus: "Track my request",
         requestReady: "Edit the wording, or leave this request now.",
+        revised: "Reality adjusted",
         saved:
           "Your request entered the creator's studio inbox.",
         selected: "Selected",
@@ -511,7 +514,8 @@ export function FanletterFanRequestForm({
         ),
       );
       setLastSubmittedRequest({
-        body: body.trim(),
+        body: data.request.body,
+        realismRevised: data.request.realismRevised,
         requestType,
       });
       setBody("");
@@ -829,6 +833,11 @@ export function FanletterFanRequestForm({
                     {lastSubmittedRequestTypeLabel ? (
                       <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.64rem] font-semibold text-[#b9ffc8]">
                         {lastSubmittedRequestTypeLabel}
+                      </span>
+                    ) : null}
+                    {lastSubmittedRequest.realismRevised ? (
+                      <span className="rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-1 text-[0.64rem] font-semibold text-[#b9ffc8]">
+                        {copy.revised}
                       </span>
                     ) : null}
                   </div>

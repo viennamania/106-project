@@ -9,10 +9,12 @@ import type {
   FanletterFanRequestRecord,
   FanletterFanRequestStatus,
   FanletterFanRequestType,
+  FanletterRealismRevisionReason,
 } from "@/lib/content";
 import {
   fanletterFanRequestStatuses,
   fanletterFanRequestTypes,
+  fanletterRealismRevisionReasons,
 } from "@/lib/content";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
@@ -25,7 +27,7 @@ import {
   incrementFanletterFanRequestTemplateUsage,
   resolveFanletterFanRequestTemplateForSubmission,
 } from "@/lib/fanletter-fan-request-template-service";
-import { normalizeFanletterRealismRequestText } from "@/lib/fanletter-realism-policy";
+import { createFanletterRealismRevision } from "@/lib/fanletter-realism-policy";
 
 const FANLETTER_FAN_REQUEST_BODY_LIMIT = 600;
 const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
@@ -93,9 +95,25 @@ function normalizeFanRequestStatus(
   throw new Error("Unsupported fan request status.");
 }
 
+function normalizeRealismRevisionReasons(
+  values: FanletterFanRequestDocument["realismRevisionReasons"],
+) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values.filter((value): value is FanletterRealismRevisionReason =>
+    fanletterRealismRevisionReasons.includes(value),
+  );
+}
+
 function serializeFanRequest(
   request: FanletterFanRequestDocument,
 ): FanletterFanRequestRecord {
+  const realismRevisionReasons = normalizeRealismRevisionReasons(
+    request.realismRevisionReasons,
+  );
+
   return {
     body: request.body,
     characterName: request.characterName,
@@ -106,6 +124,11 @@ function serializeFanRequest(
     requestType: request.requestType,
     requesterDisplayName: request.requesterDisplayName,
     requesterEmail: request.requesterEmail,
+    realismReviewedAt: request.realismReviewedAt?.toISOString() ?? null,
+    realismRevised:
+      realismRevisionReasons.length > 0 ||
+      Boolean(request.originalBody && request.originalBody !== request.body),
+    realismRevisionReasons,
     sourceContentId: request.sourceContentId,
     sourcePath: request.sourcePath,
     status: request.status,
@@ -271,11 +294,13 @@ export async function createFanletterFanRequest(input: {
   sourcePath?: string | null;
   templateId?: string | null;
 }) {
+  const originalBody = trimToLength(input.body, FANLETTER_FAN_REQUEST_BODY_LIMIT);
+  const realismRevision = createFanletterRealismRevision(
+    originalBody,
+    FANLETTER_FAN_REQUEST_BODY_LIMIT,
+  );
   const body = trimToLength(
-    normalizeFanletterRealismRequestText(
-      input.body,
-      FANLETTER_FAN_REQUEST_BODY_LIMIT,
-    ),
+    realismRevision.text,
     FANLETTER_FAN_REQUEST_BODY_LIMIT,
   );
 
@@ -318,6 +343,9 @@ export async function createFanletterFanRequest(input: {
     ),
     requesterEmail,
     requesterFingerprint: normalizeRequesterFingerprint(input.requesterFingerprint),
+    originalBody: realismRevision.revised ? originalBody : null,
+    realismReviewedAt: now,
+    realismRevisionReasons: realismRevision.reasons,
     sourceContentId,
     sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),
     status: "new",

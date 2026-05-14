@@ -31,6 +31,7 @@ function getCopy(locale: Locale) {
         empty: "아직 이 캐릭터에게 보낸 요청 영수증이 없습니다.",
         error: "요청 상태를 불러오지 못했습니다.",
         loading: "내 요청 상태 확인 중",
+        revised: "현실 기반 보정",
         sourceBody: "이 브이로그에서 남긴 요청 상태를 이 기기에서 바로 확인합니다.",
         statuses: {
           hidden: "숨김",
@@ -50,6 +51,7 @@ function getCopy(locale: Locale) {
         empty: "No request receipts for this character are saved on this device yet.",
         error: "Could not load request status.",
         loading: "Checking my request status",
+        revised: "Reality adjusted",
         sourceBody: "Track the request you left from this vlog on this device.",
         statuses: {
           hidden: "Hidden",
@@ -257,6 +259,11 @@ export function FanletterRequestStatusPanel({
                     {copy.type[request.requestType]}
                   </span>
                 </div>
+                {request.realismRevised ? (
+                  <span className="mt-2 inline-flex w-fit items-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-2.5 py-1 text-[0.66rem] font-semibold text-[#b9ffc8]">
+                    {copy.revised}
+                  </span>
+                ) : null}
                 <p className="mt-3 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
                   {request.body}
                 </p>
