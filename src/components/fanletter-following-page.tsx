@@ -607,7 +607,7 @@ function FanHomeDashboard({
   ];
 
   return (
-    <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.75fr)]">
+    <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.75fr)] lg:items-start">
       <article className="overflow-hidden rounded-lg bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)]">
         <div className="grid min-h-[26rem] md:grid-cols-[minmax(0,0.72fr)_minmax(0,0.88fr)]">
           <Link className="group relative min-h-[22rem] bg-black" href={watchHref}>
@@ -1113,6 +1113,11 @@ function LatestVlogStrip({
   const copy = getCopy(locale);
   const items = characters
     .filter((character) => character.latestContent)
+    .sort(
+      (left, right) =>
+        toTimestamp(right.latestContent?.publishedAt ?? right.updatedAt) -
+        toTimestamp(left.latestContent?.publishedAt ?? left.updatedAt),
+    )
     .slice(0, 6);
 
   if (items.length === 0) {
@@ -1786,6 +1791,11 @@ export function FanletterFollowingPage({
                 locale={locale}
                 referralCode={referralCode}
               />
+              <LatestVlogStrip
+                characters={characters}
+                locale={locale}
+                referralCode={referralCode}
+              />
               <ProducedRequestHighlight
                 locale={locale}
                 referralCode={referralCode}
@@ -1825,12 +1835,6 @@ export function FanletterFollowingPage({
                   );
                 })}
               </div>
-
-              <LatestVlogStrip
-                characters={characters}
-                locale={locale}
-                referralCode={referralCode}
-              />
 
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
