@@ -46,6 +46,7 @@ export async function GET(request: Request) {
     ? `${content.authorDisplayName} · ${mediaLabel}`
     : mediaLabel;
   const hasVisualPanel = Boolean(content.coverImageUrl || content.hasVideo);
+  const shouldBlurCover = content.priceType === "paid";
 
   return new ImageResponse(
     (
@@ -205,8 +206,12 @@ export async function GET(request: Request) {
                   src={content.coverImageUrl}
                   style={{
                     display: "flex",
+                    filter: shouldBlurCover
+                      ? "blur(18px) brightness(0.62) saturate(0.78)"
+                      : "none",
                     height: "100%",
                     objectFit: "cover",
+                    transform: shouldBlurCover ? "scale(1.08)" : "none",
                     width: "100%",
                   }}
                   width="372"

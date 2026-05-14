@@ -994,7 +994,11 @@ export function FanletterPaidUnlockPanel({
           {displayCoverImageUrl ? (
             <Image
               alt={displayTitle}
-              className="object-cover"
+              className={
+                isUnlocked
+                  ? "object-cover"
+                  : "scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+              }
               fill
               sizes="(max-width: 1024px) 100vw, 38vw"
               src={displayCoverImageUrl}

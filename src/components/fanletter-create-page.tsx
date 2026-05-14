@@ -26,6 +26,7 @@ import { useMemberSession } from "@/components/member-session-provider";
 import {
   type ContentPostMutationResponse,
   type ContentPostRecord,
+  type ContentPostUploadResponse,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
@@ -43,6 +44,7 @@ import {
   getThirdwebUserEmail,
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
+import { captureVideoCoverFrameFromUrl } from "@/lib/video-frame-cover-client";
 
 type CreateMode = "video";
 type FanRequestSyncStatus = "failed" | "idle" | "reviewed" | "syncing" | "used";
@@ -52,6 +54,7 @@ type LocalDraftStatus = "cleared" | "idle" | "restored" | "saved";
 
 type GeneratedMedia = {
   contentType: string;
+  coverImageUrl: string | null;
   revisedPrompt: string | null;
   url: string;
 };
@@ -197,6 +200,10 @@ function getCopy(locale: Locale) {
         generatingVideo: "AI 동영상 생성 중...",
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
         missingMedia: "공개하려면 먼저 브이로그 동영상을 생성하세요.",
+        teaserFailed:
+          "동영상은 준비됐지만 티저 이미지는 자동 적용하지 못했습니다. 게시 전 다시 시도합니다.",
+        teaserGenerating: "AI 동영상에서 공개 티저 이미지를 준비하고 있습니다.",
+        teaserReady: "AI 동영상 티저 이미지가 자동 적용되었습니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "시작 준비 확인하기",
@@ -339,6 +346,10 @@ function getCopy(locale: Locale) {
         generatingVideo: "Generating AI video...",
         loading: "Checking vlog setup.",
         missingMedia: "Generate a vlog video before publishing.",
+        teaserFailed:
+          "The video is ready, but the teaser image could not be applied automatically. FanLetter will retry before publishing.",
+        teaserGenerating: "Preparing a public teaser image from the AI video.",
+        teaserReady: "The AI video teaser image has been applied automatically.",
         paymentRequired:
           "Confirm FanLetter readiness to create your first AI character vlog.",
         paymentRequiredCta: "Confirm readiness",
@@ -435,6 +446,10 @@ function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
 
   return {
     contentType: media.contentType,
+    coverImageUrl:
+      typeof media.coverImageUrl === "string" && media.coverImageUrl.trim()
+        ? media.coverImageUrl
+        : null,
     revisedPrompt:
       typeof media.revisedPrompt === "string" ? media.revisedPrompt : null,
     url: media.url,
@@ -927,6 +942,45 @@ export function FanletterCreatePage({
     return resolved;
   }, [copy.accountRequiredBody, email, memberSession.email]);
 
+  const createGeneratedVideoTeaserCover = useCallback(
+    async ({
+      email: ownerEmail,
+      title,
+      videoUrl,
+    }: {
+      email: string;
+      title: string;
+      videoUrl: string;
+    }) => {
+      const frameCoverFile = await captureVideoCoverFrameFromUrl(
+        videoUrl,
+        title || "ai-character-vlog",
+      );
+      const formData = new FormData();
+
+      formData.set("email", ownerEmail);
+      formData.set("file", frameCoverFile);
+      formData.set("walletAddress", accountAddress ?? "");
+
+      const response = await fetch("/api/content/posts/upload", {
+        body: formData,
+        method: "POST",
+      });
+      const data = (await response.json()) as ContentPostUploadResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : copy.errorFallback,
+        );
+      }
+
+      return data.url;
+    },
+    [accountAddress, copy.errorFallback],
+  );
+
   const loadSetup = useCallback(async () => {
     if (!accountAddress || loadInFlightRef.current) {
       return;
@@ -1149,14 +1203,34 @@ export function FanletterCreatePage({
         );
       }
 
-      setGeneratedMedia({
+      const generatedVideo = {
         contentType: data.contentType,
+        coverImageUrl: null,
         revisedPrompt: data.revisedPrompt,
         url: data.url,
+      };
+      let coverImageUrl: string | null = null;
+
+      setGeneratedMedia(generatedVideo);
+      setGenerationMessage(copy.teaserGenerating);
+
+      try {
+        coverImageUrl = await createGeneratedVideoTeaserCover({
+          email: resolvedEmail,
+          title: inferTitle(form, generateCta),
+          videoUrl: data.url,
+        });
+      } catch {
+        coverImageUrl = null;
+      }
+
+      setGeneratedMedia({
+        ...generatedVideo,
+        coverImageUrl,
       });
       setGenerationMessage(copy.contentReady);
       setGenerationStatus("ready");
-      setNotice(copy.contentReady);
+      setNotice(coverImageUrl ? copy.teaserReady : copy.teaserFailed);
     } catch (generationError) {
       const message = getErrorMessage(generationError, copy.errorFallback);
 
@@ -1205,12 +1279,35 @@ export function FanletterCreatePage({
       setIsSaving(true);
       setNotice(null);
       const resolvedEmail = await resolveEmail();
+      let coverImageUrlToSave = generatedMedia?.coverImageUrl ?? null;
+
+      if (generatedVideoUrl && !coverImageUrlToSave) {
+        try {
+          setGenerationMessage(copy.teaserGenerating);
+          coverImageUrlToSave = await createGeneratedVideoTeaserCover({
+            email: resolvedEmail,
+            title,
+            videoUrl: generatedVideoUrl,
+          });
+          setGeneratedMedia((current) =>
+            current?.url === generatedVideoUrl
+              ? {
+                  ...current,
+                  coverImageUrl: coverImageUrlToSave,
+                }
+              : current,
+          );
+        } catch {
+          coverImageUrlToSave = null;
+        }
+      }
+
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body,
           contentImageUrls: [],
           contentVideoUrls: generatedVideoUrl ? [generatedVideoUrl] : [],
-          coverImageUrl: null,
+          coverImageUrl: coverImageUrlToSave,
           email: resolvedEmail,
           locale,
           priceType: "free",
@@ -1829,6 +1926,7 @@ export function FanletterCreatePage({
                       loop
                       muted
                       playsInline
+                      poster={generatedMedia?.coverImageUrl ?? undefined}
                       src={generatedVideoUrl}
                     />
                   ) : (

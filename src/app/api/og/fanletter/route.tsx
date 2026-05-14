@@ -219,6 +219,9 @@ export async function GET(request: Request) {
     url.origin,
   );
   const visualUrl = creatorVisualUrl ?? homeVisualUrl;
+  const shouldBlurVisual =
+    creatorData?.items[0]?.priceType === "paid" ||
+    (!creatorData && homeFeaturedVideo?.priceLabel === "paid");
   const creatorName = getCreatorName(creatorData);
   const visualLabel = creatorData
     ? creatorCoverImageUrl
@@ -228,9 +231,13 @@ export async function GET(request: Request) {
       : locale === "ko"
         ? "대표 페르소나"
         : "Character identity"
-    : locale === "ko"
-      ? "대표 공개 브이로그"
-      : "Featured public vlog";
+    : homeFeaturedVideo?.priceLabel === "paid"
+      ? locale === "ko"
+        ? "팬 전용 브이로그"
+        : "Fan-only vlog"
+      : locale === "ko"
+        ? "대표 공개 브이로그"
+        : "Featured public vlog";
   const visualName = creatorData
     ? creatorName
     : homeFeaturedVideo?.authorName ?? null;
@@ -524,8 +531,12 @@ export async function GET(request: Request) {
                   src={visualUrl}
                   style={{
                     display: "flex",
+                    filter: shouldBlurVisual
+                      ? "blur(18px) brightness(0.62) saturate(0.78)"
+                      : "none",
                     height: "100%",
                     objectFit: "cover",
+                    transform: shouldBlurVisual ? "scale(1.08)" : "none",
                     width: "100%",
                   }}
                   width="390"

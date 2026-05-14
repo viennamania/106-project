@@ -109,6 +109,10 @@ import {
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { cn } from "@/lib/utils";
+import {
+  captureVideoCoverFrame,
+  captureVideoCoverFrameFromUrl,
+} from "@/lib/video-frame-cover-client";
 
 type StudioState = {
   error: string | null;
@@ -321,10 +325,6 @@ const EMPTY_STUDIO_SUMMARY = {
   published: 0,
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;
-const PAID_VIDEO_FRAME_COVER_MAX_WIDTH = 1280;
-const PAID_VIDEO_FRAME_COVER_MIME_TYPE = "image/jpeg";
-const PAID_VIDEO_FRAME_COVER_QUALITY = 0.84;
-const PAID_VIDEO_FRAME_COVER_TIMEOUT_MS = 12000;
 const SERVER_BODY_REQUIRED_ERROR = "body is required.";
 
 function sanitizeUploadBaseName(name: string) {
@@ -351,175 +351,6 @@ function resolveVideoExtension(file: File) {
   }
 
   return ".mp4";
-}
-
-function resolvePaidVideoCoverCaptureTime(duration: number) {
-  if (!Number.isFinite(duration) || duration <= 0.6) {
-    return 0;
-  }
-
-  return Math.min(
-    Math.max(duration * 0.18, 0.6),
-    Math.max(duration - 0.2, 0),
-  );
-}
-
-function withTimeout<T>(promise: Promise<T>, message: string) {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  const timeout = new Promise<T>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new Error(message)),
-      PAID_VIDEO_FRAME_COVER_TIMEOUT_MS,
-    );
-  });
-
-  return Promise.race([promise, timeout]).finally(() => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  });
-}
-
-function waitForVideoEvent(
-  video: HTMLVideoElement,
-  eventName: keyof HTMLMediaElementEventMap,
-) {
-  return new Promise<void>((resolve, reject) => {
-    const cleanup = () => {
-      video.removeEventListener(eventName, handleEvent);
-      video.removeEventListener("error", handleError);
-    };
-    const handleEvent = () => {
-      cleanup();
-      resolve();
-    };
-    const handleError = () => {
-      cleanup();
-      reject(new Error("Failed to read the uploaded video frame."));
-    };
-
-    video.addEventListener(eventName, handleEvent, { once: true });
-    video.addEventListener("error", handleError, { once: true });
-  });
-}
-
-async function capturePaidVideoCoverFrameFromSource({
-  crossOrigin,
-  fileName,
-  src,
-}: {
-  crossOrigin?: "" | "anonymous" | "use-credentials";
-  fileName: string;
-  src: string;
-}) {
-  if (typeof document === "undefined" || typeof URL === "undefined") {
-    throw new Error("Video frame capture is only available in the browser.");
-  }
-
-  const video = document.createElement("video");
-
-  try {
-    if (crossOrigin !== undefined) {
-      video.crossOrigin = crossOrigin;
-    }
-
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "auto";
-    video.src = src;
-    video.load();
-
-    await withTimeout(
-      waitForVideoEvent(video, "loadedmetadata"),
-      "Timed out while reading the uploaded video metadata.",
-    );
-
-    const captureTime = resolvePaidVideoCoverCaptureTime(video.duration);
-
-    if (captureTime > 0) {
-      video.currentTime = captureTime;
-      await withTimeout(
-        waitForVideoEvent(video, "seeked"),
-        "Timed out while seeking the uploaded video frame.",
-      );
-    } else {
-      if (video.readyState < 2) {
-        await withTimeout(
-          waitForVideoEvent(video, "loadeddata"),
-          "Timed out while loading the uploaded video frame.",
-        );
-      }
-    }
-
-    if (!video.videoWidth || !video.videoHeight) {
-      throw new Error("The uploaded video has no readable frame size.");
-    }
-
-    const scale = Math.min(
-      1,
-      PAID_VIDEO_FRAME_COVER_MAX_WIDTH / video.videoWidth,
-    );
-    const width = Math.max(1, Math.round(video.videoWidth * scale));
-    const height = Math.max(1, Math.round(video.videoHeight * scale));
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("Could not create a video frame canvas.");
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    context.drawImage(video, 0, 0, width, height);
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (result) => {
-          if (!result) {
-            reject(new Error("Could not encode the video frame cover."));
-            return;
-          }
-
-          resolve(result);
-        },
-        PAID_VIDEO_FRAME_COVER_MIME_TYPE,
-        PAID_VIDEO_FRAME_COVER_QUALITY,
-      );
-    });
-
-    return new File(
-      [blob],
-      `${sanitizeUploadBaseName(fileName)}-video-frame-cover.jpg`,
-      { type: PAID_VIDEO_FRAME_COVER_MIME_TYPE },
-    );
-  } finally {
-    video.removeAttribute("src");
-    video.load();
-  }
-}
-
-async function capturePaidVideoCoverFrame(file: File) {
-  const objectUrl = URL.createObjectURL(file);
-
-  try {
-    return await capturePaidVideoCoverFrameFromSource({
-      fileName: file.name,
-      src: objectUrl,
-    });
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
-async function capturePaidVideoCoverFrameFromUrl(
-  videoUrl: string,
-  fileName: string,
-) {
-  return capturePaidVideoCoverFrameFromSource({
-    crossOrigin: "anonymous",
-    fileName,
-    src: videoUrl,
-  });
 }
 
 const AUTOMATION_RESTRICTED_MESSAGE =
@@ -3679,6 +3510,43 @@ export function CreatorContentStudioPage({
         }
       }
 
+      if (
+        statusToSave === "published" &&
+        priceTypeToSave === "free" &&
+        hasGeneratedPostVideo &&
+        !coverImageUrlToSave
+      ) {
+        try {
+          setState((current) => ({
+            ...current,
+            error: null,
+            notice:
+              locale === "ko"
+                ? "AI 동영상에서 공개 티저 이미지를 준비하고 있습니다."
+                : "Preparing a public teaser image from the AI video.",
+          }));
+          const generatedVideoUrlForCover =
+            postForm.contentVideoUrls[0] ??
+            postForm.generatedContentVideoUrls[0] ??
+            "";
+          const frameCoverFile = await captureVideoCoverFrameFromUrl(
+            generatedVideoUrlForCover,
+            postForm.title.trim() || fallbackTitle || "ai-content-video",
+          );
+          const uploadedCover = await uploadPostCoverImage(frameCoverFile, {
+            successNotice:
+              locale === "ko"
+                ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
+                : "The AI video teaser image has been applied automatically.",
+            throwOnError: true,
+          });
+
+          coverImageUrlToSave = uploadedCover?.url ?? null;
+        } catch {
+          coverImageUrlToSave = null;
+        }
+      }
+
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body: normalizedBody,
@@ -3924,7 +3792,7 @@ export function CreatorContentStudioPage({
         notice: paidUploadComposerCopy.frameCoverGenerating,
       }));
 
-      const frameCoverFile = await capturePaidVideoCoverFrameFromUrl(
+      const frameCoverFile = await captureVideoCoverFrameFromUrl(
         videoUrl,
         postForm.title.trim() || "paid-video",
       );
@@ -4119,7 +3987,7 @@ export function CreatorContentStudioPage({
         }));
 
         try {
-          const frameCoverFile = await capturePaidVideoCoverFrame(file);
+          const frameCoverFile = await captureVideoCoverFrame(file);
 
           await uploadPostCoverImage(frameCoverFile, {
             successNotice: paidUploadComposerCopy.frameCoverReady,
@@ -4672,6 +4540,7 @@ export function CreatorContentStudioPage({
       }
 
       const generatedVideo = data;
+      let generatedVideoCoverReady = false;
 
       setPostForm((current) => ({
         ...current,
@@ -4679,13 +4548,47 @@ export function CreatorContentStudioPage({
         generatedContentVideoUrls: [generatedVideo.url],
         priceType: "free",
       }));
+
+      if (!postForm.coverImageUrl.trim()) {
+        try {
+          setContentVideoGenerationProgress((current) => ({
+            ...current,
+            currentStep: "finalizing",
+            message:
+              locale === "ko"
+                ? "AI 동영상에서 공개 티저 이미지를 준비하고 있습니다."
+                : "Preparing a public teaser image from the AI video.",
+            progress: Math.max(current.progress, 96),
+          }));
+          const frameCoverFile = await captureVideoCoverFrameFromUrl(
+            generatedVideo.url,
+            postForm.title.trim() || "ai-content-video",
+          );
+
+          await uploadPostCoverImage(frameCoverFile, {
+            successNotice:
+              locale === "ko"
+                ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
+                : "The AI video teaser image has been applied automatically.",
+            throwOnError: true,
+          });
+          generatedVideoCoverReady = true;
+        } catch {
+          generatedVideoCoverReady = false;
+        }
+      }
+
       setState((current) => ({
         ...current,
         error: null,
         notice:
           locale === "ko"
-            ? "AI 콘텐츠 동영상을 생성해 무료 공개 동영상으로 추가했습니다."
-            : "Generated an AI content video and added it as free public content.",
+            ? generatedVideoCoverReady
+              ? "AI 콘텐츠 동영상과 공개 티저 이미지를 자동 적용했습니다."
+              : "AI 콘텐츠 동영상을 생성해 무료 공개 동영상으로 추가했습니다."
+            : generatedVideoCoverReady
+              ? "Generated the AI content video and applied a public teaser image."
+              : "Generated an AI content video and added it as free public content.",
       }));
       setContentVideoGenerationProgress((current) => ({
         ...current,

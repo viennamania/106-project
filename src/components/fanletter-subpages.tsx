@@ -849,6 +849,7 @@ function Avatar({
 
 function MediaCard({
   alt,
+  blurred = false,
   controls = true,
   imageUrl,
   mediaType,
@@ -856,6 +857,7 @@ function MediaCard({
   videoUrl,
 }: {
   alt: string;
+  blurred?: boolean;
   controls?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
@@ -864,25 +866,43 @@ function MediaCard({
 }) {
   if (videoUrl) {
     return (
-      <FanletterAutoplayVideo
-        className="h-full w-full object-cover"
-        controls={controls}
-        poster={imageUrl ?? undefined}
-        src={videoUrl}
-        title={title}
-      />
+      <>
+        <FanletterAutoplayVideo
+          className={
+            blurred
+              ? "h-full w-full scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+              : "h-full w-full object-cover"
+          }
+          controls={controls}
+          poster={imageUrl ?? undefined}
+          src={videoUrl}
+          title={title}
+        />
+        {blurred ? (
+          <div className="pointer-events-none absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+        ) : null}
+      </>
     );
   }
 
   if (imageUrl) {
     return (
-      <Image
-        alt={alt}
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 50vw"
-        src={imageUrl}
-      />
+      <>
+        <Image
+          alt={alt}
+          className={
+            blurred
+              ? "scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+              : "object-cover"
+          }
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          src={imageUrl}
+        />
+        {blurred ? (
+          <div className="pointer-events-none absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+        ) : null}
+      </>
     );
   }
 
@@ -2777,7 +2797,11 @@ function FanletterFanOnlyPreview({
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="object-cover transition duration-500 group-hover:scale-[1.025]"
+                        className={
+                          hasAccess
+                            ? "object-cover transition duration-500 group-hover:scale-[1.025]"
+                            : "scale-110 object-cover blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                        }
                         fill
                         sizes="(max-width: 640px) 100vw, 32vw"
                         src={item.coverImageUrl}
@@ -3450,6 +3474,8 @@ function FanletterRelatedVlogCard({
   const fallbackThumbUrl = item.authorAvatarImageUrl ?? fallbackImageUrl;
   const displaySummary = getDisplayContentSummary(item, locale);
   const displayTitle = getDisplayContentTitle(item, locale);
+  const shouldBlurCover =
+    item.priceType === "paid" && !item.canViewerAccess;
 
   return (
     <Link
@@ -3461,7 +3487,11 @@ function FanletterRelatedVlogCard({
           <Image
             alt=""
             aria-hidden="true"
-            className="object-cover transition duration-500 group-hover:scale-[1.025]"
+            className={
+              shouldBlurCover
+                ? "scale-110 object-cover blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                : "object-cover transition duration-500 group-hover:scale-[1.025]"
+            }
             fill
             sizes="6rem"
             src={item.coverImageUrl}
@@ -6266,6 +6296,7 @@ export function FanletterContentDetailPage({
               <div className="relative h-[52svh] min-h-[20rem] max-h-[28rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
                 <MediaCard
                   alt={content.title}
+                  blurred={shouldShowPaidUnlockPanel}
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
                   title={content.title}

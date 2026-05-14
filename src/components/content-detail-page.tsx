@@ -148,10 +148,12 @@ type PaidUnlockState = {
 
 function HeroImage({
   alt,
+  blurred = false,
   preload = false,
   src,
 }: {
   alt: string;
+  blurred?: boolean;
   preload?: boolean;
   src: string;
 }) {
@@ -159,12 +161,18 @@ function HeroImage({
     <div className="relative aspect-[4/5] w-full sm:aspect-[16/9]">
       <Image
         alt={alt}
-        className="object-cover"
+        className={cn(
+          "object-cover",
+          blurred ? "scale-110 blur-xl brightness-[0.58] saturate-[0.72]" : "",
+        )}
         fill
         preload={preload}
         sizes={HERO_IMAGE_SIZES}
         src={src}
       />
+      {blurred ? (
+        <div className="absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+      ) : null}
     </div>
   );
 }
@@ -759,6 +767,8 @@ export function ContentDetailPage({
         } USDT`
       : contentCopy.labels.free;
   const isPaidDetail = detailPriceType === "paid";
+  const shouldBlurPaidCover =
+    isPaidDetail && state.content?.canAccess !== true;
   const isPaidPurchaseUnlocked =
     isPaidDetail &&
     state.content?.canAccess === true &&
@@ -1402,6 +1412,7 @@ export function ContentDetailPage({
                 authorAvatarImageUrl: heroAuthorAvatarUrl,
                 authorDisplayName: heroAuthorDisplayName,
                 coverImageUrl: heroImageUrl,
+                priceType: detailPriceType,
                 publishedAt: heroPublishedLabel,
                 summary: heroSummary,
                 title: heroTitle,
@@ -1426,7 +1437,12 @@ export function ContentDetailPage({
                 subtitle={contentCopy.page.detailEyebrow}
               />
               {heroImageUrl ? (
-                <HeroImage alt={heroTitle} preload src={heroImageUrl} />
+                <HeroImage
+                  alt={heroTitle}
+                  blurred={shouldBlurPaidCover}
+                  preload
+                  src={heroImageUrl}
+                />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
               )}
@@ -1535,7 +1551,12 @@ export function ContentDetailPage({
               subtitle={contentCopy.page.detailEyebrow}
             />
             {heroImageUrl ? (
-              <HeroImage alt={state.content.title} preload src={heroImageUrl} />
+              <HeroImage
+                alt={state.content.title}
+                blurred={shouldBlurPaidCover}
+                preload
+                src={heroImageUrl}
+              />
             ) : (
               <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
             )}
@@ -2527,6 +2548,7 @@ function ContentDetailLoadingState({
     authorAvatarImageUrl: string | null;
     authorDisplayName: string | null;
     coverImageUrl: string | null;
+    priceType: ContentPriceType;
     publishedAt: string | null;
     summary: string | null;
     title: string;
@@ -2559,7 +2581,12 @@ function ContentDetailLoadingState({
           </div>
 
           {teaser.coverImageUrl ? (
-            <HeroImage alt={teaser.title} preload src={teaser.coverImageUrl} />
+            <HeroImage
+              alt={teaser.title}
+              blurred={teaser.priceType === "paid"}
+              preload
+              src={teaser.coverImageUrl}
+            />
           ) : (
             <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top_left,rgba(249,168,212,0.32),transparent_34%),radial-gradient(circle_at_top_right,rgba(125,211,252,0.26),transparent_28%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#1e293b_100%)] sm:aspect-[16/9]" />
           )}
