@@ -668,6 +668,8 @@ function FanletterShell({
   currentSection,
   description,
   eyebrow,
+  heroGridClassName,
+  heroSpacingClassName,
   locale,
   referralCode,
   showStartAction = true,
@@ -680,6 +682,8 @@ function FanletterShell({
   currentSection?: FanletterShellSection;
   description?: ReactNode;
   eyebrow: string;
+  heroGridClassName?: string;
+  heroSpacingClassName?: string;
   locale: Locale;
   referralCode: string | null;
   showStartAction?: boolean;
@@ -781,9 +785,9 @@ function FanletterShell({
           </div>
 
           <div
-            className={`pt-14 sm:pt-24 ${
+            className={`${heroSpacingClassName ?? "pt-14 sm:pt-24"} ${
               aside
-                ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,25rem)] lg:items-end"
+                ? `grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,25rem)] ${heroGridClassName ?? "lg:items-end"}`
                 : ""
             }`}
           >
@@ -5513,6 +5517,14 @@ export function FanletterCreatorPage({
       value: formatNumber(character?.avatarImageSet.length ?? 0, locale),
     },
   ];
+  const channelShareTitle =
+    locale === "ko"
+      ? `${channelName} AI 브이로그 채널`
+      : `${channelName} AI vlog channel`;
+  const channelShareSummary =
+    locale === "ko"
+      ? `공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 콘텐츠 ${formatNumber(data.fanOnlyContentCount, locale)}개를 볼 수 있는 FanLetter AI 캐릭터 채널입니다.`
+      : `A FanLetter AI character channel with ${formatNumber(data.publicContentCount, locale)} public vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only posts.`;
 
   return (
     <FanletterShell
@@ -5531,8 +5543,8 @@ export function FanletterCreatorPage({
             href={channelHref}
             locale={locale}
             referralCode={effectiveReferralCode}
-            summary={channelSummary}
-            title={`${channelName} | FanLetter`}
+            summary={channelShareSummary}
+            title={channelShareTitle}
           />
         </>
       }
@@ -5550,6 +5562,8 @@ export function FanletterCreatorPage({
       }
       description={channelSummary}
       eyebrow={copy.creator.eyebrow}
+      heroGridClassName="lg:items-start"
+      heroSpacingClassName="pt-10 sm:pt-16"
       locale={locale}
       referralCode={effectiveReferralCode}
       showStartAction={false}

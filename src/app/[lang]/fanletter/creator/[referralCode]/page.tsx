@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterCreatorPage } from "@/components/fanletter-subpages";
-import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
+import {
+  getFanletterCreatorPageData,
+  type FanletterCreatorPageData,
+} from "@/lib/fanletter-content-service";
 import {
   buildFanletterOgImagePath,
   buildFanletterOgVersionToken,
@@ -17,6 +20,56 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 type FanletterCreatorSearchParams = {
   ref?: string | string[];
 };
+
+function formatShareNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function getLocaleSafeShareTitle(value: string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  if (locale === "ko" && !/[가-힣]/.test(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function getFanletterCreatorShareMetadata({
+  characterName,
+  data,
+  locale,
+}: {
+  characterName: string;
+  data: FanletterCreatorPageData;
+  locale: Locale;
+}) {
+  const publicCount = formatShareNumber(data.publicContentCount, locale);
+  const fanOnlyCount = formatShareNumber(data.fanOnlyContentCount, locale);
+  const level = data.profile.character?.growth.level ?? 1;
+  const latestTitle = getLocaleSafeShareTitle(
+    data.profile.character?.latestTitle ?? data.items[0]?.title ?? null,
+    locale,
+  );
+
+  if (locale === "ko") {
+    return {
+      description: latestTitle
+        ? `공개 브이로그 ${publicCount}개, 팬 전용 ${fanOnlyCount}개, Lv.${level} 캐릭터 채널입니다. 대표 브이로그: ${latestTitle}.`
+        : `공개 브이로그 ${publicCount}개와 팬 전용 콘텐츠 ${fanOnlyCount}개를 볼 수 있는 Lv.${level} FanLetter AI 캐릭터 채널입니다.`,
+      title: `${characterName} AI 브이로그 채널`,
+    };
+  }
+
+  return {
+    description: latestTitle
+      ? `${publicCount} public vlogs, ${fanOnlyCount} fan-only posts, and a Lv.${level} AI character channel. Featured vlog: ${latestTitle}.`
+      : `A Lv.${level} FanLetter AI character channel with ${publicCount} public vlogs and ${fanOnlyCount} fan-only posts.`,
+    title: `${characterName} AI vlog channel`,
+  };
+}
 
 export async function generateMetadata({
   params,
@@ -38,6 +91,10 @@ export async function generateMetadata({
     (locale === "ko"
       ? "FanLetter 가상 인물 공개 채널입니다."
       : "A public FanLetter virtual character channel.");
+  const shareMetadata =
+    data && characterName
+      ? getFanletterCreatorShareMetadata({ characterName, data, locale })
+      : { description, title };
   const normalizedReferralCode = normalizeReferralCode(referralCode);
   const url = `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}`;
   const ogVisualUrl =
@@ -46,16 +103,16 @@ export async function generateMetadata({
     data?.items[0]?.coverImageUrl ??
     null;
   const ogImagePath = buildFanletterOgImagePath({
-    description,
+    description: shareMetadata.description,
     locale,
     referralCode: normalizedReferralCode,
-    title,
+    title: shareMetadata.title,
     variant: "creator",
     version:
       buildFanletterOgVersionToken(
         normalizedReferralCode ?? referralCode,
-        title,
-        description,
+        shareMetadata.title,
+        shareMetadata.description,
         ogVisualUrl,
       ) ??
       normalizedReferralCode ??
@@ -80,18 +137,18 @@ export async function generateMetadata({
       canonical: url,
     },
     openGraph: {
-      description,
+      description: shareMetadata.description,
       images: [ogImage],
       siteName: "FanLetter",
-      title,
+      title: shareMetadata.title,
       type: "profile",
       url,
     },
     twitter: {
       card: "summary_large_image",
-      description,
+      description: shareMetadata.description,
       images: [ogImage],
-      title,
+      title: shareMetadata.title,
     },
   };
 }

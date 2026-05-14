@@ -5,7 +5,10 @@ import {
   isFanletterOgVariant,
   type FanletterOgVariant,
 } from "@/lib/fanletter-og";
-import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
+import {
+  getFanletterCreatorPageData,
+  type FanletterCreatorPageData,
+} from "@/lib/fanletter-content-service";
 import {
   defaultLocale,
   hasLocale,
@@ -99,6 +102,87 @@ function getRenderableImageUrl(value: string | null | undefined) {
   }
 }
 
+function stripFanletterTitleSuffix(value: string) {
+  return value.replace(/\s*\|\s*FanLetter\s*$/i, "").trim();
+}
+
+function getCreatorName(data: FanletterCreatorPageData | null) {
+  return data?.profile.character?.name ?? data?.profile.displayName ?? null;
+}
+
+function getCreatorLatestTitle(data: FanletterCreatorPageData) {
+  return data.profile.character?.latestTitle ?? data.items[0]?.title ?? null;
+}
+
+function getLocaleSafeTitle(value: string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  if (locale === "ko" && !/[가-힣]/.test(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function formatMetric(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function getCreatorOgTitle({
+  creatorName,
+  locale,
+  requestedTitle,
+}: {
+  creatorName: string;
+  locale: Locale;
+  requestedTitle: string | null;
+}) {
+  const normalizedTitle = stripFanletterTitleSuffix(requestedTitle ?? "");
+
+  if (normalizedTitle && normalizedTitle !== creatorName) {
+    return normalizedTitle;
+  }
+
+  return locale === "ko"
+    ? `${creatorName} AI 브이로그 채널`
+    : `${creatorName} AI vlog channel`;
+}
+
+function getCreatorOgDescription({
+  data,
+  locale,
+  requestedDescription,
+}: {
+  data: FanletterCreatorPageData;
+  locale: Locale;
+  requestedDescription: string | null;
+}) {
+  const hasShareSignal = locale === "ko"
+    ? requestedDescription?.includes("공개 브이로그")
+    : requestedDescription?.toLowerCase().includes("public vlog");
+
+  if (requestedDescription && hasShareSignal) {
+    return requestedDescription;
+  }
+
+  const publicCount = formatMetric(data.publicContentCount, locale);
+  const fanOnlyCount = formatMetric(data.fanOnlyContentCount, locale);
+  const level = data.profile.character?.growth.level ?? 1;
+  const latestTitle = getLocaleSafeTitle(getCreatorLatestTitle(data), locale);
+
+  if (locale === "ko") {
+    return latestTitle
+      ? `공개 브이로그 ${publicCount}개, 팬 전용 ${fanOnlyCount}개, Lv.${level} 캐릭터 채널입니다. 대표 브이로그: ${latestTitle}.`
+      : `공개 브이로그 ${publicCount}개와 팬 전용 ${fanOnlyCount}개를 볼 수 있는 Lv.${level} AI 캐릭터 채널입니다.`;
+  }
+
+  return latestTitle
+    ? `${publicCount} public vlogs, ${fanOnlyCount} fan-only posts, and a Lv.${level} AI character channel. Featured vlog: ${latestTitle}.`
+    : `A Lv.${level} AI character channel with ${publicCount} public vlogs and ${fanOnlyCount} fan-only posts.`;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const locale = readLocale(url.searchParams.get("lang"));
@@ -110,28 +194,65 @@ export async function GET(request: Request) {
     variant === "creator" && referralCode
       ? await getFanletterCreatorPageData(locale, referralCode).catch(() => null)
       : null;
-  const creatorVisualUrl = getRenderableImageUrl(
-    creatorData?.profile.character?.avatarImageSet[0]?.url ??
-      creatorData?.profile.avatarImageUrl ??
-      creatorData?.items[0]?.coverImageUrl,
+  const creatorCoverImageUrl = getRenderableImageUrl(
+    creatorData?.items[0]?.coverImageUrl,
   );
-  const title = truncateText(url.searchParams.get("title") || copy.title, 62);
+  const creatorAvatarImageUrl = getRenderableImageUrl(
+    creatorData?.profile.character?.avatarImageSet[0]?.url ??
+      creatorData?.profile.avatarImageUrl,
+  );
+  const creatorVisualUrl = creatorCoverImageUrl ?? creatorAvatarImageUrl;
+  const creatorVisualLabel = creatorCoverImageUrl
+    ? locale === "ko"
+      ? "대표 브이로그"
+      : "Featured vlog"
+    : locale === "ko"
+      ? "대표 페르소나"
+      : "Character identity";
+  const creatorName = getCreatorName(creatorData);
+  const title = truncateText(
+    creatorData && creatorName
+      ? getCreatorOgTitle({
+          creatorName,
+          locale,
+          requestedTitle: url.searchParams.get("title"),
+        })
+      : url.searchParams.get("title") || copy.title,
+    creatorData ? 54 : 62,
+  );
   const description = truncateText(
-    url.searchParams.get("description") || copy.description,
-    122,
+    creatorData
+      ? getCreatorOgDescription({
+          data: creatorData,
+          locale,
+          requestedDescription: url.searchParams.get("description"),
+        })
+      : url.searchParams.get("description") || copy.description,
+    creatorData ? 112 : 122,
   );
   const variantLabel = copy.variantLabels[variant];
+  const badge = creatorData
+    ? locale === "ko"
+      ? "AI 캐릭터 채널"
+      : "AI character channel"
+    : copy.badge;
+  const footer = creatorData
+    ? locale === "ko"
+      ? "팔로우 · 팬 요청 · 팬 전용 브이로그"
+      : "Follow · Fan requests · Fan-only vlogs"
+    : copy.footer;
+  const latestTitle = creatorData
+    ? getLocaleSafeTitle(getCreatorLatestTitle(creatorData), locale)
+    : null;
   const metrics = creatorData
     ? [
         {
           label: locale === "ko" ? "공개 브이로그" : "Public vlogs",
-          value: new Intl.NumberFormat(locale).format(creatorData.publicContentCount),
+          value: formatMetric(creatorData.publicContentCount, locale),
         },
         {
           label: locale === "ko" ? "팬 전용" : "Fan-only",
-          value: new Intl.NumberFormat(locale).format(
-            creatorData.fanOnlyContentCount,
-          ),
+          value: formatMetric(creatorData.fanOnlyContentCount, locale),
         },
         {
           label: locale === "ko" ? "캐릭터 레벨" : "Character level",
@@ -287,7 +408,7 @@ export async function GET(request: Request) {
                   textTransform: "uppercase",
                 }}
               >
-                {copy.badge}
+                {badge}
               </div>
               <div
                 style={{
@@ -324,7 +445,7 @@ export async function GET(request: Request) {
                 fontWeight: 800,
               }}
             >
-              {copy.footer}
+              {footer}
             </div>
           </div>
 
@@ -332,9 +453,8 @@ export async function GET(request: Request) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 18,
               justifyContent: "center",
-              width: creatorVisualUrl ? 366 : 350,
+              width: creatorVisualUrl ? 390 : 350,
             }}
           >
             {creatorVisualUrl ? (
@@ -345,7 +465,7 @@ export async function GET(request: Request) {
                   borderRadius: 38,
                   boxShadow: "0 28px 90px rgba(0,0,0,0.28)",
                   display: "flex",
-                  height: 424,
+                  height: 480,
                   overflow: "hidden",
                   position: "relative",
                   width: "100%",
@@ -354,7 +474,7 @@ export async function GET(request: Request) {
                 {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
                 <img
                   alt=""
-                  height="424"
+                  height="480"
                   src={creatorVisualUrl}
                   style={{
                     display: "flex",
@@ -362,23 +482,46 @@ export async function GET(request: Request) {
                     objectFit: "cover",
                     width: "100%",
                   }}
-                  width="366"
+                  width="390"
                 />
                 <div
                   style={{
                     background:
-                      "linear-gradient(180deg, rgba(3,5,4,0.02) 0%, rgba(3,5,4,0.1) 42%, rgba(3,5,4,0.78) 100%)",
+                      "linear-gradient(180deg, rgba(3,5,4,0.02) 0%, rgba(3,5,4,0.08) 34%, rgba(3,5,4,0.86) 100%)",
                     inset: 0,
                     position: "absolute",
                   }}
                 />
                 <div
                   style={{
-                    bottom: 18,
-                    color: "white",
+                    display: "flex",
+                    left: 20,
+                    position: "absolute",
+                    right: 20,
+                    top: 20,
+                  }}
+                >
+                  <div
+                    style={{
+                      alignSelf: "flex-start",
+                      background: "#44f26e",
+                      borderRadius: 999,
+                      color: "#07100b",
+                      display: "flex",
+                      fontSize: 16,
+                      fontWeight: 900,
+                      padding: "10px 14px",
+                    }}
+                  >
+                    {variantLabel}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    bottom: 20,
                     display: "flex",
                     flexDirection: "column",
-                    gap: 8,
+                    gap: 14,
                     left: 20,
                     position: "absolute",
                     right: 20,
@@ -386,101 +529,174 @@ export async function GET(request: Request) {
                 >
                   <div
                     style={{
-                      color: "#44f26e",
+                      color: "white",
                       display: "flex",
-                      fontSize: 18,
-                      fontWeight: 900,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
+                      flexDirection: "column",
+                      gap: 7,
                     }}
                   >
-                    {locale === "ko" ? "대표 페르소나" : "Character identity"}
+                    <div
+                      style={{
+                        color: "#44f26e",
+                        display: "flex",
+                        fontSize: 17,
+                        fontWeight: 900,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {creatorVisualLabel}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 34,
+                        fontWeight: 900,
+                        lineHeight: 1.04,
+                      }}
+                    >
+                      {creatorName ?? stripFanletterTitleSuffix(title)}
+                    </div>
+                    {latestTitle ? (
+                      <div
+                        style={{
+                          color: "rgba(255,255,255,0.74)",
+                          display: "flex",
+                          fontSize: 16,
+                          fontWeight: 800,
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {locale === "ko"
+                          ? `최근: ${truncateText(latestTitle, 28)}`
+                          : `Latest: ${truncateText(latestTitle, 28)}`}
+                      </div>
+                    ) : null}
                   </div>
                   <div
                     style={{
                       display: "flex",
-                      fontSize: 32,
-                      fontWeight: 900,
-                      lineHeight: 1.05,
+                      gap: 9,
+                      width: "100%",
                     }}
                   >
-                    {title.replace(/\s*\|\s*FanLetter$/, "")}
+                    {metrics.map((metric, index) => (
+                      <div
+                        key={metric.label}
+                        style={{
+                          background:
+                            index === 0 ? "#44f26e" : "rgba(255,255,255,0.92)",
+                          border:
+                            index === 0
+                              ? "1px solid rgba(68,242,110,0.8)"
+                              : "1px solid rgba(255,255,255,0.16)",
+                          borderRadius: 18,
+                          color: "#07100b",
+                          display: "flex",
+                          flex: 1,
+                          flexDirection: "column",
+                          gap: 5,
+                          padding: "12px 10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color:
+                              index === 0 ? "#07100b" : "rgba(7,16,11,0.62)",
+                            display: "flex",
+                            fontSize: 12,
+                            fontWeight: 900,
+                            lineHeight: 1.1,
+                          }}
+                        >
+                          {metric.label}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            fontSize: 30,
+                            fontWeight: 900,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {metric.value}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            ) : null}
-            <div
-              style={{
-                background: "rgba(255,255,255,0.95)",
-                borderRadius: 34,
-                boxShadow: "0 28px 90px rgba(0,0,0,0.28)",
-                color: "#07100b",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                padding: 18,
-                width: "100%",
-              }}
-            >
-              {metrics.map((metric, index) => (
-                <div
-                  key={metric.label}
-                  style={{
-                    alignItems: "center",
-                    background: index === 0 ? "#44f26e" : "#f4f6f2",
-                    borderRadius: 22,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "18px 20px",
-                  }}
-                >
+            ) : (
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.95)",
+                  borderRadius: 34,
+                  boxShadow: "0 28px 90px rgba(0,0,0,0.28)",
+                  color: "#07100b",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                  padding: 18,
+                  width: "100%",
+                }}
+              >
+                {metrics.map((metric, index) => (
                   <div
+                    key={metric.label}
                     style={{
+                      alignItems: "center",
+                      background: index === 0 ? "#44f26e" : "#f4f6f2",
+                      borderRadius: 22,
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 4,
+                      justifyContent: "space-between",
+                      padding: "18px 20px",
                     }}
                   >
                     <div
                       style={{
-                        color: index === 0 ? "#07100b" : "#5b665f",
                         display: "flex",
-                        fontSize: 15,
-                        fontWeight: 800,
+                        flexDirection: "column",
+                        gap: 4,
                       }}
                     >
-                      {metric.label}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        fontSize: 42,
-                        fontWeight: 900,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {metric.value}
+                      <div
+                        style={{
+                          color: index === 0 ? "#07100b" : "#5b665f",
+                          display: "flex",
+                          fontSize: 15,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {metric.label}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          fontSize: 42,
+                          fontWeight: 900,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {metric.value}
+                      </div>
                     </div>
                   </div>
-                  <div
-                    style={{
-                      background: index === 0 ? "#07100b" : "#07100b",
-                      borderRadius: 999,
-                      display: "flex",
-                      height: 48,
-                      width: 48,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div
               style={{
                 display: "flex",
                 gap: 12,
+                marginTop: 14,
               }}
             >
-              {["Persona", "Image", "Video"].map((label) => (
+              {(creatorData
+                ? locale === "ko"
+                  ? ["브이로그", "팬 요청", "팬 전용"]
+                  : ["Vlog", "Requests", "Fan-only"]
+                : ["Persona", "Image", "Video"]
+              ).map((label) => (
                 <div
                   key={label}
                   style={{
