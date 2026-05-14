@@ -12,6 +12,7 @@ import {
   ImageIcon,
   Loader2,
   LockKeyhole,
+  MapPin,
   MessageCircleHeart,
   Save,
   Sparkles,
@@ -41,6 +42,12 @@ import type {
   FanletterCharacterGrowthRecord,
   FanletterCharacterGrowthResponse,
 } from "@/lib/fanletter-character-growth";
+import {
+  FANLETTER_WORLD_LOCATION_PRESETS,
+  getCreatorCurrentWorldLocation,
+  resolveFanletterWorldLocationSelection,
+  type FanletterWorldLocationSelection,
+} from "@/lib/fanletter-world-location";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -111,6 +118,7 @@ type CharacterQuickstartState = {
   status: "idle" | "loading" | "ready" | "error";
   style: "chic" | "daily" | "fan_service" | "friendly";
   visualSilhouette: CharacterVisualSilhouette;
+  worldLocationSelection: FanletterWorldLocationSelection;
 };
 
 type CharacterGrowthState = {
@@ -153,6 +161,7 @@ const EMPTY_QUICK_CHARACTER: CharacterQuickstartState = {
   status: "idle",
   style: "friendly",
   visualSilhouette: "auto",
+  worldLocationSelection: "current",
 };
 const EMPTY_CHARACTER_GROWTH: CharacterGrowthState = {
   data: null,
@@ -436,6 +445,10 @@ function getCopy(locale: Locale) {
         quickStyleFanService: "팬 소통형",
         quickStyleFriendly: "친근한",
         quickSuccess: "캐릭터를 만들고 FanLetter 프로필에 저장했습니다.",
+        quickWorldCurrent: "현재 설정",
+        quickWorldHint:
+          "정확한 현재 위치가 아니라 날씨, 낮밤, 계절을 맞추는 공개 기준 도시만 사용합니다.",
+        quickWorldLocation: "현실 기준 도시",
         quickPanelTitle: "표시 이름과 분위기만 정하면 끝",
         quickTitle: "빠른 캐릭터 만들기",
         refresh: "다시 불러오기",
@@ -716,6 +729,10 @@ function getCopy(locale: Locale) {
         quickStyleFanService: "Fan communication",
         quickStyleFriendly: "Friendly",
         quickSuccess: "Character created and saved to your FanLetter profile.",
+        quickWorldCurrent: "Current setting",
+        quickWorldHint:
+          "This stores a public base city for weather, day/night, and season context, not an exact live location.",
+        quickWorldLocation: "Reality base city",
         quickPanelTitle: "Name and mood are enough",
         quickTitle: "Quick character setup",
         refresh: "Reload",
@@ -1242,6 +1259,10 @@ export function FanletterProfilePage({
               ? null
               : quickCharacter.visualSilhouette,
           walletAddress: accountAddress,
+          worldLocation: resolveFanletterWorldLocationSelection({
+            persona: profile.characterPersona,
+            selection: quickCharacter.worldLocationSelection,
+          }),
         }),
         headers: {
           "Content-Type": "application/json",
@@ -2511,6 +2532,31 @@ export function FanletterProfilePage({
       ["auto", copy.quickAgeAuto],
       ...copy.ageOptions,
     ] as const;
+    const currentWorldLocation = getCreatorCurrentWorldLocation(
+      profile.characterPersona,
+    );
+    const effectiveWorldLocationSelection =
+      quickCharacter.worldLocationSelection === "current" &&
+      !currentWorldLocation
+        ? "seoul"
+        : quickCharacter.worldLocationSelection;
+    const worldLocationOptions = [
+      ...(currentWorldLocation
+        ? [
+            {
+              label: `${copy.quickWorldCurrent} · ${currentWorldLocation.label}`,
+              value: "current" as const,
+            },
+          ]
+        : []),
+      ...FANLETTER_WORLD_LOCATION_PRESETS.map((preset) => ({
+        label: locale === "ko" ? preset.labelKo : preset.labelEn,
+        value: preset.key,
+      })),
+    ] satisfies Array<{
+      label: string;
+      value: FanletterWorldLocationSelection;
+    }>;
 
     return (
       <section className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 sm:p-5">
@@ -2586,6 +2632,51 @@ export function FanletterProfilePage({
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-lg border border-white/12 bg-black/18 p-3">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#44f26e]/16 text-[#44f26e]">
+              <MapPin className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                {copy.quickWorldLocation}
+              </p>
+              <p className="mt-1 text-xs font-medium leading-5 text-white/46">
+                {copy.quickWorldHint}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {worldLocationOptions.map((option) => {
+                  const selected = effectiveWorldLocationSelection === option.value;
+
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={`min-h-10 rounded-full border px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        selected
+                          ? "border-[#44f26e] bg-[#44f26e] text-black"
+                          : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.08]"
+                      }`}
+                      disabled={isCreatingCharacter}
+                      key={option.value}
+                      onClick={() => {
+                        setQuickCharacter((current) => ({
+                          ...current,
+                          error: null,
+                          status: "idle",
+                          worldLocationSelection: option.value,
+                        }));
+                      }}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

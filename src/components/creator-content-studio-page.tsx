@@ -86,6 +86,13 @@ import {
   normalizeCreatorCharacterWorldLocation,
 } from "@/lib/fanletter-realism-policy";
 import {
+  DEFAULT_FANLETTER_WORLD_LOCATION as DEFAULT_STUDIO_WORLD_LOCATION,
+  FANLETTER_WORLD_LOCATION_PRESETS as STUDIO_WORLD_LOCATION_PRESETS,
+  getCreatorCurrentWorldLocation,
+  resolveFanletterWorldLocationSelection,
+  type FanletterWorldLocationSelection,
+} from "@/lib/fanletter-world-location";
+import {
   buildPathWithReferral,
   buildReferralLandingPath,
   setPathSearchParams,
@@ -215,6 +222,7 @@ type CharacterQuickstartState = {
   status: "idle" | "loading" | "ready" | "error";
   style: "chic" | "daily" | "fan_service" | "friendly";
   visualSilhouette: CharacterVisualSilhouetteSelection;
+  worldLocationSelection: FanletterWorldLocationSelection;
 };
 
 type CharacterIdentityLockDraft = {
@@ -258,64 +266,6 @@ const EMPTY_PROFILE = {
   intro: "",
   payoutWalletAddress: "",
 };
-
-const DEFAULT_STUDIO_WORLD_LOCATION = {
-  countryCode: "KR",
-  label: "Seoul, South Korea",
-  latitude: 37.5665,
-  longitude: 126.978,
-  timezone: "Asia/Seoul",
-} satisfies CreatorCharacterWorldLocation;
-
-const STUDIO_WORLD_LOCATION_PRESETS = [
-  {
-    key: "seoul",
-    labelEn: "Seoul",
-    labelKo: "서울",
-    value: DEFAULT_STUDIO_WORLD_LOCATION,
-  },
-  {
-    key: "tokyo",
-    labelEn: "Tokyo",
-    labelKo: "도쿄",
-    value: {
-      countryCode: "JP",
-      label: "Tokyo, Japan",
-      latitude: 35.6762,
-      longitude: 139.6503,
-      timezone: "Asia/Tokyo",
-    },
-  },
-  {
-    key: "new-york",
-    labelEn: "New York",
-    labelKo: "뉴욕",
-    value: {
-      countryCode: "US",
-      label: "New York, United States",
-      latitude: 40.7128,
-      longitude: -74.006,
-      timezone: "America/New_York",
-    },
-  },
-  {
-    key: "london",
-    labelEn: "London",
-    labelKo: "런던",
-    value: {
-      countryCode: "GB",
-      label: "London, United Kingdom",
-      latitude: 51.5074,
-      longitude: -0.1278,
-      timezone: "Europe/London",
-    },
-  },
-] satisfies Array<{
-  key: string;
-  labelEn: string;
-  labelKo: string;
-  value: CreatorCharacterWorldLocation;
-}>;
 
 const EMPTY_POST_FORM = {
   body: "",
@@ -1059,6 +1009,7 @@ export function CreatorContentStudioPage({
     status: "idle",
     style: "friendly",
     visualSilhouette: "auto",
+    worldLocationSelection: "current",
   });
   const [identityLockDraft, setIdentityLockDraft] =
     useState<CharacterIdentityLockDraft>({
@@ -2705,6 +2656,10 @@ export function CreatorContentStudioPage({
               ? null
               : quickCharacter.visualSilhouette,
           walletAddress: accountAddress,
+          worldLocation: resolveFanletterWorldLocationSelection({
+            persona: state.profile.characterPersona,
+            selection: quickCharacter.worldLocationSelection,
+          }),
         }),
         headers: {
           "Content-Type": "application/json",
@@ -5005,6 +4960,10 @@ export function CreatorContentStudioPage({
             visualLabel: "중립 실루엣",
             visualSlender: "날렵한",
             visualSoft: "부드러운",
+            worldCurrent: "현재 설정",
+            worldHint:
+              "정확한 현재 위치가 아니라 날씨, 낮밤, 계절 기준으로 쓸 공개 도시만 저장합니다.",
+            worldLabel: "현실 기준 도시",
           }
         : {
             advanced: "Advanced settings",
@@ -5044,6 +5003,10 @@ export function CreatorContentStudioPage({
             visualLabel: "Neutral silhouette",
             visualSlender: "Slender",
             visualSoft: "Soft",
+            worldCurrent: "Current setting",
+            worldHint:
+              "Stores a public base city for weather, day/night, and season context, not an exact live location.",
+            worldLabel: "Reality base city",
           };
     const genderOptions = [
       { label: quickCopy.genderAuto, value: "auto" as const },
@@ -5092,6 +5055,31 @@ export function CreatorContentStudioPage({
       { label: quickCopy.styleDaily, value: "daily" as const },
       { label: quickCopy.styleFanService, value: "fan_service" as const },
     ];
+    const currentWorldLocation = getCreatorCurrentWorldLocation(
+      state.profile.characterPersona,
+    );
+    const effectiveWorldLocationSelection =
+      quickCharacter.worldLocationSelection === "current" &&
+      !currentWorldLocation
+        ? "seoul"
+        : quickCharacter.worldLocationSelection;
+    const worldLocationOptions = [
+      ...(currentWorldLocation
+        ? [
+            {
+              label: `${quickCopy.worldCurrent} · ${currentWorldLocation.label}`,
+              value: "current" as const,
+            },
+          ]
+        : []),
+      ...STUDIO_WORLD_LOCATION_PRESETS.map((preset) => ({
+        label: locale === "ko" ? preset.labelKo : preset.labelEn,
+        value: preset.key,
+      })),
+    ] satisfies Array<{
+      label: string;
+      value: FanletterWorldLocationSelection;
+    }>;
 
     return (
       <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
@@ -5158,6 +5146,51 @@ export function CreatorContentStudioPage({
                   </button>
                 );
               })}
+            </div>
+          </div>
+          <div className="rounded-[20px] border border-emerald-100 bg-emerald-50 px-3 py-3">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+                <MapPin className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-900/70">
+                  {quickCopy.worldLabel}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-emerald-900/70">
+                  {quickCopy.worldHint}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {worldLocationOptions.map((option) => {
+                    const selected =
+                      effectiveWorldLocationSelection === option.value;
+
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          selected
+                            ? "border-emerald-600 bg-emerald-600 text-white"
+                            : "border-emerald-200 bg-white text-emerald-900 hover:border-emerald-300"
+                        }`}
+                        disabled={isCreatingCharacter}
+                        key={option.value}
+                        onClick={() => {
+                          setQuickCharacter((current) => ({
+                            ...current,
+                            error: null,
+                            status: "idle",
+                            worldLocationSelection: option.value,
+                          }));
+                        }}
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
           <div className="rounded-[20px] border border-slate-200 bg-white px-3 py-3">

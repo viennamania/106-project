@@ -8,13 +8,19 @@ import { generateCreatorAvatarCandidates } from "@/lib/creator-avatar-service";
 import {
   generateCreatorCharacterPersonas,
 } from "@/lib/creator-character-persona-service";
-import type { CreatorProfileResponse } from "@/lib/content";
+import type {
+  CreatorCharacterWorldLocation,
+  CreatorProfileResponse,
+} from "@/lib/content";
 import {
   getCreatorProfileSnapshotForCompletedMember,
   upsertCreatorCharacterForMember,
 } from "@/lib/content-service";
 import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
-import { normalizeCreatorCharacterRealismProfile } from "@/lib/fanletter-realism-policy";
+import {
+  normalizeCreatorCharacterRealismProfile,
+  normalizeCreatorCharacterWorldLocation,
+} from "@/lib/fanletter-realism-policy";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
@@ -40,6 +46,7 @@ type QuickCharacterRequest = {
   style?: string | null;
   visualSilhouette?: string | null;
   walletAddress?: string | null;
+  worldLocation?: CreatorCharacterWorldLocation | null;
 };
 
 const ageRanges = ["20s", "30s", "40s", "50s_plus", "auto"] as const;
@@ -198,11 +205,15 @@ export async function POST(request: Request) {
     const generatedRealismProfile = normalizeCreatorCharacterRealismProfile(
       characterPersona.realismProfile,
     );
+    const requestedWorldLocation = normalizeCreatorCharacterWorldLocation(
+      body.worldLocation,
+    );
     const characterPersonaWithRealism = {
       ...characterPersona,
       realismProfile: {
         ...generatedRealismProfile,
         worldLocation:
+          requestedWorldLocation ??
           currentRealismProfile.worldLocation ??
           generatedRealismProfile.worldLocation,
       },

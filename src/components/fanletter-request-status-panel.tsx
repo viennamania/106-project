@@ -12,6 +12,7 @@ import type {
 import { readFanletterRequestReceiptIds } from "@/lib/fanletter-request-receipts";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+import { getFanletterRealismRevisionReasonLabel } from "@/lib/fanletter-realism-policy";
 
 type RequestStatusPanelStatus = "error" | "idle" | "loading" | "ready";
 
@@ -32,6 +33,7 @@ function getCopy(locale: Locale) {
         error: "요청 상태를 불러오지 못했습니다.",
         loading: "내 요청 상태 확인 중",
         revised: "현실 기반 보정",
+        revisedReason: "사유",
         sourceBody: "이 브이로그에서 남긴 요청 상태를 이 기기에서 바로 확인합니다.",
         statuses: {
           hidden: "숨김",
@@ -52,6 +54,7 @@ function getCopy(locale: Locale) {
         error: "Could not load request status.",
         loading: "Checking my request status",
         revised: "Reality adjusted",
+        revisedReason: "Reason",
         sourceBody: "Track the request you left from this vlog on this device.",
         statuses: {
           hidden: "Hidden",
@@ -244,6 +247,9 @@ export function FanletterRequestStatusPanel({
         <div className="mt-4 grid gap-2 lg:grid-cols-3">
           {visibleRequests.map((request) => {
             const Icon = getStatusIcon(request.status);
+            const revisionReasonLabels = request.realismRevisionReasons.map(
+              (reason) => getFanletterRealismRevisionReasonLabel(reason, locale),
+            );
 
             return (
               <article
@@ -260,9 +266,19 @@ export function FanletterRequestStatusPanel({
                   </span>
                 </div>
                 {request.realismRevised ? (
-                  <span className="mt-2 inline-flex w-fit items-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-2.5 py-1 text-[0.66rem] font-semibold text-[#b9ffc8]">
-                    {copy.revised}
-                  </span>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex w-fit items-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-2.5 py-1 text-[0.66rem] font-semibold text-[#b9ffc8]">
+                      {copy.revised}
+                    </span>
+                    {revisionReasonLabels.map((label) => (
+                      <span
+                        className="inline-flex w-fit items-center rounded-full border border-white/10 bg-white/[0.055] px-2.5 py-1 text-[0.66rem] font-semibold text-white/48"
+                        key={label}
+                      >
+                        {copy.revisedReason}: {label}
+                      </span>
+                    ))}
+                  </div>
                 ) : null}
                 <p className="mt-3 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
                   {request.body}

@@ -19,6 +19,7 @@ import {
 } from "@/components/fanletter-fan-request-preset-link";
 import type {
   FanletterFanRequestCreateResponse,
+  FanletterRealismRevisionReason,
   FanletterFanRequestTemplateCategory,
   FanletterFanRequestTemplateRecord,
   FanletterFanRequestTemplatesResponse,
@@ -31,13 +32,17 @@ import {
   FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
   type FanletterFanRequestSubmittedDetail,
 } from "@/lib/fanletter-request-events";
-import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
+import {
+  getFanletterRealismDisclosureCopy,
+  getFanletterRealismRevisionReasonLabel,
+} from "@/lib/fanletter-realism-policy";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
 
 type LastSubmittedRequest = {
   body: string;
   realismRevised: boolean;
+  realismRevisionReasons: FanletterRealismRevisionReason[];
   requestType: FanletterFanRequestType;
 };
 
@@ -89,6 +94,7 @@ function getCopy(locale: Locale) {
         requestPreview: "방금 보낸 요청",
         requestReceipt:
           "이 요청은 이 기기에 저장되어 계정 연결 전에도 상태를 다시 확인할 수 있습니다.",
+        requestRevisionReason: "보정 사유",
         requestStatus: "내 요청 상태 보기",
         requestReady: "문구를 수정하거나 바로 요청을 남길 수 있습니다.",
         revised: "현실 기반 보정",
@@ -173,6 +179,7 @@ function getCopy(locale: Locale) {
         requestPreview: "Request just sent",
         requestReceipt:
           "This request is saved on this device, so you can track it before connecting an account.",
+        requestRevisionReason: "Adjustment reason",
         requestStatus: "Track my request",
         requestReady: "Edit the wording, or leave this request now.",
         revised: "Reality adjusted",
@@ -516,6 +523,7 @@ export function FanletterFanRequestForm({
       setLastSubmittedRequest({
         body: data.request.body,
         realismRevised: data.request.realismRevised,
+        realismRevisionReasons: data.request.realismRevisionReasons,
         requestType,
       });
       setBody("");
@@ -556,6 +564,11 @@ export function FanletterFanRequestForm({
       ? copy.message
       : copy.vlogRequest
     : null;
+  const lastSubmittedRevisionReasonLabels = lastSubmittedRequest
+    ? lastSubmittedRequest.realismRevisionReasons.map((reason) =>
+        getFanletterRealismRevisionReasonLabel(reason, locale),
+      )
+    : [];
   const requestStatusHref = `${buildPathWithReferral(
     `/${locale}/fanletter/requests`,
     referralCode ?? creatorReferralCode,
@@ -844,6 +857,21 @@ export function FanletterFanRequestForm({
                   <p className="mt-3 line-clamp-3 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
                     {lastSubmittedRequest.body}
                   </p>
+                  {lastSubmittedRevisionReasonLabels.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                        {copy.requestRevisionReason}
+                      </span>
+                      {lastSubmittedRevisionReasonLabels.map((label) => (
+                        <span
+                          className="rounded-full border border-white/10 bg-white/[0.055] px-2.5 py-1 text-[0.64rem] font-semibold text-white/62"
+                          key={label}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>

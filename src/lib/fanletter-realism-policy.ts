@@ -243,3 +243,21 @@ export function getFanletterRealismDisclosureCopy(locale: Locale) {
           "Requests involving impossible scenes, real people, or exact private locations are adapted into plausible vlog scenes.",
       };
 }
+
+export function getFanletterRealismRevisionReasonLabel(
+  reason: FanletterRealismRevisionReason,
+  locale: Locale,
+) {
+  const labels = {
+    adult_age_continuity:
+      locale === "ko" ? "성인 나이 연속성" : "adult age continuity",
+    impossible_physics:
+      locale === "ko" ? "현실 물리 기준" : "real-world physics",
+    private_location:
+      locale === "ko" ? "사적 위치 보호" : "private location protection",
+    real_person_impersonation:
+      locale === "ko" ? "실존 인물 혼동 방지" : "real-person impersonation guard",
+  } satisfies Record<FanletterRealismRevisionReason, string>;
+
+  return labels[reason];
+}
