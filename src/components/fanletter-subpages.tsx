@@ -370,15 +370,19 @@ function getContentHref({
   item,
   locale,
   referralCode,
+  returnToHref,
 }: {
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
 }) {
-  return buildPathWithReferral(
+  const href = buildPathWithReferral(
     `/${locale}/fanletter/content/${item.contentId}`,
     referralCode ?? item.authorReferralCode,
   );
+
+  return returnToHref ? setPathSearchParams(href, { returnTo: returnToHref }) : href;
 }
 
 function getCreatorHref({
@@ -1006,6 +1010,7 @@ function ContentCard({
   item,
   locale,
   referralCode,
+  returnToHref,
   showVideoPreview = false,
 }: {
   authorNameOverride?: string;
@@ -1013,10 +1018,11 @@ function ContentCard({
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
   showVideoPreview?: boolean;
 }) {
   const copy = getCopy(locale);
-  const href = getContentHref({ item, locale, referralCode });
+  const href = getContentHref({ item, locale, referralCode, returnToHref });
   const creatorHref = getCreatorHref({ item, locale, referralCode });
   const displayAuthorName = authorNameOverride ?? item.authorName;
   const displaySummary = getDisplayContentSummary(item, locale);
@@ -1144,6 +1150,7 @@ function ContentGrid({
   items,
   locale,
   referralCode,
+  returnToHref,
   showVideoPreview = false,
 }: {
   authorNameOverride?: string;
@@ -1154,6 +1161,7 @@ function ContentGrid({
   items: FanletterPublicContentItem[];
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
   showVideoPreview?: boolean;
 }) {
   if (items.length === 0) {
@@ -1182,6 +1190,7 @@ function ContentGrid({
           key={item.contentId}
           locale={locale}
           referralCode={referralCode}
+          returnToHref={returnToHref}
           showVideoPreview={showVideoPreview}
         />
       ))}
@@ -1194,14 +1203,16 @@ function FeaturedFeedCard({
   item,
   locale,
   referralCode,
+  returnToHref,
 }: {
   authorNameOverride?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
 }) {
   const copy = getCopy(locale);
-  const href = getContentHref({ item, locale, referralCode });
+  const href = getContentHref({ item, locale, referralCode, returnToHref });
   const creatorHref = getCreatorHref({ item, locale, referralCode });
   const publishedAt = formatDate(item.publishedAt, locale);
   const engagementScore = getContentEngagementScore(item);
@@ -1981,6 +1992,7 @@ function FanletterChannelHeroPreview({
   locale,
   publicContentCount,
   referralCode,
+  returnToHref,
 }: {
   channelAvatarUrl: string | null;
   channelName: string;
@@ -1990,6 +2002,7 @@ function FanletterChannelHeroPreview({
   locale: Locale;
   publicContentCount: number;
   referralCode: string | null;
+  returnToHref?: string | null;
 }) {
   const copy = getCopy(locale);
   const labels =
@@ -2016,7 +2029,7 @@ function FanletterChannelHeroPreview({
       ? getDisplayContentTitleText(character.latestTitle, character.latestTitle, locale)
       : copy.creator.empty;
   const heroHref = featuredItem
-    ? getContentHref({ item: featuredItem, locale, referralCode })
+    ? getContentHref({ item: featuredItem, locale, referralCode, returnToHref })
     : null;
   const stats = [
     {
@@ -5900,6 +5913,7 @@ export function FanletterCreatorPage({
           locale={locale}
           publicContentCount={data.publicContentCount}
           referralCode={effectiveReferralCode}
+          returnToHref={channelHref}
         />
       }
       description={heroDescription}
@@ -6048,6 +6062,7 @@ export function FanletterCreatorPage({
                 item={featuredItem}
                 locale={locale}
                 referralCode={effectiveReferralCode}
+                returnToHref={`${channelHref}#featured-vlog`}
               />
             </section>
           ) : null}
@@ -6119,6 +6134,7 @@ export function FanletterCreatorPage({
               items={contentItems}
               locale={locale}
               referralCode={effectiveReferralCode}
+              returnToHref={`${channelHref}#public-vlogs`}
               showVideoPreview
             />
           </section>
