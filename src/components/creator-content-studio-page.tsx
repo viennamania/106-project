@@ -11,9 +11,11 @@ import {
   Coins,
   Copy,
   Film,
+  Globe2,
   ImagePlus,
   LayoutGrid,
   LoaderCircle,
+  MapPin,
   PenSquare,
   RefreshCcw,
   Rss,
@@ -59,6 +61,7 @@ import {
 import type {
   CreatorCharacterPersona,
   CreatorCharacterPersonaGenerateResponse,
+  CreatorCharacterWorldLocation,
   CreatorProfileAvatarCandidate,
   CreatorProfileAvatarGenerateResponse,
   CreatorProfileRecord,
@@ -76,6 +79,10 @@ import type {
 } from "@/lib/content";
 import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
+import {
+  createDefaultCreatorRealismProfile,
+  normalizeCreatorCharacterWorldLocation,
+} from "@/lib/fanletter-realism-policy";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
@@ -225,6 +232,64 @@ const EMPTY_PROFILE = {
   payoutWalletAddress: "",
 };
 
+const DEFAULT_STUDIO_WORLD_LOCATION = {
+  countryCode: "KR",
+  label: "Seoul, South Korea",
+  latitude: 37.5665,
+  longitude: 126.978,
+  timezone: "Asia/Seoul",
+} satisfies CreatorCharacterWorldLocation;
+
+const STUDIO_WORLD_LOCATION_PRESETS = [
+  {
+    key: "seoul",
+    labelEn: "Seoul",
+    labelKo: "서울",
+    value: DEFAULT_STUDIO_WORLD_LOCATION,
+  },
+  {
+    key: "tokyo",
+    labelEn: "Tokyo",
+    labelKo: "도쿄",
+    value: {
+      countryCode: "JP",
+      label: "Tokyo, Japan",
+      latitude: 35.6762,
+      longitude: 139.6503,
+      timezone: "Asia/Tokyo",
+    },
+  },
+  {
+    key: "new-york",
+    labelEn: "New York",
+    labelKo: "뉴욕",
+    value: {
+      countryCode: "US",
+      label: "New York, United States",
+      latitude: 40.7128,
+      longitude: -74.006,
+      timezone: "America/New_York",
+    },
+  },
+  {
+    key: "london",
+    labelEn: "London",
+    labelKo: "런던",
+    value: {
+      countryCode: "GB",
+      label: "London, United Kingdom",
+      latitude: 51.5074,
+      longitude: -0.1278,
+      timezone: "Europe/London",
+    },
+  },
+] satisfies Array<{
+  key: string;
+  labelEn: string;
+  labelKo: string;
+  value: CreatorCharacterWorldLocation;
+}>;
+
 const EMPTY_POST_FORM = {
   body: "",
   contentImageUrls: [] as string[],
@@ -344,6 +409,86 @@ function createEditableCreatorProfile(
     intro: profile.intro,
     payoutWalletAddress: profile.payoutWalletAddress ?? "",
   };
+}
+
+function resolveCreatorWorldLocation(
+  persona: CreatorCharacterPersona | null | undefined,
+) {
+  return (
+    normalizeCreatorCharacterWorldLocation(persona?.realismProfile?.worldLocation) ??
+    DEFAULT_STUDIO_WORLD_LOCATION
+  );
+}
+
+function resolveCreatorWorldLocationDraft(
+  persona: CreatorCharacterPersona | null | undefined,
+) {
+  return persona?.realismProfile?.worldLocation ?? resolveCreatorWorldLocation(persona);
+}
+
+function applyCreatorWorldLocationDraft(
+  persona: CreatorCharacterPersona,
+  location: CreatorCharacterWorldLocation,
+) {
+  const defaultRealismProfile = createDefaultCreatorRealismProfile();
+  const currentRealismProfile = persona.realismProfile ?? defaultRealismProfile;
+
+  return {
+    ...persona,
+    realismProfile: {
+      ...defaultRealismProfile,
+      ...currentRealismProfile,
+      worldLocation: location,
+    },
+  };
+}
+
+function applyCreatorWorldLocation(
+  persona: CreatorCharacterPersona,
+  location: CreatorCharacterWorldLocation,
+) {
+  const normalizedLocation =
+    normalizeCreatorCharacterWorldLocation(location) ??
+    DEFAULT_STUDIO_WORLD_LOCATION;
+  const defaultRealismProfile = createDefaultCreatorRealismProfile();
+  const currentRealismProfile = persona.realismProfile ?? defaultRealismProfile;
+
+  return {
+    ...persona,
+    realismProfile: {
+      ...defaultRealismProfile,
+      ...currentRealismProfile,
+      worldLocation: normalizedLocation,
+    },
+  };
+}
+
+function preserveCreatorWorldLocation(
+  nextPersona: CreatorCharacterPersona,
+  currentPersona: CreatorCharacterPersona | null | undefined,
+) {
+  const currentLocation = normalizeCreatorCharacterWorldLocation(
+    currentPersona?.realismProfile?.worldLocation,
+  );
+
+  return currentLocation
+    ? applyCreatorWorldLocation(nextPersona, currentLocation)
+    : nextPersona;
+}
+
+function parseBoundedCoordinate(
+  value: string,
+  fallback: number,
+  min: number,
+  max: number,
+) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, parsed));
 }
 
 function summarizeNonJsonApiResponse(text: string) {
@@ -2676,11 +2821,15 @@ export function CreatorContentStudioPage({
   }
 
   async function saveCharacterPersona(persona: CreatorCharacterPersona) {
+    const nextPersona = preserveCreatorWorldLocation(
+      persona,
+      state.profile.characterPersona,
+    );
     const nextProfile = {
       ...state.profile,
       avatarImageSet: [],
       avatarImageUrl: "",
-      characterPersona: persona,
+      characterPersona: nextPersona,
     };
 
     setAvatarGeneration({
@@ -2688,6 +2837,70 @@ export function CreatorContentStudioPage({
       error: null,
       status: "idle",
     });
+    setState((current) => ({
+      ...current,
+      profile: nextProfile,
+    }));
+    await saveCharacterProfile(nextProfile);
+  }
+
+  function updateCharacterWorldLocation(
+    patch: Partial<CreatorCharacterWorldLocation>,
+  ) {
+    setState((current) => {
+      const persona = current.profile.characterPersona;
+
+      if (!persona) {
+        return current;
+      }
+
+      const currentLocation = resolveCreatorWorldLocationDraft(persona);
+      const nextLocation = {
+        ...currentLocation,
+        ...patch,
+      };
+
+      return {
+        ...current,
+        profile: {
+          ...current.profile,
+          characterPersona: applyCreatorWorldLocationDraft(
+            persona,
+            nextLocation,
+          ),
+        },
+      };
+    });
+  }
+
+  async function saveCharacterWorldLocation() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return;
+    }
+
+    const normalizedLocation = normalizeCreatorCharacterWorldLocation(
+      persona.realismProfile?.worldLocation,
+    );
+
+    if (!normalizedLocation) {
+      setState((current) => ({
+        ...current,
+        error:
+          locale === "ko"
+            ? "도시, 국가 코드, 시간대, 위도, 경도를 올바르게 입력하세요."
+            : "Enter a valid city, country code, timezone, latitude, and longitude.",
+        notice: null,
+      }));
+      return;
+    }
+
+    const nextProfile = {
+      ...state.profile,
+      characterPersona: applyCreatorWorldLocation(persona, normalizedLocation),
+    };
+
     setState((current) => ({
       ...current,
       profile: nextProfile,
@@ -4706,6 +4919,206 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderCharacterRealitySettingsPanel() {
+    const persona = state.profile.characterPersona;
+
+    if (!persona) {
+      return null;
+    }
+
+    const worldLocation = resolveCreatorWorldLocationDraft(persona);
+    const normalizedWorldLocation =
+      normalizeCreatorCharacterWorldLocation(worldLocation);
+    const displayLocation = normalizedWorldLocation ?? worldLocation;
+    const realityCopy =
+      locale === "ko"
+        ? {
+            body:
+              "AI 캐릭터의 기준 도시와 시간대를 정합니다. 콘텐츠 생성은 날씨, 낮밤, 계절, 공휴일 맥락을 이 값 기준으로 맞춥니다.",
+            countryCode: "국가 코드",
+            current: "현재 기준",
+            invalid:
+              "저장하려면 도시, 2자리 국가 코드, IANA 시간대, 위도/경도를 모두 유효하게 입력하세요.",
+            latitude: "위도",
+            longitude: "경도",
+            presets: "도시 프리셋",
+            privacy:
+              "정확한 실시간 위치나 사적 주소가 아니라 공개 가능한 기준 도시만 저장합니다.",
+            save: "현실 설정 저장",
+            saving: "저장 중...",
+            timezone: "시간대",
+            timezoneHint: "예: Asia/Seoul, America/New_York",
+            title: "현실 세계 설정",
+            worldLabel: "기준 도시",
+          }
+        : {
+            body:
+              "Set the character's base city and timezone. Content generation uses this for weather, day/night, season, and holiday context.",
+            countryCode: "Country code",
+            current: "Current basis",
+            invalid:
+              "Enter a valid city, 2-letter country code, IANA timezone, latitude, and longitude before saving.",
+            latitude: "Latitude",
+            longitude: "Longitude",
+            presets: "City presets",
+            privacy:
+              "Only a public base city is stored, not an exact live location or private address.",
+            save: "Save reality settings",
+            saving: "Saving...",
+            timezone: "Timezone",
+            timezoneHint: "Example: Asia/Seoul, America/New_York",
+            title: "Reality Settings",
+            worldLabel: "Base city",
+          };
+
+    return (
+      <section className="rounded-[24px] border border-emerald-200 bg-emerald-50/70 px-4 py-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white">
+            <Globe2 className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-950">
+                  {realityCopy.title}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-slate-600">
+                  {realityCopy.body}
+                </p>
+              </div>
+              <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-800">
+                <MapPin className="size-3.5" />
+                {realityCopy.current}: {displayLocation.label}
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-emerald-900">
+              {realityCopy.privacy}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-900/70">
+            {realityCopy.presets}
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {STUDIO_WORLD_LOCATION_PRESETS.map((preset) => {
+              const selected =
+                normalizedWorldLocation?.countryCode ===
+                  preset.value.countryCode &&
+                normalizedWorldLocation.timezone === preset.value.timezone;
+
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={`inline-flex h-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    selected
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-emerald-200 bg-white text-emerald-900 hover:border-emerald-300"
+                  }`}
+                  disabled={isSavingProfile || isDisconnected}
+                  key={preset.key}
+                  onClick={() => {
+                    updateCharacterWorldLocation(preset.value);
+                  }}
+                  type="button"
+                >
+                  {locale === "ko" ? preset.labelKo : preset.labelEn}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <InputField
+            label={realityCopy.worldLabel}
+            onChange={(value) => {
+              updateCharacterWorldLocation({ label: value });
+            }}
+            value={worldLocation.label}
+          />
+          <InputField
+            label={realityCopy.countryCode}
+            onChange={(value) => {
+              updateCharacterWorldLocation({
+                countryCode: value.trim().toUpperCase().slice(0, 2),
+              });
+            }}
+            value={worldLocation.countryCode}
+          />
+          <InputField
+            hint={realityCopy.timezoneHint}
+            label={realityCopy.timezone}
+            onChange={(value) => {
+              updateCharacterWorldLocation({ timezone: value.trim() });
+            }}
+            value={worldLocation.timezone}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <InputField
+              label={realityCopy.latitude}
+              onChange={(value) => {
+                updateCharacterWorldLocation({
+                  latitude: parseBoundedCoordinate(
+                    value,
+                    worldLocation.latitude,
+                    -90,
+                    90,
+                  ),
+                });
+              }}
+              value={String(worldLocation.latitude)}
+            />
+            <InputField
+              label={realityCopy.longitude}
+              onChange={(value) => {
+                updateCharacterWorldLocation({
+                  longitude: parseBoundedCoordinate(
+                    value,
+                    worldLocation.longitude,
+                    -180,
+                    180,
+                  ),
+                });
+              }}
+              value={String(worldLocation.longitude)}
+            />
+          </div>
+        </div>
+
+        {!normalizedWorldLocation ? (
+          <p className="mt-3 text-xs leading-5 text-amber-700">
+            {realityCopy.invalid}
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex justify-end">
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            disabled={
+              isSavingProfile ||
+              isDisconnected ||
+              !normalizedWorldLocation
+            }
+            onClick={() => {
+              void saveCharacterWorldLocation();
+            }}
+            type="button"
+          >
+            {isSavingProfile ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isSavingProfile ? realityCopy.saving : realityCopy.save}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   function renderActiveCharacterCard() {
     const persona = state.profile.characterPersona;
     const cardCopy =
@@ -5219,6 +5632,7 @@ export function CreatorContentStudioPage({
               </div>
             </div>
             {renderActiveCharacterCard()}
+            {renderCharacterRealitySettingsPanel()}
             {renderQuickCharacterPanel()}
             <section className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
               <div className="mb-4">

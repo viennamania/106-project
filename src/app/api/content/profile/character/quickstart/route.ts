@@ -14,6 +14,7 @@ import {
   upsertCreatorCharacterForMember,
 } from "@/lib/content-service";
 import { isMemberAllowedForContentAutomation } from "@/lib/content-automation-service";
+import { normalizeCreatorCharacterRealismProfile } from "@/lib/fanletter-realism-policy";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
@@ -191,6 +192,22 @@ export async function POST(request: Request) {
       return jsonError("Creator persona generation returned no usable candidates.", 500);
     }
 
+    const currentRealismProfile = normalizeCreatorCharacterRealismProfile(
+      currentProfile.characterPersona?.realismProfile,
+    );
+    const generatedRealismProfile = normalizeCreatorCharacterRealismProfile(
+      characterPersona.realismProfile,
+    );
+    const characterPersonaWithRealism = {
+      ...characterPersona,
+      realismProfile: {
+        ...generatedRealismProfile,
+        worldLocation:
+          currentRealismProfile.worldLocation ??
+          generatedRealismProfile.worldLocation,
+      },
+    };
+
     let avatarImageSet: CreatorProfileResponse["profile"]["avatarImageSet"] = [];
     let selectedAvatarUrl: string | null = null;
     let characterWarning: string | null = null;
@@ -198,7 +215,7 @@ export async function POST(request: Request) {
     try {
       const avatarCandidates = await generateCreatorAvatarCandidates({
         displayName,
-        persona: characterPersona,
+        persona: characterPersonaWithRealism,
         referralCode: authorization.member.referralCode,
       });
       const selectedAvatar =
@@ -222,7 +239,7 @@ export async function POST(request: Request) {
     const profile = await upsertCreatorCharacterForMember({
       avatarImageSet,
       avatarImageUrl: selectedAvatarUrl,
-      characterPersona,
+      characterPersona: characterPersonaWithRealism,
       displayName,
       email: authorization.normalizedEmail,
       intro: currentProfile.intro,
