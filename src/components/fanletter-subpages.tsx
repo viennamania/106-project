@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BellPlus,
+  Bookmark,
   Clapperboard,
   Crown,
   Grid2X2,
@@ -70,6 +71,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { cn } from "@/lib/utils";
 
 type FanletterSubpageCopy = {
   actions: {
@@ -614,6 +616,22 @@ function getDisplayContentSummary(item: FanletterPublicContentItem, locale: Loca
   return summary || (locale === "ko" ? "AI 캐릭터 브이로그입니다." : "AI character vlog.");
 }
 
+function getCompactTextSnippet(value: string, maxLength = 92) {
+  const normalized = value.trim().replace(/\s+/g, " ");
+
+  const sentenceEnd = normalized.search(/[.!?。！？]/);
+
+  if (sentenceEnd > 10 && sentenceEnd <= maxLength) {
+    return normalized.slice(0, sentenceEnd + 1);
+  }
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength).trim()}...`;
+}
+
 function getDisplayPaidTeaser(item: FanletterPublicContentItem, locale: Locale) {
   const teaser = item.previewText?.trim();
 
@@ -785,8 +803,12 @@ function FanletterShell({
   children,
   currentSection,
   description,
+  descriptionClassName,
   eyebrow,
   hideStartNavItem = false,
+  heroActionsClassName,
+  heroAsideClassName,
+  heroContentClassName,
   heroGridClassName,
   heroSpacingClassName,
   locale,
@@ -800,8 +822,12 @@ function FanletterShell({
   children: ReactNode;
   currentSection?: FanletterShellSection;
   description?: ReactNode;
+  descriptionClassName?: string;
   eyebrow: string;
   hideStartNavItem?: boolean;
+  heroActionsClassName?: string;
+  heroAsideClassName?: string;
+  heroContentClassName?: string;
   heroGridClassName?: string;
   heroSpacingClassName?: string;
   locale: Locale;
@@ -915,7 +941,7 @@ function FanletterShell({
                 : ""
             }`}
           >
-            <div className="min-w-0">
+            <div className={cn("min-w-0", heroContentClassName)}>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {eyebrow}
               </p>
@@ -928,17 +954,24 @@ function FanletterShell({
                 {title}
               </h1>
               {description ? (
-                <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+                <p
+                  className={cn(
+                    "mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg",
+                    descriptionClassName,
+                  )}
+                >
                   {description}
                 </p>
               ) : null}
               {actions ? (
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <div
+                  className={cn("mt-8 flex flex-col gap-3 sm:flex-row", heroActionsClassName)}
+                >
                   {actions}
                 </div>
               ) : null}
             </div>
-            {aside ? <div className="min-w-0">{aside}</div> : null}
+            {aside ? <div className={cn("min-w-0", heroAsideClassName)}>{aside}</div> : null}
           </div>
         </div>
       </section>
@@ -1117,24 +1150,33 @@ function ContentCard({
         <p className="mt-1.5 line-clamp-2 min-h-10 break-words text-xs font-medium leading-5 text-black/58 [overflow-wrap:anywhere] sm:mt-2 sm:min-h-[4.5rem] sm:text-sm sm:leading-6">
           {displaySummary}
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:hidden">
+        <div className="mt-3 flex items-center gap-1.5 sm:hidden">
           {[
-            { label: copy.metrics.likes, value: item.social.likeCount },
-            { label: copy.metrics.comments, value: item.social.commentCount },
-            { label: copy.metrics.saves, value: item.social.saveCount },
-          ].map((metric) => (
-            <span
-              className="min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] px-2 py-1.5 text-center"
-              key={metric.label}
-            >
-              <span className="block text-xs font-semibold leading-none">
-                {formatNumber(metric.value, locale)}
+            { icon: Heart, label: copy.metrics.likes, value: item.social.likeCount },
+            {
+              icon: MessageCircle,
+              label: copy.metrics.comments,
+              value: item.social.commentCount,
+            },
+            { icon: Bookmark, label: copy.metrics.saves, value: item.social.saveCount },
+          ].map((metric) => {
+            const MetricIcon = metric.icon;
+
+            return (
+              <span
+                className="inline-flex h-8 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border border-black/10 bg-[#f6f8f4] px-1.5 text-center"
+                key={metric.label}
+              >
+                <MetricIcon className="size-3.5 shrink-0 text-black/42" />
+                <span className="text-xs font-semibold leading-none">
+                  {formatNumber(metric.value, locale)}
+                </span>
+                <span className="sr-only">
+                  {metric.label}
+                </span>
               </span>
-              <span className="mt-1 block truncate text-[0.55rem] font-semibold text-black/38">
-                {metric.label}
-              </span>
-            </span>
-          ))}
+            );
+          })}
         </div>
         <div className="hidden sm:block">
           <FanletterSocialActions
@@ -3649,7 +3691,7 @@ function FanletterFanPromptPanel({
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
             {labels.eyebrow}
           </p>
-          <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.55rem]">
+          <h2 className="mt-3 text-[1.72rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[2.55rem]">
             {displayTitle}
           </h2>
           <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
@@ -3664,6 +3706,19 @@ function FanletterFanPromptPanel({
           {displayRequestCta}
         </Link>
       </div>
+
+      {creatorReferralCode && !isOwner ? (
+        <FanletterFanRequestForm
+          characterName={characterName}
+          creatorReferralCode={creatorReferralCode}
+          followHref={followHref}
+          formId={requestFormId}
+          locale={locale}
+          publicVlogsHref={publicVlogsHref}
+          referralCode={referralCode}
+          sourceContentId={sourceContentId}
+        />
+      ) : null}
 
       <div className="mt-6 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-4">
         <p className="text-sm font-semibold text-[#b9ffc8]">
@@ -3818,19 +3873,6 @@ function FanletterFanPromptPanel({
             </div>
           ) : null}
         </div>
-      ) : null}
-
-      {creatorReferralCode && !isOwner ? (
-        <FanletterFanRequestForm
-          characterName={characterName}
-          creatorReferralCode={creatorReferralCode}
-          followHref={followHref}
-          formId={requestFormId}
-          locale={locale}
-          publicVlogsHref={publicVlogsHref}
-          referralCode={referralCode}
-          sourceContentId={sourceContentId}
-        />
       ) : null}
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -6127,6 +6169,7 @@ export function FanletterCreatorPage({
   const character = data.profile.character;
   const channelName = character?.name ?? data.profile.displayName;
   const channelSummary = character?.summary || data.profile.intro;
+  const compactChannelSummary = getCompactTextSnippet(channelSummary);
   const isOwner = data.viewerRelation === "owner";
   const viewerMode: FanletterCreatorViewerMode = isOwner
     ? "owner"
@@ -6239,7 +6282,7 @@ export function FanletterCreatorPage({
     locale === "ko"
       ? {
           fanRequest: "팬 요청 흐름 보기",
-          heroDescription: `${channelName}은 FanLetter AI 캐릭터 채널입니다. ${channelSummary} 공개 브이로그를 먼저 확인하고, 마음에 들면 연결해 팔로우하세요.`,
+          heroDescription: `FanLetter AI 캐릭터 채널입니다. ${compactChannelSummary} 공개 브이로그로 분위기를 먼저 확인하세요.`,
           identityEyebrow: "SNS 공유로 열린 AI 캐릭터",
           identityNote:
             "고정 페르소나와 표정 아바타로 운영되는 FanLetter AI 캐릭터 채널입니다.",
@@ -6247,7 +6290,7 @@ export function FanletterCreatorPage({
         }
       : {
           fanRequest: "View request flow",
-          heroDescription: `${channelName} is a FanLetter AI character channel. ${channelSummary} Preview public vlogs first, then connect and follow if it fits.`,
+          heroDescription: `A FanLetter AI character channel. ${compactChannelSummary} Preview the public vlogs first.`,
           identityEyebrow: "Shared AI character",
           identityNote:
             "A FanLetter AI character channel built around a fixed persona and expression avatar set.",
@@ -6272,7 +6315,7 @@ export function FanletterCreatorPage({
           },
           fan: {
             fanRequest: "팬 요청 보내기",
-            heroDescription: `로그인한 팬으로 보는 ${channelName} 채널입니다. 공개 브이로그를 확인하고 팔로우, 팬 요청, 팬 전용 콘텐츠로 이어갈 수 있습니다.`,
+            heroDescription: `${channelName} 팬 채널입니다. 공개 브이로그와 팬 전용 콘텐츠를 이어서 확인할 수 있습니다.`,
             identityEyebrow: "로그인 팬으로 보는 채널",
             identityNote:
               "팔로우, 요청, 팬 전용 열람 상태가 이 계정 기준으로 이어집니다.",
@@ -6281,7 +6324,7 @@ export function FanletterCreatorPage({
           },
           owner: {
             fanRequest: "요청함 관리",
-            heroDescription: `이 계정이 소유한 ${channelName} AI 캐릭터 채널입니다. 팬에게 보이는 공개 화면을 확인하면서 스튜디오, 요청함, 새 브이로그 제작으로 바로 이동할 수 있습니다.`,
+            heroDescription: `내 AI 캐릭터 채널입니다. 공개 화면을 확인하고 제작, 요청함, 스튜디오로 바로 이동할 수 있습니다.`,
             identityEyebrow: "내 AI 캐릭터 관리 모드",
             identityNote:
               "팬용 팔로우 CTA 대신 제작, 요청함, 공개 상태 관리가 우선 노출됩니다.",
@@ -6296,7 +6339,7 @@ export function FanletterCreatorPage({
           },
           fan: {
             fanRequest: "Send fan request",
-            heroDescription: `You are viewing ${channelName} as a signed-in fan. Continue from public vlogs into follow, fan requests, and fan-only content for this account.`,
+            heroDescription: `${channelName} fan channel. Continue from public vlogs into fan-only content and requests.`,
             identityEyebrow: "Signed-in fan view",
             identityNote:
               "Follow state, requests, and fan-only access continue from this account.",
@@ -6305,7 +6348,7 @@ export function FanletterCreatorPage({
           },
           owner: {
             fanRequest: "Manage requests",
-            heroDescription: `This AI character channel belongs to the signed-in account. Review the public fan view, then continue into Studio, requests, and new vlog creation.`,
+            heroDescription: `Your AI character channel. Review the public view, then continue into Studio, requests, and new vlog creation.`,
             identityEyebrow: "My AI character management view",
             identityNote:
               "Creator actions, request management, and publishing controls replace fan follow CTAs.",
@@ -6333,6 +6376,7 @@ export function FanletterCreatorPage({
             publicVlogsHref={publicVlogsHref}
           />
           <FanletterChannelShareButton
+            className="max-sm:hidden"
             href={channelHref}
             locale={locale}
             referralCode={effectiveReferralCode}
@@ -6355,15 +6399,18 @@ export function FanletterCreatorPage({
         />
       }
       description={heroDescription}
+      descriptionClassName="mt-4 max-w-xl text-sm leading-6 max-sm:line-clamp-3 sm:mt-5 sm:text-lg sm:leading-8"
       eyebrow={roleLabels.shellEyebrow}
       hideStartNavItem={isOwner}
-      heroGridClassName="lg:items-start"
-      heroSpacingClassName="pt-10 sm:pt-16"
+      heroAsideClassName="max-sm:-mt-1"
+      heroActionsClassName="mt-6 sm:mt-8"
+      heroGridClassName="gap-5 sm:gap-8 lg:items-start"
+      heroSpacingClassName="pt-8 sm:pt-16"
       locale={locale}
       referralCode={effectiveReferralCode}
       showStartAction={false}
       title={channelName}
-      titleClassName="mt-4 max-w-5xl text-[2.5rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
+      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <FanletterChannelTabs

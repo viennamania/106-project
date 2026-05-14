@@ -4,6 +4,14 @@ import { useEffect } from "react";
 
 export function FanletterHashScroller({ offset = 96 }: { offset?: number }) {
   useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    let firstFrame = 0;
+    let secondFrame = 0;
+    let isActive = true;
+    const timeoutIds: number[] = [];
+
+    window.history.scrollRestoration = "manual";
+
     function getScrollOffset() {
       if (window.innerWidth >= 640) {
         return offset;
@@ -17,7 +25,7 @@ export function FanletterHashScroller({ offset = 96 }: { offset?: number }) {
         return offset;
       }
 
-      return Math.max(offset, sectionNav.offsetHeight + 22, 132);
+      return Math.max(offset, sectionNav.offsetHeight + 16, 88);
     }
 
     function scrollToHash() {
@@ -42,17 +50,53 @@ export function FanletterHashScroller({ offset = 96 }: { offset?: number }) {
       });
     }
 
-    const firstFrame = window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(scrollToHash);
-    });
-    const delayedScroll = window.setTimeout(scrollToHash, 450);
+    function clearScheduledScrolls() {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      timeoutIds.splice(0).forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+    }
 
-    window.addEventListener("hashchange", scrollToHash);
+    function scheduleScrollToHash() {
+      clearScheduledScrolls();
+      firstFrame = window.requestAnimationFrame(() => {
+        scrollToHash();
+        secondFrame = window.requestAnimationFrame(scrollToHash);
+      });
+
+      [120, 450, 900, 1600].forEach((delay) => {
+        const timeoutId = window.setTimeout(() => {
+          if (isActive) {
+            scrollToHash();
+          }
+        }, delay);
+
+        timeoutIds.push(timeoutId);
+      });
+    }
+
+    scheduleScrollToHash();
+
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(() => {
+        if (isActive) {
+          scheduleScrollToHash();
+        }
+      });
+    }
+
+    window.addEventListener("hashchange", scheduleScrollToHash);
+    window.addEventListener("load", scheduleScrollToHash);
+    window.addEventListener("resize", scheduleScrollToHash);
 
     return () => {
-      window.cancelAnimationFrame(firstFrame);
-      window.clearTimeout(delayedScroll);
-      window.removeEventListener("hashchange", scrollToHash);
+      isActive = false;
+      clearScheduledScrolls();
+      window.history.scrollRestoration = previousScrollRestoration;
+      window.removeEventListener("hashchange", scheduleScrollToHash);
+      window.removeEventListener("load", scheduleScrollToHash);
+      window.removeEventListener("resize", scheduleScrollToHash);
     };
   }, [offset]);
 

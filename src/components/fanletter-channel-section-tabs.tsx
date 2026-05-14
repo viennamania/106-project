@@ -47,13 +47,14 @@ export function FanletterChannelSectionTabs({
         ),
     [items],
   );
+
   const scrollToTarget = useCallback((targetElement: HTMLElement) => {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const offset =
       window.innerWidth < 640
-        ? Math.max((navRef.current?.offsetHeight ?? 0) + 22, 132)
+        ? Math.max((navRef.current?.offsetHeight ?? 0) + 16, 88)
         : 0;
     const top = targetElement.getBoundingClientRect().top + window.scrollY - offset;
 
@@ -223,13 +224,13 @@ export function FanletterChannelSectionTabs({
         aria-label={ariaLabel}
         className={cn(
           isMobileDocked
-            ? "fixed inset-x-0 top-0 z-30 border-b border-black/10 bg-[#f6f8f4]/96 px-3 py-2.5 shadow-[0_12px_28px_rgba(8,18,12,0.1)] backdrop-blur"
-            : "sticky top-0 z-20 -mx-4 mb-6 border-b border-black/10 bg-[#f6f8f4]/94 px-3 py-2.5 backdrop-blur",
+            ? "fixed inset-x-0 top-0 z-30 border-b border-[#44f26e]/18 bg-[#07100b]/94 px-3 py-2 shadow-[0_12px_28px_rgba(8,18,12,0.18)] text-white backdrop-blur"
+            : "sticky top-0 z-20 -mx-4 mb-5 border-y border-[#44f26e]/14 bg-[#07100b]/94 px-3 py-2 text-white backdrop-blur",
           "sm:sticky sm:top-0 sm:z-20 sm:-mx-6 sm:mb-8 sm:border-b sm:border-black/10 sm:bg-[#f6f8f4]/94 sm:px-6 sm:py-3 sm:shadow-none lg:-mx-8 lg:px-8",
         )}
         ref={navRef}
       >
-        <div className="mx-auto grid max-w-[92rem] grid-cols-3 gap-1.5 rounded-lg border border-black/10 bg-white/80 p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] sm:flex sm:gap-2 sm:overflow-x-auto sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:[scrollbar-width:none]">
+        <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
           {items.map((tab) => {
             const active = tab.id === activeId;
 
@@ -237,10 +238,10 @@ export function FanletterChannelSectionTabs({
               <a
                 aria-current={active ? "location" : undefined}
                 className={cn(
-                  "inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2 text-center text-[0.78rem] font-semibold leading-none transition sm:h-10 sm:shrink-0 sm:px-4 sm:text-sm",
+                  "inline-flex h-9 shrink-0 items-center justify-center rounded-full px-3 text-center text-[0.78rem] font-semibold leading-none transition sm:h-10 sm:px-4 sm:text-sm",
                   active
-                    ? "bg-black !text-white shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
-                    : "bg-transparent !text-black/58 hover:bg-black/[0.04] hover:!text-black sm:border sm:border-black/10 sm:bg-white sm:hover:border-[#29d85f]/60",
+                    ? "bg-[#44f26e] !text-black shadow-[0_8px_18px_rgba(68,242,110,0.2)] sm:bg-black sm:!text-white sm:shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
+                    : "bg-transparent !text-white/68 hover:bg-white/8 hover:!text-white sm:border sm:border-black/10 sm:bg-white sm:!text-black/58 sm:hover:border-[#29d85f]/60 sm:hover:!text-black",
                 )}
                 key={tab.id}
                 href={tab.href}

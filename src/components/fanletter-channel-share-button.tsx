@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import { cn } from "@/lib/utils";
 import {
   createShareId,
   setShareIdOnHref,
@@ -13,6 +14,7 @@ import {
 type ShareState = "copied" | "error" | "idle" | "sharing";
 
 type FanletterChannelShareButtonProps = {
+  className?: string;
   href: string;
   locale: Locale;
   referralCode: string | null;
@@ -54,6 +56,7 @@ async function copyToClipboard(value: string) {
 }
 
 export function FanletterChannelShareButton({
+  className,
   href,
   locale,
   referralCode,
@@ -134,7 +137,10 @@ export function FanletterChannelShareButton({
 
   return (
     <button
-      className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold text-white transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-70"
+      className={cn(
+        "inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold text-white transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-70",
+        className,
+      )}
       disabled={state === "sharing"}
       onClick={() => {
         void handleShare();
