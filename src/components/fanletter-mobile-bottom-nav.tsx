@@ -138,6 +138,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/connect`,
         `${basePath}/onboarding`,
         `${basePath}/start`,
+        `${basePath}/wallet`,
       ],
       href: buildHref(`${basePath}/profile`),
       icon: UserRound,

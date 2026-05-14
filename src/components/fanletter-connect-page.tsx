@@ -103,6 +103,7 @@ function getCopy(locale: Locale) {
         syncing: "시작 준비 상태를 확인하고 있습니다.",
         title: "계정 연결을 FanLetter 흐름 안에서 끝내세요.",
         wallet: "연결 ID",
+        walletManagement: "지갑 관리",
       }
     : {
         account: "Account",
@@ -140,6 +141,7 @@ function getCopy(locale: Locale) {
         syncing: "Checking readiness.",
         title: "Finish account connection inside FanLetter.",
         wallet: "Connection ID",
+        walletManagement: "Wallet",
       };
 }
 
@@ -271,6 +273,10 @@ export function FanletterConnectPage({
   );
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
+    referralCode,
+  );
+  const walletHref = buildPathWithReferral(
+    `/${locale}/fanletter/wallet`,
     referralCode,
   );
   const activateHref = setPathSearchParams(
@@ -629,7 +635,7 @@ export function FanletterConnectPage({
                       {copy.studio}
                       <ArrowRight className="size-4" />
                     </Link>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-2 sm:grid-cols-3">
                       <Link
                         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
                         href={profileHref}
@@ -641,6 +647,12 @@ export function FanletterConnectPage({
                         href={createHref}
                       >
                         {copy.secondary}
+                      </Link>
+                      <Link
+                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                        href={walletHref}
+                      >
+                        {copy.walletManagement}
                       </Link>
                     </div>
                   </>

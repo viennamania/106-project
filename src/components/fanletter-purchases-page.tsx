@@ -81,6 +81,7 @@ function getCopy(locale: Locale) {
         unlockNote: "잠금 해제됨",
         view: "바로 보기",
         videoCount: "영상",
+        wallet: "지갑",
       }
     : {
         accountRequiredBody:
@@ -117,6 +118,7 @@ function getCopy(locale: Locale) {
         unlockNote: "Unlocked",
         view: "Watch now",
         videoCount: "Videos",
+        wallet: "Wallet",
       };
 }
 
@@ -429,6 +431,10 @@ export function FanletterPurchasesPage({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const walletHref = buildPathWithReferral(
+    `/${locale}/fanletter/wallet`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(
     `/${locale}/fanletter/start`,
     referralCode,
@@ -672,6 +678,7 @@ export function FanletterPurchasesPage({
             >
               <Link href={feedHref}>{copy.allFeed}</Link>
               <Link href={followingHref}>{copy.fanHome}</Link>
+              <Link href={walletHref}>{copy.wallet}</Link>
               <Link
                 aria-current="page"
                 className="text-[#44f26e]"
