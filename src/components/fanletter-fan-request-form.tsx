@@ -266,19 +266,23 @@ export function FanletterFanRequestForm({
   creatorReferralCode,
   followHref,
   formId,
+  helperOverride,
   locale,
   publicVlogsHref,
   referralCode,
   sourceContentId,
+  titleOverride,
 }: {
   characterName: string;
   creatorReferralCode: string;
   followHref?: string;
   formId?: string;
+  helperOverride?: string;
   locale: Locale;
   publicVlogsHref?: string;
   referralCode?: string | null;
   sourceContentId?: string | null;
+  titleOverride?: string;
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const realismCopy = useMemo(
@@ -591,10 +595,10 @@ export function FanletterFanRequestForm({
             {copy.requestKind}
           </p>
           <h3 className="mt-2 text-xl font-semibold tracking-normal text-white [word-break:keep-all]">
-            {copy.title}
+            {titleOverride ?? copy.title}
           </h3>
           <p className="mt-2 text-sm font-medium leading-6 text-white/58">
-            {copy.helper}
+            {helperOverride ?? copy.helper}
           </p>
           <p
             className="mt-2 flex max-w-xl items-start gap-2 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 px-3 py-1.5 text-xs font-semibold leading-5 text-[#b9ffc8]"

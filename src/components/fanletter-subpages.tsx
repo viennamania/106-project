@@ -3320,9 +3320,11 @@ function FanletterFanPromptPanel({
   publicVlogsHref,
   referralCode,
   requestHref,
+  requestHubHref,
   returnToHref,
   sourceContentId,
   startHref,
+  variant = "full",
 }: {
   characterName: string;
   className?: string;
@@ -3340,14 +3342,25 @@ function FanletterFanPromptPanel({
   publicVlogsHref?: string;
   referralCode?: string | null;
   requestHref: string;
+  requestHubHref?: string;
   returnToHref?: string | null;
   sourceContentId?: string | null;
   startHref: string;
+  variant?: "compact" | "full";
 }) {
   const labels =
     locale === "ko"
       ? {
           body: "보고 싶은 장면을 한 줄로 남기면 크리에이터가 스튜디오 요청함에서 바로 확인하고 다음 브이로그 소재로 쓸 수 있습니다.",
+          compactBody:
+            "방금 본 브이로그를 기준으로 이어서 보고 싶은 룩, 장소, 질문을 짧게 남겨주세요.",
+          compactCta: "요청 입력하기",
+          compactEyebrow: "시청 후 요청",
+          compactFormHelper:
+            "이 요청은 방금 본 브이로그와 연결되어 스튜디오 요청함에 저장됩니다.",
+          compactFormTitle: "짧은 장면 요청 남기기",
+          compactHubCta: "채널 요청 허브 보기",
+          compactTitle: "이 브이로그 다음에 보고 싶은 장면",
           eyebrow: "팬 요청",
           fanOnlyActionBody:
             "잠금 브이로그와 결제 완료 콘텐츠를 이 계정 기준으로 확인합니다.",
@@ -3416,6 +3429,15 @@ function FanletterFanPromptPanel({
         }
       : {
           body: "Write the scene you want to see, and the creator can pick it up from the studio inbox as a next-vlog idea.",
+          compactBody:
+            "Use the vlog you just watched as context, then leave the outfit, place, or question you want to see next.",
+          compactCta: "Write request",
+          compactEyebrow: "After watching",
+          compactFormHelper:
+            "This request is saved to the studio inbox with the vlog you just watched as context.",
+          compactFormTitle: "Leave a short scene request",
+          compactHubCta: "Open request hub",
+          compactTitle: "What should happen after this vlog?",
           eyebrow: "Fan request",
           fanOnlyActionBody:
             "Review locked vlogs and purchased fan-only content from this account.",
@@ -3560,6 +3582,62 @@ function FanletterFanPromptPanel({
     .slice(0, 3);
   const previewReferralCode = referralCode ?? creatorReferralCode;
   const fulfilledResultReturnToHref = returnToHref ?? null;
+
+  if (variant === "compact") {
+    return (
+      <section
+        className={`scroll-mt-36 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:scroll-mt-24 sm:p-6 ${className}`}
+        id={id}
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+              {labels.compactEyebrow}
+            </p>
+            <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[2.2rem]">
+              {labels.compactTitle}
+            </h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+              {labels.compactBody}
+            </p>
+          </div>
+          <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-64 lg:grid-cols-1">
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={requestFormHref}
+            >
+              <PenLine className="size-4" />
+              {labels.compactCta}
+            </Link>
+            {requestHubHref ? (
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+                href={requestHubHref}
+              >
+                {labels.compactHubCta}
+                <ArrowRight className="size-4" />
+              </Link>
+            ) : null}
+          </div>
+        </div>
+
+        {creatorReferralCode && !isOwner ? (
+          <FanletterFanRequestForm
+            characterName={characterName}
+            creatorReferralCode={creatorReferralCode}
+            followHref={followHref}
+            formId={requestFormId}
+            helperOverride={labels.compactFormHelper}
+            locale={locale}
+            publicVlogsHref={publicVlogsHref}
+            referralCode={referralCode}
+            sourceContentId={sourceContentId}
+            titleOverride={labels.compactFormTitle}
+          />
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <section
@@ -3933,7 +4011,7 @@ function FanletterFanRequestSourceCard({
     locale === "ko"
       ? {
           channelCta: "캐릭터 채널 보기",
-          cta: "다음 장면 요청",
+          cta: "이어서 볼 장면 요청",
           eyebrow: "팬 요청",
           flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
           message: "팬 메시지 기반",
@@ -3949,7 +4027,7 @@ function FanletterFanRequestSourceCard({
         }
       : {
           channelCta: "View character channel",
-          cta: "Request next scene",
+          cta: "Request follow-up scene",
           eyebrow: "Fan Request",
           flow: ["Request received", "Vlog produced", "Next request open"],
           message: "Inspired by a fan message",
@@ -4064,7 +4142,7 @@ function FanletterDetailRequestCta({
     locale === "ko"
       ? {
           body: `${characterName}에게 보고 싶은 룩, 장소, 질문을 남기면 크리에이터가 스튜디오 요청함에서 바로 다음 브이로그 소재로 확인할 수 있습니다.`,
-          cta: "다음 장면 요청",
+          cta: "이어서 볼 장면 요청",
           eyebrow: "팬 요청",
           ownerBody:
             "이 브이로그는 현재 로그인한 계정의 콘텐츠입니다. 팬 요청을 남기는 대신 스튜디오에서 공개 상태, 팬 반응, 다음 제작 후보를 관리하세요.",
@@ -4076,7 +4154,7 @@ function FanletterDetailRequestCta({
         }
       : {
           body: `Leave the outfit, place, or question you want ${characterName} to answer. The creator can review it from the studio inbox as a next-vlog idea.`,
-          cta: "Request next scene",
+          cta: "Request follow-up scene",
           eyebrow: "Fan Request",
           ownerBody:
             "This vlog belongs to the currently signed-in account. Manage visibility, fan reactions, and next production candidates in Studio instead of leaving a fan request.",
@@ -4352,11 +4430,11 @@ function FanletterDetailQuickActions({
   const labels =
     locale === "ko"
       ? {
-          body: "시청 후 바로 캐릭터 채널이나 다음 장면 요청으로 이어가도록 정리했습니다.",
+          body: "시청 후 바로 캐릭터 채널이나 이어서 볼 장면 요청으로 이어가도록 정리했습니다.",
           creatorBody: `${characterName}의 공개 브이로그와 캐릭터 소개를 계속 봅니다.`,
           open: "이동",
           requestBody: "보고 싶은 룩, 장소, 상황을 다음 브이로그 요청으로 남깁니다.",
-          requestTitle: "다음 장면 요청",
+          requestTitle: "이어서 볼 장면 요청",
           ownerBody:
             "작성자 화면에서는 팬 행동 대신 공개 상태, 판매, 반응 데이터를 바로 관리할 수 있게 연결합니다.",
           ownerManageBody:
@@ -4374,7 +4452,7 @@ function FanletterDetailQuickActions({
           creatorBody: `Keep watching ${characterName}'s public vlogs and character intro.`,
           open: "Open",
           requestBody: "Leave the outfit, place, or scene you want to see as a next-vlog request.",
-          requestTitle: "Request next scene",
+          requestTitle: "Request follow-up scene",
           ownerBody:
             "Author view replaces fan actions with direct access to visibility, sales, and reaction management.",
           ownerManageBody:
@@ -6875,8 +6953,8 @@ export function FanletterContentDetailPage({
         ? "결제하고 잠금 해제"
         : "Pay to unlock"
       : locale === "ko"
-        ? "다음 장면 요청"
-        : "Request scene";
+        ? "이어서 볼 장면 요청"
+        : "Request follow-up scene";
   const creatorActionHref = creatorHref;
   const creatorActionLabel = copy.actions.creatorChannel;
   const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
@@ -6894,7 +6972,7 @@ export function FanletterContentDetailPage({
           character: "캐릭터",
           heroEyebrow: "FanLetter 전용 브이로그",
           ownerManage: "내 브이로그 관리",
-          requestCta: "다음 장면 요청",
+          requestCta: "이어서 볼 장면 요청",
           requestStatusCta: "내 요청 상태 보기",
           watchBadge: "세로 브이로그",
         }
@@ -6902,7 +6980,7 @@ export function FanletterContentDetailPage({
           character: "Character",
           heroEyebrow: "FanLetter vlog detail",
           ownerManage: "Manage my vlog",
-          requestCta: "Request scene",
+          requestCta: "Request follow-up scene",
           requestStatusCta: "Track my request",
           watchBadge: "Vertical vlog",
         };
@@ -6922,7 +7000,7 @@ export function FanletterContentDetailPage({
   const desktopPrimaryActionLabel = mobilePrimaryActionLabel;
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
-  const shouldShowDetailQuickActions = isOwnContent || !content.fanRequestSource;
+  const shouldShowDetailQuickActions = isOwnContent;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -7161,7 +7239,7 @@ export function FanletterContentDetailPage({
                   ownerManageHref={ownerManageHref}
                   requestHref={fanRequestHref}
                 />
-              ) : (
+              ) : isOwnContent ? (
                 <FanletterDetailRequestCta
                   characterName={contentCharacterName}
                   fanRequestHref={fanRequestHref}
@@ -7169,7 +7247,7 @@ export function FanletterContentDetailPage({
                   locale={locale}
                   ownerManageHref={ownerManageHref}
                 />
-              )}
+              ) : null}
 
               {canViewerAccess ? (
                 <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
@@ -7235,9 +7313,11 @@ export function FanletterContentDetailPage({
                   publicVlogsHref={`${creatorHref}#public-vlogs`}
                   referralCode={effectiveReferralCode}
                   requestHref={fanRequestHref}
+                  requestHubHref={`${creatorHref}#fan-requests`}
                   returnToHref={currentHref}
                   sourceContentId={content.contentId}
                   startHref={startHref}
+                  variant="compact"
                 />
 
                 <FanletterRequestStatusPanel
