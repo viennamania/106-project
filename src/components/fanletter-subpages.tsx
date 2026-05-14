@@ -3254,6 +3254,7 @@ function FanletterFanPromptPanel({
   publicVlogsHref,
   referralCode,
   requestHref,
+  returnToHref,
   sourceContentId,
   startHref,
 }: {
@@ -3273,6 +3274,7 @@ function FanletterFanPromptPanel({
   publicVlogsHref?: string;
   referralCode?: string | null;
   requestHref: string;
+  returnToHref?: string | null;
   sourceContentId?: string | null;
   startHref: string;
 }) {
@@ -3491,6 +3493,7 @@ function FanletterFanPromptPanel({
     )
     .slice(0, 3);
   const previewReferralCode = referralCode ?? creatorReferralCode;
+  const fulfilledResultReturnToHref = returnToHref ?? null;
 
   return (
     <section
@@ -3588,9 +3591,14 @@ function FanletterFanPromptPanel({
                   const requester =
                     request.requesterDisplayName || labels.previewEmptyRequester;
                   const contentHref = request.usedContentId
-                    ? buildPathWithReferral(
-                        `/${locale}/fanletter/content/${request.usedContentId}`,
-                        previewReferralCode,
+                    ? setPathSearchParams(
+                        buildPathWithReferral(
+                          `/${locale}/fanletter/content/${request.usedContentId}`,
+                          previewReferralCode,
+                        ),
+                        {
+                          returnTo: fulfilledResultReturnToHref,
+                        },
                       )
                     : null;
 
@@ -6084,6 +6092,7 @@ export function FanletterCreatorPage({
             publicVlogsHref={publicVlogsHref}
             referralCode={effectiveReferralCode}
             requestHref={fanRequestsSectionHref}
+            returnToHref={`${channelHref}#${fanRequestsSectionId}`}
             startHref={startHref}
           />
 
@@ -6845,6 +6854,7 @@ export function FanletterContentDetailPage({
                   publicVlogsHref={`${creatorHref}#public-vlogs`}
                   referralCode={effectiveReferralCode}
                   requestHref={fanRequestHref}
+                  returnToHref={currentHref}
                   sourceContentId={content.contentId}
                   startHref={startHref}
                 />
