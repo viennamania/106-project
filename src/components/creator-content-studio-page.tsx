@@ -164,6 +164,14 @@ type AutomationCelebrationState = {
   tone: "draft" | "published";
 };
 
+type CharacterVisualSilhouette =
+  | "athletic"
+  | "balanced"
+  | "elegant"
+  | "slender"
+  | "soft";
+type CharacterVisualSilhouetteSelection = "auto" | CharacterVisualSilhouette;
+
 type PersonaGenerationState = {
   ageRange: "" | "20s" | "30s" | "40s" | "50s_plus";
   appearanceTone:
@@ -178,6 +186,7 @@ type PersonaGenerationState = {
   error: string | null;
   gender: "" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
+  visualSilhouette: CharacterVisualSilhouetteSelection;
 };
 
 type AvatarGenerationState = {
@@ -201,6 +210,7 @@ type CharacterQuickstartState = {
   gender: "auto" | "female" | "male";
   status: "idle" | "loading" | "ready" | "error";
   style: "chic" | "daily" | "fan_service" | "friendly";
+  visualSilhouette: CharacterVisualSilhouetteSelection;
 };
 
 type CoverGenerationProgressStepState = "active" | "done" | "error" | "pending";
@@ -978,6 +988,7 @@ export function CreatorContentStudioPage({
       error: null,
       gender: "",
       status: "idle",
+      visualSilhouette: "auto",
     });
   const [avatarGeneration, setAvatarGeneration] =
     useState<AvatarGenerationState>({
@@ -993,6 +1004,7 @@ export function CreatorContentStudioPage({
     gender: "auto",
     status: "idle",
     style: "friendly",
+    visualSilhouette: "auto",
   });
   const [isAutomationRunDialogOpen, setIsAutomationRunDialogOpen] = useState(false);
   const [coverGenerationProgress, setCoverGenerationProgress] =
@@ -2601,6 +2613,10 @@ export function CreatorContentStudioPage({
           intro: state.profile.intro,
           locale,
           style: quickCharacter.style,
+          visualSilhouette:
+            quickCharacter.visualSilhouette === "auto"
+              ? null
+              : quickCharacter.visualSilhouette,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -2759,6 +2775,10 @@ export function CreatorContentStudioPage({
           gender: personaGeneration.gender,
           intro: state.profile.intro,
           locale,
+          visualSilhouette:
+            personaGeneration.visualSilhouette === "auto"
+              ? null
+              : personaGeneration.visualSilhouette,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -2787,6 +2807,7 @@ export function CreatorContentStudioPage({
         error: null,
         gender: personaGeneration.gender,
         status: "ready",
+        visualSilhouette: personaGeneration.visualSilhouette,
       });
       setState((current) => ({
         ...current,
@@ -2811,6 +2832,7 @@ export function CreatorContentStudioPage({
         error: message,
         gender: personaGeneration.gender,
         status: "error",
+        visualSilhouette: personaGeneration.visualSilhouette,
       });
       setState((current) => ({
         ...current,
@@ -4299,6 +4321,15 @@ export function CreatorContentStudioPage({
             male: "남성",
             requiredHint: "성별과 연령대를 선택하면 추천을 시작할 수 있습니다.",
             selectedTitle: "현재 인물 페르소나",
+            silhouetteAthletic: "활동적인",
+            silhouetteAuto: "자동 추천",
+            silhouetteBalanced: "균형형",
+            silhouetteElegant: "우아한",
+            silhouetteHint:
+              "신체 부위 강조가 아니라 자세와 전체 프레임을 일정하게 유지하는 제작 기준입니다.",
+            silhouetteLabel: "중립 실루엣",
+            silhouetteSlender: "날렵한",
+            silhouetteSoft: "부드러운",
             title: "인물 페르소나",
           }
         : {
@@ -4331,6 +4362,15 @@ export function CreatorContentStudioPage({
             male: "Male",
             requiredHint: "Select gender and age range to start suggestions.",
             selectedTitle: "Current character persona",
+            silhouetteAthletic: "Athletic",
+            silhouetteAuto: "Auto",
+            silhouetteBalanced: "Balanced",
+            silhouetteElegant: "Elegant",
+            silhouetteHint:
+              "A production cue for posture and overall frame consistency, not body-part emphasis.",
+            silhouetteLabel: "Neutral silhouette",
+            silhouetteSlender: "Slender",
+            silhouetteSoft: "Soft",
             title: "Character persona",
           };
     const personaGenderOptions = [
@@ -4361,6 +4401,17 @@ export function CreatorContentStudioPage({
         value: "african_diaspora" as const,
       },
     ];
+    const personaVisualSilhouetteOptions = [
+      { label: personaCopy.silhouetteAuto, value: "auto" as const },
+      { label: personaCopy.silhouetteBalanced, value: "balanced" as const },
+      { label: personaCopy.silhouetteElegant, value: "elegant" as const },
+      { label: personaCopy.silhouetteAthletic, value: "athletic" as const },
+      { label: personaCopy.silhouetteSlender, value: "slender" as const },
+      { label: personaCopy.silhouetteSoft, value: "soft" as const },
+    ] satisfies Array<{
+      label: string;
+      value: CharacterVisualSilhouetteSelection;
+    }>;
     const canGeneratePersonaCandidates = Boolean(
       personaGeneration.gender && personaGeneration.ageRange,
     );
@@ -4487,6 +4538,45 @@ export function CreatorContentStudioPage({
               {personaCopy.appearanceHint}
             </p>
           </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {personaCopy.silhouetteLabel}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {personaVisualSilhouetteOptions.map((option) => {
+                const selected =
+                  personaGeneration.visualSilhouette === option.value;
+
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${
+                      selected
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    }`}
+                    disabled={isGenerating}
+                    key={option.value}
+                    onClick={() => {
+                      setPersonaGeneration((current) => ({
+                        ...current,
+                        candidates: [],
+                        error: null,
+                        status: "idle",
+                        visualSilhouette: option.value,
+                      }));
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              {personaCopy.silhouetteHint}
+            </p>
+          </div>
           {!canGeneratePersonaCandidates ? (
             <p className="text-xs leading-5 text-slate-500">
               {personaCopy.requiredHint}
@@ -4536,6 +4626,38 @@ export function CreatorContentStudioPage({
                 </p>
               </div>
             </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {personaCopy.locked}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {selectedPersona.lockedTraits.slice(0, 6).map((trait) => (
+                    <span
+                      className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold leading-4 text-slate-700"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {personaCopy.avoid}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {selectedPersona.avoidChanges.slice(0, 6).map((trait) => (
+                    <span
+                      className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold leading-4 text-amber-800"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -4565,6 +4687,16 @@ export function CreatorContentStudioPage({
                       <p className="mt-1 text-sm leading-6 text-slate-600">
                         {persona.summary}
                       </p>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {persona.lockedTraits.slice(0, 4).map((trait) => (
+                          <span
+                            className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold leading-4 text-slate-700"
+                            key={trait}
+                          >
+                            {trait}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     {selected ? (
                       <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white">
@@ -4627,6 +4759,13 @@ export function CreatorContentStudioPage({
             styleFriendly: "친근한",
             styleLabel: "분위기",
             title: "빠른 캐릭터 만들기",
+            visualAthletic: "활동적인",
+            visualAuto: "자동",
+            visualBalanced: "균형형",
+            visualElegant: "우아한",
+            visualLabel: "중립 실루엣",
+            visualSlender: "날렵한",
+            visualSoft: "부드러운",
           }
         : {
             advanced: "Advanced settings",
@@ -4659,6 +4798,13 @@ export function CreatorContentStudioPage({
             styleFriendly: "Friendly",
             styleLabel: "Mood",
             title: "Quick Character Setup",
+            visualAthletic: "Athletic",
+            visualAuto: "Auto",
+            visualBalanced: "Balanced",
+            visualElegant: "Elegant",
+            visualLabel: "Neutral silhouette",
+            visualSlender: "Slender",
+            visualSoft: "Soft",
           };
     const genderOptions = [
       { label: quickCopy.genderAuto, value: "auto" as const },
@@ -4690,6 +4836,17 @@ export function CreatorContentStudioPage({
         value: "african_diaspora" as const,
       },
     ];
+    const visualSilhouetteOptions = [
+      { label: quickCopy.visualAuto, value: "auto" as const },
+      { label: quickCopy.visualBalanced, value: "balanced" as const },
+      { label: quickCopy.visualElegant, value: "elegant" as const },
+      { label: quickCopy.visualAthletic, value: "athletic" as const },
+      { label: quickCopy.visualSlender, value: "slender" as const },
+      { label: quickCopy.visualSoft, value: "soft" as const },
+    ] satisfies Array<{
+      label: string;
+      value: CharacterVisualSilhouetteSelection;
+    }>;
     const styleOptions = [
       { label: quickCopy.styleFriendly, value: "friendly" as const },
       { label: quickCopy.styleChic, value: "chic" as const },
@@ -4879,6 +5036,41 @@ export function CreatorContentStudioPage({
                               appearanceTone: option.value,
                               error: null,
                               status: "idle",
+                            }));
+                          }}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    {quickCopy.visualLabel}
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {visualSilhouetteOptions.map((option) => {
+                      const selected =
+                        quickCharacter.visualSilhouette === option.value;
+
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-xs font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            selected
+                              ? "border-slate-950 bg-slate-950 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                          }`}
+                          disabled={isCreatingCharacter}
+                          key={option.value}
+                          onClick={() => {
+                            setQuickCharacter((current) => ({
+                              ...current,
+                              error: null,
+                              status: "idle",
+                              visualSilhouette: option.value,
                             }));
                           }}
                           type="button"
