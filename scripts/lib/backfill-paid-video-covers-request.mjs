@@ -37,6 +37,10 @@ function parseBoolean(value) {
 
 function normalizeRequestPayload(overrides = {}) {
   const payload = {};
+  const coverMode =
+    typeof overrides.coverMode === "string"
+      ? overrides.coverMode.trim()
+      : process.env.PAID_VIDEO_COVERS_BACKFILL_COVER_MODE?.trim();
   const email =
     typeof overrides.email === "string"
       ? overrides.email.trim()
@@ -66,9 +70,21 @@ function normalizeRequestPayload(overrides = {}) {
     overrides.includeGeneratedVideos ??
       process.env.PAID_VIDEO_COVERS_BACKFILL_INCLUDE_GENERATED_VIDEOS,
   );
+  const replaceExistingCovers = parseBoolean(
+    overrides.replaceExistingCovers ??
+      process.env.PAID_VIDEO_COVERS_BACKFILL_REPLACE_EXISTING_COVERS,
+  );
+  const allowAiFallback = parseBoolean(
+    overrides.allowAiFallback ??
+      process.env.PAID_VIDEO_COVERS_BACKFILL_ALLOW_AI_FALLBACK,
+  );
 
   if (email) {
     payload.email = email;
+  }
+
+  if (coverMode) {
+    payload.coverMode = coverMode;
   }
 
   if (contentId) {
@@ -97,6 +113,14 @@ function normalizeRequestPayload(overrides = {}) {
 
   if (includeGeneratedVideos !== undefined) {
     payload.includeGeneratedVideos = includeGeneratedVideos;
+  }
+
+  if (replaceExistingCovers !== undefined) {
+    payload.replaceExistingCovers = replaceExistingCovers;
+  }
+
+  if (allowAiFallback !== undefined) {
+    payload.allowAiFallback = allowAiFallback;
   }
 
   return payload;

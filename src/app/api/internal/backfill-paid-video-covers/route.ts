@@ -1,5 +1,6 @@
 import {
   backfillPaidVideoCovers,
+  type PaidVideoCoverBackfillMode,
   paidVideoCoverBackfillStyles,
   type PaidVideoCoverBackfillStyle,
 } from "@/lib/paid-video-cover-backfill-service";
@@ -8,11 +9,14 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 type BackfillRequestBody = {
+  allowAiFallback?: unknown;
+  coverMode?: unknown;
   contentId?: unknown;
   email?: unknown;
   includeDrafts?: unknown;
   includeGeneratedVideos?: unknown;
   limit?: unknown;
+  replaceExistingCovers?: unknown;
   style?: unknown;
   write?: unknown;
 };
@@ -105,6 +109,22 @@ function readOptionalStyle(value: unknown) {
   return value as PaidVideoCoverBackfillStyle;
 }
 
+function readOptionalCoverMode(value: unknown) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error("coverMode must be a string.");
+  }
+
+  if (value !== "ai" && value !== "video-frame") {
+    throw new Error("coverMode must be one of: ai, video-frame.");
+  }
+
+  return value as PaidVideoCoverBackfillMode;
+}
+
 async function readBackfillRequestBody(request: Request) {
   const payloadText = await request.text();
 
@@ -125,6 +145,8 @@ async function readBackfillRequestBody(request: Request) {
   }
 
   return {
+    allowAiFallback: readOptionalBoolean(body.allowAiFallback, "allowAiFallback"),
+    coverMode: readOptionalCoverMode(body.coverMode),
     contentId: readOptionalString(body.contentId, "contentId"),
     email: readOptionalString(body.email, "email"),
     includeDrafts: readOptionalBoolean(body.includeDrafts, "includeDrafts"),
@@ -133,6 +155,10 @@ async function readBackfillRequestBody(request: Request) {
       "includeGeneratedVideos",
     ),
     limit: readOptionalLimit(body.limit),
+    replaceExistingCovers: readOptionalBoolean(
+      body.replaceExistingCovers,
+      "replaceExistingCovers",
+    ),
     style: readOptionalStyle(body.style),
     write: readOptionalBoolean(body.write, "write"),
   };

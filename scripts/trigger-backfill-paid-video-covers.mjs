@@ -35,11 +35,14 @@ function readPositiveInteger(value) {
 }
 
 const result = await runBackfillPaidVideoCoversRequest({
+  allowAiFallback: !args.includes("--no-ai-fallback"),
+  coverMode: readArgValue("--cover-mode"),
   contentId: readArgValue("--content-id"),
   email: readArgValue("--email"),
   includeDrafts: args.includes("--include-drafts"),
   includeGeneratedVideos: args.includes("--include-generated-videos"),
   limit: readPositiveInteger(readArgValue("--limit")),
+  replaceExistingCovers: args.includes("--replace-existing-covers"),
   style: readArgValue("--style"),
   write: args.includes("--write"),
 });

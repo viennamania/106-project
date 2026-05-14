@@ -1,4 +1,5 @@
 import process from "node:process";
+import { spawn } from "node:child_process";
 
 import { put } from "@vercel/blob";
 import { MongoClient } from "mongodb";
@@ -17,6 +18,9 @@ const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 360;
 const PREVIEW_LIMIT = 220;
+const FRAME_CAPTURE_TIMEOUT_MS = 30000;
+const FRAME_COVER_MAX_WIDTH = 1280;
+const FRAME_COVER_CONTENT_TYPE = "image/jpeg";
 const STYLE_PROMPTS = {
   character:
     "Style direction: character-led portrait mood without identity drift, expressive but tasteful, keep the persona recognizable without revealing the paid plot.",
@@ -33,6 +37,9 @@ const write = args.includes("--write");
 const dryRun = !write;
 const includeDrafts = args.includes("--include-drafts");
 const includeGeneratedVideos = args.includes("--include-generated-videos");
+const replaceExistingCovers = args.includes("--replace-existing-covers");
+const allowAiFallback = !args.includes("--no-ai-fallback");
+const coverMode = normalizeCoverMode(readArgValue("--cover-mode"));
 const contentId = readArgValue("--content-id");
 const email = readArgValue("--email")?.trim().toLowerCase() ?? "";
 const limit = readPositiveInteger(readArgValue("--limit"), 25);
@@ -56,7 +63,11 @@ if (write && !process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
   throw new Error("BLOB_READ_WRITE_TOKEN is required when using --write.");
 }
 
-if (write && !process.env.OPENAI_API_KEY?.trim()) {
+if (
+  write &&
+  (coverMode === "ai" || allowAiFallback) &&
+  !process.env.OPENAI_API_KEY?.trim()
+) {
   throw new Error("OPENAI_API_KEY is required when using --write.");
 }
 
@@ -76,13 +87,18 @@ try {
     .toArray();
   const profileByEmail = new Map();
   const summary = {
+    allowAiFallback,
+    coverMode,
     dryRun,
     failed: 0,
     generated: 0,
     limit,
     promotedExistingImage: 0,
+    replaceExistingCovers,
     scanned: candidates.length,
     skippedGeneratedVideo: 0,
+    videoFrameExtracted: 0,
+    wouldExtractVideoFrame: 0,
     wouldGenerate: 0,
     wouldPromoteExistingImage: 0,
   };
@@ -97,6 +113,8 @@ try {
         includeGeneratedVideos,
         limit,
         mode: write ? "write" : "dry-run",
+        coverMode,
+        replaceExistingCovers,
         style,
         total: candidates.length,
       },
@@ -122,7 +140,7 @@ try {
 
     const existingImageUrl = normalizeStringArray(post.contentImageUrls)[0] ?? "";
 
-    if (existingImageUrl) {
+    if (existingImageUrl && !replaceExistingCovers) {
       if (dryRun) {
         summary.wouldPromoteExistingImage += 1;
         logItem(post, {
@@ -150,11 +168,22 @@ try {
     }
 
     if (dryRun) {
-      summary.wouldGenerate += 1;
-      logItem(post, {
-        action: "would_generate_ai_cover",
-        style,
-      });
+      if (coverMode === "video-frame") {
+        summary.wouldExtractVideoFrame += 1;
+        logItem(post, {
+          action: "would_extract_video_frame",
+          coverImageUrl: trimToLength(post.coverImageUrl, 500) || undefined,
+          reason: replaceExistingCovers
+            ? "Would replace the current cover with a frame from the paid video."
+            : undefined,
+        });
+      } else {
+        summary.wouldGenerate += 1;
+        logItem(post, {
+          action: "would_generate_ai_cover",
+          style,
+        });
+      }
       continue;
     }
 
@@ -164,11 +193,45 @@ try {
         profileByEmail,
         profilesCollection,
       });
-      const generatedCover = await generateAndUploadPaidCover({
-        post,
-        profile,
-        style,
-      });
+      const referralCode = trimToLength(post.authorReferralCode, 80);
+
+      if (!referralCode) {
+        throw new Error("Post is missing authorReferralCode.");
+      }
+
+      let action = "generated_ai_cover";
+      let fallbackError;
+      let generatedCover;
+
+      if (coverMode === "video-frame") {
+        try {
+          generatedCover = await extractAndUploadVideoFrameCover({
+            post,
+            referralCode,
+            videoUrl: primaryVideoUrl,
+          });
+          action = "extracted_video_frame";
+        } catch (error) {
+          fallbackError = error instanceof Error ? error.message : String(error);
+
+          if (!allowAiFallback) {
+            throw error;
+          }
+
+          generatedCover = await generateAndUploadPaidCover({
+            post,
+            profile,
+            style,
+          });
+          action = "generated_ai_cover";
+        }
+      } else {
+        generatedCover = await generateAndUploadPaidCover({
+          post,
+          profile,
+          style,
+        });
+      }
 
       await postsCollection.updateOne(
         { contentId: post.contentId },
@@ -179,10 +242,15 @@ try {
           },
         },
       );
-      summary.generated += 1;
+      if (action === "extracted_video_frame") {
+        summary.videoFrameExtracted += 1;
+      } else {
+        summary.generated += 1;
+      }
       logItem(post, {
-        action: "generated_ai_cover",
+        action,
         coverImageUrl: generatedCover.url,
+        fallbackError,
         pathname: generatedCover.pathname,
       });
     } catch (error) {
@@ -243,21 +311,30 @@ function normalizeStyle(value) {
   return "curiosity";
 }
 
+function normalizeCoverMode(value) {
+  const normalized = value?.trim();
+
+  return normalized === "ai" ? "ai" : "video-frame";
+}
+
 function buildCandidateFilter() {
   const filter = {
     "contentVideoUrls.0": { $exists: true },
     priceType: "paid",
     status: "published",
-    $or: [
-      { coverImageUrl: { $exists: false } },
-      { coverImageUrl: null },
-      { coverImageUrl: "" },
-      { coverImageUrl: { $regex: "^\\s*$" } },
-    ],
   };
 
   if (includeDrafts) {
     delete filter.status;
+  }
+
+  if (!replaceExistingCovers) {
+    filter.$or = [
+      { coverImageUrl: { $exists: false } },
+      { coverImageUrl: null },
+      { coverImageUrl: "" },
+      { coverImageUrl: { $regex: "^\\s*$" } },
+    ];
   }
 
   if (contentId) {
@@ -404,6 +481,153 @@ function isSafetyRejection(error) {
     error instanceof Error &&
     /safety|rejected by the safety system|safety_violations/i.test(error.message)
   );
+}
+
+function runCommand(command, commandArgs, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, commandArgs, {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    let settled = false;
+    const timeout = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      child.kill("SIGKILL");
+      reject(new Error(`${command} timed out.`));
+    }, options.timeoutMs ?? FRAME_CAPTURE_TIMEOUT_MS);
+
+    child.stdout.on("data", (chunk) => {
+      stdoutChunks.push(chunk);
+    });
+    child.stderr.on("data", (chunk) => {
+      stderrChunks.push(chunk);
+    });
+    child.on("error", (error) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      reject(error);
+    });
+    child.on("close", (code) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      const stderr = Buffer.concat(stderrChunks).toString("utf8").slice(-1200);
+      const stdout = Buffer.concat(stdoutChunks);
+
+      if (code !== 0) {
+        reject(new Error(`${command} exited with code ${code}. ${stderr}`));
+        return;
+      }
+
+      resolve({ stderr, stdout });
+    });
+  });
+}
+
+async function getVideoDurationSeconds(videoUrl) {
+  const { stdout } = await runCommand(
+    "ffprobe",
+    [
+      "-v",
+      "error",
+      "-show_entries",
+      "format=duration",
+      "-of",
+      "default=noprint_wrappers=1:nokey=1",
+      videoUrl,
+    ],
+    { timeoutMs: FRAME_CAPTURE_TIMEOUT_MS },
+  );
+  const duration = Number(stdout.toString("utf8").trim());
+
+  return Number.isFinite(duration) && duration > 0 ? duration : null;
+}
+
+function resolveFrameCaptureTime(duration) {
+  if (!duration || duration <= 0.6) {
+    return 0;
+  }
+
+  return Math.min(Math.max(duration * 0.18, 0.6), Math.max(duration - 0.2, 0));
+}
+
+async function extractVideoFrameCoverBuffer(videoUrl) {
+  const duration = await getVideoDurationSeconds(videoUrl).catch(() => null);
+  const captureTime = resolveFrameCaptureTime(duration);
+  const { stdout } = await runCommand(
+    "ffmpeg",
+    [
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      captureTime.toFixed(3),
+      "-i",
+      videoUrl,
+      "-frames:v",
+      "1",
+      "-vf",
+      `scale='min(${FRAME_COVER_MAX_WIDTH},iw)':-2`,
+      "-q:v",
+      "3",
+      "-f",
+      "image2pipe",
+      "-vcodec",
+      "mjpeg",
+      "pipe:1",
+    ],
+    { timeoutMs: FRAME_CAPTURE_TIMEOUT_MS },
+  );
+
+  if (stdout.length === 0) {
+    throw new Error("ffmpeg returned an empty video frame.");
+  }
+
+  return stdout;
+}
+
+async function extractAndUploadVideoFrameCover({ post, referralCode, videoUrl }) {
+  if (!videoUrl) {
+    throw new Error("Post is missing a paid video URL.");
+  }
+
+  const imageBytes = await extractVideoFrameCoverBuffer(videoUrl);
+  const pathname = [
+    "content-posts",
+    referralCode,
+    "generated",
+    `${Date.now()}-${sanitizeBaseName(
+      `${trimToLength(post.title, TITLE_LIMIT) || post.contentId || "paid-video"}-frame-cover`,
+    )}.jpg`,
+  ].join("/");
+  const uploaded = await put(
+    pathname,
+    new Blob([imageBytes], { type: FRAME_COVER_CONTENT_TYPE }),
+    {
+      access: "public",
+      addRandomSuffix: true,
+      cacheControlMaxAge: 60 * 60 * 24 * 365,
+      contentType: FRAME_COVER_CONTENT_TYPE,
+    },
+  );
+
+  return {
+    contentType: uploaded.contentType,
+    pathname: uploaded.pathname,
+    url: uploaded.url,
+  };
 }
 
 async function generateImageBase64(prompt) {
