@@ -12,6 +12,7 @@ export const runtime = "nodejs";
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
 const BODY_LIMIT = 480;
+const VISUAL_BRIEF_LIMIT = 320;
 
 type GenerateCoverRequest = {
   body?: string | null;
@@ -19,6 +20,7 @@ type GenerateCoverRequest = {
   locale?: string | null;
   summary?: string | null;
   title?: string | null;
+  visualBrief?: string | null;
   walletAddress?: string | null;
 };
 
@@ -135,9 +137,13 @@ export async function POST(request: Request) {
   const title = trimToLength(body?.title, TITLE_LIMIT);
   const summary = trimToLength(body?.summary, SUMMARY_LIMIT);
   const contentBody = trimToLength(body?.body, BODY_LIMIT);
+  const visualBrief = trimToLength(body?.visualBrief, VISUAL_BRIEF_LIMIT);
 
-  if (!title && !summary && !contentBody) {
-    return jsonError("Provide title, summary, or body to generate a cover.", 400);
+  if (!title && !summary && !contentBody && !visualBrief) {
+    return jsonError(
+      "Provide title, summary, body, or visual brief to generate a cover.",
+      400,
+    );
   }
 
   const stream = wantsStream(request);
@@ -202,6 +208,7 @@ export async function POST(request: Request) {
         referralCode: member.referralCode,
         summary,
         title,
+        visualBrief,
       });
 
       emit({
@@ -258,6 +265,7 @@ export async function POST(request: Request) {
       referralCode: member.referralCode,
       summary,
       title,
+      visualBrief,
     });
     const response: ContentPostGenerateCoverResponse = {
       contentType: generatedCover.contentType,

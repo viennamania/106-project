@@ -252,6 +252,13 @@ type CoverGenerationProgressState = {
   >;
 };
 
+type GeneratePostCoverImageOptions = {
+  failureNotice?: string;
+  softFail?: boolean;
+  successNotice?: string;
+  visualBrief?: string;
+};
+
 type StudioView = "character" | "hub" | "new" | "profile";
 type PostComposerMode = "paid-upload" | "standard";
 
@@ -1672,6 +1679,14 @@ export function CreatorContentStudioPage({
           eyebrow: "FanLetter Paid Upload",
           helper:
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
+          autoCoverFailed:
+            "동영상은 업로드되었습니다. AI 티저 커버 자동 생성은 실패했으니 커버를 직접 업로드하거나 다시 생성해 주세요.",
+          autoCoverGenerating:
+            "동영상 업로드가 완료되었습니다. 결제 전 호기심을 만들 AI 티저 커버를 생성하고 있습니다.",
+          autoCoverReady:
+            "AI 티저 커버가 적용되었습니다. 팬에게 공개되는 미리보기로 사용됩니다.",
+          generateTeaserCover: "AI 티저 커버 생성",
+          generatingTeaserCover: "AI 티저 생성 중...",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
           previewHint:
@@ -1710,6 +1725,14 @@ export function CreatorContentStudioPage({
             "Register a directly uploaded MP4, MOV, or WEBM video as 1 USDT paid content. AI-generated vlogs stay in the free creation flow.",
           eyebrow: "FanLetter Paid Upload",
           helper: "Paid content requires one directly uploaded video.",
+          autoCoverFailed:
+            "The video was uploaded. Automatic AI teaser cover generation failed, so upload a cover or generate it again.",
+          autoCoverGenerating:
+            "Video upload is complete. Generating an AI teaser cover to create curiosity before payment.",
+          autoCoverReady:
+            "AI teaser cover applied. It will be used as the public preview for fans.",
+          generateTeaserCover: "Generate AI teaser cover",
+          generatingTeaserCover: "Generating teaser...",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
           previewHint:
@@ -3585,6 +3608,8 @@ export function CreatorContentStudioPage({
 
       const email = await resolveMemberEmail();
       const uploadReferralCode = state.member?.referralCode;
+      const shouldGeneratePaidTeaserCover =
+        isPaidUploadComposer && !postForm.coverImageUrl.trim();
 
       if (!uploadReferralCode) {
         throw new Error(
@@ -3631,6 +3656,23 @@ export function CreatorContentStudioPage({
             ? "동영상을 업로드했습니다. 업로드 동영상은 유료 콘텐츠로 저장됩니다."
             : "Video uploaded. Uploaded videos are saved as paid content.",
       }));
+
+      setIsUploadingPostVideo(false);
+
+      if (shouldGeneratePaidTeaserCover) {
+        setIsCoverGenerationDialogOpen(true);
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: paidUploadComposerCopy.autoCoverGenerating,
+        }));
+        await generatePostCoverImage({
+          failureNotice: paidUploadComposerCopy.autoCoverFailed,
+          softFail: true,
+          successNotice: paidUploadComposerCopy.autoCoverReady,
+          visualBrief: buildPaidUploadTeaserVisualBrief(file.name),
+        });
+      }
     } catch (error) {
       setState((current) => ({
         ...current,
@@ -3675,6 +3717,33 @@ export function CreatorContentStudioPage({
     setCoverGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
+  function buildPaidUploadTeaserVisualBrief(fileName?: string) {
+    const characterName =
+      state.profile.characterPersona?.name ||
+      state.profile.displayName ||
+      initialFanRequestCharacterName ||
+      "";
+    const fanRequestContext = initialFanRequestBody?.slice(0, 180) ?? "";
+    const fileContext = fileName?.trim().slice(0, 80) ?? "";
+
+    return [
+      "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog.",
+      "Create curiosity before payment without revealing the full paid content.",
+      characterName
+        ? `Keep the AI character mood consistent with: ${characterName}.`
+        : null,
+      fanRequestContext
+        ? `Use this fan request only as subtle context: ${fanRequestContext}.`
+        : null,
+      fileContext ? `Uploaded video filename context: ${fileContext}.` : null,
+      "Safe-for-work only: no nudity, sexual framing, private body focus, gore, weapons, minors, or explicit scenes.",
+      "Do not include text, letters, numbers, logos, watermarks, UI, price labels, or payment icons.",
+      "Use cinematic lighting, one clear focal subject, tasteful negative space, and a premium vertical-vlog teaser mood.",
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
   function openContentImageGenerationDialog() {
     setContentImageGenerationProgress(createEmptyCoverGenerationProgress());
     setContentImagePrompt("");
@@ -3707,7 +3776,7 @@ export function CreatorContentStudioPage({
     setContentVideoGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
-  async function generatePostCoverImage() {
+  async function generatePostCoverImage(options: GeneratePostCoverImageOptions = {}) {
     try {
       setIsGeneratingPostImage(true);
       setCoverGenerationProgress({
@@ -3729,7 +3798,7 @@ export function CreatorContentStudioPage({
           locale,
           summary: postForm.summary,
           title: postForm.title,
-          visualBrief: contentImagePrompt,
+          visualBrief: options.visualBrief ?? contentImagePrompt,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -3793,7 +3862,7 @@ export function CreatorContentStudioPage({
       setState((current) => ({
         ...current,
         error: null,
-        notice: contentCopy.messages.imageGenerated,
+        notice: options.successNotice ?? contentCopy.messages.imageGenerated,
       }));
       setCoverGenerationProgress((current) => ({
         ...current,
@@ -3819,8 +3888,10 @@ export function CreatorContentStudioPage({
 
       setState((current) => ({
         ...current,
-        error: errorMessage,
-        notice: null,
+        error: options.softFail ? null : errorMessage,
+        notice: options.softFail
+          ? options.failureNotice ?? errorMessage
+          : null,
       }));
       setCoverGenerationProgress((current) =>
         applyCoverGenerationFailure(current, errorMessage),
@@ -7811,28 +7882,52 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : coverUploadLabel}
                 </button>
-                {isPaidUploadComposer ? null : (
-                  <button
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                    disabled={
-                      isUploadingPostImage ||
-                      isUploadingPostVideo ||
-                      isGeneratingPostImage ||
-                      !canGeneratePostCover
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={
+                    isUploadingPostImage ||
+                    isUploadingPostVideo ||
+                    isGeneratingPostImage ||
+                    (!isPaidUploadComposer && !canGeneratePostCover)
+                  }
+                  onClick={() => {
+                    if (isPaidUploadComposer) {
+                      setIsCoverGenerationDialogOpen(true);
+                      setState((current) => ({
+                        ...current,
+                        error: null,
+                        notice: paidUploadComposerCopy.autoCoverGenerating,
+                      }));
+                      void generatePostCoverImage({
+                        failureNotice: paidUploadComposerCopy.autoCoverFailed,
+                        softFail: true,
+                        successNotice: paidUploadComposerCopy.autoCoverReady,
+                        visualBrief: buildPaidUploadTeaserVisualBrief(),
+                      });
+                      return;
                     }
-                    onClick={() => {
-                      openCoverGenerationDialog();
-                    }}
-                    type="button"
-                  >
-                    <Sparkles className="size-4" />
-                    {isGeneratingPostImage &&
+
+                    openCoverGenerationDialog();
+                  }}
+                  type="button"
+                >
+                  <Sparkles className="size-4" />
+                  {isPaidUploadComposer ? (
+                    isGeneratingPostImage &&
                     isCoverGenerationDialogOpen &&
-                    coverGenerationProgress.active
-                      ? contentCopy.actions.generatingAiCover
-                      : contentCopy.actions.generateAiCover}
-                  </button>
-                )}
+                    coverGenerationProgress.active ? (
+                      paidUploadComposerCopy.generatingTeaserCover
+                    ) : (
+                      paidUploadComposerCopy.generateTeaserCover
+                    )
+                  ) : isGeneratingPostImage &&
+                    isCoverGenerationDialogOpen &&
+                    coverGenerationProgress.active ? (
+                    contentCopy.actions.generatingAiCover
+                  ) : (
+                    contentCopy.actions.generateAiCover
+                  )}
+                </button>
                 {postForm.coverImageUrl ? (
                   <button
                     className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
