@@ -86,7 +86,66 @@ function getCopy(locale: Locale) {
         helper:
           "팬이 남긴 요청은 크리에이터 스튜디오 요청함에 저장되고, 좋은 요청은 다음 브이로그 소재가 됩니다.",
         message: "응원 메시지",
+        messageBodyLabel: "응원 메시지",
+        messageBodyPlaceholder:
+          "예: 항상 응원하고 있어요. 다음 브이로그도 기대할게요.",
         messageDescription: "응원/짧은 메시지",
+        messageEmptyBody: "응원 메시지를 입력해 주세요.",
+        messageExamples: [
+          {
+            body: "항상 응원하고 있어요. 다음 브이로그도 기대할게요.",
+            category: "message" as const,
+            title: "응원 한마디",
+          },
+          {
+            body: "오늘 브이로그 분위기가 좋아요. 편안한 모습이 더 보고 싶어요.",
+            category: "message" as const,
+            title: "좋았던 점",
+          },
+          {
+            body: "힘내요. 팬으로 오래 응원할게요.",
+            category: "message" as const,
+            title: "팬 응원",
+          },
+          {
+            body: "다음 영상에서도 밝게 인사해주면 좋겠어요.",
+            category: "message" as const,
+            title: "짧은 바람",
+          },
+        ],
+        messageExamplesLabel: "추천 응원",
+        messageExamplesStatusFallback: "기본 응원 예시를 표시 중입니다.",
+        messageExamplesStatusLoading: "응원 예시를 불러오는 중입니다.",
+        messageHelper:
+          "응원이나 짧은 팬 메시지는 크리에이터가 다음 브이로그의 답장, Q&A, 감사 멘트 소재로 확인할 수 있습니다.",
+        messageNote:
+          "로그인 없이도 응원 메시지를 남길 수 있고, 같은 메시지는 중복 저장되지 않습니다.",
+        messageReady: "응원 문구를 수정하거나 바로 남길 수 있습니다.",
+        messageReceipt:
+          "이 메시지는 이 기기에 저장되어 계정 연결 전에도 상태를 다시 확인할 수 있습니다.",
+        messageSaved:
+          "응원 메시지가 크리에이터 스튜디오에 들어갔습니다.",
+        messageSubmit: "응원 남기기",
+        messageSuccessBody:
+          "다음 브이로그의 답장, Q&A, 감사 멘트 소재로 활용될 수 있습니다.",
+        messageSuccessSteps: [
+          {
+            body: "스튜디오 요청함에 응원 메시지로 저장됨",
+            title: "메시지 접수",
+          },
+          {
+            body: "좋은 메시지는 답장이나 Q&A 후보로 분류",
+            title: "소재 확인",
+          },
+          {
+            body: "브이로그에서 감사 멘트나 리액션으로 반영 가능",
+            title: "브이로그 반영",
+          },
+        ],
+        messageSuccessTitle: "응원 메시지가 전달되었습니다",
+        messageTemplatesHelper:
+          "짧은 응원 예시를 골라 문구를 다듬거나, 직접 메시지를 입력할 수 있습니다.",
+        messageTitle: "응원 메시지 남기기",
         nameLabel: "이름",
         namePlaceholder: "선택 사항",
         newRequest: "다른 요청 남기기",
@@ -173,7 +232,66 @@ function getCopy(locale: Locale) {
         helper:
           "Fan requests are saved to the creator's studio inbox, where strong ideas can become future vlogs.",
         message: "Support message",
+        messageBodyLabel: "Support message",
+        messageBodyPlaceholder:
+          "Example: I'm always cheering for you. I can't wait for the next vlog.",
         messageDescription: "Short support note",
+        messageEmptyBody: "Write a support message.",
+        messageExamples: [
+          {
+            body: "I'm always cheering for you. I can't wait for the next vlog.",
+            category: "message" as const,
+            title: "Cheer note",
+          },
+          {
+            body: "I liked the mood of today's vlog. I'd love to see more relaxed moments.",
+            category: "message" as const,
+            title: "What I liked",
+          },
+          {
+            body: "Keep going. I'll keep supporting you as a fan.",
+            category: "message" as const,
+            title: "Fan support",
+          },
+          {
+            body: "It would be nice to get a bright hello in the next video too.",
+            category: "message" as const,
+            title: "Short wish",
+          },
+        ],
+        messageExamplesLabel: "Suggested support",
+        messageExamplesStatusFallback: "Showing default support notes.",
+        messageExamplesStatusLoading: "Loading support notes.",
+        messageHelper:
+          "Support notes can become reply moments, Q&A prompts, or thank-you lines in future vlogs.",
+        messageNote:
+          "You can leave a support message without signing in. Duplicate messages are not saved.",
+        messageReady: "Edit the message, or leave it now.",
+        messageReceipt:
+          "This message is saved on this device, so you can track it before connecting an account.",
+        messageSaved:
+          "Your support message entered the creator's studio inbox.",
+        messageSubmit: "Leave support",
+        messageSuccessBody:
+          "It can become a reply moment, Q&A prompt, or thank-you line in a future vlog.",
+        messageSuccessSteps: [
+          {
+            body: "Saved to the studio inbox as a support message",
+            title: "Message received",
+          },
+          {
+            body: "Strong notes can become reply or Q&A candidates",
+            title: "Checked as material",
+          },
+          {
+            body: "Future vlogs can reflect it as thanks or reaction",
+            title: "Vlog response",
+          },
+        ],
+        messageSuccessTitle: "Support message delivered",
+        messageTemplatesHelper:
+          "Pick a short support example and refine it, or write your own message.",
+        messageTitle: "Leave a support message",
         nameLabel: "Name",
         namePlaceholder: "Optional",
         newRequest: "Leave another",
@@ -329,14 +447,56 @@ export function FanletterFanRequestForm({
       value: "message" as const,
     },
   ];
+  const activeRequestCopy = useMemo(() => {
+    if (requestType === "message") {
+      return {
+        bodyLabel: copy.messageBodyLabel,
+        bodyPlaceholder: copy.messageBodyPlaceholder,
+        emptyBody: copy.messageEmptyBody,
+        examples: copy.messageExamples,
+        examplesLabel: copy.messageExamplesLabel,
+        examplesStatusFallback: copy.messageExamplesStatusFallback,
+        examplesStatusLoading: copy.messageExamplesStatusLoading,
+        helper: copy.messageHelper,
+        note: copy.messageNote,
+        receipt: copy.messageReceipt,
+        requestReady: copy.messageReady,
+        saved: copy.messageSaved,
+        submit: copy.messageSubmit,
+        successBody: copy.messageSuccessBody,
+        successSteps: copy.messageSuccessSteps,
+        successTitle: copy.messageSuccessTitle,
+        templatesHelper: copy.messageTemplatesHelper,
+        title: copy.messageTitle,
+      };
+    }
+
+    return {
+      bodyLabel: copy.bodyLabel,
+      bodyPlaceholder: copy.bodyPlaceholder,
+      emptyBody: copy.emptyBody,
+      examples: copy.examples,
+      examplesLabel: copy.examplesLabel,
+      examplesStatusFallback: copy.examplesStatusFallback,
+      examplesStatusLoading: copy.examplesStatusLoading,
+      helper: helperOverride ?? copy.helper,
+      note: copy.note,
+      receipt: copy.requestReceipt,
+      requestReady: copy.requestReady,
+      saved: copy.saved,
+      submit: copy.submit,
+      successBody: copy.successBody,
+      successSteps: copy.successSteps,
+      successTitle: copy.successTitle,
+      templatesHelper: copy.templatesHelper,
+      title: titleOverride ?? copy.title,
+    };
+  }, [copy, helperOverride, requestType, titleOverride]);
   const fallbackTemplates = useMemo<FanletterFanRequestTemplateRecord[]>(
     () =>
-      copy.examples.map((example, index) => ({
+      activeRequestCopy.examples.map((example, index) => ({
         body: example.body,
-        category:
-          requestType === "message"
-            ? "message"
-            : example.category,
+        category: example.category,
         creatorReferralCode: null,
         locale,
         requestType,
@@ -344,7 +504,7 @@ export function FanletterFanRequestForm({
         title: example.title,
         usageCount: 0,
       })),
-    [copy.examples, locale, requestType],
+    [activeRequestCopy.examples, locale, requestType],
   );
   const displayTemplates =
     requestTemplates.length > 0 ? requestTemplates : fallbackTemplates;
@@ -484,7 +644,7 @@ export function FanletterFanRequestForm({
 
   async function submitRequest() {
     if (!body.trim()) {
-      setError(copy.emptyBody);
+      setError(activeRequestCopy.emptyBody);
       setStatus("error");
       return;
     }
@@ -601,10 +761,10 @@ export function FanletterFanRequestForm({
             {copy.requestKind}
           </p>
           <h3 className="mt-2 text-xl font-semibold tracking-normal text-white [word-break:keep-all]">
-            {titleOverride ?? copy.title}
+            {activeRequestCopy.title}
           </h3>
           <p className="mt-2 text-sm font-medium leading-6 text-white/58">
-            {helperOverride ?? copy.helper}
+            {activeRequestCopy.helper}
           </p>
           <p
             className="mt-2 flex max-w-xl items-start gap-2 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 px-3 py-1.5 text-xs font-semibold leading-5 text-[#b9ffc8]"
@@ -628,8 +788,8 @@ export function FanletterFanRequestForm({
                 aria-pressed={active}
                 className={`flex min-h-[4.9rem] flex-col items-start justify-center rounded-lg border px-3 py-2.5 text-left text-xs font-semibold transition ${
                   active
-                    ? "border-[#44f26e] bg-[#44f26e] text-black"
-                    : "border-white/10 bg-black/18 text-white/62 hover:border-[#44f26e]/38 hover:bg-white/8 hover:text-white"
+                    ? "border-[#44f26e] bg-[#44f26e] text-black shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]"
+                    : "border-white/12 bg-black/42 text-white/56 hover:border-[#44f26e]/38 hover:bg-white/8 hover:text-white"
                 }`}
                 key={type.value}
                 onClick={() => {
@@ -671,7 +831,7 @@ export function FanletterFanRequestForm({
         <label className="block">
           <span className="flex items-center justify-between gap-3">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-              {copy.bodyLabel}
+              {activeRequestCopy.bodyLabel}
             </span>
             <span className="text-xs font-semibold text-white/32">
               {body.length}/600
@@ -687,7 +847,7 @@ export function FanletterFanRequestForm({
                 setStatus("idle");
               }
             }}
-            placeholder={copy.bodyPlaceholder}
+            placeholder={activeRequestCopy.bodyPlaceholder}
             ref={textareaRef}
             value={body}
           />
@@ -727,14 +887,14 @@ export function FanletterFanRequestForm({
             ) : status === "success" ? (
               <CheckCircle2 className="size-4" />
             ) : null}
-            {status === "loading" ? copy.submitting : copy.submit}
+            {status === "loading" ? copy.submitting : activeRequestCopy.submit}
           </button>
           <p
             className={`mt-3 text-xs font-medium leading-5 ${
               hasRequestDraft ? "text-[#b9ffc8]" : "text-white/42"
             }`}
           >
-            {hasRequestDraft ? copy.requestReady : copy.note}
+            {hasRequestDraft ? activeRequestCopy.requestReady : activeRequestCopy.note}
           </p>
         </div>
       </div>
@@ -743,20 +903,20 @@ export function FanletterFanRequestForm({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9ffc8]">
-              {copy.examplesLabel}
+              {activeRequestCopy.examplesLabel}
             </p>
             <p className="mt-1 text-xs font-medium leading-5 text-white/48">
-              {copy.templatesHelper}
+              {activeRequestCopy.templatesHelper}
             </p>
           </div>
           {templateLoadStatus === "loading" ? (
             <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#b9ffc8]">
               <Loader2 className="size-3.5 animate-spin" />
-              {copy.examplesStatusLoading}
+              {activeRequestCopy.examplesStatusLoading}
             </span>
           ) : templateLoadStatus === "error" ? (
             <span className="text-xs font-semibold text-white/42">
-              {copy.examplesStatusFallback}
+              {activeRequestCopy.examplesStatusFallback}
             </span>
           ) : null}
         </div>
@@ -844,16 +1004,16 @@ export function FanletterFanRequestForm({
                 </span>
                 <div className="min-w-0">
                   <p className="text-base font-semibold text-white">
-                    {copy.successTitle}
+                    {activeRequestCopy.successTitle}
                   </p>
                   <p className="mt-1 text-sm font-medium leading-6 text-[#b9ffc8]">
-                    {copy.saved}
+                    {activeRequestCopy.saved}
                   </p>
                   <p className="mt-1 text-sm font-medium leading-6 text-white/56">
-                    {copy.successBody}
+                    {activeRequestCopy.successBody}
                   </p>
                   <p className="mt-2 text-xs font-semibold leading-5 text-[#b9ffc8]">
-                    {copy.requestReceipt}
+                    {activeRequestCopy.receipt}
                   </p>
                 </div>
               </div>
@@ -898,7 +1058,7 @@ export function FanletterFanRequestForm({
             </div>
 
             <div className="grid gap-2">
-              {copy.successSteps.map((step, index) => {
+              {activeRequestCopy.successSteps.map((step, index) => {
                 const Icon = successStepIcons[index] ?? Bell;
 
                 return (
