@@ -13,7 +13,11 @@ import {
   type ContentCoverGenerationProgressStep,
   type ContentPostGenerateCoverProgressEvent,
 } from "@/lib/content";
-import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
+import {
+  applyCreatorCharacterPersonaToPrompt,
+  insertCreatorCharacterWorldContextPrompt,
+} from "@/lib/creator-character-prompt";
+import { createFanletterWorldContextPrompt } from "@/lib/fanletter-world-context-service";
 import { applyImagePhotoQualityPreset } from "@/lib/image-prompt-quality";
 import { getContentImageGenerationsCollection } from "@/lib/mongodb";
 
@@ -631,6 +635,23 @@ function extractUserScenePrompt(prompt: string) {
     : prompt.trim();
 }
 
+function extractWorldContextPrompt(prompt: string) {
+  const marker = "World context snapshot:";
+  const markerIndex = prompt.lastIndexOf(marker);
+
+  if (markerIndex < 0) {
+    return "";
+  }
+
+  const userSceneMarkerIndex = prompt.indexOf("User scene prompt:", markerIndex);
+  const contextPrompt =
+    userSceneMarkerIndex > markerIndex
+      ? prompt.slice(markerIndex, userSceneMarkerIndex)
+      : prompt.slice(markerIndex);
+
+  return trimToLength(contextPrompt.replace(/\s+/g, " "), 520);
+}
+
 function createReplicateCompactPrompt({
   avatarImageUrl,
   characterPersona,
@@ -644,6 +665,7 @@ function createReplicateCompactPrompt({
 }) {
   const scenePrompt =
     extractUserScenePrompt(finalPrompt) || normalizedPrompt || finalPrompt;
+  const worldContextPrompt = extractWorldContextPrompt(finalPrompt);
   const personaName = trimToLength(characterPersona?.name, 80);
   const identityPrompt = trimToLength(characterPersona?.identityPrompt, 520);
   const compactPromptLimit = getReplicateCompactPromptLimit();
@@ -654,6 +676,7 @@ function createReplicateCompactPrompt({
     identityInstruction,
     "Create a new editorial content image from the scene. Do not copy avatar background, crop, pose, or clothing unless the scene asks for it.",
     "Keep the fictional AI character grounded in real-world adult age continuity, ordinary human physics, plausible time/location, and no real-person impersonation.",
+    worldContextPrompt ? `World context: ${worldContextPrompt}` : null,
     personaName ? `Persona: ${personaName}.` : null,
     !avatarImageUrl && identityPrompt
       ? `Persona identity: ${identityPrompt}`
@@ -1365,9 +1388,16 @@ export async function generateAndUploadContentGalleryImage(
       Boolean(input.characterPersona?.identityPrompt),
     ),
   );
-  const prompt = applyCreatorCharacterPersonaToPrompt(
+  const personaPrompt = applyCreatorCharacterPersonaToPrompt(
     modelVisualBrief,
     input.characterPersona,
+  );
+  const worldContextPrompt = await createFanletterWorldContextPrompt(
+    input.characterPersona,
+  );
+  const prompt = insertCreatorCharacterWorldContextPrompt(
+    personaPrompt,
+    worldContextPrompt,
   );
 
   await reportProgress(input.onProgress, {

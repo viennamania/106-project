@@ -12,6 +12,7 @@ import {
   FANLETTER_REALISM_POLICY_PROMPT,
   normalizeFanletterRealismRequestText,
 } from "@/lib/fanletter-realism-policy";
+import { createFanletterWorldContextPrompt } from "@/lib/fanletter-world-context-service";
 import type { Locale } from "@/lib/i18n";
 
 const DEFAULT_MODEL = "gpt-5.4";
@@ -279,7 +280,10 @@ function summarizeRecentPosts(posts: ContentPostRecord[]) {
   }));
 }
 
-function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
+function createPlannerPayload(
+  input: GenerateFanletterVlogPlansInput,
+  worldContextPrompt: string | null,
+) {
   const locale = input.locale;
   const language = locale === "ko" ? "Korean" : "English";
   const persona = input.profile.characterPersona;
@@ -315,6 +319,8 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
           `Creator display name: ${trimToLength(input.profile.displayName, 80) || "FanLetter Creator"}.`,
           `Creator intro: ${trimToLength(input.profile.intro, 220) || "No intro provided."}.`,
           personaInstruction,
+          worldContextPrompt ??
+            "World context snapshot: unavailable. Use only generic season, daypart, and public city-level assumptions.",
           `Recent posts JSON: ${JSON.stringify(summarizeRecentPosts(input.posts))}.`,
           `Generate exactly ${PLAN_COUNT} daily AI character vlog plans.`,
           "Every plan must use mediaMode video. Do not suggest image-only posts.",
@@ -345,7 +351,12 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
 export async function generateFanletterVlogPlans(
   input: GenerateFanletterVlogPlansInput,
 ) {
-  const response = await createOpenAiResponse(createPlannerPayload(input));
+  const worldContextPrompt = await createFanletterWorldContextPrompt(
+    input.profile.characterPersona,
+  );
+  const response = await createOpenAiResponse(
+    createPlannerPayload(input, worldContextPrompt),
+  );
   const parsed = parsePlannerPayload(response);
   const plans = parsed.plans
     .map((plan, index) => normalizePlan(plan, index))

@@ -18,7 +18,11 @@ import {
   type ContentPostGenerateCoverProgressEvent,
   type CreatorCharacterPersona,
 } from "@/lib/content";
-import { applyCreatorCharacterPersonaToPrompt } from "@/lib/creator-character-prompt";
+import {
+  applyCreatorCharacterPersonaToPrompt,
+  insertCreatorCharacterWorldContextPrompt,
+} from "@/lib/creator-character-prompt";
+import { createFanletterWorldContextPrompt } from "@/lib/fanletter-world-context-service";
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;
@@ -1122,12 +1126,19 @@ export async function generateAndUploadContentGalleryVideo(
     visualBrief,
     input.characterPersona,
   );
+  const worldContextPrompt = await createFanletterWorldContextPrompt(
+    input.characterPersona,
+  );
+  const groundedPrompt = insertCreatorCharacterWorldContextPrompt(
+    personaAppliedPrompt,
+    worldContextPrompt,
+  );
   const avatarReferenceUrls = normalizeAvatarReferenceUrls(
     input.avatarImageUrls,
     input.avatarImageUrl,
   );
   const personCenteredPrompt = appendPersonCenteredReferenceDirection(
-    personaAppliedPrompt,
+    groundedPrompt,
     avatarReferenceUrls,
     qualityMode,
   );

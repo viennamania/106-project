@@ -166,3 +166,29 @@ export function applyCreatorCharacterPersonaToPrompt(
     `User scene prompt: ${normalizedUserScene.prompt}`,
   ].join("\n\n");
 }
+
+export function insertCreatorCharacterWorldContextPrompt(
+  prompt: string,
+  worldContextPrompt: string | null | undefined,
+) {
+  const normalizedWorldContextPrompt = trimToLength(worldContextPrompt, 1_400);
+
+  if (!normalizedWorldContextPrompt) {
+    return prompt;
+  }
+
+  const marker = "User scene prompt:";
+  const markerIndex = prompt.lastIndexOf(marker);
+
+  if (markerIndex < 0) {
+    return [normalizedWorldContextPrompt, prompt].join("\n\n");
+  }
+
+  return [
+    prompt.slice(0, markerIndex).trim(),
+    normalizedWorldContextPrompt,
+    prompt.slice(markerIndex).trim(),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}

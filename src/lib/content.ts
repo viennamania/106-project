@@ -260,6 +260,14 @@ export type CreatorCharacterPersona = {
   summary: string;
 };
 
+export type CreatorCharacterWorldLocation = {
+  countryCode: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+};
+
 export type CreatorCharacterRealismProfile = {
   agePolicy: "adult_age_continuity";
   disclosure: "fictional_ai_character";
@@ -268,6 +276,7 @@ export type CreatorCharacterRealismProfile = {
   physicsPolicy: "ordinary_human_physics";
   realPersonPolicy: "no_real_person_impersonation";
   timePolicy: "timezone_season_consistent";
+  worldLocation?: CreatorCharacterWorldLocation | null;
 };
 
 export type FanletterVlogPlanMediaMode = "video";

@@ -1,6 +1,7 @@
 import type {
   CreatorCharacterPersona,
   CreatorCharacterRealismProfile,
+  CreatorCharacterWorldLocation,
   FanletterRealismRevisionReason,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
@@ -15,6 +16,7 @@ const DEFAULT_REALISM_PROFILE: CreatorCharacterRealismProfile = {
   physicsPolicy: "ordinary_human_physics",
   realPersonPolicy: "no_real_person_impersonation",
   timePolicy: "timezone_season_consistent",
+  worldLocation: null,
 };
 
 const REALISM_REPLACEMENTS = [
@@ -74,6 +76,15 @@ function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
 }
 
+function isValidTimeZone(timezone: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeSpacing(value: string) {
   return value
     .replace(/[ \t]{2,}/g, " ")
@@ -121,6 +132,44 @@ export function normalizeCreatorCharacterRealismProfile(
       value.timePolicy === "timezone_season_consistent"
         ? value.timePolicy
         : DEFAULT_REALISM_PROFILE.timePolicy,
+    worldLocation: normalizeCreatorCharacterWorldLocation(value.worldLocation),
+  };
+}
+
+export function normalizeCreatorCharacterWorldLocation(
+  value: CreatorCharacterWorldLocation | null | undefined,
+) {
+  if (!value) {
+    return null;
+  }
+
+  const latitude = Number(value.latitude);
+  const longitude = Number(value.longitude);
+  const label = value.label?.trim().slice(0, 120) ?? "";
+  const countryCode = value.countryCode?.trim().toUpperCase().slice(0, 2) ?? "";
+  const timezone = value.timezone?.trim().slice(0, 80) ?? "";
+
+  if (
+    !label ||
+    !countryCode ||
+    !timezone ||
+    !isValidTimeZone(timezone) ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return {
+    countryCode,
+    label,
+    latitude,
+    longitude,
+    timezone,
   };
 }
 
