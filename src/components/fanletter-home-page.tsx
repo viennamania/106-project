@@ -267,10 +267,10 @@ const koCopy: FanletterCopy = {
     previewLabel: "공개 티저",
     purchaseLibrary: "구매함 보기",
     railBody:
-      "공개 피드 전에 결제 검증, 팬 답장, 비공개 루틴이 보이는 유료 브이로그를 먼저 확인하세요.",
+      "공개 브이로그로 캐릭터 분위기를 확인한 뒤, 팬 답장과 비공개 루틴이 담긴 유료 브이로그를 이어서 확인하세요.",
     railCta: "팬 전용 전체 보기",
     railEyebrow: "팬 전용 하이라이트",
-    railTitle: "지금 잠금 해제할 만한 유료 브이로그",
+    railTitle: "팬 전용으로 더 볼 수 있는 브이로그",
     saveMetric: "저장",
     title: "공개 브이로그 다음에 열리는 팬 전용.",
     unlockHint: "전체 영상 + 상세 본문",
@@ -439,10 +439,10 @@ const enCopy: FanletterCopy = {
     previewLabel: "Public teaser",
     purchaseLibrary: "Purchases",
     railBody:
-      "Preview paid vlogs with purchase proof, fan replies, and private routines before entering the full feed.",
+      "After the public vlog preview, continue into fan replies and private routines that unlock as paid fan-only vlogs.",
     railCta: "View all fan-only",
     railEyebrow: "Fan-only highlights",
-    railTitle: "Paid vlogs worth unlocking now",
+    railTitle: "Fan-only vlogs to unlock next",
     saveMetric: "saves",
     title: "Fan-only opens after the public vlog.",
     unlockHint: "Full video + detail body",
@@ -567,6 +567,32 @@ function getPaidSignalBadge(video: FanletterFeaturedVideo, locale: Locale) {
   }
 
   return locale === "ko" ? "새 팬 전용" : "New fan-only";
+}
+
+function getPaidCardMetricItems(
+  video: FanletterFeaturedVideo,
+  copy: FanletterCopy,
+  locale: Locale,
+) {
+  return [
+    {
+      label: copy.paidSpotlight.buyerMetric,
+      value: video.social.paidBuyerCount,
+    },
+    {
+      label: copy.paidSpotlight.commentMetric,
+      value: video.social.commentCount,
+    },
+    {
+      label: copy.paidSpotlight.saveMetric,
+      value: video.social.saveCount,
+    },
+  ]
+    .filter((metric) => metric.value > 0)
+    .map((metric) => ({
+      ...metric,
+      formattedValue: formatMetric(metric.value, locale),
+    }));
 }
 
 function getPaidCardProofLabel(
@@ -768,6 +794,29 @@ function getPaidCardPreviewText(
   const hook = getPaidCardHook(video, locale);
 
   return hook.preview || fallback;
+}
+
+function isRawPublicSummaryText(value: string) {
+  return /(댓글\s*유도|저장\s*유도|구매\s*유도|후킹|hook|save prompt|comment prompt|cta prompt)/i.test(
+    value,
+  );
+}
+
+function getPublicVideoSummary(video: FanletterFeaturedVideo, locale: Locale) {
+  const summary = video.summary.trim();
+
+  if (
+    summary &&
+    !homePromptTextPattern.test(summary) &&
+    !looksLikePlaceholderText(summary) &&
+    !isRawPublicSummaryText(summary)
+  ) {
+    return summary;
+  }
+
+  return locale === "ko"
+    ? "캐릭터 분위기와 다음 팬 요청을 확인할 수 있는 무료 공개 브이로그입니다."
+    : "A free public vlog that shows the character vibe and opens the next fan request.";
 }
 
 function FanletterPaidPreviewRail({
@@ -1009,6 +1058,13 @@ function FanletterPaidSpotlightSection({
                   : `Unlock ${priceLabel}`;
               const signalBadge = getPaidSignalBadge(video, locale);
               const proofLabel = getPaidCardProofLabel(video, copy);
+              const metricItems = getPaidCardMetricItems(video, copy, locale);
+              const metricGridClass =
+                metricItems.length === 1
+                  ? "grid-cols-1"
+                  : metricItems.length === 2
+                    ? "grid-cols-2"
+                    : "grid-cols-3";
 
               return (
                 <ScrollReveal
@@ -1087,32 +1143,32 @@ function FanletterPaidSpotlightSection({
                           {signalBadge}
                         </span>
                       </div>
-                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
-                          <p className="text-sm font-semibold">
-                            {formatMetric(video.social.paidBuyerCount, locale)}
-                          </p>
-                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
-                            {copy.paidSpotlight.buyerMetric}
-                          </p>
+                      {metricItems.length > 0 ? (
+                        <div
+                          className={joinClasses(
+                            "mt-4 grid gap-2 text-center",
+                            metricGridClass,
+                          )}
+                        >
+                          {metricItems.map((metric) => (
+                            <div
+                              className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2"
+                              key={metric.label}
+                            >
+                              <p className="text-sm font-semibold">
+                                {metric.formattedValue}
+                              </p>
+                              <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
+                                {metric.label}
+                              </p>
+                            </div>
+                          ))}
                         </div>
-                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
-                          <p className="text-sm font-semibold">
-                            {formatMetric(video.social.commentCount, locale)}
-                          </p>
-                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
-                            {copy.paidSpotlight.commentMetric}
-                          </p>
+                      ) : (
+                        <div className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#ecfff0] p-3 text-sm font-semibold leading-5 text-[#1f7c38]">
+                          {proofLabel}
                         </div>
-                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] p-2">
-                          <p className="text-sm font-semibold">
-                            {formatMetric(video.social.saveCount, locale)}
-                          </p>
-                          <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
-                            {copy.paidSpotlight.saveMetric}
-                          </p>
-                        </div>
-                      </div>
+                      )}
                       <div className="mt-auto pt-4">
                         <span className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white">
                           {unlockLabel}
@@ -1410,7 +1466,7 @@ export function FanletterHomePage({
         <FanletterMobileHeroCarousel slides={heroSlides} />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
 
-        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-6 pt-3 sm:min-h-[92svh] sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
@@ -1462,10 +1518,10 @@ export function FanletterHomePage({
               <h1 className="max-w-[58rem] text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:mt-4 sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-5 hidden max-w-2xl text-[0.96rem] font-medium leading-7 text-white/74 [word-break:keep-all] sm:mt-6 sm:block sm:text-lg">
+              <p className="mt-4 max-w-[22rem] text-sm font-medium leading-6 text-white/78 [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/74">
                 {copy.hero.description}
               </p>
-              <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
+              <div className="mt-6 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
                   href={creatorHref}
@@ -1478,24 +1534,18 @@ export function FanletterHomePage({
                 >
                   {copy.cta.fan}
                 </Link>
-                <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/14 bg-white/10 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-white/14 sm:h-[3.25rem] sm:px-7"
-                  href={studioHref}
-                >
-                  {copy.cta.studio}
-                </Link>
               </div>
               <div className="mt-6 max-w-2xl sm:mt-8">
                 <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/56">
                   {copy.platformTrust.eyebrow}
                 </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {platformBrandLogos.map((platform) => (
                     <span
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.08] px-2.5 pr-3 text-[0.72rem] font-semibold text-white/78 backdrop-blur-md"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.08] px-2 text-[0.62rem] font-semibold text-white/78 backdrop-blur-md sm:h-10 sm:gap-2 sm:px-2.5 sm:pr-3 sm:text-[0.72rem]"
                       key={platform.label}
                     >
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white p-1">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white p-1 sm:size-7">
                         <Image
                           alt={platform.alt}
                           className="h-full w-full object-contain"
@@ -1640,14 +1690,6 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <FanletterPaidPreviewRail
-        copy={copy}
-        featuredPaidVideos={featuredPaidVideos}
-        homeHref={homeHref}
-        locale={locale}
-        referralCode={referralCode}
-      />
-
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -1783,7 +1825,7 @@ export function FanletterHomePage({
                             {video.title}
                           </h3>
                           <p className="mt-3 line-clamp-4 text-sm font-medium leading-6 text-black/58">
-                            {video.summary}
+                            {getPublicVideoSummary(video, locale)}
                           </p>
                           <div className="mt-auto inline-flex h-10 w-fit items-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white">
                             <Clapperboard className="size-4" />
@@ -1803,15 +1845,6 @@ export function FanletterHomePage({
           )}
         </div>
       </section>
-
-      <FanletterPaidSpotlightSection
-        copy={copy}
-        featuredPaidVideos={featuredPaidVideos}
-        homeHref={homeHref}
-        locale={locale}
-        purchasesHref={purchasesHref}
-        referralCode={referralCode}
-      />
 
       <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -1939,6 +1972,23 @@ export function FanletterHomePage({
           </div>
         </div>
       </section>
+
+      <FanletterPaidPreviewRail
+        copy={copy}
+        featuredPaidVideos={featuredPaidVideos}
+        homeHref={homeHref}
+        locale={locale}
+        referralCode={referralCode}
+      />
+
+      <FanletterPaidSpotlightSection
+        copy={copy}
+        featuredPaidVideos={featuredPaidVideos}
+        homeHref={homeHref}
+        locale={locale}
+        purchasesHref={purchasesHref}
+        referralCode={referralCode}
+      />
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">

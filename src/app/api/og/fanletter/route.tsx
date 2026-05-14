@@ -9,6 +9,7 @@ import {
   getFanletterCreatorPageData,
   type FanletterCreatorPageData,
 } from "@/lib/fanletter-content-service";
+import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import {
   defaultLocale,
   hasLocale,
@@ -49,16 +50,16 @@ const copyByLocale: Record<"en" | "ko", FanletterOgCopy> = {
     },
   },
   ko: {
-    badge: "AI 크리에이터 수익화",
+    badge: "AI 캐릭터 브이로그 플랫폼",
     description:
-      "인물 페르소나, AI 이미지와 동영상, 팬 전용 피드, 판매 흐름을 하나의 모바일 홈으로 연결합니다.",
+      "고정 AI 캐릭터, 공개 브이로그, 팬 전용 피드, 판매 흐름을 하나의 모바일 홈으로 연결합니다.",
     footer: "모바일 중심 · AI 콘텐츠 · 팬 판매",
     metrics: [
       { label: "AI 콘텐츠 흐름", value: "05" },
       { label: "크리에이터 스튜디오", value: "01" },
       { label: "모바일 중심", value: "24/7" },
     ],
-    title: "FanLetter Creator AI",
+    title: "FanLetter AI 캐릭터 브이로그",
     variantLabels: {
       creator: "크리에이터 채널",
       feed: "공개 AI 피드",
@@ -86,13 +87,16 @@ function getLocaleCopy(locale: Locale) {
   return locale === "ko" ? copyByLocale.ko : copyByLocale.en;
 }
 
-function getRenderableImageUrl(value: string | null | undefined) {
+function getRenderableImageUrl(
+  value: string | null | undefined,
+  origin?: string,
+) {
   if (!value) {
     return null;
   }
 
   try {
-    const url = new URL(value);
+    const url = new URL(value, origin);
 
     return url.protocol === "https:" || url.protocol === "http:"
       ? url.toString()
@@ -194,22 +198,42 @@ export async function GET(request: Request) {
     variant === "creator" && referralCode
       ? await getFanletterCreatorPageData(locale, referralCode).catch(() => null)
       : null;
+  const landingData =
+    !creatorData && (variant === "home" || variant === "feed")
+      ? await getFanletterLandingData(locale).catch(() => null)
+      : null;
+  const homeFeaturedVideo =
+    landingData?.featuredVideos[0] ?? landingData?.featuredPaidVideos[0] ?? null;
   const creatorCoverImageUrl = getRenderableImageUrl(
     creatorData?.items[0]?.coverImageUrl,
+    url.origin,
   );
   const creatorAvatarImageUrl = getRenderableImageUrl(
     creatorData?.profile.character?.avatarImageSet[0]?.url ??
       creatorData?.profile.avatarImageUrl,
+    url.origin,
   );
   const creatorVisualUrl = creatorCoverImageUrl ?? creatorAvatarImageUrl;
-  const creatorVisualLabel = creatorCoverImageUrl
-    ? locale === "ko"
-      ? "대표 브이로그"
-      : "Featured vlog"
-    : locale === "ko"
-      ? "대표 페르소나"
-      : "Character identity";
+  const homeVisualUrl = getRenderableImageUrl(
+    homeFeaturedVideo?.coverImageUrl ?? homeFeaturedVideo?.authorAvatarImageUrl,
+    url.origin,
+  );
+  const visualUrl = creatorVisualUrl ?? homeVisualUrl;
   const creatorName = getCreatorName(creatorData);
+  const visualLabel = creatorData
+    ? creatorCoverImageUrl
+      ? locale === "ko"
+        ? "대표 브이로그"
+        : "Featured vlog"
+      : locale === "ko"
+        ? "대표 페르소나"
+        : "Character identity"
+    : locale === "ko"
+      ? "대표 공개 브이로그"
+      : "Featured public vlog";
+  const visualName = creatorData
+    ? creatorName
+    : homeFeaturedVideo?.authorName ?? null;
   const title = truncateText(
     creatorData && creatorName
       ? getCreatorOgTitle({
@@ -243,7 +267,7 @@ export async function GET(request: Request) {
     : copy.footer;
   const latestTitle = creatorData
     ? getLocaleSafeTitle(getCreatorLatestTitle(creatorData), locale)
-    : null;
+    : getLocaleSafeTitle(homeFeaturedVideo?.title ?? null, locale);
   const metrics = creatorData
     ? [
         {
@@ -261,7 +285,29 @@ export async function GET(request: Request) {
             : "Lv.1",
         },
       ]
-    : copy.metrics;
+    : landingData
+      ? [
+          {
+            label: locale === "ko" ? "공개 브이로그" : "Public vlogs",
+            value: formatMetric(landingData.liveStats.publicVideoCount, locale),
+          },
+          {
+            label: locale === "ko" ? "활성 캐릭터" : "Active characters",
+            value: formatMetric(landingData.liveStats.activeCreatorCount, locale),
+          },
+          {
+            label: locale === "ko" ? "확정 판매" : "Confirmed sales",
+            value: formatMetric(landingData.liveStats.confirmedSalesCount, locale),
+          },
+        ]
+      : copy.metrics;
+  const categoryLabels = creatorData
+    ? locale === "ko"
+      ? ["브이로그", "팬 요청", "팬 전용"]
+      : ["Vlog", "Requests", "Fan-only"]
+    : locale === "ko"
+      ? ["캐릭터", "숏폼", "팬 전용"]
+      : ["Persona", "Vlog", "Fan-only"];
 
   return new ImageResponse(
     (
@@ -311,7 +357,7 @@ export async function GET(request: Request) {
               flexDirection: "column",
               justifyContent: "space-between",
               minWidth: 0,
-              ...(creatorVisualUrl ? { maxWidth: 700 } : {}),
+              ...(visualUrl ? { maxWidth: 700 } : {}),
             }}
           >
             <div
@@ -365,7 +411,7 @@ export async function GET(request: Request) {
                       textTransform: "uppercase",
                     }}
                   >
-                    Creator AI
+                    {locale === "ko" ? "AI CHARACTER VLOG" : "CREATOR AI"}
                   </div>
                 </div>
               </div>
@@ -454,10 +500,10 @@ export async function GET(request: Request) {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              width: creatorVisualUrl ? 390 : 350,
+              width: visualUrl ? 390 : 350,
             }}
           >
-            {creatorVisualUrl ? (
+            {visualUrl ? (
               <div
                 style={{
                   background: "rgba(255,255,255,0.08)",
@@ -475,7 +521,7 @@ export async function GET(request: Request) {
                 <img
                   alt=""
                   height="480"
-                  src={creatorVisualUrl}
+                  src={visualUrl}
                   style={{
                     display: "flex",
                     height: "100%",
@@ -545,7 +591,7 @@ export async function GET(request: Request) {
                         textTransform: "uppercase",
                       }}
                     >
-                      {creatorVisualLabel}
+                      {visualLabel}
                     </div>
                     <div
                       style={{
@@ -555,7 +601,7 @@ export async function GET(request: Request) {
                         lineHeight: 1.04,
                       }}
                     >
-                      {creatorName ?? stripFanletterTitleSuffix(title)}
+                      {visualName ?? stripFanletterTitleSuffix(title)}
                     </div>
                     {latestTitle ? (
                       <div
@@ -691,12 +737,7 @@ export async function GET(request: Request) {
                 marginTop: 14,
               }}
             >
-              {(creatorData
-                ? locale === "ko"
-                  ? ["브이로그", "팬 요청", "팬 전용"]
-                  : ["Vlog", "Requests", "Fan-only"]
-                : ["Persona", "Image", "Video"]
-              ).map((label) => (
+              {categoryLabels.map((label) => (
                 <div
                   key={label}
                   style={{
