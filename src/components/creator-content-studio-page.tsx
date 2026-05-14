@@ -262,6 +262,7 @@ type GeneratePostCoverImageOptions = {
 
 type StudioView = "character" | "hub" | "new" | "profile";
 type PostComposerMode = "paid-upload" | "standard";
+type PaidTeaserCoverStyle = "character" | "curiosity" | "mood" | "safe";
 
 const EMPTY_PROFILE = {
   avatarImageSet: [] as CreatorProfileAvatarCandidate[],
@@ -1040,6 +1041,8 @@ export function CreatorContentStudioPage({
   const [isContentImageGenerationDialogOpen, setIsContentImageGenerationDialogOpen] =
     useState(false);
   const [contentImagePrompt, setContentImagePrompt] = useState("");
+  const [paidTeaserCoverStyle, setPaidTeaserCoverStyle] =
+    useState<PaidTeaserCoverStyle>("curiosity");
   const [contentVideoGenerationProgress, setContentVideoGenerationProgress] =
     useState<CoverGenerationProgressState>(createEmptyCoverGenerationProgress());
   const [isContentVideoGenerationDialogOpen, setIsContentVideoGenerationDialogOpen] =
@@ -1775,6 +1778,41 @@ export function CreatorContentStudioPage({
             "Publish as a 1 USDT paid vlog",
           ],
         };
+  const paidTeaserCoverStyles: Array<{
+    description: string;
+    id: PaidTeaserCoverStyle;
+    label: string;
+    prompt: string;
+  }> = [
+    {
+      description: locale === "ko" ? "부분만 암시" : "Hints only",
+      id: "curiosity",
+      label: locale === "ko" ? "호기심" : "Curiosity",
+      prompt:
+        "Style direction: curiosity-led locked teaser, partial silhouette, obscured frame, intriguing crop, premium suspense, no spoilers.",
+    },
+    {
+      description: locale === "ko" ? "공개 안전" : "Public-safe",
+      id: "safe",
+      label: locale === "ko" ? "안전" : "Safe",
+      prompt:
+        "Style direction: public-safe editorial cover, calm composition, neutral details, brand-safe curiosity, no suggestive framing.",
+    },
+    {
+      description: locale === "ko" ? "인물 무드" : "Character mood",
+      id: "character",
+      label: locale === "ko" ? "캐릭터" : "Character",
+      prompt:
+        "Style direction: character-led portrait mood without identity drift, expressive but tasteful, keep the persona recognizable without revealing the paid plot.",
+    },
+    {
+      description: locale === "ko" ? "장소와 빛" : "Place and light",
+      id: "mood",
+      label: locale === "ko" ? "분위기" : "Mood",
+      prompt:
+        "Style direction: environment-led cinematic still, realistic location, props, lighting, and atmosphere create the question while the subject can stay indirect.",
+    },
+  ];
   const pageTitle =
     view === "character"
       ? characterPageCopy.title
@@ -3706,7 +3744,9 @@ export function CreatorContentStudioPage({
           failureNotice: paidUploadComposerCopy.autoCoverFailed,
           softFail: true,
           successNotice: paidUploadComposerCopy.autoCoverReady,
-          visualBrief: buildPaidUploadTeaserVisualBrief(file.name),
+          visualBrief: buildPaidUploadTeaserVisualBrief({
+            fileName: file.name,
+          }),
         });
       }
     } catch (error) {
@@ -3753,7 +3793,13 @@ export function CreatorContentStudioPage({
     setCoverGenerationProgress(createEmptyCoverGenerationProgress());
   }
 
-  function buildPaidUploadTeaserVisualBrief(fileName?: string) {
+  function buildPaidUploadTeaserVisualBrief({
+    fileName,
+    style = paidTeaserCoverStyle,
+  }: {
+    fileName?: string;
+    style?: PaidTeaserCoverStyle;
+  } = {}) {
     const characterName =
       state.profile.characterPersona?.name ||
       state.profile.displayName ||
@@ -3761,10 +3807,14 @@ export function CreatorContentStudioPage({
       "";
     const fanRequestContext = initialFanRequestBody?.slice(0, 180) ?? "";
     const fileContext = fileName?.trim().slice(0, 80) ?? "";
+    const stylePrompt =
+      paidTeaserCoverStyles.find((coverStyle) => coverStyle.id === style)
+        ?.prompt ?? paidTeaserCoverStyles[0]?.prompt;
 
     return [
       "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog.",
       "Create curiosity before payment without revealing the full paid content.",
+      stylePrompt,
       characterName
         ? `Keep the AI character mood consistent with: ${characterName}.`
         : null,
@@ -3778,6 +3828,22 @@ export function CreatorContentStudioPage({
     ]
       .filter(Boolean)
       .join(" ");
+  }
+
+  function startPaidTeaserCoverGeneration(style = paidTeaserCoverStyle) {
+    setPaidTeaserCoverStyle(style);
+    setIsCoverGenerationDialogOpen(true);
+    setState((current) => ({
+      ...current,
+      error: null,
+      notice: paidUploadComposerCopy.autoCoverGenerating,
+    }));
+    void generatePostCoverImage({
+      failureNotice: paidUploadComposerCopy.autoCoverFailed,
+      softFail: true,
+      successNotice: paidUploadComposerCopy.autoCoverReady,
+      visualBrief: buildPaidUploadTeaserVisualBrief({ style }),
+    });
   }
 
   function openContentImageGenerationDialog() {
@@ -7403,6 +7469,59 @@ export function CreatorContentStudioPage({
                 </span>
               </button>
 
+              {isPaidUploadComposer ? (
+                <div className="space-y-2 border-y border-slate-100 py-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    {paidTeaserCoverStyles.map((style) => {
+                      const isSelected = paidTeaserCoverStyle === style.id;
+
+                      return (
+                        <button
+                          className={cn(
+                            "min-h-14 rounded-[18px] border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
+                            isSelected
+                              ? "border-amber-300 bg-amber-50 text-amber-950"
+                              : "border-slate-200 bg-white text-slate-700",
+                          )}
+                          disabled={isGeneratingPostImage}
+                          key={style.id}
+                          onClick={() => {
+                            setPaidTeaserCoverStyle(style.id);
+                          }}
+                          type="button"
+                        >
+                          <span className="block text-xs font-semibold leading-4">
+                            {style.label}
+                          </span>
+                          <span className="mt-1 block text-[11px] leading-4 text-slate-500">
+                            {style.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-950 disabled:opacity-50"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPostImage
+                    }
+                    onClick={() => {
+                      startPaidTeaserCoverGeneration();
+                    }}
+                    type="button"
+                  >
+                    <Sparkles className="size-4" />
+                    {isGeneratingPostImage &&
+                    isCoverGenerationDialogOpen &&
+                    coverGenerationProgress.active
+                      ? paidUploadComposerCopy.generatingTeaserCover
+                      : paidUploadComposerCopy.generateTeaserCover}
+                  </button>
+                </div>
+              ) : null}
+
               <div
                 className={cn(
                   "grid gap-2",
@@ -7938,18 +8057,7 @@ export function CreatorContentStudioPage({
                   }
                   onClick={() => {
                     if (isPaidUploadComposer) {
-                      setIsCoverGenerationDialogOpen(true);
-                      setState((current) => ({
-                        ...current,
-                        error: null,
-                        notice: paidUploadComposerCopy.autoCoverGenerating,
-                      }));
-                      void generatePostCoverImage({
-                        failureNotice: paidUploadComposerCopy.autoCoverFailed,
-                        softFail: true,
-                        successNotice: paidUploadComposerCopy.autoCoverReady,
-                        visualBrief: buildPaidUploadTeaserVisualBrief(),
-                      });
+                      startPaidTeaserCoverGeneration();
                       return;
                     }
 
@@ -7989,6 +8097,37 @@ export function CreatorContentStudioPage({
                   </button>
                 ) : null}
               </div>
+              {isPaidUploadComposer ? (
+                <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                  {paidTeaserCoverStyles.map((style) => {
+                    const isSelected = paidTeaserCoverStyle === style.id;
+
+                    return (
+                      <button
+                        className={cn(
+                          "min-h-16 rounded-[18px] border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-60",
+                          isSelected
+                            ? "border-amber-300 bg-amber-50 text-amber-950 shadow-[0_10px_24px_rgba(245,158,11,0.14)]"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                        )}
+                        disabled={isGeneratingPostImage}
+                        key={style.id}
+                        onClick={() => {
+                          setPaidTeaserCoverStyle(style.id);
+                        }}
+                        type="button"
+                      >
+                        <span className="block text-sm font-semibold leading-5">
+                          {style.label}
+                        </span>
+                        <span className="mt-1 block text-xs leading-4 text-slate-500">
+                          {style.description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
               {postForm.coverImageUrl ? (
                 <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-900/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
                   <div
