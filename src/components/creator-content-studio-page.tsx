@@ -321,6 +321,10 @@ const EMPTY_STUDIO_SUMMARY = {
   published: 0,
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;
+const PAID_VIDEO_FRAME_COVER_MAX_WIDTH = 1280;
+const PAID_VIDEO_FRAME_COVER_MIME_TYPE = "image/jpeg";
+const PAID_VIDEO_FRAME_COVER_QUALITY = 0.84;
+const PAID_VIDEO_FRAME_COVER_TIMEOUT_MS = 12000;
 const SERVER_BODY_REQUIRED_ERROR = "body is required.";
 
 function sanitizeUploadBaseName(name: string) {
@@ -347,6 +351,141 @@ function resolveVideoExtension(file: File) {
   }
 
   return ".mp4";
+}
+
+function resolvePaidVideoCoverCaptureTime(duration: number) {
+  if (!Number.isFinite(duration) || duration <= 0.6) {
+    return 0;
+  }
+
+  return Math.min(
+    Math.max(duration * 0.18, 0.6),
+    Math.max(duration - 0.2, 0),
+  );
+}
+
+function withTimeout<T>(promise: Promise<T>, message: string) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeout = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error(message)),
+      PAID_VIDEO_FRAME_COVER_TIMEOUT_MS,
+    );
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
+}
+
+function waitForVideoEvent(
+  video: HTMLVideoElement,
+  eventName: keyof HTMLMediaElementEventMap,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      video.removeEventListener(eventName, handleEvent);
+      video.removeEventListener("error", handleError);
+    };
+    const handleEvent = () => {
+      cleanup();
+      resolve();
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new Error("Failed to read the uploaded video frame."));
+    };
+
+    video.addEventListener(eventName, handleEvent, { once: true });
+    video.addEventListener("error", handleError, { once: true });
+  });
+}
+
+async function capturePaidVideoCoverFrame(file: File) {
+  if (typeof document === "undefined" || typeof URL === "undefined") {
+    throw new Error("Video frame capture is only available in the browser.");
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  const video = document.createElement("video");
+
+  try {
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.src = objectUrl;
+    video.load();
+
+    await withTimeout(
+      waitForVideoEvent(video, "loadedmetadata"),
+      "Timed out while reading the uploaded video metadata.",
+    );
+
+    const captureTime = resolvePaidVideoCoverCaptureTime(video.duration);
+
+    if (captureTime > 0) {
+      video.currentTime = captureTime;
+      await withTimeout(
+        waitForVideoEvent(video, "seeked"),
+        "Timed out while seeking the uploaded video frame.",
+      );
+    } else {
+      if (video.readyState < 2) {
+        await withTimeout(
+          waitForVideoEvent(video, "loadeddata"),
+          "Timed out while loading the uploaded video frame.",
+        );
+      }
+    }
+
+    if (!video.videoWidth || !video.videoHeight) {
+      throw new Error("The uploaded video has no readable frame size.");
+    }
+
+    const scale = Math.min(
+      1,
+      PAID_VIDEO_FRAME_COVER_MAX_WIDTH / video.videoWidth,
+    );
+    const width = Math.max(1, Math.round(video.videoWidth * scale));
+    const height = Math.max(1, Math.round(video.videoHeight * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Could not create a video frame canvas.");
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(video, 0, 0, width, height);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (!result) {
+            reject(new Error("Could not encode the video frame cover."));
+            return;
+          }
+
+          resolve(result);
+        },
+        PAID_VIDEO_FRAME_COVER_MIME_TYPE,
+        PAID_VIDEO_FRAME_COVER_QUALITY,
+      );
+    });
+
+    return new File(
+      [blob],
+      `${sanitizeUploadBaseName(file.name)}-video-frame-cover.jpg`,
+      { type: PAID_VIDEO_FRAME_COVER_MIME_TYPE },
+    );
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+    video.removeAttribute("src");
+    video.load();
+  }
 }
 
 const AUTOMATION_RESTRICTED_MESSAGE =
@@ -1690,11 +1829,17 @@ export function CreatorContentStudioPage({
           helper:
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
           autoCoverFailed:
-            "동영상은 업로드되었습니다. AI 티저 커버 자동 생성은 실패했으니 커버를 직접 업로드하거나 다시 생성해 주세요.",
+            "동영상은 업로드되었습니다. 커버 자동 생성은 실패했으니 커버를 직접 업로드하거나 AI 티저를 다시 생성해 주세요.",
           autoCoverGenerating:
-            "동영상 업로드가 완료되었습니다. 결제 전 호기심을 만들 AI 티저 커버를 생성하고 있습니다.",
+            "동영상 업로드가 완료되었습니다. AI 티저 커버를 생성하고 있습니다.",
           autoCoverReady:
             "AI 티저 커버가 적용되었습니다. 팬에게 공개되는 미리보기로 사용됩니다.",
+          frameCoverFailed:
+            "동영상 프레임 커버를 만들지 못해 AI 티저 커버를 생성하고 있습니다.",
+          frameCoverGenerating:
+            "동영상에서 공개 커버 프레임을 추출하고 있습니다.",
+          frameCoverReady:
+            "동영상 프레임 커버가 적용되었습니다. 필요하면 AI 티저로 바꿀 수 있습니다.",
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
           connectCta: "계정 연결하기",
@@ -1722,7 +1867,7 @@ export function CreatorContentStudioPage({
           previewRequiredLabel: "공개 티저 (필수)",
           readinessAuto: "자동",
           readinessCoverDescription:
-            "커버가 비어 있으면 게시 시 AI 티저 커버를 자동 생성합니다.",
+            "커버가 비어 있으면 업로드한 동영상 프레임으로 자동 생성합니다.",
           readinessCoverLabel: "공개 커버",
           readinessMissing: "필요",
           readinessPreviewDescription:
@@ -1769,11 +1914,17 @@ export function CreatorContentStudioPage({
           eyebrow: "FanLetter Paid Upload",
           helper: "Paid content requires one directly uploaded video.",
           autoCoverFailed:
-            "The video was uploaded. Automatic AI teaser cover generation failed, so upload a cover or generate it again.",
+            "The video was uploaded. Automatic cover generation failed, so upload a cover or generate an AI teaser again.",
           autoCoverGenerating:
-            "Video upload is complete. Generating an AI teaser cover to create curiosity before payment.",
+            "Video upload is complete. Generating an AI teaser cover.",
           autoCoverReady:
             "AI teaser cover applied. It will be used as the public preview for fans.",
+          frameCoverFailed:
+            "Could not create a video-frame cover. Generating an AI teaser cover instead.",
+          frameCoverGenerating:
+            "Extracting a public cover frame from the uploaded video.",
+          frameCoverReady:
+            "Video-frame cover applied. You can replace it with an AI teaser if needed.",
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
           connectCta: "Connect account",
@@ -1801,7 +1952,7 @@ export function CreatorContentStudioPage({
           previewRequiredLabel: "Public teaser (required)",
           readinessAuto: "Auto",
           readinessCoverDescription:
-            "If no cover is set, FanLetter generates an AI teaser cover at publish time.",
+            "If no cover is set, FanLetter extracts one from the uploaded video.",
           readinessCoverLabel: "Public cover",
           readinessMissing: "Required",
           readinessPreviewDescription:
@@ -3630,7 +3781,13 @@ export function CreatorContentStudioPage({
     }
   }
 
-  async function uploadPostCoverImage(file: File) {
+  async function uploadPostCoverImage(
+    file: File,
+    options: {
+      successNotice?: string;
+      throwOnError?: boolean;
+    } = {},
+  ) {
     try {
       setIsUploadingPostImage(true);
       const email = await resolveMemberEmail();
@@ -3662,9 +3819,14 @@ export function CreatorContentStudioPage({
       setState((current) => ({
         ...current,
         error: null,
-        notice: contentCopy.messages.uploadSuccess,
+        notice: options.successNotice ?? contentCopy.messages.uploadSuccess,
       }));
+      return data;
     } catch (error) {
+      if (options.throwOnError) {
+        throw error;
+      }
+
       setState((current) => ({
         ...current,
         error:
@@ -3673,6 +3835,7 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.uploadFailed,
         notice: null,
       }));
+      return null;
     } finally {
       setIsUploadingPostImage(false);
     }
@@ -3776,7 +3939,7 @@ export function CreatorContentStudioPage({
 
       const email = await resolveMemberEmail();
       const uploadReferralCode = state.member?.referralCode;
-      const shouldGeneratePaidTeaserCover =
+      const shouldCreatePaidVideoCover =
         isPaidUploadComposer && !postForm.coverImageUrl.trim();
 
       if (!uploadReferralCode) {
@@ -3827,21 +3990,36 @@ export function CreatorContentStudioPage({
 
       setIsUploadingPostVideo(false);
 
-      if (shouldGeneratePaidTeaserCover) {
-        setIsCoverGenerationDialogOpen(true);
+      if (shouldCreatePaidVideoCover) {
         setState((current) => ({
           ...current,
           error: null,
-          notice: paidUploadComposerCopy.autoCoverGenerating,
+          notice: paidUploadComposerCopy.frameCoverGenerating,
         }));
-        await generatePostCoverImage({
-          failureNotice: paidUploadComposerCopy.autoCoverFailed,
-          softFail: true,
-          successNotice: paidUploadComposerCopy.autoCoverReady,
-          visualBrief: buildPaidUploadTeaserVisualBrief({
-            fileName: file.name,
-          }),
-        });
+
+        try {
+          const frameCoverFile = await capturePaidVideoCoverFrame(file);
+
+          await uploadPostCoverImage(frameCoverFile, {
+            successNotice: paidUploadComposerCopy.frameCoverReady,
+            throwOnError: true,
+          });
+        } catch {
+          setIsCoverGenerationDialogOpen(true);
+          setState((current) => ({
+            ...current,
+            error: null,
+            notice: paidUploadComposerCopy.frameCoverFailed,
+          }));
+          await generatePostCoverImage({
+            failureNotice: paidUploadComposerCopy.autoCoverFailed,
+            softFail: true,
+            successNotice: paidUploadComposerCopy.autoCoverReady,
+            visualBrief: buildPaidUploadTeaserVisualBrief({
+              fileName: file.name,
+            }),
+          });
+        }
       }
     } catch (error) {
       setState((current) => ({
