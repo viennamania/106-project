@@ -4017,13 +4017,11 @@ function FanletterDetailQuickActions({
   const labels =
     locale === "ko"
       ? {
-          body: "시청 후 바로 캐릭터 채널, 다음 장면 요청, 내 채널 시작으로 이어가도록 정리했습니다.",
+          body: "시청 후 바로 캐릭터 채널이나 다음 장면 요청으로 이어가도록 정리했습니다.",
           creatorBody: `${characterName}의 공개 브이로그와 캐릭터 소개를 계속 봅니다.`,
           open: "이동",
           requestBody: "보고 싶은 룩, 장소, 상황을 다음 브이로그 요청으로 남깁니다.",
           requestTitle: "다음 장면 요청",
-          startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 만듭니다.",
-          startTitle: "내 채널 시작",
           ownerBody:
             "작성자 화면에서는 팬 행동 대신 공개 상태, 판매, 반응 데이터를 바로 관리할 수 있게 연결합니다.",
           ownerManageBody:
@@ -4036,13 +4034,11 @@ function FanletterDetailQuickActions({
           title: "이 브이로그에서 이어가기",
         }
       : {
-          body: "After watching, continue into the character channel, next-scene request, or your own channel setup.",
+          body: "After watching, continue into the character channel or a next-scene request.",
           creatorBody: `Keep watching ${characterName}'s public vlogs and character intro.`,
           open: "Open",
           requestBody: "Leave the outfit, place, or scene you want to see as a next-vlog request.",
           requestTitle: "Request next scene",
-          startBody: "Create your own AI character vlog channel without complex setup.",
-          startTitle: "Start my channel",
           ownerBody:
             "Author view replaces fan actions with direct access to visibility, sales, and reaction management.",
           ownerManageBody:
@@ -4088,12 +4084,6 @@ function FanletterDetailQuickActions({
           icon: Clapperboard,
           title: labels.requestTitle,
         },
-        {
-          body: labels.startBody,
-          href: startHref,
-          icon: Rocket,
-          title: labels.startTitle,
-        },
       ];
   const headerBody = isOwnContent ? labels.ownerBody : labels.body;
   const headerTitle = isOwnContent ? labels.ownerTitle : labels.title;
@@ -4123,7 +4113,13 @@ function FanletterDetailQuickActions({
         </Link>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
+      <div
+        className={
+          isOwnContent
+            ? "mt-5 grid gap-3 md:grid-cols-3"
+            : "mt-5 grid gap-3 md:grid-cols-2"
+        }
+      >
         {actions.map((action) => {
           const Icon = action.icon;
 
@@ -5794,16 +5790,16 @@ function FanletterCharacterMiniCard({
   locale,
   primaryActionHref,
   primaryActionLabel,
+  secondaryActionHref,
   secondaryActionLabel,
-  startHref,
 }: {
   channelHref: string;
   content: FanletterPublicContentDetail;
   locale: Locale;
   primaryActionHref: string;
   primaryActionLabel: string;
+  secondaryActionHref?: string;
   secondaryActionLabel?: string;
-  startHref: string;
 }) {
   const copy = getCopy(locale);
   const realismCopy = getFanletterRealismDisclosureCopy(locale);
@@ -5994,12 +5990,14 @@ function FanletterCharacterMiniCard({
           {primaryActionLabel}
           <ArrowRight className="size-4" />
         </Link>
-        <Link
-          className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-          href={startHref}
-        >
-          {secondaryActionLabel ?? copy.actions.start}
-        </Link>
+        {secondaryActionHref && secondaryActionLabel ? (
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={secondaryActionHref}
+          >
+            {secondaryActionLabel}
+          </Link>
+        ) : null}
       </div>
     </section>
   );
@@ -6106,22 +6104,20 @@ export function FanletterContentDetailPage({
       : copy.content.public;
   const detailActionHref = isOwnContent
     ? ownerManageHref
-    : canViewerAccess
-    ? startHref
-    : content.priceType === "paid"
+    : content.priceType === "paid" && !canViewerAccess
       ? `#${paidUnlockSectionId}`
-      : startHref;
+      : fanRequestHref;
   const detailActionLabel = isOwnContent
     ? locale === "ko"
       ? "스튜디오에서 관리"
       : "Manage in studio"
-    : canViewerAccess
-    ? copy.actions.start
-    : content.priceType === "paid"
+    : content.priceType === "paid" && !canViewerAccess
       ? locale === "ko"
         ? "결제하고 잠금 해제"
         : "Pay to unlock"
-      : copy.actions.start;
+      : locale === "ko"
+        ? "다음 장면 요청"
+        : "Request scene";
   const creatorActionHref = creatorHref;
   const creatorActionLabel = copy.actions.creatorChannel;
   const contentCharacterName = content.authorCharacter?.name ?? content.authorName;
@@ -6428,6 +6424,7 @@ export function FanletterContentDetailPage({
                 locale={locale}
                 primaryActionHref={creatorActionHref}
                 primaryActionLabel={creatorActionLabel}
+                secondaryActionHref={isOwnContent ? createHref : undefined}
                 secondaryActionLabel={
                   isOwnContent
                     ? locale === "ko"
@@ -6435,7 +6432,6 @@ export function FanletterContentDetailPage({
                       : "Create next vlog"
                     : undefined
                 }
-                startHref={isOwnContent ? createHref : startHref}
               />
 
               {isOwnContent ? (
