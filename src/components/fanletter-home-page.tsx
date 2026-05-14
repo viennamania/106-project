@@ -254,7 +254,7 @@ const koCopy: FanletterCopy = {
     body: "무료 공개 브이로그로 캐릭터 분위기를 확인한 뒤, 더 가까운 루틴과 답장 장면은 팬 전용에서 잠금 해제합니다.",
     buyerMetric: "구매",
     commentMetric: "댓글",
-    cta: "팬 전용 보기",
+    cta: "잠금 브이로그 보기",
     emptyBody:
       "유료 팬 전용 브이로그가 준비되면 공개 티저와 잠금 해제 항목이 이곳에 먼저 표시됩니다.",
     emptyTitle: "팬 전용 브이로그를 준비 중입니다.",
@@ -268,7 +268,7 @@ const koCopy: FanletterCopy = {
     purchaseLibrary: "구매함 보기",
     railBody:
       "공개 브이로그로 캐릭터 분위기를 확인한 뒤, 팬 답장과 비공개 루틴이 담긴 유료 브이로그를 이어서 확인하세요.",
-    railCta: "팬 전용 전체 보기",
+    railCta: "팬 전용 더 보기",
     railEyebrow: "팬 전용 하이라이트",
     railTitle: "팬 전용으로 더 볼 수 있는 브이로그",
     saveMetric: "저장",
@@ -426,7 +426,7 @@ const enCopy: FanletterCopy = {
       "Fans can preview the public vibe first, then unlock closer routines and reply scenes from fan-only paid vlogs.",
     buyerMetric: "buyers",
     commentMetric: "comments",
-    cta: "View fan-only",
+    cta: "View locked vlogs",
     emptyBody:
       "When paid fan-only vlogs are ready, their public teaser and unlock details will appear here first.",
     emptyTitle: "Fan-only vlogs are being prepared.",
@@ -440,7 +440,7 @@ const enCopy: FanletterCopy = {
     purchaseLibrary: "Purchases",
     railBody:
       "After the public vlog preview, continue into fan replies and private routines that unlock as paid fan-only vlogs.",
-    railCta: "View all fan-only",
+    railCta: "Explore fan-only",
     railEyebrow: "Fan-only highlights",
     railTitle: "Fan-only vlogs to unlock next",
     saveMetric: "saves",
