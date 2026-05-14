@@ -9,6 +9,9 @@ import {
 } from "@/lib/fanletter-realism-policy";
 
 const DEFAULT_TIMEOUT_MS = 4_000;
+const DEFAULT_WEATHER_CACHE_TTL_MS = 20 * 60 * 1000;
+const DEFAULT_HOLIDAY_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const WORLD_CONTEXT_CACHE_LIMIT = 80;
 const SEOUL_WORLD_LOCATION: CreatorCharacterWorldLocation = {
   countryCode: "KR",
   label: "Seoul, South Korea",
@@ -48,10 +51,73 @@ type LocalDateParts = {
   year: number;
 };
 
+type CacheEntry<T> = {
+  expiresAt: number;
+  value: T;
+};
+
+const weatherContextCache = new Map<
+  string,
+  CacheEntry<OpenMeteoForecastResponse | null>
+>();
+const holidayContextCache = new Map<string, CacheEntry<NagerHoliday[]>>();
+
 function parseNumber(value: string | undefined, fallback: number) {
   const parsed = Number(value?.trim());
 
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value?.trim() ?? "", 10);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function pruneCache<T>(cache: Map<string, CacheEntry<T>>, now = Date.now()) {
+  for (const [key, entry] of cache) {
+    if (entry.expiresAt <= now) {
+      cache.delete(key);
+    }
+  }
+
+  while (cache.size > WORLD_CONTEXT_CACHE_LIMIT) {
+    const oldestKey = cache.keys().next().value;
+
+    if (!oldestKey) {
+      return;
+    }
+
+    cache.delete(oldestKey);
+  }
+}
+
+async function readCachedValue<T>({
+  cache,
+  key,
+  load,
+  ttlMs,
+}: {
+  cache: Map<string, CacheEntry<T>>;
+  key: string;
+  load: () => Promise<T>;
+  ttlMs: number;
+}) {
+  const now = Date.now();
+  const cached = cache.get(key);
+
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+
+  const value = await load();
+  cache.set(key, {
+    expiresAt: now + ttlMs,
+    value,
+  });
+  pruneCache(cache, now);
+
+  return value;
 }
 
 function normalizeCountryCode(value: string | undefined, fallback: string) {
@@ -95,12 +161,24 @@ function resolveWorldLocation(
 }
 
 function getFetchTimeoutMs() {
-  const parsed = Number.parseInt(
-    process.env.FANLETTER_WORLD_CONTEXT_TIMEOUT_MS?.trim() ?? "",
-    10,
+  return parsePositiveInteger(
+    process.env.FANLETTER_WORLD_CONTEXT_TIMEOUT_MS,
+    DEFAULT_TIMEOUT_MS,
   );
+}
 
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS;
+function getWeatherCacheTtlMs() {
+  return parsePositiveInteger(
+    process.env.FANLETTER_WORLD_CONTEXT_WEATHER_CACHE_TTL_MS,
+    DEFAULT_WEATHER_CACHE_TTL_MS,
+  );
+}
+
+function getHolidayCacheTtlMs() {
+  return parsePositiveInteger(
+    process.env.FANLETTER_WORLD_CONTEXT_HOLIDAY_CACHE_TTL_MS,
+    DEFAULT_HOLIDAY_CACHE_TTL_MS,
+  );
 }
 
 async function fetchJsonWithTimeout<T>(url: string) {
@@ -263,6 +341,11 @@ function formatWeatherPrompt(weather: OpenMeteoForecastResponse | null) {
 }
 
 async function getWeatherContext(location: CreatorCharacterWorldLocation) {
+  const cacheKey = [
+    "weather",
+    location.latitude.toFixed(3),
+    location.longitude.toFixed(3),
+  ].join(":");
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", String(location.latitude));
   url.searchParams.set("longitude", String(location.longitude));
@@ -283,9 +366,15 @@ async function getWeatherContext(location: CreatorCharacterWorldLocation) {
   );
   url.searchParams.set("timezone", "auto");
 
-  return fetchJsonWithTimeout<OpenMeteoForecastResponse>(url.toString()).catch(
-    () => null,
-  );
+  return readCachedValue({
+    cache: weatherContextCache,
+    key: cacheKey,
+    load: () =>
+      fetchJsonWithTimeout<OpenMeteoForecastResponse>(url.toString()).catch(
+        () => null,
+      ),
+    ttlMs: getWeatherCacheTtlMs(),
+  });
 }
 
 async function getHolidayContext(
@@ -298,10 +387,14 @@ async function getHolidayContext(
     return [];
   }
 
+  const cacheKey = ["holidays", countryCode, localDate.year].join(":");
   const url = `https://date.nager.at/api/v3/PublicHolidays/${localDate.year}/${countryCode}`;
-  const holidays = await fetchJsonWithTimeout<NagerHoliday[]>(url).catch(
-    () => [],
-  );
+  const holidays = await readCachedValue({
+    cache: holidayContextCache,
+    key: cacheKey,
+    load: () => fetchJsonWithTimeout<NagerHoliday[]>(url).catch(() => []),
+    ttlMs: getHolidayCacheTtlMs(),
+  });
 
   return holidays
     .filter((holiday) => holiday.date === localDate.isoDate)
