@@ -330,7 +330,6 @@ function FollowingHeader({
         </Link>
         <Link href={purchasesHref}>{copy.purchases}</Link>
         <Link href={studioHref}>{copy.studio}</Link>
-        <Link href={startHref}>{copy.start}</Link>
       </nav>
 
       <div className="flex items-center gap-2">

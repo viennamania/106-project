@@ -719,7 +719,11 @@ function FanletterShell({
     { href: startHref, label: copy.actions.start, section: "start" },
   ];
   const visibleNavItems = navItems.filter(
-    (item) => !(currentSection === "start" && item.section === "start"),
+    (item) =>
+      !(
+        item.section === "start" &&
+        (currentSection === "start" || showStartAction)
+      ),
   );
   const isStartSection = currentSection === "start";
 
