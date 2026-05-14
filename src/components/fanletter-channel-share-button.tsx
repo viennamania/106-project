@@ -18,8 +18,10 @@ type FanletterChannelShareButtonProps = {
   href: string;
   locale: Locale;
   referralCode: string | null;
+  shareIdScope?: string;
   summary: string;
   title: string;
+  trackingSource?: string;
 };
 
 function getCopy(locale: Locale) {
@@ -60,8 +62,10 @@ export function FanletterChannelShareButton({
   href,
   locale,
   referralCode,
+  shareIdScope = "channel",
   summary,
   title,
+  trackingSource = "fanletter-creator-channel",
 }: FanletterChannelShareButtonProps) {
   const copy = getCopy(locale);
   const [state, setState] = useState<ShareState>("idle");
@@ -81,13 +85,13 @@ export function FanletterChannelShareButton({
   }, [state]);
 
   const handleShare = useCallback(async () => {
-    const nextShareId = createShareId("channel");
+    const nextShareId = createShareId(shareIdScope);
     const absoluteHref = new URL(href, window.location.origin).toString();
     const shareUrl = setShareIdOnHref(absoluteHref, nextShareId);
 
     trackFunnelEvent("share_click", {
       metadata: {
-        source: "fanletter-creator-channel",
+        source: trackingSource,
       },
       referralCode,
       shareId: nextShareId,
@@ -124,7 +128,7 @@ export function FanletterChannelShareButton({
     } catch {
       setState("error");
     }
-  }, [href, referralCode, summary, title]);
+  }, [href, referralCode, shareIdScope, summary, title, trackingSource]);
 
   const label =
     state === "copied"

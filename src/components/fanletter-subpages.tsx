@@ -5776,8 +5776,10 @@ export function FanletterCreatorVlogsPage({
             href={vlogsHref}
             locale={locale}
             referralCode={effectiveReferralCode}
+            shareIdScope="vlogs"
             summary={shareSummary}
             title={shareTitle}
+            trackingSource="fanletter-creator-vlogs"
           />
         </>
       }
