@@ -2216,10 +2216,10 @@ function FanletterCreatorFanAccessPanel({
           anonymousIdentityBody:
             "이 페이지는 일반 회원 프로필이 아니라 고정 페르소나로 운영되는 FanLetter AI 캐릭터 채널입니다.",
           anonymousIdentityTitle: "AI 캐릭터 정체성 확인",
-          anonymousPrimary: "공개 브이로그 먼저 보기",
+          anonymousPrimary: "무료 공개 브이로그 보기",
           anonymousPublicBody:
             "로그인 없이 볼 수 있는 공개 브이로그로 말투, 분위기, 콘텐츠 방향을 확인합니다.",
-          anonymousPublicTitle: "공개 콘텐츠 먼저 보기",
+          anonymousPublicTitle: "무료 공개 브이로그 먼저 보기",
           anonymousTitle: "처음 온 팬은 여기서 시작하세요",
           anonymousEyebrow: "방문자 시작 안내",
           body: "처음 온 팬은 공개 브이로그로 분위기를 보고, 마음에 들면 팔로우한 뒤 팬 전용 요청으로 이어가면 됩니다.",
@@ -2279,10 +2279,10 @@ function FanletterCreatorFanAccessPanel({
           anonymousIdentityBody:
             "This is a FanLetter AI character channel operated through a fixed persona, not a standard member profile.",
           anonymousIdentityTitle: "Confirm the AI character",
-          anonymousPrimary: "Watch public vlogs first",
+          anonymousPrimary: "Watch free public vlogs",
           anonymousPublicBody:
             "Use public vlogs to understand the voice, mood, and content direction before logging in.",
-          anonymousPublicTitle: "Preview public content",
+          anonymousPublicTitle: "Preview free public vlogs",
           anonymousTitle: "Start here as a new fan",
           anonymousEyebrow: "Visitor start guide",
           body: "Fans can preview public vlogs first, follow the channel if it feels right, then continue into fan-only requests.",
@@ -2470,9 +2470,10 @@ function FanletterCreatorFanAccessPanel({
           </Link>
         ) : isAnonymousVisitor ? (
           <Link
-            className="inline-flex h-11 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
             href={publicVlogsHref}
           >
+            <Video className="size-4 shrink-0" />
             {labels.anonymousPrimary}
           </Link>
         ) : (
@@ -5839,7 +5840,7 @@ export function FanletterCreatorPage({
           identityEyebrow: "SNS 공유로 열린 AI 캐릭터",
           identityNote:
             "고정 페르소나와 표정 아바타로 운영되는 FanLetter AI 캐릭터 채널입니다.",
-          primary: "공개 콘텐츠로 시작",
+          primary: "무료 공개 브이로그 보기",
         }
       : {
           fanRequest: "View request flow",
@@ -5847,7 +5848,7 @@ export function FanletterCreatorPage({
           identityEyebrow: "Shared AI character",
           identityNote:
             "A FanLetter AI character channel built around a fixed persona and expression avatar set.",
-          primary: "Start with public content",
+          primary: "Watch free public vlogs",
         };
   const viewerModeLabels: Record<
     FanletterCreatorViewerMode,
@@ -5911,6 +5912,7 @@ export function FanletterCreatorPage({
         };
   const roleLabels = viewerModeLabels[viewerMode];
   const heroDescription = roleLabels.heroDescription;
+  const PrimaryCtaIcon = isOwner ? Clapperboard : isLoggedInFan ? Crown : Video;
 
   return (
     <FanletterShell
@@ -6001,7 +6003,7 @@ export function FanletterCreatorPage({
                   </div>
                 </div>
                 <Link
-                  className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
                   href={
                     isOwner
                       ? ownerCreateHref
@@ -6010,6 +6012,7 @@ export function FanletterCreatorPage({
                         : publicVlogsHref
                   }
                 >
+                  <PrimaryCtaIcon className="size-4 shrink-0" />
                   {roleLabels.primary}
                 </Link>
               </div>
