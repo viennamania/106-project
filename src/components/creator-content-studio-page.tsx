@@ -1703,7 +1703,11 @@ export function CreatorContentStudioPage({
           lockedPreviewFallbackTitle: "1 USDT 팬 전용 브이로그",
           lockedPreviewMediaMissing: "동영상 필요",
           lockedPreviewMediaReady: "동영상 준비됨",
+          lockedPreviewTeaserMissing: "공개 티저 필요",
+          lockedPreviewTeaserReady: "티저 준비됨",
           lockedPreviewTitle: "팬 공개 잠금 카드",
+          publishBlockedPreview:
+            "게시 전 공개 티저를 입력해야 합니다. 본문이 자동 노출되지 않도록 짧게 요약해 주세요.",
           publishCoverFailed:
             "유료 브이로그를 게시하려면 공개 티저 커버가 필요합니다. 다시 생성하거나 커버를 직접 업로드해 주세요.",
           publishCoverGenerating:
@@ -1715,6 +1719,24 @@ export function CreatorContentStudioPage({
           previewLabel: "공개 티저",
           previewPlaceholder:
             "예: 결제 후 엘라 하트의 비공개 루틴 전체 영상과 상세 본문이 열립니다.",
+          previewRequiredLabel: "공개 티저 (필수)",
+          readinessAuto: "자동",
+          readinessCoverDescription:
+            "커버가 비어 있으면 게시 시 AI 티저 커버를 자동 생성합니다.",
+          readinessCoverLabel: "공개 커버",
+          readinessMissing: "필요",
+          readinessPreviewDescription:
+            "결제 전 팬에게 보이는 짧은 문구입니다.",
+          readinessPreviewLabel: "공개 티저",
+          readinessReady: "준비됨",
+          readinessRequired: "필수",
+          readinessTitle: "게시 준비도",
+          readinessVideoDescription:
+            "직접 업로드한 동영상 1개가 있어야 게시할 수 있습니다.",
+          readinessVideoLabel: "유료 동영상",
+          readinessWalletDescription:
+            "수익 지갑은 유료 게시 전에 자동 생성됩니다.",
+          readinessWalletLabel: "정산 지갑",
           fanRequestContext:
             "팬 요청 내용이 제목, 요약, 본문에 반영되었습니다. 직접 업로드한 동영상을 추가하면 이 요청은 1 USDT 유료 브이로그로 연결됩니다.",
           fanRequestEyebrow: "Fan Request",
@@ -1760,7 +1782,11 @@ export function CreatorContentStudioPage({
           lockedPreviewFallbackTitle: "1 USDT fan-only vlog",
           lockedPreviewMediaMissing: "Video required",
           lockedPreviewMediaReady: "Video ready",
+          lockedPreviewTeaserMissing: "Public teaser required",
+          lockedPreviewTeaserReady: "Teaser ready",
           lockedPreviewTitle: "Public locked card",
+          publishBlockedPreview:
+            "Enter a public teaser before publishing so the locked body is not exposed automatically.",
           publishCoverFailed:
             "A public teaser cover is required before publishing this paid vlog. Generate again or upload a cover manually.",
           publishCoverGenerating:
@@ -1772,6 +1798,24 @@ export function CreatorContentStudioPage({
           previewLabel: "Public teaser",
           previewPlaceholder:
             "Example: Unlock the private routine video and full note after payment.",
+          previewRequiredLabel: "Public teaser (required)",
+          readinessAuto: "Auto",
+          readinessCoverDescription:
+            "If no cover is set, FanLetter generates an AI teaser cover at publish time.",
+          readinessCoverLabel: "Public cover",
+          readinessMissing: "Required",
+          readinessPreviewDescription:
+            "A short line fans see before payment.",
+          readinessPreviewLabel: "Public teaser",
+          readinessReady: "Ready",
+          readinessRequired: "Required",
+          readinessTitle: "Publish readiness",
+          readinessVideoDescription:
+            "One directly uploaded video is required before publishing.",
+          readinessVideoLabel: "Paid video",
+          readinessWalletDescription:
+            "The payout wallet is created automatically before paid publishing.",
+          readinessWalletLabel: "Payout wallet",
           fanRequestContext:
             "The fan request has been applied to the title, summary, and body. Add a directly uploaded video to connect this request to a 1 USDT paid vlog.",
           fanRequestEyebrow: "Fan Request",
@@ -2001,6 +2045,7 @@ export function CreatorContentStudioPage({
   const hasRequiredPostMedia = isPaidUploadComposer
     ? hasUploadedPostVideo
     : hasPostMedia;
+  const hasPaidUploadPreviewText = Boolean(postForm.previewText.trim());
   const postBodyRequiredMessage =
     locale === "ko"
       ? "본문을 입력한 뒤 저장하거나 게시해주세요."
@@ -2013,6 +2058,8 @@ export function CreatorContentStudioPage({
     locale === "ko"
       ? "유료 콘텐츠는 직접 업로드한 동영상이 필요합니다."
       : "Paid content requires a directly uploaded video.";
+  const paidUploadPreviewRequiredMessage =
+    paidUploadComposerCopy.publishBlockedPreview;
   const requiredPostMediaMessage = isPaidUploadComposer
     ? paidUploadRequiredMessage
     : postImageRequiredMessage;
@@ -3318,6 +3365,20 @@ export function CreatorContentStudioPage({
     await saveCharacterProfile(nextProfile);
   }
 
+  function updatePaidUploadPreviewText(value: string) {
+    setPostForm((current) => ({
+      ...current,
+      previewText: value,
+    }));
+
+    if (value.trim() && state.error === paidUploadPreviewRequiredMessage) {
+      setState((current) => ({
+        ...current,
+        error: null,
+      }));
+    }
+  }
+
   async function createPost(statusToSave: "draft" | "published") {
     const normalizedBody = postForm.body.trim();
 
@@ -3335,6 +3396,19 @@ export function CreatorContentStudioPage({
       setState((current) => ({
         ...current,
         error: paidUploadRequiredMessage,
+        notice: null,
+      }));
+      return;
+    }
+
+    if (
+      statusToSave === "published" &&
+      isPaidUploadComposer &&
+      !postForm.previewText.trim()
+    ) {
+      setState((current) => ({
+        ...current,
+        error: paidUploadPreviewRequiredMessage,
         notice: null,
       }));
       return;
@@ -7217,12 +7291,121 @@ export function CreatorContentStudioPage({
                   : paidUploadComposerCopy.lockedPreviewMediaMissing}
               </span>
               <span className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/[0.06] px-3 text-xs font-semibold text-white/70">
+                {hasPaidUploadPreviewText
+                  ? paidUploadComposerCopy.lockedPreviewTeaserReady
+                  : paidUploadComposerCopy.lockedPreviewTeaserMissing}
+              </span>
+              <span className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/[0.06] px-3 text-xs font-semibold text-white/70">
                 {locale === "ko"
                   ? "본문 결제 후 열람"
                   : "Body unlocks after payment"}
               </span>
             </div>
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  function renderPaidUploadReadinessPanel() {
+    if (!isPaidUploadComposer) {
+      return null;
+    }
+
+    const hasPublicCover = Boolean(
+      postForm.coverImageUrl || postForm.contentImageUrls[0],
+    );
+    const hasPayoutWallet = Boolean(state.profile.payoutWalletAddress);
+    const readinessItems = [
+      {
+        description: paidUploadComposerCopy.readinessVideoDescription,
+        isOptional: false,
+        isReady: hasUploadedPostVideo,
+        label: paidUploadComposerCopy.readinessVideoLabel,
+      },
+      {
+        description: paidUploadComposerCopy.readinessPreviewDescription,
+        isOptional: false,
+        isReady: hasPaidUploadPreviewText,
+        label: paidUploadComposerCopy.readinessPreviewLabel,
+      },
+      {
+        description: paidUploadComposerCopy.readinessCoverDescription,
+        isOptional: true,
+        isReady: hasPublicCover,
+        label: paidUploadComposerCopy.readinessCoverLabel,
+      },
+      {
+        description: paidUploadComposerCopy.readinessWalletDescription,
+        isOptional: true,
+        isReady: hasPayoutWallet,
+        label: paidUploadComposerCopy.readinessWalletLabel,
+      },
+    ];
+    const requiredReadinessItems = readinessItems.filter(
+      (item) => !item.isOptional,
+    );
+
+    return (
+      <section className="rounded-lg border border-[#44f26e]/18 bg-black/18 p-3 sm:p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-white">
+            {paidUploadComposerCopy.readinessTitle}
+          </p>
+          <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+            {paidUploadComposerCopy.readinessRequired}{" "}
+            {requiredReadinessItems.filter((item) => item.isReady).length}/
+            {requiredReadinessItems.length}
+          </span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {readinessItems.map((item) => {
+            const statusLabel = item.isReady
+              ? paidUploadComposerCopy.readinessReady
+              : item.isOptional
+                ? paidUploadComposerCopy.readinessAuto
+                : paidUploadComposerCopy.readinessMissing;
+
+            return (
+              <div
+                className={cn(
+                  "rounded-lg border p-3",
+                  item.isReady
+                    ? "border-[#44f26e]/20 bg-[#44f26e]/10"
+                    : item.isOptional
+                      ? "border-white/10 bg-white/[0.045]"
+                      : "border-amber-300/30 bg-amber-300/10",
+                )}
+                key={item.label}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-white">
+                    {item.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[0.68rem] font-semibold",
+                      item.isReady
+                        ? "bg-[#44f26e] text-black"
+                        : item.isOptional
+                          ? "bg-white/10 text-white/68"
+                          : "bg-amber-300 text-amber-950",
+                    )}
+                  >
+                    {item.isReady ? (
+                      <Check className="size-3.5" />
+                    ) : (
+                      <AlertTriangle className="size-3.5" />
+                    )}
+                    {statusLabel}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs font-medium leading-5 text-white/54">
+                  {item.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
     );
@@ -7256,7 +7439,12 @@ export function CreatorContentStudioPage({
       isGeneratingPostImage;
     const draftDisabled =
       composerBusy || (isPaidUploadComposer && !hasUploadedPostVideo);
-    const publishDisabled = composerBusy || !hasRequiredPostMedia;
+    const publishRequirementMessage = !hasRequiredPostMedia
+      ? requiredPostMediaMessage
+      : isPaidUploadComposer && !hasPaidUploadPreviewText
+        ? paidUploadPreviewRequiredMessage
+        : null;
+    const publishDisabled = composerBusy || Boolean(publishRequirementMessage);
     const publishActionLabel = isPaidUploadComposer
       ? paidUploadComposerCopy.publishCta
       : contentCopy.actions.publish;
@@ -7434,6 +7622,7 @@ export function CreatorContentStudioPage({
                 </div>
               </section>
             )}
+            {isPaidUploadComposer ? renderPaidUploadReadinessPanel() : null}
             <input
               accept="image/png,image/jpeg,image/webp"
               className="sr-only"
@@ -7754,15 +7943,12 @@ export function CreatorContentStudioPage({
               {isPaidUploadComposer ? (
                 <label className="block text-left">
                   <span className="text-sm font-medium text-slate-900">
-                    {paidUploadComposerCopy.previewLabel}
+                    {paidUploadComposerCopy.previewRequiredLabel}
                   </span>
                   <textarea
                     className="mt-2 min-h-24 w-full resize-none rounded-[22px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-amber-400"
                     onChange={(event) => {
-                      setPostForm((current) => ({
-                        ...current,
-                        previewText: event.target.value,
-                      }));
+                      updatePaidUploadPreviewText(event.target.value);
                     }}
                     placeholder={paidUploadComposerCopy.previewPlaceholder}
                     rows={3}
@@ -7858,7 +8044,8 @@ export function CreatorContentStudioPage({
                   aria-busy={savingPostStatus === "published"}
                   className={cn(
                     "inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed",
-                    !hasRequiredPostMedia && savingPostStatus !== "published"
+                    publishRequirementMessage &&
+                      savingPostStatus !== "published"
                       ? "bg-slate-200 text-slate-500 shadow-none"
                       : publishReadyClass,
                   )}
@@ -7878,9 +8065,9 @@ export function CreatorContentStudioPage({
                   )}
                 </button>
               </div>
-              {!hasRequiredPostMedia ? (
+              {publishRequirementMessage ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
-                  {requiredPostMediaMessage}
+                  {publishRequirementMessage}
                 </p>
               ) : null}
 
@@ -7932,12 +8119,9 @@ export function CreatorContentStudioPage({
               {isPaidUploadComposer ? (
                 <TextAreaField
                   hint={paidUploadComposerCopy.previewHint}
-                  label={paidUploadComposerCopy.previewLabel}
+                  label={paidUploadComposerCopy.previewRequiredLabel}
                   onChange={(value) => {
-                    setPostForm((current) => ({
-                      ...current,
-                      previewText: value,
-                    }));
+                    updatePaidUploadPreviewText(value);
                   }}
                   placeholder={paidUploadComposerCopy.previewPlaceholder}
                   rows={3}
@@ -8456,7 +8640,8 @@ export function CreatorContentStudioPage({
                 aria-busy={savingPostStatus === "published"}
                 className={cn(
                   "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed sm:w-auto",
-                  !hasRequiredPostMedia && savingPostStatus !== "published"
+                  publishRequirementMessage &&
+                    savingPostStatus !== "published"
                     ? "bg-slate-200 text-slate-500 shadow-none"
                     : publishReadyClassCompact,
                 )}
@@ -8476,9 +8661,9 @@ export function CreatorContentStudioPage({
                 )}
               </button>
             </div>
-            {!hasRequiredPostMedia ? (
+            {publishRequirementMessage ? (
               <p className="text-sm font-medium leading-6 text-slate-500">
-                {requiredPostMediaMessage}
+                {publishRequirementMessage}
               </p>
             ) : null}
             </div>
