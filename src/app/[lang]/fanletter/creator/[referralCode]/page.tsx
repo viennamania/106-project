@@ -186,6 +186,7 @@ export default async function LocalizedFanletterCreatorPage({
   return (
     <FanletterCreatorPage
       data={data}
+      isAuthenticated={Boolean(memberSession?.email)}
       locale={locale}
       referralCode={queryReferralCode ?? data.profile.referralCode}
     />
