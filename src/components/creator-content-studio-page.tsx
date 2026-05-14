@@ -968,6 +968,12 @@ export function CreatorContentStudioPage({
       : view === "new"
         ? newPostHref
         : studioHomeHref;
+  const connectHref = isFanletterSurface
+    ? setPathSearchParams(
+        buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+        { returnTo: currentStudioHref },
+      )
+    : activateHref;
   const [state, setState] = useState<StudioState>({
     error: null,
     member: null,
@@ -1691,6 +1697,13 @@ export function CreatorContentStudioPage({
             "AI 티저 커버가 적용되었습니다. 팬에게 공개되는 미리보기로 사용됩니다.",
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
+          connectCta: "계정 연결하기",
+          lockedPreviewFallbackText:
+            "결제 후 비공개 영상과 전체 본문이 열립니다.",
+          lockedPreviewFallbackTitle: "1 USDT 팬 전용 브이로그",
+          lockedPreviewMediaMissing: "동영상 필요",
+          lockedPreviewMediaReady: "동영상 준비됨",
+          lockedPreviewTitle: "팬 공개 잠금 카드",
           publishCoverFailed:
             "유료 브이로그를 게시하려면 공개 티저 커버가 필요합니다. 다시 생성하거나 커버를 직접 업로드해 주세요.",
           publishCoverGenerating:
@@ -1741,6 +1754,13 @@ export function CreatorContentStudioPage({
             "AI teaser cover applied. It will be used as the public preview for fans.",
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
+          connectCta: "Connect account",
+          lockedPreviewFallbackText:
+            "Unlock the private video and full note after payment.",
+          lockedPreviewFallbackTitle: "1 USDT fan-only vlog",
+          lockedPreviewMediaMissing: "Video required",
+          lockedPreviewMediaReady: "Video ready",
+          lockedPreviewTitle: "Public locked card",
           publishCoverFailed:
             "A public teaser cover is required before publishing this paid vlog. Generate again or upload a cover manually.",
           publishCoverGenerating:
@@ -4627,7 +4647,20 @@ export function CreatorContentStudioPage({
     if (isDisconnected) {
       return (
         <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
-          {contentCopy.messages.connectRequired}
+          <span>{contentCopy.messages.connectRequired}</span>
+          <Link
+            className={cn(
+              "mt-3 inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold transition",
+              isFanletterPaidUpload
+                ? "bg-[#44f26e] !text-black hover:bg-[#64ff84]"
+                : "bg-slate-950 !text-white hover:bg-slate-800",
+            )}
+            href={connectHref}
+          >
+            {isPaidUploadComposer
+              ? paidUploadComposerCopy.connectCta
+              : dictionary.common.connectWallet}
+          </Link>
         </MessageCard>
       );
     }
@@ -7107,78 +7140,89 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderFanletterPaidUploadGuide() {
-    if (!isFanletterPaidUpload) {
+  function renderPaidUploadPublicPreview({
+    compact = false,
+  }: {
+    compact?: boolean;
+  } = {}) {
+    if (!isPaidUploadComposer) {
       return null;
     }
 
-    const guideItems = [
-      {
-        Icon: Film,
-        label: paidUploadComposerCopy.rules[0],
-        value: locale === "ko" ? "직접 업로드" : "Direct upload",
-      },
-      {
-        Icon: Coins,
-        label: paidUploadComposerCopy.rules[1],
-        value: `${CONTENT_PAID_USDT_AMOUNT} USDT`,
-      },
-      {
-        Icon: Check,
-        label: paidUploadComposerCopy.rules[2],
-        value: locale === "ko" ? "결제 후 열람" : "Unlock after payment",
-      },
-    ];
+    const previewTitle =
+      postForm.title.trim() ||
+      postForm.body
+        .split("\n")
+        .find((line) => line.trim())
+        ?.trim()
+        .slice(0, 72) ||
+      paidUploadComposerCopy.lockedPreviewFallbackTitle;
+    const previewText =
+      postForm.previewText.trim() ||
+      postForm.summary.trim() ||
+      paidUploadComposerCopy.lockedPreviewFallbackText;
+    const previewImage =
+      postForm.coverImageUrl || postForm.contentImageUrls[0] || null;
 
     return (
-      <section className="overflow-hidden rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] sm:p-5 lg:p-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)] lg:items-end">
-          <div>
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
-              {paidUploadComposerCopy.eyebrow}
-            </p>
-            <h2 className="mt-3 max-w-3xl text-[2rem] font-semibold leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[2.7rem]">
-              {paidUploadComposerCopy.title}
-            </h2>
-            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/64 sm:text-base sm:leading-7">
-              {paidUploadComposerCopy.description}
-            </p>
-          </div>
-          <div className="rounded-lg border border-[#44f26e]/20 bg-[#44f26e]/10 p-4">
-            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
-              {paidUploadComposerCopy.processTitle}
-            </p>
-            <ol className="mt-3 space-y-2">
-              {paidUploadComposerCopy.workflow.map((step, index) => (
-                <li
-                  className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-semibold leading-5 text-white/72"
-                  key={step}
-                >
-                  <span className="mt-0.5 text-[0.64rem] font-semibold text-[#44f26e]">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
-          {guideItems.map(({ Icon, label, value }) => (
-            <div
-              className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
-              key={value}
-            >
-              <span className="inline-flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <Icon className="size-4" />
+      <section
+        className={cn(
+          "overflow-hidden rounded-lg border border-[#44f26e]/22 bg-[#07100b] text-white shadow-[0_18px_54px_rgba(0,0,0,0.18)]",
+          compact ? "p-3" : "p-4",
+        )}
+      >
+        <div
+          className={cn(
+            "grid gap-3",
+            compact ? "grid-cols-1" : "sm:grid-cols-[11rem_minmax(0,1fr)]",
+          )}
+        >
+          <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/30">
+            {previewImage ? (
+              <span
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `linear-gradient(180deg,rgba(3,5,4,0.02),rgba(3,5,4,0.5)),url(${previewImage})`,
+                }}
+              />
+            ) : (
+              <span className="flex h-full items-center justify-center text-white/34">
+                <ImagePlus className="size-7" />
               </span>
-              <p className="mt-3 text-base font-semibold text-white">{value}</p>
-              <p className="mt-1 text-xs font-medium leading-5 text-white/50">
-                {label}
-              </p>
+            )}
+            <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-xs font-semibold text-black">
+              <Coins className="size-3.5" />
+              {CONTENT_PAID_USDT_AMOUNT} USDT
+            </span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {paidUploadComposerCopy.lockedPreviewTitle}
+            </p>
+            <h3
+              className={cn(
+                "mt-2 font-semibold leading-tight tracking-normal text-white [word-break:keep-all]",
+                compact ? "text-lg" : "text-xl",
+              )}
+            >
+              {previewTitle}
+            </h3>
+            <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-white/62">
+              {previewText}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/[0.06] px-3 text-xs font-semibold text-white/70">
+                {hasUploadedPostVideo
+                  ? paidUploadComposerCopy.lockedPreviewMediaReady
+                  : paidUploadComposerCopy.lockedPreviewMediaMissing}
+              </span>
+              <span className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/[0.06] px-3 text-xs font-semibold text-white/70">
+                {locale === "ko"
+                  ? "본문 결제 후 열람"
+                  : "Body unlocks after payment"}
+              </span>
             </div>
-          ))}
+          </div>
         </div>
       </section>
     );
@@ -7213,6 +7257,15 @@ export function CreatorContentStudioPage({
     const draftDisabled =
       composerBusy || (isPaidUploadComposer && !hasUploadedPostVideo);
     const publishDisabled = composerBusy || !hasRequiredPostMedia;
+    const publishActionLabel = isPaidUploadComposer
+      ? paidUploadComposerCopy.publishCta
+      : contentCopy.actions.publish;
+    const publishReadyClass = isPaidUploadComposer
+      ? "bg-[#44f26e] text-black shadow-[0_18px_35px_rgba(68,242,110,0.18)] hover:bg-[#64ff84] disabled:bg-[#44f26e] disabled:text-black"
+      : "bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white";
+    const publishReadyClassCompact = isPaidUploadComposer
+      ? "bg-[#44f26e] text-black shadow-[0_14px_28px_rgba(68,242,110,0.18)] hover:bg-[#64ff84] disabled:bg-[#44f26e] disabled:text-black"
+      : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white";
 
     return (
       <div
@@ -7769,6 +7822,7 @@ export function CreatorContentStudioPage({
                   })}
                 </div>
               )}
+              {isPaidUploadComposer ? renderPaidUploadPublicPreview() : null}
               {hasUploadedPostVideo || hasGeneratedPostVideo ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
                   {hasUploadedPostVideo
@@ -7806,7 +7860,7 @@ export function CreatorContentStudioPage({
                     "inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed",
                     !hasRequiredPostMedia && savingPostStatus !== "published"
                       ? "bg-slate-200 text-slate-500 shadow-none"
-                      : "bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
+                      : publishReadyClass,
                   )}
                   disabled={publishDisabled}
                   onClick={() => {
@@ -7820,7 +7874,7 @@ export function CreatorContentStudioPage({
                       {postSaveProgressCopy.publish}
                     </>
                   ) : (
-                    contentCopy.actions.publish
+                    publishActionLabel
                   )}
                 </button>
               </div>
@@ -8013,6 +8067,9 @@ export function CreatorContentStudioPage({
                     ) : null}
                   </div>
                 </div>
+              ) : null}
+              {isPaidUploadComposer ? (
+                <div className="mt-4">{renderPaidUploadPublicPreview()}</div>
               ) : null}
             </div>
             <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
@@ -8401,7 +8458,7 @@ export function CreatorContentStudioPage({
                   "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed sm:w-auto",
                   !hasRequiredPostMedia && savingPostStatus !== "published"
                     ? "bg-slate-200 text-slate-500 shadow-none"
-                    : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white",
+                    : publishReadyClassCompact,
                 )}
                 disabled={publishDisabled}
                 onClick={() => {
@@ -8415,7 +8472,7 @@ export function CreatorContentStudioPage({
                     {postSaveProgressCopy.publish}
                   </>
                 ) : (
-                  contentCopy.actions.publish
+                  publishActionLabel
                 )}
               </button>
             </div>
@@ -9111,51 +9168,29 @@ export function CreatorContentStudioPage({
 
     return (
       <div className="hidden space-y-4 xl:sticky xl:top-6 xl:block xl:self-start">
-        <div className="rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
-            FanLetter
-          </p>
-          <h2 className="mt-3 text-xl font-semibold tracking-normal">
-            {paidUploadComposerCopy.processTitle}
-          </h2>
-          <div className="mt-4 space-y-2">
-            {paidUploadComposerCopy.workflow.map((step, index) => (
-              <div
-                className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
-                key={step}
-              >
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <p className="mt-1 text-sm font-semibold leading-5 text-white/74">
-                  {step}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 grid gap-2">
-            <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-              href={postsManagerHref}
-            >
-              <LayoutGrid className="size-4" />
-              {paidUploadComposerCopy.manageVlogs}
-            </Link>
-            <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
-              href={salesManagerHref}
-            >
-              <Coins className="size-4" />
-              {paidUploadComposerCopy.salesCta}
-            </Link>
-            <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white/72 transition hover:bg-white/8 hover:!text-white"
-              href={studioHomeHref}
-            >
-              <ArrowLeft className="size-4" />
-              {paidUploadComposerCopy.studioCta}
-            </Link>
-          </div>
+        {renderPaidUploadPublicPreview({ compact: true })}
+        <div className="grid gap-2 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={postsManagerHref}
+          >
+            <LayoutGrid className="size-4" />
+            {paidUploadComposerCopy.manageVlogs}
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
+            href={salesManagerHref}
+          >
+            <Coins className="size-4" />
+            {paidUploadComposerCopy.salesCta}
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white/72 transition hover:bg-white/8 hover:!text-white"
+            href={studioHomeHref}
+          >
+            <ArrowLeft className="size-4" />
+            {paidUploadComposerCopy.studioCta}
+          </Link>
         </div>
         {renderRecentPostsPanel({ compact: true, tone: "fanletter" })}
       </div>
@@ -9236,7 +9271,6 @@ export function CreatorContentStudioPage({
       />
 
       {renderStudioTabs()}
-      {renderFanletterPaidUploadGuide()}
 
       {view === "hub" ? (
         <>

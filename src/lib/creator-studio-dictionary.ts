@@ -1,6 +1,7 @@
 import type { Dictionary } from "@/lib/i18n";
 
 export type CreatorStudioDictionary = {
+  common: Pick<Dictionary["common"], "connectWallet">;
   member: {
     errors: Pick<Dictionary["member"]["errors"], "missingEmail">;
   };
@@ -14,6 +15,9 @@ export function getCreatorStudioDictionary(
   dictionary: Dictionary,
 ): CreatorStudioDictionary {
   return {
+    common: {
+      connectWallet: dictionary.common.connectWallet,
+    },
     member: {
       errors: {
         missingEmail: dictionary.member.errors.missingEmail,
