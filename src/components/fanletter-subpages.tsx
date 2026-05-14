@@ -144,6 +144,8 @@ type FanletterShellSection =
   | "start"
   | "studio";
 
+type FanletterCreatorViewerMode = "anonymous" | "fan" | "owner";
+
 const koCopy: FanletterSubpageCopy = {
   actions: {
     creatorChannel: "캐릭터 채널 보기",
@@ -748,6 +750,7 @@ function FanletterShell({
   currentSection,
   description,
   eyebrow,
+  hideStartNavItem = false,
   heroGridClassName,
   heroSpacingClassName,
   locale,
@@ -762,6 +765,7 @@ function FanletterShell({
   currentSection?: FanletterShellSection;
   description?: ReactNode;
   eyebrow: string;
+  hideStartNavItem?: boolean;
   heroGridClassName?: string;
   heroSpacingClassName?: string;
   locale: Locale;
@@ -802,7 +806,7 @@ function FanletterShell({
     (item) =>
       !(
         item.section === "start" &&
-        (currentSection === "start" || showStartAction)
+        (currentSection === "start" || showStartAction || hideStartNavItem)
       ),
   );
   const isStartSection = currentSection === "start";
@@ -2179,10 +2183,14 @@ function FanletterCreatorFanAccessPanel({
             "로그인 없이 볼 수 있는 공개 브이로그로 말투, 분위기, 콘텐츠 방향을 확인합니다.",
           anonymousPublicTitle: "공개 콘텐츠 먼저 보기",
           anonymousTitle: "처음 온 팬은 여기서 시작하세요",
+          anonymousEyebrow: "방문자 시작 안내",
           body: "처음 온 팬은 공개 브이로그로 분위기를 보고, 마음에 들면 팔로우한 뒤 팬 전용 요청으로 이어가면 됩니다.",
           create: "내 채널 만들기",
           createPrefix: "나도 AI 캐릭터로 시작하려면",
           eyebrow: "팬 이용 안내",
+          fanBody:
+            "로그인한 팬은 이 계정 기준으로 팔로우, 팬 요청, 팬 전용 콘텐츠 열람 상태를 이어갑니다.",
+          fanEyebrow: "로그인 팬 안내",
           fanOnlyBody:
             "보고 싶은 장면이나 팬 전용 콘텐츠는 이 채널 안에서 요청하고 확인합니다.",
           fanOnlyReadyBody:
@@ -2212,11 +2220,13 @@ function FanletterCreatorFanAccessPanel({
             fanOnlyContentCount > 0
               ? `팬 전용 관리 · ${formatNumber(fanOnlyContentCount, locale)}`
               : "팬 전용 제작 준비",
+          ownerEyebrow: "채널 관리 안내",
           ownerStudio: "스튜디오 관리",
           ownerTitle: "내 캐릭터 채널 관리",
           stepOne: "1",
           stepThree: "3",
           stepTwo: "2",
+          fanTitle: "로그인 팬은 이렇게 이어가세요",
           title: "팬은 이렇게 이용하면 됩니다",
           view: "공개 브이로그 보기",
         }
@@ -2236,10 +2246,14 @@ function FanletterCreatorFanAccessPanel({
             "Use public vlogs to understand the voice, mood, and content direction before logging in.",
           anonymousPublicTitle: "Preview public content",
           anonymousTitle: "Start here as a new fan",
+          anonymousEyebrow: "Visitor start guide",
           body: "Fans can preview public vlogs first, follow the channel if it feels right, then continue into fan-only requests.",
           create: "Start my channel",
           createPrefix: "To start as an AI character creator,",
           eyebrow: "Fan guide",
+          fanBody:
+            "Signed-in fans continue follow state, fan requests, and fan-only access from this account.",
+          fanEyebrow: "Signed-in fan guide",
           fanOnlyBody:
             "Request the scenes you want or continue into fan-only content inside this channel.",
           fanOnlyReadyBody:
@@ -2269,11 +2283,13 @@ function FanletterCreatorFanAccessPanel({
             fanOnlyContentCount > 0
               ? `Manage fan-only · ${formatNumber(fanOnlyContentCount, locale)}`
               : "Prepare fan-only",
+          ownerEyebrow: "Channel management guide",
           ownerStudio: "Manage studio",
           ownerTitle: "Manage my character channel",
           stepOne: "1",
           stepThree: "3",
           stepTwo: "2",
+          fanTitle: "Continue as a signed-in fan",
           title: "How fans can use this channel",
           view: "View public vlogs",
         };
@@ -2352,17 +2368,22 @@ function FanletterCreatorFanAccessPanel({
     ? labels.ownerTitle
     : isAnonymousVisitor
       ? labels.anonymousTitle
-      : labels.title;
+      : labels.fanTitle;
   const panelBody = isOwner
     ? labels.ownerBody
     : isAnonymousVisitor
       ? labels.anonymousBody
-      : labels.body;
+      : labels.fanBody;
+  const panelEyebrow = isOwner
+    ? labels.ownerEyebrow
+    : isAnonymousVisitor
+      ? labels.anonymousEyebrow
+      : labels.fanEyebrow;
 
   return (
     <aside className="rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-6">
       <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
-        {labels.eyebrow}
+        {panelEyebrow}
       </p>
       <h2 className="mt-3 text-[1.9rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all]">
         {panelTitle}
@@ -3207,8 +3228,10 @@ function FanletterFanPromptPanel({
   characterName,
   className = "",
   creatorReferralCode,
+  fanOnlyHref,
   followHref,
   id,
+  isAuthenticated = false,
   isOwner = false,
   locale,
   ownerCreateHref,
@@ -3224,8 +3247,10 @@ function FanletterFanPromptPanel({
   characterName: string;
   className?: string;
   creatorReferralCode: string | null;
+  fanOnlyHref?: string;
   followHref: string;
   id?: string;
+  isAuthenticated?: boolean;
   isOwner?: boolean;
   locale: Locale;
   ownerCreateHref?: string;
@@ -3243,6 +3268,10 @@ function FanletterFanPromptPanel({
       ? {
           body: "보고 싶은 장면을 한 줄로 남기면 크리에이터가 스튜디오 요청함에서 바로 확인하고 다음 브이로그 소재로 쓸 수 있습니다.",
           eyebrow: "팬 요청",
+          fanOnlyActionBody:
+            "잠금 브이로그와 결제 완료 콘텐츠를 이 계정 기준으로 확인합니다.",
+          fanOnlyActionCta: "팬 전용 보기",
+          fanOnlyActionTitle: "팬 전용 콘텐츠",
           guideTitle: "어떻게 쓰나요",
           messageBody: "이 캐릭터 채널을 팔로우하고 새 브이로그 알림을 받을 수 있습니다.",
           messageCta: "팔로우하고 알림 받기",
@@ -3307,6 +3336,10 @@ function FanletterFanPromptPanel({
       : {
           body: "Write the scene you want to see, and the creator can pick it up from the studio inbox as a next-vlog idea.",
           eyebrow: "Fan request",
+          fanOnlyActionBody:
+            "Review locked vlogs and purchased fan-only content from this account.",
+          fanOnlyActionCta: "View fan-only",
+          fanOnlyActionTitle: "Fan-only content",
           guideTitle: "How it works",
           messageBody: "Follow first, then continue into alerts and fan conversation flows.",
           messageCta: "Follow and message",
@@ -3370,6 +3403,7 @@ function FanletterFanPromptPanel({
         };
   const requestFormId = id ? `${id}-form` : "fanletter-fan-request-form";
   const requestFormHref = creatorReferralCode ? `#${requestFormId}` : requestHref;
+  const isLoggedInFan = !isOwner && isAuthenticated;
   const displayTitle = isOwner ? labels.ownerTitle : labels.title;
   const displayBody = isOwner ? labels.ownerBody : labels.body;
   const displaySteps = isOwner ? labels.ownerSteps : labels.steps;
@@ -3394,6 +3428,23 @@ function FanletterFanPromptPanel({
           title: labels.ownerCreateTitle,
         },
       ]
+    : isLoggedInFan
+      ? [
+          {
+            body: labels.messageBody,
+            cta: labels.messageCta,
+            href: followHref,
+            icon: MessageCircleHeart,
+            title: labels.messageTitle,
+          },
+          {
+            body: labels.fanOnlyActionBody,
+            cta: labels.fanOnlyActionCta,
+            href: fanOnlyHref ?? requestHref,
+            icon: Crown,
+            title: labels.fanOnlyActionTitle,
+          },
+        ]
     : [
         {
           body: labels.messageBody,
@@ -5636,7 +5687,12 @@ export function FanletterCreatorPage({
   const channelName = character?.name ?? data.profile.displayName;
   const channelSummary = character?.summary || data.profile.intro;
   const isOwner = data.viewerRelation === "owner";
-  const isAnonymousVisitor = !isOwner && !isAuthenticated;
+  const viewerMode: FanletterCreatorViewerMode = isOwner
+    ? "owner"
+    : isAuthenticated
+      ? "fan"
+      : "anonymous";
+  const isLoggedInFan = viewerMode === "fan";
   const channelAvatarUrl =
     character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl;
   const featuredItem =
@@ -5747,9 +5803,68 @@ export function FanletterCreatorPage({
             "A FanLetter AI character channel built around a fixed persona and expression avatar set.",
           primary: "Start with public content",
         };
-  const heroDescription = isAnonymousVisitor
-    ? anonymousVisitorLabels.heroDescription
-    : channelSummary;
+  const viewerModeLabels: Record<
+    FanletterCreatorViewerMode,
+    {
+      fanRequest: string;
+      heroDescription: string;
+      identityEyebrow: string;
+      identityNote: string;
+      primary: string;
+      shellEyebrow: string;
+    }
+  > =
+    locale === "ko"
+      ? {
+          anonymous: {
+            ...anonymousVisitorLabels,
+            shellEyebrow: "AI 캐릭터 채널",
+          },
+          fan: {
+            fanRequest: "팬 요청 보내기",
+            heroDescription: `로그인한 팬으로 보는 ${channelName} 채널입니다. 공개 브이로그를 확인하고 팔로우, 팬 요청, 팬 전용 콘텐츠로 이어갈 수 있습니다.`,
+            identityEyebrow: "로그인 팬으로 보는 채널",
+            identityNote:
+              "팔로우, 요청, 팬 전용 열람 상태가 이 계정 기준으로 이어집니다.",
+            primary: "팬 전용 보기",
+            shellEyebrow: "AI 캐릭터 팬 채널",
+          },
+          owner: {
+            fanRequest: "요청함 관리",
+            heroDescription: `이 계정이 소유한 ${channelName} AI 캐릭터 채널입니다. 팬에게 보이는 공개 화면을 확인하면서 스튜디오, 요청함, 새 브이로그 제작으로 바로 이동할 수 있습니다.`,
+            identityEyebrow: "내 AI 캐릭터 관리 모드",
+            identityNote:
+              "팬용 팔로우 CTA 대신 제작, 요청함, 공개 상태 관리가 우선 노출됩니다.",
+            primary: "새 브이로그 만들기",
+            shellEyebrow: "내 AI 캐릭터 채널",
+          },
+        }
+      : {
+          anonymous: {
+            ...anonymousVisitorLabels,
+            shellEyebrow: "AI character channel",
+          },
+          fan: {
+            fanRequest: "Send fan request",
+            heroDescription: `You are viewing ${channelName} as a signed-in fan. Continue from public vlogs into follow, fan requests, and fan-only content for this account.`,
+            identityEyebrow: "Signed-in fan view",
+            identityNote:
+              "Follow state, requests, and fan-only access continue from this account.",
+            primary: "View fan-only",
+            shellEyebrow: "AI character fan channel",
+          },
+          owner: {
+            fanRequest: "Manage requests",
+            heroDescription: `This AI character channel belongs to the signed-in account. Review the public fan view, then continue into Studio, requests, and new vlog creation.`,
+            identityEyebrow: "My AI character management view",
+            identityNote:
+              "Creator actions, request management, and publishing controls replace fan follow CTAs.",
+            primary: "Create new vlog",
+            shellEyebrow: "My AI character channel",
+          },
+        };
+  const roleLabels = viewerModeLabels[viewerMode];
+  const heroDescription = roleLabels.heroDescription;
 
   return (
     <FanletterShell
@@ -5788,7 +5903,8 @@ export function FanletterCreatorPage({
         />
       }
       description={heroDescription}
-      eyebrow={copy.creator.eyebrow}
+      eyebrow={roleLabels.shellEyebrow}
+      hideStartNavItem={isOwner}
       heroGridClassName="lg:items-start"
       heroSpacingClassName="pt-10 sm:pt-16"
       locale={locale}
@@ -5820,9 +5936,7 @@ export function FanletterCreatorPage({
                   />
                   <div className="min-w-0">
                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
-                      {isAnonymousVisitor
-                        ? anonymousVisitorLabels.identityEyebrow
-                        : copy.creator.characterTitle}
+                      {roleLabels.identityEyebrow}
                     </p>
                     <h2 className="mt-3 break-words text-[1.9rem] font-semibold leading-[1.04] tracking-normal [overflow-wrap:anywhere] sm:text-[2.9rem] sm:[word-break:keep-all]">
                       {channelName}
@@ -5830,23 +5944,23 @@ export function FanletterCreatorPage({
                     <p className="mt-2 text-sm font-semibold text-white/44">
                       {data.profile.referralCode}
                     </p>
-                    {isAnonymousVisitor ? (
-                      <p className="mt-3 flex max-w-2xl items-start gap-2 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#b9ffc8]">
-                        <BadgeCheck className="mt-0.5 size-3.5 shrink-0" />
-                        <span>{anonymousVisitorLabels.identityNote}</span>
-                      </p>
-                    ) : null}
+                    <p className="mt-3 flex max-w-2xl items-start gap-2 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#b9ffc8]">
+                      <BadgeCheck className="mt-0.5 size-3.5 shrink-0" />
+                      <span>{roleLabels.identityNote}</span>
+                    </p>
                   </div>
                 </div>
                 <Link
                   className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                  href={isOwner ? ownerCreateHref : publicVlogsHref}
+                  href={
+                    isOwner
+                      ? ownerCreateHref
+                      : isLoggedInFan
+                        ? fanOnlyHref
+                        : publicVlogsHref
+                  }
                 >
-                  {isOwner
-                    ? channelActionLabels.ownerCreate
-                    : isAnonymousVisitor
-                      ? anonymousVisitorLabels.primary
-                      : channelActionLabels.publicVlogs}
+                  {roleLabels.primary}
                 </Link>
               </div>
 
@@ -5894,11 +6008,7 @@ export function FanletterCreatorPage({
                   className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
                   href={isOwner ? ownerRequestsHref : fanRequestsSectionHref}
                 >
-                  {isOwner
-                    ? channelActionLabels.ownerRequests
-                    : isAnonymousVisitor
-                      ? anonymousVisitorLabels.fanRequest
-                      : channelActionLabels.fanRequest}
+                  {roleLabels.fanRequest}
                 </Link>
               </div>
             </article>
@@ -5946,8 +6056,10 @@ export function FanletterCreatorPage({
             characterName={channelName}
             className="mb-8"
             creatorReferralCode={data.profile.referralCode}
+            fanOnlyHref={fanOnlyHref}
             followHref={followHref}
             id={fanRequestsSectionId}
+            isAuthenticated={isAuthenticated}
             isOwner={isOwner}
             locale={locale}
             ownerCreateHref={ownerCreateHref}
@@ -5960,7 +6072,7 @@ export function FanletterCreatorPage({
             startHref={startHref}
           />
 
-          {!isOwner ? (
+          {isLoggedInFan ? (
             <FanletterRequestStatusPanel
               className="mb-8"
               creatorReferralCode={data.profile.referralCode}
