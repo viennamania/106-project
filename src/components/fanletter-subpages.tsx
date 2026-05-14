@@ -470,6 +470,37 @@ function isLowSignalContentText(title: string, summary: string) {
   return /^([a-z])\1{3,}$/i.test(normalizedTitle);
 }
 
+function isGenerationPromptLikeText(value: string) {
+  const normalized = value.trim().toLowerCase();
+
+  if (!normalized) {
+    return false;
+  }
+
+  const commaCount = (normalized.match(/,/g) ?? []).length;
+
+  if (
+    /(big bust|covered in freckles|face shape|natural redhead|standing pose|wood flooring|wavy short hair)/.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    commaCount >= 4 &&
+    /[a-z]/i.test(normalized) &&
+    !/[가-힣]/.test(normalized)
+  ) {
+    return true;
+  }
+
+  return (
+    commaCount >= 6 &&
+    /(pose|hair|eyes|face|body|outfit|lighting|camera)/.test(normalized)
+  );
+}
+
 function getDisplayContentTitleText(
   title: string | null | undefined,
   summary: string | null | undefined,
@@ -489,6 +520,10 @@ function getDisplayContentTitleText(
 
   if (normalizedTitle.startsWith("a realistic ")) {
     return locale === "ko" ? "리얼 캐릭터 브이로그" : "Realistic character vlog";
+  }
+
+  if (isGenerationPromptLikeText(safeTitle)) {
+    return locale === "ko" ? "캐릭터 브이로그" : "Character vlog";
   }
 
   if (isLowSignalContentText(safeTitle, safeSummary)) {
@@ -526,6 +561,12 @@ function getDisplayContentSummary(item: FanletterPublicContentItem, locale: Loca
       : "A realistic vlog moment from this AI character.";
   }
 
+  if (isGenerationPromptLikeText(summary)) {
+    return locale === "ko"
+      ? "이 캐릭터의 최근 공개 브이로그입니다."
+      : "A recent public vlog from this character.";
+  }
+
   if (isLowSignalContentText(title, summary)) {
     return locale === "ko"
       ? "채널에 공개된 짧은 AI 캐릭터 브이로그입니다."
@@ -547,6 +588,45 @@ function getDisplayPaidTeaser(item: FanletterPublicContentItem, locale: Locale) 
       ? "공개 티저 뒤에 숨겨진 전체 영상과 상세 본문을 결제 후 확인할 수 있습니다."
       : "The full video and detail body behind the public teaser unlock after payment."
     : getDisplayContentSummary(item, locale);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function hasKoreanFinalConsonant(value: string) {
+  const lastCharacter = Array.from(value.trim()).pop();
+
+  if (!lastCharacter) {
+    return false;
+  }
+
+  const codePoint = lastCharacter.codePointAt(0);
+
+  if (!codePoint || codePoint < 0xac00 || codePoint > 0xd7a3) {
+    return false;
+  }
+
+  return (codePoint - 0xac00) % 28 !== 0;
+}
+
+function getDisplayContentBody(
+  body: string,
+  characterName: string,
+  locale: Locale,
+) {
+  const normalizedCharacterName = characterName.trim();
+
+  if (locale !== "ko" || !normalizedCharacterName) {
+    return body;
+  }
+
+  const particle = hasKoreanFinalConsonant(normalizedCharacterName) ? "이" : "가";
+
+  return body.replace(
+    new RegExp(`${escapeRegExp(normalizedCharacterName)}가(?=\\s)`),
+    `${normalizedCharacterName}${particle}`,
+  );
 }
 
 function getLockedMediaLabel(item: FanletterPublicContentItem, locale: Locale) {
@@ -3207,18 +3287,18 @@ function FanletterFanPromptPanel({
       ]
     : [
         {
-          body: labels.startBody,
-          cta: labels.startCta,
-          href: startHref,
-          icon: Rocket,
-          title: labels.startTitle,
-        },
-        {
           body: labels.messageBody,
           cta: labels.messageCta,
           href: followHref,
           icon: MessageCircleHeart,
           title: labels.messageTitle,
+        },
+        {
+          body: labels.startBody,
+          cta: labels.startCta,
+          href: startHref,
+          icon: Rocket,
+          title: labels.startTitle,
         },
       ];
   const fulfilledRequests = previewRequests
@@ -3607,7 +3687,7 @@ function FanletterFanRequestSourceCard({
       ? {
           channelCta: "캐릭터 채널 보기",
           cta: "다음 장면 요청",
-          eyebrow: "Fan Request",
+          eyebrow: "팬 요청",
           flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
           message: "팬 메시지 기반",
           originalRequest: "원 요청 내용",
@@ -3738,7 +3818,7 @@ function FanletterDetailRequestCta({
       ? {
           body: `${characterName}에게 보고 싶은 룩, 장소, 질문을 남기면 크리에이터가 스튜디오 요청함에서 바로 다음 브이로그 소재로 확인할 수 있습니다.`,
           cta: "다음 장면 요청",
-          eyebrow: "Fan Request",
+          eyebrow: "팬 요청",
           ownerBody:
             "이 브이로그는 현재 로그인한 계정의 콘텐츠입니다. 팬 요청을 남기는 대신 스튜디오에서 공개 상태, 팬 반응, 다음 제작 후보를 관리하세요.",
           ownerCta: "스튜디오에서 관리",
@@ -3810,7 +3890,6 @@ function FanletterContentNextActions({
   channelHref,
   createHref,
   feedHref,
-  followHref,
   isOwnContent = false,
   locale,
   manageHref,
@@ -3819,7 +3898,6 @@ function FanletterContentNextActions({
   channelHref: string;
   createHref?: string;
   feedHref: string;
-  followHref: string;
   isOwnContent?: boolean;
   locale: Locale;
   manageHref?: string;
@@ -3833,17 +3911,13 @@ function FanletterContentNextActions({
           channelTitle: "캐릭터 채널",
           feedBody: "다른 AI 캐릭터 브이로그를 최신순으로 둘러봅니다.",
           feedTitle: "전체 피드",
-          followBody: "FanLetter 온보딩 후 이 캐릭터 흐름으로 다시 돌아옵니다.",
-          followTitle: "팔로우/알림",
           manageBody: "내 브이로그의 공개 상태, 판매, 팬 반응을 관리합니다.",
           manageTitle: "브이로그 관리",
           open: "열기",
           ownerCreateBody: "같은 캐릭터로 다음 숏폼 브이로그를 바로 만듭니다.",
           ownerCreateTitle: "다음 브이로그 만들기",
           ownerTitle: "작성자 다음 행동",
-          startBody: "복잡한 설정 없이 내 AI 캐릭터 브이로그 채널을 시작합니다.",
-          startTitle: "내 채널 시작",
-          title: "다음 행동",
+          title: "더 둘러보기",
         }
       : {
           channelBody:
@@ -3851,17 +3925,13 @@ function FanletterContentNextActions({
           channelTitle: "Character channel",
           feedBody: "Browse the latest public vlogs from other AI characters.",
           feedTitle: "Full feed",
-          followBody: "Complete FanLetter onboarding, then return to this character flow.",
-          followTitle: "Follow updates",
           manageBody: "Manage this vlog's visibility, sales, and fan reactions.",
           manageTitle: "Manage vlog",
           open: "Open",
           ownerCreateBody: "Create the next short-form vlog with the same character.",
           ownerCreateTitle: "Create next vlog",
           ownerTitle: "Author next actions",
-          startBody: "Start your own AI character vlog channel without complex setup.",
-          startTitle: "Start my channel",
-          title: "Next actions",
+          title: "Explore more",
         };
   const actions = isOwnContent
     ? [
@@ -3898,22 +3968,10 @@ function FanletterContentNextActions({
           title: labels.channelTitle,
         },
         {
-          body: labels.followBody,
-          href: followHref,
-          icon: BellPlus,
-          title: labels.followTitle,
-        },
-        {
           body: labels.feedBody,
           href: feedHref,
           icon: Grid2X2,
           title: labels.feedTitle,
-        },
-        {
-          body: labels.startBody,
-          href: startHref,
-          icon: Rocket,
-          title: labels.startTitle,
         },
       ];
   const title = isOwnContent ? labels.ownerTitle : labels.title;
@@ -4061,6 +4119,7 @@ function FanletterDetailQuickActions({
             "현재 캐릭터 설정을 유지한 채 다음 숏폼 브이로그 제작으로 이동합니다.",
           ownerCreateTitle: "다음 브이로그 만들기",
           ownerTitle: "내 브이로그에서 이어가기",
+          eyebrow: "시청 흐름",
           title: "이 브이로그에서 이어가기",
         }
       : {
@@ -4078,6 +4137,7 @@ function FanletterDetailQuickActions({
             "Keep the current character setup and move into the next short-form vlog.",
           ownerCreateTitle: "Create next vlog",
           ownerTitle: "Continue from my vlog",
+          eyebrow: "FanLetter Flow",
           title: "Continue from this vlog",
         };
   const actions = isOwnContent
@@ -4125,7 +4185,7 @@ function FanletterDetailQuickActions({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-            FanLetter Flow
+            {labels.eyebrow}
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-normal [word-break:keep-all]">
             {headerTitle}
@@ -6154,6 +6214,11 @@ export function FanletterContentDetailPage({
   const contentCharacterAvatarUrl =
     content.authorCharacter?.avatarImageSet[0]?.url ??
     content.authorAvatarImageUrl;
+  const displayContentBody = getDisplayContentBody(
+    content.body,
+    contentCharacterName,
+    locale,
+  );
   const detailLabels =
     locale === "ko"
       ? {
@@ -6188,6 +6253,7 @@ export function FanletterContentDetailPage({
   const desktopPrimaryActionLabel = mobilePrimaryActionLabel;
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
+  const shouldShowDetailQuickActions = isOwnContent || !content.fanRequestSource;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -6436,18 +6502,31 @@ export function FanletterContentDetailPage({
                 />
               )}
 
-              <FanletterDetailQuickActions
-                characterName={contentCharacterName}
-                createHref={createHref}
-                creatorActionHref={creatorActionHref}
-                creatorActionLabel={creatorActionLabel}
-                detailActionHref={detailActionHref}
-                detailActionLabel={detailActionLabel}
-                fanRequestHref={fanRequestHref}
-                isOwnContent={isOwnContent}
-                locale={locale}
-                startHref={startHref}
-              />
+              {canViewerAccess ? (
+                <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
+                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/42">
+                    {copy.content.body}
+                  </p>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-base font-medium leading-8 text-black/74">
+                    {displayContentBody}
+                  </p>
+                </section>
+              ) : null}
+
+              {shouldShowDetailQuickActions ? (
+                <FanletterDetailQuickActions
+                  characterName={contentCharacterName}
+                  createHref={createHref}
+                  creatorActionHref={creatorActionHref}
+                  creatorActionLabel={creatorActionLabel}
+                  detailActionHref={detailActionHref}
+                  detailActionLabel={detailActionLabel}
+                  fanRequestHref={fanRequestHref}
+                  isOwnContent={isOwnContent}
+                  locale={locale}
+                  startHref={startHref}
+                />
+              ) : null}
 
               <FanletterCharacterMiniCard
                 channelHref={creatorHref}
@@ -6465,101 +6544,90 @@ export function FanletterContentDetailPage({
                 }
               />
 
-              {isOwnContent ? (
-                <FanletterOwnerContentPanel
-                  channelHref={creatorHref}
-                  className="mt-6"
-                  createHref={createHref}
-                  locale={locale}
-                  manageHref={ownerManageHref}
-                />
-              ) : (
-                <>
-                  <FanletterFanPromptPanel
-                    characterName={contentCharacterName}
-                    className="mt-6"
-                    creatorReferralCode={content.authorReferralCode}
-                    followHref={onboardingHref}
-                    id={fanRequestSectionId}
-                    locale={locale}
-                    publicVlogsHref={`${creatorHref}#public-vlogs`}
-                    referralCode={effectiveReferralCode}
-                    requestHref={fanRequestHref}
-                    sourceContentId={content.contentId}
-                    startHref={startHref}
-                  />
+            </section>
+          </div>
 
-                  <FanletterRequestStatusPanel
-                    className="mt-6"
-                    creatorReferralCode={content.authorReferralCode}
-                    locale={locale}
-                    referralCode={effectiveReferralCode}
-                    sourceContentId={content.contentId}
-                  />
-                </>
-              )}
-
-              {canViewerAccess &&
-              content.contentVideoUrls.length > 1 ? (
-                <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Grid2X2 className="size-4 text-[#44f26e]" />
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/54">
-                      {copy.content.media}
-                    </h2>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {content.contentVideoUrls.slice(1).map((videoUrl) => (
-                      <div
-                        className="overflow-hidden rounded-lg border border-white/10 bg-black"
-                        key={videoUrl}
-                      >
-                        <video
-                          className="aspect-[9/14] w-full object-cover"
-                          controls
-                          muted
-                          playsInline
-                          preload="metadata"
-                          src={videoUrl}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-
-              {canViewerAccess ? (
-                <section className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-black sm:p-6">
-                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/42">
-                    {copy.content.body}
-                  </p>
-                  <p className="mt-4 whitespace-pre-wrap break-words text-base font-medium leading-8 text-black/74">
-                    {content.body}
-                  </p>
-                </section>
-              ) : null}
-
-              <FanletterRelatedVlogs
-                fallbackImageUrl={
-                  content.authorCharacter?.avatarImageSet[0]?.url ??
-                  content.authorAvatarImageUrl
-                }
-                items={content.authorRecentContent}
-                locale={locale}
-                referralCode={effectiveReferralCode}
-              />
-
-              <FanletterContentNextActions
+          <div className="mt-6 pb-10">
+            {isOwnContent ? (
+              <FanletterOwnerContentPanel
                 channelHref={creatorHref}
                 createHref={createHref}
-                feedHref={fallbackBackHref}
-                followHref={onboardingHref}
-                isOwnContent={isOwnContent}
                 locale={locale}
                 manageHref={ownerManageHref}
-                startHref={startHref}
               />
-            </section>
+            ) : (
+              <>
+                <FanletterFanPromptPanel
+                  characterName={contentCharacterName}
+                  creatorReferralCode={content.authorReferralCode}
+                  followHref={onboardingHref}
+                  id={fanRequestSectionId}
+                  locale={locale}
+                  publicVlogsHref={`${creatorHref}#public-vlogs`}
+                  referralCode={effectiveReferralCode}
+                  requestHref={fanRequestHref}
+                  sourceContentId={content.contentId}
+                  startHref={startHref}
+                />
+
+                <FanletterRequestStatusPanel
+                  className="mt-6"
+                  creatorReferralCode={content.authorReferralCode}
+                  locale={locale}
+                  referralCode={effectiveReferralCode}
+                  sourceContentId={content.contentId}
+                />
+              </>
+            )}
+
+            {canViewerAccess &&
+            content.contentVideoUrls.length > 1 ? (
+              <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <Grid2X2 className="size-4 text-[#44f26e]" />
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/54">
+                    {copy.content.media}
+                  </h2>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {content.contentVideoUrls.slice(1).map((videoUrl) => (
+                    <div
+                      className="overflow-hidden rounded-lg border border-white/10 bg-black"
+                      key={videoUrl}
+                    >
+                      <video
+                        className="aspect-[9/14] w-full object-cover"
+                        controls
+                        muted
+                        playsInline
+                        preload="metadata"
+                        src={videoUrl}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <FanletterRelatedVlogs
+              fallbackImageUrl={
+                content.authorCharacter?.avatarImageSet[0]?.url ??
+                content.authorAvatarImageUrl
+              }
+              items={content.authorRecentContent}
+              locale={locale}
+              referralCode={effectiveReferralCode}
+            />
+
+            <FanletterContentNextActions
+              channelHref={creatorHref}
+              createHref={createHref}
+              feedHref={fallbackBackHref}
+              isOwnContent={isOwnContent}
+              locale={locale}
+              manageHref={ownerManageHref}
+              startHref={startHref}
+            />
           </div>
         </div>
       </section>

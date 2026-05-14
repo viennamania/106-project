@@ -55,7 +55,7 @@ function getCopy(locale: Locale) {
     ? {
         commentPlaceholder: "이 브이로그에 댓글 남기기...",
         comments: "댓글",
-        commentsEyebrow: "Fan reaction",
+        commentsEyebrow: "팬 반응",
         commentsHelper:
           "좋아요, 저장, 댓글이 캐릭터 브이로그 랭킹과 다음 콘텐츠 신호로 이어집니다.",
         commentsTitle: "브이로그에 반응하기",
