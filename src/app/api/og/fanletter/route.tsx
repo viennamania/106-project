@@ -531,13 +531,15 @@ export async function GET(request: Request) {
                   src={visualUrl}
                   style={{
                     display: "flex",
-                    filter: shouldBlurVisual
-                      ? "blur(10px) brightness(0.72) saturate(0.88)"
-                      : "none",
                     height: "100%",
                     objectFit: "cover",
-                    transform: shouldBlurVisual ? "scale(1.04)" : "none",
                     width: "100%",
+                    ...(shouldBlurVisual
+                      ? {
+                          filter: "blur(10px) brightness(0.72) saturate(0.88)",
+                          transform: "scale(1.04)",
+                        }
+                      : {}),
                   }}
                   width="390"
                 />

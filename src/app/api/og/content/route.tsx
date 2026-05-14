@@ -206,13 +206,15 @@ export async function GET(request: Request) {
                   src={content.coverImageUrl}
                   style={{
                     display: "flex",
-                    filter: shouldBlurCover
-                      ? "blur(10px) brightness(0.72) saturate(0.88)"
-                      : "none",
                     height: "100%",
                     objectFit: "cover",
-                    transform: shouldBlurCover ? "scale(1.04)" : "none",
                     width: "100%",
+                    ...(shouldBlurCover
+                      ? {
+                          filter: "blur(10px) brightness(0.72) saturate(0.88)",
+                          transform: "scale(1.04)",
+                        }
+                      : {}),
                   }}
                   width="372"
                 />
