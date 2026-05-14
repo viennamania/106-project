@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import type { Locale } from "@/lib/i18n";
 
-const minScrollY = 520;
+const minScrollY = 760;
 const minScrollableDistance = 720;
 
 const copyByLocale: Record<
@@ -86,7 +86,7 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
   return (
     <button
       aria-label={copy.label}
-      className="fixed bottom-[calc(6.35rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-12 items-center gap-2 rounded-full border border-[#44f26e]/42 bg-[#44f26e] px-4 text-xs font-semibold text-black shadow-[0_18px_44px_rgba(0,0,0,0.32)] transition hover:bg-[#67ff88] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:bottom-6 sm:right-6 sm:h-11"
+      className="fixed bottom-[calc(5.9rem+env(safe-area-inset-bottom))] right-3 z-50 inline-flex size-10 items-center justify-center rounded-full border border-[#44f26e]/42 bg-[#44f26e] text-xs font-semibold text-black shadow-[0_18px_44px_rgba(0,0,0,0.32)] transition hover:bg-[#67ff88] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:bottom-6 sm:right-6 sm:h-11 sm:w-auto sm:gap-2 sm:px-4"
       onClick={() => {
         const prefersReducedMotion = window.matchMedia(
           "(prefers-reduced-motion: reduce)",
@@ -100,7 +100,7 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
       type="button"
     >
       <ArrowUp className="size-4" />
-      <span>{copy.shortLabel}</span>
+      <span className="sr-only sm:not-sr-only">{copy.shortLabel}</span>
     </button>
   );
 }

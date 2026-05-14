@@ -16,11 +16,13 @@ type LanguageSwitcherVariant = "default" | "fanletter";
 
 export function LanguageSwitcher({
   className,
+  hideIcon = false,
   label,
   locale,
   variant = "default",
 }: {
   className?: string;
+  hideIcon?: boolean;
   label: string;
   locale: Locale;
   variant?: LanguageSwitcherVariant;
@@ -54,7 +56,7 @@ export function LanguageSwitcher({
       )}
     >
       <span className="sr-only">{label}</span>
-      <Globe className={cn("mr-2 size-4", styles.icon)} />
+      {hideIcon ? null : <Globe className={cn("mr-2 size-4", styles.icon)} />}
       <select
         aria-label={label}
         className={cn(

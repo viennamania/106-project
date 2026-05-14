@@ -883,7 +883,7 @@ function FanletterShell({
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
               </span>
-              <span className="truncate text-xl font-semibold tracking-normal">
+              <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
                 FanLetter
               </span>
             </Link>
@@ -909,12 +909,22 @@ function FanletterShell({
 
             <div className="flex min-w-0 shrink-0 items-center gap-2">
               <FanletterGlobalLanguageSwitcher
+                className="inline-flex sm:hidden"
+                compact
+                locale={locale}
+                tight
+              />
+              <FanletterGlobalLanguageSwitcher
                 className="hidden sm:inline-flex"
                 compact={isStartSection}
                 locale={locale}
               />
               <FanletterAccountStatusLink
-                className={isStartSection ? "max-w-[8.75rem]" : undefined}
+                className={
+                  isStartSection
+                    ? "max-w-[8.75rem]"
+                    : "max-w-[7.25rem] sm:max-w-[14rem]"
+                }
                 hideIdentity={isStartSection}
                 locale={locale}
                 referralCode={referralCode}
@@ -929,10 +939,6 @@ function FanletterShell({
               )}
             </div>
           </header>
-
-          <div className="mt-4 flex sm:hidden">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} />
-          </div>
 
           <div
             className={`${heroSpacingClassName ?? "pt-14 sm:pt-24"} ${
