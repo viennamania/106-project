@@ -403,19 +403,30 @@ function waitForVideoEvent(
   });
 }
 
-async function capturePaidVideoCoverFrame(file: File) {
+async function capturePaidVideoCoverFrameFromSource({
+  crossOrigin,
+  fileName,
+  src,
+}: {
+  crossOrigin?: "" | "anonymous" | "use-credentials";
+  fileName: string;
+  src: string;
+}) {
   if (typeof document === "undefined" || typeof URL === "undefined") {
     throw new Error("Video frame capture is only available in the browser.");
   }
 
-  const objectUrl = URL.createObjectURL(file);
   const video = document.createElement("video");
 
   try {
+    if (crossOrigin !== undefined) {
+      video.crossOrigin = crossOrigin;
+    }
+
     video.muted = true;
     video.playsInline = true;
     video.preload = "auto";
-    video.src = objectUrl;
+    video.src = src;
     video.load();
 
     await withTimeout(
@@ -478,14 +489,37 @@ async function capturePaidVideoCoverFrame(file: File) {
 
     return new File(
       [blob],
-      `${sanitizeUploadBaseName(file.name)}-video-frame-cover.jpg`,
+      `${sanitizeUploadBaseName(fileName)}-video-frame-cover.jpg`,
       { type: PAID_VIDEO_FRAME_COVER_MIME_TYPE },
     );
   } finally {
-    URL.revokeObjectURL(objectUrl);
     video.removeAttribute("src");
     video.load();
   }
+}
+
+async function capturePaidVideoCoverFrame(file: File) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    return await capturePaidVideoCoverFrameFromSource({
+      fileName: file.name,
+      src: objectUrl,
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function capturePaidVideoCoverFrameFromUrl(
+  videoUrl: string,
+  fileName: string,
+) {
+  return capturePaidVideoCoverFrameFromSource({
+    crossOrigin: "anonymous",
+    fileName,
+    src: videoUrl,
+  });
 }
 
 const AUTOMATION_RESTRICTED_MESSAGE =
@@ -1206,6 +1240,8 @@ export function CreatorContentStudioPage({
   const [isUploadingPostImage, setIsUploadingPostImage] = useState(false);
   const [isUploadingPostVideo, setIsUploadingPostVideo] = useState(false);
   const [postVideoUploadProgress, setPostVideoUploadProgress] = useState(0);
+  const [isGeneratingPaidVideoFrameCover, setIsGeneratingPaidVideoFrameCover] =
+    useState(false);
   const [isGeneratingPostImage, setIsGeneratingPostImage] = useState(false);
   const [feedShareState, setFeedShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
@@ -1840,6 +1876,10 @@ export function CreatorContentStudioPage({
             "동영상에서 공개 커버 프레임을 추출하고 있습니다.",
           frameCoverReady:
             "동영상 프레임 커버가 적용되었습니다. 필요하면 AI 티저로 바꿀 수 있습니다.",
+          frameCoverRetryFailed:
+            "영상 프레임 커버를 만들지 못했습니다. 커버를 직접 업로드하거나 AI 티저를 생성해 주세요.",
+          generateFrameCover: "영상 프레임 커버 생성",
+          generatingFrameCover: "프레임 생성 중...",
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
           connectCta: "계정 연결하기",
@@ -1856,7 +1896,7 @@ export function CreatorContentStudioPage({
           publishCoverFailed:
             "유료 브이로그를 게시하려면 공개 티저 커버가 필요합니다. 다시 생성하거나 커버를 직접 업로드해 주세요.",
           publishCoverGenerating:
-            "커버가 비어 있어 게시 전에 AI 티저 커버를 생성합니다.",
+            "커버가 비어 있어 게시 전에 업로드한 동영상에서 커버 프레임을 추출합니다.",
           imageEmpty:
             "유료 상세 페이지에 함께 보일 이미지를 직접 추가할 수 있습니다.",
           previewHint:
@@ -1925,6 +1965,10 @@ export function CreatorContentStudioPage({
             "Extracting a public cover frame from the uploaded video.",
           frameCoverReady:
             "Video-frame cover applied. You can replace it with an AI teaser if needed.",
+          frameCoverRetryFailed:
+            "Could not create a video-frame cover. Upload a cover manually or generate an AI teaser.",
+          generateFrameCover: "Use video frame",
+          generatingFrameCover: "Capturing frame...",
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
           connectCta: "Connect account",
@@ -1941,7 +1985,7 @@ export function CreatorContentStudioPage({
           publishCoverFailed:
             "A public teaser cover is required before publishing this paid vlog. Generate again or upload a cover manually.",
           publishCoverGenerating:
-            "No cover is set, so FanLetter is generating an AI teaser cover before publishing.",
+            "No cover is set, so FanLetter is extracting a cover frame from the uploaded video before publishing.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
           previewHint:
@@ -3601,20 +3645,34 @@ export function CreatorContentStudioPage({
         hasUploadedPostVideo &&
         !coverImageUrlToSave
       ) {
-        setIsCoverGenerationDialogOpen(true);
         setState((current) => ({
           ...current,
           error: null,
           notice: paidUploadComposerCopy.publishCoverGenerating,
         }));
-        const generatedCover = await generatePostCoverImage({
-          failureNotice: paidUploadComposerCopy.publishCoverFailed,
-          successNotice: paidUploadComposerCopy.autoCoverReady,
-          throwOnError: true,
-          visualBrief: buildPaidUploadTeaserVisualBrief(),
-        });
 
-        coverImageUrlToSave = generatedCover?.url ?? null;
+        try {
+          coverImageUrlToSave =
+            await generatePaidVideoFrameCoverFromUploadedVideo({
+              successNotice: paidUploadComposerCopy.frameCoverReady,
+              throwOnError: true,
+            });
+        } catch {
+          setIsCoverGenerationDialogOpen(true);
+          setState((current) => ({
+            ...current,
+            error: null,
+            notice: paidUploadComposerCopy.frameCoverFailed,
+          }));
+          const generatedCover = await generatePostCoverImage({
+            failureNotice: paidUploadComposerCopy.publishCoverFailed,
+            successNotice: paidUploadComposerCopy.autoCoverReady,
+            throwOnError: true,
+            visualBrief: buildPaidUploadTeaserVisualBrief(),
+          });
+
+          coverImageUrlToSave = generatedCover?.url ?? null;
+        }
 
         if (!coverImageUrlToSave) {
           throw new Error(paidUploadComposerCopy.publishCoverFailed);
@@ -3838,6 +3896,69 @@ export function CreatorContentStudioPage({
       return null;
     } finally {
       setIsUploadingPostImage(false);
+    }
+  }
+
+  async function generatePaidVideoFrameCoverFromUploadedVideo(
+    options: {
+      failureNotice?: string;
+      successNotice?: string;
+      throwOnError?: boolean;
+    } = {},
+  ) {
+    try {
+      const videoUrl = postForm.contentVideoUrls[0];
+
+      if (!videoUrl) {
+        throw new Error(
+          locale === "ko"
+            ? "커버를 만들 유료 동영상을 찾지 못했습니다."
+            : "Could not find the paid video to create a cover from.",
+        );
+      }
+
+      setIsGeneratingPaidVideoFrameCover(true);
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: paidUploadComposerCopy.frameCoverGenerating,
+      }));
+
+      const frameCoverFile = await capturePaidVideoCoverFrameFromUrl(
+        videoUrl,
+        postForm.title.trim() || "paid-video",
+      );
+      const uploadedCover = await uploadPostCoverImage(frameCoverFile, {
+        successNotice:
+          options.successNotice ?? paidUploadComposerCopy.frameCoverReady,
+        throwOnError: true,
+      });
+
+      if (!uploadedCover?.url) {
+        throw new Error(
+          options.failureNotice ?? paidUploadComposerCopy.frameCoverRetryFailed,
+        );
+      }
+
+      return uploadedCover.url;
+    } catch (error) {
+      if (options.throwOnError) {
+        throw error;
+      }
+
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : options.failureNotice ??
+              paidUploadComposerCopy.frameCoverRetryFailed,
+        notice: null,
+      }));
+
+      return null;
+    } finally {
+      setIsGeneratingPaidVideoFrameCover(false);
     }
   }
 
@@ -7614,6 +7735,7 @@ export function CreatorContentStudioPage({
       isDisconnected ||
       isUploadingPostImage ||
       isUploadingPostVideo ||
+      isGeneratingPaidVideoFrameCover ||
       isGeneratingPostImage;
     const draftDisabled =
       composerBusy || (isPaidUploadComposer && !hasUploadedPostVideo);
@@ -7853,6 +7975,7 @@ export function CreatorContentStudioPage({
                 disabled={
                   isUploadingPostImage ||
                   isUploadingPostVideo ||
+                  isGeneratingPaidVideoFrameCover ||
                   isGeneratingPostImage
                 }
                 onClick={() => {
@@ -7903,7 +8026,10 @@ export function CreatorContentStudioPage({
                               ? "border-amber-300 bg-amber-50 text-amber-950"
                               : "border-slate-200 bg-white text-slate-700",
                           )}
-                          disabled={isGeneratingPostImage}
+                          disabled={
+                            isGeneratingPostImage ||
+                            isGeneratingPaidVideoFrameCover
+                          }
                           key={style.id}
                           onClick={() => {
                             setPaidTeaserCoverStyle(style.id);
@@ -7920,11 +8046,36 @@ export function CreatorContentStudioPage({
                       );
                     })}
                   </div>
+                  {hasUploadedPostVideo ? (
+                    <button
+                      className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-950 disabled:opacity-50"
+                      disabled={
+                        isUploadingPostImage ||
+                        isUploadingPostVideo ||
+                        isGeneratingPaidVideoFrameCover ||
+                        isGeneratingPostImage
+                      }
+                      onClick={() => {
+                        void generatePaidVideoFrameCoverFromUploadedVideo({
+                          failureNotice:
+                            paidUploadComposerCopy.frameCoverRetryFailed,
+                          successNotice: paidUploadComposerCopy.frameCoverReady,
+                        });
+                      }}
+                      type="button"
+                    >
+                      <Film className="size-4" />
+                      {isGeneratingPaidVideoFrameCover
+                        ? paidUploadComposerCopy.generatingFrameCover
+                        : paidUploadComposerCopy.generateFrameCover}
+                    </button>
+                  ) : null}
                   <button
                     className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-950 disabled:opacity-50"
                     disabled={
                       isUploadingPostImage ||
                       isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
                       isGeneratingPostImage
                     }
                     onClick={() => {
@@ -7953,6 +8104,7 @@ export function CreatorContentStudioPage({
                   disabled={
                     isUploadingPostImage ||
                     isUploadingPostVideo ||
+                    isGeneratingPaidVideoFrameCover ||
                     isGeneratingPostImage
                   }
                   onClick={() => {
@@ -7969,6 +8121,7 @@ export function CreatorContentStudioPage({
                     disabled={
                       isUploadingPostImage ||
                       isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
                       isGeneratingPostImage ||
                       !canGeneratePostCover ||
                       postForm.generatedContentImageUrls.length >=
@@ -8006,6 +8159,7 @@ export function CreatorContentStudioPage({
                     disabled={
                       isUploadingPostImage ||
                       isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
                       isGeneratingPostImage ||
                       postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
                     }
@@ -8025,6 +8179,7 @@ export function CreatorContentStudioPage({
                       disabled={
                         isUploadingPostImage ||
                         isUploadingPostVideo ||
+                        isGeneratingPaidVideoFrameCover ||
                         isGeneratingPostImage ||
                         postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
                       }
@@ -8454,6 +8609,7 @@ export function CreatorContentStudioPage({
                   disabled={
                     isUploadingPostImage ||
                     isUploadingPostVideo ||
+                    isGeneratingPaidVideoFrameCover ||
                     isGeneratingPostImage
                   }
                   onClick={() => {
@@ -8466,11 +8622,36 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : coverUploadLabel}
                 </button>
+                {isPaidUploadComposer && hasUploadedPostVideo ? (
+                  <button
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-950 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={
+                      isUploadingPostImage ||
+                      isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
+                      isGeneratingPostImage
+                    }
+                    onClick={() => {
+                      void generatePaidVideoFrameCoverFromUploadedVideo({
+                        failureNotice:
+                          paidUploadComposerCopy.frameCoverRetryFailed,
+                        successNotice: paidUploadComposerCopy.frameCoverReady,
+                      });
+                    }}
+                    type="button"
+                  >
+                    <Film className="size-4" />
+                    {isGeneratingPaidVideoFrameCover
+                      ? paidUploadComposerCopy.generatingFrameCover
+                      : paidUploadComposerCopy.generateFrameCover}
+                  </button>
+                ) : null}
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 text-sm font-medium text-amber-950 transition hover:border-amber-300 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   disabled={
                     isUploadingPostImage ||
                     isUploadingPostVideo ||
+                    isGeneratingPaidVideoFrameCover ||
                     isGeneratingPostImage ||
                     (!isPaidUploadComposer && !canGeneratePostCover)
                   }
@@ -8529,7 +8710,10 @@ export function CreatorContentStudioPage({
                             ? "border-amber-300 bg-amber-50 text-amber-950 shadow-[0_10px_24px_rgba(245,158,11,0.14)]"
                             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
                         )}
-                        disabled={isGeneratingPostImage}
+                        disabled={
+                          isGeneratingPostImage ||
+                          isGeneratingPaidVideoFrameCover
+                        }
                         key={style.id}
                         onClick={() => {
                           setPaidTeaserCoverStyle(style.id);
@@ -8587,6 +8771,7 @@ export function CreatorContentStudioPage({
                   disabled={
                     isUploadingPostImage ||
                     isUploadingPostVideo ||
+                    isGeneratingPaidVideoFrameCover ||
                     isGeneratingPostImage
                   }
                   onClick={() => {
@@ -8605,6 +8790,7 @@ export function CreatorContentStudioPage({
                     disabled={
                       isUploadingPostImage ||
                       isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
                       isGeneratingPostImage ||
                       !canGeneratePostCover ||
                       postForm.generatedContentImageUrls.length >=
@@ -8702,6 +8888,7 @@ export function CreatorContentStudioPage({
                   disabled={
                     isUploadingPostImage ||
                     isUploadingPostVideo ||
+                    isGeneratingPaidVideoFrameCover ||
                     isGeneratingPostImage ||
                     postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
                   }
@@ -8725,6 +8912,7 @@ export function CreatorContentStudioPage({
                     disabled={
                       isUploadingPostImage ||
                       isUploadingPostVideo ||
+                      isGeneratingPaidVideoFrameCover ||
                       isGeneratingPostImage ||
                       postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
                     }
