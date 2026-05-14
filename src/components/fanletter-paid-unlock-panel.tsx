@@ -997,7 +997,7 @@ export function FanletterPaidUnlockPanel({
               className={
                 isUnlocked
                   ? "object-cover"
-                  : "scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+                  : "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
               }
               fill
               sizes="(max-width: 1024px) 100vw, 38vw"

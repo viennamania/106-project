@@ -870,7 +870,7 @@ function MediaCard({
         <FanletterAutoplayVideo
           className={
             blurred
-              ? "h-full w-full scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+              ? "h-full w-full scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
               : "h-full w-full object-cover"
           }
           controls={controls}
@@ -879,7 +879,7 @@ function MediaCard({
           title={title}
         />
         {blurred ? (
-          <div className="pointer-events-none absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+          <div className="pointer-events-none absolute inset-0 bg-black/10" />
         ) : null}
       </>
     );
@@ -892,7 +892,7 @@ function MediaCard({
           alt={alt}
           className={
             blurred
-              ? "scale-110 object-cover blur-xl brightness-[0.58] saturate-[0.72]"
+              ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
               : "object-cover"
           }
           fill
@@ -900,7 +900,7 @@ function MediaCard({
           src={imageUrl}
         />
         {blurred ? (
-          <div className="pointer-events-none absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+          <div className="pointer-events-none absolute inset-0 bg-black/10" />
         ) : null}
       </>
     );
@@ -2800,7 +2800,7 @@ function FanletterFanOnlyPreview({
                         className={
                           hasAccess
                             ? "object-cover transition duration-500 group-hover:scale-[1.025]"
-                            : "scale-110 object-cover blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                            : "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                         }
                         fill
                         sizes="(max-width: 640px) 100vw, 32vw"
@@ -3489,7 +3489,7 @@ function FanletterRelatedVlogCard({
             aria-hidden="true"
             className={
               shouldBlurCover
-                ? "scale-110 object-cover blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                ? "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                 : "object-cover transition duration-500 group-hover:scale-[1.025]"
             }
             fill

@@ -887,7 +887,7 @@ function FanletterPaidPreviewRail({
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="scale-110 object-cover opacity-75 blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                        className="scale-[1.06] object-cover opacity-85 blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                         fill
                         sizes="(min-width: 1024px) 22vw, 33vw"
                         src={video.coverImageUrl}
@@ -1081,7 +1081,7 @@ function FanletterPaidSpotlightSection({
                         <Image
                           alt=""
                           aria-hidden="true"
-                          className="scale-110 object-cover blur-xl brightness-[0.62] saturate-[0.78] transition duration-500 group-hover:scale-[1.14]"
+                          className="scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                           fill
                           sizes="(min-width: 1280px) 22vw, (min-width: 768px) 46vw, 100vw"
                           src={video.coverImageUrl}

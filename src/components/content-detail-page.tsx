@@ -163,7 +163,7 @@ function HeroImage({
         alt={alt}
         className={cn(
           "object-cover",
-          blurred ? "scale-110 blur-xl brightness-[0.58] saturate-[0.72]" : "",
+          blurred ? "scale-[1.06] blur-lg brightness-[0.72] saturate-[0.88]" : "",
         )}
         fill
         preload={preload}
@@ -171,7 +171,7 @@ function HeroImage({
         src={src}
       />
       {blurred ? (
-        <div className="absolute inset-0 bg-black/18 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-black/10" />
       ) : null}
     </div>
   );

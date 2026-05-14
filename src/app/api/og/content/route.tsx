@@ -207,11 +207,11 @@ export async function GET(request: Request) {
                   style={{
                     display: "flex",
                     filter: shouldBlurCover
-                      ? "blur(18px) brightness(0.62) saturate(0.78)"
+                      ? "blur(10px) brightness(0.72) saturate(0.88)"
                       : "none",
                     height: "100%",
                     objectFit: "cover",
-                    transform: shouldBlurCover ? "scale(1.08)" : "none",
+                    transform: shouldBlurCover ? "scale(1.04)" : "none",
                     width: "100%",
                   }}
                   width="372"
