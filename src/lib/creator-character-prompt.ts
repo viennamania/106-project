@@ -1,4 +1,8 @@
 import type { CreatorCharacterPersona } from "@/lib/content";
+import {
+  createFanletterRealismPromptBlock,
+  normalizeFanletterRealismRequestText,
+} from "@/lib/fanletter-realism-policy";
 
 const CHARACTER_PROMPT_LIMIT = 1_800;
 const USER_SCENE_PROMPT_LIMIT = 6_000;
@@ -121,14 +125,21 @@ export function applyCreatorCharacterPersonaToPrompt(
   scenePrompt: string,
   persona: CreatorCharacterPersona | null | undefined,
 ) {
-  const normalizedScenePrompt = trimToLength(scenePrompt, USER_SCENE_PROMPT_LIMIT);
+  const normalizedScenePrompt = normalizeFanletterRealismRequestText(
+    scenePrompt,
+    USER_SCENE_PROMPT_LIMIT,
+  );
   const identityPrompt = trimToLength(
     persona?.identityPrompt,
     CHARACTER_PROMPT_LIMIT,
   );
+  const realismPromptBlock = createFanletterRealismPromptBlock(persona);
 
   if (!persona || !identityPrompt) {
-    return normalizedScenePrompt;
+    return [
+      realismPromptBlock,
+      `User scene prompt: ${normalizedScenePrompt}`,
+    ].join("\n\n");
   }
 
   const normalizedUserScene =
@@ -148,7 +159,9 @@ export function applyCreatorCharacterPersonaToPrompt(
       persona.avoidChanges,
       "facial structure, hair color, age range, ethnicity, neutral visual silhouette, posture, overall presence",
     )}.`,
+    realismPromptBlock,
     "Use the character persona as the only source of truth for the main person's identity. Do not let the user scene prompt override the persona's gender, age range, face, hair, skin tone, ethnicity, or overall visual identity.",
+    "Reality grounding also overrides any user prompt details that would require impossible physics, age changes, exact real-time private location claims, or real-person impersonation.",
     sceneInstruction,
     `User scene prompt: ${normalizedUserScene.prompt}`,
   ].join("\n\n");

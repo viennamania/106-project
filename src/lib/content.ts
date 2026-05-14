@@ -248,7 +248,18 @@ export type CreatorCharacterPersona = {
   identityPrompt: string;
   lockedTraits: string[];
   name: string;
+  realismProfile?: CreatorCharacterRealismProfile | null;
   summary: string;
+};
+
+export type CreatorCharacterRealismProfile = {
+  agePolicy: "adult_age_continuity";
+  disclosure: "fictional_ai_character";
+  groundingMode: "real_world";
+  locationPolicy: "public_or_fictionalized";
+  physicsPolicy: "ordinary_human_physics";
+  realPersonPolicy: "no_real_person_impersonation";
+  timePolicy: "timezone_season_consistent";
 };
 
 export type FanletterVlogPlanMediaMode = "video";

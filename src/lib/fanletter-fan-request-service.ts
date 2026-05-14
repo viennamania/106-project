@@ -25,6 +25,7 @@ import {
   incrementFanletterFanRequestTemplateUsage,
   resolveFanletterFanRequestTemplateForSubmission,
 } from "@/lib/fanletter-fan-request-template-service";
+import { normalizeFanletterRealismRequestText } from "@/lib/fanletter-realism-policy";
 
 const FANLETTER_FAN_REQUEST_BODY_LIMIT = 600;
 const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
@@ -270,7 +271,13 @@ export async function createFanletterFanRequest(input: {
   sourcePath?: string | null;
   templateId?: string | null;
 }) {
-  const body = trimToLength(input.body, FANLETTER_FAN_REQUEST_BODY_LIMIT);
+  const body = trimToLength(
+    normalizeFanletterRealismRequestText(
+      input.body,
+      FANLETTER_FAN_REQUEST_BODY_LIMIT,
+    ),
+    FANLETTER_FAN_REQUEST_BODY_LIMIT,
+  );
 
   if (!body) {
     throw new Error("Fan request body is required.");

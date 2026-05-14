@@ -63,6 +63,7 @@ import type {
   FanletterPublicFanRequestPreview,
 } from "@/lib/fanletter-content-service";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -5147,6 +5148,7 @@ function CharacterPersonaShowcase({
   publicContentCount: number;
 }) {
   const copy = getCopy(locale);
+  const realismCopy = getFanletterRealismDisclosureCopy(locale);
   const growth = character.growth;
   const stageLevel = growth.level;
   const growthLabels =
@@ -5219,6 +5221,13 @@ function CharacterPersonaShowcase({
             <p className="mt-4 text-sm font-medium leading-6 text-white/68 sm:text-base sm:leading-7">
               {character.summary || copy.creator.characterBody}
             </p>
+            <div
+              className="mt-4 flex w-fit max-w-full items-center gap-2 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#b9ffc8]"
+              title={realismCopy.description}
+            >
+              <BadgeCheck className="size-4 shrink-0" />
+              <span className="min-w-0 break-words">{realismCopy.label}</span>
+            </div>
             <div className="mt-5 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -5779,6 +5788,7 @@ function FanletterCharacterMiniCard({
   startHref: string;
 }) {
   const copy = getCopy(locale);
+  const realismCopy = getFanletterRealismDisclosureCopy(locale);
   const character = content.authorCharacter;
   const characterName = character?.name ?? content.authorName;
   const characterSummary = character?.summary || content.summary;
@@ -5790,7 +5800,6 @@ function FanletterCharacterMiniCard({
   const labels =
     locale === "ko"
       ? {
-          aiLabel: "AI 캐릭터",
           fanOnly:
             content.priceType === "paid"
               ? "팬 전용 유료 브이로그"
@@ -5801,7 +5810,6 @@ function FanletterCharacterMiniCard({
           skills: "캐릭터 스킬",
         }
       : {
-          aiLabel: "AI character",
           fanOnly:
             content.priceType === "paid"
               ? "Fan-only paid vlog"
@@ -5864,10 +5872,13 @@ function FanletterCharacterMiniCard({
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2">
+        <div
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2"
+          title={realismCopy.description}
+        >
           <BadgeCheck className="size-4 shrink-0 text-[#44f26e]" />
           <span className="min-w-0 truncate text-xs font-semibold text-white/72">
-            {labels.aiLabel}
+            {realismCopy.label}
           </span>
         </div>
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2">

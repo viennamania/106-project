@@ -57,6 +57,9 @@ import {
   type CreatorCharacterPersona,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
+import {
+  normalizeCreatorCharacterRealismProfile,
+} from "@/lib/fanletter-realism-policy";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
@@ -289,6 +292,9 @@ function normalizeCharacterPersona(
     identityPrompt,
     lockedTraits: normalizeCharacterPersonaList(persona.lockedTraits),
     name,
+    realismProfile: normalizeCreatorCharacterRealismProfile(
+      persona.realismProfile,
+    ),
     summary: trimToLength(persona.summary, CHARACTER_PERSONA_SUMMARY_LIMIT),
   };
 }

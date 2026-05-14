@@ -8,6 +8,10 @@ import type {
   FanletterVlogPlanItem,
   FanletterVlogPlanMediaMode,
 } from "@/lib/content";
+import {
+  FANLETTER_REALISM_POLICY_PROMPT,
+  normalizeFanletterRealismRequestText,
+} from "@/lib/fanletter-realism-policy";
 import type { Locale } from "@/lib/i18n";
 
 const DEFAULT_MODEL = "gpt-5.4";
@@ -171,7 +175,10 @@ function normalizePlan(
   index: number,
 ): FanletterVlogPlanItem | null {
   const title = trimToLength(plan.title, TITLE_LIMIT);
-  const scenePrompt = trimToLength(plan.scenePrompt, TEXT_LIMIT);
+  const scenePrompt = normalizeFanletterRealismRequestText(
+    plan.scenePrompt,
+    TEXT_LIMIT,
+  );
 
   if (!title || !scenePrompt) {
     return null;
@@ -294,6 +301,7 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
         content: [
           "You are a mobile-first content strategist for FanLetter, a platform for AI character vlog channels.",
           "Generate practical daily vlog plans that reduce creator effort.",
+          FANLETTER_REALISM_POLICY_PROMPT,
           "Plans must be easy to execute from a phone: clear scene, action, camera feeling, short caption hook, and platform angle.",
           "Keep all ideas safe for image and video generation. Do not include nudity, erotic body emphasis, fetish roles, sexualized clothing instructions, or underage implications.",
           "Maintain the same adult AI character identity when persona details are present, but vary situation, routine, emotion, and fan-facing story.",
@@ -310,6 +318,7 @@ function createPlannerPayload(input: GenerateFanletterVlogPlansInput) {
           `Recent posts JSON: ${JSON.stringify(summarizeRecentPosts(input.posts))}.`,
           `Generate exactly ${PLAN_COUNT} daily AI character vlog plans.`,
           "Every plan must use mediaMode video. Do not suggest image-only posts.",
+          "Every plan must stay plausible in the real world: ordinary human movement, stable adult age, plausible location, and no exact private address or real-person impersonation.",
           "Each title should be user-facing and short.",
           "Each summary should explain why fans would care.",
           "Each scenePrompt should be directly usable by the existing video generation model and include the persona identity lock if available, scene, motion, action, camera framing, mood, and safe visual style.",

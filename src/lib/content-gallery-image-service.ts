@@ -653,6 +653,7 @@ function createReplicateCompactPrompt({
   const promptParts = [
     identityInstruction,
     "Create a new editorial content image from the scene. Do not copy avatar background, crop, pose, or clothing unless the scene asks for it.",
+    "Keep the fictional AI character grounded in real-world adult age continuity, ordinary human physics, plausible time/location, and no real-person impersonation.",
     personaName ? `Persona: ${personaName}.` : null,
     !avatarImageUrl && identityPrompt
       ? `Persona identity: ${identityPrompt}`

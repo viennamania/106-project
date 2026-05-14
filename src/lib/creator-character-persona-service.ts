@@ -3,6 +3,10 @@ import "server-only";
 import { randomUUID } from "crypto";
 
 import type { CreatorCharacterPersona } from "@/lib/content";
+import {
+  createDefaultCreatorRealismProfile,
+  FANLETTER_REALISM_CHARACTER_PERSONA_PROMPT,
+} from "@/lib/fanletter-realism-policy";
 
 const DEFAULT_MODEL = "gpt-5.4";
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -271,6 +275,7 @@ function normalizeCandidate(
       .filter(Boolean)
       .slice(0, 8),
     name,
+    realismProfile: createDefaultCreatorRealismProfile(),
     summary: trimToLength(candidate.summary, 260),
   };
 }
@@ -373,6 +378,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
         role: "system",
         content: [
           "You create stable character identity personas for AI image and video generation.",
+          FANLETTER_REALISM_CHARACTER_PERSONA_PROMPT,
           "The persona must only describe a consistent adult person's identity.",
           "Make the face description concrete enough for identity consistency: face shape, jawline, cheekbones, eye shape, eyebrow style, nose bridge/tip, mouth/lip shape, skin tone/texture, hairline, hair color, length, and texture.",
           "Describe overall presence only in neutral non-sexual terms: height impression, shoulder line, neck length, posture, frame, and camera-visible stance.",
@@ -402,6 +408,7 @@ function createPersonaPayload(input: GenerateCreatorCharacterPersonasInput) {
             : "No avatar image is available.",
           `Generate exactly ${CANDIDATE_COUNT} distinct adult character persona candidates.`,
           identityRequirement,
+          "Each candidate must be usable as a reality-grounded fictional AI character across daily vlog scenes. Do not imitate any exact real person, celebrity, influencer, or public figure.",
           appearanceToneInstruction
             ? "Each identityPrompt must include concrete face, skin, and hair details consistent with the preferred appearance tone."
             : "Each identityPrompt must include concrete face, skin, and hair details that form a stable identity.",

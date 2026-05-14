@@ -7,6 +7,7 @@ import type {
   CreatorCharacterPersona,
   CreatorProfileAvatarCandidate,
 } from "@/lib/content";
+import { FANLETTER_REALISM_POLICY_PROMPT } from "@/lib/fanletter-realism-policy";
 import { applyImagePhotoQualityPreset } from "@/lib/image-prompt-quality";
 
 const DEFAULT_MODEL = "black-forest-labs/flux-2-klein-9b";
@@ -216,6 +217,7 @@ function createAvatarPrompt({
 
   return applyImagePhotoQualityPreset([
     "Create a square creator profile avatar using the fixed character persona.",
+    FANLETTER_REALISM_POLICY_PROMPT,
     `Creator label: ${name}. Do not render text or logos.`,
     `Avatar set expression: ${expression.label}.`,
     `Fixed character persona: ${identityPrompt}`,

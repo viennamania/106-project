@@ -31,6 +31,7 @@ import {
   FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
   type FanletterFanRequestSubmittedDetail,
 } from "@/lib/fanletter-request-events";
+import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
 
 type SubmitStatus = "error" | "idle" | "loading" | "success";
 
@@ -270,6 +271,10 @@ export function FanletterFanRequestForm({
   sourceContentId?: string | null;
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
+  const realismCopy = useMemo(
+    () => getFanletterRealismDisclosureCopy(locale),
+    [locale],
+  );
   const resolvedFormId = formId ?? "fanletter-fan-request-form";
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -573,6 +578,13 @@ export function FanletterFanRequestForm({
           </h3>
           <p className="mt-2 text-sm font-medium leading-6 text-white/58">
             {copy.helper}
+          </p>
+          <p
+            className="mt-2 flex max-w-xl items-start gap-2 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 px-3 py-1.5 text-xs font-semibold leading-5 text-[#b9ffc8]"
+            title={realismCopy.description}
+          >
+            <Radio className="mt-0.5 size-3.5 shrink-0" />
+            <span className="min-w-0 break-words">{realismCopy.requestNote}</span>
           </p>
         </div>
         <div
