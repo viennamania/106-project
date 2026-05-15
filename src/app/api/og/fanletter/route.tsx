@@ -192,6 +192,7 @@ export async function GET(request: Request) {
   const locale = readLocale(url.searchParams.get("lang"));
   const variantInput = url.searchParams.get("variant");
   const variant = isFanletterOgVariant(variantInput) ? variantInput : "home";
+  const layout = url.searchParams.get("layout");
   const copy = getLocaleCopy(locale);
   const referralCode = normalizeReferralCode(url.searchParams.get("ref") ?? "");
   const creatorData =
@@ -315,6 +316,428 @@ export async function GET(request: Request) {
     : locale === "ko"
       ? ["캐릭터", "숏폼", "팬 전용"]
       : ["Persona", "Vlog", "Fan-only"];
+
+  if (creatorData && visualUrl && layout === "promo") {
+    const creatorDisplayName = truncateText(
+      visualName ?? stripFanletterTitleSuffix(title),
+      34,
+    );
+    const posterTitle = latestTitle
+      ? truncateText(latestTitle, 46)
+      : truncateText(title, 46);
+    const promoTitleBase =
+      locale === "ko" ? title.replace(/\s*프로모션\s*$/, "") : title;
+    const promoTitleSuffix =
+      locale === "ko" && promoTitleBase !== title ? "프로모션" : null;
+    const promoEyebrow =
+      locale === "ko" ? "FanLetter 프로모션" : "FanLetter promotion";
+    const promoCta = locale === "ko" ? "무료 브이로그 먼저 보기" : "Watch free vlogs";
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            background: "#030504",
+            color: "white",
+            display: "flex",
+            fontFamily: "Arial, Helvetica, sans-serif",
+            height: "100%",
+            overflow: "hidden",
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+          <img
+            alt=""
+            height="630"
+            src={visualUrl}
+            style={{
+              display: "flex",
+              filter: "blur(18px) brightness(0.48) saturate(1.05)",
+              height: "100%",
+              objectFit: "cover",
+              opacity: 0.86,
+              position: "absolute",
+              transform: "scale(1.08)",
+              width: "100%",
+            }}
+            width="1200"
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(3,5,4,0.96) 0%, rgba(3,5,4,0.72) 46%, rgba(3,5,4,0.22) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(0deg, rgba(3,5,4,0.78) 0%, rgba(3,5,4,0.06) 42%, rgba(3,5,4,0.46) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.14)",
+              borderRadius: 42,
+              inset: 24,
+              position: "absolute",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              gap: 42,
+              height: "100%",
+              padding: 42,
+              position: "relative",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flex: 1,
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+                padding: "4px 0",
+              }}
+            >
+              <div
+                style={{
+                  alignItems: "center",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    alignItems: "center",
+                    background: "rgba(3,5,4,0.58)",
+                    border: "1px solid rgba(255,255,255,0.16)",
+                    borderRadius: 999,
+                    display: "flex",
+                    gap: 13,
+                    padding: "9px 17px 9px 9px",
+                  }}
+                >
+                  <div
+                    style={{
+                      alignItems: "center",
+                      background: "#44f26e",
+                      borderRadius: 14,
+                      color: "#030504",
+                      display: "flex",
+                      fontSize: 25,
+                      fontWeight: 900,
+                      height: 48,
+                      justifyContent: "center",
+                      width: 48,
+                    }}
+                  >
+                    F
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                    }}
+                  >
+                    <div style={{ display: "flex", fontSize: 26, fontWeight: 900 }}>
+                      FanLetter
+                    </div>
+                    <div
+                      style={{
+                        color: "rgba(255,255,255,0.58)",
+                        display: "flex",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      AI CHARACTER VLOG
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 18,
+                  maxWidth: 650,
+                }}
+              >
+                <div
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "#44f26e",
+                    borderRadius: 999,
+                    color: "#07100b",
+                    display: "flex",
+                    fontSize: 18,
+                    fontWeight: 900,
+                    padding: "12px 18px",
+                  }}
+                >
+                  {promoEyebrow}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 72,
+                        fontWeight: 900,
+                        lineHeight: 0.98,
+                        maxWidth: 690,
+                      }}
+                    >
+                      {promoTitleBase}
+                    </div>
+                    {promoTitleSuffix ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          fontSize: 72,
+                          fontWeight: 900,
+                          lineHeight: 0.98,
+                        }}
+                      >
+                        {promoTitleSuffix}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.72)",
+                      display: "flex",
+                      fontSize: 27,
+                      fontWeight: 800,
+                      lineHeight: 1.24,
+                      maxWidth: 640,
+                    }}
+                  >
+                    {description}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.16)",
+                      borderRadius: 999,
+                      color: "rgba(255,255,255,0.82)",
+                      display: "flex",
+                      fontSize: 18,
+                      fontWeight: 900,
+                      padding: "13px 18px",
+                    }}
+                  >
+                    {creatorDisplayName}
+                  </div>
+                  <div
+                    style={{
+                      background: "#44f26e",
+                      borderRadius: 999,
+                      color: "#07100b",
+                      display: "flex",
+                      fontSize: 18,
+                      fontWeight: 900,
+                      padding: "13px 18px",
+                    }}
+                  >
+                    {promoCta}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                }}
+              >
+                {metrics.map((metric, index) => (
+                  <div
+                    key={metric.label}
+                    style={{
+                      background:
+                        index === 0 ? "#44f26e" : "rgba(255,255,255,0.9)",
+                      border:
+                        index === 0
+                          ? "1px solid rgba(68,242,110,0.86)"
+                          : "1px solid rgba(255,255,255,0.18)",
+                      borderRadius: 22,
+                      color: "#07100b",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 7,
+                      minWidth: 132,
+                      padding: "16px 18px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color:
+                          index === 0 ? "#07100b" : "rgba(7,16,11,0.62)",
+                        display: "flex",
+                        fontSize: 14,
+                        fontWeight: 900,
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {metric.label}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 38,
+                        fontWeight: 900,
+                        lineHeight: 0.95,
+                      }}
+                    >
+                      {metric.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                borderRadius: 34,
+                boxShadow: "0 28px 96px rgba(0,0,0,0.42)",
+                display: "flex",
+                height: 546,
+                overflow: "hidden",
+                padding: 12,
+                position: "relative",
+                width: 390,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+              <img
+                alt=""
+                height="546"
+                src={visualUrl}
+                style={{
+                  borderRadius: 24,
+                  display: "flex",
+                  filter: "blur(14px) brightness(0.58)",
+                  height: "100%",
+                  objectFit: "cover",
+                  position: "absolute",
+                  width: "100%",
+                }}
+                width="390"
+              />
+              <div
+                style={{
+                  background: "rgba(3,5,4,0.22)",
+                  borderRadius: 24,
+                  inset: 12,
+                  position: "absolute",
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+              <img
+                alt=""
+                height="522"
+                src={visualUrl}
+                style={{
+                  borderRadius: 24,
+                  display: "flex",
+                  height: "100%",
+                  objectFit: "contain",
+                  position: "relative",
+                  width: "100%",
+                }}
+                width="366"
+              />
+              <div
+                style={{
+                  background:
+                    "linear-gradient(0deg, rgba(3,5,4,0.72) 0%, rgba(3,5,4,0.04) 38%, rgba(3,5,4,0.28) 100%)",
+                  borderRadius: 24,
+                  inset: 12,
+                  position: "absolute",
+                }}
+              />
+              <div
+                style={{
+                  bottom: 30,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  left: 30,
+                  position: "absolute",
+                  right: 30,
+                }}
+              >
+                <div
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "#44f26e",
+                    borderRadius: 999,
+                    color: "#07100b",
+                    display: "flex",
+                    fontSize: 13,
+                    fontWeight: 900,
+                    padding: "8px 12px",
+                  }}
+                >
+                  {visualLabel}
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    display: "flex",
+                    fontSize: 27,
+                    fontWeight: 900,
+                    lineHeight: 1.05,
+                  }}
+                >
+                  {posterTitle}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      FANLETTER_OG_IMAGE_SIZE,
+    );
+  }
 
   if (creatorData && visualUrl) {
     const creatorDisplayName = truncateText(

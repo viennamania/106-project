@@ -50,6 +50,7 @@ export function getFanletterOgAlt(locale: Locale, variant: FanletterOgVariant) {
 
 export function buildFanletterOgImagePath({
   description,
+  layout,
   locale,
   referralCode,
   title,
@@ -57,6 +58,7 @@ export function buildFanletterOgImagePath({
   version,
 }: {
   description?: string | null;
+  layout?: "default" | "promo";
   locale: Locale;
   referralCode?: string | null;
   title?: string | null;
@@ -74,6 +76,10 @@ export function buildFanletterOgImagePath({
 
   if (description) {
     searchParams.set("description", description);
+  }
+
+  if (layout && layout !== "default") {
+    searchParams.set("layout", layout);
   }
 
   if (referralCode) {

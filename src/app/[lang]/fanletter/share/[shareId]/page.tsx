@@ -102,13 +102,14 @@ export async function generateMetadata({
     null;
   const ogImagePath = buildFanletterOgImagePath({
     description: shareMetadata.description,
+    layout: "promo",
     locale,
     referralCode: creatorReferralCode,
     title: shareMetadata.title,
     variant: "creator",
     version:
       buildFanletterOgVersionToken(
-        "creator-promo-share-og-v1",
+        "creator-promo-share-og-v2",
         normalizedShareId,
         creatorReferralCode,
         sponsor.slug,
