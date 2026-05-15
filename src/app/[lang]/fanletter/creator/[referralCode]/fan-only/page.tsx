@@ -43,7 +43,7 @@ function getFanOnlyShareMetadata({
     return {
       description:
         data.fanOnlyContentCount > 0
-          ? `${characterName}의 팬 전용 브이로그 ${fanOnlyCount}개를 확인하세요. 티저를 보고 ${price} USDT로 전체 영상과 본문을 열 수 있습니다.`
+          ? `${characterName}의 팬 전용 브이로그 ${fanOnlyCount}개를 미리 보세요. 마음에 드는 잠금 브이로그는 ${price} USDT부터 열 수 있습니다.`
           : `${characterName}의 공개 브이로그 ${publicCount}개를 보고 팬 전용 콘텐츠 오픈을 기다려보세요.`,
       title: `${characterName} 팬 전용 브이로그`,
     };
@@ -52,7 +52,7 @@ function getFanOnlyShareMetadata({
   return {
     description:
       data.fanOnlyContentCount > 0
-        ? `Preview ${fanOnlyCount} fan-only vlogs from ${characterName}, then unlock the full video and body for ${price} USDT.`
+        ? `Preview ${fanOnlyCount} fan-only vlogs from ${characterName}, then unlock each locked vlog from ${price} USDT.`
         : `Watch ${publicCount} public vlogs from ${characterName} and wait for fan-only drops.`,
     title: `${characterName} fan-only vlogs`,
   };

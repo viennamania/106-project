@@ -2107,6 +2107,7 @@ function FanletterChannelHeroPreview({
   channelAvatarUrl,
   channelName,
   character,
+  eagerMedia = false,
   fanOnlyContentCount,
   featuredItem,
   featuredMode = "public",
@@ -2118,6 +2119,7 @@ function FanletterChannelHeroPreview({
   channelAvatarUrl: string | null;
   channelName: string;
   character: FanletterPublicCharacter | null;
+  eagerMedia?: boolean;
   fanOnlyContentCount: number;
   featuredItem: FanletterPublicContentItem | null;
   featuredMode?: "public" | "fan-only";
@@ -2213,6 +2215,7 @@ function FanletterChannelHeroPreview({
                 : "object-cover transition duration-500 group-hover:scale-[1.025]"
             }
             fill
+            loading={eagerMedia ? "eager" : undefined}
             sizes="(max-width: 1024px) 100vw, 28rem"
             src={featuredItem.coverImageUrl}
           />
@@ -2222,6 +2225,7 @@ function FanletterChannelHeroPreview({
             aria-hidden="true"
             className="object-cover"
             fill
+            loading={eagerMedia ? "eager" : undefined}
             sizes="(max-width: 1024px) 100vw, 28rem"
             src={channelAvatarUrl}
           />
@@ -2861,10 +2865,10 @@ function FanletterFanOnlyPreview({
           availableActionTitle: "팬 전용 진입",
           availableBody:
             "이 캐릭터가 유료 또는 팬 전용으로 공개한 브이로그를 한곳에 모았습니다. 카드를 열면 FanLetter 상세 화면에서 미리보기, 권한 확인, 다음 요청까지 같은 흐름으로 이어집니다.",
-          availableCta: "첫 팬 전용 콘텐츠 보기",
+          availableCta: "대표 티저 미리보기",
           availableEyebrow: "팬 전용 라이브러리",
           availableNote:
-            "미결제 카드는 미리보기와 잠금 해제 흐름으로, 결제 완료 카드는 바로 보기로 표시합니다.",
+            "대표 티저를 먼저 보고, 더 보고 싶은 잠금 브이로그만 개별 결제로 열 수 있습니다.",
           availableTitle: "팬 전용 브이로그 모음",
           basePrice: "기본 가격",
           body: "팬 전용 요청은 유료 브이로그 후보로 바로 이어집니다. 보고 싶은 장면을 남기면 크리에이터가 스튜디오 요청함에서 확인하고 1 USDT 잠금 브이로그로 제작할 수 있습니다.",
@@ -2885,8 +2889,10 @@ function FanletterFanOnlyPreview({
           fanOnlyCount: "팬 전용",
           locked: "요청 가능",
           lockedAccess: "잠금 콘텐츠",
+          moreCta: (count: string) => `팬 전용 ${count}개 더 보기`,
           note:
             "카드를 누르면 요청 문장이 자동으로 준비됩니다. 팬은 한 번에 요청하고, 크리에이터는 같은 내용을 제작 후보로 관리합니다.",
+          ownerManageable: "관리 가능",
           ownerAvailableBody:
             "이 캐릭터의 팬 전용 유료 브이로그를 채널 관점에서 확인합니다. 공개 상태와 판매 흐름은 스튜디오에서 이어서 관리하세요.",
           ownerAvailableCta: "팬 전용 관리",
@@ -2907,6 +2913,7 @@ function FanletterFanOnlyPreview({
           requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
           teaserTitle: "공개 티저",
+          teaserCount: "미리보기 가능",
           title: "팬 전용 브이로그 공간 미리보기",
           unlockIncludes: "결제 후 열림",
           unlockedCount: "열람 가능",
@@ -2916,10 +2923,10 @@ function FanletterFanOnlyPreview({
           availableActionTitle: "Fan-only entry",
           availableBody:
             "Fan-only and paid vlogs from this character are grouped here. Opening a card continues into the FanLetter detail flow for preview, access verification, and the next fan request.",
-          availableCta: "Open first fan-only vlog",
+          availableCta: "Preview featured teaser",
           availableEyebrow: "Fan-only library",
           availableNote:
-            "Locked cards open preview and unlock, while purchased cards are marked as ready to watch.",
+            "Preview featured teasers first, then unlock only the locked vlogs you want.",
           availableTitle: "Fan-only vlog collection",
           basePrice: "Base price",
           body: "Fan-only requests can flow directly into paid vlog candidates. Leave the scene you want to see and the creator can review it in Studio, then publish it as a 1 USDT locked vlog.",
@@ -2940,8 +2947,10 @@ function FanletterFanOnlyPreview({
           fanOnlyCount: "Fan-only",
           locked: "Requestable",
           lockedAccess: "Locked content",
+          moreCta: (count: string) => `View ${count} more fan-only`,
           note:
             "Tap a card to prepare the request text automatically. Fans can request in one step, while creators manage the same idea as a production candidate.",
+          ownerManageable: "Manageable",
           ownerAvailableBody:
             "Review this character's fan-only paid vlogs from the channel view, then manage visibility and sales from Studio.",
           ownerAvailableCta: "Manage fan-only",
@@ -2962,6 +2971,7 @@ function FanletterFanOnlyPreview({
           requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
           teaserTitle: "Public teaser",
+          teaserCount: "Previewable",
           title: "Fan-only vlog space preview",
           unlockIncludes: "Unlocks after payment",
           unlockedCount: "Unlocked",
@@ -3035,20 +3045,29 @@ function FanletterFanOnlyPreview({
     const unlockedFanOnlyContentCount = isOwner
       ? fanOnlyContentCount
       : items.filter((item) => item.canViewerAccess).length;
+    const accessStat =
+      isOwner || unlockedFanOnlyContentCount > 0
+        ? {
+            label: isOwner ? labels.ownerManageable : labels.unlockedCount,
+            value: formatNumber(unlockedFanOnlyContentCount, locale),
+          }
+        : {
+            label: labels.teaserCount,
+            value: formatNumber(fanOnlyContentCount, locale),
+          };
     const fanOnlyStats = [
       {
         label: labels.fanOnlyCount,
         value: formatNumber(fanOnlyContentCount, locale),
       },
-      {
-        label: labels.unlockedCount,
-        value: formatNumber(unlockedFanOnlyContentCount, locale),
-      },
+      accessStat,
       {
         label: labels.basePrice,
         value: `${items[0]?.priceUsdt ?? "1"} USDT`,
       },
     ];
+    const featuredFanOnlyItems = items.slice(0, 9);
+    const remainingFanOnlyItems = items.slice(9);
 
     return (
       <section className="mb-8 scroll-mt-36 sm:scroll-mt-24" id="fan-only">
@@ -3121,7 +3140,7 @@ function FanletterFanOnlyPreview({
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => {
+            {featuredFanOnlyItems.map((item, itemIndex) => {
               const href = buildFanOnlyContentHref(item);
               const publishedAt = formatDate(item.publishedAt, locale);
               const displaySummary = getDisplayContentSummary(item, locale);
@@ -3192,6 +3211,7 @@ function FanletterFanOnlyPreview({
                             : "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                         }
                         fill
+                        loading={itemIndex === 0 ? "eager" : undefined}
                         sizes="(max-width: 640px) 100vw, 32vw"
                         src={item.coverImageUrl}
                       />
@@ -3288,6 +3308,49 @@ function FanletterFanOnlyPreview({
               );
             })}
           </div>
+
+          {remainingFanOnlyItems.length > 0 ? (
+            <details className="group mt-4 rounded-lg border border-white/10 bg-white/[0.045] p-3 text-white">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md px-1 py-1 text-sm font-semibold text-[#b9ffc8] marker:hidden">
+                <span>
+                  {labels.moreCta(
+                    formatNumber(remainingFanOnlyItems.length, locale),
+                  )}
+                </span>
+                <ArrowRight className="size-4 transition group-open:rotate-90" />
+              </summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {remainingFanOnlyItems.map((item) => {
+                  const href = buildFanOnlyContentHref(item);
+                  const displayTitle = getDisplayContentTitle(item, locale);
+                  const hasAccess = isOwner || item.canViewerAccess;
+
+                  return (
+                    <Link
+                      className="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+                      href={href}
+                      key={item.contentId}
+                    >
+                      <div className="min-w-0">
+                        <p className="line-clamp-1 break-words text-sm font-semibold [overflow-wrap:anywhere]">
+                          {displayTitle}
+                        </p>
+                        <p className="mt-1 text-xs font-medium text-white/46">
+                          {hasAccess
+                            ? labels.cardUnlockedAccess
+                            : `${item.priceUsdt ?? "1"} USDT`}
+                        </p>
+                      </div>
+                      <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#b9ffc8]">
+                        {hasAccess ? labels.cardUnlockedCta : labels.cardLockedCta}
+                        <ArrowRight className="size-3.5" />
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </details>
+          ) : null}
         </div>
       </section>
     );
@@ -5816,26 +5879,30 @@ export function FanletterCreatorVlogsPage({
     locale === "ko"
       ? `${labels.allPublicCount}를 볼 수 있는 FanLetter AI 캐릭터 채널입니다.`
       : `A FanLetter AI character channel with ${labels.allPublicCount}.`;
+  const fanOnlyCtaLabel =
+    data.fanOnlyContentCount > 0
+      ? locale === "ko"
+        ? `팬 전용 ${formatNumber(data.fanOnlyContentCount, locale)}개 미리보기`
+        : `Preview ${formatNumber(data.fanOnlyContentCount, locale)} fan-only`
+      : labels.fanOnly;
 
   return (
     <FanletterShell
       actions={
         <>
           <Link
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={fanOnlyPageHref}
+          >
+            <Crown className="size-4" />
+            {fanOnlyCtaLabel}
+          </Link>
+          <Link
             className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
             href={channelHref}
           >
             <ArrowLeft className="size-4" />
             {labels.backToChannel}
-          </Link>
-          <Link
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={fanOnlyPageHref}
-          >
-            <Crown className="size-4" />
-            {data.fanOnlyContentCount > 0
-              ? `${labels.fanOnly} ${formatNumber(data.fanOnlyContentCount, locale)}`
-              : labels.fanOnly}
           </Link>
           <FanletterChannelShareButton
             href={vlogsHref}
@@ -5853,6 +5920,7 @@ export function FanletterCreatorVlogsPage({
           channelAvatarUrl={character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl}
           channelName={channelName}
           character={character}
+          eagerMedia
           fanOnlyContentCount={data.fanOnlyContentCount}
           featuredItem={featuredItem}
           locale={locale}
@@ -5891,9 +5959,7 @@ export function FanletterCreatorVlogsPage({
               href={fanOnlyPageHref}
             >
               <Crown className="size-4" />
-              {data.fanOnlyContentCount > 0
-                ? `${labels.fanOnly} ${formatNumber(data.fanOnlyContentCount, locale)}`
-                : labels.fanOnly}
+              {fanOnlyCtaLabel}
             </Link>
           </div>
 
@@ -6014,7 +6080,7 @@ export function FanletterCreatorFanOnlyPage({
           eyebrow: "FanLetter 팬 전용",
           heroCta:
             data.fanOnlyContentCount > 0
-              ? `1 USDT 팬 전용 ${fanOnlyCountLabel}개 보기`
+              ? `팬 전용 ${fanOnlyCountLabel}개 미리보기`
               : "팬 전용 준비하기",
           paidModel: "유료 전환",
           publicProof: "무료 공개 브이로그로 분위기 확인",
@@ -6024,11 +6090,13 @@ export function FanletterCreatorFanOnlyPage({
           shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 FanLetter 채널입니다.`,
           shareTitle: `${channelName} 팬 전용 브이로그`,
           statFanOnly: "팬 전용",
+          statManageable: "관리 가능",
           statPrice: "기본 가격",
+          statPreviewable: "미리보기 가능",
           statUnlocked: "열람 가능",
           title: `${channelName} 팬 전용 브이로그`,
           trustNote:
-            "이 페이지에서는 티저와 반응 신호만 먼저 보여주고, 전체 영상과 본문은 FanLetter 결제 흐름에서 열립니다.",
+            "이 페이지에서는 티저와 반응 신호를 먼저 확인하고, 마음에 드는 잠금 브이로그를 개별 결제로 열람합니다.",
           unlockBody:
             "티저 이미지, 제목, 짧은 요약으로 분위기를 먼저 확인하고 결제 후 전체 영상, 전체 본문, 추가 미디어를 한 번에 엽니다.",
           unlockTitle: "결제 전 호기심, 결제 후 전체 열람",
@@ -6042,7 +6110,7 @@ export function FanletterCreatorFanOnlyPage({
           eyebrow: "FanLetter fan-only",
           heroCta:
             data.fanOnlyContentCount > 0
-              ? `View ${fanOnlyCountLabel} fan-only vlogs`
+              ? `Preview ${fanOnlyCountLabel} fan-only vlogs`
               : "Prepare fan-only",
           paidModel: "Paid conversion",
           publicProof: "Preview the public vibe first",
@@ -6052,24 +6120,33 @@ export function FanletterCreatorFanOnlyPage({
           shareSummary: `A FanLetter channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
           shareTitle: `${channelName} fan-only vlogs`,
           statFanOnly: "Fan-only",
+          statManageable: "Manageable",
           statPrice: "Base price",
+          statPreviewable: "Previewable",
           statUnlocked: "Unlocked",
           title: `${channelName} fan-only vlogs`,
           trustNote:
-            "This page shows teaser and reaction signals first. The full video and body open only through the FanLetter payment flow.",
+            "This page shows teaser and reaction signals first. Fans unlock each locked vlog through the FanLetter payment flow.",
           unlockBody:
             "Use teaser images, titles, and short summaries to understand the mood first. Payment opens the full video, full body, and extra media.",
           unlockTitle: "Curiosity before payment, full access after",
+        };
+  const accessStat =
+    isOwner || unlockedCount > 0
+      ? {
+          label: isOwner ? labels.statManageable : labels.statUnlocked,
+          value: formatNumber(unlockedCount, locale),
+        }
+      : {
+          label: labels.statPreviewable,
+          value: fanOnlyCountLabel,
         };
   const valueStats = [
     {
       label: labels.statFanOnly,
       value: fanOnlyCountLabel,
     },
-    {
-      label: labels.statUnlocked,
-      value: formatNumber(unlockedCount, locale),
-    },
+    accessStat,
     {
       label: labels.statPrice,
       value: `${firstFanOnlyItem?.priceUsdt ?? "1"} USDT`,
@@ -6081,13 +6158,6 @@ export function FanletterCreatorFanOnlyPage({
       actions={
         <div className="grid w-full max-w-3xl gap-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
-              href={channelHref}
-            >
-              <ArrowLeft className="size-4" />
-              {labels.backToChannel}
-            </Link>
             <Link
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
               href={
@@ -6105,6 +6175,13 @@ export function FanletterCreatorFanOnlyPage({
             >
               <LockKeyhole className="size-4" />
               {labels.heroCta}
+            </Link>
+            <Link
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+              href={channelHref}
+            >
+              <ArrowLeft className="size-4" />
+              {labels.backToChannel}
             </Link>
             <FanletterChannelShareButton
               className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
@@ -6149,6 +6226,7 @@ export function FanletterCreatorFanOnlyPage({
           channelAvatarUrl={character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl}
           channelName={channelName}
           character={character}
+          eagerMedia
           fanOnlyContentCount={data.fanOnlyContentCount}
           featuredItem={firstFanOnlyItem ?? data.items[0] ?? null}
           featuredMode={firstFanOnlyItem ? "fan-only" : "public"}
@@ -6772,6 +6850,7 @@ export function FanletterCreatorPage({
           channelAvatarUrl={channelAvatarUrl}
           channelName={channelName}
           character={character}
+          eagerMedia
           fanOnlyContentCount={data.fanOnlyContentCount}
           featuredItem={featuredItem}
           locale={locale}
