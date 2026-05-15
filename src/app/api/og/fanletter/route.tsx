@@ -327,11 +327,12 @@ export async function GET(request: Request) {
       : truncateText(title, 46);
     const promoTitleBase =
       locale === "ko" ? title.replace(/\s*프로모션\s*$/, "") : title;
-    const promoTitleSuffix =
-      locale === "ko" && promoTitleBase !== title ? "프로모션" : null;
     const promoEyebrow =
       locale === "ko" ? "FanLetter 프로모션" : "FanLetter promotion";
     const promoCta = locale === "ko" ? "무료 브이로그 먼저 보기" : "Watch free vlogs";
+    const compactMetricLabel = metrics
+      .map((metric) => `${metric.value} ${metric.label}`)
+      .join(" · ");
 
     return new ImageResponse(
       (
@@ -392,9 +393,9 @@ export async function GET(request: Request) {
           <div
             style={{
               display: "flex",
-              gap: 42,
+              gap: 28,
               height: "100%",
-              padding: 42,
+              padding: 32,
               position: "relative",
               width: "100%",
             }}
@@ -402,11 +403,12 @@ export async function GET(request: Request) {
             <div
               style={{
                 display: "flex",
-                flex: 1,
+                flex: "none",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 minWidth: 0,
                 padding: "4px 0",
+                width: 418,
               }}
             >
               <div
@@ -474,8 +476,8 @@ export async function GET(request: Request) {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 18,
-                  maxWidth: 650,
+                  gap: 16,
+                  maxWidth: 410,
                 }}
               >
                 <div
@@ -509,38 +511,26 @@ export async function GET(request: Request) {
                     <div
                       style={{
                         display: "flex",
-                        fontSize: 72,
+                        fontSize: 50,
                         fontWeight: 900,
-                        lineHeight: 0.98,
-                        maxWidth: 690,
+                        lineHeight: 1.02,
+                        maxWidth: 410,
                       }}
                     >
                       {promoTitleBase}
                     </div>
-                    {promoTitleSuffix ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          fontSize: 72,
-                          fontWeight: 900,
-                          lineHeight: 0.98,
-                        }}
-                      >
-                        {promoTitleSuffix}
-                      </div>
-                    ) : null}
                   </div>
                   <div
                     style={{
-                      color: "rgba(255,255,255,0.72)",
+                      color: "rgba(255,255,255,0.62)",
                       display: "flex",
-                      fontSize: 27,
+                      fontSize: 20,
                       fontWeight: 800,
-                      lineHeight: 1.24,
-                      maxWidth: 640,
+                      lineHeight: 1.2,
+                      maxWidth: 400,
                     }}
                   >
-                    {description}
+                    {compactMetricLabel}
                   </div>
                 </div>
                 <div
@@ -583,53 +573,9 @@ export async function GET(request: Request) {
               <div
                 style={{
                   display: "flex",
-                  gap: 12,
+                  height: 54,
                 }}
-              >
-                {metrics.map((metric, index) => (
-                  <div
-                    key={metric.label}
-                    style={{
-                      background:
-                        index === 0 ? "#44f26e" : "rgba(255,255,255,0.9)",
-                      border:
-                        index === 0
-                          ? "1px solid rgba(68,242,110,0.86)"
-                          : "1px solid rgba(255,255,255,0.18)",
-                      borderRadius: 22,
-                      color: "#07100b",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 7,
-                      minWidth: 132,
-                      padding: "16px 18px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        color:
-                          index === 0 ? "#07100b" : "rgba(7,16,11,0.62)",
-                        display: "flex",
-                        fontSize: 14,
-                        fontWeight: 900,
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      {metric.label}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        fontSize: 38,
-                        fontWeight: 900,
-                        lineHeight: 0.95,
-                      }}
-                    >
-                      {metric.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              />
             </div>
 
             <div
@@ -639,17 +585,17 @@ export async function GET(request: Request) {
                 borderRadius: 34,
                 boxShadow: "0 28px 96px rgba(0,0,0,0.42)",
                 display: "flex",
-                height: 546,
+                height: 566,
                 overflow: "hidden",
                 padding: 12,
                 position: "relative",
-                width: 390,
+                width: 690,
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
               <img
                 alt=""
-                height="546"
+                height="566"
                 src={visualUrl}
                 style={{
                   borderRadius: 24,
@@ -660,7 +606,7 @@ export async function GET(request: Request) {
                   position: "absolute",
                   width: "100%",
                 }}
-                width="390"
+                width="690"
               />
               <div
                 style={{
@@ -673,7 +619,7 @@ export async function GET(request: Request) {
               {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
               <img
                 alt=""
-                height="522"
+                height="542"
                 src={visualUrl}
                 style={{
                   borderRadius: 24,
@@ -683,7 +629,7 @@ export async function GET(request: Request) {
                   position: "relative",
                   width: "100%",
                 }}
-                width="366"
+                width="666"
               />
               <div
                 style={{
@@ -723,7 +669,7 @@ export async function GET(request: Request) {
                   style={{
                     color: "white",
                     display: "flex",
-                    fontSize: 27,
+                    fontSize: 34,
                     fontWeight: 900,
                     lineHeight: 1.05,
                   }}
