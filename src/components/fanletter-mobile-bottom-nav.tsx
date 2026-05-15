@@ -9,7 +9,7 @@ import {
   Plus,
   UserRound,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useSyncExternalStore, type ComponentType } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -27,6 +27,18 @@ type FanletterNavItem = {
 
 const fanletterMobileNavHeightClass =
   "h-[calc(5.1rem+env(safe-area-inset-bottom))]";
+
+function subscribeToHydration() {
+  return () => {};
+}
+
+function getClientHydrationSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
 
 function trimTrailingSlash(pathname: string) {
   if (pathname.length <= 1) {
@@ -63,14 +75,21 @@ function readCreatorReferralCodeFromPathname(pathname: string, basePath: string)
 }
 
 export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
+  const hasHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const pathname = trimTrailingSlash(usePathname());
   const searchParams = useSearchParams();
   const basePath = `/${locale}/fanletter`;
   const isFocusedStudioFlow =
     pathname === `${basePath}/studio/paid-upload` ||
     pathname.startsWith(`${basePath}/studio/paid-upload/`);
+  const isPromotionalShareFlow =
+    pathname === `${basePath}/share` || pathname.startsWith(`${basePath}/share/`);
 
-  if (isFocusedStudioFlow) {
+  if (hasHydrated && (isFocusedStudioFlow || isPromotionalShareFlow)) {
     return null;
   }
 

@@ -66,6 +66,7 @@ import type {
   FanletterPublicContentItem,
   FanletterPublicFanRequestPreview,
 } from "@/lib/fanletter-content-service";
+import type { FanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
 import type { Locale } from "@/lib/i18n";
 import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
 import {
@@ -6839,9 +6840,15 @@ export function FanletterCreatorPage({
             className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
             href={channelHref}
             locale={locale}
+            promotionalShare={{
+              creatorReferralCode: data.profile.referralCode,
+              sponsorSlug: "fanvue",
+            }}
             referralCode={effectiveReferralCode}
+            shareIdScope="fanpromo"
             summary={channelShareSummary}
             title={channelShareTitle}
+            trackingSource="fanletter-creator-promo-share"
           />
         </>
       }
@@ -7126,6 +7133,382 @@ export function FanletterCreatorPage({
         </div>
       </section>
     </FanletterShell>
+  );
+}
+
+export function FanletterCreatorPromoSharePage({
+  data,
+  locale,
+  referralCode,
+  shareId,
+  sponsor,
+}: {
+  data: FanletterCreatorPageData;
+  locale: Locale;
+  referralCode: string | null;
+  shareId: string;
+  sponsor: FanletterPromoSponsor;
+}) {
+  const copy = getCopy(locale);
+  const effectiveReferralCode = referralCode ?? data.profile.referralCode;
+  const character = data.profile.character;
+  const channelName = character?.name ?? data.profile.displayName;
+  const channelSummary = character?.summary || data.profile.intro;
+  const publicItems = data.items.slice(0, 4);
+  const fanOnlyItems = data.fanOnlyItems.slice(0, 3);
+  const featuredItem = publicItems[0] ?? null;
+  const heroImageUrl =
+    featuredItem?.coverImageUrl ??
+    character?.avatarImageSet[0]?.url ??
+    data.profile.avatarImageUrl;
+  const channelHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const publicVlogsHref = getCreatorVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
+  const fanOnlyHref = getCreatorFanOnlyHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
+  const shareHref = setPathSearchParams(
+    `/${locale}/fanletter/share/${shareId}`,
+    {
+      creator: data.profile.referralCode,
+      ref: effectiveReferralCode,
+      sponsor: sponsor.slug,
+    },
+  );
+  const levelLabel = character ? `Lv.${character.growth.level}` : "FanLetter";
+  const sponsorCtaLabel =
+    locale === "ko" ? sponsor.ctaLabel : `Explore ${sponsor.name}`;
+  const sponsorDescription =
+    locale === "ko"
+      ? sponsor.description
+      : "A global platform for AI creators and fan community trends.";
+  const labels =
+    locale === "ko"
+      ? {
+          channel: "채널 바로가기",
+          creatorBadge: "SNS 공유 전용",
+          description: `${channelName}의 무료 공개 브이로그와 팬 전용 티저를 한 화면에서 먼저 확인하세요.`,
+          fanOnly: "팬 전용",
+          fanOnlyBody:
+            "잠금 콘텐츠는 티저와 가격 신호만 먼저 보여주고, 결제 후 전체 영상과 본문이 열립니다.",
+          fanOnlyEmpty: "팬 전용 콘텐츠가 준비되면 이 영역에서 먼저 노출됩니다.",
+          fanOnlyTitle: "팬 전용 티저",
+          free: "무료 공개",
+          heroCta: "무료 브이로그 보기",
+          locked: "잠금 티저",
+          partner: "추천 파트너",
+          partnerBody:
+            "이 공유 페이지는 캠페인별 스폰서 영역을 포함합니다. 지금은 Fanvue를 기본 파트너로 연결합니다.",
+          partnerTitle: `${sponsor.name}에서 AI 크리에이터 트렌드 보기`,
+          publicEmpty: "공개 브이로그가 준비되면 이 공유 페이지에서 먼저 볼 수 있습니다.",
+          publicTitle: "먼저 볼 공개 브이로그",
+          secondaryCta: "팬 전용 티저 보기",
+          shareCode: "공유 코드",
+          title: `${channelName} AI 브이로그 채널`,
+        }
+      : {
+          channel: "Open channel",
+          creatorBadge: "SNS share edition",
+          description: `Preview ${channelName}'s free public vlogs and fan-only teasers from one promotional page.`,
+          fanOnly: "Fan-only",
+          fanOnlyBody:
+            "Locked posts show teaser and price signals first. Full video and body open after payment.",
+          fanOnlyEmpty: "Fan-only content will appear here when it is ready.",
+          fanOnlyTitle: "Fan-only teasers",
+          free: "Free public",
+          heroCta: "Watch free vlogs",
+          locked: "Locked teaser",
+          partner: "Recommended partner",
+          partnerBody:
+            "This share page includes a campaign sponsor area. Fanvue is connected as the default partner.",
+          partnerTitle: `See AI creator trends on ${sponsor.name}`,
+          publicEmpty: "Public vlogs will appear here first when ready.",
+          publicTitle: "Start with public vlogs",
+          secondaryCta: "View fan-only teasers",
+          shareCode: "Share code",
+          title: `${channelName} AI vlog channel`,
+        };
+  const heroStats = [
+    {
+      label: copy.creator.publicPosts,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      label: labels.fanOnly,
+      value: formatNumber(data.fanOnlyContentCount, locale),
+    },
+    {
+      label: copy.creator.stage,
+      value: levelLabel,
+    },
+  ];
+
+  return (
+    <main className="min-h-screen bg-[#050806] text-white">
+      <section className="relative min-h-[calc(100vh-1rem)] overflow-hidden">
+        {featuredItem?.primaryVideoUrl ? (
+          <FanletterAutoplayVideo
+            ariaHidden
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.58]"
+            poster={featuredItem.coverImageUrl ?? undefined}
+            src={featuredItem.primaryVideoUrl}
+          />
+        ) : heroImageUrl ? (
+          <Image
+            alt={channelName}
+            className="object-cover opacity-[0.62]"
+            fill
+            priority
+            sizes="100vw"
+            src={heroImageUrl}
+          />
+        ) : null}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.62)_48%,rgba(0,0,0,0.28)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,#050806_100%)]" />
+
+        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-1rem)] max-w-[92rem] flex-col px-4 py-5 sm:px-6 lg:px-8">
+          <header className="flex items-center justify-between gap-3">
+            <Link
+              className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-black/24 px-3 py-2 text-sm font-semibold !text-white backdrop-blur"
+              href={channelHref}
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-[#44f26e] text-black">
+                F
+              </span>
+              FanLetter
+            </Link>
+            <a
+              className="hidden h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-sm font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/18 sm:inline-flex"
+              href={sponsor.href}
+              rel="sponsored noopener noreferrer"
+              target="_blank"
+            >
+              {sponsor.name}
+              <ArrowRight className="size-4" />
+            </a>
+          </header>
+
+          <div className="flex flex-1 items-end pb-12 pt-20 sm:pb-16 lg:pt-24">
+            <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+              <div className="max-w-4xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black">
+                    {labels.creatorBadge}
+                  </span>
+                  <span className="inline-flex rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/78">
+                    {labels.shareCode} {shareId.slice(-8).toUpperCase()}
+                  </span>
+                </div>
+                <h1 className="mt-5 max-w-4xl break-words text-[2.75rem] font-semibold leading-[0.98] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[5.4rem] lg:text-[6.4rem]">
+                  {labels.title}
+                </h1>
+                <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/74 sm:text-xl sm:leading-9">
+                  {labels.description}
+                </p>
+                <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/52 sm:text-base sm:leading-7">
+                  {channelSummary}
+                </p>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.24)] transition hover:bg-[#64ff84]"
+                    href={publicVlogsHref}
+                  >
+                    <Video className="size-4" />
+                    {labels.heroCta}
+                  </Link>
+                  <Link
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white backdrop-blur transition hover:bg-white/12"
+                    href={fanOnlyHref}
+                  >
+                    <LockKeyhole className="size-4" />
+                    {labels.secondaryCta}
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+                {heroStats.map((stat) => (
+                  <div
+                    className="rounded-lg border border-white/12 bg-black/28 p-3 backdrop-blur sm:p-4"
+                    key={stat.label}
+                  >
+                    <p className="text-2xl font-semibold leading-none text-white sm:text-3xl">
+                      {stat.value}
+                    </p>
+                    <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/46 sm:text-[0.64rem]">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <FanletterScrollReveal>
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                  {labels.free}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
+                  {labels.publicTitle}
+                </h2>
+              </div>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                href={channelHref}
+              >
+                {labels.channel}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </FanletterScrollReveal>
+
+          <ContentGrid
+            authorNameOverride={channelName}
+            contentActionLabel={copy.actions.openContent}
+            empty={labels.publicEmpty}
+            emptyActionHref={channelHref}
+            emptyActionLabel={labels.channel}
+            items={publicItems}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+            revealItems
+            returnToHref={shareHref}
+            showVideoPreview
+          />
+        </div>
+      </section>
+
+      <section className="bg-[#07100b] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <FanletterScrollReveal>
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                  {labels.fanOnly}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
+                  {labels.fanOnlyTitle}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-white/58">
+                  {labels.fanOnlyBody}
+                </p>
+              </div>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={fanOnlyHref}
+              >
+                {labels.secondaryCta}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </FanletterScrollReveal>
+
+          {fanOnlyItems.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-3">
+              {fanOnlyItems.map((item, index) => {
+                const href = getContentHref({
+                  item,
+                  locale,
+                  referralCode: effectiveReferralCode,
+                  returnToHref: shareHref,
+                });
+                const title = getDisplayContentTitle(item, locale);
+
+                return (
+                  <FanletterScrollReveal
+                    as="article"
+                    className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.055]"
+                    delayMs={index * 80}
+                    key={item.contentId}
+                  >
+                    <Link className="group block" href={href}>
+                      <div className="relative aspect-[4/5] overflow-hidden bg-black">
+                        {item.coverImageUrl ? (
+                          <Image
+                            alt={title}
+                            className="scale-105 object-cover blur-[5px] transition duration-500 group-hover:scale-110"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 32vw"
+                            src={item.coverImageUrl}
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center bg-[#102016]">
+                            <LockKeyhole className="size-10 text-[#44f26e]" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.72)_100%)]" />
+                        <div className="absolute inset-x-0 bottom-0 p-4">
+                          <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
+                            {labels.locked}
+                          </span>
+                          <h3 className="mt-3 line-clamp-2 break-words text-2xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
+                            {title}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/64">
+                            {getDisplayPaidTeaser(item, locale)}
+                          </p>
+                          <p className="mt-3 text-sm font-semibold text-[#b9ffc8]">
+                            {item.priceUsdt ?? "1"} USDT
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </FanletterScrollReveal>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-white/10 bg-white/[0.055] p-6 text-sm font-semibold text-white/58">
+              {labels.fanOnlyEmpty}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="bg-[#050806] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
+        <FanletterScrollReveal className="mx-auto max-w-[92rem]">
+          <div className="grid gap-6 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#9bffad]">
+                {labels.partner}
+              </p>
+              <h2 className="mt-3 max-w-3xl text-2xl font-semibold tracking-normal sm:text-3xl">
+                {labels.partnerTitle}
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/62">
+                {labels.partnerBody}
+              </p>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/46">
+                {sponsorDescription}
+              </p>
+            </div>
+            <a
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-[#e8ffee]"
+              href={sponsor.href}
+              rel="sponsored noopener noreferrer"
+              target="_blank"
+            >
+              {sponsorCtaLabel}
+              <ArrowRight className="size-4" />
+            </a>
+          </div>
+        </FanletterScrollReveal>
+      </section>
+    </main>
   );
 }
 

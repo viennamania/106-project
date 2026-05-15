@@ -13,10 +13,16 @@ import {
 
 type ShareState = "copied" | "error" | "idle" | "sharing";
 
+type FanletterPromotionalShareConfig = {
+  creatorReferralCode: string;
+  sponsorSlug?: string;
+};
+
 type FanletterChannelShareButtonProps = {
   className?: string;
   href: string;
   locale: Locale;
+  promotionalShare?: FanletterPromotionalShareConfig;
   referralCode: string | null;
   shareIdScope?: string;
   summary: string;
@@ -57,10 +63,40 @@ async function copyToClipboard(value: string) {
   document.body.removeChild(textarea);
 }
 
+function buildPromotionalShareUrl({
+  locale,
+  promotionalShare,
+  referralCode,
+  shareId,
+}: {
+  locale: Locale;
+  promotionalShare: FanletterPromotionalShareConfig;
+  referralCode: string | null;
+  shareId: string;
+}) {
+  const url = new URL(
+    `/${locale}/fanletter/share/${encodeURIComponent(shareId)}`,
+    window.location.origin,
+  );
+
+  url.searchParams.set("creator", promotionalShare.creatorReferralCode);
+
+  if (referralCode) {
+    url.searchParams.set("ref", referralCode);
+  }
+
+  if (promotionalShare.sponsorSlug) {
+    url.searchParams.set("sponsor", promotionalShare.sponsorSlug);
+  }
+
+  return url.toString();
+}
+
 export function FanletterChannelShareButton({
   className,
   href,
   locale,
+  promotionalShare,
   referralCode,
   shareIdScope = "channel",
   summary,
@@ -87,11 +123,20 @@ export function FanletterChannelShareButton({
   const handleShare = useCallback(async () => {
     const nextShareId = createShareId(shareIdScope);
     const absoluteHref = new URL(href, window.location.origin).toString();
-    const shareUrl = setShareIdOnHref(absoluteHref, nextShareId);
+    const shareUrl = promotionalShare
+      ? buildPromotionalShareUrl({
+          locale,
+          promotionalShare,
+          referralCode,
+          shareId: nextShareId,
+        })
+      : setShareIdOnHref(absoluteHref, nextShareId);
 
     trackFunnelEvent("share_click", {
       metadata: {
+        promotionalShare: Boolean(promotionalShare),
         source: trackingSource,
+        sponsorSlug: promotionalShare?.sponsorSlug ?? null,
       },
       referralCode,
       shareId: nextShareId,
@@ -128,7 +173,16 @@ export function FanletterChannelShareButton({
     } catch {
       setState("error");
     }
-  }, [href, referralCode, shareIdScope, summary, title, trackingSource]);
+  }, [
+    href,
+    locale,
+    promotionalShare,
+    referralCode,
+    shareIdScope,
+    summary,
+    title,
+    trackingSource,
+  ]);
 
   const label =
     state === "copied"
