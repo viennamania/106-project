@@ -70,7 +70,7 @@ export function FanletterMobileHeroCarousel({
       <video
         aria-hidden="true"
         autoPlay
-        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-100 saturate-[1.12]"
+        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-80 brightness-[0.82] saturate-[1.05]"
         key={activeSlide.videoUrl}
         loop
         muted

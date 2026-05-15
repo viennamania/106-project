@@ -16,15 +16,15 @@ function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고 팬 피드와 유료 콘텐츠로 연결하는 FanLetter 창작자 플랫폼입니다.",
-      title: "FanLetter | AI 캐릭터 브이로그 창작자 플랫폼",
+        "팬 요청으로 성장하는 AI 캐릭터 브이로그를 만들고, 팬 전용 콘텐츠 수익을 참여 보상과 공유 모델로 확장하는 FanLetter 플랫폼입니다.",
+      title: "FanLetter | 팬이 키우는 AI 캐릭터 성장 플랫폼",
     };
   }
 
   return {
     description:
-      "FanLetter helps creators make short-form vlogs with a fixed AI character and connect them to fan feeds and paid content without showing their real face.",
-    title: "FanLetter | AI character vlogger platform",
+      "FanLetter helps creators grow AI character vlogs through fan requests, then expand fan-only content revenue into participation rewards and sharing models.",
+    title: "FanLetter | Fan-powered AI character growth platform",
   };
 }
 
@@ -47,7 +47,7 @@ export async function generateMetadata({
     referralCode,
     title: meta.title,
     variant: "home",
-    version: "fanletter-home-v3",
+    version: "fanletter-home-v4",
   });
   const ogImage = {
     alt: getFanletterOgAlt(locale, "home"),

@@ -73,6 +73,17 @@ type FanletterCopy = {
   footer: {
     title: string;
   };
+  growthModel: {
+    body: string;
+    disclaimer: string;
+    eyebrow: string;
+    items: Array<{
+      description: string;
+      title: string;
+      value: string;
+    }>;
+    title: string;
+  };
   hero: {
     eyebrow: string;
     title: string;
@@ -154,28 +165,28 @@ type FanletterCopy = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "원클릭 AI 캐릭터 브이로그 시작",
-    prize: "계정 연결부터 첫 브이로그까지",
+    label: "팬이 키우는 AI 캐릭터 성장 모델",
+    prize: "콘텐츠 수익을 팬 참여와 연결",
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
-    creator: "캐릭터 만들기",
+    creator: "캐릭터 채널 시작",
     fan: "브이로그 피드 보기",
     login: "계정 연결",
     studio: "브이로그 스튜디오",
   },
   creatorWall: {
     count: "201,548",
-    label: "AI 캐릭터 채널 활동 지표",
+    label: "팬이 만든 AI 캐릭터 성장 신호",
   },
   economy: {
-    body: "캐릭터 만들기, 숏폼 브이로그 생성, 공개 피드, 유료 커뮤니티 흐름을 하나의 모바일 창작 흐름으로 연결합니다.",
+    body: "팬의 요청과 결제 신호를 캐릭터 성장 데이터로 쌓고, 팬 전용 콘텐츠 수익을 참여 보상과 공유 모델로 확장합니다.",
     cta: "캐릭터 만들기",
-    title: "AI 캐릭터 브이로그 채널을 더 빠르게 시작하세요.",
+    title: "팬이 키우고 함께 벌어가는 AI 캐릭터 경제.",
   },
   faq: [
     {
-      answer: "FanLetter는 얼굴 공개 없이 같은 AI 캐릭터와 대표 아바타로 숏폼 브이로그 채널을 만들고 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
+      answer: "FanLetter는 얼굴 공개 없이 같은 AI 캐릭터와 대표 아바타로 숏폼 브이로그 채널을 만들고, 팬 요청과 유료 콘텐츠 수익 흐름으로 캐릭터를 성장시키는 창작자 플랫폼입니다.",
       question: "FanLetter는 무엇인가요?",
     },
     {
@@ -183,7 +194,7 @@ const koCopy: FanletterCopy = {
       question: "누가 사용할 수 있나요?",
     },
     {
-      answer: "브이로그 스튜디오에서 오늘의 숏폼 브이로그를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다.",
+      answer: "브이로그 스튜디오에서 오늘의 숏폼 브이로그를 만들고, 공개 범위와 가격을 정해 팬 피드와 판매 흐름으로 연결합니다. 팬 전용 매출은 정책 조건에 따라 참여 보상과 수익 공유 모델로 확장할 수 있습니다.",
       question: "브이로그는 어떻게 수익화하나요?",
     },
     {
@@ -197,7 +208,7 @@ const koCopy: FanletterCopy = {
     items: [
       {
         badge: "새 기능",
-        description: "얼굴 공개 없이 운영할 고정 AI 캐릭터와 아바타를 먼저 만듭니다.",
+        description: "팬이 응원하고 성장시킬 고정 AI 캐릭터와 대표 아바타를 먼저 만듭니다.",
         title: "AI 캐릭터 만들기",
       },
       {
@@ -206,12 +217,12 @@ const koCopy: FanletterCopy = {
         title: "숏폼 브이로그 생성",
       },
       {
-        description: "공개 브이로그, 유료 브이로그, 저장과 공유 흐름을 하나의 캐릭터 피드로 운영합니다.",
+        description: "요청, 댓글, 저장, 공유, 구매 신호를 하나의 캐릭터 피드에 기록해 성장 단계로 보여줍니다.",
         title: "캐릭터 피드",
       },
       {
-        description: "Fanvue, Patreon 같은 유료 커뮤니티로 확장할 수 있는 팬 관계를 쌓습니다.",
-        title: "유료 커뮤니티 확장",
+        description: "팬 전용 콘텐츠 매출을 참여 팬의 보상과 공유 구조로 확장할 수 있게 설계합니다.",
+        title: "팬 참여 수익 모델",
       },
       {
         description: "브랜드 마스코트, 웹툰, 게임, 버추얼 아이돌 IP를 캐릭터 브이로그로 확장합니다.",
@@ -220,13 +231,38 @@ const koCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "얼굴 없이 시작하는 AI 캐릭터 브이로그 채널.",
+    title: "팬이 키우고 함께 벌어가는 AI 캐릭터 채널.",
+  },
+  growthModel: {
+    body:
+      "팬은 다음 장면을 요청하고, 응원 메시지를 남기고, 팬 전용 콘텐츠를 잠금 해제합니다. 이 신호가 캐릭터의 성장 단계와 다음 콘텐츠 방향이 되고, 매출은 팬 참여 보상과 공유 모델로 확장됩니다.",
+    disclaimer:
+      "수익 공유와 보상은 실제 운영 정책, 정산 조건, 참여 기준에 따라 제공되며 특정 수익을 보장하지 않습니다.",
+    eyebrow: "팬 참여 성장 모델",
+    items: [
+      {
+        description: "댓글, 응원 메시지, 다음 장면 요청이 캐릭터의 성격과 콘텐츠 방향을 더 선명하게 만듭니다.",
+        title: "팬이 방향을 만듭니다",
+        value: "01",
+      },
+      {
+        description: "저장, 공유, 구매 같은 행동 신호를 성장 단계와 다음 미션으로 연결해 캐릭터의 활동 기록을 쌓습니다.",
+        title: "캐릭터가 성장합니다",
+        value: "02",
+      },
+      {
+        description: "팬 전용 콘텐츠 수익은 참여 팬에게 돌아가는 보상과 공유 구조로 확장할 수 있습니다.",
+        title: "수익 흐름을 나눕니다",
+        value: "03",
+      },
+    ],
+    title: "AI 캐릭터는 팬에 의해 성장하고, 벌어들인 수익은 팬과 함께 커집니다.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "누구나 AI 캐릭터 브이로그 채널을 만들 수 있습니다.",
+    title: "팬이 키우고 함께 벌어가는 AI 캐릭터 채널.",
     description:
-      "FanLetter는 얼굴 공개 없이 고정 AI 캐릭터로 숏폼 브이로그를 만들고, 팬 피드와 유료 콘텐츠로 연결하는 창작자 플랫폼입니다.",
+      "팬의 요청, 댓글, 저장, 결제 신호가 AI 캐릭터의 성장 단계와 다음 장면을 만들고, 팬 전용 콘텐츠 수익은 참여 팬과 공유되는 성장 모델로 확장됩니다.",
   },
   liveStats: {
     content: "공개 브이로그",
@@ -251,7 +287,7 @@ const koCopy: FanletterCopy = {
   },
   paidSpotlight: {
     badge: "팬 전용 · 1 USDT",
-    body: "무료 공개 브이로그로 캐릭터 분위기를 확인한 뒤, 더 가까운 루틴과 답장 장면은 팬 전용에서 잠금 해제합니다.",
+    body: "무료 공개 브이로그로 캐릭터 분위기를 확인한 뒤, 더 가까운 루틴과 답장 장면은 팬 전용에서 잠금 해제합니다. 결제와 반응은 캐릭터 성장 신호와 팬 보상 흐름으로 이어집니다.",
     buyerMetric: "구매",
     commentMetric: "댓글",
     cta: "잠금 브이로그 보기",
@@ -267,7 +303,7 @@ const koCopy: FanletterCopy = {
     previewLabel: "공개 티저",
     purchaseLibrary: "구매함 보기",
     railBody:
-      "공개 브이로그로 캐릭터 분위기를 확인한 뒤, 팬 답장과 비공개 루틴이 담긴 유료 브이로그를 이어서 확인하세요.",
+      "공개 브이로그로 캐릭터 분위기를 확인한 뒤, 팬 답장과 비공개 루틴이 담긴 유료 브이로그를 이어서 확인하세요. 팬의 잠금 해제는 캐릭터 성장과 보상 흐름의 시작점입니다.",
     railCta: "팬 전용 더 보기",
     railEyebrow: "팬 전용 하이라이트",
     railTitle: "팬 전용으로 더 볼 수 있는 브이로그",
@@ -288,11 +324,11 @@ const koCopy: FanletterCopy = {
     eyebrow: "숏폼 게시 패키지",
   },
   proof: {
-    title: "캐릭터 설정부터 숏폼 브이로그 판매까지",
+    title: "팬 요청부터 캐릭터 성장과 수익 공유까지",
     stats: [
-      { label: "캐릭터 준비", value: "01" },
-      { label: "브이로그 흐름", value: "05" },
-      { label: "모바일 채널", value: "24/7" },
+      { label: "팬 요청", value: "01" },
+      { label: "성장 단계", value: "05" },
+      { label: "수익 흐름", value: "24/7" },
     ],
   },
   targetAudience: {
@@ -309,7 +345,7 @@ const koCopy: FanletterCopy = {
       },
       {
         title: "유료 커뮤니티 크리에이터",
-        description: "Fanvue, Patreon, 유료 팬 커뮤니티로 이어지는 콘텐츠 흐름을 만듭니다.",
+        description: "Fanvue, Patreon, 유료 팬 커뮤니티로 이어지는 수익과 참여 보상 흐름을 만듭니다.",
       },
       {
         title: "브랜드와 소상공인",
@@ -325,8 +361,8 @@ const koCopy: FanletterCopy = {
 
 const enCopy: FanletterCopy = {
   announcement: {
-    label: "AI character vlogger studio is live",
-    prize: "From character setup to short-form vlog",
+    label: "Fan-powered AI character growth model",
+    prize: "Connect content revenue to fan participation",
   },
   brandSuffix: "AI Character Vlogger",
   cta: {
@@ -337,16 +373,16 @@ const enCopy: FanletterCopy = {
   },
   creatorWall: {
     count: "201,548",
-    label: "network touchpoints ready for AI character vlogger channels",
+    label: "fan signals powering AI character growth",
   },
   economy: {
-    body: "Character persona, short-form vlog generation, public feeds, and paid community flows move through one mobile creator workflow.",
+    body: "Fan requests, unlocks, and payment signals become character growth data, while fan-only revenue can expand into participation rewards and sharing models.",
     cta: "Start now",
-    title: "Start an AI character vlog channel faster.",
+    title: "An AI character economy fans help grow and share.",
   },
   faq: [
     {
-      answer: "FanLetter is a creator platform for making short-form vlogs with a fixed AI character, then connecting them to fan feeds and paid content without showing your real face.",
+      answer: "FanLetter is a creator platform for building short-form vlog channels with a fixed AI character, then growing that character through fan requests and paid content revenue flows without showing your real face.",
       question: "What is FanLetter?",
     },
     {
@@ -354,7 +390,7 @@ const enCopy: FanletterCopy = {
       question: "Who is it for?",
     },
     {
-      answer: "Create today's short-form vlog in the studio, choose visibility and pricing, then publish it into the fan feed and sales flow.",
+      answer: "Create today's short-form vlog in the studio, choose visibility and pricing, then publish it into the fan feed and sales flow. Fan-only revenue can expand into participation rewards and sharing models under the service policy.",
       question: "How do vlogs monetise?",
     },
     {
@@ -368,7 +404,7 @@ const enCopy: FanletterCopy = {
     items: [
       {
         badge: "New",
-        description: "Create a fixed AI character and avatar for a channel that does not require showing your real face.",
+        description: "Create a fixed AI character and representative avatar that fans can support and grow over time.",
         title: "AI character setup",
       },
       {
@@ -377,12 +413,12 @@ const enCopy: FanletterCopy = {
         title: "Short-form vlog creation",
       },
       {
-        description: "Run public vlogs, paid vlogs, saves, comments, and shares from one character feed.",
+        description: "Track requests, comments, saves, shares, and unlocks in one character feed so growth is visible.",
         title: "Character feed",
       },
       {
-        description: "Build fan relationships that can expand toward Fanvue, Patreon, and paid communities.",
-        title: "Paid community growth",
+        description: "Design fan-only revenue to expand into participation rewards and sharing models for active fans.",
+        title: "Fan revenue model",
       },
       {
         description: "Turn mascots, webtoon characters, game characters, and virtual idol IP into short-form channels.",
@@ -391,13 +427,38 @@ const enCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "Start an AI character vlog channel without showing your face.",
+    title: "Build an AI character channel fans grow and share.",
+  },
+  growthModel: {
+    body:
+      "Fans request the next scene, leave supportive messages, and unlock fan-only content. Those signals shape the character's growth stage and next content direction, while revenue can expand into fan participation rewards and sharing models.",
+    disclaimer:
+      "Rewards and revenue sharing depend on actual service policy, settlement terms, and participation criteria. No specific income is guaranteed.",
+    eyebrow: "Fan-powered growth model",
+    items: [
+      {
+        description: "Comments, support messages, and next-scene requests make the character identity and content direction sharper.",
+        title: "Fans shape direction",
+        value: "01",
+      },
+      {
+        description: "Saves, shares, and purchases become growth-stage signals and a visible activity record for the character.",
+        title: "The character grows",
+        value: "02",
+      },
+      {
+        description: "Fan-only revenue can expand into rewards and sharing structures for participating fans.",
+        title: "Revenue flow is shared",
+        value: "03",
+      },
+    ],
+    title: "AI characters grow through fans, and the revenue they create can grow with fans.",
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "Anyone can become an AI character vlogger.",
+    title: "An AI character channel fans grow and share.",
     description:
-      "FanLetter helps creators make short-form vlogs with a fixed AI character, then connect them to fan feeds and paid content without showing their real face.",
+      "Fan requests, comments, saves, and unlocks shape the character's growth stage and next scenes, while fan-only content revenue can expand into a shared growth model.",
   },
   liveStats: {
     content: "public vlogs",
@@ -423,7 +484,7 @@ const enCopy: FanletterCopy = {
   paidSpotlight: {
     badge: "Fan-only · 1 USDT",
     body:
-      "Fans can preview the public vibe first, then unlock closer routines and reply scenes from fan-only paid vlogs.",
+      "Fans can preview the public vibe first, then unlock closer routines and reply scenes from fan-only paid vlogs. Unlocks and reactions become growth signals and reward flow inputs.",
     buyerMetric: "buyers",
     commentMetric: "comments",
     cta: "View locked vlogs",
@@ -439,7 +500,7 @@ const enCopy: FanletterCopy = {
     previewLabel: "Public teaser",
     purchaseLibrary: "Purchases",
     railBody:
-      "After the public vlog preview, continue into fan replies and private routines that unlock as paid fan-only vlogs.",
+      "After the public vlog preview, continue into fan replies and private routines that unlock as paid fan-only vlogs. Each unlock starts a growth and reward signal.",
     railCta: "Explore fan-only",
     railEyebrow: "Fan-only highlights",
     railTitle: "Fan-only vlogs to unlock next",
@@ -460,11 +521,11 @@ const enCopy: FanletterCopy = {
     eyebrow: "Short-form posting package",
   },
   proof: {
-    title: "From character setup to short-form vlog sales",
+    title: "From fan requests to character growth and revenue sharing",
     stats: [
-      { label: "character setup", value: "01" },
-      { label: "vlog flow", value: "05" },
-      { label: "mobile channel", value: "24/7" },
+      { label: "fan requests", value: "01" },
+      { label: "growth stage", value: "05" },
+      { label: "revenue flow", value: "24/7" },
     ],
   },
   targetAudience: {
@@ -481,7 +542,7 @@ const enCopy: FanletterCopy = {
       },
       {
         title: "Paid community creators",
-        description: "Build content flows that can connect to Fanvue, Patreon, and paid fan communities.",
+        description: "Build revenue and participation reward flows that can connect to Fanvue, Patreon, and paid fan communities.",
       },
       {
         title: "Brands and small businesses",
@@ -1451,12 +1512,21 @@ export function FanletterHomePage({
             title: "First vlog",
           },
         ];
+  const growthModelItems = copy.growthModel.items.map((item, index) => ({
+    Icon:
+      index === 0
+        ? MessageCircleHeart
+        : index === 1
+          ? ChartNoAxesCombined
+          : BadgeDollarSign,
+    ...item,
+  }));
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="relative min-h-[100svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.46] lg:opacity-[0.18]"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.32] lg:opacity-[0.18]"
           style={{
             backgroundImage: heroVideo?.coverImageUrl
               ? `url(${heroVideo.coverImageUrl})`
@@ -1464,7 +1534,8 @@ export function FanletterHomePage({
           }}
         />
         <FanletterMobileHeroCarousel slides={heroSlides} />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.02)_0%,rgba(3,5,4,0.08)_34%,rgba(3,5,4,0.58)_62%,rgba(3,5,4,0.94)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.68)_0%,rgba(3,5,4,0.48)_30%,rgba(3,5,4,0.66)_58%,rgba(3,5,4,0.95)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.74)_0%,rgba(3,5,4,0.34)_48%,rgba(3,5,4,0.16)_100%)] lg:hidden" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
@@ -1687,6 +1758,69 @@ export function FanletterHomePage({
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      <section className="border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:px-6 sm:py-16 lg:px-8">
+        <div className="mx-auto grid max-w-[92rem] gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center">
+          <ScrollReveal className="max-w-4xl">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
+              {copy.growthModel.eyebrow}
+            </p>
+            <h2 className="mt-4 text-[2.1rem] font-semibold leading-[1.03] tracking-normal [word-break:keep-all] sm:text-[3.5rem]">
+              {copy.growthModel.title}
+            </h2>
+            <p className="mt-5 max-w-3xl text-sm font-medium leading-6 text-white/68 [word-break:keep-all] sm:text-lg sm:leading-8">
+              {copy.growthModel.body}
+            </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <Link
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+                href={creatorHref}
+              >
+                {copy.cta.creator}
+                <ArrowRight className="size-4" />
+              </Link>
+              <a
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                href="#fan-only-paid"
+              >
+                {copy.paidSpotlight.railCta}
+              </a>
+            </div>
+            <p className="mt-5 max-w-2xl rounded-lg border border-white/10 bg-white/[0.05] p-3 text-xs font-medium leading-5 text-white/46">
+              {copy.growthModel.disclaimer}
+            </p>
+          </ScrollReveal>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {growthModelItems.map((item, index) => {
+              const Icon = item.Icon;
+
+              return (
+                <ScrollReveal
+                  className="rounded-lg border border-white/10 bg-white/[0.065] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5"
+                  delay={index * 80}
+                  key={item.title}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                      <Icon className="size-5" />
+                    </span>
+                    <span className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]/78">
+                      {item.value}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+                    {item.description}
+                  </p>
+                </ScrollReveal>
+              );
+            })}
+          </div>
         </div>
       </section>
 
