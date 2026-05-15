@@ -7157,6 +7157,7 @@ export function FanletterCreatorPromoSharePage({
   const publicItems = data.items.slice(0, 4);
   const fanOnlyItems = data.fanOnlyItems.slice(0, 3);
   const featuredItem = publicItems[0] ?? null;
+  const heroVideoUrl = featuredItem?.primaryVideoUrl ?? null;
   const heroImageUrl =
     featuredItem?.coverImageUrl ??
     character?.avatarImageSet[0]?.url ??
@@ -7259,33 +7260,38 @@ export function FanletterCreatorPromoSharePage({
     <main className="min-h-screen bg-[#050806] text-white">
       <section className="relative min-h-[100svh] overflow-hidden">
         {heroImageUrl ? (
-          <>
-            <Image
-              alt={channelName}
-              className="object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
-              fill
-              priority
-              sizes="100vw"
-              src={heroImageUrl}
-            />
-            <div className="absolute inset-y-0 right-0 hidden w-[58%] sm:block">
-              <Image
-                alt=""
-                className="object-contain object-right opacity-[0.86]"
-                fill
-                priority
-                sizes="58vw"
-                src={heroImageUrl}
-              />
-            </div>
-          </>
-        ) : featuredItem?.primaryVideoUrl ? (
+          <Image
+            alt={channelName}
+            className={
+              heroVideoUrl
+                ? "object-cover object-[center_24%] opacity-[0.72] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.44] sm:blur-[3px]"
+                : "object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
+            }
+            fill
+            priority
+            sizes="100vw"
+            src={heroImageUrl}
+          />
+        ) : null}
+        {heroVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className="absolute inset-0 h-full w-full object-cover object-[center_28%] opacity-[0.76]"
+            className="absolute inset-0 h-full w-full object-cover object-[center_24%] opacity-[0.86] sm:object-[center_28%] sm:opacity-[0.76]"
             poster={featuredItem.coverImageUrl ?? undefined}
-            src={featuredItem.primaryVideoUrl}
+            src={heroVideoUrl}
           />
+        ) : null}
+        {!heroVideoUrl && heroImageUrl ? (
+          <div className="absolute inset-y-0 right-0 hidden w-[58%] sm:block">
+            <Image
+              alt=""
+              className="object-contain object-right opacity-[0.86]"
+              fill
+              priority
+              sizes="58vw"
+              src={heroImageUrl}
+            />
+          </div>
         ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.1)_0%,rgba(5,8,6,0.08)_34%,rgba(5,8,6,0.84)_100%)] sm:bg-[linear-gradient(90deg,rgba(0,0,0,0.64)_0%,rgba(0,0,0,0.36)_48%,rgba(0,0,0,0.12)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-[58%] bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.74)_58%,#050806_100%)] sm:h-1/2 sm:bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.78)_100%)]" />
