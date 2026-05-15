@@ -7271,6 +7271,11 @@ export function FanletterCreatorPromoSharePage({
             `${count}회의 유료 콘텐츠 판매량이 팬들이 더 보고 싶은 장면의 신호가 됩니다.`,
           growthPaidHint: "누적 유료 언락",
           growthPaidLabel: "유료 콘텐츠 판매량",
+          growthPaidPendingBody:
+            "첫 유료 언락이 생기면 팬들이 더 보고 싶은 장면의 신호로 이곳에 연결됩니다.",
+          growthPaidPendingHint: "첫 언락 대기",
+          growthPaidPendingLead: "판매 신호 준비 중",
+          growthPaidPendingValue: "준비 중",
           growthProgressLabel: "성장 진행률",
           growthRequestBody: (count: string) =>
             `${count}개의 팬레터 요청이 말투, 상황, 답장 장면을 더 구체적으로 만듭니다.`,
@@ -7343,6 +7348,11 @@ export function FanletterCreatorPromoSharePage({
             `${count} paid content sales show which private scenes fans want to see more of.`,
           growthPaidHint: "Total paid unlocks",
           growthPaidLabel: "Paid content sales",
+          growthPaidPendingBody:
+            "The first paid unlock will connect here as a signal for the scenes fans want more of.",
+          growthPaidPendingHint: "Awaiting first unlock",
+          growthPaidPendingLead: "Sales signal pending",
+          growthPaidPendingValue: "Pending",
           growthProgressLabel: "Growth progress",
           growthRequestBody: (count: string) =>
             `${count} fan letters sharpen the voice, situations, and reply scenes.`,
@@ -7467,6 +7477,16 @@ export function FanletterCreatorPromoSharePage({
   const fanClubMemberCount = data.communityStats.fanClubMemberCount;
   const fanRequestCount =
     character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
+  const hasPaidContentUnlocks = paidContentUnlockCount > 0;
+  const paidContentUnlockLabel = hasPaidContentUnlocks
+    ? formatNumber(paidContentUnlockCount, locale)
+    : labels.growthPaidPendingValue;
+  const paidContentUnlockHint = hasPaidContentUnlocks
+    ? labels.growthPaidHint
+    : labels.growthPaidPendingHint;
+  const paidGrowthBody = hasPaidContentUnlocks
+    ? labels.growthPaidBody(formatNumber(paidContentUnlockCount, locale))
+    : labels.growthPaidPendingBody;
   const growthProgressPercent = Math.max(
     0,
     Math.min(100, character?.growth.progressPercent ?? 0),
@@ -7480,12 +7500,6 @@ export function FanletterCreatorPromoSharePage({
     )
     .slice(0, 3);
   const fanClubStats = [
-    {
-      Icon: LockKeyhole,
-      hint: labels.growthPaidHint,
-      label: labels.growthPaidLabel,
-      value: formatNumber(paidContentUnlockCount, locale),
-    },
     {
       Icon: Crown,
       hint: labels.growthFanClubHint,
@@ -7504,16 +7518,14 @@ export function FanletterCreatorPromoSharePage({
       label: labels.growthLevelLabel,
       value: levelLabel,
     },
-  ];
-  const fanGrowthSignals = [
     {
       Icon: LockKeyhole,
-      body: labels.growthPaidBody(
-        formatNumber(paidContentUnlockCount, locale),
-      ),
+      hint: paidContentUnlockHint,
       label: labels.growthPaidLabel,
-      title: labels.topPaidTitle,
+      value: paidContentUnlockLabel,
     },
+  ];
+  const fanGrowthSignals = [
     {
       Icon: Crown,
       body: labels.growthFanClubBody(formatNumber(fanClubMemberCount, locale)),
@@ -7526,6 +7538,14 @@ export function FanletterCreatorPromoSharePage({
       label: labels.growthRequestLabel,
       title: labels.growthRequestLead,
     },
+    {
+      Icon: LockKeyhole,
+      body: paidGrowthBody,
+      label: labels.growthPaidLabel,
+      title: hasPaidContentUnlocks
+        ? labels.topPaidTitle
+        : labels.growthPaidPendingLead,
+    },
   ];
 
   return (
@@ -7534,7 +7554,7 @@ export function FanletterCreatorPromoSharePage({
         {!heroVideoUrl && heroImageUrl ? (
           <Image
             alt={channelName}
-            className="object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
+            className="object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px] lg:origin-left lg:scale-[1.12] lg:object-[64%_30%]"
             fill
             priority
             sizes="100vw"
@@ -7544,7 +7564,7 @@ export function FanletterCreatorPromoSharePage({
         {heroVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className="absolute inset-0 h-full w-full object-cover object-[center_24%] sm:object-[center_28%]"
+            className="absolute inset-0 h-full w-full origin-left object-cover object-[center_24%] sm:object-[center_28%] lg:scale-[1.1] lg:object-[64%_30%]"
             src={heroVideoUrl}
           />
         ) : null}
@@ -7560,7 +7580,7 @@ export function FanletterCreatorPromoSharePage({
             />
           </div>
         ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.1)_0%,rgba(5,8,6,0.08)_34%,rgba(5,8,6,0.84)_100%)] sm:bg-[linear-gradient(90deg,rgba(0,0,0,0.64)_0%,rgba(0,0,0,0.36)_48%,rgba(0,0,0,0.12)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.1)_0%,rgba(5,8,6,0.08)_34%,rgba(5,8,6,0.84)_100%)] sm:bg-[linear-gradient(90deg,rgba(0,0,0,0.7)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.16)_68%,rgba(0,0,0,0.06)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-[58%] bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.74)_58%,#050806_100%)] sm:h-1/2 sm:bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.78)_100%)]" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-5 sm:px-6 lg:px-8">
@@ -7587,7 +7607,7 @@ export function FanletterCreatorPromoSharePage({
 
           <div className="flex flex-1 items-end pb-7 pt-[42svh] sm:pb-16 sm:pt-24">
             <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end lg:gap-8">
-              <div className="max-w-4xl">
+              <div className="max-w-[42rem] 2xl:max-w-4xl">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black">
                     {labels.creatorBadge}
@@ -7596,7 +7616,7 @@ export function FanletterCreatorPromoSharePage({
                     {labels.shareCode} {shareId.slice(-8).toUpperCase()}
                   </span>
                 </div>
-                <h1 className="mt-4 max-w-4xl break-words text-[3.35rem] font-semibold leading-[0.94] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:mt-5 sm:text-[5.4rem] lg:text-[6.4rem]">
+                <h1 className="mt-4 max-w-[42rem] break-words text-[3.35rem] font-semibold leading-[0.94] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:mt-5 sm:text-[5.4rem] lg:text-[5.2rem] xl:text-[5.4rem] 2xl:max-w-4xl 2xl:text-[6.4rem]">
                   <span className="block sm:hidden">{channelName}</span>
                   <span className="hidden sm:block">{labels.title}</span>
                 </h1>
@@ -7762,7 +7782,7 @@ export function FanletterCreatorPromoSharePage({
                   </div>
                 </div>
 
-                <div className="mt-4 grid auto-cols-[9.5rem] grid-flow-col gap-2.5 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
+                <div className="mt-4 grid auto-cols-[9.5rem] grid-flow-col gap-2.5 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0">
                   {expressionImages.map(({ avatar }, index) => {
                     const expressionLabel = getPromoExpressionLabel({
                       expression: avatar.expression,
@@ -7889,10 +7909,10 @@ export function FanletterCreatorPromoSharePage({
                   {labels.growthBody}
                 </p>
 
-                <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-5 grid grid-cols-2 gap-2 xl:grid-cols-4">
                   {fanClubStats.map(({ Icon, hint, label, value }) => (
                     <div
-                      className="min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                      className="min-h-[7.75rem] min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3"
                       key={label}
                     >
                       <div className="flex items-center justify-between gap-3">
