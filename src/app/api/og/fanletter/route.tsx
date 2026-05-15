@@ -275,6 +275,44 @@ export async function GET(request: Request) {
   const visualName = creatorData
     ? creatorName
     : homeFeaturedVideo?.authorName ?? null;
+  const homeProfileCards = (() => {
+    const cards: Array<{ imageUrl: string; name: string }> = [];
+    const seenImageUrls = new Set<string>();
+    const addCard = (imageUrl: string | null, name: string) => {
+      if (!imageUrl || seenImageUrls.has(imageUrl)) {
+        return;
+      }
+
+      seenImageUrls.add(imageUrl);
+      cards.push({
+        imageUrl,
+        name: name.trim() || "FanLetter",
+      });
+    };
+
+    for (const video of landingData?.featuredVideos ?? []) {
+      addCard(
+        getRenderableImageUrl(video.authorAvatarImageUrl, url.origin),
+        video.authorName,
+      );
+    }
+
+    for (const video of landingData?.featuredPaidVideos ?? []) {
+      addCard(
+        getRenderableImageUrl(video.authorAvatarImageUrl, url.origin),
+        video.authorName,
+      );
+    }
+
+    for (const video of landingData?.featuredVideos ?? []) {
+      addCard(
+        getRenderableImageUrl(video.coverImageUrl, url.origin),
+        video.authorName,
+      );
+    }
+
+    return cards.slice(0, 8);
+  })();
   const title = truncateText(
     creatorData && creatorName
       ? getCreatorOgTitle({
@@ -350,24 +388,57 @@ export async function GET(request: Request) {
       ? ["캐릭터", "숏폼", "팬 전용"]
       : ["Persona", "Vlog", "Fan-only"];
 
-  if (!creatorData && visualUrl && variant === "home") {
-    const homeHeadline =
-      locale === "ko"
-        ? "팬이 키우는\nAI 캐릭터"
-        : "Fan-powered\nAI character";
-    const homeSubline =
-      locale === "ko"
-        ? "브이로그와 팬 전용 티저를 먼저 확인하세요"
-        : "Preview public vlogs and fan-only teasers";
-    const featuredName = truncateText(
-      visualName ?? (locale === "ko" ? "AI 캐릭터" : "AI character"),
-      26,
-    );
-    const featuredTitle = latestTitle
-      ? truncateText(latestTitle, 34)
-      : locale === "ko"
-        ? "대표 브이로그"
-        : "Featured vlog";
+  if (!creatorData && variant === "home" && (homeProfileCards.length > 0 || visualUrl)) {
+    const homeProfiles =
+      homeProfileCards.length > 0
+        ? homeProfileCards
+        : [
+            {
+              imageUrl: visualUrl as string,
+              name: visualName ?? "FanLetter",
+            },
+          ];
+    const homeHeadline = locale === "ko"
+      ? "팬이 키우는\nAI 캐릭터"
+      : "Fan-powered\nAI characters";
+    const getHomeProfile = (index: number) =>
+      homeProfiles[index % homeProfiles.length];
+    const primaryProfile = getHomeProfile(0);
+    const leftProfileCards = [
+      {
+        height: 252,
+        profile: getHomeProfile(1),
+        width: 184,
+      },
+      {
+        height: 252,
+        profile: getHomeProfile(2),
+        width: 184,
+      },
+    ];
+    const rightProfileCards = [
+      {
+        height: 166,
+        profile: getHomeProfile(3),
+        width: 178,
+      },
+      {
+        height: 166,
+        profile: getHomeProfile(4),
+        width: 178,
+      },
+      {
+        height: 166,
+        profile: getHomeProfile(5),
+        width: 178,
+      },
+    ];
+    const bottomProfileCards = [
+      getHomeProfile(6),
+      getHomeProfile(7),
+      getHomeProfile(2),
+      getHomeProfile(4),
+    ];
 
     return new ImageResponse(
       (
@@ -387,12 +458,10 @@ export async function GET(request: Request) {
           <img
             alt=""
             height="630"
-            src={visualUrl}
+            src={primaryProfile.imageUrl}
             style={{
               display: "flex",
-              filter: shouldBlurVisual
-                ? "blur(18px) brightness(0.52) saturate(0.86)"
-                : "blur(18px) brightness(0.64) saturate(1.16)",
+              filter: "blur(20px) brightness(0.54) saturate(1.1)",
               height: "100%",
               objectFit: "cover",
               opacity: 0.96,
@@ -405,7 +474,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(90deg, rgba(3,5,4,0.92) 0%, rgba(3,5,4,0.58) 38%, rgba(3,5,4,0.2) 72%, rgba(3,5,4,0.54) 100%)",
+                "linear-gradient(90deg, rgba(3,5,4,0.95) 0%, rgba(3,5,4,0.74) 35%, rgba(3,5,4,0.28) 72%, rgba(3,5,4,0.5) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -413,7 +482,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(0deg, rgba(3,5,4,0.78) 0%, rgba(3,5,4,0.06) 48%, rgba(3,5,4,0.36) 100%)",
+                "linear-gradient(0deg, rgba(3,5,4,0.76) 0%, rgba(3,5,4,0.03) 50%, rgba(3,5,4,0.32) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -422,9 +491,9 @@ export async function GET(request: Request) {
           <div
             style={{
               display: "flex",
-              gap: 34,
+              gap: 30,
               height: "100%",
-              padding: 30,
+              padding: 32,
               position: "relative",
               width: "100%",
             }}
@@ -434,8 +503,8 @@ export async function GET(request: Request) {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                padding: "12px 0 10px 12px",
-                width: 430,
+                padding: "14px 0 12px 10px",
+                width: 374,
               }}
             >
               <div
@@ -447,7 +516,7 @@ export async function GET(request: Request) {
                   display: "flex",
                   gap: 12,
                   padding: "8px 16px 8px 8px",
-                  width: 250,
+                  width: 234,
                 }}
               >
                 <div
@@ -469,24 +538,10 @@ export async function GET(request: Request) {
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
                   }}
                 >
                   <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
                     FanLetter
-                  </div>
-                  <div
-                    style={{
-                      color: "rgba(255,255,255,0.56)",
-                      display: "flex",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    AI VLOG
                   </div>
                 </div>
               </div>
@@ -495,27 +550,21 @@ export async function GET(request: Request) {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 18,
+                  gap: 24,
                 }}
               >
                 <div
                   style={{
-                    alignSelf: "flex-start",
                     background: "#44f26e",
-                    borderRadius: 999,
-                    color: "#07100b",
                     display: "flex",
-                    fontSize: 18,
-                    fontWeight: 900,
-                    padding: "11px 16px",
+                    height: 8,
+                    width: 86,
                   }}
-                >
-                  {locale === "ko" ? "성장 모델" : "Growth model"}
-                </div>
+                />
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 58,
+                    fontSize: 68,
                     fontWeight: 900,
                     letterSpacing: 0,
                     lineHeight: 0.98,
@@ -524,62 +573,35 @@ export async function GET(request: Request) {
                 >
                   {homeHeadline}
                 </div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.74)",
-                    display: "flex",
-                    fontSize: 23,
-                    fontWeight: 800,
-                    lineHeight: 1.26,
-                  }}
-                >
-                  {homeSubline}
-                </div>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                }}
-              >
-                {metrics.map((metric, index) => (
+              <div style={{ display: "flex", gap: 14 }}>
+                {bottomProfileCards.map((profile, index) => (
                   <div
-                    key={metric.label}
+                    key={`${profile.imageUrl}:bottom:${index}`}
                     style={{
-                      background:
-                        index === 0 ? "#44f26e" : "rgba(255,255,255,0.9)",
-                      borderRadius: 18,
-                      color: "#07100b",
+                      background: "rgba(255,255,255,0.08)",
+                      border: "2px solid rgba(255,255,255,0.14)",
+                      borderRadius: 999,
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 5,
-                      minWidth: 116,
-                      padding: "12px 13px",
+                      height: 72,
+                      overflow: "hidden",
+                      width: 72,
                     }}
                   >
-                    <div
-                      style={{
-                        color:
-                          index === 0 ? "#07100b" : "rgba(7,16,11,0.6)",
-                        display: "flex",
-                        fontSize: 12,
-                        fontWeight: 900,
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      {metric.label}
-                    </div>
-                    <div
+                    {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                    <img
+                      alt=""
+                      height="72"
+                      src={profile.imageUrl}
                       style={{
                         display: "flex",
-                        fontSize: 30,
-                        fontWeight: 900,
-                        lineHeight: 1,
+                        height: "100%",
+                        objectFit: "cover",
+                        width: "100%",
                       }}
-                    >
-                      {metric.value}
-                    </div>
+                      width="72"
+                    />
                   </div>
                 ))}
               </div>
@@ -590,110 +612,126 @@ export async function GET(request: Request) {
                 alignItems: "center",
                 display: "flex",
                 flex: 1,
-                justifyContent: "center",
+                gap: 14,
+                justifyContent: "flex-end",
                 minWidth: 0,
               }}
             >
               <div
                 style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                  justifyContent: "center",
+                }}
+              >
+                {leftProfileCards.map((card, index) => (
+                  <div
+                    key={`${card.profile.imageUrl}:left:${index}`}
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      borderRadius: 36,
+                      boxShadow: "0 24px 80px rgba(0,0,0,0.34)",
+                      display: "flex",
+                      height: card.height,
+                      overflow: "hidden",
+                      width: card.width,
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                    <img
+                      alt=""
+                      height={card.height}
+                      src={card.profile.imageUrl}
+                      style={{
+                        display: "flex",
+                        height: "100%",
+                        objectFit: "cover",
+                        width: "100%",
+                      }}
+                      width={card.width}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div
+                style={{
                   background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  borderRadius: 42,
+                  border: "2px solid rgba(68,242,110,0.6)",
+                  borderRadius: 44,
                   boxShadow: "0 34px 100px rgba(0,0,0,0.42)",
                   display: "flex",
-                  height: 570,
+                  height: 536,
                   overflow: "hidden",
                   padding: 10,
                   position: "relative",
-                  width: 660,
+                  width: 330,
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
                 <img
                   alt=""
-                  height="570"
-                  src={visualUrl}
+                  height="536"
+                  src={primaryProfile.imageUrl}
                   style={{
                     borderRadius: 32,
                     display: "flex",
-                    filter: shouldBlurVisual
-                      ? "blur(14px) brightness(0.58) saturate(0.86)"
-                      : "blur(14px) brightness(0.76) saturate(1.08)",
                     height: "100%",
                     objectFit: "cover",
-                    position: "absolute",
-                    transform: "scale(1.04)",
                     width: "100%",
                   }}
-                  width="660"
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-                <img
-                  alt=""
-                  height="570"
-                  src={visualUrl}
-                  style={{
-                    borderRadius: 32,
-                    display: "flex",
-                    height: "100%",
-                    objectFit: "contain",
-                    position: "relative",
-                    width: "100%",
-                  }}
-                  width="660"
+                  width="330"
                 />
                 <div
                   style={{
                     background:
-                      "linear-gradient(0deg, rgba(3,5,4,0.72) 0%, rgba(3,5,4,0.04) 38%, rgba(3,5,4,0.2) 100%)",
+                      "linear-gradient(0deg, rgba(3,5,4,0.24) 0%, rgba(3,5,4,0.02) 42%, rgba(3,5,4,0.14) 100%)",
                     borderRadius: 32,
                     inset: 10,
                     position: "absolute",
                   }}
                 />
-                <div
-                  style={{
-                    bottom: 28,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 7,
-                    left: 30,
-                    position: "absolute",
-                  }}
-                >
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                  justifyContent: "center",
+                }}
+              >
+                {rightProfileCards.map((card, index) => (
                   <div
+                    key={`${card.profile.imageUrl}:right:${index}`}
                     style={{
-                      color: "#44f26e",
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      borderRadius: 34,
+                      boxShadow: "0 20px 70px rgba(0,0,0,0.3)",
                       display: "flex",
-                      fontSize: 16,
-                      fontWeight: 900,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
+                      height: card.height,
+                      overflow: "hidden",
+                      width: card.width,
                     }}
                   >
-                    {visualLabel}
+                    {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                    <img
+                      alt=""
+                      height={card.height}
+                      src={card.profile.imageUrl}
+                      style={{
+                        display: "flex",
+                        height: "100%",
+                        objectFit: "cover",
+                        width: "100%",
+                      }}
+                      width={card.width}
+                    />
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: 36,
-                      fontWeight: 900,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {featuredName}
-                  </div>
-                  <div
-                    style={{
-                      color: "rgba(255,255,255,0.74)",
-                      display: "flex",
-                      fontSize: 18,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {featuredTitle}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>

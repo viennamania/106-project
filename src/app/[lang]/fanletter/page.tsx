@@ -47,7 +47,7 @@ export async function generateMetadata({
     referralCode,
     title: meta.title,
     variant: "home",
-    version: "fanletter-home-v5",
+    version: "fanletter-home-v6",
   });
   const ogImage = {
     alt: getFanletterOgAlt(locale, "home"),
