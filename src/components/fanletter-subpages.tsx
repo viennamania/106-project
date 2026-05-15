@@ -2912,6 +2912,8 @@ function FanletterFanOnlyPreview({
           availableNote:
             "대표 티저를 먼저 보고, 더 보고 싶은 잠금 브이로그만 개별 결제로 열 수 있습니다.",
           availableTitle: "팬 전용 브이로그 모음",
+          accessMode: "열람 방식",
+          accessModeValue: "개별 결제",
           basePrice: "기본 가격",
           body: "팬 전용 요청은 유료 브이로그 후보로 바로 이어집니다. 보고 싶은 장면을 남기면 크리에이터가 스튜디오 요청함에서 확인하고 1 USDT 잠금 브이로그로 제작할 수 있습니다.",
           buyerProof: (count: string) => `${count}명 구매`,
@@ -2955,7 +2957,6 @@ function FanletterFanOnlyPreview({
           requestFanOnlyBody: `${channelName}의 팬 전용 비공개 루틴, 쉬는 날 근황, 짧은 Q&A 같은 잠금 브이로그를 보고 싶어요.`,
           secondaryCta: "공개 브이로그 보기",
           teaserTitle: "공개 티저",
-          teaserCount: "미리보기 가능",
           title: "팬 전용 브이로그 공간 미리보기",
           unlockIncludes: "결제 후 열림",
           unlockedCount: "열람 가능",
@@ -2970,6 +2971,8 @@ function FanletterFanOnlyPreview({
           availableNote:
             "Preview featured teasers first, then unlock only the locked vlogs you want.",
           availableTitle: "Fan-only vlog collection",
+          accessMode: "Access",
+          accessModeValue: "Per vlog",
           basePrice: "Base price",
           body: "Fan-only requests can flow directly into paid vlog candidates. Leave the scene you want to see and the creator can review it in Studio, then publish it as a 1 USDT locked vlog.",
           buyerProof: (count: string) => `${count} buyers`,
@@ -3013,7 +3016,6 @@ function FanletterFanOnlyPreview({
           requestFanOnlyBody: `I want to see ${channelName}'s fan-only private routine, off-day update, or short Q&A as a locked vlog.`,
           secondaryCta: "View public vlogs",
           teaserTitle: "Public teaser",
-          teaserCount: "Previewable",
           title: "Fan-only vlog space preview",
           unlockIncludes: "Unlocks after payment",
           unlockedCount: "Unlocked",
@@ -3094,8 +3096,8 @@ function FanletterFanOnlyPreview({
             value: formatNumber(unlockedFanOnlyContentCount, locale),
           }
         : {
-            label: labels.teaserCount,
-            value: formatNumber(fanOnlyContentCount, locale),
+            label: labels.accessMode,
+            value: labels.accessModeValue,
           };
     const fanOnlyStats = [
       {
@@ -3134,13 +3136,13 @@ function FanletterFanOnlyPreview({
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
                 {labels.availableActionTitle}
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 {fanOnlyStats.map((stat) => (
                   <div
-                    className="rounded-lg border border-white/10 bg-black/18 p-3"
+                    className="rounded-lg border border-white/10 bg-black/18 p-2.5"
                     key={stat.label}
                   >
-                    <p className="text-xl font-semibold leading-none text-white">
+                    <p className="text-base font-semibold leading-tight text-white [word-break:keep-all] sm:text-xl lg:text-lg xl:text-xl">
                       {stat.value}
                     </p>
                     <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white/44">
@@ -3711,6 +3713,28 @@ function FanletterFanPromptPanel({
           ],
           title: `Request ${characterName}'s next vlog`,
         };
+  const compactCopy = sourceContentId
+    ? {
+        body: labels.compactBody,
+        eyebrow: labels.compactEyebrow,
+        formHelper: labels.compactFormHelper,
+        title: labels.compactTitle,
+      }
+    : locale === "ko"
+      ? {
+          body: "팬 전용으로 보고 싶은 룩, 장소, 질문을 짧게 남겨주세요.",
+          eyebrow: "팬 전용 요청",
+          formHelper:
+            "이 요청은 캐릭터 채널의 팬 전용 요청으로 스튜디오 요청함에 저장됩니다.",
+          title: "다음 팬 전용으로 보고 싶은 장면",
+        }
+      : {
+          body: "Leave the outfit, place, or question you want to see as a fan-only scene.",
+          eyebrow: "Fan-only request",
+          formHelper:
+            "This request is saved to the studio inbox as a fan-only request for this character channel.",
+          title: "What should be the next fan-only scene?",
+        };
   const requestFormId = id ? `${id}-form` : "fanletter-fan-request-form";
   const requestFormHref = creatorReferralCode ? `#${requestFormId}` : requestHref;
   const isLoggedInFan = !isOwner && isAuthenticated;
@@ -3802,13 +3826,13 @@ function FanletterFanPromptPanel({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
-              {labels.compactEyebrow}
+              {compactCopy.eyebrow}
             </p>
             <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[2.2rem]">
-              {labels.compactTitle}
+              {compactCopy.title}
             </h2>
             <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
-              {labels.compactBody}
+              {compactCopy.body}
             </p>
           </div>
           <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:w-64 lg:grid-cols-1">
@@ -3837,7 +3861,7 @@ function FanletterFanPromptPanel({
             creatorReferralCode={creatorReferralCode}
             followHref={followHref}
             formId={requestFormId}
-            helperOverride={labels.compactFormHelper}
+            helperOverride={compactCopy.formHelper}
             locale={locale}
             publicVlogsHref={publicVlogsHref}
             referralCode={referralCode}
@@ -6117,7 +6141,7 @@ export function FanletterCreatorFanOnlyPage({
           backToChannel: "채널 홈으로",
           description:
             data.fanOnlyContentCount > 0
-              ? `${channelName}의 잠금 브이로그 ${fanOnlyCountLabel}개를 모았습니다. 결제 전에는 티저와 반응 신호를 보고, 결제 후 전체 영상과 본문을 열 수 있습니다.`
+              ? `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 모았습니다. 티저와 반응 신호를 먼저 확인한 뒤, 원하는 콘텐츠만 개별 결제로 전체 열람할 수 있습니다.`
               : `${channelName}의 팬 전용 브이로그가 준비되면 이곳에서 먼저 열립니다.`,
           eyebrow: "FanLetter 팬 전용",
           heroCta:
@@ -6131,23 +6155,24 @@ export function FanletterCreatorFanOnlyPage({
           publicVlogs: `공개 브이로그 ${publicCountLabel}개`,
           shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 FanLetter 채널입니다.`,
           shareTitle: `${channelName} 팬 전용 브이로그`,
+          statAccessMode: "열람 방식",
+          statAccessModeValue: "개별 결제",
           statFanOnly: "팬 전용",
           statManageable: "관리 가능",
           statPrice: "기본 가격",
-          statPreviewable: "미리보기 가능",
           statUnlocked: "열람 가능",
           title: `${channelName} 팬 전용 브이로그`,
           trustNote:
-            "이 페이지에서는 티저와 반응 신호를 먼저 확인하고, 마음에 드는 잠금 브이로그를 개별 결제로 열람합니다.",
+            "티저와 반응 신호를 먼저 확인하고, 마음에 드는 팬 전용 브이로그만 개별 결제로 열람합니다.",
           unlockBody:
             "티저 이미지, 제목, 짧은 요약으로 분위기를 먼저 확인하고 결제 후 전체 영상, 전체 본문, 추가 미디어를 한 번에 엽니다.",
-          unlockTitle: "결제 전 호기심, 결제 후 전체 열람",
+          unlockTitle: "티저 확인 후 전체 열람",
         }
       : {
           backToChannel: "Channel home",
           description:
             data.fanOnlyContentCount > 0
-              ? `${fanOnlyCountLabel} locked vlogs from ${channelName}. Preview teasers and fan signals first, then unlock the full video and body after payment.`
+              ? `${fanOnlyCountLabel} fan-only vlogs from ${channelName}. Preview teasers and fan signals first, then unlock only the full vlogs you want.`
               : `${channelName}'s fan-only vlogs will open here first when ready.`,
           eyebrow: "FanLetter fan-only",
           heroCta:
@@ -6161,17 +6186,18 @@ export function FanletterCreatorFanOnlyPage({
           publicVlogs: `${publicCountLabel} public vlogs`,
           shareSummary: `A FanLetter channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
           shareTitle: `${channelName} fan-only vlogs`,
+          statAccessMode: "Access",
+          statAccessModeValue: "Per vlog",
           statFanOnly: "Fan-only",
           statManageable: "Manageable",
           statPrice: "Base price",
-          statPreviewable: "Previewable",
           statUnlocked: "Unlocked",
           title: `${channelName} fan-only vlogs`,
           trustNote:
-            "This page shows teaser and reaction signals first. Fans unlock each locked vlog through the FanLetter payment flow.",
+            "Preview teasers and fan signals first, then unlock only the fan-only vlogs you want.",
           unlockBody:
             "Use teaser images, titles, and short summaries to understand the mood first. Payment opens the full video, full body, and extra media.",
-          unlockTitle: "Curiosity before payment, full access after",
+          unlockTitle: "Preview first, unlock full access",
         };
   const accessStat =
     isOwner || unlockedCount > 0
@@ -6180,8 +6206,8 @@ export function FanletterCreatorFanOnlyPage({
           value: formatNumber(unlockedCount, locale),
         }
       : {
-          label: labels.statPreviewable,
-          value: fanOnlyCountLabel,
+          label: labels.statAccessMode,
+          value: labels.statAccessModeValue,
         };
   const valueStats = [
     {
@@ -6243,7 +6269,7 @@ export function FanletterCreatorFanOnlyPage({
                 className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
                 key={stat.label}
               >
-                <p className="text-xl font-semibold leading-none text-white">
+                <p className="text-lg font-semibold leading-tight text-white [word-break:keep-all] sm:text-xl">
                   {stat.value}
                 </p>
                 <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white/42">
