@@ -7196,6 +7196,7 @@ export function FanletterCreatorPromoSharePage({
           channel: "채널 바로가기",
           creatorBadge: "SNS 공유 전용",
           description: `${channelName}의 무료 공개 브이로그와 팬 전용 티저를 한 화면에서 먼저 확인하세요.`,
+          mobileDescription: `무료 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 티저 ${formatNumber(data.fanOnlyContentCount, locale)}개를 먼저 확인하세요.`,
           fanOnly: "팬 전용",
           fanOnlyBody:
             "잠금 콘텐츠는 티저와 가격 신호만 먼저 보여주고, 결제 후 전체 영상과 본문이 열립니다.",
@@ -7212,12 +7213,14 @@ export function FanletterCreatorPromoSharePage({
           publicTitle: "먼저 볼 공개 브이로그",
           secondaryCta: "팬 전용 티저 보기",
           shareCode: "공유 코드",
+          subtitle: "AI 브이로그 채널",
           title: `${channelName} AI 브이로그 채널`,
         }
       : {
           channel: "Open channel",
           creatorBadge: "SNS share edition",
           description: `Preview ${channelName}'s free public vlogs and fan-only teasers from one promotional page.`,
+          mobileDescription: `Preview ${formatNumber(data.publicContentCount, locale)} free vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only teasers.`,
           fanOnly: "Fan-only",
           fanOnlyBody:
             "Locked posts show teaser and price signals first. Full video and body open after payment.",
@@ -7234,6 +7237,7 @@ export function FanletterCreatorPromoSharePage({
           publicTitle: "Start with public vlogs",
           secondaryCta: "View fan-only teasers",
           shareCode: "Share code",
+          subtitle: "AI vlog channel",
           title: `${channelName} AI vlog channel`,
         };
   const heroStats = [
@@ -7253,31 +7257,43 @@ export function FanletterCreatorPromoSharePage({
 
   return (
     <main className="min-h-screen bg-[#050806] text-white">
-      <section className="relative min-h-[calc(100vh-1rem)] overflow-hidden">
-        {featuredItem?.primaryVideoUrl ? (
+      <section className="relative min-h-[100svh] overflow-hidden">
+        {heroImageUrl ? (
+          <>
+            <Image
+              alt={channelName}
+              className="object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
+              fill
+              priority
+              sizes="100vw"
+              src={heroImageUrl}
+            />
+            <div className="absolute inset-y-0 right-0 hidden w-[58%] sm:block">
+              <Image
+                alt=""
+                className="object-contain object-right opacity-[0.86]"
+                fill
+                priority
+                sizes="58vw"
+                src={heroImageUrl}
+              />
+            </div>
+          </>
+        ) : featuredItem?.primaryVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className="absolute inset-0 h-full w-full object-cover opacity-[0.58]"
+            className="absolute inset-0 h-full w-full object-cover object-[center_28%] opacity-[0.76]"
             poster={featuredItem.coverImageUrl ?? undefined}
             src={featuredItem.primaryVideoUrl}
           />
-        ) : heroImageUrl ? (
-          <Image
-            alt={channelName}
-            className="object-cover opacity-[0.62]"
-            fill
-            priority
-            sizes="100vw"
-            src={heroImageUrl}
-          />
         ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.62)_48%,rgba(0,0,0,0.28)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,#050806_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.1)_0%,rgba(5,8,6,0.08)_34%,rgba(5,8,6,0.84)_100%)] sm:bg-[linear-gradient(90deg,rgba(0,0,0,0.64)_0%,rgba(0,0,0,0.36)_48%,rgba(0,0,0,0.12)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-[58%] bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.74)_58%,#050806_100%)] sm:h-1/2 sm:bg-[linear-gradient(180deg,rgba(5,8,6,0)_0%,rgba(5,8,6,0.78)_100%)]" />
 
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-1rem)] max-w-[92rem] flex-col px-4 py-5 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-5 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between gap-3">
             <Link
-              className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-black/24 px-3 py-2 text-sm font-semibold !text-white backdrop-blur"
+              className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-black/30 px-3 py-2 text-sm font-semibold !text-white backdrop-blur-md sm:bg-black/24"
               href={channelHref}
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-[#44f26e] text-black">
@@ -7296,29 +7312,36 @@ export function FanletterCreatorPromoSharePage({
             </a>
           </header>
 
-          <div className="flex flex-1 items-end pb-12 pt-20 sm:pb-16 lg:pt-24">
-            <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+          <div className="flex flex-1 items-end pb-7 pt-[42svh] sm:pb-16 sm:pt-24">
+            <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end lg:gap-8">
               <div className="max-w-4xl">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black">
                     {labels.creatorBadge}
                   </span>
-                  <span className="inline-flex rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/78">
+                  <span className="hidden rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/78 backdrop-blur sm:inline-flex">
                     {labels.shareCode} {shareId.slice(-8).toUpperCase()}
                   </span>
                 </div>
-                <h1 className="mt-5 max-w-4xl break-words text-[2.75rem] font-semibold leading-[0.98] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[5.4rem] lg:text-[6.4rem]">
-                  {labels.title}
+                <h1 className="mt-4 max-w-4xl break-words text-[3.35rem] font-semibold leading-[0.94] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:mt-5 sm:text-[5.4rem] lg:text-[6.4rem]">
+                  <span className="block sm:hidden">{channelName}</span>
+                  <span className="hidden sm:block">{labels.title}</span>
                 </h1>
-                <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/74 sm:text-xl sm:leading-9">
+                <p className="mt-2 text-lg font-semibold leading-6 text-white/88 sm:hidden">
+                  {labels.subtitle}
+                </p>
+                <p className="mt-4 max-w-[22rem] text-base font-medium leading-7 text-white/78 sm:hidden">
+                  {labels.mobileDescription}
+                </p>
+                <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-white/74 sm:block sm:text-xl sm:leading-9">
                   {labels.description}
                 </p>
-                <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/52 sm:text-base sm:leading-7">
+                <p className="mt-3 hidden max-w-2xl text-sm font-medium leading-6 text-white/52 lg:block lg:text-base lg:leading-7">
                   {channelSummary}
                 </p>
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-5 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
                   <Link
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.24)] transition hover:bg-[#64ff84]"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.26)] transition hover:bg-[#64ff84]"
                     href={publicVlogsHref}
                   >
                     <Video className="size-4" />
@@ -7334,16 +7357,16 @@ export function FanletterCreatorPromoSharePage({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+              <div className="hidden grid-cols-3 gap-1.5 sm:grid lg:grid-cols-1 lg:gap-2">
                 {heroStats.map((stat) => (
                   <div
-                    className="rounded-lg border border-white/12 bg-black/28 p-3 backdrop-blur sm:p-4"
+                    className="rounded-lg border border-white/12 bg-black/32 p-2.5 backdrop-blur-md sm:bg-black/28 sm:p-4"
                     key={stat.label}
                   >
-                    <p className="text-2xl font-semibold leading-none text-white sm:text-3xl">
+                    <p className="text-xl font-semibold leading-none text-white sm:text-3xl">
                       {stat.value}
                     </p>
-                    <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/46 sm:text-[0.64rem]">
+                    <p className="mt-1.5 text-[0.55rem] font-semibold uppercase tracking-[0.08em] text-white/50 sm:mt-2 sm:text-[0.64rem] sm:tracking-[0.12em]">
                       {stat.label}
                     </p>
                   </div>
