@@ -384,10 +384,6 @@ async function countCompletedMembersAtDepth({
   return 0;
 }
 
-async function notifyDirectSponsorOfCompletedMember(member: MemberDocument) {
-  return notifyDirectSponsorOfCompletedMemberWithOptions(member, {});
-}
-
 async function notifyDirectSponsorOfCompletedMemberWithOptions(
   member: MemberDocument,
   options: {
@@ -443,10 +439,6 @@ async function notifyDirectSponsorOfCompletedMemberWithOptions(
     type: "direct_member_completed",
     sendPush: options.sendPush,
   });
-}
-
-async function notifyPlacementAncestorsOfCompletedMember(member: MemberDocument) {
-  return notifyPlacementAncestorsOfCompletedMemberWithOptions(member, {});
 }
 
 async function notifyPlacementAncestorsOfCompletedMemberWithOptions(
@@ -520,10 +512,6 @@ async function notifyPlacementAncestorsOfCompletedMemberWithOptions(
 
     currentReferralCode = recipient.placementReferralCode ?? null;
   }
-}
-
-async function notifyCompletedLevelMilestones(member: MemberDocument) {
-  return notifyCompletedLevelMilestonesWithOptions(member, {});
 }
 
 async function notifyCompletedLevelMilestonesWithOptions(
