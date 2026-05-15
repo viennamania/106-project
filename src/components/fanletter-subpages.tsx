@@ -56,6 +56,7 @@ import {
 } from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
 import type {
+  FanletterCreatorFanOnlyPageData,
   FanletterCreatorPageData,
   FanletterCreatorVlogsPageData,
   FanletterFeedFilters,
@@ -464,6 +465,21 @@ function getCreatorVlogsHref({
       page: nextPage > 1 ? String(nextPage) : null,
       sort: nextSort === "latest" ? null : nextSort,
     },
+  );
+}
+
+function getCreatorFanOnlyHref({
+  creatorReferralCode,
+  locale,
+  referralCode,
+}: {
+  creatorReferralCode: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/creator/${creatorReferralCode}/fan-only`,
+    referralCode,
   );
 }
 
@@ -2093,6 +2109,7 @@ function FanletterChannelHeroPreview({
   character,
   fanOnlyContentCount,
   featuredItem,
+  featuredMode = "public",
   locale,
   publicContentCount,
   referralCode,
@@ -2103,6 +2120,7 @@ function FanletterChannelHeroPreview({
   character: FanletterPublicCharacter | null;
   fanOnlyContentCount: number;
   featuredItem: FanletterPublicContentItem | null;
+  featuredMode?: "public" | "fan-only";
   locale: Locale;
   publicContentCount: number;
   referralCode: string | null;
@@ -2113,20 +2131,42 @@ function FanletterChannelHeroPreview({
     locale === "ko"
       ? {
           aiCreator: "AI 캐릭터",
+          fanOnlyFeatured: "팬 전용 미리보기",
           fanOnlyContent: "팬 전용",
           freeWall: "무료 공개 피드",
+          lockedPreview: "결제 후 전체 열람",
+          lockedWall: (price: string) => `${price} 잠금 브이로그`,
           latest: "대표 브이로그",
+          latestFanOnly: "대표 팬 전용",
           openFeatured: "대표 브이로그 보기",
+          openFanOnly: "팬 전용 미리보기",
           paidReady: "팬 전용 요청 가능",
         }
       : {
           aiCreator: "AI character",
+          fanOnlyFeatured: "Fan-only preview",
           fanOnlyContent: "Fan-only",
           freeWall: "Free public feed",
+          lockedPreview: "Full access after payment",
+          lockedWall: (price: string) => `${price} locked vlog`,
           latest: "Featured vlog",
+          latestFanOnly: "Featured fan-only",
           openFeatured: "View featured vlog",
+          openFanOnly: "Preview fan-only",
           paidReady: "Fan-only requests open",
         };
+  const isFanOnlyFeatured = featuredMode === "fan-only" && Boolean(featuredItem);
+  const featuredLocked = Boolean(
+    isFanOnlyFeatured && featuredItem && !featuredItem.canViewerAccess,
+  );
+  const featuredPrice = `${featuredItem?.priceUsdt ?? "1"} USDT`;
+  const wallLabel = isFanOnlyFeatured
+    ? labels.lockedWall(featuredPrice)
+    : labels.freeWall;
+  const latestLabel = isFanOnlyFeatured ? labels.latestFanOnly : labels.latest;
+  const openFeaturedLabel = isFanOnlyFeatured
+    ? labels.openFanOnly
+    : labels.openFeatured;
   const heroTitle = featuredItem
     ? getDisplayContentTitle(featuredItem, locale)
     : character?.latestTitle
@@ -2156,7 +2196,7 @@ function FanletterChannelHeroPreview({
   const preview = (
     <div className="group relative overflow-hidden rounded-lg border border-white/12 bg-[#07100b] shadow-[0_28px_90px_rgba(0,0,0,0.36)]">
       <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b]">
-        {featuredItem?.primaryVideoUrl ? (
+        {featuredItem?.primaryVideoUrl && !featuredLocked ? (
           <FanletterAutoplayVideo
             ariaHidden
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
@@ -2167,7 +2207,11 @@ function FanletterChannelHeroPreview({
           <Image
             alt=""
             aria-hidden="true"
-            className="object-cover transition duration-500 group-hover:scale-[1.025]"
+            className={
+              featuredLocked
+                ? "scale-[1.06] object-cover blur-md brightness-[0.74] saturate-[0.92] transition duration-500 group-hover:scale-[1.09]"
+                : "object-cover transition duration-500 group-hover:scale-[1.025]"
+            }
             fill
             sizes="(max-width: 1024px) 100vw, 28rem"
             src={featuredItem.coverImageUrl}
@@ -2190,12 +2234,20 @@ function FanletterChannelHeroPreview({
         <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
             <BadgeCheck className="size-3.5" />
-            {labels.aiCreator}
+            {isFanOnlyFeatured ? labels.fanOnlyFeatured : labels.aiCreator}
           </span>
           <span className="inline-flex rounded-full border border-white/16 bg-black/34 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white">
-            {labels.freeWall}
+            {wallLabel}
           </span>
         </div>
+        {featuredLocked ? (
+          <div className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 items-center justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-black/52 px-4 py-2 text-xs font-semibold text-white shadow-[0_16px_44px_rgba(0,0,0,0.34)]">
+              <LockKeyhole className="size-4 text-[#44f26e]" />
+              {labels.lockedPreview}
+            </span>
+          </div>
+        ) : null}
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-center gap-3">
             <Avatar
@@ -2217,7 +2269,7 @@ function FanletterChannelHeroPreview({
       <div className="border-t border-white/10 bg-[#07100b] p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-white/42">
-            {labels.latest}
+            {latestLabel}
           </p>
           <span className="inline-flex rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-[0.66rem] font-semibold text-[#b9ffc8]">
             {fanOnlySignal}
@@ -2240,7 +2292,7 @@ function FanletterChannelHeroPreview({
         </div>
         {heroHref ? (
           <div className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition group-hover:bg-[#64ff84]">
-            {labels.openFeatured}
+            {openFeaturedLabel}
             <ArrowRight className="size-4" />
           </div>
         ) : null}
@@ -5711,7 +5763,11 @@ export function FanletterCreatorVlogsPage({
     locale,
     referralCode: effectiveReferralCode,
   });
-  const fanOnlyHref = `${channelHref}#fan-only`;
+  const fanOnlyPageHref = getCreatorFanOnlyHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
   const featuredItem = data.items[0] ?? null;
   const labels =
     locale === "ko"
@@ -5772,6 +5828,15 @@ export function FanletterCreatorVlogsPage({
             <ArrowLeft className="size-4" />
             {labels.backToChannel}
           </Link>
+          <Link
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={fanOnlyPageHref}
+          >
+            <Crown className="size-4" />
+            {data.fanOnlyContentCount > 0
+              ? `${labels.fanOnly} ${formatNumber(data.fanOnlyContentCount, locale)}`
+              : labels.fanOnly}
+          </Link>
           <FanletterChannelShareButton
             href={vlogsHref}
             locale={locale}
@@ -5822,11 +5887,13 @@ export function FanletterCreatorVlogsPage({
               </p>
             </div>
             <Link
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold !text-black transition hover:border-black/28"
-              href={fanOnlyHref}
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white shadow-[0_12px_32px_rgba(8,18,12,0.12)] transition hover:bg-black/86"
+              href={fanOnlyPageHref}
             >
               <Crown className="size-4" />
-              {labels.fanOnly}
+              {data.fanOnlyContentCount > 0
+                ? `${labels.fanOnly} ${formatNumber(data.fanOnlyContentCount, locale)}`
+                : labels.fanOnly}
             </Link>
           </div>
 
@@ -5880,6 +5947,308 @@ export function FanletterCreatorVlogsPage({
             locale={locale}
             referralCode={effectiveReferralCode}
           />
+        </div>
+      </section>
+    </FanletterShell>
+  );
+}
+
+export function FanletterCreatorFanOnlyPage({
+  data,
+  locale,
+  referralCode,
+}: {
+  data: FanletterCreatorFanOnlyPageData;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const effectiveReferralCode = referralCode ?? data.profile.referralCode;
+  const character = data.profile.character;
+  const channelName = character?.name ?? data.profile.displayName;
+  const channelHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const fanOnlyHref = getCreatorFanOnlyHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
+  const publicVlogsHref = getCreatorVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
+  const ownerVlogsHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio/vlogs`,
+    data.profile.referralCode,
+  );
+  const ownerCreateHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/studio/paid-upload`,
+      data.profile.referralCode,
+    ),
+    {
+      returnTo: fanOnlyHref,
+    },
+  );
+  const requestSectionId = "fan-only-request";
+  const requestFormId = `${requestSectionId}-form`;
+  const requestHref = `${fanOnlyHref}#${requestFormId}`;
+  const isOwner = data.viewerRelation === "owner";
+  const fanOnlyCountLabel = formatNumber(data.fanOnlyContentCount, locale);
+  const publicCountLabel = formatNumber(data.publicContentCount, locale);
+  const unlockedCount = isOwner
+    ? data.fanOnlyContentCount
+    : data.fanOnlyItems.filter((item) => item.canViewerAccess).length;
+  const firstFanOnlyItem = data.fanOnlyItems[0] ?? null;
+  const labels =
+    locale === "ko"
+      ? {
+          backToChannel: "채널 홈으로",
+          description:
+            data.fanOnlyContentCount > 0
+              ? `${channelName}의 잠금 브이로그 ${fanOnlyCountLabel}개를 모았습니다. 결제 전에는 티저와 반응 신호를 보고, 결제 후 전체 영상과 본문을 열 수 있습니다.`
+              : `${channelName}의 팬 전용 브이로그가 준비되면 이곳에서 먼저 열립니다.`,
+          eyebrow: "FanLetter 팬 전용",
+          heroCta:
+            data.fanOnlyContentCount > 0
+              ? `1 USDT 팬 전용 ${fanOnlyCountLabel}개 보기`
+              : "팬 전용 준비하기",
+          paidModel: "유료 전환",
+          publicProof: "무료 공개 브이로그로 분위기 확인",
+          publicProofBody:
+            "처음 방문한 팬은 공개 브이로그로 캐릭터 분위기를 확인한 뒤 팬 전용으로 이어질 수 있습니다.",
+          publicVlogs: `공개 브이로그 ${publicCountLabel}개`,
+          shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 FanLetter 채널입니다.`,
+          shareTitle: `${channelName} 팬 전용 브이로그`,
+          statFanOnly: "팬 전용",
+          statPrice: "기본 가격",
+          statUnlocked: "열람 가능",
+          title: `${channelName} 팬 전용 브이로그`,
+          trustNote:
+            "이 페이지에서는 티저와 반응 신호만 먼저 보여주고, 전체 영상과 본문은 FanLetter 결제 흐름에서 열립니다.",
+          unlockBody:
+            "티저 이미지, 제목, 짧은 요약으로 분위기를 먼저 확인하고 결제 후 전체 영상, 전체 본문, 추가 미디어를 한 번에 엽니다.",
+          unlockTitle: "결제 전 호기심, 결제 후 전체 열람",
+        }
+      : {
+          backToChannel: "Channel home",
+          description:
+            data.fanOnlyContentCount > 0
+              ? `${fanOnlyCountLabel} locked vlogs from ${channelName}. Preview teasers and fan signals first, then unlock the full video and body after payment.`
+              : `${channelName}'s fan-only vlogs will open here first when ready.`,
+          eyebrow: "FanLetter fan-only",
+          heroCta:
+            data.fanOnlyContentCount > 0
+              ? `View ${fanOnlyCountLabel} fan-only vlogs`
+              : "Prepare fan-only",
+          paidModel: "Paid conversion",
+          publicProof: "Preview the public vibe first",
+          publicProofBody:
+            "New fans can verify the character through public vlogs before moving into fan-only content.",
+          publicVlogs: `${publicCountLabel} public vlogs`,
+          shareSummary: `A FanLetter channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
+          shareTitle: `${channelName} fan-only vlogs`,
+          statFanOnly: "Fan-only",
+          statPrice: "Base price",
+          statUnlocked: "Unlocked",
+          title: `${channelName} fan-only vlogs`,
+          trustNote:
+            "This page shows teaser and reaction signals first. The full video and body open only through the FanLetter payment flow.",
+          unlockBody:
+            "Use teaser images, titles, and short summaries to understand the mood first. Payment opens the full video, full body, and extra media.",
+          unlockTitle: "Curiosity before payment, full access after",
+        };
+  const valueStats = [
+    {
+      label: labels.statFanOnly,
+      value: fanOnlyCountLabel,
+    },
+    {
+      label: labels.statUnlocked,
+      value: formatNumber(unlockedCount, locale),
+    },
+    {
+      label: labels.statPrice,
+      value: `${firstFanOnlyItem?.priceUsdt ?? "1"} USDT`,
+    },
+  ];
+
+  return (
+    <FanletterShell
+      actions={
+        <div className="grid w-full max-w-3xl gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+              href={channelHref}
+            >
+              <ArrowLeft className="size-4" />
+              {labels.backToChannel}
+            </Link>
+            <Link
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={
+                firstFanOnlyItem
+                  ? getContentHref({
+                      item: firstFanOnlyItem,
+                      locale,
+                      referralCode: effectiveReferralCode,
+                      returnToHref: fanOnlyHref,
+                    })
+                  : isOwner
+                    ? ownerCreateHref
+                    : requestHref
+              }
+            >
+              <LockKeyhole className="size-4" />
+              {labels.heroCta}
+            </Link>
+            <FanletterChannelShareButton
+              className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
+              href={fanOnlyHref}
+              locale={locale}
+              referralCode={effectiveReferralCode}
+              shareIdScope="fanonly"
+              summary={labels.shareSummary}
+              title={labels.shareTitle}
+              trackingSource="fanletter-creator-fan-only"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {valueStats.map((stat) => (
+              <div
+                className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                key={stat.label}
+              >
+                <p className="text-xl font-semibold leading-none text-white">
+                  {stat.value}
+                </p>
+                <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white/42">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3">
+            <p className="text-sm font-semibold leading-6 text-[#c9ffd3]">
+              {labels.unlockTitle}
+            </p>
+            <p className="mt-1 text-xs font-medium leading-5 text-white/58">
+              {labels.trustNote}
+            </p>
+          </div>
+        </div>
+      }
+      aside={
+        <FanletterChannelHeroPreview
+          channelAvatarUrl={character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl}
+          channelName={channelName}
+          character={character}
+          fanOnlyContentCount={data.fanOnlyContentCount}
+          featuredItem={firstFanOnlyItem ?? data.items[0] ?? null}
+          featuredMode={firstFanOnlyItem ? "fan-only" : "public"}
+          locale={locale}
+          publicContentCount={data.publicContentCount}
+          referralCode={effectiveReferralCode}
+          returnToHref={fanOnlyHref}
+        />
+      }
+      description={labels.description}
+      eyebrow={labels.eyebrow}
+      hideStartNavItem={isOwner}
+      heroGridClassName="lg:items-start"
+      heroActionsClassName="mt-8 block"
+      heroSpacingClassName="pt-10 sm:pt-16"
+      locale={locale}
+      referralCode={effectiveReferralCode}
+      showStartAction={false}
+      title={labels.title}
+      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.35rem]"
+    >
+      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <FanletterFanOnlyPreview
+            channelName={channelName}
+            fanOnlyContentCount={data.fanOnlyContentCount}
+            fanOnlyHref={fanOnlyHref}
+            isOwner={isOwner}
+            items={data.fanOnlyItems}
+            locale={locale}
+            ownerCreateHref={ownerCreateHref}
+            ownerManageHref={ownerVlogsHref}
+            publicVlogsHref={publicVlogsHref}
+            referralCode={effectiveReferralCode}
+            requestFormId={requestFormId}
+            requestHref={requestHref}
+          />
+
+          {data.items.length > 0 ? (
+            <section className="mb-8 rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.08)] sm:p-6">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-[#1f7c38]">
+                    {labels.publicProof}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                    {labels.publicVlogs}
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/56">
+                    {labels.publicProofBody}
+                  </p>
+                </div>
+                <Link
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-semibold !text-black transition hover:border-black/28"
+                  href={publicVlogsHref}
+                >
+                  <Video className="size-4" />
+                  {copy.actions.openContent}
+                </Link>
+              </div>
+              <ContentGrid
+                authorNameOverride={channelName}
+                contentActionLabel={copy.actions.openContent}
+                empty={copy.creator.empty}
+                emptyActionHref={publicVlogsHref}
+                emptyActionLabel={copy.actions.openContent}
+                items={data.items.slice(0, 6)}
+                locale={locale}
+                referralCode={effectiveReferralCode}
+                returnToHref={fanOnlyHref}
+                showVideoPreview
+              />
+            </section>
+          ) : null}
+
+          {!isOwner ? (
+            <FanletterFanPromptPanel
+              characterName={channelName}
+              className="mb-8"
+              creatorReferralCode={data.profile.referralCode}
+              fanOnlyHref={fanOnlyHref}
+              followHref={buildPathWithReferral(
+                `/${locale}/fanletter/onboarding`,
+                effectiveReferralCode,
+              )}
+              id={requestSectionId}
+              locale={locale}
+              previewRequests={data.fanRequestPreviews}
+              publicVlogsHref={publicVlogsHref}
+              referralCode={effectiveReferralCode}
+              requestHref={requestHref}
+              requestHubHref={`${channelHref}#fan-requests`}
+              returnToHref={fanOnlyHref}
+              startHref={buildPathWithReferral(
+                `/${locale}/fanletter/start`,
+                effectiveReferralCode,
+              )}
+              variant="compact"
+            />
+          ) : null}
         </div>
       </section>
     </FanletterShell>
