@@ -18,7 +18,7 @@ import {
 
 import {
   FanletterDesktopHeroCardCarousel,
-  FanletterMobileHeroCarousel,
+  FanletterHeroBackgroundCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -1526,16 +1526,17 @@ export function FanletterHomePage({
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="relative min-h-[100svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.32] lg:opacity-[0.18]"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.44] lg:opacity-[0.28]"
           style={{
             backgroundImage: heroVideo?.coverImageUrl
               ? `url(${heroVideo.coverImageUrl})`
               : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
           }}
         />
-        <FanletterMobileHeroCarousel slides={heroSlides} />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.68)_0%,rgba(3,5,4,0.48)_30%,rgba(3,5,4,0.66)_58%,rgba(3,5,4,0.95)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,#030504_0%,rgba(3,5,4,0.94)_43%,rgba(3,5,4,0.72)_68%,#030504_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.74)_0%,rgba(3,5,4,0.34)_48%,rgba(3,5,4,0.16)_100%)] lg:hidden" />
+        <FanletterHeroBackgroundCarousel slides={heroSlides} />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.42)_0%,rgba(3,5,4,0.18)_30%,rgba(3,5,4,0.42)_58%,rgba(3,5,4,0.86)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.58)_0%,rgba(3,5,4,0.18)_48%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
@@ -1586,10 +1587,10 @@ export function FanletterHomePage({
               <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="max-w-[58rem] text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:mt-4 sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
+              <h1 className="max-w-[58rem] text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-4 sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-4 max-w-[22rem] text-sm font-medium leading-6 text-white/78 [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/74">
+              <p className="mt-4 max-w-[22rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">
                 {copy.hero.description}
               </p>
               <div className="mt-6 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">

@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 import {
   FANLETTER_OG_IMAGE_SIZE,
@@ -20,6 +22,19 @@ import { normalizeReferralCode } from "@/lib/member";
 export const contentType = "image/png";
 export const runtime = "nodejs";
 export const size = FANLETTER_OG_IMAGE_SIZE;
+
+const fanletterOgFontFamily =
+  "FanLetterKR, Arial, Helvetica, sans-serif";
+const notoSansKrBoldFontPromise = readFile(
+  join(process.cwd(), "public/fonts/noto-sans-kr-bold.ttf"),
+)
+  .then((buffer) =>
+    buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    ),
+  )
+  .catch(() => null);
 
 type FanletterOgCopy = {
   badge: string;
@@ -132,6 +147,24 @@ function getLocaleSafeTitle(value: string | null, locale: Locale) {
 
 function formatMetric(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+async function getFanletterOgImageOptions() {
+  const fontData = await notoSansKrBoldFontPromise;
+
+  if (!fontData) {
+    return FANLETTER_OG_IMAGE_SIZE;
+  }
+
+  return {
+    ...FANLETTER_OG_IMAGE_SIZE,
+    fonts: ([400, 700, 900] as const).map((weight) => ({
+      data: fontData,
+      name: "FanLetterKR",
+      style: "normal" as const,
+      weight,
+    })),
+  };
 }
 
 function getCreatorOgTitle({
@@ -317,6 +350,359 @@ export async function GET(request: Request) {
       ? ["캐릭터", "숏폼", "팬 전용"]
       : ["Persona", "Vlog", "Fan-only"];
 
+  if (!creatorData && visualUrl && variant === "home") {
+    const homeHeadline =
+      locale === "ko"
+        ? "팬이 키우는\nAI 캐릭터"
+        : "Fan-powered\nAI character";
+    const homeSubline =
+      locale === "ko"
+        ? "브이로그와 팬 전용 티저를 먼저 확인하세요"
+        : "Preview public vlogs and fan-only teasers";
+    const featuredName = truncateText(
+      visualName ?? (locale === "ko" ? "AI 캐릭터" : "AI character"),
+      26,
+    );
+    const featuredTitle = latestTitle
+      ? truncateText(latestTitle, 34)
+      : locale === "ko"
+        ? "대표 브이로그"
+        : "Featured vlog";
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            background: "#030504",
+            color: "white",
+            display: "flex",
+            fontFamily: fanletterOgFontFamily,
+            height: "100%",
+            overflow: "hidden",
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+          <img
+            alt=""
+            height="630"
+            src={visualUrl}
+            style={{
+              display: "flex",
+              filter: shouldBlurVisual
+                ? "blur(18px) brightness(0.52) saturate(0.86)"
+                : "blur(18px) brightness(0.64) saturate(1.16)",
+              height: "100%",
+              objectFit: "cover",
+              opacity: 0.96,
+              position: "absolute",
+              transform: "scale(1.09)",
+              width: "100%",
+            }}
+            width="1200"
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(3,5,4,0.92) 0%, rgba(3,5,4,0.58) 38%, rgba(3,5,4,0.2) 72%, rgba(3,5,4,0.54) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(0deg, rgba(3,5,4,0.78) 0%, rgba(3,5,4,0.06) 48%, rgba(3,5,4,0.36) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              gap: 34,
+              height: "100%",
+              padding: 30,
+              position: "relative",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                padding: "12px 0 10px 12px",
+                width: 430,
+              }}
+            >
+              <div
+                style={{
+                  alignItems: "center",
+                  background: "rgba(3,5,4,0.58)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: 999,
+                  display: "flex",
+                  gap: 12,
+                  padding: "8px 16px 8px 8px",
+                  width: 250,
+                }}
+              >
+                <div
+                  style={{
+                    alignItems: "center",
+                    background: "#44f26e",
+                    borderRadius: 14,
+                    color: "#030504",
+                    display: "flex",
+                    fontSize: 24,
+                    fontWeight: 900,
+                    height: 46,
+                    justifyContent: "center",
+                    width: 46,
+                  }}
+                >
+                  F
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
+                    FanLetter
+                  </div>
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.56)",
+                      display: "flex",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    AI VLOG
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 18,
+                }}
+              >
+                <div
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "#44f26e",
+                    borderRadius: 999,
+                    color: "#07100b",
+                    display: "flex",
+                    fontSize: 18,
+                    fontWeight: 900,
+                    padding: "11px 16px",
+                  }}
+                >
+                  {locale === "ko" ? "성장 모델" : "Growth model"}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 58,
+                    fontWeight: 900,
+                    letterSpacing: 0,
+                    lineHeight: 0.98,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {homeHeadline}
+                </div>
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.74)",
+                    display: "flex",
+                    fontSize: 23,
+                    fontWeight: 800,
+                    lineHeight: 1.26,
+                  }}
+                >
+                  {homeSubline}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                }}
+              >
+                {metrics.map((metric, index) => (
+                  <div
+                    key={metric.label}
+                    style={{
+                      background:
+                        index === 0 ? "#44f26e" : "rgba(255,255,255,0.9)",
+                      borderRadius: 18,
+                      color: "#07100b",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                      minWidth: 116,
+                      padding: "12px 13px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color:
+                          index === 0 ? "#07100b" : "rgba(7,16,11,0.6)",
+                        display: "flex",
+                        fontSize: 12,
+                        fontWeight: 900,
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {metric.label}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 30,
+                        fontWeight: 900,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {metric.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              style={{
+                alignItems: "center",
+                display: "flex",
+                flex: 1,
+                justifyContent: "center",
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 42,
+                  boxShadow: "0 34px 100px rgba(0,0,0,0.42)",
+                  display: "flex",
+                  height: 570,
+                  overflow: "hidden",
+                  padding: 10,
+                  position: "relative",
+                  width: 660,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                <img
+                  alt=""
+                  height="570"
+                  src={visualUrl}
+                  style={{
+                    borderRadius: 32,
+                    display: "flex",
+                    filter: shouldBlurVisual
+                      ? "blur(14px) brightness(0.58) saturate(0.86)"
+                      : "blur(14px) brightness(0.76) saturate(1.08)",
+                    height: "100%",
+                    objectFit: "cover",
+                    position: "absolute",
+                    transform: "scale(1.04)",
+                    width: "100%",
+                  }}
+                  width="660"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                <img
+                  alt=""
+                  height="570"
+                  src={visualUrl}
+                  style={{
+                    borderRadius: 32,
+                    display: "flex",
+                    height: "100%",
+                    objectFit: "contain",
+                    position: "relative",
+                    width: "100%",
+                  }}
+                  width="660"
+                />
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(0deg, rgba(3,5,4,0.72) 0%, rgba(3,5,4,0.04) 38%, rgba(3,5,4,0.2) 100%)",
+                    borderRadius: 32,
+                    inset: 10,
+                    position: "absolute",
+                  }}
+                />
+                <div
+                  style={{
+                    bottom: 28,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 7,
+                    left: 30,
+                    position: "absolute",
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#44f26e",
+                      display: "flex",
+                      fontSize: 16,
+                      fontWeight: 900,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {visualLabel}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 36,
+                      fontWeight: 900,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {featuredName}
+                  </div>
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.74)",
+                      display: "flex",
+                      fontSize: 18,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {featuredTitle}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      await getFanletterOgImageOptions(),
+    );
+  }
+
   if (creatorData && visualUrl && layout === "promo") {
     const creatorDisplayName = truncateText(
       visualName ?? stripFanletterTitleSuffix(title),
@@ -332,7 +718,7 @@ export async function GET(request: Request) {
             background: "#030504",
             color: "white",
             display: "flex",
-            fontFamily: "Arial, Helvetica, sans-serif",
+            fontFamily: fanletterOgFontFamily,
             height: "100%",
             overflow: "hidden",
             position: "relative",
@@ -585,7 +971,7 @@ export async function GET(request: Request) {
           </div>
         </div>
       ),
-      FANLETTER_OG_IMAGE_SIZE,
+      await getFanletterOgImageOptions(),
     );
   }
 
@@ -606,7 +992,7 @@ export async function GET(request: Request) {
             background: "#030504",
             color: "white",
             display: "flex",
-            fontFamily: "Arial, Helvetica, sans-serif",
+            fontFamily: fanletterOgFontFamily,
             height: "100%",
             overflow: "hidden",
             position: "relative",
@@ -889,7 +1275,7 @@ export async function GET(request: Request) {
           </div>
         </div>
       ),
-      FANLETTER_OG_IMAGE_SIZE,
+      await getFanletterOgImageOptions(),
     );
   }
 
@@ -900,7 +1286,7 @@ export async function GET(request: Request) {
           background: "#030504",
           color: "white",
           display: "flex",
-          fontFamily: "Arial, Helvetica, sans-serif",
+          fontFamily: fanletterOgFontFamily,
           height: "100%",
           overflow: "hidden",
           padding: 44,
@@ -1349,6 +1735,6 @@ export async function GET(request: Request) {
         </div>
       </div>
     ),
-    FANLETTER_OG_IMAGE_SIZE,
+    await getFanletterOgImageOptions(),
   );
 }
