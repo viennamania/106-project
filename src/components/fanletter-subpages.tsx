@@ -7349,14 +7349,10 @@ export function FanletterCreatorPromoSharePage({
   return (
     <main className="min-h-screen bg-[#050806] text-white">
       <section className="relative min-h-[100svh] overflow-hidden">
-        {heroImageUrl ? (
+        {!heroVideoUrl && heroImageUrl ? (
           <Image
             alt={channelName}
-            className={
-              heroVideoUrl
-                ? "object-cover object-[center_24%] opacity-[0.72] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.44] sm:blur-[3px]"
-                : "object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
-            }
+            className="object-cover object-[center_24%] opacity-[0.88] sm:scale-105 sm:object-[center_28%] sm:opacity-[0.54] sm:blur-[3px]"
             fill
             priority
             sizes="100vw"
@@ -7366,8 +7362,7 @@ export function FanletterCreatorPromoSharePage({
         {heroVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className="absolute inset-0 h-full w-full object-cover object-[center_24%] opacity-[0.86] sm:object-[center_28%] sm:opacity-[0.76]"
-            poster={featuredItem.coverImageUrl ?? undefined}
+            className="absolute inset-0 h-full w-full object-cover object-[center_24%] sm:object-[center_28%]"
             src={heroVideoUrl}
           />
         ) : null}
