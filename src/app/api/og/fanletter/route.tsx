@@ -145,6 +145,46 @@ function getLocaleSafeTitle(value: string | null, locale: Locale) {
   return value;
 }
 
+function getOgAvatarExpressionLabel(
+  expression: string | null | undefined,
+  label: string | null | undefined,
+  locale: Locale,
+) {
+  if (expression === "fanservice") {
+    return locale === "ko" ? "팬 리액션" : "Fan reaction";
+  }
+
+  if (label?.trim()) {
+    return label.trim();
+  }
+
+  if (expression === "smile") {
+    return locale === "ko" ? "미소" : "Smile";
+  }
+
+  if (expression === "serious") {
+    return locale === "ko" ? "차분함" : "Calm";
+  }
+
+  if (expression === "reaction") {
+    return locale === "ko" ? "리액션" : "Reaction";
+  }
+
+  if (expression === "shy") {
+    return locale === "ko" ? "설렘" : "Delight";
+  }
+
+  if (expression === "focus") {
+    return locale === "ko" ? "집중" : "Focus";
+  }
+
+  if (expression === "thumbnail") {
+    return locale === "ko" ? "썸네일" : "Thumbnail";
+  }
+
+  return locale === "ko" ? "대표" : "Default";
+}
+
 function formatMetric(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
@@ -247,6 +287,57 @@ export async function GET(request: Request) {
       creatorData?.profile.avatarImageUrl,
     url.origin,
   );
+  const creatorExpressionCards = (() => {
+    const cards: Array<{ imageUrl: string; label: string }> = [];
+    const seenImageUrls = new Set<string>();
+    const seenLabels = new Set<string>();
+    const addCard = (
+      imageUrl: string | null | undefined,
+      label: string,
+    ) => {
+      const renderableImageUrl = getRenderableImageUrl(imageUrl, url.origin);
+      const normalizedLabel = label.trim();
+      const labelKey = normalizedLabel.toLowerCase();
+
+      if (
+        !renderableImageUrl ||
+        seenImageUrls.has(renderableImageUrl) ||
+        seenLabels.has(labelKey)
+      ) {
+        return;
+      }
+
+      seenImageUrls.add(renderableImageUrl);
+      seenLabels.add(labelKey);
+      cards.push({
+        imageUrl: renderableImageUrl,
+        label: normalizedLabel,
+      });
+    };
+
+    for (const avatar of creatorData?.profile.character?.avatarImageSet ?? []) {
+      addCard(
+        avatar.url,
+        getOgAvatarExpressionLabel(avatar.expression, avatar.label, locale),
+      );
+    }
+
+    if (cards.length < 2) {
+      addCard(
+        creatorData?.profile.avatarImageUrl,
+        locale === "ko" ? "대표" : "Default",
+      );
+    }
+
+    if (cards.length < 5) {
+      addCard(
+        creatorData?.items[0]?.coverImageUrl,
+        locale === "ko" ? "브이로그" : "Vlog",
+      );
+    }
+
+    return cards.slice(0, 8);
+  })();
   const creatorVisualUrl = creatorCoverImageUrl ?? creatorAvatarImageUrl;
   const homeVisualUrl = getRenderableImageUrl(
     homeFeaturedVideo?.coverImageUrl ?? homeFeaturedVideo?.authorAvatarImageUrl,
@@ -744,10 +835,83 @@ export async function GET(request: Request) {
   if (creatorData && visualUrl && layout === "promo") {
     const creatorDisplayName = truncateText(
       visualName ?? stripFanletterTitleSuffix(title),
-      34,
+      28,
     );
     const promoVisualUrl = creatorAvatarImageUrl ?? visualUrl;
-    const promoBadge = locale === "ko" ? "AI VLOG" : "AI VLOG";
+    const fallbackExpressionCard = {
+      imageUrl: promoVisualUrl,
+      label: locale === "ko" ? "대표" : "Default",
+    };
+    const promoExpressionCards =
+      creatorExpressionCards.length > 0
+        ? creatorExpressionCards
+        : [fallbackExpressionCard];
+    const getPromoExpressionCard = (index: number) =>
+      promoExpressionCards[index] ?? fallbackExpressionCard;
+    const expressionSlots: Array<{
+      card: { imageUrl: string; label: string };
+      featured: boolean;
+      height: number;
+      left: number;
+      radius: number;
+      top: number;
+      width: number;
+    }> = [];
+    const addExpressionSlot = (
+      card: { imageUrl: string; label: string } | undefined,
+      slot: Omit<(typeof expressionSlots)[number], "card">,
+    ) => {
+      if (!card) {
+        return;
+      }
+
+      expressionSlots.push({
+        ...slot,
+        card,
+      });
+    };
+
+    addExpressionSlot(promoExpressionCards[1], {
+      featured: false,
+      height: 226,
+      left: 332,
+      radius: 30,
+      top: 70,
+      width: 200,
+    });
+    addExpressionSlot(promoExpressionCards[2], {
+      featured: false,
+      height: 226,
+      left: 332,
+      radius: 30,
+      top: 334,
+      width: 200,
+    });
+    addExpressionSlot(promoExpressionCards[0] ?? fallbackExpressionCard, {
+      featured: true,
+      height: 570,
+      left: 558,
+      radius: 38,
+      top: 30,
+      width: 396,
+    });
+    addExpressionSlot(promoExpressionCards[3], {
+      featured: false,
+      height: 226,
+      left: 982,
+      radius: 30,
+      top: 70,
+      width: 184,
+    });
+    addExpressionSlot(promoExpressionCards[4], {
+      featured: false,
+      height: 226,
+      left: 982,
+      radius: 30,
+      top: 334,
+      width: 184,
+    });
+    const promoBadge = locale === "ko" ? "AI 표정 갤러리" : "AI expression set";
 
     return new ImageResponse(
       (
@@ -767,15 +931,15 @@ export async function GET(request: Request) {
           <img
             alt=""
             height="630"
-            src={promoVisualUrl}
+            src={getPromoExpressionCard(0).imageUrl}
             style={{
               display: "flex",
-              filter: "blur(18px) brightness(0.56) saturate(1.05)",
+              filter: "blur(22px) brightness(0.46) saturate(1.08)",
               height: "100%",
               objectFit: "cover",
-              opacity: 0.9,
+              opacity: 0.96,
               position: "absolute",
-              transform: "scale(1.08)",
+              transform: "scale(1.1)",
               width: "100%",
             }}
             width="1200"
@@ -783,7 +947,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(90deg, rgba(3,5,4,0.5) 0%, rgba(3,5,4,0.12) 46%, rgba(3,5,4,0.5) 100%)",
+                "linear-gradient(90deg, rgba(3,5,4,0.74) 0%, rgba(3,5,4,0.2) 46%, rgba(3,5,4,0.32) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -791,7 +955,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(0deg, rgba(3,5,4,0.62) 0%, rgba(3,5,4,0.02) 46%, rgba(3,5,4,0.42) 100%)",
+                "linear-gradient(0deg, rgba(3,5,4,0.56) 0%, rgba(3,5,4,0.02) 46%, rgba(3,5,4,0.32) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -809,74 +973,10 @@ export async function GET(request: Request) {
             style={{
               display: "flex",
               height: "100%",
-              padding: 28,
               position: "relative",
               width: "100%",
             }}
           >
-            <div
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                borderRadius: 34,
-                boxShadow: "0 30px 110px rgba(0,0,0,0.44)",
-                display: "flex",
-                height: "100%",
-                overflow: "hidden",
-                padding: 10,
-                position: "relative",
-                width: "100%",
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-              <img
-                alt=""
-                height="574"
-                src={promoVisualUrl}
-                style={{
-                  borderRadius: 26,
-                  display: "flex",
-                  filter: "blur(16px) brightness(0.66)",
-                  height: "100%",
-                  objectFit: "cover",
-                  position: "absolute",
-                  width: "100%",
-                }}
-                width="1144"
-              />
-              <div
-                style={{
-                  background: "rgba(3,5,4,0.1)",
-                  borderRadius: 26,
-                  inset: 10,
-                  position: "absolute",
-                }}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-              <img
-                alt=""
-                height="574"
-                src={promoVisualUrl}
-                style={{
-                  display: "flex",
-                  height: "100%",
-                  objectFit: "contain",
-                  position: "relative",
-                  width: "100%",
-                }}
-                width="1144"
-              />
-              <div
-                style={{
-                  background:
-                    "linear-gradient(0deg, rgba(3,5,4,0.68) 0%, rgba(3,5,4,0.04) 34%, rgba(3,5,4,0.36) 100%)",
-                  borderRadius: 26,
-                  inset: 10,
-                  position: "absolute",
-                }}
-              />
-            </div>
-
             <div
               style={{
                 display: "flex",
@@ -940,72 +1040,112 @@ export async function GET(request: Request) {
 
             <div
               style={{
-                bottom: 44,
                 display: "flex",
-                left: 44,
+                flexDirection: "column",
+                gap: 16,
+                left: 48,
                 position: "absolute",
+                top: 186,
+                width: 266,
               }}
             >
               <div
                 style={{
-                  background: "rgba(3,5,4,0.58)",
-                  border: "1px solid rgba(255,255,255,0.16)",
-                  borderRadius: 30,
-                  boxShadow: "0 18px 56px rgba(0,0,0,0.32)",
+                  alignSelf: "flex-start",
+                  background: "#44f26e",
+                  borderRadius: 999,
+                  color: "#07100b",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  padding: "18px 22px",
+                  fontSize: 18,
+                  fontWeight: 900,
+                  padding: "10px 15px",
                 }}
               >
-                <div
-                  style={{
-                    alignItems: "center",
-                    display: "flex",
-                    gap: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      background: "#44f26e",
-                      borderRadius: 999,
-                      color: "#07100b",
-                      display: "flex",
-                      fontSize: 15,
-                      fontWeight: 900,
-                      padding: "8px 12px",
-                    }}
-                  >
-                    {promoBadge}
-                  </div>
-                  <div
-                    style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "1px solid rgba(255,255,255,0.16)",
-                      borderRadius: 999,
-                      color: "rgba(255,255,255,0.82)",
-                      display: "flex",
-                      fontSize: 18,
-                      fontWeight: 900,
-                      padding: "8px 13px",
-                    }}
-                  >
-                    FanLetter
-                  </div>
-                </div>
-                <div
-                  style={{
-                    color: "white",
-                    display: "flex",
-                    fontSize: 38,
-                    fontWeight: 900,
-                    lineHeight: 1,
-                  }}
-                >
-                  {creatorDisplayName}
-                </div>
+                {promoBadge}
+              </div>
+              <div
+                style={{
+                  color: "white",
+                  display: "flex",
+                  fontSize: 52,
+                  fontWeight: 900,
+                  lineHeight: 1.04,
+                }}
+              >
+                {creatorDisplayName}
               </div>
             </div>
+
+            {expressionSlots.map((slot, index) => (
+              <div
+                key={`${slot.card.imageUrl}:promo-expression:${index}`}
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: slot.radius,
+                  boxShadow:
+                    slot.featured
+                      ? "0 34px 110px rgba(0,0,0,0.48)"
+                      : "0 22px 70px rgba(0,0,0,0.38)",
+                  display: "flex",
+                  height: slot.height,
+                  left: slot.left,
+                  overflow: "hidden",
+                  padding: slot.featured ? 10 : 8,
+                  position: "absolute",
+                  top: slot.top,
+                  width: slot.width,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+                <img
+                  alt=""
+                  height={slot.height}
+                  src={slot.card.imageUrl}
+                  style={{
+                    borderRadius: slot.radius - 8,
+                    display: "flex",
+                    height: "100%",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
+                  width={slot.width}
+                />
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(0deg, rgba(3,5,4,0.58) 0%, rgba(3,5,4,0.02) 48%)",
+                    borderRadius: slot.radius - 8,
+                    inset: slot.featured ? 10 : 8,
+                    position: "absolute",
+                  }}
+                />
+                <div
+                  style={{
+                    background:
+                      slot.featured
+                        ? "#44f26e"
+                        : "rgba(3,5,4,0.72)",
+                    border:
+                      slot.featured
+                        ? "1px solid rgba(68,242,110,0.3)"
+                        : "1px solid rgba(255,255,255,0.14)",
+                    borderRadius: 999,
+                    bottom: slot.featured ? 24 : 18,
+                    color: slot.featured ? "#07100b" : "white",
+                    display: "flex",
+                    fontSize: slot.featured ? 22 : 18,
+                    fontWeight: 900,
+                    left: slot.featured ? 24 : 18,
+                    padding: slot.featured ? "10px 15px" : "8px 12px",
+                    position: "absolute",
+                  }}
+                >
+                  {slot.card.label}
+                </div>
+              </div>
+            ))}
+
           </div>
         </div>
       ),

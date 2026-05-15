@@ -100,6 +100,11 @@ export async function generateMetadata({
     data?.profile.character?.avatarImageSet[0]?.url ??
     data?.profile.avatarImageUrl ??
     null;
+  const ogAvatarVersionSeed = data?.profile.character?.avatarImageSet
+    .map((avatar) =>
+      [avatar.expression, avatar.label, avatar.url].filter(Boolean).join(":"),
+    )
+    .join("|");
   const ogImagePath = buildFanletterOgImagePath({
     description: shareMetadata.description,
     layout: "promo",
@@ -109,12 +114,13 @@ export async function generateMetadata({
     variant: "creator",
     version:
       buildFanletterOgVersionToken(
-        "creator-promo-share-og-v2",
+        "creator-promo-share-og-v3",
         normalizedShareId,
         creatorReferralCode,
         sponsor.slug,
         shareMetadata.title,
         shareMetadata.description,
+        ogAvatarVersionSeed,
         ogVisualUrl,
         data?.items[0]?.contentId,
       ) ??
