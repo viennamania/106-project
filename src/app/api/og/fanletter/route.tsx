@@ -322,17 +322,8 @@ export async function GET(request: Request) {
       visualName ?? stripFanletterTitleSuffix(title),
       34,
     );
-    const posterTitle = latestTitle
-      ? truncateText(latestTitle, 46)
-      : truncateText(title, 46);
-    const promoTitleBase =
-      locale === "ko" ? title.replace(/\s*프로모션\s*$/, "") : title;
-    const promoEyebrow =
-      locale === "ko" ? "FanLetter 프로모션" : "FanLetter promotion";
-    const promoCta = locale === "ko" ? "무료 브이로그 먼저 보기" : "Watch free vlogs";
-    const compactMetricLabel = metrics
-      .map((metric) => `${metric.value} ${metric.label}`)
-      .join(" · ");
+    const promoVisualUrl = creatorAvatarImageUrl ?? visualUrl;
+    const promoBadge = locale === "ko" ? "AI VLOG" : "AI VLOG";
 
     return new ImageResponse(
       (
@@ -352,13 +343,13 @@ export async function GET(request: Request) {
           <img
             alt=""
             height="630"
-            src={visualUrl}
+            src={promoVisualUrl}
             style={{
               display: "flex",
-              filter: "blur(18px) brightness(0.48) saturate(1.05)",
+              filter: "blur(18px) brightness(0.56) saturate(1.05)",
               height: "100%",
               objectFit: "cover",
-              opacity: 0.86,
+              opacity: 0.9,
               position: "absolute",
               transform: "scale(1.08)",
               width: "100%",
@@ -368,7 +359,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(90deg, rgba(3,5,4,0.96) 0%, rgba(3,5,4,0.72) 46%, rgba(3,5,4,0.22) 100%)",
+                "linear-gradient(90deg, rgba(3,5,4,0.5) 0%, rgba(3,5,4,0.12) 46%, rgba(3,5,4,0.5) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -376,7 +367,7 @@ export async function GET(request: Request) {
           <div
             style={{
               background:
-                "linear-gradient(0deg, rgba(3,5,4,0.78) 0%, rgba(3,5,4,0.06) 42%, rgba(3,5,4,0.46) 100%)",
+                "linear-gradient(0deg, rgba(3,5,4,0.62) 0%, rgba(3,5,4,0.02) 46%, rgba(3,5,4,0.42) 100%)",
               inset: 0,
               position: "absolute",
             }}
@@ -385,7 +376,7 @@ export async function GET(request: Request) {
             style={{
               border: "1px solid rgba(255,255,255,0.14)",
               borderRadius: 42,
-              inset: 24,
+              inset: 20,
               position: "absolute",
             }}
           />
@@ -393,146 +384,156 @@ export async function GET(request: Request) {
           <div
             style={{
               display: "flex",
-              gap: 28,
               height: "100%",
-              padding: 32,
+              padding: 28,
               position: "relative",
               width: "100%",
             }}
           >
             <div
               style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                borderRadius: 34,
+                boxShadow: "0 30px 110px rgba(0,0,0,0.44)",
                 display: "flex",
-                flex: "none",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                minWidth: 0,
-                padding: "4px 0",
-                width: 418,
+                height: "100%",
+                overflow: "hidden",
+                padding: 10,
+                position: "relative",
+                width: "100%",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+              <img
+                alt=""
+                height="574"
+                src={promoVisualUrl}
+                style={{
+                  borderRadius: 26,
+                  display: "flex",
+                  filter: "blur(16px) brightness(0.66)",
+                  height: "100%",
+                  objectFit: "cover",
+                  position: "absolute",
+                  width: "100%",
+                }}
+                width="1144"
+              />
+              <div
+                style={{
+                  background: "rgba(3,5,4,0.1)",
+                  borderRadius: 26,
+                  inset: 10,
+                  position: "absolute",
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+              <img
+                alt=""
+                height="574"
+                src={promoVisualUrl}
+                style={{
+                  display: "flex",
+                  height: "100%",
+                  objectFit: "contain",
+                  position: "relative",
+                  width: "100%",
+                }}
+                width="1144"
+              />
+              <div
+                style={{
+                  background:
+                    "linear-gradient(0deg, rgba(3,5,4,0.68) 0%, rgba(3,5,4,0.04) 34%, rgba(3,5,4,0.36) 100%)",
+                  borderRadius: 26,
+                  inset: 10,
+                  position: "absolute",
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                left: 44,
+                position: "absolute",
+                top: 42,
               }}
             >
               <div
                 style={{
                   alignItems: "center",
+                  background: "rgba(3,5,4,0.66)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: 999,
                   display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
+                  gap: 12,
+                  padding: "8px 16px 8px 8px",
                 }}
               >
                 <div
                   style={{
                     alignItems: "center",
-                    background: "rgba(3,5,4,0.58)",
-                    border: "1px solid rgba(255,255,255,0.16)",
-                    borderRadius: 999,
-                    display: "flex",
-                    gap: 13,
-                    padding: "9px 17px 9px 9px",
-                  }}
-                >
-                  <div
-                    style={{
-                      alignItems: "center",
-                      background: "#44f26e",
-                      borderRadius: 14,
-                      color: "#030504",
-                      display: "flex",
-                      fontSize: 25,
-                      fontWeight: 900,
-                      height: 48,
-                      justifyContent: "center",
-                      width: 48,
-                    }}
-                  >
-                    F
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                    }}
-                  >
-                    <div style={{ display: "flex", fontSize: 26, fontWeight: 900 }}>
-                      FanLetter
-                    </div>
-                    <div
-                      style={{
-                        color: "rgba(255,255,255,0.58)",
-                        display: "flex",
-                        fontSize: 12,
-                        fontWeight: 800,
-                        letterSpacing: "0.18em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      AI CHARACTER VLOG
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                  maxWidth: 410,
-                }}
-              >
-                <div
-                  style={{
-                    alignSelf: "flex-start",
                     background: "#44f26e",
-                    borderRadius: 999,
-                    color: "#07100b",
+                    borderRadius: 13,
+                    color: "#030504",
                     display: "flex",
-                    fontSize: 18,
+                    fontSize: 24,
                     fontWeight: 900,
-                    padding: "12px 18px",
+                    height: 46,
+                    justifyContent: "center",
+                    width: 46,
                   }}
                 >
-                  {promoEyebrow}
+                  F
                 </div>
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 14,
+                    gap: 2,
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 4,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        fontSize: 50,
-                        fontWeight: 900,
-                        lineHeight: 1.02,
-                        maxWidth: 410,
-                      }}
-                    >
-                      {promoTitleBase}
-                    </div>
+                  <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
+                    FanLetter
                   </div>
                   <div
                     style={{
-                      color: "rgba(255,255,255,0.62)",
+                      color: "rgba(255,255,255,0.56)",
                       display: "flex",
-                      fontSize: 20,
+                      fontSize: 12,
                       fontWeight: 800,
-                      lineHeight: 1.2,
-                      maxWidth: 400,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
                     }}
                   >
-                    {compactMetricLabel}
+                    AI CHARACTER VLOG
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                bottom: 44,
+                display: "flex",
+                left: 44,
+                position: "absolute",
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(3,5,4,0.58)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: 30,
+                  boxShadow: "0 18px 56px rgba(0,0,0,0.32)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  padding: "18px 22px",
+                }}
+              >
                 <div
                   style={{
                     alignItems: "center",
@@ -542,139 +543,42 @@ export async function GET(request: Request) {
                 >
                   <div
                     style={{
-                      background: "rgba(255,255,255,0.1)",
+                      background: "#44f26e",
+                      borderRadius: 999,
+                      color: "#07100b",
+                      display: "flex",
+                      fontSize: 15,
+                      fontWeight: 900,
+                      padding: "8px 12px",
+                    }}
+                  >
+                    {promoBadge}
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(255,255,255,0.12)",
                       border: "1px solid rgba(255,255,255,0.16)",
                       borderRadius: 999,
                       color: "rgba(255,255,255,0.82)",
                       display: "flex",
                       fontSize: 18,
                       fontWeight: 900,
-                      padding: "13px 18px",
+                      padding: "8px 13px",
                     }}
                   >
-                    {creatorDisplayName}
+                    FanLetter
                   </div>
-                  <div
-                    style={{
-                      background: "#44f26e",
-                      borderRadius: 999,
-                      color: "#07100b",
-                      display: "flex",
-                      fontSize: 18,
-                      fontWeight: 900,
-                      padding: "13px 18px",
-                    }}
-                  >
-                    {promoCta}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  height: 54,
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                borderRadius: 34,
-                boxShadow: "0 28px 96px rgba(0,0,0,0.42)",
-                display: "flex",
-                height: 566,
-                overflow: "hidden",
-                padding: 12,
-                position: "relative",
-                width: 690,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-              <img
-                alt=""
-                height="566"
-                src={visualUrl}
-                style={{
-                  borderRadius: 24,
-                  display: "flex",
-                  filter: "blur(14px) brightness(0.58)",
-                  height: "100%",
-                  objectFit: "cover",
-                  position: "absolute",
-                  width: "100%",
-                }}
-                width="690"
-              />
-              <div
-                style={{
-                  background: "rgba(3,5,4,0.22)",
-                  borderRadius: 24,
-                  inset: 12,
-                  position: "absolute",
-                }}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
-              <img
-                alt=""
-                height="542"
-                src={visualUrl}
-                style={{
-                  borderRadius: 24,
-                  display: "flex",
-                  height: "100%",
-                  objectFit: "contain",
-                  position: "relative",
-                  width: "100%",
-                }}
-                width="666"
-              />
-              <div
-                style={{
-                  background:
-                    "linear-gradient(0deg, rgba(3,5,4,0.72) 0%, rgba(3,5,4,0.04) 38%, rgba(3,5,4,0.28) 100%)",
-                  borderRadius: 24,
-                  inset: 12,
-                  position: "absolute",
-                }}
-              />
-              <div
-                style={{
-                  bottom: 30,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  left: 30,
-                  position: "absolute",
-                  right: 30,
-                }}
-              >
-                <div
-                  style={{
-                    alignSelf: "flex-start",
-                    background: "#44f26e",
-                    borderRadius: 999,
-                    color: "#07100b",
-                    display: "flex",
-                    fontSize: 13,
-                    fontWeight: 900,
-                    padding: "8px 12px",
-                  }}
-                >
-                  {visualLabel}
                 </div>
                 <div
                   style={{
                     color: "white",
                     display: "flex",
-                    fontSize: 34,
+                    fontSize: 38,
                     fontWeight: 900,
-                    lineHeight: 1.05,
+                    lineHeight: 1,
                   }}
                 >
-                  {posterTitle}
+                  {creatorDisplayName}
                 </div>
               </div>
             </div>
