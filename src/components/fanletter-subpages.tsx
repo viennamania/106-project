@@ -7213,6 +7213,11 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyTitle: "팬 전용 티저",
           free: "무료 공개",
           heroCta: "무료 브이로그 보기",
+          expressionBody:
+            "같은 캐릭터 정체성으로 생성된 대표, 미소, 리액션, 집중 컷을 한 번에 확인하세요.",
+          expressionCount: "표정 컷",
+          expressionEyebrow: "AI 캐릭터 표정 세트",
+          expressionTitle: "다양한 반응 컷",
           identityBody:
             "캐릭터의 분위기, 성장 단계, 반복되는 키워드를 한 번에 확인할 수 있게 정리했습니다.",
           identityEmptyTraits: "캐릭터 키워드가 쌓이면 이곳에 먼저 표시됩니다.",
@@ -7251,6 +7256,11 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyTitle: "Fan-only teasers",
           free: "Free public",
           heroCta: "Watch free vlogs",
+          expressionBody:
+            "Review the default, smile, reaction, and focus cuts generated from the same character identity.",
+          expressionCount: "Expression cuts",
+          expressionEyebrow: "AI character expression set",
+          expressionTitle: "Multiple reaction cuts",
           identityBody:
             "A compact view of the character's mood, growth stage, and recurring public keywords.",
           identityEmptyTraits: "Character keywords will appear here as the persona becomes clearer.",
@@ -7285,6 +7295,7 @@ export function FanletterCreatorPromoSharePage({
   ];
   const identityImageUrl =
     character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl ?? heroImageUrl;
+  const expressionImages = character?.avatarImageSet ?? [];
   const identityTraits =
     character?.traits.filter((trait) => trait.trim().length > 0).slice(0, 8) ?? [];
   const identitySkills = character?.growth.skills.slice(0, 3) ?? [];
@@ -7546,6 +7557,60 @@ export function FanletterCreatorPromoSharePage({
                 </div>
               </div>
             </div>
+
+            {expressionImages.length > 0 ? (
+              <div className="mt-6 border-t border-white/10 pt-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                      {labels.expressionEyebrow}
+                    </p>
+                    <h3 className="mt-2 text-2xl font-semibold tracking-normal text-white sm:text-3xl">
+                      {labels.expressionTitle}
+                    </h3>
+                    <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-white/56">
+                      {labels.expressionBody}
+                    </p>
+                  </div>
+                  <div className="inline-flex w-fit rounded-full border border-[#44f26e]/18 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#c9ffd3]">
+                    {formatNumber(expressionImages.length, locale)}{" "}
+                    {labels.expressionCount}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid auto-cols-[9.5rem] grid-flow-col gap-2.5 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
+                  {expressionImages.map((avatar, index) => {
+                    const expressionLabel = getAvatarExpressionLabel(
+                      avatar.expression,
+                      avatar.label,
+                      locale,
+                    );
+
+                    return (
+                      <div
+                        className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/24"
+                        key={`${avatar.url}-${index}`}
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden bg-[#111812]">
+                          <Image
+                            alt={`${channelName} ${expressionLabel}`}
+                            className="object-cover"
+                            fill
+                            sizes="(max-width: 640px) 9.5rem, (max-width: 1024px) 25vw, 14vw"
+                            src={avatar.url}
+                          />
+                        </div>
+                        <div className="px-2.5 py-2">
+                          <p className="truncate text-xs font-semibold text-white">
+                            {expressionLabel}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </FanletterScrollReveal>
 
           <FanletterScrollReveal
