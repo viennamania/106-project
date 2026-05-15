@@ -7198,6 +7198,14 @@ export function FanletterCreatorPromoSharePage({
           creatorBadge: "SNS 공유 전용",
           description: `${channelName}의 무료 공개 브이로그와 팬 전용 티저를 한 화면에서 먼저 확인하세요.`,
           mobileDescription: `무료 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 티저 ${formatNumber(data.fanOnlyContentCount, locale)}개를 먼저 확인하세요.`,
+          activityBody:
+            "공개 브이로그, 팬 전용 티저, 팬 요청 기록을 시간순으로 모아 캐릭터가 계속 움직이고 있다는 신호를 보여줍니다.",
+          activityEmpty: "최근 활동 기록이 준비되면 이 영역에 시간순으로 표시됩니다.",
+          activityEyebrow: "라이브 활동 기록",
+          activityFanOnly: "팬 전용 티저",
+          activityPublic: "공개 브이로그",
+          activityRequest: "팬 요청",
+          activityTitle: "최근에 움직인 순간",
           fanOnly: "팬 전용",
           fanOnlyBody:
             "잠금 콘텐츠는 티저와 가격 신호만 먼저 보여주고, 결제 후 전체 영상과 본문이 열립니다.",
@@ -7205,6 +7213,12 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyTitle: "팬 전용 티저",
           free: "무료 공개",
           heroCta: "무료 브이로그 보기",
+          identityBody:
+            "캐릭터의 분위기, 성장 단계, 반복되는 키워드를 한 번에 확인할 수 있게 정리했습니다.",
+          identityEmptyTraits: "캐릭터 키워드가 쌓이면 이곳에 먼저 표시됩니다.",
+          identityEyebrow: "캐릭터 아이덴티티",
+          identitySkills: "성장 스킬",
+          identityTitle: `${channelName}의 페르소나`,
           locked: "잠금 티저",
           partner: "추천 파트너",
           partnerBody:
@@ -7222,6 +7236,14 @@ export function FanletterCreatorPromoSharePage({
           creatorBadge: "SNS share edition",
           description: `Preview ${channelName}'s free public vlogs and fan-only teasers from one promotional page.`,
           mobileDescription: `Preview ${formatNumber(data.publicContentCount, locale)} free vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only teasers.`,
+          activityBody:
+            "Public vlogs, fan-only teasers, and fan requests are arranged by time to show that this character keeps moving.",
+          activityEmpty: "Recent activity will appear here in chronological order.",
+          activityEyebrow: "Live activity log",
+          activityFanOnly: "Fan-only teaser",
+          activityPublic: "Public vlog",
+          activityRequest: "Fan request",
+          activityTitle: "Recent moments",
           fanOnly: "Fan-only",
           fanOnlyBody:
             "Locked posts show teaser and price signals first. Full video and body open after payment.",
@@ -7229,6 +7251,12 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyTitle: "Fan-only teasers",
           free: "Free public",
           heroCta: "Watch free vlogs",
+          identityBody:
+            "A compact view of the character's mood, growth stage, and recurring public keywords.",
+          identityEmptyTraits: "Character keywords will appear here as the persona becomes clearer.",
+          identityEyebrow: "Character identity",
+          identitySkills: "Growth skills",
+          identityTitle: `${channelName}'s persona`,
           locked: "Locked teaser",
           partner: "Recommended partner",
           partnerBody:
@@ -7255,6 +7283,68 @@ export function FanletterCreatorPromoSharePage({
       value: levelLabel,
     },
   ];
+  const identityImageUrl =
+    character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl ?? heroImageUrl;
+  const identityTraits =
+    character?.traits.filter((trait) => trait.trim().length > 0).slice(0, 8) ?? [];
+  const identitySkills = character?.growth.skills.slice(0, 3) ?? [];
+  const identitySignals = [
+    {
+      label: copy.creator.stage,
+      value: levelLabel,
+    },
+    {
+      label: copy.creator.characterVideoSignal,
+      value: formatNumber(character?.videoContentCount ?? data.publicContentCount, locale),
+    },
+    {
+      label: labels.fanOnly,
+      value: formatNumber(data.fanOnlyContentCount, locale),
+    },
+  ];
+  const activityRecords: Array<{
+    body: string;
+    date: string;
+    Icon: LucideIcon;
+    label: string;
+    title: string;
+  }> = [
+    ...data.items
+      .filter((item) => Boolean(item.publishedAt))
+      .slice(0, 5)
+      .map((item) => ({
+        body: getCompactTextSnippet(getDisplayContentSummary(item, locale), 86),
+        date: item.publishedAt as string,
+        Icon: Video,
+        label: labels.activityPublic,
+        title: getDisplayContentTitle(item, locale),
+      })),
+    ...data.fanOnlyItems
+      .filter((item) => Boolean(item.publishedAt))
+      .slice(0, 3)
+      .map((item) => ({
+        body: getCompactTextSnippet(getDisplayPaidTeaser(item, locale), 86),
+        date: item.publishedAt as string,
+        Icon: LockKeyhole,
+        label: labels.activityFanOnly,
+        title: getDisplayContentTitle(item, locale),
+      })),
+    ...data.fanRequestPreviews
+      .filter((request) => Boolean(request.createdAt))
+      .slice(0, 3)
+      .map((request) => ({
+        body: getCompactTextSnippet(request.body, 86),
+        date: request.createdAt,
+        Icon: MessageCircleHeart,
+        label: labels.activityRequest,
+        title:
+          request.requestType === "message"
+            ? labels.activityRequest
+            : labels.activityPublic,
+      })),
+  ]
+    .sort((a, b) => getPublishedTime(b.date) - getPublishedTime(a.date))
+    .slice(0, 5);
 
   return (
     <main className="min-h-screen bg-[#050806] text-white">
@@ -7380,6 +7470,162 @@ export function FanletterCreatorPromoSharePage({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-[#070b08] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto grid max-w-[92rem] gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start">
+          <FanletterScrollReveal className="min-w-0 rounded-lg border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(68,242,110,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.035))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.28)] sm:p-5 lg:p-6">
+            <div className="grid gap-5 md:grid-cols-[13rem_minmax(0,1fr)] md:items-stretch">
+              <div className="relative min-h-[18rem] overflow-hidden rounded-lg bg-[#111812]">
+                {identityImageUrl ? (
+                  <Image
+                    alt={channelName}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 13rem"
+                    src={identityImageUrl}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <Sparkles className="size-10 text-[#44f26e]" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.52)_100%)]" />
+                <div className="absolute inset-x-0 bottom-0 p-4">
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#9bffad]">
+                    {labels.identityEyebrow}
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold leading-none text-white">
+                    {channelName}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex min-w-0 flex-col justify-between gap-6">
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                    {labels.identityEyebrow}
+                  </p>
+                  <h2 className="mt-3 break-words text-3xl font-semibold leading-tight tracking-normal [word-break:keep-all] sm:text-4xl">
+                    {labels.identityTitle}
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/62">
+                    {channelSummary || character?.summary || labels.identityBody}
+                  </p>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {identitySignals.map((signal) => (
+                    <div
+                      className="rounded-lg border border-white/10 bg-black/22 p-3"
+                      key={signal.label}
+                    >
+                      <p className="text-2xl font-semibold leading-none text-white">
+                        {signal.value}
+                      </p>
+                      <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/46">
+                        {signal.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  {identityTraits.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {identityTraits.map((trait) => (
+                        <span
+                          className="rounded-full border border-[#44f26e]/20 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#c9ffd3]"
+                          key={trait}
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-medium leading-6 text-white/54">
+                      {labels.identityEmptyTraits}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </FanletterScrollReveal>
+
+          <FanletterScrollReveal
+            className="min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-4 sm:p-5 lg:p-6"
+            delayMs={80}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                  {labels.activityEyebrow}
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-normal sm:text-3xl">
+                  {labels.activityTitle}
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/58">
+                  {labels.activityBody}
+                </p>
+              </div>
+              <div className="hidden size-12 items-center justify-center rounded-full bg-[#44f26e] text-black sm:flex">
+                <Clapperboard className="size-5" />
+              </div>
+            </div>
+
+            {activityRecords.length > 0 ? (
+              <div className="mt-6 space-y-3">
+                {activityRecords.map(({ body, date, Icon, label, title }, index) => (
+                  <div
+                    className="grid gap-3 rounded-lg border border-white/10 bg-black/20 p-3 sm:grid-cols-[6.6rem_minmax(0,1fr)] sm:p-4"
+                    key={`${date}-${title}-${index}`}
+                  >
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#9bffad] sm:block">
+                      <span>{formatDate(date, locale) ?? "FanLetter"}</span>
+                      <span className="text-white/24 sm:hidden">/</span>
+                      <span className="text-white/46 sm:mt-2 sm:block">{label}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
+                          <Icon className="size-4" />
+                        </span>
+                        <h3 className="line-clamp-1 break-words text-base font-semibold tracking-normal text-white [overflow-wrap:anywhere]">
+                          {title}
+                        </h3>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/58">
+                        {body}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-6 rounded-lg border border-white/10 bg-black/20 p-4 text-sm font-semibold text-white/56">
+                {labels.activityEmpty}
+              </p>
+            )}
+
+            {identitySkills.length > 0 ? (
+              <div className="mt-5 grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                {identitySkills.map((skill) => (
+                  <div
+                    className="rounded-lg border border-[#44f26e]/16 bg-[#44f26e]/8 p-3"
+                    key={skill.label}
+                  >
+                    <p className="text-sm font-semibold text-[#d9ffe1]">
+                      {skill.label}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/48">
+                      {skill.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </FanletterScrollReveal>
         </div>
       </section>
 
