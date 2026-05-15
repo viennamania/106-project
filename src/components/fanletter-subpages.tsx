@@ -7253,6 +7253,34 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyEmpty: "팬 전용 콘텐츠가 준비되면 이 영역에서 먼저 노출됩니다.",
           fanOnlyTitle: "팬 전용 티저",
           free: "무료 공개",
+          growthBody:
+            "팬클럽 팔로우, 유료 콘텐츠 언락, 팬레터 요청이 캐릭터의 다음 표정과 브이로그 미션으로 이어지는 구조를 보여줍니다.",
+          growthCta: "팬 전용 티저 보기",
+          growthEyebrow: "팬클럽 성장 신호",
+          growthFallbackMission:
+            "팬 전용 콘텐츠와 팬레터가 쌓이면 다음 성장 미션이 열립니다.",
+          growthFanClubBody: (count: string) =>
+            `${count}명의 팬클럽 멤버가 다음 공개 브이로그와 팬 전용 업데이트를 기다립니다.`,
+          growthFanClubHint: "팔로우한 팬",
+          growthFanClubLabel: "팬클럽 멤버",
+          growthFanClubLead: "팬클럽 신호",
+          growthLevelHint: "현재 성장 단계",
+          growthLevelLabel: "AI 성장 레벨",
+          growthNextMission: "다음 성장 미션",
+          growthPaidBody: (count: string) =>
+            `${count}회의 유료 콘텐츠 판매량이 팬들이 더 보고 싶은 장면의 신호가 됩니다.`,
+          growthPaidHint: "누적 유료 언락",
+          growthPaidLabel: "유료 콘텐츠 판매량",
+          growthProgressLabel: "성장 진행률",
+          growthRequestBody: (count: string) =>
+            `${count}개의 팬레터 요청이 말투, 상황, 답장 장면을 더 구체적으로 만듭니다.`,
+          growthRequestHint: "팬이 남긴 요청",
+          growthRequestLabel: "팬레터 요청",
+          growthRequestLead: "팬레터 피드백",
+          growthTitle: "팬들이 함께 키우는 AI 캐릭터",
+          topPaidEmpty: "팬 전용 콘텐츠 판매 신호가 쌓이면 이곳에 먼저 표시됩니다.",
+          topPaidSales: (count: string) => `${count}회 판매`,
+          topPaidTitle: "팬들이 언락한 콘텐츠",
           heroCta: "무료 브이로그 보기",
           expressionBody:
             "같은 캐릭터 정체성으로 생성된 대표, 미소, 리액션, 집중 컷을 한 번에 확인하세요.",
@@ -7297,6 +7325,34 @@ export function FanletterCreatorPromoSharePage({
           fanOnlyEmpty: "Fan-only content will appear here when it is ready.",
           fanOnlyTitle: "Fan-only teasers",
           free: "Free public",
+          growthBody:
+            "Fan club follows, paid unlocks, and fan letters are shown as the loop that shapes the character's next expressions and vlog missions.",
+          growthCta: "View fan-only teasers",
+          growthEyebrow: "Fan club growth signals",
+          growthFallbackMission:
+            "The next growth mission opens as fan-only content and fan letters build up.",
+          growthFanClubBody: (count: string) =>
+            `${count} fan club members are waiting for the next public vlog and fan-only update.`,
+          growthFanClubHint: "Following fans",
+          growthFanClubLabel: "Fan club members",
+          growthFanClubLead: "Fan club signal",
+          growthLevelHint: "Current growth stage",
+          growthLevelLabel: "AI growth level",
+          growthNextMission: "Next growth mission",
+          growthPaidBody: (count: string) =>
+            `${count} paid content sales show which private scenes fans want to see more of.`,
+          growthPaidHint: "Total paid unlocks",
+          growthPaidLabel: "Paid content sales",
+          growthProgressLabel: "Growth progress",
+          growthRequestBody: (count: string) =>
+            `${count} fan letters sharpen the voice, situations, and reply scenes.`,
+          growthRequestHint: "Fan-submitted requests",
+          growthRequestLabel: "Fan letters",
+          growthRequestLead: "Fan letter feedback",
+          growthTitle: "Fans grow this AI character together",
+          topPaidEmpty: "Paid fan-only signals will appear here as fans unlock content.",
+          topPaidSales: (count: string) => `${count} sales`,
+          topPaidTitle: "Content fans unlocked",
           heroCta: "Watch free vlogs",
           expressionBody:
             "Review the default, smile, reaction, and focus cuts generated from the same character identity.",
@@ -7407,6 +7463,70 @@ export function FanletterCreatorPromoSharePage({
   ]
     .sort((a, b) => getPublishedTime(b.date) - getPublishedTime(a.date))
     .slice(0, 5);
+  const paidContentUnlockCount = data.communityStats.paidContentUnlockCount;
+  const fanClubMemberCount = data.communityStats.fanClubMemberCount;
+  const fanRequestCount =
+    character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
+  const growthProgressPercent = Math.max(
+    0,
+    Math.min(100, character?.growth.progressPercent ?? 0),
+  );
+  const topPaidItems = data.fanOnlyItems
+    .filter((item) => item.social.paidBuyerCount > 0)
+    .sort(
+      (a, b) =>
+        b.social.paidBuyerCount - a.social.paidBuyerCount ||
+        getPublishedTime(b.publishedAt) - getPublishedTime(a.publishedAt),
+    )
+    .slice(0, 3);
+  const fanClubStats = [
+    {
+      Icon: LockKeyhole,
+      hint: labels.growthPaidHint,
+      label: labels.growthPaidLabel,
+      value: formatNumber(paidContentUnlockCount, locale),
+    },
+    {
+      Icon: Crown,
+      hint: labels.growthFanClubHint,
+      label: labels.growthFanClubLabel,
+      value: formatNumber(fanClubMemberCount, locale),
+    },
+    {
+      Icon: MessageCircleHeart,
+      hint: labels.growthRequestHint,
+      label: labels.growthRequestLabel,
+      value: formatNumber(fanRequestCount, locale),
+    },
+    {
+      Icon: Rocket,
+      hint: labels.growthLevelHint,
+      label: labels.growthLevelLabel,
+      value: levelLabel,
+    },
+  ];
+  const fanGrowthSignals = [
+    {
+      Icon: LockKeyhole,
+      body: labels.growthPaidBody(
+        formatNumber(paidContentUnlockCount, locale),
+      ),
+      label: labels.growthPaidLabel,
+      title: labels.topPaidTitle,
+    },
+    {
+      Icon: Crown,
+      body: labels.growthFanClubBody(formatNumber(fanClubMemberCount, locale)),
+      label: labels.growthFanClubLabel,
+      title: labels.growthFanClubLead,
+    },
+    {
+      Icon: MessageCircleHeart,
+      body: labels.growthRequestBody(formatNumber(fanRequestCount, locale)),
+      label: labels.growthRequestLabel,
+      title: labels.growthRequestLead,
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-[#050806] text-white">
@@ -7749,6 +7869,173 @@ export function FanletterCreatorPromoSharePage({
                 ))}
               </div>
             ) : null}
+          </FanletterScrollReveal>
+
+          <FanletterScrollReveal
+            as="section"
+            className="mt-7 border-t border-white/10 pt-7 lg:col-span-2"
+            delayMs={140}
+            id="fan-club-growth"
+          >
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.45fr)] lg:items-start">
+              <div className="min-w-0">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+                  {labels.growthEyebrow}
+                </p>
+                <h2 className="mt-3 max-w-4xl break-words text-3xl font-semibold leading-tight tracking-normal [word-break:keep-all] sm:text-4xl">
+                  {labels.growthTitle}
+                </h2>
+                <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/58">
+                  {labels.growthBody}
+                </p>
+
+                <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  {fanClubStats.map(({ Icon, hint, label, value }) => (
+                    <div
+                      className="min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                      key={label}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                          {label}
+                        </p>
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
+                          <Icon className="size-4" />
+                        </span>
+                      </div>
+                      <p className="mt-3 text-3xl font-semibold leading-none text-white">
+                        {value}
+                      </p>
+                      <p className="mt-2 line-clamp-1 text-xs font-medium text-white/44">
+                        {hint}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <aside className="rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+                    <Trophy className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                      {labels.growthProgressLabel}
+                    </p>
+                    <p className="mt-1 text-xl font-semibold leading-none text-white">
+                      {formatNumber(growthProgressPercent, locale)}%
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/34">
+                  <div
+                    className="h-full rounded-full bg-[#44f26e]"
+                    style={{ width: `${growthProgressPercent}%` }}
+                  />
+                </div>
+                <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3">
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                    {labels.growthNextMission}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold leading-5 text-white">
+                    {character?.growth.nextMission?.title ?? labels.growthFallbackMission}
+                  </p>
+                  {character?.growth.nextMission ? (
+                    <p className="mt-2 text-xs font-medium leading-5 text-white/52">
+                      {character.growth.nextMission.description}
+                    </p>
+                  ) : null}
+                </div>
+                <Link
+                  className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                  href={fanOnlyHref}
+                >
+                  <LockKeyhole className="size-4" />
+                  {labels.growthCta}
+                </Link>
+              </aside>
+            </div>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.42fr)]">
+              <div className="grid gap-3 md:grid-cols-3">
+                {fanGrowthSignals.map(({ Icon, body, label, title }) => (
+                  <article
+                    className="min-w-0 rounded-lg border border-white/10 bg-black/22 p-4"
+                    key={title}
+                  >
+                    <div className="flex items-center gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                      <Icon className="size-4" />
+                      {label}
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold tracking-normal text-white">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-white/56">
+                      {body}
+                    </p>
+                  </article>
+                ))}
+              </div>
+
+              <aside className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                  {labels.topPaidTitle}
+                </p>
+                {topPaidItems.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    {topPaidItems.map((item) => (
+                      <Link
+                        className="group grid gap-3 rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-[#44f26e]/34 hover:bg-black/28 sm:grid-cols-[4rem_minmax(0,1fr)]"
+                        href={getContentHref({
+                          item,
+                          locale,
+                          referralCode: effectiveReferralCode,
+                          returnToHref: shareHref,
+                        })}
+                        key={item.contentId}
+                      >
+                        <div className="relative aspect-square overflow-hidden rounded-md bg-[#111812]">
+                          {item.coverImageUrl ? (
+                            <Image
+                              alt=""
+                              aria-hidden="true"
+                              className="object-cover blur-[3px] transition group-hover:scale-105"
+                              fill
+                              sizes="4rem"
+                              src={item.coverImageUrl}
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <LockKeyhole className="size-6 text-[#44f26e]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="line-clamp-2 break-words text-sm font-semibold leading-5 text-white [overflow-wrap:anywhere]">
+                            {getDisplayContentTitle(item, locale)}
+                          </p>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.6rem] font-semibold text-black">
+                              {labels.topPaidSales(
+                                formatNumber(item.social.paidBuyerCount, locale),
+                              )}
+                            </span>
+                            <span className="rounded-full border border-white/12 bg-white/[0.055] px-2.5 py-1 text-[0.6rem] font-semibold text-white/58">
+                              {item.priceUsdt ?? "1"} USDT
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-4 rounded-lg border border-white/10 bg-black/20 p-3 text-sm font-semibold leading-6 text-white/52">
+                    {labels.topPaidEmpty}
+                  </p>
+                )}
+              </aside>
+            </div>
           </FanletterScrollReveal>
         </div>
       </section>

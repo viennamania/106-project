@@ -25,8 +25,10 @@ import { defaultLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
   getContentEntitlementsCollection,
+  getContentOrdersCollection,
   getContentPostsCollection,
   getCreatorProfilesCollection,
+  getFanletterCharacterFollowsCollection,
   getFanletterFanRequestsCollection,
 } from "@/lib/mongodb";
 
@@ -151,6 +153,11 @@ type FanletterPublicFanRequestMetrics = {
   totalCount: number;
 };
 
+export type FanletterCreatorCommunityStats = {
+  fanClubMemberCount: number;
+  paidContentUnlockCount: number;
+};
+
 export type FanletterPublicCharacter = {
   avatarImageSet: Array<{
     expression: CreatorProfileAvatarCandidate["expression"] | null;
@@ -192,6 +199,7 @@ export type FanletterCreatorFanOnlyPageData = {
 };
 
 export type FanletterCreatorPageData = {
+  communityStats: FanletterCreatorCommunityStats;
   fanOnlyContentCount: number;
   fanOnlyItems: FanletterPublicContentItem[];
   fanRequestPreviews: FanletterPublicFanRequestPreview[];
@@ -692,6 +700,45 @@ async function getSocialByContentId(posts: ContentPostDocument[]) {
   );
 
   return new Map(pairs);
+}
+
+async function getCreatorCommunityStats({
+  creatorEmail,
+  referralCode,
+}: {
+  creatorEmail: string;
+  referralCode: string;
+}): Promise<FanletterCreatorCommunityStats> {
+  const followsCollection = await getFanletterCharacterFollowsCollection();
+  const ordersCollection = await getContentOrdersCollection();
+  const [fanClubMemberCount, paidOrderSummary] = await Promise.all([
+    followsCollection.countDocuments({
+      creatorReferralCode: referralCode,
+    }),
+    creatorEmail
+      ? ordersCollection
+          .aggregate<{ _id: null; paidContentUnlockCount: number }>([
+            {
+              $match: {
+                sellerEmail: creatorEmail,
+                status: "confirmed",
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                paidContentUnlockCount: { $sum: 1 },
+              },
+            },
+          ])
+          .toArray()
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    fanClubMemberCount,
+    paidContentUnlockCount: paidOrderSummary[0]?.paidContentUnlockCount ?? 0,
+  };
 }
 
 function toPublicContentItem({
@@ -1530,21 +1577,27 @@ export const getFanletterCreatorPageData = cache(
     const creatorEmail = normalizeEmail(profile?.email ?? creatorPosts[0]?.authorEmail ?? "");
     const viewerRelation =
       viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
-    const [socialByContentId, viewerEntitlementContentIds] = await Promise.all([
-      getSocialByContentId(creatorPosts),
-      viewerRelation === "audience"
-        ? getViewerEntitlementContentIds({
-            contentIds: fanOnlyPosts.map((post) => post.contentId),
-            viewerEmail,
-          })
-        : Promise.resolve(new Set<string>()),
-    ]);
+    const [socialByContentId, viewerEntitlementContentIds, communityStats] =
+      await Promise.all([
+        getSocialByContentId(creatorPosts),
+        viewerRelation === "audience"
+          ? getViewerEntitlementContentIds({
+              contentIds: fanOnlyPosts.map((post) => post.contentId),
+              viewerEmail,
+            })
+          : Promise.resolve(new Set<string>()),
+        getCreatorCommunityStats({
+          creatorEmail,
+          referralCode,
+        }),
+      ]);
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
       "FanLetter Creator";
 
     return {
+      communityStats,
       fanOnlyContentCount,
       fanOnlyItems: fanOnlyPosts.map((post) =>
         toPublicContentItem({
