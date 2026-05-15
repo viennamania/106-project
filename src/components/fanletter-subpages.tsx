@@ -368,6 +368,47 @@ function getAvatarExpressionLabel(
   return locale === "ko" ? "대표" : "Default";
 }
 
+const promoExpressionSortOrder = [
+  null,
+  "default",
+  "smile",
+  "serious",
+  "reaction",
+  "shy",
+  "focus",
+  "fanservice",
+  "thumbnail",
+] satisfies Array<
+  FanletterPublicCharacter["avatarImageSet"][number]["expression"]
+>;
+
+function getPromoExpressionRank(
+  expression: FanletterPublicCharacter["avatarImageSet"][number]["expression"],
+) {
+  const index = promoExpressionSortOrder.indexOf(expression ?? null);
+  return index >= 0 ? index : promoExpressionSortOrder.length;
+}
+
+function getPromoExpressionLabel({
+  expression,
+  label,
+  locale,
+}: {
+  expression: FanletterPublicCharacter["avatarImageSet"][number]["expression"];
+  label: string | null;
+  locale: Locale;
+}) {
+  if (expression == null) {
+    return locale === "ko" ? "대표 프로필" : "Profile portrait";
+  }
+
+  if (expression === "default") {
+    return locale === "ko" ? "기본 표정" : "Default expression";
+  }
+
+  return getAvatarExpressionLabel(expression, label, locale);
+}
+
 function getAvatarInitial(name: string) {
   return name.trim().charAt(0).toUpperCase() || "F";
 }
@@ -7215,6 +7256,7 @@ export function FanletterCreatorPromoSharePage({
           heroCta: "무료 브이로그 보기",
           expressionBody:
             "같은 캐릭터 정체성으로 생성된 대표, 미소, 리액션, 집중 컷을 한 번에 확인하세요.",
+          expressionCta: "표정 컷 보기",
           expressionCount: "표정 컷",
           expressionEyebrow: "AI 캐릭터 표정 세트",
           expressionTitle: "다양한 반응 컷",
@@ -7258,6 +7300,7 @@ export function FanletterCreatorPromoSharePage({
           heroCta: "Watch free vlogs",
           expressionBody:
             "Review the default, smile, reaction, and focus cuts generated from the same character identity.",
+          expressionCta: "View expression cuts",
           expressionCount: "Expression cuts",
           expressionEyebrow: "AI character expression set",
           expressionTitle: "Multiple reaction cuts",
@@ -7295,7 +7338,15 @@ export function FanletterCreatorPromoSharePage({
   ];
   const identityImageUrl =
     character?.avatarImageSet[0]?.url ?? data.profile.avatarImageUrl ?? heroImageUrl;
-  const expressionImages = character?.avatarImageSet ?? [];
+  const expressionImages = (character?.avatarImageSet ?? [])
+    .map((avatar, index) => ({ avatar, index }))
+    .sort((a, b) => {
+      const rankDifference =
+        getPromoExpressionRank(a.avatar.expression) -
+        getPromoExpressionRank(b.avatar.expression);
+
+      return rankDifference || a.index - b.index;
+    });
   const identityTraits =
     character?.traits.filter((trait) => trait.trim().length > 0).slice(0, 8) ?? [];
   const identitySkills = character?.growth.skills.slice(0, 3) ?? [];
@@ -7456,6 +7507,16 @@ export function FanletterCreatorPromoSharePage({
                     <LockKeyhole className="size-4" />
                     {labels.secondaryCta}
                   </Link>
+                  {expressionImages.length > 0 ? (
+                    <a
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/22 bg-black/28 px-5 text-sm font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/12"
+                      href="#expression-set"
+                    >
+                      <Grid2X2 className="size-4" />
+                      {formatNumber(expressionImages.length, locale)}{" "}
+                      {labels.expressionCta}
+                    </a>
+                  ) : null}
                 </div>
               </div>
 
@@ -7559,7 +7620,10 @@ export function FanletterCreatorPromoSharePage({
             </div>
 
             {expressionImages.length > 0 ? (
-              <div className="mt-6 border-t border-white/10 pt-5">
+              <div
+                className="mt-6 scroll-mt-24 border-t border-white/10 pt-5"
+                id="expression-set"
+              >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
@@ -7579,12 +7643,12 @@ export function FanletterCreatorPromoSharePage({
                 </div>
 
                 <div className="mt-4 grid auto-cols-[9.5rem] grid-flow-col gap-2.5 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
-                  {expressionImages.map((avatar, index) => {
-                    const expressionLabel = getAvatarExpressionLabel(
-                      avatar.expression,
-                      avatar.label,
+                  {expressionImages.map(({ avatar }, index) => {
+                    const expressionLabel = getPromoExpressionLabel({
+                      expression: avatar.expression,
+                      label: avatar.label,
                       locale,
-                    );
+                    });
 
                     return (
                       <div
