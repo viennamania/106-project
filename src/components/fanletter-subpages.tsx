@@ -7317,7 +7317,6 @@ export function FanletterCreatorPromoSharePage({
           growthRequestHint: "팬이 남긴 요청",
           growthRequestLabel: "팬레터 요청",
           growthRequestLead: "팬레터 피드백",
-          growthSwipeHint: "성장 신호를 옆으로 넘겨 보기",
           growthTitle: "팬들이 함께 키우는 AI 캐릭터",
           topPaidEmpty: "팬 전용 콘텐츠 판매 신호가 쌓이면 이곳에 먼저 표시됩니다.",
           topPaidSales: (count: string) => `${count}회 판매`,
@@ -7396,7 +7395,6 @@ export function FanletterCreatorPromoSharePage({
           growthRequestHint: "Fan-submitted requests",
           growthRequestLabel: "Fan letters",
           growthRequestLead: "Fan letter feedback",
-          growthSwipeHint: "Swipe through growth signals",
           growthTitle: "Fans grow this AI character together",
           topPaidEmpty: "Paid fan-only signals will appear here as fans unlock content.",
           topPaidSales: (count: string) => `${count} sales`,
@@ -8023,29 +8021,24 @@ export function FanletterCreatorPromoSharePage({
             </div>
 
             <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.42fr)]">
-              <div>
-                <p className="mb-2 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad] md:hidden">
-                  {labels.growthSwipeHint}
-                </p>
-                <div className="flex min-w-0 max-w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden md:grid md:grid-flow-row md:grid-cols-3 md:overflow-visible md:pb-0">
-                  {fanGrowthSignals.map(({ Icon, body, label, title }) => (
-                    <article
-                      className="w-[16rem] shrink-0 snap-start rounded-lg border border-white/10 bg-black/22 p-4 md:w-auto md:shrink"
-                      key={title}
-                    >
-                      <div className="flex items-center gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
-                        <Icon className="size-4" />
-                        {label}
-                      </div>
-                      <h3 className="mt-3 text-lg font-semibold tracking-normal text-white">
-                        {title}
-                      </h3>
-                      <p className="mt-2 text-sm font-medium leading-6 text-white/56">
-                        {body}
-                      </p>
-                    </article>
-                  ))}
-                </div>
+              <div className="grid gap-2.5 md:grid-cols-3 md:gap-3">
+                {fanGrowthSignals.map(({ Icon, body, label, title }) => (
+                  <article
+                    className="min-w-0 rounded-lg border border-white/10 bg-black/22 p-3.5 md:p-4"
+                    key={title}
+                  >
+                    <div className="flex items-center gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                      <Icon className="size-4" />
+                      {label}
+                    </div>
+                    <h3 className="mt-2.5 text-base font-semibold tracking-normal text-white md:mt-3 md:text-lg">
+                      {title}
+                    </h3>
+                    <p className="mt-1.5 text-sm font-medium leading-6 text-white/56 md:mt-2">
+                      {body}
+                    </p>
+                  </article>
+                ))}
               </div>
 
               <aside className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
