@@ -1287,6 +1287,7 @@ function ContentGrid({
   emptyActionLabel,
   items,
   locale,
+  mobileLayout = "two-column",
   referralCode,
   revealItems = false,
   returnToHref,
@@ -1299,6 +1300,7 @@ function ContentGrid({
   emptyActionLabel?: string;
   items: FanletterPublicContentItem[];
   locale: Locale;
+  mobileLayout?: "adaptive" | "two-column";
   referralCode: string | null;
   revealItems?: boolean;
   returnToHref?: string | null;
@@ -1321,7 +1323,14 @@ function ContentGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+    <div
+      className={cn(
+        "grid gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4",
+        mobileLayout === "adaptive"
+          ? "grid-cols-1 min-[380px]:grid-cols-2"
+          : "grid-cols-2",
+      )}
+    >
       {items.map((item, index) => {
         if (!revealItems) {
           return (
@@ -7631,7 +7640,7 @@ export function FanletterCreatorPromoSharePage({
             </a>
           </header>
 
-          <div className="flex flex-1 items-end pb-7 pt-[42svh] sm:pb-16 sm:pt-24">
+          <div className="flex flex-1 items-end pb-5 pt-[38svh] sm:pb-16 sm:pt-24">
             <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end lg:gap-8">
               <div className="max-w-[42rem] 2xl:max-w-4xl">
                 <div className="flex flex-wrap items-center gap-2">
@@ -7658,16 +7667,16 @@ export function FanletterCreatorPromoSharePage({
                 <p className="mt-3 hidden max-w-2xl text-sm font-medium leading-6 text-white/52 lg:block lg:text-base lg:leading-7">
                   {channelSummary}
                 </p>
-                <div className="mt-5 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
+                <div className="mt-4 flex flex-col gap-2 sm:mt-7 sm:flex-row sm:gap-3">
                   <Link
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.26)] transition hover:bg-[#64ff84]"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.26)] transition hover:bg-[#64ff84] sm:h-12"
                     href={publicVlogsHref}
                   >
                     <Video className="size-4" />
                     {labels.heroCta}
                   </Link>
                   <Link
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white backdrop-blur transition hover:bg-white/12"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white backdrop-blur transition hover:bg-white/12 sm:h-12"
                     href={fanOnlyHref}
                   >
                     <LockKeyhole className="size-4" />
@@ -7675,7 +7684,7 @@ export function FanletterCreatorPromoSharePage({
                   </Link>
                   {expressionImages.length > 0 ? (
                     <a
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/22 bg-black/28 px-5 text-sm font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/12"
+                      className="inline-flex h-10 items-center justify-center gap-2 self-center rounded-full border border-[#44f26e]/22 bg-black/28 px-4 text-xs font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/12 sm:h-12 sm:self-auto sm:px-5 sm:text-sm"
                       href="#expression-set"
                     >
                       <Grid2X2 className="size-4" />
@@ -7748,16 +7757,16 @@ export function FanletterCreatorPromoSharePage({
                   </p>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-3 gap-2">
                   {identitySignals.map((signal) => (
                     <div
-                      className="rounded-lg border border-white/10 bg-black/22 p-3"
+                      className="rounded-lg border border-white/10 bg-black/22 p-2.5 sm:p-3"
                       key={signal.label}
                     >
-                      <p className="text-2xl font-semibold leading-none text-white">
+                      <p className="text-xl font-semibold leading-tight text-white [word-break:keep-all] sm:text-2xl">
                         {signal.value}
                       </p>
-                      <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/46">
+                      <p className="mt-1.5 text-[0.52rem] font-semibold uppercase tracking-[0.08em] text-white/46 sm:mt-2 sm:text-[0.62rem] sm:tracking-[0.12em]">
                         {signal.label}
                       </p>
                     </div>
@@ -8116,6 +8125,7 @@ export function FanletterCreatorPromoSharePage({
             emptyActionLabel={labels.channel}
             items={publicItems}
             locale={locale}
+            mobileLayout="adaptive"
             referralCode={effectiveReferralCode}
             revealItems
             returnToHref={shareHref}
@@ -8168,7 +8178,7 @@ export function FanletterCreatorPromoSharePage({
                     key={item.contentId}
                   >
                     <Link className="group block" href={href}>
-                      <div className="relative aspect-[4/5] overflow-hidden bg-black">
+                      <div className="relative aspect-[5/6] overflow-hidden bg-black sm:aspect-[4/5]">
                         {item.coverImageUrl ? (
                           <Image
                             alt={title}
@@ -8183,11 +8193,11 @@ export function FanletterCreatorPromoSharePage({
                           </div>
                         )}
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.72)_100%)]" />
-                        <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
                           <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
                             {labels.locked}
                           </span>
-                          <h3 className="mt-3 line-clamp-2 break-words text-2xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere]">
+                          <h3 className="mt-3 line-clamp-2 break-words text-xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere] sm:text-2xl">
                             {title}
                           </h3>
                           <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/64">

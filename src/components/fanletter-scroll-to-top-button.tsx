@@ -57,6 +57,9 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const copy = copyByLocale[locale] ?? copyByLocale.ko;
+  const basePath = `/${locale}/fanletter`;
+  const isPromotionalShareFlow =
+    pathname === `${basePath}/share` || pathname.startsWith(`${basePath}/share/`);
 
   useEffect(() => {
     let frameId = 0;
@@ -79,7 +82,7 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
     };
   }, [pathname]);
 
-  if (!isVisible) {
+  if (!isVisible || isPromotionalShareFlow) {
     return null;
   }
 
