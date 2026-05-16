@@ -7317,6 +7317,7 @@ export function FanletterCreatorPromoSharePage({
           growthRequestHint: "팬이 남긴 요청",
           growthRequestLabel: "팬레터 요청",
           growthRequestLead: "팬레터 피드백",
+          growthSwipeHint: "성장 신호를 옆으로 넘겨 보기",
           growthTitle: "팬들이 함께 키우는 AI 캐릭터",
           topPaidEmpty: "팬 전용 콘텐츠 판매 신호가 쌓이면 이곳에 먼저 표시됩니다.",
           topPaidSales: (count: string) => `${count}회 판매`,
@@ -7327,6 +7328,7 @@ export function FanletterCreatorPromoSharePage({
           expressionCta: "표정 컷 보기",
           expressionCount: "표정 컷",
           expressionEyebrow: "AI 캐릭터 표정 세트",
+          expressionSwipeHint: "옆으로 밀어 더 보기",
           expressionTitle: "다양한 반응 컷",
           identityBody:
             "캐릭터의 분위기, 성장 단계, 반복되는 키워드를 한 번에 확인할 수 있게 정리했습니다.",
@@ -7394,6 +7396,7 @@ export function FanletterCreatorPromoSharePage({
           growthRequestHint: "Fan-submitted requests",
           growthRequestLabel: "Fan letters",
           growthRequestLead: "Fan letter feedback",
+          growthSwipeHint: "Swipe through growth signals",
           growthTitle: "Fans grow this AI character together",
           topPaidEmpty: "Paid fan-only signals will appear here as fans unlock content.",
           topPaidSales: (count: string) => `${count} sales`,
@@ -7404,6 +7407,7 @@ export function FanletterCreatorPromoSharePage({
           expressionCta: "View expression cuts",
           expressionCount: "Expression cuts",
           expressionEyebrow: "AI character expression set",
+          expressionSwipeHint: "Swipe for more cuts",
           expressionTitle: "Multiple reaction cuts",
           identityBody:
             "A compact view of the character's mood, growth stage, and recurring public keywords.",
@@ -7717,7 +7721,7 @@ export function FanletterCreatorPromoSharePage({
 
       <section className="bg-[#070b08] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start">
-          <FanletterScrollReveal className="min-w-0 rounded-lg border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(68,242,110,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.035))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.28)] sm:p-5 lg:p-6">
+          <FanletterScrollReveal className="w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(68,242,110,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.035))] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.28)] sm:p-5 lg:p-6">
             <div className="grid gap-5 md:grid-cols-[13rem_minmax(0,1fr)] md:items-stretch">
               <div className="relative min-h-[18rem] overflow-hidden rounded-lg bg-[#111812]">
                 {identityImageUrl ? (
@@ -7810,6 +7814,9 @@ export function FanletterCreatorPromoSharePage({
                     <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-white/56">
                       {labels.expressionBody}
                     </p>
+                    <p className="mt-2 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad] sm:hidden">
+                      {labels.expressionSwipeHint}
+                    </p>
                   </div>
                   <div className="inline-flex w-fit rounded-full border border-[#44f26e]/18 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#c9ffd3]">
                     {formatNumber(expressionImages.length, locale)}{" "}
@@ -7817,43 +7824,46 @@ export function FanletterCreatorPromoSharePage({
                   </div>
                 </div>
 
-                <div className="mt-4 grid auto-cols-[9.5rem] grid-flow-col gap-2.5 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-fr sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0">
-                  {expressionImages.map(({ avatar }, index) => {
-                    const expressionLabel = getPromoExpressionLabel({
-                      expression: avatar.expression,
-                      label: avatar.label,
-                      locale,
-                    });
+                <div className="relative mt-4 min-w-0 max-w-full">
+                  <div className="pointer-events-none absolute bottom-2 right-0 top-0 z-10 w-12 bg-[linear-gradient(90deg,rgba(12,18,13,0),rgba(12,18,13,0.96))] sm:hidden" />
+                  <div className="flex min-w-0 max-w-full snap-x snap-mandatory gap-2.5 overflow-x-auto pb-2 pr-8 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-flow-row sm:grid-cols-4 sm:overflow-visible sm:pb-0 sm:pr-0">
+                    {expressionImages.map(({ avatar }, index) => {
+                      const expressionLabel = getPromoExpressionLabel({
+                        expression: avatar.expression,
+                        label: avatar.label,
+                        locale,
+                      });
 
-                    return (
-                      <div
-                        className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/24"
-                        key={`${avatar.url}-${index}`}
-                      >
-                        <div className="relative aspect-[4/5] overflow-hidden bg-[#111812]">
-                          <Image
-                            alt={`${channelName} ${expressionLabel}`}
-                            className="object-cover"
-                            fill
-                            sizes="(max-width: 640px) 9.5rem, (max-width: 1024px) 25vw, 14vw"
-                            src={avatar.url}
-                          />
+                      return (
+                        <div
+                          className="w-[9.5rem] shrink-0 snap-start overflow-hidden rounded-lg border border-white/10 bg-black/24 sm:w-auto sm:shrink"
+                          key={`${avatar.url}-${index}`}
+                        >
+                          <div className="relative aspect-[4/5] overflow-hidden bg-[#111812]">
+                            <Image
+                              alt={`${channelName} ${expressionLabel}`}
+                              className="object-cover"
+                              fill
+                              sizes="(max-width: 640px) 9.5rem, (max-width: 1024px) 25vw, 14vw"
+                              src={avatar.url}
+                            />
+                          </div>
+                          <div className="px-2.5 py-2">
+                            <p className="truncate text-xs font-semibold text-white">
+                              {expressionLabel}
+                            </p>
+                          </div>
                         </div>
-                        <div className="px-2.5 py-2">
-                          <p className="truncate text-xs font-semibold text-white">
-                            {expressionLabel}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ) : null}
           </FanletterScrollReveal>
 
           <FanletterScrollReveal
-            className="min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-4 sm:p-5 lg:p-6"
+            className="w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-white/10 bg-white/[0.055] p-4 sm:p-5 lg:p-6"
             delayMs={80}
           >
             <div className="flex items-start justify-between gap-4">
@@ -7928,7 +7938,7 @@ export function FanletterCreatorPromoSharePage({
 
           <FanletterScrollReveal
             as="section"
-            className="mt-7 border-t border-white/10 pt-7 lg:col-span-2"
+            className="mt-7 w-full min-w-0 max-w-full overflow-hidden border-t border-white/10 pt-7 lg:col-span-2"
             delayMs={140}
             id="fan-club-growth"
           >
@@ -7947,18 +7957,18 @@ export function FanletterCreatorPromoSharePage({
                 <div className="mt-5 grid grid-cols-2 gap-2 xl:grid-cols-4">
                   {fanClubStats.map(({ Icon, hint, label, value }) => (
                     <div
-                      className="min-h-[7.75rem] min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                      className="min-h-[6.75rem] min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3 sm:min-h-[7.75rem]"
                       key={label}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                        <p className="text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-white/42 sm:text-[0.62rem] sm:tracking-[0.12em]">
                           {label}
                         </p>
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
                           <Icon className="size-4" />
                         </span>
                       </div>
-                      <p className="mt-3 text-3xl font-semibold leading-none text-white">
+                      <p className="mt-2 text-2xl font-semibold leading-none text-white sm:mt-3 sm:text-3xl">
                         {value}
                       </p>
                       <p className="mt-2 line-clamp-1 text-xs font-medium text-white/44">
@@ -8013,24 +8023,29 @@ export function FanletterCreatorPromoSharePage({
             </div>
 
             <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.42fr)]">
-              <div className="grid gap-3 md:grid-cols-3">
-                {fanGrowthSignals.map(({ Icon, body, label, title }) => (
-                  <article
-                    className="min-w-0 rounded-lg border border-white/10 bg-black/22 p-4"
-                    key={title}
-                  >
-                    <div className="flex items-center gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
-                      <Icon className="size-4" />
-                      {label}
-                    </div>
-                    <h3 className="mt-3 text-lg font-semibold tracking-normal text-white">
-                      {title}
-                    </h3>
-                    <p className="mt-2 text-sm font-medium leading-6 text-white/56">
-                      {body}
-                    </p>
-                  </article>
-                ))}
+              <div>
+                <p className="mb-2 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad] md:hidden">
+                  {labels.growthSwipeHint}
+                </p>
+                <div className="flex min-w-0 max-w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden md:grid md:grid-flow-row md:grid-cols-3 md:overflow-visible md:pb-0">
+                  {fanGrowthSignals.map(({ Icon, body, label, title }) => (
+                    <article
+                      className="w-[16rem] shrink-0 snap-start rounded-lg border border-white/10 bg-black/22 p-4 md:w-auto md:shrink"
+                      key={title}
+                    >
+                      <div className="flex items-center gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
+                        <Icon className="size-4" />
+                        {label}
+                      </div>
+                      <h3 className="mt-3 text-lg font-semibold tracking-normal text-white">
+                        {title}
+                      </h3>
+                      <p className="mt-2 text-sm font-medium leading-6 text-white/56">
+                        {body}
+                      </p>
+                    </article>
+                  ))}
+                </div>
               </div>
 
               <aside className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
