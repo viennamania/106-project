@@ -272,6 +272,22 @@ async function ensureMembersIndexes(
       placementReferralCode: 1,
       registrationCompletedAt: -1,
     }),
+    collection.createIndex(
+      { fanletterShareId: 1, status: 1, registrationCompletedAt: -1 },
+      {
+        partialFilterExpression: {
+          fanletterShareId: { $type: "string" },
+        },
+      },
+    ),
+    collection.createIndex(
+      { fanletterShareCreatorReferralCode: 1, fanletterShareRewardIssuedAt: 1 },
+      {
+        partialFilterExpression: {
+          fanletterShareCreatorReferralCode: { $type: "string" },
+        },
+      },
+    ),
   ]);
 }
 

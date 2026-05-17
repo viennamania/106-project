@@ -7368,6 +7368,8 @@ export function FanletterCreatorPromoSharePage({
             "SNS에서 들어온 팬은 캐릭터를 먼저 보고, 더 알고 싶은 사용자는 FanLetter 서비스 홈에서 AI 캐릭터 생성, 공개 브이로그, 팬 전용 콘텐츠 흐름을 이어서 확인합니다.",
           serviceEyebrow: "FanLetter 서비스 연결",
           serviceHome: "FanLetter 서비스 알아보기",
+          serviceRewardDisclosure:
+            "이 공유 링크로 가입을 완료하면 공유 페이지를 만든 회원에게 FanLetter 보상이 적립될 수 있습니다.",
           serviceStart: "나도 AI 캐릭터 만들기",
           serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 티저", "서비스 시작"],
           serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
@@ -7455,6 +7457,8 @@ export function FanletterCreatorPromoSharePage({
             "Fans arriving from social can preview the character first. Visitors who want the wider product can continue to the FanLetter home page for AI character creation, public vlogs, and fan-only content flows.",
           serviceEyebrow: "FanLetter service link",
           serviceHome: "Learn about FanLetter",
+          serviceRewardDisclosure:
+            "Completing signup through this shared link may award a FanLetter reward to the member who created this share page.",
           serviceStart: "Create my AI character",
           serviceSteps: ["Social share", "Character preview", "Fan-only teaser", "Start service"],
           serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
@@ -8403,6 +8407,9 @@ export function FanletterCreatorPromoSharePage({
               <Sparkles className="size-4" />
               {labels.serviceStart}
             </FanletterTrackedLink>
+            <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[0.68rem] font-medium leading-4 text-white/44">
+              {labels.serviceRewardDisclosure}
+            </p>
           </div>
         </FanletterScrollReveal>
       </section>

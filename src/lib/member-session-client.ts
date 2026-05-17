@@ -48,6 +48,11 @@ function getMemberSyncRequestKey(input: SyncMemberRequest) {
     chainId: input.chainId,
     chainName: input.chainName?.trim() ?? "",
     email: normalizeEmail(input.email),
+    fanletterShareCreatorReferralCode:
+      input.fanletterShareAttribution?.creatorReferralCode?.trim() ?? "",
+    fanletterShareId: input.fanletterShareAttribution?.shareId?.trim() ?? "",
+    fanletterShareSponsorSlug:
+      input.fanletterShareAttribution?.sponsorSlug?.trim() ?? "",
     locale: input.locale?.trim() ?? "",
     referredByCode: input.referredByCode?.trim() ?? "",
     syncMode: input.syncMode ?? "full",

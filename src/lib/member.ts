@@ -1,8 +1,10 @@
 import type { LandingBrandingDocument } from "@/lib/landing-branding";
+import type { FanletterShareAttribution } from "@/lib/fanletter-share-attribution";
 
 export const MEMBER_SIGNUP_USDT_AMOUNT = "10";
 export const MEMBER_SIGNUP_USDT_DECIMALS = 18;
 export const MEMBER_SIGNUP_USDT_AMOUNT_WEI = "10000000000000000000";
+export const FANLETTER_SHARE_SIGNUP_REWARD_POINTS = 120;
 export const REFERRAL_SIGNUP_LIMIT = 6;
 export const REFERRAL_TREE_DEPTH_LIMIT = 6;
 export const REFERRAL_REWARD_POINTS_LEVEL_ONE = 200;
@@ -24,6 +26,12 @@ export type MemberRecord = {
   chainName: string;
   createdAt: string;
   email: string;
+  fanletterShareCreatorReferralCode: string | null;
+  fanletterShareId: string | null;
+  fanletterShareRewardIssuedAt: string | null;
+  fanletterShareRewardPoints: number | null;
+  fanletterShareRewardRecipientEmail: string | null;
+  fanletterShareSponsorSlug: string | null;
   lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
@@ -58,6 +66,7 @@ export type SyncMemberRequest = {
   chainName: string;
   email: string;
   locale: string;
+  fanletterShareAttribution?: FanletterShareAttribution | null;
   syncMode?: "full" | "light";
   referredByCode?: string | null;
   walletAddress: string;
@@ -191,6 +200,12 @@ export type MemberDocument = {
   chainName: string;
   createdAt: Date;
   email: string;
+  fanletterShareCreatorReferralCode?: string | null;
+  fanletterShareId?: string | null;
+  fanletterShareRewardIssuedAt?: Date | null;
+  fanletterShareRewardPoints?: number | null;
+  fanletterShareRewardRecipientEmail?: string | null;
+  fanletterShareSponsorSlug?: string | null;
   lastConnectedAt: Date;
   lastWalletAddress: string;
   landingBranding?: LandingBrandingDocument | null;
@@ -250,6 +265,15 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     chainName: member.chainName,
     createdAt: member.createdAt.toISOString(),
     email: member.email,
+    fanletterShareCreatorReferralCode:
+      member.fanletterShareCreatorReferralCode ?? null,
+    fanletterShareId: member.fanletterShareId ?? null,
+    fanletterShareRewardIssuedAt:
+      member.fanletterShareRewardIssuedAt?.toISOString() ?? null,
+    fanletterShareRewardPoints: member.fanletterShareRewardPoints ?? null,
+    fanletterShareRewardRecipientEmail:
+      member.fanletterShareRewardRecipientEmail ?? null,
+    fanletterShareSponsorSlug: member.fanletterShareSponsorSlug ?? null,
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,

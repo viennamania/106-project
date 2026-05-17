@@ -33,6 +33,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { readFanletterShareAttributionFromReturnPath } from "@/lib/fanletter-share-attribution";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import {
@@ -250,6 +251,10 @@ export function FanletterConnectPage({
   const [syncNonce, setSyncNonce] = useState(0);
   const syncInFlightRef = useRef(false);
   const copy = getCopy(locale);
+  const fanletterShareAttribution = useMemo(
+    () => readFanletterShareAttributionFromReturnPath(returnToHref),
+    [returnToHref],
+  );
   const accountAddress = account?.address ?? null;
   const connection = useThirdwebConnectionState({
     accountAddress,
@@ -360,6 +365,7 @@ export function FanletterConnectPage({
           chainId: chain.id,
           chainName: chain.name ?? "BSC",
           email,
+          fanletterShareAttribution,
           locale,
           referredByCode: referralCode,
           syncMode: "full",
@@ -422,6 +428,7 @@ export function FanletterConnectPage({
     connection.isConnected,
     dictionary.member.errors.missingEmail,
     dictionary.member.errors.syncFailed,
+    fanletterShareAttribution,
     locale,
     referralCode,
     syncNonce,

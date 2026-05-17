@@ -18,6 +18,7 @@ import type {
   SyncMemberResponse,
 } from "@/lib/member";
 import {
+  FANLETTER_SHARE_SIGNUP_REWARD_POINTS,
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
   REFERRAL_SIGNUP_LIMIT,
@@ -27,6 +28,7 @@ import {
   normalizeReferralCode,
   serializeMember,
 } from "@/lib/member";
+import { normalizeFanletterShareAttribution } from "@/lib/fanletter-share-attribution";
 import {
   defaultLocale,
   getDictionary,
@@ -46,7 +48,10 @@ import {
   type ThirdwebInsightEventRecord,
   type ThirdwebWebhookEventDocument,
 } from "@/lib/thirdweb-webhooks";
-import { syncPointLedgerForMemberEmails } from "@/lib/points-service";
+import {
+  awardBonusPointsForMember,
+  syncPointLedgerForMemberEmails,
+} from "@/lib/points-service";
 import { emitCompletedMemberNotifications } from "@/lib/notifications-service";
 import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
@@ -674,6 +679,11 @@ async function finalizeCompletedMember({
     member: nextMember,
   });
 
+  nextMember = await ensureFanletterShareSignupRewardIssued({
+    collection,
+    member: nextMember,
+  });
+
   return nextMember;
 }
 
@@ -775,6 +785,94 @@ async function ensureReferralRewardsIssued({
       $set: {
         referralRewardsIssuedAt: new Date(),
         updatedAt: new Date(),
+      },
+    },
+  );
+
+  return getFreshMemberOrThrow(collection, member.email);
+}
+
+function getFanletterShareSignupSourceId({
+  memberEmail,
+  shareId,
+}: {
+  memberEmail: string;
+  shareId: string;
+}) {
+  return `fanletter_share_signup:${shareId}:${memberEmail}`;
+}
+
+function getFanletterShareSignupLedgerEntryId({
+  memberEmail,
+  recipientEmail,
+  shareId,
+}: {
+  memberEmail: string;
+  recipientEmail: string;
+  shareId: string;
+}) {
+  return `${recipientEmail}:fanletter_share_signup:${shareId}:${memberEmail}`;
+}
+
+async function ensureFanletterShareSignupRewardIssued({
+  collection,
+  member,
+}: {
+  collection: Awaited<ReturnType<typeof getMembersCollection>>;
+  member: MemberDocument;
+}) {
+  if (member.status !== "completed" || member.fanletterShareRewardIssuedAt) {
+    return member;
+  }
+
+  const attribution = normalizeFanletterShareAttribution({
+    creatorReferralCode: member.fanletterShareCreatorReferralCode,
+    shareId: member.fanletterShareId,
+    sponsorSlug: member.fanletterShareSponsorSlug,
+  });
+
+  if (!attribution) {
+    return member;
+  }
+
+  const recipient = await collection.findOne({
+    referralCode: attribution.creatorReferralCode,
+    status: "completed",
+  });
+
+  if (!recipient || recipient.email === member.email) {
+    return member;
+  }
+
+  const awardedAt = member.registrationCompletedAt ?? new Date();
+  const rewardIssuedAt = new Date();
+  const sourceId = getFanletterShareSignupSourceId({
+    memberEmail: member.email,
+    shareId: attribution.shareId,
+  });
+
+  await awardBonusPointsForMember({
+    createdAt: awardedAt,
+    ledgerEntryId: getFanletterShareSignupLedgerEntryId({
+      memberEmail: member.email,
+      recipientEmail: recipient.email,
+      shareId: attribution.shareId,
+    }),
+    memberEmail: recipient.email,
+    memo: `FanLetter share signup · ${attribution.shareId}`,
+    points: FANLETTER_SHARE_SIGNUP_REWARD_POINTS,
+    sourceId,
+    sourceMemberEmail: member.email,
+  });
+
+  await collection.updateOne(
+    { email: member.email, status: "completed" },
+    {
+      $set: {
+        fanletterShareRewardIssuedAt: rewardIssuedAt,
+        fanletterShareRewardPoints: FANLETTER_SHARE_SIGNUP_REWARD_POINTS,
+        fanletterShareRewardRecipientEmail: recipient.email,
+        updatedAt: rewardIssuedAt,
       },
     },
   );
@@ -1397,6 +1495,8 @@ export async function reconcileCompletedMemberNetworks(options?: {
   for (const member of completedMembers) {
     const beforePlacementReferralCode = member.placementReferralCode ?? null;
     const beforeRewardsIssuedAt = member.referralRewardsIssuedAt ?? null;
+    const beforeFanletterShareRewardIssuedAt =
+      member.fanletterShareRewardIssuedAt ?? null;
     const nextMember = await finalizeCompletedMember({
       collection,
       member,
@@ -1406,13 +1506,19 @@ export async function reconcileCompletedMemberNetworks(options?: {
     const rewardsIssued =
       beforeRewardsIssuedAt === null &&
       nextMember.referralRewardsIssuedAt instanceof Date;
+    const fanletterShareRewardIssued =
+      beforeFanletterShareRewardIssuedAt === null &&
+      nextMember.fanletterShareRewardIssuedAt instanceof Date;
 
-    if (placementChanged || rewardsIssued) {
+    if (placementChanged || rewardsIssued || fanletterShareRewardIssued) {
       reconciled += 1;
     }
 
     members.push({
       email: nextMember.email,
+      fanletterShareRewardIssued,
+      fanletterShareRewardIssuedAt:
+        nextMember.fanletterShareRewardIssuedAt?.toISOString() ?? null,
       placementChanged,
       placementReferralCode: nextMember.placementReferralCode ?? null,
       referralRewardsIssuedAt:
@@ -1605,6 +1711,9 @@ export async function syncMemberRegistration(
   const locale = input.locale?.trim();
   const resolvedLocale = resolveLocale(locale);
   const referredByCode = normalizeReferralCode(input.referredByCode);
+  const fanletterShareAttribution = normalizeFanletterShareAttribution(
+    input.fanletterShareAttribution,
+  );
   const syncMode = input.syncMode === "light" ? "light" : "full";
 
   if (!email) {
@@ -1714,6 +1823,24 @@ export async function syncMemberRegistration(
           : existingMember?.awaitingPaymentSince ?? now,
         chainId: input.chainId,
         chainName,
+        fanletterShareCreatorReferralCode:
+          existingMember?.fanletterShareCreatorReferralCode ??
+          fanletterShareAttribution?.creatorReferralCode ??
+          null,
+        fanletterShareId:
+          existingMember?.fanletterShareId ??
+          fanletterShareAttribution?.shareId ??
+          null,
+        fanletterShareRewardIssuedAt:
+          existingMember?.fanletterShareRewardIssuedAt ?? null,
+        fanletterShareRewardPoints:
+          existingMember?.fanletterShareRewardPoints ?? null,
+        fanletterShareRewardRecipientEmail:
+          existingMember?.fanletterShareRewardRecipientEmail ?? null,
+        fanletterShareSponsorSlug:
+          existingMember?.fanletterShareSponsorSlug ??
+          fanletterShareAttribution?.sponsorSlug ??
+          null,
         lastConnectedAt: now,
         lastWalletAddress: normalizedWalletAddress,
         locale,

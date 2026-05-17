@@ -52,6 +52,10 @@ function getRewardRollbackLedgerEntryId(memberEmail: string, redemptionId: strin
   return `${memberEmail}:reward_rollback:${redemptionId}`;
 }
 
+function getBonusLedgerEntryId(memberEmail: string, sourceId: string) {
+  return `${memberEmail}:bonus:${sourceId}`;
+}
+
 function isDuplicateKeyError(error: unknown) {
   return (
     typeof error === "object" &&
@@ -350,6 +354,72 @@ export async function syncPointLedgerForMemberEmail(memberEmail: string) {
     history,
     memberEmail: normalizedEmail,
   });
+}
+
+export async function awardBonusPointsForMember({
+  createdAt = new Date(),
+  ledgerEntryId,
+  memberEmail,
+  memo = null,
+  points,
+  sourceId,
+  sourceMemberEmail = null,
+}: {
+  createdAt?: Date;
+  ledgerEntryId?: string | null;
+  memberEmail: string;
+  memo?: string | null;
+  points: number;
+  sourceId: string;
+  sourceMemberEmail?: string | null;
+}) {
+  const normalizedEmail = normalizeEmail(memberEmail);
+  const normalizedSourceMemberEmail = sourceMemberEmail
+    ? normalizeEmail(sourceMemberEmail)
+    : null;
+
+  if (!normalizedEmail) {
+    throw new Error("memberEmail is required.");
+  }
+
+  if (!sourceId.trim()) {
+    throw new Error("sourceId is required.");
+  }
+
+  if (!Number.isFinite(points) || points <= 0) {
+    throw new Error("points must be a positive number.");
+  }
+
+  const entryId = ledgerEntryId?.trim() || getBonusLedgerEntryId(
+    normalizedEmail,
+    sourceId,
+  );
+  const now = new Date();
+  const ledgerCollection = await getPointLedgerCollection();
+
+  await ledgerCollection.updateOne(
+    { ledgerEntryId: entryId },
+    {
+      $set: {
+        delta: points,
+        memberEmail: normalizedEmail,
+        memo,
+        rewardLevel: null,
+        sourceId,
+        sourceMemberEmail: normalizedSourceMemberEmail,
+        sourceType: "bonus" as const,
+        type: "earn" as const,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        createdAt,
+        ledgerEntryId: entryId,
+      },
+    },
+    { upsert: true },
+  );
+
+  return syncPointLedgerForMemberEmail(normalizedEmail);
 }
 
 export async function syncPointLedgerForMemberEmails(memberEmails: string[]) {
