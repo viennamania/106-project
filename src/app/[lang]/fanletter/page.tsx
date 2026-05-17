@@ -132,21 +132,35 @@ export default async function FanletterRoutePage({
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
-  const shareContextParams = {
-    creator: shareCreatorData?.profile.referralCode,
-    from: "share",
-    shareId,
-    sponsor: sponsor.slug,
-  };
+  const shareChannelHref = shareCreatorData
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/creator/${shareCreatorData.profile.referralCode}`,
+        shareContextReferralCode,
+      )
+    : null;
+  const shareReturnToHref =
+    shareCreatorData && shareId
+      ? setPathSearchParams(`/${locale}/fanletter/share/${shareId}`, {
+          creator: shareCreatorData.profile.referralCode,
+          ref: shareContextReferralCode,
+          sponsor: sponsor.slug,
+        })
+      : shareChannelHref;
+  const shareContextParams = shareCreatorData
+    ? {
+        creator: shareCreatorData.profile.referralCode,
+        from: "share",
+        returnTo: shareReturnToHref,
+        shareId,
+        sponsor: sponsor.slug,
+      }
+    : null;
   const shareContext: FanletterHomeShareContext | null = shareCreatorData
     ? {
         avatarImageUrl:
           shareCreatorData.profile.character?.avatarImageSet[0]?.url ??
           shareCreatorData.profile.avatarImageUrl,
-        channelHref: buildPathWithReferral(
-          `/${locale}/fanletter/creator/${shareCreatorData.profile.referralCode}`,
-          shareContextReferralCode,
-        ),
+        channelHref: shareChannelHref ?? `/${locale}/fanletter`,
         channelName:
           shareCreatorData.profile.character?.name ??
           shareCreatorData.profile.displayName,
@@ -156,7 +170,7 @@ export default async function FanletterRoutePage({
             `/${locale}/fanletter/onboarding`,
             shareContextReferralCode,
           ),
-          shareContextParams,
+          shareContextParams ?? {},
         ),
         shareId,
         sponsorName: sponsor.name,

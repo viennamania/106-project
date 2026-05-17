@@ -7,12 +7,16 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterOnboardingSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 export async function generateMetadata({
@@ -90,11 +94,13 @@ export default async function LocalizedFanletterOnboardingPage({
   if (!hasLocale(lang)) {
     notFound();
   }
+  const locale = lang as Locale;
 
   return (
     <FanletterOnboardingPage
-      locale={lang as Locale}
+      locale={locale}
       referralCode={readFanletterReferralCode(query.ref)}
+      returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
     />
   );
 }

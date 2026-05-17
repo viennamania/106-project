@@ -7239,23 +7239,9 @@ export function FanletterCreatorPromoSharePage({
     featuredItem?.coverImageUrl ??
     character?.avatarImageSet[0]?.url ??
     data.profile.avatarImageUrl;
-  const shareContextSearchParams = {
-    creator: data.profile.referralCode,
-    from: "share",
-    shareId,
-    sponsor: sponsor.slug,
-  };
-  const homeHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter`, effectiveReferralCode),
-    shareContextSearchParams,
-  );
   const channelHref = buildPathWithReferral(
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
-  );
-  const onboardingHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
-    shareContextSearchParams,
   );
   const publicVlogsHref = getCreatorVlogsHref({
     creatorReferralCode: data.profile.referralCode,
@@ -7274,6 +7260,21 @@ export function FanletterCreatorPromoSharePage({
       ref: effectiveReferralCode,
       sponsor: sponsor.slug,
     },
+  );
+  const shareContextSearchParams = {
+    creator: data.profile.referralCode,
+    from: "share",
+    returnTo: shareHref,
+    shareId,
+    sponsor: sponsor.slug,
+  };
+  const homeHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter`, effectiveReferralCode),
+    shareContextSearchParams,
+  );
+  const onboardingHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
+    shareContextSearchParams,
   );
   const promoTrackingMetadata = {
     creatorReferralCode: data.profile.referralCode,
@@ -9200,13 +9201,19 @@ export function FanletterContentDetailPage({
 export function FanletterOnboardingPage({
   locale,
   referralCode,
+  returnToHref = null,
 }: {
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
 }) {
-  const onboardingHref = buildPathWithReferral(
+  const onboardingBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
+  );
+  const onboardingHref = setPathSearchParams(
+    onboardingBaseHref,
+    { returnTo: returnToHref },
   );
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const connectHref = setPathSearchParams(
@@ -9247,6 +9254,9 @@ export function FanletterOnboardingPage({
           homeCta: "브이로그 스튜디오",
           progress: "빠른 시작",
           readyValue: "3단계",
+          returnBody:
+            "시작 준비를 마친 뒤에도 원래 보던 캐릭터 공유 페이지로 바로 돌아갈 수 있습니다.",
+          returnCta: "공유 캐릭터로 돌아가기",
           title: "AI 캐릭터 브이로그 시작하기",
           steps: [
             {
@@ -9291,6 +9301,9 @@ export function FanletterOnboardingPage({
           homeCta: "Vlog studio",
           progress: "Quick start",
           readyValue: "3 steps",
+          returnBody:
+            "After setup, you can jump back to the character share page that brought you here.",
+          returnCta: "Return to shared character",
           title: "Start your AI character vlog",
           steps: [
             {
@@ -9482,7 +9495,12 @@ export function FanletterOnboardingPage({
           </div>
         </div>
 
-        <div className="mx-auto mt-8 grid max-w-6xl gap-3 md:grid-cols-2">
+        <div
+          className={cn(
+            "mx-auto mt-8 grid max-w-6xl gap-3",
+            returnToHref ? "md:grid-cols-3" : "md:grid-cols-2",
+          )}
+        >
           <Link
             className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_42px_rgba(8,18,12,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)]"
             href={studioHref}
@@ -9517,6 +9535,25 @@ export function FanletterOnboardingPage({
             </span>
             <ArrowRight className="size-5 shrink-0 text-[#44f26e]" />
           </Link>
+          {returnToHref ? (
+            <Link
+              className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#44f26e]/34 bg-[#44f26e] p-5 !text-black shadow-[0_18px_42px_rgba(68,242,110,0.16)] transition hover:-translate-y-0.5 hover:bg-[#67ff88] hover:shadow-[0_24px_52px_rgba(68,242,110,0.2)]"
+              href={returnToHref}
+            >
+              <span>
+                <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
+                  <ArrowLeft className="size-5" />
+                </span>
+                <span className="mt-4 block text-2xl font-semibold leading-tight">
+                  {labels.returnCta}
+                </span>
+                <span className="mt-2 block text-sm font-medium leading-6 text-black/58">
+                  {labels.returnBody}
+                </span>
+              </span>
+              <ArrowRight className="size-5 shrink-0" />
+            </Link>
+          ) : null}
         </div>
       </section>
       </FanletterShell>
