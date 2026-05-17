@@ -7238,8 +7238,16 @@ export function FanletterCreatorPromoSharePage({
     featuredItem?.coverImageUrl ??
     character?.avatarImageSet[0]?.url ??
     data.profile.avatarImageUrl;
+  const homeHref = buildPathWithReferral(
+    `/${locale}/fanletter`,
+    effectiveReferralCode,
+  );
   const channelHref = buildPathWithReferral(
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const onboardingHref = buildPathWithReferral(
+    `/${locale}/fanletter/onboarding`,
     effectiveReferralCode,
   );
   const publicVlogsHref = getCreatorVlogsHref({
@@ -7343,6 +7351,13 @@ export function FanletterCreatorPromoSharePage({
           publicEmpty: "공개 브이로그가 준비되면 이 공유 페이지에서 먼저 볼 수 있습니다.",
           publicTitle: "먼저 볼 공개 브이로그",
           secondaryCta: "팬 전용 티저 보기",
+          serviceBody:
+            "SNS에서 들어온 팬은 캐릭터를 먼저 보고, 더 알고 싶은 사용자는 FanLetter 서비스 홈에서 AI 캐릭터 생성, 공개 브이로그, 팬 전용 콘텐츠 흐름을 이어서 확인합니다.",
+          serviceEyebrow: "FanLetter 서비스 연결",
+          serviceHome: "FanLetter 서비스 알아보기",
+          serviceStart: "나도 AI 캐릭터 만들기",
+          serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 티저", "서비스 시작"],
+          serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
           shareCode: "공유 코드",
           subtitle: "AI 브이로그 채널",
           title: `${channelName} AI 브이로그 채널`,
@@ -7421,6 +7436,13 @@ export function FanletterCreatorPromoSharePage({
           publicEmpty: "Public vlogs will appear here first when ready.",
           publicTitle: "Start with public vlogs",
           secondaryCta: "View fan-only teasers",
+          serviceBody:
+            "Fans arriving from social can preview the character first. Visitors who want the wider product can continue to the FanLetter home page for AI character creation, public vlogs, and fan-only content flows.",
+          serviceEyebrow: "FanLetter service link",
+          serviceHome: "Learn about FanLetter",
+          serviceStart: "Create my AI character",
+          serviceSteps: ["Social share", "Character preview", "Fan-only teaser", "Start service"],
+          serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
           shareCode: "Share code",
           subtitle: "AI vlog channel",
           title: `${channelName} AI vlog channel`,
@@ -7624,7 +7646,7 @@ export function FanletterCreatorPromoSharePage({
           <header className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-black/30 px-3 py-2 text-sm font-semibold !text-white backdrop-blur-md sm:bg-black/24"
-              href={channelHref}
+              href={homeHref}
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-[#44f26e] text-black">
                 F
@@ -8227,6 +8249,51 @@ export function FanletterCreatorPromoSharePage({
             </div>
           )}
         </div>
+      </section>
+
+      <section className="border-y border-[#44f26e]/14 bg-[#050806] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
+        <FanletterScrollReveal className="mx-auto grid max-w-[92rem] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.34fr)] lg:items-center">
+          <div>
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#9bffad]">
+              {labels.serviceEyebrow}
+            </p>
+            <h2 className="mt-3 max-w-3xl text-2xl font-semibold tracking-normal sm:text-3xl">
+              {labels.serviceTitle}
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/62">
+              {labels.serviceBody}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {labels.serviceSteps.map((step, index) => (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-3 py-1.5 text-xs font-semibold text-white/68"
+                  key={step}
+                >
+                  <span className="text-[#44f26e]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {step}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-2 sm:max-w-sm lg:ml-auto lg:w-full">
+            <Link
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={homeHref}
+            >
+              <MessageCircleHeart className="size-4" />
+              {labels.serviceHome}
+            </Link>
+            <Link
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+              href={onboardingHref}
+            >
+              <Sparkles className="size-4" />
+              {labels.serviceStart}
+            </Link>
+          </div>
+        </FanletterScrollReveal>
       </section>
 
       <section className="bg-[#050806] px-4 py-10 text-white sm:px-6 sm:py-14 lg:px-8">
