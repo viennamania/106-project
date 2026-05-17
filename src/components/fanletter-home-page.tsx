@@ -1691,7 +1691,12 @@ export function FanletterHomePage({
               <p className="mt-4 max-w-[22rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">
                 {copy.hero.description}
               </p>
-              <div className="mt-6 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
+              <div
+                className={joinClasses(
+                  "mt-6 flex-wrap gap-2.5 sm:mt-8 sm:flex sm:gap-3",
+                  shareContext ? "hidden" : "flex",
+                )}
+              >
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
                   href={creatorHref}

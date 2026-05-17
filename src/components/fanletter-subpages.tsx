@@ -7372,7 +7372,7 @@ export function FanletterCreatorPromoSharePage({
           serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 티저", "서비스 시작"],
           serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
           shareCode: "공유 코드",
-          stickyServiceCta: "FanLetter 알아보기",
+          stickyServiceCta: "서비스 보기",
           stickyVlogsCta: "무료 브이로그",
           subtitle: "AI 브이로그 채널",
           title: `${channelName} AI 브이로그 채널`,
@@ -7459,7 +7459,7 @@ export function FanletterCreatorPromoSharePage({
           serviceSteps: ["Social share", "Character preview", "Fan-only teaser", "Start service"],
           serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
           shareCode: "Share code",
-          stickyServiceCta: "FanLetter",
+          stickyServiceCta: "Service",
           stickyVlogsCta: "Free vlogs",
           subtitle: "AI vlog channel",
           title: `${channelName} AI vlog channel`,
@@ -7580,24 +7580,28 @@ export function FanletterCreatorPromoSharePage({
       Icon: Crown,
       hint: labels.growthFanClubHint,
       label: labels.growthFanClubLabel,
+      mobileLabel: locale === "ko" ? "팬클럽" : "Fan club",
       value: formatNumber(fanClubMemberCount, locale),
     },
     {
       Icon: MessageCircleHeart,
       hint: labels.growthRequestHint,
       label: labels.growthRequestLabel,
+      mobileLabel: locale === "ko" ? "팬레터" : "Letters",
       value: formatNumber(fanRequestCount, locale),
     },
     {
       Icon: Rocket,
       hint: labels.growthLevelHint,
       label: labels.growthLevelLabel,
+      mobileLabel: locale === "ko" ? "AI 레벨" : "AI level",
       value: levelLabel,
     },
     {
       Icon: LockKeyhole,
       hint: paidContentUnlockHint,
       label: labels.growthPaidLabel,
+      mobileLabel: locale === "ko" ? "유료 언락" : "Unlocks",
       value: paidContentUnlockLabel,
     },
   ];
@@ -7629,7 +7633,7 @@ export function FanletterCreatorPromoSharePage({
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#030504]/94 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-18px_46px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:hidden">
         <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
           <FanletterTrackedLink
-            className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            className="inline-flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 text-[0.82rem] font-semibold !text-black transition hover:bg-[#64ff84]"
             eventName="promo_share_to_public_vlogs"
             href={publicVlogsHref}
             metadata={{
@@ -7643,7 +7647,7 @@ export function FanletterCreatorPromoSharePage({
             <span className="truncate">{labels.stickyVlogsCta}</span>
           </FanletterTrackedLink>
           <FanletterTrackedLink
-            className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-3 text-sm font-semibold !text-white transition hover:bg-white/12"
+            className="inline-flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full border border-white/16 bg-white/8 px-2.5 text-[0.82rem] font-semibold !text-white transition hover:bg-white/12"
             eventName="promo_share_to_service_home"
             href={homeHref}
             metadata={{
@@ -7936,6 +7940,7 @@ export function FanletterCreatorPromoSharePage({
                               fill
                               sizes="(max-width: 640px) 9.5rem, (max-width: 1024px) 25vw, 14vw"
                               src={avatar.url}
+                              unoptimized
                             />
                           </div>
                           <div className="px-2.5 py-2">
@@ -8045,14 +8050,15 @@ export function FanletterCreatorPromoSharePage({
                 </p>
 
                 <div className="mt-5 grid grid-cols-2 gap-2 xl:grid-cols-4">
-                  {fanClubStats.map(({ Icon, hint, label, value }) => (
+                  {fanClubStats.map(({ Icon, hint, label, mobileLabel, value }) => (
                     <div
                       className="min-h-[6.75rem] min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3 sm:min-h-[7.75rem]"
                       key={label}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-white/42 sm:text-[0.62rem] sm:tracking-[0.12em]">
-                          {label}
+                          <span className="sm:hidden">{mobileLabel}</span>
+                          <span className="hidden sm:inline">{label}</span>
                         </p>
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
                           <Icon className="size-4" />
