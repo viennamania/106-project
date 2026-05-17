@@ -22,6 +22,7 @@ import {
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import {
   AnimatedNumber,
   ScrollReveal,
@@ -161,6 +162,17 @@ type FanletterCopy = {
       title: string;
     }>;
   };
+};
+
+export type FanletterHomeShareContext = {
+  avatarImageUrl: string | null;
+  channelHref: string;
+  channelName: string;
+  creatorReferralCode: string;
+  onboardingHref: string;
+  shareId: string | null;
+  sponsorName: string;
+  sponsorSlug: string;
 };
 
 const koCopy: FanletterCopy = {
@@ -1281,12 +1293,14 @@ export function FanletterHomePage({
   locale,
   liveStats,
   referralCode,
+  shareContext,
 }: {
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   locale: Locale;
   liveStats: FanletterLiveStats;
   referralCode: string | null;
+  shareContext?: FanletterHomeShareContext | null;
 }) {
   const copy = getFanletterCopy(locale);
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
@@ -1521,6 +1535,29 @@ export function FanletterHomePage({
           : BadgeDollarSign,
     ...item,
   }));
+  const shareContextLabels =
+    locale === "ko"
+      ? {
+          body: "방금 본 캐릭터 채널로 돌아가거나, 같은 방식으로 나만의 AI 캐릭터 채널을 시작할 수 있습니다.",
+          channel: "이 캐릭터 채널 보기",
+          eyebrow: `${shareContext?.sponsorName ?? "SNS"} 공유에서 이어짐`,
+          start: "나도 AI 캐릭터 만들기",
+          title: (name: string) => `${name} 공유 페이지에서 오셨나요?`,
+        }
+      : {
+          body: "Return to the character channel you just saw, or start your own AI character channel with the same FanLetter flow.",
+          channel: "View this character",
+          eyebrow: `Continued from ${shareContext?.sponsorName ?? "SNS"} share`,
+          start: "Create my AI character",
+          title: (name: string) => `Coming from ${name}'s share page?`,
+        };
+  const shareContextTrackingMetadata = shareContext
+    ? {
+        creatorReferralCode: shareContext.creatorReferralCode,
+        source: "fanletter-home-share-context",
+        sponsorSlug: shareContext.sponsorSlug,
+      }
+    : null;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -1581,6 +1618,67 @@ export function FanletterHomePage({
           <div className="mt-4 flex sm:hidden">
             <FanletterGlobalLanguageSwitcher compact locale={locale} />
           </div>
+
+          {shareContext && shareContextTrackingMetadata ? (
+            <ScrollReveal className="mt-4 max-w-3xl" delay={60} y={12}>
+              <div className="flex flex-col gap-3 rounded-lg border border-[#44f26e]/24 bg-black/46 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  {shareContext.avatarImageUrl ? (
+                    <Image
+                      alt={shareContext.channelName}
+                      className="size-12 shrink-0 rounded-lg object-cover sm:size-14"
+                      height={56}
+                      src={shareContext.avatarImageUrl}
+                      width={56}
+                    />
+                  ) : (
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-base font-semibold text-black sm:size-14">
+                      {getAuthorInitial(shareContext.channelName)}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                      {shareContextLabels.eyebrow}
+                    </p>
+                    <p className="mt-1 break-words text-base font-semibold leading-5 text-white [word-break:keep-all] sm:text-lg">
+                      {shareContextLabels.title(shareContext.channelName)}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/58 sm:text-sm">
+                      {shareContextLabels.body}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-2 sm:w-56 sm:shrink-0">
+                  <FanletterTrackedLink
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-semibold !text-black transition hover:bg-[#67ff88] sm:text-sm"
+                    eventName="promo_share_to_creator_channel"
+                    href={shareContext.channelHref}
+                    metadata={{
+                      ...shareContextTrackingMetadata,
+                      placement: "home_context_banner_primary",
+                    }}
+                    referralCode={referralCode}
+                    shareId={shareContext.shareId}
+                  >
+                    {shareContextLabels.channel}
+                  </FanletterTrackedLink>
+                  <FanletterTrackedLink
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/8 px-4 text-xs font-semibold !text-white transition hover:bg-white/12 sm:text-sm"
+                    eventName="promo_share_to_onboarding"
+                    href={shareContext.onboardingHref}
+                    metadata={{
+                      ...shareContextTrackingMetadata,
+                      placement: "home_context_banner_secondary",
+                    }}
+                    referralCode={referralCode}
+                    shareId={shareContext.shareId}
+                  >
+                    {shareContextLabels.start}
+                  </FanletterTrackedLink>
+                </div>
+              </div>
+            </ScrollReveal>
+          ) : null}
 
           <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>

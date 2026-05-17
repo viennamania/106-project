@@ -55,6 +55,7 @@ import {
   FanletterSetupStepText,
 } from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   FanletterCreatorFanOnlyPageData,
   FanletterCreatorPageData,
@@ -7238,17 +7239,23 @@ export function FanletterCreatorPromoSharePage({
     featuredItem?.coverImageUrl ??
     character?.avatarImageSet[0]?.url ??
     data.profile.avatarImageUrl;
-  const homeHref = buildPathWithReferral(
-    `/${locale}/fanletter`,
-    effectiveReferralCode,
+  const shareContextSearchParams = {
+    creator: data.profile.referralCode,
+    from: "share",
+    shareId,
+    sponsor: sponsor.slug,
+  };
+  const homeHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter`, effectiveReferralCode),
+    shareContextSearchParams,
   );
   const channelHref = buildPathWithReferral(
     `/${locale}/fanletter/creator/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
-  const onboardingHref = buildPathWithReferral(
-    `/${locale}/fanletter/onboarding`,
-    effectiveReferralCode,
+  const onboardingHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
+    shareContextSearchParams,
   );
   const publicVlogsHref = getCreatorVlogsHref({
     creatorReferralCode: data.profile.referralCode,
@@ -7268,6 +7275,11 @@ export function FanletterCreatorPromoSharePage({
       sponsor: sponsor.slug,
     },
   );
+  const promoTrackingMetadata = {
+    creatorReferralCode: data.profile.referralCode,
+    source: "fanletter-promo-share",
+    sponsorSlug: sponsor.slug,
+  };
   const levelLabel = character ? `Lv.${character.growth.level}` : "FanLetter";
   const sponsorCtaLabel =
     locale === "ko" ? sponsor.ctaLabel : `Explore ${sponsor.name}`;
@@ -7644,15 +7656,22 @@ export function FanletterCreatorPromoSharePage({
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-5 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between gap-3">
-            <Link
+            <FanletterTrackedLink
               className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-black/30 px-3 py-2 text-sm font-semibold !text-white backdrop-blur-md sm:bg-black/24"
+              eventName="promo_share_to_service_home"
               href={homeHref}
+              metadata={{
+                ...promoTrackingMetadata,
+                placement: "header_brand",
+              }}
+              referralCode={effectiveReferralCode}
+              shareId={shareId}
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-[#44f26e] text-black">
                 F
               </span>
               FanLetter
-            </Link>
+            </FanletterTrackedLink>
             <a
               className="hidden h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-sm font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/18 sm:inline-flex"
               href={sponsor.href}
@@ -7692,20 +7711,34 @@ export function FanletterCreatorPromoSharePage({
                   {channelSummary}
                 </p>
                 <div className="mt-4 flex flex-col gap-2 sm:mt-7 sm:flex-row sm:gap-3">
-                  <Link
+                  <FanletterTrackedLink
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black shadow-[0_22px_54px_rgba(68,242,110,0.26)] transition hover:bg-[#64ff84] sm:h-12"
+                    eventName="promo_share_to_public_vlogs"
                     href={publicVlogsHref}
+                    metadata={{
+                      ...promoTrackingMetadata,
+                      placement: "hero_primary",
+                    }}
+                    referralCode={effectiveReferralCode}
+                    shareId={shareId}
                   >
                     <Video className="size-4" />
                     {labels.heroCta}
-                  </Link>
-                  <Link
+                  </FanletterTrackedLink>
+                  <FanletterTrackedLink
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white backdrop-blur transition hover:bg-white/12 sm:h-12"
+                    eventName="promo_share_to_fan_only"
                     href={fanOnlyHref}
+                    metadata={{
+                      ...promoTrackingMetadata,
+                      placement: "hero_secondary",
+                    }}
+                    referralCode={effectiveReferralCode}
+                    shareId={shareId}
                   >
                     <LockKeyhole className="size-4" />
                     {labels.secondaryCta}
-                  </Link>
+                  </FanletterTrackedLink>
                   {expressionImages.length > 0 ? (
                     <a
                       className="inline-flex h-10 items-center justify-center gap-2 self-center rounded-full border border-[#44f26e]/22 bg-black/28 px-4 text-xs font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/12 sm:h-12 sm:self-auto sm:px-5 sm:text-sm"
@@ -8032,13 +8065,20 @@ export function FanletterCreatorPromoSharePage({
                     </p>
                   ) : null}
                 </div>
-                <Link
+                <FanletterTrackedLink
                   className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                  eventName="promo_share_to_fan_only"
                   href={fanOnlyHref}
+                  metadata={{
+                    ...promoTrackingMetadata,
+                    placement: "growth_card",
+                  }}
+                  referralCode={effectiveReferralCode}
+                  shareId={shareId}
                 >
                   <LockKeyhole className="size-4" />
                   {labels.growthCta}
-                </Link>
+                </FanletterTrackedLink>
               </aside>
             </div>
 
@@ -8137,13 +8177,20 @@ export function FanletterCreatorPromoSharePage({
                   {labels.publicTitle}
                 </h2>
               </div>
-              <Link
+              <FanletterTrackedLink
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                eventName="promo_share_to_creator_channel"
                 href={channelHref}
+                metadata={{
+                  ...promoTrackingMetadata,
+                  placement: "public_section_header",
+                }}
+                referralCode={effectiveReferralCode}
+                shareId={shareId}
               >
                 {labels.channel}
                 <ArrowRight className="size-4" />
-              </Link>
+              </FanletterTrackedLink>
             </div>
           </FanletterScrollReveal>
 
@@ -8179,13 +8226,20 @@ export function FanletterCreatorPromoSharePage({
                   {labels.fanOnlyBody}
                 </p>
               </div>
-              <Link
+              <FanletterTrackedLink
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                eventName="promo_share_to_fan_only"
                 href={fanOnlyHref}
+                metadata={{
+                  ...promoTrackingMetadata,
+                  placement: "fan_only_section_header",
+                }}
+                referralCode={effectiveReferralCode}
+                shareId={shareId}
               >
                 {labels.secondaryCta}
                 <ArrowRight className="size-4" />
-              </Link>
+              </FanletterTrackedLink>
             </div>
           </FanletterScrollReveal>
 
@@ -8278,20 +8332,34 @@ export function FanletterCreatorPromoSharePage({
             </div>
           </div>
           <div className="grid gap-2 sm:max-w-sm lg:ml-auto lg:w-full">
-            <Link
+            <FanletterTrackedLink
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              eventName="promo_share_to_service_home"
               href={homeHref}
+              metadata={{
+                ...promoTrackingMetadata,
+                placement: "service_bridge_primary",
+              }}
+              referralCode={effectiveReferralCode}
+              shareId={shareId}
             >
               <MessageCircleHeart className="size-4" />
               {labels.serviceHome}
-            </Link>
-            <Link
+            </FanletterTrackedLink>
+            <FanletterTrackedLink
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+              eventName="promo_share_to_onboarding"
               href={onboardingHref}
+              metadata={{
+                ...promoTrackingMetadata,
+                placement: "service_bridge_secondary",
+              }}
+              referralCode={effectiveReferralCode}
+              shareId={shareId}
             >
               <Sparkles className="size-4" />
               {labels.serviceStart}
-            </Link>
+            </FanletterTrackedLink>
           </div>
         </FanletterScrollReveal>
       </section>

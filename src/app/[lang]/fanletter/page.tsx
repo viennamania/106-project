@@ -1,16 +1,37 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { FanletterHomePage } from "@/components/fanletter-home-page";
+import {
+  FanletterHomePage,
+  type FanletterHomeShareContext,
+} from "@/components/fanletter-home-page";
+import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import { getFanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
+import {
+  readFanletterReferralCode,
+  readFirstSearchParam,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
+import { normalizeReferralCode } from "@/lib/member";
+import { normalizeShareId } from "@/lib/share-tracking";
+
+type FanletterHomeSearchParams = {
+  creator?: string | string[];
+  from?: string | string[];
+  ref?: string | string[];
+  shareId?: string | string[];
+  sponsor?: string | string[];
+};
 
 function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
@@ -33,7 +54,7 @@ export async function generateMetadata({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<FanletterHomeSearchParams>;
 }): Promise<Metadata> {
   const { lang } = await params;
   const query = await searchParams;
@@ -85,7 +106,7 @@ export default async function FanletterRoutePage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<FanletterHomeSearchParams>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -93,8 +114,55 @@ export default async function FanletterRoutePage({
   if (!hasLocale(lang)) {
     notFound();
   }
+  const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
-  const landingData = await getFanletterLandingData(lang);
+  const shareSource = readFirstSearchParam(query.from)?.trim().toLowerCase();
+  const shareCreatorReferralCode = normalizeReferralCode(
+    readFirstSearchParam(query.creator),
+  );
+  const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
+  const sponsor = getFanletterPromoSponsor(readFirstSearchParam(query.sponsor));
+  const shouldLoadShareContext =
+    shareSource === "share" && Boolean(shareCreatorReferralCode);
+  const [landingData, shareCreatorData] = await Promise.all([
+    getFanletterLandingData(locale),
+    shouldLoadShareContext && shareCreatorReferralCode
+      ? getFanletterCreatorPageData(locale, shareCreatorReferralCode, null)
+      : Promise.resolve(null),
+  ]);
+  const shareContextReferralCode =
+    referralCode ?? shareCreatorData?.profile.referralCode ?? null;
+  const shareContextParams = {
+    creator: shareCreatorData?.profile.referralCode,
+    from: "share",
+    shareId,
+    sponsor: sponsor.slug,
+  };
+  const shareContext: FanletterHomeShareContext | null = shareCreatorData
+    ? {
+        avatarImageUrl:
+          shareCreatorData.profile.character?.avatarImageSet[0]?.url ??
+          shareCreatorData.profile.avatarImageUrl,
+        channelHref: buildPathWithReferral(
+          `/${locale}/fanletter/creator/${shareCreatorData.profile.referralCode}`,
+          shareContextReferralCode,
+        ),
+        channelName:
+          shareCreatorData.profile.character?.name ??
+          shareCreatorData.profile.displayName,
+        creatorReferralCode: shareCreatorData.profile.referralCode,
+        onboardingHref: setPathSearchParams(
+          buildPathWithReferral(
+            `/${locale}/fanletter/onboarding`,
+            shareContextReferralCode,
+          ),
+          shareContextParams,
+        ),
+        shareId,
+        sponsorName: sponsor.name,
+        sponsorSlug: sponsor.slug,
+      }
+    : null;
 
   return (
     <FanletterHomePage
@@ -103,6 +171,7 @@ export default async function FanletterRoutePage({
       locale={lang}
       liveStats={landingData.liveStats}
       referralCode={referralCode}
+      shareContext={shareContext}
     />
   );
 }
