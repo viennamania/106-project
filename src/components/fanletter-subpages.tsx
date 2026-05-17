@@ -7371,6 +7371,8 @@ export function FanletterCreatorPromoSharePage({
           serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 티저", "서비스 시작"],
           serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
           shareCode: "공유 코드",
+          stickyServiceCta: "FanLetter 알아보기",
+          stickyVlogsCta: "무료 브이로그",
           subtitle: "AI 브이로그 채널",
           title: `${channelName} AI 브이로그 채널`,
         }
@@ -7456,6 +7458,8 @@ export function FanletterCreatorPromoSharePage({
           serviceSteps: ["Social share", "Character preview", "Fan-only teaser", "Start service"],
           serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
           shareCode: "Share code",
+          stickyServiceCta: "FanLetter",
+          stickyVlogsCta: "Free vlogs",
           subtitle: "AI vlog channel",
           title: `${channelName} AI vlog channel`,
         };
@@ -7620,7 +7624,39 @@ export function FanletterCreatorPromoSharePage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#050806] text-white">
+    <main className="min-h-screen bg-[#050806] pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#030504]/94 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-18px_46px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
+          <FanletterTrackedLink
+            className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            eventName="promo_share_to_public_vlogs"
+            href={publicVlogsHref}
+            metadata={{
+              ...promoTrackingMetadata,
+              placement: "mobile_sticky_primary",
+            }}
+            referralCode={effectiveReferralCode}
+            shareId={shareId}
+          >
+            <Video className="size-4 shrink-0" />
+            <span className="truncate">{labels.stickyVlogsCta}</span>
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-3 text-sm font-semibold !text-white transition hover:bg-white/12"
+            eventName="promo_share_to_service_home"
+            href={homeHref}
+            metadata={{
+              ...promoTrackingMetadata,
+              placement: "mobile_sticky_secondary",
+            }}
+            referralCode={effectiveReferralCode}
+            shareId={shareId}
+          >
+            <MessageCircleHeart className="size-4 shrink-0" />
+            <span className="truncate">{labels.stickyServiceCta}</span>
+          </FanletterTrackedLink>
+        </div>
+      </div>
       <section className="relative min-h-[100svh] overflow-hidden">
         {!heroVideoUrl && heroImageUrl ? (
           <Image
