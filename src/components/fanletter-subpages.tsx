@@ -8803,6 +8803,110 @@ function FanletterCharacterMiniCard({
   );
 }
 
+function FanletterNsfwContentGate({
+  creatorHref,
+  locale,
+  priceUsdt,
+}: {
+  creatorHref: string;
+  locale: Locale;
+  priceUsdt: string | null;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          badge: "NSFW 팬 전용",
+          body:
+            "이 콘텐츠는 성인 팬 전용 신호가 있는 유료 업로드 영상입니다. NSFW 보기 동의 후 상세 티저와 결제 단계가 이어집니다.",
+          creator: "캐릭터 채널 보기",
+          media: "동의 전 미디어 블러",
+          noCharge: "이 단계에서는 결제되지 않음",
+          paidNext: `${priceUsdt ?? "1"} USDT 잠금 해제는 다음 단계`,
+          title: "NSFW 보기 설정이 필요합니다",
+          toggleBody:
+            "켜면 이 콘텐츠와 팬 전용 영역의 NSFW 콘텐츠가 표시됩니다. 언제든 다시 끌 수 있습니다.",
+          toggleCta: "NSFW 보기 켜기",
+          toggleTitle: "이 콘텐츠 표시 준비",
+        }
+      : {
+          badge: "NSFW fan-only",
+          body:
+            "This paid uploaded video has adult fan-only signals. Turn on NSFW visibility first, then continue to the teaser and payment step.",
+          creator: "View character channel",
+          media: "Media stays blurred before opt-in",
+          noCharge: "No payment at this step",
+          paidNext: `${priceUsdt ?? "1"} USDT unlock is next`,
+          title: "NSFW visibility is required",
+          toggleBody:
+            "Turning this on shows this post and NSFW posts in fan-only areas. You can turn it off again anytime.",
+          toggleCta: "Show NSFW",
+          toggleTitle: "Prepare this content",
+        };
+  const gateItems = [
+    {
+      Icon: BadgeCheck,
+      label: labels.noCharge,
+    },
+    {
+      Icon: LockKeyhole,
+      label: labels.paidNext,
+    },
+    {
+      Icon: PlayCircle,
+      label: labels.media,
+    },
+  ];
+
+  return (
+    <section className="mb-6 overflow-hidden rounded-lg border border-rose-300/38 bg-[linear-gradient(135deg,rgba(244,63,94,0.22),rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.2))] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
+      <div className="p-5 sm:p-6">
+        <span className="inline-flex rounded-full bg-rose-400 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-rose-950">
+          {labels.badge}
+        </span>
+        <h2 className="mt-4 break-words text-2xl font-semibold leading-tight sm:text-3xl">
+          {labels.title}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/68">
+          {labels.body}
+        </p>
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          {gateItems.map(({ Icon, label }) => (
+            <div
+              className="rounded-lg border border-white/10 bg-black/22 p-3"
+              key={label}
+            >
+              <span className="inline-flex size-8 items-center justify-center rounded-lg bg-rose-300 text-rose-950">
+                <Icon className="size-4" />
+              </span>
+              <p className="mt-3 text-sm font-semibold leading-5 text-white">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="border-t border-white/10 p-4 sm:p-5">
+        <FanletterNsfwOptInControl
+          disabledBody={labels.toggleBody}
+          disabledCta={labels.toggleCta}
+          disabledTitle={labels.toggleTitle}
+          enabled={false}
+          hiddenCount={1}
+          locale={locale}
+          tone="dark"
+        />
+        <Link
+          className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-4 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-auto"
+          href={creatorHref}
+        >
+          {labels.creator}
+          <ArrowRight className="size-4" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterContentDetailPage({
   content,
   locale,
@@ -9199,11 +9303,10 @@ export function FanletterContentDetailPage({
 
               {requiresNsfwOptIn ? (
                 <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
-                  <FanletterNsfwOptInControl
-                    className="mb-6 border-rose-300/50 bg-rose-950 text-white"
-                    enabled={false}
-                    hiddenCount={1}
+                  <FanletterNsfwContentGate
+                    creatorHref={creatorHref}
                     locale={locale}
+                    priceUsdt={content.priceUsdt}
                   />
                 </div>
               ) : shouldShowPaidUnlockPanel ? (
@@ -9211,6 +9314,7 @@ export function FanletterContentDetailPage({
                   <FanletterPaidUnlockPanel
                     connectHref={connectHref}
                     contentImageCount={content.contentImageCount}
+                    contentMaturityRating={content.contentMaturityRating}
                     contentId={content.contentId}
                     contentVideoCount={content.contentVideoCount}
                     creatorHref={creatorHref}

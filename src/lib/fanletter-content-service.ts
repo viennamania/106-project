@@ -15,6 +15,7 @@ import {
   type FanletterFanRequestStatus,
   type FanletterFanRequestType,
   createEmptyContentSocialSummary,
+  hasUploadedContentVideoUrl,
   normalizeContentLocale,
 } from "@/lib/content";
 import { getContentSocialSummaryForViewer } from "@/lib/content-service";
@@ -40,6 +41,7 @@ const FANLETTER_FEED_PAGE_SIZE = 24;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
 const TITLE_LIMIT = 96;
+const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
 const EMPTY_PUBLIC_FAN_REQUEST_METRICS: FanletterPublicFanRequestMetrics = {
   completedCount: 0,
   pendingCount: 0,
@@ -642,6 +644,31 @@ function getAuthorName(
   );
 }
 
+function hasMissingMaturityRating(post: ContentPostDocument) {
+  return post.contentMaturityRating === undefined || post.contentMaturityRating === null;
+}
+
+function hasLegacyNsfwVideoSignal(post: ContentPostDocument) {
+  return (
+    post.priceType === "paid" &&
+    hasMissingMaturityRating(post) &&
+    hasUploadedContentVideoUrl(post.contentVideoUrls) &&
+    (post.contentVideoUrls ?? []).some((url) =>
+      LEGACY_NSFW_VIDEO_URL_PATTERN.test(url),
+    )
+  );
+}
+
+function resolveFanletterContentMaturityRating(
+  post: ContentPostDocument,
+): ContentMaturityRating {
+  if (post.contentMaturityRating === "nsfw" || hasLegacyNsfwVideoSignal(post)) {
+    return "nsfw";
+  }
+
+  return "general";
+}
+
 async function getProfilesByAuthorEmail(posts: ContentPostDocument[]) {
   const emails = [...new Set(posts.map((post) => post.authorEmail).filter(Boolean))];
 
@@ -772,8 +799,7 @@ function toPublicContentItem({
       profile?.referralCode ?? post.authorReferralCode?.trim() ?? null,
     contentId: post.contentId,
     contentImageCount: post.contentImageUrls?.length ?? 0,
-    contentMaturityRating:
-      post.contentMaturityRating === "nsfw" ? "nsfw" : "general",
+    contentMaturityRating: resolveFanletterContentMaturityRating(post),
     contentVideoCount: post.contentVideoUrls?.length ?? 0,
     coverImageUrl: getCoverImageUrl(post),
     mediaType: getMediaType(post),
@@ -936,6 +962,40 @@ async function getPublicFanRequestMetrics(
   };
 }
 
+function getLegacyNsfwVideoSignalFilter(): Filter<ContentPostDocument> {
+  return {
+    $and: [
+      { priceType: "paid" },
+      { "contentVideoUrls.0": { $exists: true } },
+      { contentVideoUrls: LEGACY_NSFW_VIDEO_URL_PATTERN },
+      {
+        $or: [
+          { contentMaturityRating: { $exists: false } },
+          { contentMaturityRating: null },
+        ],
+      },
+    ],
+  };
+}
+
+function getNsfwVisibilityFilter(): Filter<ContentPostDocument> {
+  return {
+    $or: [
+      { contentMaturityRating: "nsfw" },
+      getLegacyNsfwVideoSignalFilter(),
+    ],
+  };
+}
+
+function getNonNsfwVisibilityFilter(): Filter<ContentPostDocument> {
+  return {
+    $nor: [
+      { contentMaturityRating: "nsfw" },
+      getLegacyNsfwVideoSignalFilter(),
+    ],
+  };
+}
+
 async function getPublicContentFilter({
   includeNsfw = false,
   locale,
@@ -947,6 +1007,8 @@ async function getPublicContentFilter({
   query?: string | null;
   referralCode?: string | null;
 }): Promise<Filter<ContentPostDocument>> {
+  const nonNsfwVisibilityFilter = getNonNsfwVisibilityFilter();
+  const nsfwVisibilityFilter = getNsfwVisibilityFilter();
   const baseFilter: Filter<ContentPostDocument> = {
     ...getPublishedContentLocaleFilter(locale),
     ...(referralCode ? { authorReferralCode: referralCode } : {}),
@@ -956,17 +1018,17 @@ async function getPublicContentFilter({
       ? {
           $or: [
             {
+              ...nonNsfwVisibilityFilter,
               priceType: "free",
-              contentMaturityRating: { $ne: "nsfw" },
             },
             {
+              ...nsfwVisibilityFilter,
               priceType: "paid",
-              contentMaturityRating: "nsfw",
             },
           ],
         }
       : {
-          contentMaturityRating: { $ne: "nsfw" },
+          ...nonNsfwVisibilityFilter,
           priceType: "free",
         }),
   };
@@ -1022,7 +1084,7 @@ function getFanOnlyContentFilter({
     ...getPublishedContentLocaleFilter(locale),
     authorReferralCode: referralCode,
     "contentVideoUrls.0": { $exists: true },
-    ...(includeNsfw ? {} : { contentMaturityRating: { $ne: "nsfw" } }),
+    ...(includeNsfw ? {} : getNonNsfwVisibilityFilter()),
     priceType: "paid",
     status: "published",
   };
@@ -1039,7 +1101,7 @@ function getNsfwContentFilter({
     ...getPublishedContentLocaleFilter(locale),
     ...(referralCode ? { authorReferralCode: referralCode } : {}),
     "contentVideoUrls.0": { $exists: true },
-    contentMaturityRating: "nsfw",
+    ...getNsfwVisibilityFilter(),
     priceType: "paid",
     status: "published",
   };
@@ -1401,8 +1463,9 @@ export const getFanletterPublicContentDetail = cache(
         : Promise.resolve(null),
     ]);
     const canPubliclyAccess = post.priceType === "free";
+    const contentMaturityRating = resolveFanletterContentMaturityRating(post);
     const canViewMatureContent =
-      post.contentMaturityRating !== "nsfw" || includeNsfw || isOwner;
+      contentMaturityRating !== "nsfw" || includeNsfw || isOwner;
     const canViewerAccess =
       canViewMatureContent &&
       (canPubliclyAccess || isOwner || Boolean(viewerEntitlement));

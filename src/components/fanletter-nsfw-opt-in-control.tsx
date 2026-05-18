@@ -14,19 +14,43 @@ import { cn } from "@/lib/utils";
 
 export function FanletterNsfwOptInControl({
   className,
+  disabledBody,
+  disabledCta,
+  disabledTitle,
   enabled,
+  enabledBody,
+  enabledCta,
+  enabledTitle,
   hiddenCount = 0,
   locale,
+  tone = "auto",
 }: {
   className?: string;
+  disabledBody?: string;
+  disabledCta?: string;
+  disabledTitle?: string;
   enabled: boolean;
+  enabledBody?: string;
+  enabledCta?: string;
+  enabledTitle?: string;
   hiddenCount?: number;
   locale: Locale;
+  tone?: "auto" | "dark" | "light";
 }) {
   const copy = getFanletterNsfwCopy(locale);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const hiddenCountLabel = new Intl.NumberFormat(locale).format(hiddenCount);
+  const isDarkTone = tone === "dark" || (tone === "auto" && enabled);
+  const displayTitle = enabled
+    ? enabledTitle ?? copy.enabledTitle
+    : disabledTitle ?? copy.disabledTitle;
+  const displayBody = enabled
+    ? enabledBody ?? copy.enabledBody
+    : disabledBody ?? copy.disabledBody;
+  const displayCta = enabled
+    ? enabledCta ?? copy.enabledCta
+    : disabledCta ?? copy.disabledCta;
 
   function setOptIn(nextEnabled: boolean) {
     setIsPending(true);
@@ -46,7 +70,7 @@ export function FanletterNsfwOptInControl({
     <section
       className={cn(
         "rounded-lg border p-4",
-        enabled
+        isDarkTone
           ? "border-rose-300/50 bg-rose-950 text-white"
           : "border-black/10 bg-white text-black",
         className,
@@ -57,25 +81,34 @@ export function FanletterNsfwOptInControl({
           <span
             className={cn(
               "flex size-10 shrink-0 items-center justify-center rounded-lg",
-              enabled ? "bg-rose-400 text-black" : "bg-black text-white",
+              enabled
+                ? "bg-rose-400 text-black"
+                : isDarkTone
+                  ? "bg-white text-rose-950"
+                  : "bg-black text-white",
             )}
           >
             <AlertTriangle className="size-5" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold">
-              {enabled ? copy.enabledTitle : copy.disabledTitle}
+              {displayTitle}
             </p>
             <p
               className={cn(
                 "mt-1 text-xs font-medium leading-5",
-                enabled ? "text-white/66" : "text-black/54",
+                isDarkTone ? "text-white/66" : "text-black/54",
               )}
             >
-              {enabled ? copy.enabledBody : copy.disabledBody}
+              {displayBody}
             </p>
             {!enabled && hiddenCount > 0 ? (
-              <p className="mt-2 text-xs font-semibold text-rose-700">
+              <p
+                className={cn(
+                  "mt-2 text-xs font-semibold",
+                  isDarkTone ? "text-rose-100" : "text-rose-700",
+                )}
+              >
                 {copy.hiddenCount(hiddenCountLabel)}
               </p>
             ) : null}
@@ -86,7 +119,9 @@ export function FanletterNsfwOptInControl({
             "inline-flex h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-wait disabled:opacity-70",
             enabled
               ? "bg-white text-rose-950 hover:bg-rose-50"
-              : "bg-black text-white hover:bg-black/82",
+              : isDarkTone
+                ? "bg-rose-300 text-rose-950 hover:bg-rose-200"
+                : "bg-black text-white hover:bg-black/82",
           )}
           disabled={isPending}
           onClick={() => {
@@ -94,7 +129,7 @@ export function FanletterNsfwOptInControl({
           }}
           type="button"
         >
-          {enabled ? copy.enabledCta : copy.disabledCta}
+          {displayCta}
         </button>
       </div>
     </section>

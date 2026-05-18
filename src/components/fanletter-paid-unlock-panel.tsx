@@ -36,12 +36,14 @@ import {
 import {
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
+  type ContentMaturityRating,
   type ContentDetailLoadResponse,
   type ContentDetailRecord,
   type ContentOrderCreateResponse,
   type ContentOrderRecord,
   type ContentOrderVerifyResponse,
 } from "@/lib/content";
+import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -70,6 +72,7 @@ type FanletterPaidUnlockPanelProps = {
   creatorHref: string;
   currentHref: string;
   contentImageCount: number;
+  contentMaturityRating?: ContentMaturityRating;
   contentVideoCount: number;
   initialBody: string;
   initialCoverImageUrl: string | null;
@@ -339,6 +342,7 @@ export function FanletterPaidUnlockPanel({
   connectHref,
   contentId,
   contentImageCount,
+  contentMaturityRating = "general",
   contentVideoCount,
   creatorHref,
   currentHref,
@@ -355,6 +359,8 @@ export function FanletterPaidUnlockPanel({
   const copy = getCopy(locale);
   const router = useRouter();
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
+  const isNsfwContent = contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
   const account = useActiveAccount();
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address ?? null;
@@ -1027,9 +1033,16 @@ export function FanletterPaidUnlockPanel({
               </span>
             </div>
             <div className="absolute inset-x-0 bottom-0 p-5">
-              <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
-                {paidUnlockAmount} USDT
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
+                  {paidUnlockAmount} USDT
+                </span>
+                {isNsfwContent ? (
+                  <span className="inline-flex rounded-full bg-rose-400 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-rose-950">
+                    {nsfwCopy.badge}
+                  </span>
+                ) : null}
+              </div>
               <h2 className="mt-3 break-words text-2xl font-semibold leading-tight">
                 {displayTitle}
               </h2>
@@ -1060,6 +1073,11 @@ export function FanletterPaidUnlockPanel({
                   <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-black">
                     {paidUnlockAmount} USDT
                   </span>
+                  {isNsfwContent ? (
+                    <span className="inline-flex rounded-full bg-rose-400 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-rose-950">
+                      {nsfwCopy.badge}
+                    </span>
+                  ) : null}
                   {lockedMediaCount > 0 ? (
                     <span className="inline-flex rounded-full border border-white/12 bg-white/[0.055] px-3 py-1.5 text-xs font-semibold text-white/62">
                       {formatTokenDisplay(String(lockedMediaCount), locale)}
