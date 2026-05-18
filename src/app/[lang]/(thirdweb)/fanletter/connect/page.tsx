@@ -34,11 +34,13 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
-    locale === "ko" ? "FanLetter 계정 연결" : "FanLetter Account Connect";
+    locale === "ko"
+      ? "FanLetter 온보딩 계정 연결"
+      : "FanLetter Onboarding Account Connect";
   const description =
     locale === "ko"
-      ? "FanLetter 온보딩 안에서 이메일 계정 연결과 시작 준비 확인을 완료하세요."
-      : "Connect your email account and confirm readiness inside FanLetter onboarding.";
+      ? "FanLetter 온보딩의 첫 단계로 이메일 계정 연결과 시작 준비 확인을 완료하세요."
+      : "Complete email account connection and readiness confirmation as the first FanLetter onboarding step.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     {

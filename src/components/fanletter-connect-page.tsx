@@ -71,30 +71,41 @@ function getCopy(locale: Locale) {
     ? {
         account: "계정",
         accountBody:
-          "FanLetter에서 사용할 이메일 계정과 시작 준비 상태를 한 번에 확인합니다.",
-        back: "온보딩으로 돌아가기",
+          "계정 연결은 온보딩의 첫 단계입니다. 연결 후 체크리스트로 돌아가 캐릭터 만들기와 첫 브이로그 생성을 이어갑니다.",
+        backToOnboarding: "온보딩으로 돌아가기",
+        backToTarget: (target: string) => `${target}으로 돌아가기`,
         completedBody:
-          "FanLetter 시작 준비가 완료되었습니다. 브이로그 스튜디오에서 AI 캐릭터 프로필, 브이로그, 공개 상태를 이어서 관리하세요.",
-        completedTitle: "FanLetter 시작 준비가 끝났습니다.",
+          "계정 연결이 확인되었습니다. 온보딩 체크리스트에서 캐릭터 만들기와 첫 브이로그 생성을 이어가세요.",
+        completedTitle: "FanLetter 계정 연결이 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
-          "이메일로 FanLetter 계정을 연결하면 캐릭터 만들기와 브이로그 생성 단계가 이어집니다.",
+          "이메일로 FanLetter 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
         connecting: "연결 상태 확인 중",
         disconnected: "아직 연결되지 않았습니다.",
         email: "이메일",
         eyebrow: "FanLetter Account",
         helper:
-          "계정 연결과 시작 준비 확인이 끝나면 AI 캐릭터 프로필과 첫 브이로그 생성 단계로 이동할 수 있습니다.",
+          "연결 상태가 확인되면 온보딩 체크리스트에서 다음 단계가 열립니다.",
         loginTitle: "FanLetter 계정 연결",
         member: "시작 상태",
         missingClient:
           "현재 브라우저에서 이메일 계정 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
+        onboardingBody:
+          "이 페이지는 온보딩 1단계입니다. 연결 후에도 같은 체크리스트에서 캐릭터 설정과 첫 브이로그 생성을 이어갑니다.",
+        onboardingCta: "온보딩 체크리스트 보기",
+        onboardingTitle: "온보딩과 연결됨",
         paymentBody:
-          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 온보딩으로 돌아오세요.",
+          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 온보딩 체크리스트로 돌아오세요.",
         paymentCta: "가입 완료 확인하기",
         paymentTitle: "가입 완료 확인이 필요합니다.",
-        primary: "캐릭터 만들기로 이동",
+        primary: "온보딩 계속하기",
+        readinessBody:
+          "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 온보딩 체크리스트로 돌아옵니다.",
         reconnect: "다시 확인",
+        returnBody: (target: string) =>
+          `연결을 취소하거나 확인만 하려면 ${target}으로 돌아갈 수 있습니다.`,
+        returnCta: (target: string) => `${target}으로 돌아가기`,
+        returnTitle: "연결 전 위치",
         restoring: "기존 계정 연결을 복원하고 있습니다.",
         secondary: "첫 브이로그 만들기",
         signOut: "연결 해제",
@@ -102,37 +113,48 @@ function getCopy(locale: Locale) {
         steps: ["이메일 로그인", "계정 연결 확인", "시작 준비 확인"],
         syncErrorTitle: "계정 상태 확인이 필요합니다.",
         syncing: "시작 준비 상태를 확인하고 있습니다.",
-        title: "계정 연결을 FanLetter 흐름 안에서 끝내세요.",
+        title: "계정 연결 후 온보딩을 이어가세요.",
         wallet: "연결 ID",
         walletManagement: "지갑 관리",
       }
     : {
         account: "Account",
         accountBody:
-          "Confirm the email account and readiness state used for FanLetter.",
-        back: "Back to onboarding",
+          "Account connection is the first onboarding step. After connecting, return to the checklist to create a character and first vlog.",
+        backToOnboarding: "Back to onboarding",
+        backToTarget: (target: string) => `Back to ${target}`,
         completedBody:
-          "Your FanLetter setup is ready. Manage character profile, vlogs, and publishing from the vlog studio.",
-        completedTitle: "Your FanLetter account is ready.",
+          "Your account connection is ready. Continue in the onboarding checklist to create a character and first vlog.",
+        completedTitle: "Your FanLetter account is connected.",
         connect: "Connect with email",
         connectBody:
-          "Connect your FanLetter account with email, then continue into character creation and vlog generation.",
+          "Connect with email so characters, fan requests, purchases, and sales stay attached to the same FanLetter account.",
         connecting: "Checking connection",
         disconnected: "Not connected yet.",
         email: "Email",
         eyebrow: "FanLetter Account",
         helper:
-          "After account connection and readiness confirmation, you can continue to character profile and first vlog steps.",
+          "After the connection is confirmed, the next steps open from the onboarding checklist.",
         loginTitle: "Connect FanLetter account",
         member: "Readiness",
         missingClient:
           "Email account connection cannot start in this browser right now. Please try again shortly.",
+        onboardingBody:
+          "This page is onboarding step one. After connection, the same checklist continues into character setup and first vlog creation.",
+        onboardingCta: "View onboarding checklist",
+        onboardingTitle: "Connected to onboarding",
         paymentBody:
-          "The account is connected, but readiness confirmation is still required. Complete it on the verification screen, then return here.",
+          "The account is connected, but readiness confirmation is still required. Complete it on the verification screen, then return to the onboarding checklist.",
         paymentCta: "Verify signup",
         paymentTitle: "Signup verification is required.",
-        primary: "Go create character",
+        primary: "Continue onboarding",
+        readinessBody:
+          "If signup verification is required, complete it on the verification screen and return to the onboarding checklist.",
         reconnect: "Check again",
+        returnBody: (target: string) =>
+          `If you only need to confirm or cancel connection, you can return to ${target}.`,
+        returnCta: (target: string) => `Back to ${target}`,
+        returnTitle: "Where you came from",
         restoring: "Restoring the existing account connection.",
         secondary: "Create first vlog",
         signOut: "Disconnect",
@@ -140,7 +162,7 @@ function getCopy(locale: Locale) {
         steps: ["Email login", "Account check", "Readiness check"],
         syncErrorTitle: "Account status needs attention.",
         syncing: "Checking readiness.",
-        title: "Finish account connection inside FanLetter.",
+        title: "Connect your account, then continue onboarding.",
         wallet: "Connection ID",
         walletManagement: "Wallet",
       };
@@ -192,6 +214,48 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
     : locale === "ko"
       ? "확인 필요"
       : "Needs confirmation";
+}
+
+function getReturnTargetLabel(path: string, locale: Locale) {
+  const pathname = path.split(/[?#]/, 1)[0];
+
+  if (pathname === `/${locale}/fanletter`) {
+    return locale === "ko" ? "FanLetter 홈" : "FanLetter home";
+  }
+
+  if (pathname === `/${locale}/fanletter/onboarding`) {
+    return locale === "ko" ? "온보딩 체크리스트" : "onboarding checklist";
+  }
+
+  if (pathname === `/${locale}/fanletter/studio`) {
+    return locale === "ko" ? "브이로그 스튜디오" : "vlog studio";
+  }
+
+  if (pathname === `/${locale}/fanletter/profile`) {
+    return locale === "ko" ? "캐릭터 설정" : "character setup";
+  }
+
+  if (pathname === `/${locale}/fanletter/create`) {
+    return locale === "ko" ? "브이로그 만들기" : "vlog creation";
+  }
+
+  if (pathname === `/${locale}/fanletter/feed`) {
+    return locale === "ko" ? "브이로그 피드" : "vlog feed";
+  }
+
+  if (pathname.includes("/fanletter/share/")) {
+    return locale === "ko" ? "공유 페이지" : "share page";
+  }
+
+  if (pathname.includes("/fanletter/creator/")) {
+    return locale === "ko" ? "캐릭터 채널" : "character channel";
+  }
+
+  if (pathname.includes("/fanletter/content/")) {
+    return locale === "ko" ? "콘텐츠 상세" : "content detail";
+  }
+
+  return locale === "ko" ? "이전 페이지" : "previous page";
 }
 
 function StepStatus({
@@ -264,17 +328,23 @@ export function FanletterConnectPage({
     status: connectionStatus,
   });
   const accountLabel = formatAddressLabel(accountAddress);
-  const onboardingHref = buildPathWithReferral(
+  const onboardingBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
-  const profileHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
-  );
+  const returnToPathname = returnToHref.split(/[?#]/, 1)[0];
+  const isReturnToOnboarding =
+    returnToPathname === `/${locale}/fanletter/onboarding`;
+  const returnTargetLabel = getReturnTargetLabel(returnToHref, locale);
+  const backLabel = isReturnToOnboarding
+    ? copy.backToOnboarding
+    : copy.backToTarget(returnTargetLabel);
+  const onboardingHref = isReturnToOnboarding
+    ? returnToHref
+    : setPathSearchParams(onboardingBaseHref, { returnTo: returnToHref });
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
+    { returnTo: onboardingHref },
   );
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
@@ -286,7 +356,7 @@ export function FanletterConnectPage({
   );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
+    { returnTo: onboardingHref },
   );
   const cachedSessionMember = useMemo(() => {
     if (!accountAddress || !memberSession.member) {
@@ -468,7 +538,7 @@ export function FanletterConnectPage({
           <header className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/14 bg-white/[0.06] text-white transition hover:bg-white/10"
-              href={returnToHref || onboardingHref}
+              href={returnToHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -490,9 +560,9 @@ export function FanletterConnectPage({
               />
               <Link
                 className="h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 sm:inline-flex"
-                href={returnToHref || onboardingHref}
+                href={returnToHref}
               >
-                {copy.back}
+                {backLabel}
               </Link>
             </div>
             <span className="size-11 sm:hidden" />
@@ -520,8 +590,8 @@ export function FanletterConnectPage({
                       index === 0
                         ? connection.isConnected
                         : index === 1
-                          ? Boolean(accountAddress)
-                          : memberIsCompleted || memberNeedsPayment
+                          ? Boolean(connectedMember || syncState.email)
+                          : memberIsCompleted
                     }
                     key={step}
                     label={step}
@@ -531,6 +601,44 @@ export function FanletterConnectPage({
                     }
                   />
                 ))}
+              </div>
+              <div
+                className={`mt-5 grid gap-3 ${
+                  isReturnToOnboarding ? "" : "sm:grid-cols-2"
+                }`}
+              >
+                <Link
+                  className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 transition hover:bg-[#44f26e]/14"
+                  href={onboardingHref}
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold text-[#9bffad]">
+                    <Sparkles className="size-4" />
+                    {copy.onboardingTitle}
+                  </span>
+                  <span className="mt-2 block text-sm font-medium leading-6 text-white/62">
+                    {copy.onboardingBody}
+                  </span>
+                  <span className="mt-3 inline-flex text-xs font-semibold text-[#b9ffc8]">
+                    {copy.onboardingCta}
+                  </span>
+                </Link>
+                {!isReturnToOnboarding ? (
+                  <Link
+                    className="rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:bg-white/[0.07]"
+                    href={returnToHref}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <ArrowLeft className="size-4 text-[#44f26e]" />
+                      {copy.returnTitle}
+                    </span>
+                    <span className="mt-2 block text-sm font-medium leading-6 text-white/58">
+                      {copy.returnBody(returnTargetLabel)}
+                    </span>
+                    <span className="mt-3 inline-flex text-xs font-semibold text-white/76">
+                      {copy.returnCta(returnTargetLabel)}
+                    </span>
+                  </Link>
+                ) : null}
               </div>
             </div>
 
@@ -637,17 +745,17 @@ export function FanletterConnectPage({
                   <>
                     <Link
                       className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
-                      href={studioHref}
+                      href={onboardingHref}
                     >
-                      {copy.studio}
+                      {copy.primary}
                       <ArrowRight className="size-4" />
                     </Link>
                     <div className="grid gap-2 sm:grid-cols-3">
                       <Link
                         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
-                        href={profileHref}
+                        href={studioHref}
                       >
-                        {copy.primary}
+                        {copy.studio}
                       </Link>
                       <Link
                         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
@@ -721,7 +829,7 @@ export function FanletterConnectPage({
                   ? copy.completedBody
                   : memberNeedsPayment
                     ? copy.paymentBody
-                    : copy.helper,
+                    : copy.readinessBody,
                 title: copy.steps[2],
               },
             ].map((item) => {
