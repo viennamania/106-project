@@ -934,6 +934,8 @@ export type CreatorStudioPostsResponse = {
     all: number;
     archived: number;
     draft: number;
+    free: number;
+    paid: number;
     published: number;
   };
 };

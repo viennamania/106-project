@@ -252,6 +252,7 @@ type CreatorStudioPostsQueryOptions = {
   media?: "all" | "video" | null;
   page?: number;
   pageSize?: number;
+  priceType?: "all" | "free" | "paid" | null;
   query?: string | null;
   status?: "all" | "archived" | "draft" | "published" | null;
 };
@@ -735,6 +736,10 @@ function buildCreatorStudioPostsFilter(
 
   if (options?.media === "video") {
     filter["contentVideoUrls.0"] = { $exists: true };
+  }
+
+  if (options?.priceType === "free" || options?.priceType === "paid") {
+    filter.priceType = options.priceType;
   }
 
   if (query) {
@@ -2255,8 +2260,23 @@ export async function getCreatorStudioPostsForMember(
     all: 0,
     archived: 0,
     draft: 0,
+    free: 0,
+    paid: 0,
     published: 0,
   };
+  const priceSummaryCounts = await postsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: summaryMatch,
+      },
+      {
+        $group: {
+          _id: "$priceType",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
 
   for (const item of summaryCounts) {
     if (item._id === "archived") {
@@ -2270,11 +2290,20 @@ export async function getCreatorStudioPostsForMember(
     summary.all += item.count;
   }
 
+  for (const item of priceSummaryCounts) {
+    if (item._id === "paid") {
+      summary.paid = item.count;
+    } else {
+      summary.free += item.count;
+    }
+  }
+
   const usingPagination = Boolean(
     options &&
       (options.page !== undefined ||
         options.pageSize !== undefined ||
         options.media === "video" ||
+        (options.priceType && options.priceType !== "all") ||
         options.query?.trim() ||
         (options.status && options.status !== "all")),
   );

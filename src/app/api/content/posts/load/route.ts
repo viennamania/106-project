@@ -16,12 +16,15 @@ const EMPTY_SUMMARY: CreatorStudioPostsLoadResponse["summary"] = {
   all: 0,
   archived: 0,
   draft: 0,
+  free: 0,
+  paid: 0,
   published: 0,
 };
 
 type CreatorStudioPostsLoadRequest = SyncMemberRequest & {
   page?: number;
   pageSize?: number;
+  price?: "all" | "free" | "paid" | null;
   q?: string | null;
   status?: "all" | "archived" | "draft" | "published" | null;
 };
@@ -35,6 +38,12 @@ function normalizeStatus(status: string | null | undefined) {
     : null;
 }
 
+function normalizePrice(price: string | null | undefined) {
+  return price === "all" || price === "free" || price === "paid"
+    ? price
+    : null;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const email = url.searchParams.get("email");
@@ -43,6 +52,7 @@ export async function GET(request: Request) {
   const pageSize = url.searchParams.get("pageSize");
   const query = url.searchParams.get("q");
   const status = url.searchParams.get("status");
+  const price = url.searchParams.get("price");
 
   try {
     const authorization = await validateMemberWalletOwner({
@@ -78,6 +88,7 @@ export async function GET(request: Request) {
     const posts = await getCreatorStudioPostsForMember(member.email, {
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
+      priceType: normalizePrice(price),
       query,
       status: normalizeStatus(status),
     });
@@ -197,6 +208,7 @@ export async function POST(request: Request) {
     const posts = await getCreatorStudioPostsForMember(sync.member.email, {
       page: body.page,
       pageSize: body.pageSize,
+      priceType: normalizePrice(body.price),
       query: body.q,
       status: normalizeStatus(body.status),
     });

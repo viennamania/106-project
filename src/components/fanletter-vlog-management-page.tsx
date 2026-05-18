@@ -8,7 +8,9 @@ import {
   ArrowRight,
   Check,
   Clapperboard,
+  Coins,
   Eye,
+  LockKeyhole,
   Loader2,
   MessageCircleHeart,
   Plus,
@@ -51,6 +53,7 @@ import {
 } from "@/lib/thirdweb-client";
 
 type VlogStatusFilter = "all" | "archived" | "draft" | "published";
+type VlogPriceFilter = "all" | "free" | "paid";
 
 type VlogManagementState = {
   error: string | null;
@@ -69,6 +72,8 @@ const EMPTY_SUMMARY: CreatorStudioPostsResponse["summary"] = {
   all: 0,
   archived: 0,
   draft: 0,
+  free: 0,
+  paid: 0,
   published: 0,
 };
 
@@ -84,10 +89,12 @@ function getCopy(locale: Locale) {
           detail: "상세 보기",
           feed: "피드 보기",
           next: "다음",
+          paidUpload: "유료 업로드",
           previous: "이전",
           publish: "공개",
           refresh: "새로고침",
           search: "검색",
+          sales: "판매 내역",
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
@@ -101,8 +108,10 @@ function getCopy(locale: Locale) {
           author: "크리에이터",
           draft: "임시저장",
           free: "무료",
+          freePublic: "무료 공개",
           page: "페이지",
           paid: "유료",
+          paidFanOnly: "유료 팬 전용",
           published: "공개",
           results: "브이로그",
           status: "상태",
@@ -114,7 +123,7 @@ function getCopy(locale: Locale) {
           "FanLetter 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
         searchPlaceholder: "제목, 요약, 본문으로 검색",
         subtitle:
-          "FanLetter에 올릴 AI 캐릭터 브이로그를 검색하고 공개, 임시저장, 보관 상태를 한 화면에서 정리합니다.",
+          "무료 공개 브이로그와 유료 팬 전용 콘텐츠를 분리해 검색하고 공개, 임시저장, 보관 상태를 정리합니다.",
         title: "브이로그 전체 관리",
       }
     : {
@@ -127,10 +136,12 @@ function getCopy(locale: Locale) {
           detail: "View detail",
           feed: "View feed",
           next: "Next",
+          paidUpload: "Paid upload",
           previous: "Previous",
           publish: "Publish",
           refresh: "Refresh",
           search: "Search",
+          sales: "Sales",
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
@@ -144,8 +155,10 @@ function getCopy(locale: Locale) {
           author: "Creator",
           draft: "Drafts",
           free: "Free",
+          freePublic: "Free public",
           page: "Page",
           paid: "Paid",
+          paidFanOnly: "Paid fan-only",
           published: "Published",
           results: "Vlogs",
           status: "Status",
@@ -157,7 +170,7 @@ function getCopy(locale: Locale) {
           "Confirm FanLetter readiness to manage all vlogs.",
         searchPlaceholder: "Search by title, summary, or body",
         subtitle:
-          "Search AI character vlogs for FanLetter and manage published, draft, and archived states from one focused page.",
+          "Separate free public vlogs and paid fan-only content, then manage published, draft, and archived states from one focused page.",
         title: "Manage all vlogs",
       };
 }
@@ -169,6 +182,10 @@ function isVlogStatusFilter(value: string | null): value is VlogStatusFilter {
     value === "draft" ||
     value === "published"
   );
+}
+
+function isVlogPriceFilter(value: string | null): value is VlogPriceFilter {
+  return value === "all" || value === "free" || value === "paid";
 }
 
 function normalizePageValue(value: string | null) {
@@ -240,12 +257,41 @@ function getStatusLabel(
   return copy.labels.all;
 }
 
-function getPriceLabel(copy: ReturnType<typeof getCopy>, post: ContentPostRecord) {
+function getPostPriceLabel(copy: ReturnType<typeof getCopy>, post: ContentPostRecord) {
   if (post.priceType === "paid") {
     return `${copy.labels.paid} · ${post.priceUsdt ?? "1"} USDT`;
   }
 
   return copy.labels.free;
+}
+
+function getPriceFilterLabel(
+  copy: ReturnType<typeof getCopy>,
+  price: VlogPriceFilter,
+) {
+  if (price === "paid") {
+    return copy.labels.paidFanOnly;
+  }
+
+  if (price === "free") {
+    return copy.labels.freePublic;
+  }
+
+  return copy.labels.all;
+}
+
+function getResultsHeading(
+  copy: ReturnType<typeof getCopy>,
+  price: VlogPriceFilter,
+  status: VlogStatusFilter,
+) {
+  const statusLabel = getStatusLabel(copy, status);
+
+  if (price === "all") {
+    return statusLabel;
+  }
+
+  return `${getPriceFilterLabel(copy, price)} · ${statusLabel}`;
 }
 
 export function FanletterVlogManagementPage({
@@ -295,6 +341,9 @@ export function FanletterVlogManagementPage({
   const appliedStatus = isVlogStatusFilter(searchParams.get("status"))
     ? (searchParams.get("status") as VlogStatusFilter)
     : "all";
+  const appliedPrice = isVlogPriceFilter(searchParams.get("price"))
+    ? (searchParams.get("price") as VlogPriceFilter)
+    : "all";
   const appliedPage = normalizePageValue(searchParams.get("page"));
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [searchInput, setSearchInput] = useState(appliedQuery);
@@ -321,24 +370,35 @@ export function FanletterVlogManagementPage({
   const buildManagerHref = useCallback(
     (options?: {
       page?: number;
+      price?: VlogPriceFilter;
       query?: string;
       status?: VlogStatusFilter;
     }) => {
       const page = options?.page ?? appliedPage;
+      const price = options?.price ?? appliedPrice;
       const query = options?.query ?? appliedQuery;
       const status = options?.status ?? appliedStatus;
 
       return setPathSearchParams(managerBaseHref, {
         page: page > 1 ? String(page) : null,
+        price: price !== "all" ? price : null,
         q: query || null,
         status: status !== "all" ? status : null,
       });
     },
-    [appliedPage, appliedQuery, appliedStatus, managerBaseHref],
+    [appliedPage, appliedPrice, appliedQuery, appliedStatus, managerBaseHref],
   );
   const currentManagerHref = useMemo(() => buildManagerHref(), [buildManagerHref]);
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
+    { returnTo: currentManagerHref },
+  );
+  const paidUploadHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
+    { returnTo: currentManagerHref },
+  );
+  const salesHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/studio/sales`, referralCode),
     { returnTo: currentManagerHref },
   );
 
@@ -372,13 +432,12 @@ export function FanletterVlogManagementPage({
 
     try {
       const resolvedEmail = await resolveEmail();
-      const encodedEmail = encodeURIComponent(resolvedEmail);
-      const encodedWallet = encodeURIComponent(accountAddress);
       const params = new URLSearchParams({
         email: resolvedEmail,
         media: "video",
         page: String(appliedPage),
         pageSize: String(VLOGS_PAGE_SIZE),
+        price: appliedPrice,
         status: appliedStatus,
         walletAddress: accountAddress,
       });
@@ -418,10 +477,7 @@ export function FanletterVlogManagementPage({
           throw new Error(syncData.validationError);
         }
 
-        response = await fetch(
-          `/api/content/posts?email=${encodedEmail}&walletAddress=${encodedWallet}&media=video&page=${appliedPage}&pageSize=${VLOGS_PAGE_SIZE}&status=${appliedStatus}${appliedQuery ? `&q=${encodeURIComponent(appliedQuery)}` : ""}`,
-          { cache: "no-store" },
-        );
+        response = await fetch(postsUrl, { cache: "no-store" });
       }
 
       const data = await readApiJson<CreatorStudioPostsResponse>(
@@ -471,6 +527,7 @@ export function FanletterVlogManagementPage({
   }, [
     accountAddress,
     appliedPage,
+    appliedPrice,
     appliedQuery,
     appliedStatus,
     buildManagerHref,
@@ -595,6 +652,47 @@ export function FanletterVlogManagementPage({
       label: copy.labels.archived,
     },
   ];
+  const priceFilterItems = [
+    {
+      count: state.summary.all,
+      key: "all" as const,
+      label: copy.labels.all,
+    },
+    {
+      count: state.summary.free,
+      key: "free" as const,
+      label: copy.labels.freePublic,
+    },
+    {
+      count: state.summary.paid,
+      key: "paid" as const,
+      label: copy.labels.paidFanOnly,
+    },
+  ];
+  const heroPrimaryHref =
+    appliedPrice === "paid" ? paidUploadHref : createHref;
+  const heroPrimaryIcon = appliedPrice === "paid" ? LockKeyhole : Plus;
+  const heroPrimaryLabel =
+    appliedPrice === "paid" ? copy.actions.paidUpload : copy.actions.create;
+  const heroSecondaryHref =
+    appliedPrice === "paid" ? salesHref : feedHref;
+  const heroSecondaryIcon = appliedPrice === "paid" ? Coins : Eye;
+  const heroSecondaryLabel =
+    appliedPrice === "paid" ? copy.actions.sales : copy.actions.feed;
+  const HeroPrimaryIcon = heroPrimaryIcon;
+  const HeroSecondaryIcon = heroSecondaryIcon;
+  const priceModeBody =
+    appliedPrice === "paid"
+      ? locale === "ko"
+        ? "유료 팬 전용 콘텐츠는 팬 요청 답장, 결제 열람, 판매 내역을 함께 관리합니다."
+        : "Paid fan-only content is managed around fan-request replies, unlocks, and sales."
+      : appliedPrice === "free"
+        ? locale === "ko"
+          ? "무료 공개 브이로그는 피드 유입과 팬 요청을 만드는 콘텐츠로 관리합니다."
+          : "Free public vlogs are managed for feed discovery and fan-request growth."
+        : locale === "ko"
+          ? "무료 공개와 유료 팬 전용을 분리해서 운영 상태를 빠르게 전환합니다."
+          : "Switch between free public and paid fan-only operations without mixing the workflows.";
 
   function renderBlockedState() {
     if (connection.isResolving) {
@@ -707,17 +805,17 @@ export function FanletterVlogManagementPage({
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#6cff89]"
-                  href={createHref}
+                  href={heroPrimaryHref}
                 >
-                  <Plus className="size-4" />
-                  {copy.actions.create}
+                  <HeroPrimaryIcon className="size-4" />
+                  {heroPrimaryLabel}
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
-                  href={feedHref}
+                  href={heroSecondaryHref}
                 >
-                  <Eye className="size-4" />
-                  {copy.actions.feed}
+                  <HeroSecondaryIcon className="size-4" />
+                  {heroSecondaryLabel}
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
@@ -736,19 +834,19 @@ export function FanletterVlogManagementPage({
                 value={formatNumber(state.summary.all, locale)}
               />
               <HeroMetric
+                label={copy.labels.freePublic}
+                loading={isInitialLoading}
+                value={formatNumber(state.summary.free, locale)}
+              />
+              <HeroMetric
+                label={copy.labels.paidFanOnly}
+                loading={isInitialLoading}
+                value={formatNumber(state.summary.paid, locale)}
+              />
+              <HeroMetric
                 label={copy.labels.published}
                 loading={isInitialLoading}
                 value={formatNumber(state.summary.published, locale)}
-              />
-              <HeroMetric
-                label={copy.labels.draft}
-                loading={isInitialLoading}
-                value={formatNumber(state.summary.draft, locale)}
-              />
-              <HeroMetric
-                label={copy.labels.archived}
-                loading={isInitialLoading}
-                value={formatNumber(state.summary.archived, locale)}
               />
             </div>
           </div>
@@ -780,15 +878,15 @@ export function FanletterVlogManagementPage({
               />
               <SideMetric
                 Icon={ShieldCheck}
-                label={copy.labels.published}
+                label={copy.labels.freePublic}
                 loading={isInitialLoading}
-                value={formatNumber(state.summary.published, locale)}
+                value={formatNumber(state.summary.free, locale)}
               />
               <SideMetric
-                Icon={Archive}
-                label={copy.labels.archived}
+                Icon={LockKeyhole}
+                label={copy.labels.paidFanOnly}
                 loading={isInitialLoading}
-                value={formatNumber(state.summary.archived, locale)}
+                value={formatNumber(state.summary.paid, locale)}
               />
             </div>
           </aside>
@@ -801,7 +899,7 @@ export function FanletterVlogManagementPage({
                     {copy.labels.results}
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-                    {getStatusLabel(copy, appliedStatus)}
+                    {getResultsHeading(copy, appliedPrice, appliedStatus)}
                   </h2>
                 </div>
                 {state.notice ? (
@@ -810,6 +908,75 @@ export function FanletterVlogManagementPage({
                     <span>{state.notice}</span>
                   </div>
                 ) : null}
+              </div>
+
+              <div className="mt-5 grid gap-2 md:grid-cols-3">
+                {priceFilterItems.map((item) => (
+                  <Link
+                    className={`group min-h-20 rounded-lg border p-4 text-left transition ${
+                      appliedPrice === item.key
+                        ? "border-black bg-black text-white"
+                        : "border-black/10 bg-[#f6f8f4] text-black hover:border-black/20 hover:bg-white"
+                    }`}
+                    href={buildManagerHref({
+                      page: 1,
+                      price: item.key,
+                    })}
+                    key={item.key}
+                  >
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold">{item.label}</span>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          appliedPrice === item.key
+                            ? "bg-white text-black"
+                            : "bg-black/[0.06] text-black/62"
+                        }`}
+                      >
+                        {formatNumber(item.count, locale)}
+                      </span>
+                    </span>
+                    <span
+                      className={`mt-2 block text-xs font-medium leading-5 ${
+                        appliedPrice === item.key ? "text-white/62" : "text-black/52"
+                      }`}
+                    >
+                      {item.key === "paid"
+                        ? locale === "ko"
+                          ? "결제와 판매 흐름 관리"
+                          : "Payment and sales workflow"
+                        : item.key === "free"
+                          ? locale === "ko"
+                            ? "피드 공개와 유입 관리"
+                            : "Feed publishing workflow"
+                          : locale === "ko"
+                            ? "전체 브이로그 보기"
+                            : "View every vlog"}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-4 md:flex-row md:items-center md:justify-between">
+                <p className="text-sm font-medium leading-6 text-black/62">
+                  {priceModeBody}
+                </p>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                    href={heroPrimaryHref}
+                  >
+                    <HeroPrimaryIcon className="size-4" />
+                    {heroPrimaryLabel}
+                  </Link>
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold !text-black transition hover:bg-black/[0.04]"
+                    href={heroSecondaryHref}
+                  >
+                    <HeroSecondaryIcon className="size-4" />
+                    {heroSecondaryLabel}
+                  </Link>
+                </div>
               </div>
 
               <form
@@ -1073,7 +1240,7 @@ function VlogManagerCard({
           <StatusPill status={post.status}>
             {getStatusLabel(copy, post.status)}
           </StatusPill>
-          <StatusPill status={post.priceType}>{getPriceLabel(copy, post)}</StatusPill>
+          <StatusPill status={post.priceType}>{getPostPriceLabel(copy, post)}</StatusPill>
         </div>
         <h3 className="mt-3 text-xl font-semibold tracking-normal text-black">
           {post.title}
@@ -1150,7 +1317,11 @@ function StatusPill({
         ? "border-amber-200 bg-amber-50 text-amber-800"
         : status === "archived"
           ? "border-black/10 bg-black/[0.06] text-black/54"
-          : "border-black/10 bg-white text-black/58";
+          : status === "paid"
+            ? "border-[#44f26e]/36 bg-black text-white"
+            : status === "free"
+              ? "border-[#16702e]/18 bg-[#e9f8ec] text-[#0c5f24]"
+              : "border-black/10 bg-white text-black/58";
 
   return (
     <span

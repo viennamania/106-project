@@ -61,6 +61,8 @@ const EMPTY_SUMMARY = {
   all: 0,
   archived: 0,
   draft: 0,
+  free: 0,
+  paid: 0,
   published: 0,
 };
 

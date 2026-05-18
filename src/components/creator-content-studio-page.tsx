@@ -135,6 +135,8 @@ type StudioState = {
     all: number;
     archived: number;
     draft: number;
+    free: number;
+    paid: number;
     published: number;
   };
   status: "idle" | "loading" | "ready" | "error";
@@ -322,6 +324,8 @@ const EMPTY_STUDIO_SUMMARY = {
   all: 0,
   archived: 0,
   draft: 0,
+  free: 0,
+  paid: 0,
   published: 0,
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;

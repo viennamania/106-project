@@ -13,12 +13,12 @@ function getMetaCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter AI 캐릭터 브이로그를 검색하고 공개, 임시저장, 보관 상태를 관리합니다.",
+          "FanLetter AI 캐릭터 브이로그를 무료 공개와 유료 팬 전용으로 분리해 관리합니다.",
         title: "브이로그 전체 관리 | FanLetter",
       }
     : {
         description:
-          "Search FanLetter AI character vlogs and manage published, draft, and archived states.",
+          "Separate FanLetter AI character vlogs into free public and paid fan-only management.",
         title: "Manage all vlogs | FanLetter",
       };
 }
