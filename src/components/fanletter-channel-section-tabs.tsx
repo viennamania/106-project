@@ -315,7 +315,7 @@ export function FanletterChannelSectionTabs({
               <a
                 aria-current={active ? "location" : undefined}
                 className={cn(
-                  "inline-flex h-9 shrink-0 items-center justify-center rounded-full px-3 text-center text-[0.78rem] font-semibold leading-none transition sm:h-10 sm:px-4 sm:text-sm",
+                  "inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-3 text-center text-[0.78rem] font-semibold leading-none transition sm:h-10 sm:min-w-0 sm:px-4 sm:text-sm",
                   active
                     ? "bg-[#44f26e] !text-black shadow-[0_8px_18px_rgba(68,242,110,0.2)] sm:bg-black sm:!text-white sm:shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
                     : "bg-transparent !text-white/68 hover:bg-white/8 hover:!text-white sm:border sm:border-black/10 sm:bg-white sm:!text-black/58 sm:hover:border-[#29d85f]/60 sm:hover:!text-black",

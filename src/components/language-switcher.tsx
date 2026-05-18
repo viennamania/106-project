@@ -60,7 +60,7 @@ export function LanguageSwitcher({
       <select
         aria-label={label}
         className={cn(
-          "w-full appearance-none bg-transparent pr-3 outline-none disabled:cursor-wait disabled:opacity-70",
+          "h-full min-h-11 w-full appearance-none bg-transparent pr-3 outline-none disabled:cursor-wait disabled:opacity-70",
           styles.select,
         )}
         disabled={isPending}

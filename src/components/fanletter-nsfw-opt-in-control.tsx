@@ -55,6 +55,7 @@ export function FanletterNsfwOptInControl({
   const displayCta = enabled
     ? enabledCta ?? copy.enabledCta
     : disabledCta ?? copy.disabledCta;
+  const hiddenCountDisplay = hiddenCountText ?? copy.hiddenCount(hiddenCountLabel);
 
   function setOptIn(nextEnabled: boolean) {
     setIsPending(true);
@@ -81,12 +82,23 @@ export function FanletterNsfwOptInControl({
         className,
       )}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
+      <div
+        className={cn(
+          compact
+            ? "flex items-center justify-between gap-2"
+            : "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        )}
+      >
+        <div
+          className={cn(
+            "flex min-w-0",
+            compact ? "items-center gap-2" : "items-start gap-3",
+          )}
+        >
           <span
             className={cn(
               "flex shrink-0 items-center justify-center rounded-lg",
-              compact ? "size-9" : "size-10",
+              compact ? "size-8 sm:size-9" : "size-10",
               enabled
                 ? "bg-rose-400 text-black"
                 : isDarkTone
@@ -97,13 +109,13 @@ export function FanletterNsfwOptInControl({
             <AlertTriangle className="size-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold">
+            <p className="truncate text-sm font-semibold">
               {displayTitle}
             </p>
             <p
               className={cn(
                 "mt-1 text-xs font-medium leading-5",
-                compact && "line-clamp-2",
+                compact && "hidden sm:line-clamp-1 sm:block",
                 isDarkTone ? "text-white/66" : "text-black/54",
               )}
             >
@@ -112,19 +124,21 @@ export function FanletterNsfwOptInControl({
             {!enabled && hiddenCount > 0 ? (
               <p
                 className={cn(
-                  "mt-2 text-xs font-semibold",
+                  compact
+                    ? "mt-0.5 truncate text-[0.68rem] font-semibold"
+                    : "mt-2 text-xs font-semibold",
                   isDarkTone ? "text-rose-100" : "text-rose-700",
                 )}
               >
-                {hiddenCountText ?? copy.hiddenCount(hiddenCountLabel)}
+                {hiddenCountDisplay}
               </p>
             ) : null}
           </div>
         </div>
         <button
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-wait disabled:opacity-70",
-            compact ? "h-10" : "h-11",
+            "inline-flex h-11 shrink-0 items-center justify-center rounded-full font-semibold transition disabled:cursor-wait disabled:opacity-70",
+            compact ? "px-3 text-xs" : "px-4 text-sm",
             enabled
               ? "bg-white text-rose-950 hover:bg-rose-50"
               : isDarkTone

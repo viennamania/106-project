@@ -91,7 +91,7 @@ export function FanletterGlobalLanguageSwitcher({
             "h-10 min-w-[7rem] border-[#44f26e]/26 bg-black/35 text-xs shadow-none sm:min-w-[8.5rem]",
             compact && "min-w-[6.85rem] sm:min-w-[8rem]",
             tight &&
-              "h-9 w-[5.85rem] min-w-[5.85rem] max-w-[5.85rem] pl-3 pr-7 text-[0.72rem] sm:h-10 sm:w-auto sm:max-w-none",
+              "h-12 w-[5.85rem] min-w-[5.85rem] max-w-[5.85rem] pl-3 pr-7 text-[0.72rem] sm:h-10 sm:w-auto sm:max-w-none",
           )}
           hideIcon={tight}
           label={copy.label}

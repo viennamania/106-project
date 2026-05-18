@@ -118,7 +118,7 @@ function FanletterAccountStatusLinkFallback({
   return (
     <Link
       className={joinClasses(
-        "inline-flex h-10 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:px-4",
+        "inline-flex h-11 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:h-10 sm:px-4",
         getToneClassName("muted"),
         className,
       )}
@@ -253,7 +253,7 @@ function FanletterAccountStatusLinkInner({
   return (
     <Link
       className={joinClasses(
-        "inline-flex h-10 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:px-4",
+        "inline-flex h-11 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:h-10 sm:px-4",
         getToneClassName(view.tone),
         className,
       )}

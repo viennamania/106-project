@@ -1021,8 +1021,8 @@ function FanletterShell({
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
-            <Link className="flex min-w-0 items-center gap-2" href={homeHref}>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            <Link className="flex min-h-11 min-w-0 items-center gap-2" href={homeHref}>
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-9">
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
@@ -5181,7 +5181,7 @@ function FanletterFeedDiscoveryControls({
         return (
           <Link
             aria-current={isActive ? "page" : undefined}
-            className={`inline-flex h-9 shrink-0 snap-start items-center rounded-full px-4 text-sm font-semibold transition ${
+            className={`inline-flex h-11 shrink-0 snap-start items-center rounded-full px-4 text-sm font-semibold transition sm:h-9 ${
               isActive
                 ? "bg-[#44f26e] text-black"
                 : "border border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black"
@@ -5205,13 +5205,13 @@ function FanletterFeedDiscoveryControls({
   return (
     <>
       <details
-        className="mb-8 rounded-lg border border-black/10 bg-white shadow-[0_16px_38px_rgba(8,18,12,0.08)] lg:hidden"
+        className="mb-4 rounded-lg border border-black/10 bg-white shadow-[0_16px_38px_rgba(8,18,12,0.08)] lg:hidden"
         open={hasActiveFilters}
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 p-3 [&::-webkit-details-marker]:hidden">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-              <Search className="size-5" />
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <Search className="size-4" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-black">
@@ -5270,119 +5270,30 @@ function FanletterFeedDiscoveryControls({
 }
 
 function FanletterFeedMobileGuide({
-  allContentSectionLabel,
-  feedHref,
-  featuredItem,
   filters,
-  latestCount,
   locale,
-  rankedCreatorCount,
   referralCode,
-  remainingCount,
-  videoCount,
 }: {
-  allContentSectionLabel: string;
-  feedHref: string;
-  featuredItem: FanletterPublicContentItem | null;
   filters: FanletterFeedFilters;
-  latestCount: number;
   locale: Locale;
-  rankedCreatorCount: number;
   referralCode: string | null;
-  remainingCount: number;
-  videoCount: number;
 }) {
   const labels =
     locale === "ko"
       ? {
-          all: "더 보기",
-          allBody: `${formatNumber(remainingCount, locale)}개 공개 브이로그`,
-          body:
-            "모바일에서는 먼저 보고 싶은 흐름을 고른 뒤 필요한 섹션으로 바로 이동하세요.",
-          characters: "캐릭터 랭킹",
-          charactersBody: `${formatNumber(rankedCreatorCount, locale)}개 캐릭터`,
-          eyebrow: "모바일 탐색",
-          latest: "최신 브이로그",
-          latestBody: `${formatNumber(latestCount, locale)}개 새 장면`,
           next: "다음 페이지",
-          open: "이동",
           page: "페이지",
-          popular: "인기 브이로그",
+          pageMove: "페이지 이동",
           previous: "이전",
-          title: "빠르게 둘러보기",
-          videos: "영상만 보기",
-          videosBody: `${formatNumber(videoCount, locale)}개 영상`,
+          title: "다음 피드로 계속 보기",
         }
       : {
-          all: "More",
-          allBody: `${formatNumber(remainingCount, locale)} public vlogs`,
-          body:
-            "On mobile, choose the flow you want first and jump straight to that section.",
-          characters: "Character ranking",
-          charactersBody: `${formatNumber(rankedCreatorCount, locale)} characters`,
-          eyebrow: "Mobile Guide",
-          latest: "Latest vlogs",
-          latestBody: `${formatNumber(latestCount, locale)} new scenes`,
           next: "Next page",
-          open: "Open",
           page: "Page",
-          popular: "Popular vlog",
+          pageMove: "Page navigation",
           previous: "Previous",
-          title: "Quick browse",
-          videos: "Videos only",
-          videosBody: `${formatNumber(videoCount, locale)} videos`,
+          title: "Continue to more feed items",
         };
-  const guideItems = [
-    featuredItem
-      ? {
-          body: featuredItem.title,
-          href: `${feedHref}#popular-vlog`,
-          Icon: Trophy,
-          title: labels.popular,
-        }
-      : null,
-    rankedCreatorCount > 0
-      ? {
-          body: labels.charactersBody,
-          href: `${feedHref}#popular-characters`,
-          Icon: Crown,
-          title: labels.characters,
-        }
-      : null,
-    videoCount > 0
-      ? {
-          body: labels.videosBody,
-          href: `${feedHref}#video-vlogs`,
-          Icon: Video,
-          title: labels.videos,
-        }
-      : null,
-    latestCount > 0
-      ? {
-          body: labels.latestBody,
-          href: `${feedHref}#latest-vlogs`,
-          Icon: Sparkles,
-          title: labels.latest,
-        }
-      : null,
-    remainingCount > 0
-      ? {
-          body: labels.allBody,
-          href: `${feedHref}#all-vlogs`,
-          Icon: Grid2X2,
-          title: allContentSectionLabel || labels.all,
-        }
-      : null,
-  ].filter(
-    (
-      item,
-    ): item is {
-      body: string;
-      href: string;
-      Icon: LucideIcon;
-      title: string;
-    } => Boolean(item),
-  );
   const previousHref = getFeedHref({
     filters,
     locale,
@@ -5398,7 +5309,7 @@ function FanletterFeedMobileGuide({
   const canGoPrevious = filters.page > 1;
   const canGoNext = filters.page < filters.pageCount;
 
-  if (guideItems.length === 0 && filters.pageCount <= 1) {
+  if (filters.pageCount <= 1) {
     return null;
   }
 
@@ -5407,7 +5318,7 @@ function FanletterFeedMobileGuide({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-            {labels.eyebrow}
+            {labels.pageMove}
           </p>
           <h2 className="mt-1 truncate text-base font-semibold tracking-normal">
             {labels.title}
@@ -5419,55 +5330,32 @@ function FanletterFeedMobileGuide({
         </span>
       </div>
 
-      {guideItems.length > 0 ? (
-        <div className="mt-3 grid grid-cols-2 gap-2 min-[430px]:grid-cols-3">
-          {guideItems.map(({ Icon, body, href, title }) => (
-            <Link
-              className="group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-2.5 text-sm font-semibold transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
-              href={href}
-              key={`${href}-${title}`}
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
-                <Icon className="size-3.5" />
-              </span>
-              <span className="min-w-0 truncate">{title}</span>
-              <span className="sr-only">
-                {body}
-              </span>
-              <ArrowRight className="ml-auto size-3.5 shrink-0 text-[#b9ffc8] transition group-hover:translate-x-0.5" />
-            </Link>
-          ))}
-        </div>
-      ) : null}
-
-      {filters.pageCount > 1 ? (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {canGoPrevious ? (
-            <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-              href={previousHref}
-            >
-              {labels.previous}
-            </Link>
-          ) : (
-            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
-              {labels.previous}
-            </span>
-          )}
-          {canGoNext ? (
-            <Link
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-              href={nextHref}
-            >
-              {labels.next}
-            </Link>
-          ) : (
-            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
-              {labels.next}
-            </span>
-          )}
-        </div>
-      ) : null}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {canGoPrevious ? (
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+            href={previousHref}
+          >
+            {labels.previous}
+          </Link>
+        ) : (
+          <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            {labels.previous}
+          </span>
+        )}
+        {canGoNext ? (
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={nextHref}
+          >
+            {labels.next}
+          </Link>
+        ) : (
+          <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            {labels.next}
+          </span>
+        )}
+      </div>
     </section>
   );
 }
@@ -5803,14 +5691,6 @@ export function FanletterFeedPage({
           mobileLabel: locale === "ko" ? "인기" : "Popular",
         }
       : null,
-    rankedCreatorCount > 0
-      ? {
-          href: `${feedHref}#popular-characters`,
-          id: "popular-characters",
-          label: locale === "ko" ? "캐릭터 랭킹" : "Character ranking",
-          mobileLabel: locale === "ko" ? "랭킹" : "Ranking",
-        }
-      : null,
     videoItems.length > 0
       ? {
           href: `${feedHref}#video-vlogs`,
@@ -5835,6 +5715,14 @@ export function FanletterFeedPage({
           mobileLabel: locale === "ko" ? "더" : "More",
         }
       : null,
+    rankedCreatorCount > 0
+      ? {
+          href: `${feedHref}#popular-characters`,
+          id: "popular-characters",
+          label: locale === "ko" ? "캐릭터 랭킹" : "Character ranking",
+          mobileLabel: locale === "ko" ? "랭킹" : "Ranking",
+        }
+      : null,
   ];
   const sectionTabs = sectionTabCandidates.filter(
     (tab): tab is FanletterChannelSectionTabItem => tab !== null,
@@ -5857,6 +5745,12 @@ export function FanletterFeedPage({
           <FanletterChannelSectionTabs
             ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
             items={sectionTabs}
+          />
+
+          <FanletterFeedDiscoveryControls
+            filters={filters}
+            locale={locale}
+            referralCode={referralCode}
           />
 
           <FanletterNsfwOptInControl
@@ -5934,47 +5828,6 @@ export function FanletterFeedPage({
             </div>
           ) : null}
 
-          <FanletterFeedStoryRail
-            items={rankedItems}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
-          <FanletterFeedCuriosityBoard
-            commentItem={commentItem}
-            fallbackItems={rankedItems}
-            featuredItem={featuredItem}
-            latestItem={absoluteLatestItem}
-            locale={locale}
-            referralCode={referralCode}
-            savedItem={savedItem}
-          />
-
-          <FanletterFeedDiscoveryControls
-            filters={filters}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
-          <FanletterFeedMobileGuide
-            allContentSectionLabel={allContentSectionLabel}
-            featuredItem={featuredItem}
-            feedHref={feedHref}
-            filters={filters}
-            latestCount={latestItems.length}
-            locale={locale}
-            rankedCreatorCount={rankedCreatorCount}
-            referralCode={referralCode}
-            remainingCount={remainingItems.length}
-            videoCount={videoItems.length}
-          />
-
-          <FanletterCreatorRanking
-            items={items}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
           {videoItems.length > 0 ? (
             <section className="mb-10 scroll-mt-36 sm:scroll-mt-24" id="video-vlogs">
               <div className="mb-4 flex items-center justify-between gap-3">
@@ -5982,7 +5835,7 @@ export function FanletterFeedPage({
                   {copy.feed.videos}
                 </h2>
               </div>
-              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
                 {videoItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -6003,7 +5856,7 @@ export function FanletterFeedPage({
                   {copy.feed.latest}
                 </h2>
               </div>
-              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {latestItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -6016,6 +5869,34 @@ export function FanletterFeedPage({
               </div>
             </section>
           ) : null}
+
+          <FanletterFeedStoryRail
+            items={rankedItems}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <FanletterFeedCuriosityBoard
+            commentItem={commentItem}
+            fallbackItems={rankedItems}
+            featuredItem={featuredItem}
+            latestItem={absoluteLatestItem}
+            locale={locale}
+            referralCode={referralCode}
+            savedItem={savedItem}
+          />
+
+          <FanletterFeedMobileGuide
+            filters={filters}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <FanletterCreatorRanking
+            items={items}
+            locale={locale}
+            referralCode={referralCode}
+          />
 
           {showAllContentSection ? (
             <>
@@ -6033,9 +5914,7 @@ export function FanletterFeedPage({
                 emptyActionLabel={emptyFeedActionLabel}
                 items={remainingItems}
                 locale={locale}
-                mobileLayout="adaptive"
                 referralCode={referralCode}
-                showVideoPreview
               />
             </>
           ) : null}
