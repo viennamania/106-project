@@ -17,6 +17,7 @@ import {
   Play,
   RefreshCw,
   Share2,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Upload,
@@ -126,6 +127,7 @@ function getCopy(locale: Locale) {
           feed: "브이로그 피드 보기",
           fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
+          manageNsfw: "NSFW 관리",
           paidUpload: "팬 요청 유료 업로드",
           profileCreate: "캐릭터 만들기",
           profileManage: "캐릭터 확인/변경",
@@ -147,6 +149,7 @@ function getCopy(locale: Locale) {
           draftPosts: "임시저장",
           fanRequests: "팬 요청",
           memberStatus: "시작 상태",
+          nsfw: "NSFW",
           paid: "유료",
           persona: "캐릭터 페르소나",
           profile: "프로필",
@@ -161,12 +164,17 @@ function getCopy(locale: Locale) {
           shortcuts: {
             planner: "AI 플랜",
             recent: "최근",
+            nsfw: "NSFW",
             requests: "요청",
             sales: "판매",
           },
         },
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
+        nsfwStudioBody:
+          "NSFW 팬 전용 영상만 따로 모아 표시 상태와 공개 범위를 확인합니다.",
+        nsfwStudioEmptyBody:
+          "아직 NSFW로 표시된 영상은 없습니다. 팬 요청 유료 업로드 후 전체 관리에서 NSFW 표시를 켤 수 있습니다.",
         paidUploadBody:
           "팬이 남긴 브이로그 요청 카드에서만 직접 업로드 유료 등록을 시작합니다.",
         paymentRequired:
@@ -302,6 +310,7 @@ function getCopy(locale: Locale) {
           feed: "View vlog feed",
           fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
+          manageNsfw: "Manage NSFW",
           paidUpload: "Paid upload from request",
           profileCreate: "Create character",
           profileManage: "Review/change character",
@@ -323,6 +332,7 @@ function getCopy(locale: Locale) {
           draftPosts: "Drafts",
           fanRequests: "Fan requests",
           memberStatus: "Readiness",
+          nsfw: "NSFW",
           paid: "Paid",
           persona: "Character persona",
           profile: "Profile",
@@ -337,12 +347,17 @@ function getCopy(locale: Locale) {
           shortcuts: {
             planner: "AI plan",
             recent: "Recent",
+            nsfw: "NSFW",
             requests: "Requests",
             sales: "Sales",
           },
         },
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
+        nsfwStudioBody:
+          "Review NSFW fan-only videos, visibility state, and audience scope in one filtered view.",
+        nsfwStudioEmptyBody:
+          "No videos are marked NSFW yet. After a fan-request paid upload, turn on NSFW marking from full management.",
         paidUploadBody:
           "Start direct paid upload only from a fan vlog request card.",
         paymentRequired:
@@ -1848,6 +1863,7 @@ export function FanletterStudioPage({
     buildPathWithReferral(`/${locale}/fanletter/studio/vlogs`, referralCode),
     { returnTo: studioHref },
   );
+  const nsfwPostsHref = setPathSearchParams(postsHref, { maturity: "nsfw" });
   const salesHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/studio/sales`, referralCode),
     { returnTo: studioHref },
@@ -2291,6 +2307,8 @@ export function FanletterStudioPage({
       ),
     [state.posts],
   );
+  const nsfwPostCount = state.postsSummary.maturityFilters.nsfw;
+  const hasNsfwPosts = nsfwPostCount > 0;
   const profileProgress = [
     Boolean(state.profile?.displayName?.trim()),
     Boolean(state.profile?.characterPersona),
@@ -2386,6 +2404,12 @@ export function FanletterStudioPage({
       href: recentVlogsHref,
       label: copy.mobile.shortcuts.recent,
       value: isLoading ? "-" : formatNumber(state.posts.length, locale),
+    },
+    {
+      Icon: ShieldAlert,
+      href: nsfwPostsHref,
+      label: copy.mobile.shortcuts.nsfw,
+      value: isLoading ? "-" : formatNumber(nsfwPostCount, locale),
     },
     {
       Icon: BadgeDollarSign,
@@ -2547,7 +2571,7 @@ export function FanletterStudioPage({
             label={copy.mobile.shortcutsLabel}
           />
 
-          <div className="grid grid-cols-2 gap-2 pb-4 pt-4 sm:grid-cols-2 lg:grid-cols-4 lg:pt-0">
+          <div className="grid grid-cols-2 gap-2 pb-4 pt-4 sm:grid-cols-3 lg:grid-cols-5 lg:pt-0">
             <MetricCard
               Icon={FileText}
               label={copy.labels.allPosts}
@@ -2564,6 +2588,11 @@ export function FanletterStudioPage({
               Icon={Clapperboard}
               label={copy.labels.videos}
               value={isLoading ? "-" : formatNumber(videoCount, locale)}
+            />
+            <MetricCard
+              Icon={ShieldAlert}
+              label={copy.labels.nsfw}
+              value={isLoading ? "-" : formatNumber(nsfwPostCount, locale)}
             />
             <MetricCard
               Icon={BadgeDollarSign}
@@ -2611,7 +2640,7 @@ export function FanletterStudioPage({
               updatingPlanId={updatingPlanId}
             />
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               <ActionCard
                 Icon={Sparkles}
                 body={copy.steps[1].body}
@@ -2635,6 +2664,16 @@ export function FanletterStudioPage({
                 body={copy.steps[2].body}
                 href={postsHref}
                 title={copy.actions.managePosts}
+              />
+              <ActionCard
+                Icon={ShieldAlert}
+                body={
+                  isLoading || hasNsfwPosts
+                    ? copy.nsfwStudioBody
+                    : copy.nsfwStudioEmptyBody
+                }
+                href={nsfwPostsHref}
+                title={copy.actions.manageNsfw}
               />
               <ActionCard
                 Icon={Upload}
@@ -2779,6 +2818,37 @@ export function FanletterStudioPage({
               >
                 <Upload className="size-4" />
                 {copy.actions.paidUpload}
+              </Link>
+            </section>
+
+            <section className="rounded-lg border border-rose-500/18 bg-white p-5 shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-rose-700">
+                    {copy.labels.nsfw}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    {copy.actions.manageNsfw}
+                  </h2>
+                </div>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-700">
+                  <ShieldAlert className="size-5" />
+                </span>
+              </div>
+              <p className="mt-5 text-4xl font-semibold leading-none">
+                {isLoading ? "-" : formatNumber(nsfwPostCount, locale)}
+              </p>
+              <p className="mt-3 text-sm font-medium leading-6 text-black/56">
+                {isLoading || hasNsfwPosts
+                  ? copy.nsfwStudioBody
+                  : copy.nsfwStudioEmptyBody}
+              </p>
+              <Link
+                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                href={nsfwPostsHref}
+              >
+                {copy.actions.manageNsfw}
+                <ArrowRight className="size-4" />
               </Link>
             </section>
 
