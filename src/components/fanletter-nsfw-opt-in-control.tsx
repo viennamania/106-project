@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 export function FanletterNsfwOptInControl({
   className,
+  compact = false,
   disabledBody,
   disabledCta,
   disabledTitle,
@@ -27,6 +28,7 @@ export function FanletterNsfwOptInControl({
   tone = "auto",
 }: {
   className?: string;
+  compact?: boolean;
   disabledBody?: string;
   disabledCta?: string;
   disabledTitle?: string;
@@ -71,7 +73,8 @@ export function FanletterNsfwOptInControl({
   return (
     <section
       className={cn(
-        "rounded-lg border p-4",
+        "rounded-lg border",
+        compact ? "p-3" : "p-4",
         isDarkTone
           ? "border-rose-300/50 bg-rose-950 text-white"
           : "border-black/10 bg-white text-black",
@@ -82,7 +85,8 @@ export function FanletterNsfwOptInControl({
         <div className="flex min-w-0 items-start gap-3">
           <span
             className={cn(
-              "flex size-10 shrink-0 items-center justify-center rounded-lg",
+              "flex shrink-0 items-center justify-center rounded-lg",
+              compact ? "size-9" : "size-10",
               enabled
                 ? "bg-rose-400 text-black"
                 : isDarkTone
@@ -99,6 +103,7 @@ export function FanletterNsfwOptInControl({
             <p
               className={cn(
                 "mt-1 text-xs font-medium leading-5",
+                compact && "line-clamp-2",
                 isDarkTone ? "text-white/66" : "text-black/54",
               )}
             >
@@ -118,7 +123,8 @@ export function FanletterNsfwOptInControl({
         </div>
         <button
           className={cn(
-            "inline-flex h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-wait disabled:opacity-70",
+            "inline-flex shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-wait disabled:opacity-70",
+            compact ? "h-10" : "h-11",
             enabled
               ? "bg-white text-rose-950 hover:bg-rose-50"
               : isDarkTone

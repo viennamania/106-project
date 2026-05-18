@@ -1016,7 +1016,7 @@ function FanletterShell({
   const isStartSection = currentSection === "start";
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#030504] text-white">
       <FanletterHashScroller />
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -1514,7 +1514,7 @@ function FeaturedFeedCard({
       )}
     >
       <Link className="group block" href={href}>
-        <div className="relative min-h-[28rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
+        <div className="relative min-h-[24rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
           {item.primaryVideoUrl && !isLocked ? (
             <FanletterAutoplayVideo
               ariaHidden
@@ -1747,7 +1747,7 @@ function FanletterFeedStoryRail({
         item,
       ]),
     ).values(),
-  ).slice(0, 10);
+  ).slice(0, 8);
 
   if (uniqueCreatorItems.length === 0) {
     return null;
@@ -1771,7 +1771,7 @@ function FanletterFeedStoryRail({
         };
 
   return (
-    <section className="mb-5 lg:hidden">
+    <section className="mb-5 overflow-hidden lg:hidden">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold tracking-normal">
           {labels.title}
@@ -1780,7 +1780,7 @@ function FanletterFeedStoryRail({
           {formatNumber(uniqueCreatorItems.length, locale)}
         </span>
       </div>
-      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+      <div className="grid grid-cols-4 gap-3 pb-1 sm:grid-cols-6 md:grid-cols-8">
         {uniqueCreatorItems.map((item, index) => {
           const href =
             getCreatorHref({ item, locale, referralCode }) ??
@@ -1796,11 +1796,11 @@ function FanletterFeedStoryRail({
 
           return (
             <Link
-              className="group flex w-[4.9rem] shrink-0 snap-start flex-col items-center text-center text-black"
+              className="group flex min-w-0 flex-col items-center text-center text-black"
               href={href}
               key={item.authorReferralCode ?? `${item.authorName}-${index}`}
             >
-              <span className="relative flex size-16 items-center justify-center rounded-full border-2 border-[#44f26e] bg-white p-1 shadow-[0_12px_26px_rgba(8,18,12,0.1)] transition group-hover:-translate-y-0.5">
+              <span className="relative flex size-14 items-center justify-center rounded-full border-2 border-[#44f26e] bg-white p-1 shadow-[0_12px_26px_rgba(8,18,12,0.1)] transition group-hover:-translate-y-0.5 sm:size-16">
                 <Avatar
                   imageUrl={item.authorAvatarImageUrl}
                   name={item.authorName}
@@ -1938,7 +1938,7 @@ function FanletterFeedCuriosityBoard({
   }
 
   return (
-    <section className="mb-8">
+    <section className="mb-8 overflow-hidden">
       <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-[#1f7c38]">
@@ -1949,7 +1949,7 @@ function FanletterFeedCuriosityBoard({
           </h2>
         </div>
       </div>
-      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ id, item, label, metricLabel, metricValue }) => {
           const href = getContentHref({ item, locale, referralCode });
           const isNsfw = item.contentMaturityRating === "nsfw";
@@ -1958,7 +1958,7 @@ function FanletterFeedCuriosityBoard({
           return (
             <Link
               className={cn(
-                "group min-w-[15.75rem] max-w-[78vw] snap-start overflow-hidden rounded-lg border bg-white text-black shadow-[0_16px_38px_rgba(8,18,12,0.09)] transition hover:-translate-y-0.5 sm:min-w-0 sm:max-w-none",
+                "group min-w-0 overflow-hidden rounded-lg border bg-white text-black shadow-[0_16px_38px_rgba(8,18,12,0.09)] transition hover:-translate-y-0.5",
                 isNsfw
                   ? "border-rose-300 ring-1 ring-rose-200 hover:border-rose-400"
                   : "border-black/10 hover:border-[#29d85f]/60",
@@ -1980,7 +1980,7 @@ function FanletterFeedCuriosityBoard({
                     aria-hidden="true"
                     className="object-cover transition duration-500 group-hover:scale-[1.03]"
                     fill
-                    sizes="(max-width: 640px) 78vw, 25vw"
+                    sizes="(max-width: 379px) calc(100vw - 2rem), (max-width: 640px) 50vw, 25vw"
                     src={item.coverImageUrl}
                   />
                 ) : (
@@ -1989,11 +1989,11 @@ function FanletterFeedCuriosityBoard({
                   </div>
                 )}
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.68)_100%)]" />
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
-                  <span className="line-clamp-1 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
+                <div className="absolute bottom-3 left-3 right-3 flex flex-col items-start gap-1.5">
+                  <span className="line-clamp-1 max-w-full rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
                     {label}
                   </span>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex max-w-full shrink-0 items-center gap-1.5">
                     {isNsfw ? (
                       <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-white">
                         {nsfwCopy.badge}
@@ -5397,18 +5397,15 @@ function FanletterFeedMobileGuide({
   }
 
   return (
-    <section className="mb-8 rounded-lg border border-black/10 bg-[#07100b] p-4 text-white shadow-[0_18px_44px_rgba(8,18,12,0.16)] lg:hidden">
-      <div className="flex items-start justify-between gap-3">
+    <section className="mb-8 overflow-hidden rounded-lg border border-black/10 bg-[#07100b] p-3 text-white shadow-[0_18px_44px_rgba(8,18,12,0.16)] lg:hidden">
+      <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
             {labels.eyebrow}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+          <h2 className="mt-1 truncate text-base font-semibold tracking-normal">
             {labels.title}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-white/58">
-            {labels.body}
-          </p>
         </div>
         <span className="shrink-0 rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8]">
           {labels.page} {formatNumber(filters.page, locale)} /{" "}
@@ -5417,52 +5414,49 @@ function FanletterFeedMobileGuide({
       </div>
 
       {guideItems.length > 0 ? (
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2 min-[430px]:grid-cols-3">
           {guideItems.map(({ Icon, body, href, title }) => (
             <Link
-              className="group min-w-0 rounded-lg border border-white/10 bg-white/[0.055] p-3 transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+              className="group inline-flex h-10 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-2.5 text-sm font-semibold transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
               href={href}
               key={`${href}-${title}`}
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <Icon className="size-4" />
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+                <Icon className="size-3.5" />
               </span>
-              <h3 className="mt-3 truncate text-sm font-semibold">{title}</h3>
-              <p className="mt-1 line-clamp-2 min-h-8 break-words text-xs font-medium leading-4 text-white/54 [overflow-wrap:anywhere]">
+              <span className="min-w-0 truncate">{title}</span>
+              <span className="sr-only">
                 {body}
-              </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#b9ffc8]">
-                {labels.open}
-                <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
               </span>
+              <ArrowRight className="ml-auto size-3.5 shrink-0 text-[#b9ffc8] transition group-hover:translate-x-0.5" />
             </Link>
           ))}
         </div>
       ) : null}
 
       {filters.pageCount > 1 ? (
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {canGoPrevious ? (
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
               href={previousHref}
             >
               {labels.previous}
             </Link>
           ) : (
-            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
               {labels.previous}
             </span>
           )}
           {canGoNext ? (
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              className="inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
               href={nextHref}
             >
               {labels.next}
             </Link>
           ) : (
-            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
               {labels.next}
             </span>
           )}
@@ -5830,7 +5824,7 @@ export function FanletterFeedPage({
           href: `${feedHref}#all-vlogs`,
           id: "all-vlogs",
           label: allContentSectionLabel,
-          mobileLabel: locale === "ko" ? "더 보기" : "More",
+          mobileLabel: locale === "ko" ? "더" : "More",
         }
       : null,
   ];
@@ -5846,9 +5840,11 @@ export function FanletterFeedPage({
       locale={locale}
       referralCode={referralCode}
       title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
-      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]"
+      descriptionClassName="mt-4 !text-sm !leading-6 sm:!text-lg sm:!leading-7"
+      heroSpacingClassName="pt-10 sm:pt-24"
+      titleClassName="mt-4 max-w-5xl text-[2.05rem] font-semibold leading-[1.03] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]"
     >
-      <section className="overflow-hidden bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+      <section className="overflow-hidden bg-[#f6f8f4] px-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <FanletterChannelSectionTabs
             ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
@@ -5856,45 +5852,11 @@ export function FanletterFeedPage({
           />
 
           <FanletterNsfwOptInControl
-            className="mb-6"
+            className="mb-4 sm:mb-6"
+            compact
             enabled={nsfwOptInEnabled}
             hiddenCount={hiddenNsfwCount}
             locale={locale}
-          />
-
-          <FanletterFeedStoryRail
-            items={rankedItems}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
-          <FanletterFeedCuriosityBoard
-            commentItem={commentItem}
-            fallbackItems={rankedItems}
-            featuredItem={featuredItem}
-            latestItem={absoluteLatestItem}
-            locale={locale}
-            referralCode={referralCode}
-            savedItem={savedItem}
-          />
-
-          <FanletterFeedDiscoveryControls
-            filters={filters}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
-          <FanletterFeedMobileGuide
-            allContentSectionLabel={allContentSectionLabel}
-            featuredItem={featuredItem}
-            feedHref={feedHref}
-            filters={filters}
-            latestCount={latestItems.length}
-            locale={locale}
-            rankedCreatorCount={rankedCreatorCount}
-            referralCode={referralCode}
-            remainingCount={remainingItems.length}
-            videoCount={videoItems.length}
           />
 
           {featuredItem ? (
@@ -5934,7 +5896,7 @@ export function FanletterFeedPage({
                 </div>
 
                 {creatorItems.length > 0 ? (
-                  <section className="min-w-0">
+                  <section className="hidden min-w-0 overflow-hidden sm:block">
                     <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                       <div>
                         <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
@@ -5948,7 +5910,7 @@ export function FanletterFeedPage({
                         {discoveryCopy.body}
                       </p>
                     </div>
-                    <div className="flex max-w-full snap-x gap-3 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:grid-cols-2 lg:overflow-visible">
+                    <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0">
                       {creatorItems.map((item) => (
                         <CreatorDiscoveryCard
                           item={item}
@@ -5964,6 +5926,41 @@ export function FanletterFeedPage({
             </div>
           ) : null}
 
+          <FanletterFeedStoryRail
+            items={rankedItems}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <FanletterFeedCuriosityBoard
+            commentItem={commentItem}
+            fallbackItems={rankedItems}
+            featuredItem={featuredItem}
+            latestItem={absoluteLatestItem}
+            locale={locale}
+            referralCode={referralCode}
+            savedItem={savedItem}
+          />
+
+          <FanletterFeedDiscoveryControls
+            filters={filters}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <FanletterFeedMobileGuide
+            allContentSectionLabel={allContentSectionLabel}
+            featuredItem={featuredItem}
+            feedHref={feedHref}
+            filters={filters}
+            latestCount={latestItems.length}
+            locale={locale}
+            rankedCreatorCount={rankedCreatorCount}
+            referralCode={referralCode}
+            remainingCount={remainingItems.length}
+            videoCount={videoItems.length}
+          />
+
           <FanletterCreatorRanking
             items={items}
             locale={locale}
@@ -5977,7 +5974,7 @@ export function FanletterFeedPage({
                   {copy.feed.videos}
                 </h2>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 {videoItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -5998,7 +5995,7 @@ export function FanletterFeedPage({
                   {copy.feed.latest}
                 </h2>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4 lg:grid-cols-4">
                 {latestItems.map((item) => (
                   <ContentCard
                     item={item}
@@ -6028,6 +6025,7 @@ export function FanletterFeedPage({
                 emptyActionLabel={emptyFeedActionLabel}
                 items={remainingItems}
                 locale={locale}
+                mobileLayout="adaptive"
                 referralCode={referralCode}
                 showVideoPreview
               />
