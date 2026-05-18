@@ -59,6 +59,7 @@ import {
   getContentVideoAssetSource,
 } from "@/lib/content";
 import type {
+  ContentMaturityRating,
   CreatorCharacterMemoryEntry,
   CreatorCharacterPersona,
   CreatorCharacterPersonaGenerateResponse,
@@ -81,6 +82,7 @@ import type {
 } from "@/lib/content";
 import type { CreatorStudioDictionary } from "@/lib/creator-studio-dictionary";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
+import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
   createDefaultCreatorRealismProfile,
   normalizeCreatorCharacterWorldLocation,
@@ -293,6 +295,7 @@ const EMPTY_POST_FORM = {
   contentImageUrls: [] as string[],
   contentVideoUrls: [] as string[],
   coverImageUrl: "",
+  contentMaturityRating: "general" as ContentMaturityRating,
   generatedContentImageUrls: [] as string[],
   generatedContentVideoUrls: [] as string[],
   previewText: "",
@@ -2128,6 +2131,10 @@ export function CreatorContentStudioPage({
   const effectivePostPriceType: ContentPriceType = isPaidUploadComposer || hasUploadedPostVideo
     ? "paid"
     : "free";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
+  const canMarkPostNsfw = effectivePostPriceType === "paid" && hasUploadedPostVideo;
+  const isNsfwPost =
+    canMarkPostNsfw && postForm.contentMaturityRating === "nsfw";
   const hasRequiredPostMedia = isPaidUploadComposer
     ? hasUploadedPostVideo
     : hasPostMedia;
@@ -3533,6 +3540,10 @@ export function CreatorContentStudioPage({
       const priceTypeToSave: ContentPriceType = isPaidUploadComposer
         ? "paid"
         : effectivePostPriceType;
+      const contentMaturityRatingToSave: ContentMaturityRating =
+        priceTypeToSave === "paid" && hasUploadedPostVideo
+          ? postForm.contentMaturityRating
+          : "general";
       let coverImageUrlToSave = postForm.coverImageUrl || null;
 
       if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
@@ -3551,27 +3562,44 @@ export function CreatorContentStudioPage({
           notice: paidUploadComposerCopy.publishCoverGenerating,
         }));
 
-        try {
-          coverImageUrlToSave =
-            await generatePaidVideoFrameCoverFromUploadedVideo({
-              successNotice: paidUploadComposerCopy.frameCoverReady,
-              throwOnError: true,
-            });
-        } catch {
+        if (contentMaturityRatingToSave === "nsfw") {
           setIsCoverGenerationDialogOpen(true);
           setState((current) => ({
             ...current,
             error: null,
-            notice: paidUploadComposerCopy.frameCoverFailed,
+            notice: paidUploadComposerCopy.autoCoverGenerating,
           }));
           const generatedCover = await generatePostCoverImage({
             failureNotice: paidUploadComposerCopy.publishCoverFailed,
             successNotice: paidUploadComposerCopy.autoCoverReady,
             throwOnError: true,
-            visualBrief: buildPaidUploadTeaserVisualBrief(),
+            visualBrief: buildNsfwPaidUploadTeaserVisualBrief(),
           });
 
           coverImageUrlToSave = generatedCover?.url ?? null;
+        } else {
+          try {
+            coverImageUrlToSave =
+              await generatePaidVideoFrameCoverFromUploadedVideo({
+                successNotice: paidUploadComposerCopy.frameCoverReady,
+                throwOnError: true,
+              });
+          } catch {
+            setIsCoverGenerationDialogOpen(true);
+            setState((current) => ({
+              ...current,
+              error: null,
+              notice: paidUploadComposerCopy.frameCoverFailed,
+            }));
+            const generatedCover = await generatePostCoverImage({
+              failureNotice: paidUploadComposerCopy.publishCoverFailed,
+              successNotice: paidUploadComposerCopy.autoCoverReady,
+              throwOnError: true,
+              visualBrief: buildPaidUploadTeaserVisualBrief(),
+            });
+
+            coverImageUrlToSave = generatedCover?.url ?? null;
+          }
         }
 
         if (!coverImageUrlToSave) {
@@ -3620,6 +3648,7 @@ export function CreatorContentStudioPage({
         body: JSON.stringify({
           body: normalizedBody,
           contentImageUrls: postForm.contentImageUrls,
+          contentMaturityRating: contentMaturityRatingToSave,
           contentVideoUrls: postForm.contentVideoUrls,
           coverImageUrl: coverImageUrlToSave,
           email,
@@ -4161,6 +4190,15 @@ export function CreatorContentStudioPage({
       .join(" ");
   }
 
+  function buildNsfwPaidUploadTeaserVisualBrief() {
+    return [
+      "FanLetter NSFW fan-only public teaser cover for a locked paid vlog.",
+      "Create an age-gated premium teaser without revealing explicit paid content.",
+      "Safe-for-work public cover only: no nudity, sexual acts, private body focus, underwear, exposed skin focus, minors, gore, weapons, text, logos, watermarks, UI, price labels, or payment icons.",
+      "Use abstract editorial objects, a private-membership mood, cinematic lighting, dark rose accents, and one clear vertical-vlog focal composition.",
+    ].join(" ");
+  }
+
   function startPaidTeaserCoverGeneration(style = paidTeaserCoverStyle) {
     setPaidTeaserCoverStyle(style);
     setIsCoverGenerationDialogOpen(true);
@@ -4173,7 +4211,9 @@ export function CreatorContentStudioPage({
       failureNotice: paidUploadComposerCopy.autoCoverFailed,
       softFail: true,
       successNotice: paidUploadComposerCopy.autoCoverReady,
-      visualBrief: buildPaidUploadTeaserVisualBrief({ style }),
+      visualBrief: isNsfwPost
+        ? buildNsfwPaidUploadTeaserVisualBrief()
+        : buildPaidUploadTeaserVisualBrief({ style }),
     });
   }
 
@@ -4615,6 +4655,7 @@ export function CreatorContentStudioPage({
       setPostForm((current) => ({
         ...current,
         contentVideoUrls: [generatedVideo.url].slice(0, CONTENT_VIDEO_LIMIT),
+        contentMaturityRating: "general",
         generatedContentVideoUrls: [generatedVideo.url],
         priceType: "free",
       }));
@@ -7817,6 +7858,7 @@ export function CreatorContentStudioPage({
               onClick={() => {
                 setPostForm((current) => ({
                   ...current,
+                  contentMaturityRating: "general",
                   contentVideoUrls: [],
                   generatedContentVideoUrls: [],
                   priceType: "paid",
@@ -7841,6 +7883,46 @@ export function CreatorContentStudioPage({
         ) : null}
       </section>
     );
+    const renderNsfwPostControl = () =>
+      effectivePostPriceType === "paid" ? (
+        <label
+          className={cn(
+            "flex items-start gap-3 rounded-[22px] border px-4 py-3 text-left transition",
+            isNsfwPost
+              ? "border-rose-300 bg-rose-50 text-rose-950"
+              : "border-slate-200 bg-white text-slate-950",
+            !canMarkPostNsfw && "opacity-60",
+          )}
+        >
+          <input
+            checked={isNsfwPost}
+            className="mt-1 size-4 accent-rose-600"
+            disabled={!canMarkPostNsfw}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              setPostForm((current) => ({
+                ...current,
+                contentMaturityRating:
+                  checked && canMarkPostNsfw ? "nsfw" : "general",
+              }));
+            }}
+            type="checkbox"
+          />
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+              <AlertTriangle className="size-4 text-rose-600" />
+              {nsfwCopy.studioLabel}
+            </span>
+            <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">
+              {canMarkPostNsfw
+                ? nsfwCopy.studioBody
+                : locale === "ko"
+                  ? "NSFW는 직접 업로드한 유료 팬 전용 동영상에서만 선택할 수 있습니다."
+                  : "NSFW is available only for directly uploaded paid fan-only videos."}
+            </span>
+          </span>
+        </label>
+      ) : null;
 
     return (
       <div
@@ -8131,7 +8213,7 @@ export function CreatorContentStudioPage({
                       );
                     })}
                   </div>
-                  {hasUploadedPostVideo ? (
+                  {hasUploadedPostVideo && !isNsfwPost ? (
                     <button
                       className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-950 disabled:opacity-50"
                       disabled={
@@ -8323,6 +8405,7 @@ export function CreatorContentStudioPage({
                     onClick={() => {
                       setPostForm((current) => ({
                         ...current,
+                        contentMaturityRating: "general",
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
                         priceType: isPaidUploadComposer ? "paid" : "free",
@@ -8410,6 +8493,10 @@ export function CreatorContentStudioPage({
                         onClick={() => {
                           setPostForm((current) => ({
                             ...current,
+                            contentMaturityRating:
+                              priceType === "paid"
+                                ? current.contentMaturityRating
+                                : "general",
                             priceType,
                           }));
                         }}
@@ -8428,6 +8515,7 @@ export function CreatorContentStudioPage({
                   })}
                 </div>
               )}
+              {renderNsfwPostControl()}
               {isPaidUploadComposer && isAdvancedComposerOpen
                 ? renderPaidUploadPublicPreview()
                 : null}
@@ -8612,6 +8700,10 @@ export function CreatorContentStudioPage({
                           onClick={() => {
                             setPostForm((current) => ({
                               ...current,
+                              contentMaturityRating:
+                                priceType === "paid"
+                                  ? current.contentMaturityRating
+                                  : "general",
                               priceType,
                             }));
                           }}
@@ -8640,6 +8732,7 @@ export function CreatorContentStudioPage({
                       ? aiVideoFreePolicyMessage
                       : paidUploadRequiredMessage}
                 </p>
+                {renderNsfwPostControl()}
                 {effectivePostPriceType === "paid" ? (
                   <div className="mt-4 rounded-[18px] border border-white bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -8708,7 +8801,7 @@ export function CreatorContentStudioPage({
                     ? contentCopy.actions.uploadingImage
                     : coverUploadLabel}
                 </button>
-                {isPaidUploadComposer && hasUploadedPostVideo ? (
+                {isPaidUploadComposer && hasUploadedPostVideo && !isNsfwPost ? (
                   <button
                     className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-950 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                     disabled={
@@ -9024,6 +9117,7 @@ export function CreatorContentStudioPage({
                     onClick={() => {
                       setPostForm((current) => ({
                         ...current,
+                        contentMaturityRating: "general",
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
                         priceType: isPaidUploadComposer ? "paid" : "free",
@@ -9638,6 +9732,9 @@ export function CreatorContentStudioPage({
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={post.status} />
                   <StatusBadge status={post.priceType} />
+                  {post.contentMaturityRating === "nsfw" ? (
+                    <StatusBadge status="nsfw" />
+                  ) : null}
                 </div>
                 <h3
                   className={cn(
@@ -11416,9 +11513,11 @@ function StatusBadge({
             : status === "queued"
               ? "Queued"
               : status === "free"
-                ? "Free"
-                : status === "paid"
-                  ? "Paid"
+              ? "Free"
+              : status === "paid"
+                ? "Paid"
+                : status === "nsfw"
+                  ? "NSFW"
                 : status;
   const className =
     status === "failed"
@@ -11427,8 +11526,10 @@ function StatusBadge({
         ? "border-amber-200 bg-amber-50 text-amber-700"
       : status === "queued"
         ? "border-sky-200 bg-sky-50 text-sky-700"
-        : status === "paid"
-          ? "border-amber-200 bg-amber-50 text-amber-800"
+      : status === "paid"
+        ? "border-amber-200 bg-amber-50 text-amber-800"
+        : status === "nsfw"
+          ? "border-rose-200 bg-rose-50 text-rose-700"
         : "border-slate-200 bg-white text-slate-700";
 
   return (

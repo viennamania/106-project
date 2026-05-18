@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Filter } from "mongodb";
 
 import {
+  type ContentMaturityRating,
   type CreatorCharacterPersona,
   type ContentPostDocument,
   type ContentPriceType,
@@ -69,6 +70,7 @@ export type FanletterPublicContentItem = {
   authorReferralCode: string | null;
   contentId: string;
   contentImageCount: number;
+  contentMaturityRating: ContentMaturityRating;
   contentVideoCount: number;
   coverImageUrl: string | null;
   mediaType: "image" | "text" | "video";
@@ -118,6 +120,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   contentImageUrls: string[];
   contentVideoUrls: string[];
   fanRequestSource: FanletterPublicFanRequestSource | null;
+  nsfwOptInEnabled: boolean;
   tags: string[];
   viewerRelation: "audience" | "owner";
 };
@@ -175,14 +178,18 @@ export type FanletterPublicCharacter = {
 
 export type FanletterFeedPageData = {
   filters: FanletterFeedFilters;
+  hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 };
 
 export type FanletterCreatorVlogsPageData = {
   fanOnlyContentCount: number;
   filters: FanletterFeedFilters;
+  hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
+  nsfwOptInEnabled: boolean;
   profile: FanletterCreatorProfile;
   publicContentCount: number;
   viewerRelation: "audience" | "owner";
@@ -192,7 +199,9 @@ export type FanletterCreatorFanOnlyPageData = {
   fanOnlyContentCount: number;
   fanOnlyItems: FanletterPublicContentItem[];
   fanRequestPreviews: FanletterPublicFanRequestPreview[];
+  hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
+  nsfwOptInEnabled: boolean;
   profile: FanletterCreatorProfile;
   publicContentCount: number;
   viewerRelation: "audience" | "owner";
@@ -203,7 +212,9 @@ export type FanletterCreatorPageData = {
   fanOnlyContentCount: number;
   fanOnlyItems: FanletterPublicContentItem[];
   fanRequestPreviews: FanletterPublicFanRequestPreview[];
+  hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
+  nsfwOptInEnabled: boolean;
   profile: FanletterCreatorProfile;
   publicContentCount: number;
   viewerRelation: "audience" | "owner";
@@ -761,6 +772,8 @@ function toPublicContentItem({
       profile?.referralCode ?? post.authorReferralCode?.trim() ?? null,
     contentId: post.contentId,
     contentImageCount: post.contentImageUrls?.length ?? 0,
+    contentMaturityRating:
+      post.contentMaturityRating === "nsfw" ? "nsfw" : "general",
     contentVideoCount: post.contentVideoUrls?.length ?? 0,
     coverImageUrl: getCoverImageUrl(post),
     mediaType: getMediaType(post),
@@ -769,7 +782,7 @@ function toPublicContentItem({
       : null,
     priceType: post.priceType,
     priceUsdt: post.priceUsdt ?? null,
-    primaryVideoUrl: getPrimaryVideoUrl(post),
+    primaryVideoUrl: resolvedCanViewerAccess ? getPrimaryVideoUrl(post) : null,
     publishedAt: post.publishedAt?.toISOString() ?? null,
     canViewerAccess: resolvedCanViewerAccess,
     social: social ?? createEmptyContentSocialSummary(),
@@ -924,10 +937,12 @@ async function getPublicFanRequestMetrics(
 }
 
 async function getPublicContentFilter({
+  includeNsfw = false,
   locale,
   query,
   referralCode,
 }: {
+  includeNsfw?: boolean;
   locale: Locale;
   query?: string | null;
   referralCode?: string | null;
@@ -936,8 +951,24 @@ async function getPublicContentFilter({
     ...getPublishedContentLocaleFilter(locale),
     ...(referralCode ? { authorReferralCode: referralCode } : {}),
     "contentVideoUrls.0": { $exists: true },
-    priceType: "free",
     status: "published",
+    ...(includeNsfw
+      ? {
+          $or: [
+            {
+              priceType: "free",
+              contentMaturityRating: { $ne: "nsfw" },
+            },
+            {
+              priceType: "paid",
+              contentMaturityRating: "nsfw",
+            },
+          ],
+        }
+      : {
+          contentMaturityRating: { $ne: "nsfw" },
+          priceType: "free",
+        }),
   };
   const normalizedQuery = compactSearchQuery(query);
 
@@ -979,9 +1010,11 @@ async function getPublicContentFilter({
 }
 
 function getFanOnlyContentFilter({
+  includeNsfw = false,
   locale,
   referralCode,
 }: {
+  includeNsfw?: boolean;
   locale: Locale;
   referralCode: string;
 }): Filter<ContentPostDocument> {
@@ -989,6 +1022,24 @@ function getFanOnlyContentFilter({
     ...getPublishedContentLocaleFilter(locale),
     authorReferralCode: referralCode,
     "contentVideoUrls.0": { $exists: true },
+    ...(includeNsfw ? {} : { contentMaturityRating: { $ne: "nsfw" } }),
+    priceType: "paid",
+    status: "published",
+  };
+}
+
+function getNsfwContentFilter({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode?: string | null;
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    ...(referralCode ? { authorReferralCode: referralCode } : {}),
+    "contentVideoUrls.0": { $exists: true },
+    contentMaturityRating: "nsfw",
     priceType: "paid",
     status: "published",
   };
@@ -1040,17 +1091,28 @@ export const getFanletterFeedPageData = cache(
     locale: Locale,
     referralCodeInput: string | null,
     options?: {
+      includeNsfw?: boolean | null;
       page?: number | null;
       query?: string | null;
       sort?: string | null;
     },
   ): Promise<FanletterFeedPageData> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
+    const includeNsfw = options?.includeNsfw === true;
     const query = compactSearchQuery(options?.query);
     const sort = isFanletterFeedSort(options?.sort) ? options.sort : "latest";
     const postsCollection = await getContentPostsCollection();
-    const contentFilter = await getPublicContentFilter({ locale, query });
-    const totalMatchingCount = await postsCollection.countDocuments(contentFilter);
+    const contentFilter = await getPublicContentFilter({
+      includeNsfw,
+      locale,
+      query,
+    });
+    const [totalMatchingCount, hiddenNsfwCount] = await Promise.all([
+      postsCollection.countDocuments(contentFilter),
+      includeNsfw
+        ? Promise.resolve(0)
+        : postsCollection.countDocuments(getNsfwContentFilter({ locale })),
+    ]);
     const pageSize = FANLETTER_FEED_PAGE_SIZE;
     let page = normalizeFeedPage(options?.page);
     let items: FanletterPublicContentItem[] = [];
@@ -1126,7 +1188,9 @@ export const getFanletterFeedPageData = cache(
         sort,
         totalCount,
       },
+      hiddenNsfwCount,
       items,
+      nsfwOptInEnabled: includeNsfw,
       referralCode,
     };
   },
@@ -1138,6 +1202,7 @@ export const getFanletterCreatorVlogsPageData = cache(
     referralCodeInput: string,
     viewerEmailInput?: string | null,
     options?: {
+      includeNsfw?: boolean | null;
       page?: number | null;
       sort?: string | null;
     },
@@ -1148,17 +1213,32 @@ export const getFanletterCreatorVlogsPageData = cache(
       return null;
     }
 
+    const includeNsfw = options?.includeNsfw === true;
     const sort = isFanletterFeedSort(options?.sort) ? options.sort : "latest";
     const pageSize = FANLETTER_FEED_PAGE_SIZE;
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const fanOnlyContentFilter = getFanOnlyContentFilter({ locale, referralCode });
-    const [storedProfile, publicContentCount, fanOnlyContentCount, fanRequestMetrics] =
+    const fanOnlyContentFilter = getFanOnlyContentFilter({
+      includeNsfw,
+      locale,
+      referralCode,
+    });
+    const hiddenNsfwFilter = getNsfwContentFilter({ locale, referralCode });
+    const [
+      storedProfile,
+      publicContentCount,
+      fanOnlyContentCount,
+      hiddenNsfwCount,
+      fanRequestMetrics,
+    ] =
       await Promise.all([
         profilesCollection.findOne({ referralCode }),
         postsCollection.countDocuments(contentFilter),
         postsCollection.countDocuments(fanOnlyContentFilter),
+        includeNsfw
+          ? Promise.resolve(0)
+          : postsCollection.countDocuments(hiddenNsfwFilter),
         getPublicFanRequestMetrics(referralCode).catch(
           () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
         ),
@@ -1243,7 +1323,9 @@ export const getFanletterCreatorVlogsPageData = cache(
         sort,
         totalCount,
       },
+      hiddenNsfwCount,
       items,
+      nsfwOptInEnabled: includeNsfw,
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
         character: getPublicCharacter({
@@ -1273,6 +1355,9 @@ export const getFanletterPublicContentDetail = cache(
     contentId: string,
     locale: Locale,
     viewerEmailInput?: string | null,
+    options?: {
+      includeNsfw?: boolean | null;
+    },
   ): Promise<FanletterPublicContentDetail | null> => {
     const postsCollection = await getContentPostsCollection();
     const post = await postsCollection.findOne({
@@ -1290,6 +1375,7 @@ export const getFanletterPublicContentDetail = cache(
 
     const profilesCollection = await getCreatorProfilesCollection();
     const viewerEmail = normalizeEmail(viewerEmailInput ?? "");
+    const includeNsfw = options?.includeNsfw === true;
     const isOwner =
       Boolean(viewerEmail) && normalizeEmail(post.authorEmail) === viewerEmail;
     const [profile, social, fanRequestSource, viewerEntitlement] = await Promise.all([
@@ -1315,8 +1401,11 @@ export const getFanletterPublicContentDetail = cache(
         : Promise.resolve(null),
     ]);
     const canPubliclyAccess = post.priceType === "free";
+    const canViewMatureContent =
+      post.contentMaturityRating !== "nsfw" || includeNsfw || isOwner;
     const canViewerAccess =
-      canPubliclyAccess || isOwner || Boolean(viewerEntitlement);
+      canViewMatureContent &&
+      (canPubliclyAccess || isOwner || Boolean(viewerEntitlement));
     const authorReferralCode = normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     );
@@ -1379,6 +1468,7 @@ export const getFanletterPublicContentDetail = cache(
       contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
       contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
       fanRequestSource,
+      nsfwOptInEnabled: includeNsfw,
       tags: post.tags,
       viewerRelation: isOwner ? "owner" : "audience",
     };
@@ -1390,6 +1480,9 @@ export const getFanletterCreatorFanOnlyPageData = cache(
     locale: Locale,
     referralCodeInput: string,
     viewerEmailInput?: string | null,
+    options?: {
+      includeNsfw?: boolean | null;
+    },
   ): Promise<FanletterCreatorFanOnlyPageData | null> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
 
@@ -1397,16 +1490,23 @@ export const getFanletterCreatorFanOnlyPageData = cache(
       return null;
     }
 
+    const includeNsfw = options?.includeNsfw === true;
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const fanOnlyContentFilter = getFanOnlyContentFilter({ locale, referralCode });
+    const fanOnlyContentFilter = getFanOnlyContentFilter({
+      includeNsfw,
+      locale,
+      referralCode,
+    });
+    const hiddenNsfwFilter = getNsfwContentFilter({ locale, referralCode });
     const [
       storedProfile,
       publicPosts,
       fanOnlyPosts,
       publicContentCount,
       fanOnlyContentCount,
+      hiddenNsfwCount,
       fanRequestPreviews,
       fanRequestMetrics,
     ] = await Promise.all([
@@ -1431,6 +1531,9 @@ export const getFanletterCreatorFanOnlyPageData = cache(
         .toArray(),
       postsCollection.countDocuments(contentFilter),
       postsCollection.countDocuments(fanOnlyContentFilter),
+      includeNsfw
+        ? Promise.resolve(0)
+        : postsCollection.countDocuments(hiddenNsfwFilter),
       getPublicFanRequestPreviews(referralCode).catch(() => []),
       getPublicFanRequestMetrics(referralCode).catch(
         () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
@@ -1480,6 +1583,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
         }),
       ),
       fanRequestPreviews,
+      hiddenNsfwCount,
       items: publicPosts.map((post) =>
         toPublicContentItem({
           post,
@@ -1487,6 +1591,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
           social: socialByContentId.get(post.contentId),
         }),
       ),
+      nsfwOptInEnabled: includeNsfw,
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
         character: getPublicCharacter({
@@ -1516,6 +1621,9 @@ export const getFanletterCreatorPageData = cache(
     locale: Locale,
     referralCodeInput: string,
     viewerEmailInput?: string | null,
+    options?: {
+      includeNsfw?: boolean | null;
+    },
   ): Promise<FanletterCreatorPageData | null> => {
     const referralCode = normalizeReferralCode(referralCodeInput);
 
@@ -1523,16 +1631,23 @@ export const getFanletterCreatorPageData = cache(
       return null;
     }
 
+    const includeNsfw = options?.includeNsfw === true;
     const profilesCollection = await getCreatorProfilesCollection();
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({ locale, referralCode });
-    const fanOnlyContentFilter = getFanOnlyContentFilter({ locale, referralCode });
+    const fanOnlyContentFilter = getFanOnlyContentFilter({
+      includeNsfw,
+      locale,
+      referralCode,
+    });
+    const hiddenNsfwFilter = getNsfwContentFilter({ locale, referralCode });
     const [
       storedProfile,
       posts,
       fanOnlyPosts,
       publicContentCount,
       fanOnlyContentCount,
+      hiddenNsfwCount,
       fanRequestPreviews,
       fanRequestMetrics,
     ] = await Promise.all([
@@ -1557,6 +1672,9 @@ export const getFanletterCreatorPageData = cache(
           .toArray(),
         postsCollection.countDocuments(contentFilter),
         postsCollection.countDocuments(fanOnlyContentFilter),
+        includeNsfw
+          ? Promise.resolve(0)
+          : postsCollection.countDocuments(hiddenNsfwFilter),
         getPublicFanRequestPreviews(referralCode).catch(() => []),
         getPublicFanRequestMetrics(referralCode).catch(
           () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
@@ -1610,6 +1728,7 @@ export const getFanletterCreatorPageData = cache(
         }),
       ),
       fanRequestPreviews,
+      hiddenNsfwCount,
       items: posts.map((post) =>
         toPublicContentItem({
           post,
@@ -1617,6 +1736,7 @@ export const getFanletterCreatorPageData = cache(
           social: socialByContentId.get(post.contentId),
         }),
       ),
+      nsfwOptInEnabled: includeNsfw,
       profile: {
         avatarImageUrl: profile?.avatarImageUrl ?? null,
         character: getPublicCharacter({

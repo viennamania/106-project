@@ -851,6 +851,7 @@ export async function getContentPostsCollection() {
         collection.createIndex({
           authorReferralCode: 1,
           status: 1,
+          contentMaturityRating: 1,
           priceType: 1,
           locale: 1,
           publishedAt: -1,
@@ -860,6 +861,7 @@ export async function getContentPostsCollection() {
         collection.createIndex({
           locale: 1,
           status: 1,
+          contentMaturityRating: 1,
           priceType: 1,
           publishedAt: -1,
           createdAt: -1,

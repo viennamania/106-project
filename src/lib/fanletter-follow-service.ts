@@ -96,6 +96,7 @@ function getFanletterPublicContentBaseFilter(
   return {
     ...getPublishedContentLocaleFilter(locale),
     "contentVideoUrls.0": { $exists: true },
+    contentMaturityRating: { $ne: "nsfw" },
     priceType: "free",
     status: "published",
   };

@@ -16,6 +16,7 @@ import {
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
+  CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
   creatorAvatarExpressions,
   createEmptyContentSocialSummary,
   getContentVideoAssetSource,
@@ -42,6 +43,7 @@ import {
   type ContentPostDocument,
   type ContentPostRecord,
   type ContentPostUpdateRequest,
+  type ContentMaturityRating,
   type ContentPriceType,
   type ContentSalesDashboardResponse,
   type ContentSellerWalletBalanceRecord,
@@ -498,6 +500,12 @@ function normalizePriceType(priceType?: ContentPriceType | null) {
   return priceType === "paid" ? "paid" : "free";
 }
 
+function normalizeContentMaturityRating(
+  rating?: ContentMaturityRating | null,
+): ContentMaturityRating {
+  return rating === "nsfw" ? "nsfw" : "general";
+}
+
 function validateContentVideoPricingPolicy({
   contentVideoUrls,
   priceType,
@@ -528,6 +536,28 @@ function validateContentVideoPricingPolicy({
 
   if (priceType === "paid" && !hasUploadedVideo) {
     throw new Error(CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR);
+  }
+}
+
+function validateContentMaturityPolicy({
+  contentMaturityRating,
+  contentVideoUrls,
+  priceType,
+}: {
+  contentMaturityRating: ContentMaturityRating;
+  contentVideoUrls: string[];
+  priceType: ContentPriceType;
+}) {
+  if (contentMaturityRating !== "nsfw") {
+    return;
+  }
+
+  const hasUploadedVideo = contentVideoUrls.some(
+    (url) => getContentVideoAssetSource(url) === "uploaded",
+  );
+
+  if (priceType !== "paid" || !hasUploadedVideo) {
+    throw new Error(CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR);
   }
 }
 
@@ -1165,19 +1195,29 @@ async function getPublishedContentShareMetadata(contentId: string) {
     null;
   const authorAvatarImageUrl =
     storedProfile?.avatarImageUrl ?? defaultAuthorProfile?.avatarImageUrl ?? null;
+  const postLocale = normalizeContentLocale(post.locale);
+  const isNsfwContent = post.contentMaturityRating === "nsfw";
 
   return {
     authorAvatarImageUrl,
     authorDisplayName,
     contentId: post.contentId,
-    coverImageUrl: resolvePrimaryContentImageUrl(post),
-    hasVideo: hasContentVideo(post),
-    locale: normalizeContentLocale(post.locale),
+    coverImageUrl: isNsfwContent ? null : resolvePrimaryContentImageUrl(post),
+    hasVideo: isNsfwContent ? false : hasContentVideo(post),
+    locale: postLocale,
     priceType: post.priceType,
     priceUsdt: post.priceUsdt ?? null,
     publishedAt: post.publishedAt ?? null,
-    summary: post.summary,
-    title: post.title,
+    summary: isNsfwContent
+      ? postLocale === "ko"
+        ? "별도 opt-in 후 확인할 수 있는 FanLetter 팬 전용 콘텐츠입니다."
+        : "FanLetter fan-only content available after a separate opt-in."
+      : post.summary,
+    title: isNsfwContent
+      ? postLocale === "ko"
+        ? "FanLetter NSFW 팬 전용 콘텐츠"
+        : "FanLetter NSFW fan-only content"
+      : post.title,
     updatedAt: post.updatedAt,
   };
 });
@@ -2409,6 +2449,9 @@ export async function createContentPostForMember(
 
   const status = input.status === "published" ? "published" : "draft";
   const priceType = normalizePriceType(input.priceType);
+  const contentMaturityRating = normalizeContentMaturityRating(
+    input.contentMaturityRating,
+  );
   const contentImageUrls = normalizeContentImageUrls(input.contentImageUrls);
   const contentVideoUrls = normalizeContentVideoUrls(input.contentVideoUrls);
   const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
@@ -2423,6 +2466,11 @@ export async function createContentPostForMember(
   }
 
   validateContentVideoPricingPolicy({ contentVideoUrls, priceType });
+  validateContentMaturityPolicy({
+    contentMaturityRating,
+    contentVideoUrls,
+    priceType,
+  });
 
   const fanRequest =
     priceType === "paid"
@@ -2443,6 +2491,7 @@ export async function createContentPostForMember(
     body,
     contentId: randomUUID(),
     contentImageUrls,
+    contentMaturityRating,
     contentVideoUrls,
     coverImageUrl,
     createdAt: now,
@@ -2522,6 +2571,10 @@ export async function updateContentPostForMember(
     input.priceType !== undefined
       ? normalizePriceType(input.priceType)
       : post.priceType;
+  const nextContentMaturityRating =
+    input.contentMaturityRating !== undefined
+      ? normalizeContentMaturityRating(input.contentMaturityRating)
+      : normalizeContentMaturityRating(post.contentMaturityRating);
   const nextContentImageUrls =
     input.contentImageUrls !== undefined
       ? normalizeContentImageUrls(input.contentImageUrls)
@@ -2546,6 +2599,11 @@ export async function updateContentPostForMember(
 
   if (nextStatus !== "archived") {
     validateContentVideoPricingPolicy({
+      contentVideoUrls: nextContentVideoUrls,
+      priceType: nextPriceType,
+    });
+    validateContentMaturityPolicy({
+      contentMaturityRating: nextContentMaturityRating,
       contentVideoUrls: nextContentVideoUrls,
       priceType: nextPriceType,
     });
@@ -2591,6 +2649,8 @@ export async function updateContentPostForMember(
         $set: {
           body: nextBody,
           contentImageUrls: nextContentImageUrls,
+          contentMaturityRating:
+            nextStatus === "archived" ? "general" : nextContentMaturityRating,
           contentVideoUrls: nextContentVideoUrls,
           coverImageUrl: nextCoverImageUrl,
           fanRequestId: nextFanRequestId,

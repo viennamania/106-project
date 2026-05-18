@@ -604,6 +604,7 @@ async function getFeaturedVideoPosts({
   const baseFilter: Filter<ContentPostDocument> = {
     ...getPublishedContentLocaleFilter(locale),
     "contentVideoUrls.0": { $exists: true },
+    contentMaturityRating: { $ne: "nsfw" },
     priceType,
     status: "published",
   };
@@ -737,6 +738,7 @@ export const getFanletterLandingData = unstable_cache(
     const publishedContentFilter: Filter<ContentPostDocument> = {
       ...getPublishedContentLocaleFilter(locale),
       "contentVideoUrls.0": { $exists: true },
+      contentMaturityRating: { $ne: "nsfw" },
       status: "published",
     };
     const publicVideoFilter: Filter<ContentPostDocument> = {

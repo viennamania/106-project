@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { FanletterCreatorFanOnlyPage } from "@/components/fanletter-subpages";
@@ -17,6 +18,10 @@ import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { setPathSearchParams } from "@/lib/landing-branding";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
 
 type FanletterCreatorFanOnlySearchParams = {
   ref?: string | string[];
@@ -162,10 +167,15 @@ export default async function LocalizedFanletterCreatorFanOnlyPage({
 
   const locale = lang as Locale;
   const memberSession = await readMemberServerSession();
+  const cookieStore = await cookies();
+  const includeNsfw = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
   const data = await getFanletterCreatorFanOnlyPageData(
     locale,
     referralCode,
     memberSession?.email ?? null,
+    { includeNsfw },
   );
 
   if (!data) {

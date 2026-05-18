@@ -1,5 +1,6 @@
 import {
   isContentFanRequestPolicyErrorMessage,
+  isContentMaturityPolicyErrorMessage,
   isContentVideoPolicyErrorMessage,
   type ContentPostCreateRequest,
   type ContentPostMutationResponse,
@@ -126,6 +127,7 @@ export async function POST(request: Request) {
           ? 403
           : message.endsWith("is required.") ||
               isContentFanRequestPolicyErrorMessage(message) ||
+              isContentMaturityPolicyErrorMessage(message) ||
               isContentVideoPolicyErrorMessage(message) ||
               message ===
                 "THIRDWEB_SECRET_KEY is required to create seller wallets." ||

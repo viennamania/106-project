@@ -21,6 +21,8 @@ export const CONTENT_VIDEO_SOURCE_MIXED_ERROR =
   "Use either an AI-generated video or an uploaded video, not both.";
 export const CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR =
   "Paid FanLetter content requires an unused fan vlog request.";
+export const CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR =
+  "NSFW content requires a paid directly uploaded video.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
 export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
@@ -40,6 +42,7 @@ export const contentCoverGenerationProgressSteps = [
 export const creatorProfileStatuses = ["active", "restricted"] as const;
 export const contentPostStatuses = ["draft", "published", "archived"] as const;
 export const contentPriceTypes = ["free", "paid"] as const;
+export const contentMaturityRatings = ["general", "nsfw"] as const;
 export const contentFeedViews = ["network", "saved", "purchases"] as const;
 export const contentAssetKinds = [
   "cover",
@@ -99,6 +102,7 @@ export const creatorAvatarExpressions = [
 export type CreatorProfileStatus = (typeof creatorProfileStatuses)[number];
 export type ContentPostStatus = (typeof contentPostStatuses)[number];
 export type ContentPriceType = (typeof contentPriceTypes)[number];
+export type ContentMaturityRating = (typeof contentMaturityRatings)[number];
 export type ContentVideoMimeType = (typeof contentVideoMimeTypes)[number];
 export type ContentFeedView = (typeof contentFeedViews)[number];
 export type ContentAssetKind = (typeof contentAssetKinds)[number];
@@ -138,6 +142,9 @@ const contentVideoPolicyErrorMessages = new Set([
 ]);
 const contentFanRequestPolicyErrorMessages = new Set([
   CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR,
+]);
+const contentMaturityPolicyErrorMessages = new Set([
+  CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
 ]);
 
 function safelyDecodePathSegment(segment: string) {
@@ -201,6 +208,10 @@ export function isContentVideoPolicyErrorMessage(message: string) {
 
 export function isContentFanRequestPolicyErrorMessage(message: string) {
   return contentFanRequestPolicyErrorMessages.has(message);
+}
+
+export function isContentMaturityPolicyErrorMessage(message: string) {
+  return contentMaturityPolicyErrorMessages.has(message);
 }
 
 export type ContentImageGenerationAttemptDocument = {
@@ -458,6 +469,7 @@ export type ContentPostDocument = {
   body: string;
   contentId: string;
   contentImageUrls?: string[];
+  contentMaturityRating?: ContentMaturityRating | null;
   contentVideoUrls?: string[];
   coverImageUrl: string | null;
   createdAt: Date;
@@ -548,6 +560,7 @@ export type ContentPostRecord = {
   contentId: string;
   contentImageCount: number;
   contentImageUrls: string[];
+  contentMaturityRating: ContentMaturityRating;
   contentVideoCount: number;
   contentVideoUrls: string[];
   coverImageUrl: string | null;
@@ -985,6 +998,7 @@ export type CreatorProfileCharacterUpdateRequest = {
 export type ContentPostCreateRequest = {
   body: string;
   contentImageUrls?: string[];
+  contentMaturityRating?: ContentMaturityRating | null;
   contentVideoUrls?: string[];
   coverImageUrl?: string | null;
   email: string;
@@ -1155,6 +1169,8 @@ export function serializeContentPost(
     contentId: content.contentId,
     contentImageCount: content.contentImageUrls?.length ?? 0,
     contentImageUrls: content.contentImageUrls ?? [],
+    contentMaturityRating:
+      content.contentMaturityRating === "nsfw" ? "nsfw" : "general",
     contentVideoCount: content.contentVideoUrls?.length ?? 0,
     contentVideoUrls: content.contentVideoUrls ?? [],
     coverImageUrl: content.coverImageUrl ?? null,

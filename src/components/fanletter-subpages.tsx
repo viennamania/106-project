@@ -40,6 +40,7 @@ import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-reques
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
 import { FanletterScrollReveal } from "@/components/fanletter-scroll-reveal";
@@ -70,6 +71,7 @@ import type {
 import type { FanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
 import type { Locale } from "@/lib/i18n";
 import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
+import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -1157,12 +1159,20 @@ function ContentCard({
   const displayAuthorName = authorNameOverride ?? item.authorName;
   const displaySummary = getDisplayContentSummary(item, locale);
   const displayTitle = getDisplayContentTitle(item, locale);
+  const isNsfw = item.contentMaturityRating === "nsfw";
+  const isLocked = item.priceType === "paid" && !item.canViewerAccess;
+  const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
-    <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]">
+    <article
+      className={cn(
+        "flex h-full min-w-0 flex-col overflow-hidden rounded-lg border bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.12)]",
+        isNsfw ? "border-rose-300 ring-1 ring-rose-200" : "border-black/10",
+      )}
+    >
       <Link className="block" href={href}>
         <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b] sm:aspect-[9/14]">
-          {item.primaryVideoUrl && showVideoPreview ? (
+          {item.primaryVideoUrl && showVideoPreview && !isLocked ? (
             <FanletterAutoplayVideo
               ariaHidden
               className="absolute inset-0 h-full w-full object-cover"
@@ -1173,7 +1183,11 @@ function ContentCard({
             <Image
               alt=""
               aria-hidden="true"
-              className="object-cover"
+              className={
+                isLocked
+                  ? "scale-[1.06] object-cover blur-md brightness-[0.76] saturate-[0.9]"
+                  : "object-cover"
+              }
               fill
               sizes="(max-width: 640px) 100vw, 24vw"
               src={item.coverImageUrl}
@@ -1190,6 +1204,19 @@ function ContentCard({
           <span className="absolute left-2.5 top-2.5 inline-flex rounded-full bg-white px-2.5 py-1 text-[0.62rem] font-semibold text-black sm:left-3 sm:top-3 sm:px-3 sm:text-[0.68rem]">
             Video
           </span>
+          {isNsfw ? (
+            <span className="absolute right-2.5 top-2.5 inline-flex rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white sm:right-3 sm:top-3 sm:px-3 sm:text-[0.68rem]">
+              {nsfwCopy.badge}
+            </span>
+          ) : null}
+          {isLocked ? (
+            <div className="absolute inset-x-3 top-1/2 flex -translate-y-1/2 justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/58 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]">
+                <LockKeyhole className="size-3.5 text-[#44f26e]" />
+                {locale === "ko" ? "결제 후 열람" : "Unlock to view"}
+              </span>
+            </div>
+          ) : null}
           <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-2 sm:bottom-3 sm:left-3 sm:right-3">
             <Avatar
               imageUrl={item.authorAvatarImageUrl}
@@ -1391,12 +1418,20 @@ function FeaturedFeedCard({
   const displayAuthorName = authorNameOverride ?? item.authorName;
   const displaySummary = getDisplayContentSummary(item, locale);
   const displayTitle = getDisplayContentTitle(item, locale);
+  const isNsfw = item.contentMaturityRating === "nsfw";
+  const isLocked = item.priceType === "paid" && !item.canViewerAccess;
+  const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]">
+    <article
+      className={cn(
+        "min-w-0 overflow-hidden rounded-lg border bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.22)]",
+        isNsfw ? "border-rose-400 ring-1 ring-rose-300/60" : "border-black/10",
+      )}
+    >
       <Link className="group block" href={href}>
         <div className="relative min-h-[28rem] overflow-hidden bg-[#07100b] sm:min-h-[32rem] lg:min-h-[36rem]">
-          {item.primaryVideoUrl ? (
+          {item.primaryVideoUrl && !isLocked ? (
             <FanletterAutoplayVideo
               ariaHidden
               className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -1406,7 +1441,11 @@ function FeaturedFeedCard({
           ) : item.coverImageUrl ? (
             <Image
               alt={displayTitle}
-              className="object-cover transition duration-500 group-hover:scale-[1.03]"
+              className={
+                isLocked
+                  ? "scale-[1.06] object-cover blur-md brightness-[0.76] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                  : "object-cover transition duration-500 group-hover:scale-[1.03]"
+              }
               fill
               sizes="(max-width: 1024px) 100vw, 46vw"
               src={item.coverImageUrl}
@@ -1429,6 +1468,17 @@ function FeaturedFeedCard({
               <span className="inline-flex rounded-full border border-white/16 bg-white/12 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white">
                 {item.mediaType === "video" ? copy.feed.videos : copy.feed.freePublic}
               </span>
+              {isNsfw ? (
+                <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white">
+                  {nsfwCopy.badge}
+                </span>
+              ) : null}
+              {isLocked ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-black/42 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white">
+                  <LockKeyhole className="size-3.5 text-[#44f26e]" />
+                  {locale === "ko" ? "잠금" : "Locked"}
+                </span>
+              ) : null}
             </div>
             <h2 className="mt-4 line-clamp-3 break-words text-[2rem] font-semibold leading-[1.02] tracking-normal [overflow-wrap:anywhere] sm:text-[2.6rem]">
               {displayTitle}
@@ -1504,10 +1554,17 @@ function CreatorDiscoveryCard({
         };
   const reactionScore = getContentEngagementScore(item);
   const displayTitle = getDisplayContentTitle(item, locale);
+  const isNsfw = item.contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
     <Link
-      className="group flex min-w-[17.5rem] max-w-[86vw] snap-start flex-col rounded-lg border border-black/10 bg-white p-4 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] transition hover:-translate-y-0.5 hover:border-[#29d85f]/58 hover:shadow-[0_20px_46px_rgba(8,18,12,0.12)] sm:min-w-0 sm:max-w-none"
+      className={cn(
+        "group flex min-w-[17.5rem] max-w-[86vw] snap-start flex-col rounded-lg border bg-white p-4 text-black shadow-[0_14px_34px_rgba(8,18,12,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(8,18,12,0.12)] sm:min-w-0 sm:max-w-none",
+        isNsfw
+          ? "border-rose-300 ring-1 ring-rose-200 hover:border-rose-400"
+          : "border-black/10 hover:border-[#29d85f]/58",
+      )}
       href={href}
     >
       <div className="flex items-start gap-3">
@@ -1523,6 +1580,11 @@ function CreatorDiscoveryCard({
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-semibold text-[#16702e]">
                 <PlayCircle className="size-3" />
                 {labels.video}
+              </span>
+            ) : null}
+            {isNsfw ? (
+              <span className="inline-flex shrink-0 rounded-full bg-rose-500 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white">
+                {nsfwCopy.badge}
               </span>
             ) : null}
           </div>
@@ -1806,10 +1868,17 @@ function FanletterFeedCuriosityBoard({
       <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
         {cards.map(({ id, item, label, metricLabel, metricValue }) => {
           const href = getContentHref({ item, locale, referralCode });
+          const isNsfw = item.contentMaturityRating === "nsfw";
+          const nsfwCopy = getFanletterNsfwCopy(locale);
 
           return (
             <Link
-              className="group min-w-[15.75rem] max-w-[78vw] snap-start overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_16px_38px_rgba(8,18,12,0.09)] transition hover:-translate-y-0.5 hover:border-[#29d85f]/60 sm:min-w-0 sm:max-w-none"
+              className={cn(
+                "group min-w-[15.75rem] max-w-[78vw] snap-start overflow-hidden rounded-lg border bg-white text-black shadow-[0_16px_38px_rgba(8,18,12,0.09)] transition hover:-translate-y-0.5 sm:min-w-0 sm:max-w-none",
+                isNsfw
+                  ? "border-rose-300 ring-1 ring-rose-200 hover:border-rose-400"
+                  : "border-black/10 hover:border-[#29d85f]/60",
+              )}
               href={href}
               key={id}
             >
@@ -1840,9 +1909,16 @@ function FanletterFeedCuriosityBoard({
                   <span className="line-clamp-1 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold text-black">
                     {label}
                   </span>
-                  <span className="shrink-0 rounded-full border border-white/18 bg-white/12 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
-                    {metricValue}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {isNsfw ? (
+                      <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-white">
+                        {nsfwCopy.badge}
+                      </span>
+                    ) : null}
+                    <span className="rounded-full border border-white/18 bg-white/12 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+                      {metricValue}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="p-3">
@@ -2213,6 +2289,8 @@ function FanletterChannelHeroPreview({
   const featuredLocked = Boolean(
     isFanOnlyFeatured && featuredItem && !featuredItem.canViewerAccess,
   );
+  const isFeaturedNsfw = featuredItem?.contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
   const featuredPrice = `${featuredItem?.priceUsdt ?? "1"} USDT`;
   const wallLabel = isFanOnlyFeatured
     ? labels.lockedWall(featuredPrice)
@@ -2296,6 +2374,11 @@ function FanletterChannelHeroPreview({
             {wallLabel}
           </span>
         </div>
+        {isFeaturedNsfw ? (
+          <span className="absolute right-4 top-14 inline-flex rounded-full bg-rose-500 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_28px_rgba(0,0,0,0.24)]">
+            {nsfwCopy.badge}
+          </span>
+        ) : null}
         {featuredLocked ? (
           <div className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 items-center justify-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-black/52 px-4 py-2 text-xs font-semibold text-white shadow-[0_16px_44px_rgba(0,0,0,0.34)]">
@@ -5499,13 +5582,17 @@ function FanletterCreatorVlogsPagination({
 
 export function FanletterFeedPage({
   filters,
+  hiddenNsfwCount,
   items,
   locale,
+  nsfwOptInEnabled,
   referralCode,
 }: {
   filters: FanletterFeedFilters;
+  hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
   locale: Locale;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
@@ -5720,6 +5807,13 @@ export function FanletterFeedPage({
           <FanletterChannelSectionTabs
             ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
             items={sectionTabs}
+          />
+
+          <FanletterNsfwOptInControl
+            className="mb-6"
+            enabled={nsfwOptInEnabled}
+            hiddenCount={hiddenNsfwCount}
+            locale={locale}
           />
 
           <FanletterFeedStoryRail
@@ -6065,6 +6159,13 @@ export function FanletterCreatorVlogsPage({
             </Link>
           </div>
 
+          <FanletterNsfwOptInControl
+            className="mb-5"
+            enabled={data.nsfwOptInEnabled}
+            hiddenCount={data.hiddenNsfwCount}
+            locale={locale}
+          />
+
           <div className="mb-5 flex flex-col gap-2 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_32px_rgba(8,18,12,0.06)] sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-black/42">
               {labels.sort}
@@ -6349,6 +6450,13 @@ export function FanletterCreatorFanOnlyPage({
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
+          <FanletterNsfwOptInControl
+            className="mb-6"
+            enabled={data.nsfwOptInEnabled}
+            hiddenCount={data.hiddenNsfwCount}
+            locale={locale}
+          />
+
           <FanletterFanOnlyPreview
             channelName={channelName}
             fanOnlyContentCount={data.fanOnlyContentCount}
@@ -7160,20 +7268,28 @@ export function FanletterCreatorPage({
           ) : null}
 
           <FanletterScrollReveal delayMs={100}>
-            <FanletterFanOnlyPreview
-              channelName={channelName}
-              fanOnlyHref={fanOnlyHref}
-              fanOnlyContentCount={data.fanOnlyContentCount}
-              isOwner={isOwner}
-              items={data.fanOnlyItems}
-              locale={locale}
-              ownerCreateHref={ownerCreateHref}
-              ownerManageHref={ownerVlogsHref}
-              publicVlogsHref={publicVlogsHref}
-              referralCode={effectiveReferralCode}
-              requestFormId={fanRequestsFormId}
-              requestHref={fanRequestsFormHref}
-            />
+            <div>
+              <FanletterNsfwOptInControl
+                className="mb-6"
+                enabled={data.nsfwOptInEnabled}
+                hiddenCount={data.hiddenNsfwCount}
+                locale={locale}
+              />
+              <FanletterFanOnlyPreview
+                channelName={channelName}
+                fanOnlyHref={fanOnlyHref}
+                fanOnlyContentCount={data.fanOnlyContentCount}
+                isOwner={isOwner}
+                items={data.fanOnlyItems}
+                locale={locale}
+                ownerCreateHref={ownerCreateHref}
+                ownerManageHref={ownerVlogsHref}
+                publicVlogsHref={publicVlogsHref}
+                referralCode={effectiveReferralCode}
+                requestFormId={fanRequestsFormId}
+                requestHref={fanRequestsFormHref}
+              />
+            </div>
           </FanletterScrollReveal>
 
           <FanletterScrollReveal
@@ -8770,7 +8886,13 @@ export function FanletterContentDetailPage({
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
   const paidUnlockSectionId = "fanletter-paid-unlock";
-  const shouldShowPaidUnlockPanel = content.priceType === "paid" && !canViewerAccess;
+  const isNsfwContent = content.contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
+  const requiresNsfwOptIn =
+    isNsfwContent && !content.nsfwOptInEnabled && !isOwnContent;
+  const shouldShowPaidUnlockPanel =
+    content.priceType === "paid" && !canViewerAccess && !requiresNsfwOptIn;
+  const shouldBlurDetailMedia = shouldShowPaidUnlockPanel || requiresNsfwOptIn;
   const requestRecommendationMode =
     content.priceType === "paid" ? "paid" : "public";
   const detailAccessLabel = isOwnContent
@@ -8790,14 +8912,18 @@ export function FanletterContentDetailPage({
       : copy.content.public;
   const detailActionHref = isOwnContent
     ? ownerManageHref
-    : content.priceType === "paid" && !canViewerAccess
+    : requiresNsfwOptIn
+      ? `#${paidUnlockSectionId}`
+      : content.priceType === "paid" && !canViewerAccess
       ? `#${paidUnlockSectionId}`
       : fanRequestHref;
   const detailActionLabel = isOwnContent
     ? locale === "ko"
       ? "스튜디오에서 관리"
       : "Manage in studio"
-    : content.priceType === "paid" && !canViewerAccess
+    : requiresNsfwOptIn
+      ? nsfwCopy.disabledCta
+      : content.priceType === "paid" && !canViewerAccess
       ? locale === "ko"
         ? "결제하고 잠금 해제"
         : "Pay to unlock"
@@ -8839,12 +8965,12 @@ export function FanletterContentDetailPage({
               ? "Fan-only vlog"
               : "AI character vlog",
         };
-  const mobilePrimaryActionHref = shouldShowPaidUnlockPanel
+  const mobilePrimaryActionHref = shouldBlurDetailMedia
     ? detailActionHref
     : isOwnContent
       ? ownerManageHref
       : fanRequestHref;
-  const mobilePrimaryActionLabel = shouldShowPaidUnlockPanel
+  const mobilePrimaryActionLabel = shouldBlurDetailMedia
     ? detailActionLabel
     : isOwnContent
       ? detailLabels.ownerManage
@@ -8931,6 +9057,11 @@ export function FanletterContentDetailPage({
                 )}
                 {detailAccessLabel}
               </span>
+              {isNsfwContent ? (
+                <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                  {nsfwCopy.badge}
+                </span>
+              ) : null}
               {formatDate(content.publishedAt, locale) ? (
                 <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
                   {formatDate(content.publishedAt, locale)}
@@ -8949,7 +9080,7 @@ export function FanletterContentDetailPage({
               creatorReferralCode={content.authorReferralCode}
               defaultPrimaryHref={mobilePrimaryActionHref}
               defaultPrimaryLabel={mobilePrimaryActionLabel}
-              primaryIcon={shouldShowPaidUnlockPanel ? "lock" : "pen"}
+              primaryIcon={shouldBlurDetailMedia ? "lock" : "pen"}
               requestStatusHref={requestStatusHref}
               requestStatusLabel={detailLabels.requestStatusCta}
               secondaryHref={mobileSecondaryActionHref}
@@ -8964,7 +9095,7 @@ export function FanletterContentDetailPage({
               <div className="relative h-[52svh] min-h-[20rem] max-h-[28rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
                 <MediaCard
                   alt={content.title}
-                  blurred={shouldShowPaidUnlockPanel}
+                  blurred={shouldBlurDetailMedia}
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
                   title={content.title}
@@ -8974,9 +9105,16 @@ export function FanletterContentDetailPage({
                   <span className="inline-flex rounded-full bg-black/62 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
                     {detailLabels.watchBadge}
                   </span>
-                  <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black">
-                    FanLetter
-                  </span>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {isNsfwContent ? (
+                      <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white">
+                        {nsfwCopy.badge}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black">
+                      FanLetter
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="border-t border-white/8 p-3">
@@ -9024,6 +9162,11 @@ export function FanletterContentDetailPage({
                     )}
                     {detailAccessLabel}
                   </span>
+                  {isNsfwContent ? (
+                    <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                      {nsfwCopy.badge}
+                    </span>
+                  ) : null}
                   {formatDate(content.publishedAt, locale) ? (
                     <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
                       {formatDate(content.publishedAt, locale)}
@@ -9044,7 +9187,7 @@ export function FanletterContentDetailPage({
                   creatorReferralCode={content.authorReferralCode}
                   defaultPrimaryHref={desktopPrimaryActionHref}
                   defaultPrimaryLabel={desktopPrimaryActionLabel}
-                  primaryIcon={shouldShowPaidUnlockPanel ? "lock" : "pen"}
+                  primaryIcon={shouldBlurDetailMedia ? "lock" : "pen"}
                   requestStatusHref={requestStatusHref}
                   requestStatusLabel={detailLabels.requestStatusCta}
                   secondaryHref={desktopSecondaryActionHref}
@@ -9054,7 +9197,16 @@ export function FanletterContentDetailPage({
                 />
               </div>
 
-              {shouldShowPaidUnlockPanel ? (
+              {requiresNsfwOptIn ? (
+                <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
+                  <FanletterNsfwOptInControl
+                    className="mb-6 border-rose-300/50 bg-rose-950 text-white"
+                    enabled={false}
+                    hiddenCount={1}
+                    locale={locale}
+                  />
+                </div>
+              ) : shouldShowPaidUnlockPanel ? (
                 <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
                   <FanletterPaidUnlockPanel
                     connectHref={connectHref}
