@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowRight,
   BadgeCheck,
   BookOpenCheck,
   Clapperboard,
   Coins,
   Loader2,
-  MessageCircleHeart,
   PlayCircle,
   RefreshCw,
   ShieldCheck,
@@ -19,13 +19,14 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
-import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import type {
   ContentFeedItemRecord,
   ContentFeedLoadResponse,
 } from "@/lib/content";
 import { useFanletterAccountStatus } from "@/lib/fanletter-account-status";
+import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -69,6 +70,10 @@ function getCopy(locale: Locale) {
         loadMore: "더 보기",
         loading: "구매한 팬 전용 브이로그를 확인하는 중입니다.",
         navLabel: "FanLetter 구매 콘텐츠 메뉴",
+        nsfwHiddenBody:
+          "구매한 NSFW 팬 전용 콘텐츠가 있습니다. NSFW 보기를 켜면 이 라이브러리에서 다시 볼 수 있습니다.",
+        nsfwHiddenTitle: "NSFW 구매 콘텐츠가 숨겨져 있습니다.",
+        nsfwPurchased: "NSFW 구매",
         paid: "결제 완료",
         purchased: "구매함",
         purchasedCount: "구매 콘텐츠",
@@ -106,6 +111,10 @@ function getCopy(locale: Locale) {
         loadMore: "Load more",
         loading: "Checking your purchased fan-only vlogs.",
         navLabel: "FanLetter purchased content navigation",
+        nsfwHiddenBody:
+          "You have purchased NSFW fan-only content. Turn on NSFW visibility to replay it in this library.",
+        nsfwHiddenTitle: "NSFW purchases are hidden.",
+        nsfwPurchased: "NSFW purchases",
         paid: "Paid",
         purchased: "Purchases",
         purchasedCount: "Purchases",
@@ -282,9 +291,15 @@ function PurchaseCard({
   const previewText = getPreviewText(item);
   const priceLabel = `${item.priceUsdt ?? "1"} USDT`;
   const videoCount = Math.max(item.contentVideoCount, item.contentVideoUrls.length);
+  const isNsfw = item.contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] md:grid-cols-[minmax(14rem,0.45fr)_minmax(0,1fr)]">
+    <article
+      className={`grid overflow-hidden rounded-lg border bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)] md:grid-cols-[minmax(14rem,0.45fr)_minmax(0,1fr)] ${
+        isNsfw ? "border-rose-300 ring-1 ring-rose-200" : "border-black/10"
+      }`}
+    >
       <Link
         className="group relative block aspect-[4/5] overflow-hidden bg-[#07100b] md:aspect-auto"
         href={contentHref}
@@ -309,6 +324,12 @@ function PurchaseCard({
             {copy.unlockNote}
           </div>
         </div>
+        {isNsfw ? (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-rose-500 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white">
+            <AlertTriangle className="size-3.5" />
+            {nsfwCopy.badge}
+          </span>
+        ) : null}
       </Link>
 
       <div className="flex min-w-0 flex-col p-5 sm:p-6">
@@ -321,6 +342,12 @@ function PurchaseCard({
             <Coins className="size-3.5" />
             {priceLabel}
           </span>
+          {isNsfw ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1 text-rose-700">
+              <AlertTriangle className="size-3.5" />
+              {nsfwCopy.badge}
+            </span>
+          ) : null}
         </div>
 
         <h2 className="mt-4 line-clamp-2 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
@@ -387,9 +414,11 @@ function PurchaseCard({
 
 export function FanletterPurchasesPage({
   locale,
+  nsfwOptInEnabled,
   referralCode,
 }: {
   locale: Locale;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
@@ -439,6 +468,12 @@ export function FanletterPurchasesPage({
     `/${locale}/fanletter/start`,
     referralCode,
   );
+  const nsfwPurchaseCount = state.items.filter(
+    (item) => item.contentMaturityRating === "nsfw",
+  ).length;
+  const visibleItems = nsfwOptInEnabled
+    ? state.items
+    : state.items.filter((item) => item.contentMaturityRating !== "nsfw");
 
   const stats = useMemo(() => {
     const creatorCodes = new Set(
@@ -473,6 +508,11 @@ export function FanletterPurchasesPage({
         value: `${formatUsdt(totalUsdt, locale)} USDT`,
       },
       {
+        icon: AlertTriangle,
+        label: copy.nsfwPurchased,
+        value: formatNumber(nsfwPurchaseCount, locale),
+      },
+      {
         icon: Clapperboard,
         label: copy.latestPurchase,
         value: latest ?? "FanLetter",
@@ -480,10 +520,12 @@ export function FanletterPurchasesPage({
     ];
   }, [
     copy.latestPurchase,
+    copy.nsfwPurchased,
     copy.purchasedCount,
     copy.statsCreators,
     copy.statsTotal,
     locale,
+    nsfwPurchaseCount,
     state.items,
   ]);
 
@@ -659,53 +701,29 @@ export function FanletterPurchasesPage({
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex items-center justify-between gap-3">
+          <FanletterTabTopBar
+            actionHref={startHref}
+            actionLabel={copy.start}
+            locale={locale}
+            referralCode={referralCode}
+          />
+
+          <nav
+            aria-label={copy.navLabel}
+            className="mt-5 hidden items-center gap-7 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white/74 md:inline-flex"
+          >
+            <Link href={feedHref}>{copy.allFeed}</Link>
+            <Link href={followingHref}>{copy.fanHome}</Link>
+            <Link href={walletHref}>{copy.wallet}</Link>
             <Link
-              className="flex min-w-0 items-center gap-2"
-              href={buildPathWithReferral(`/${locale}/fanletter`, referralCode)}
+              aria-current="page"
+              className="text-[#44f26e]"
+              href={purchasesHref}
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <MessageCircleHeart className="size-5" />
-              </span>
-              <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
-              </span>
+              {copy.purchased}
             </Link>
-
-            <nav
-              aria-label={copy.navLabel}
-              className="hidden items-center gap-7 text-sm font-semibold text-white/74 md:flex"
-            >
-              <Link href={feedHref}>{copy.allFeed}</Link>
-              <Link href={followingHref}>{copy.fanHome}</Link>
-              <Link href={walletHref}>{copy.wallet}</Link>
-              <Link
-                aria-current="page"
-                className="text-[#44f26e]"
-                href={purchasesHref}
-              >
-                {copy.purchased}
-              </Link>
-              <Link href={studioHref}>{copy.studio}</Link>
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <FanletterGlobalLanguageSwitcher
-                className="hidden lg:inline-flex"
-                locale={locale}
-              />
-              <FanletterAccountStatusLink
-                locale={locale}
-                referralCode={referralCode}
-              />
-              <Link
-                className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
-                href={startHref}
-              >
-                {copy.start}
-              </Link>
-            </div>
-          </header>
+            <Link href={studioHref}>{copy.studio}</Link>
+          </nav>
 
           <div className="pt-14 sm:pt-24">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
@@ -789,57 +807,80 @@ export function FanletterPurchasesPage({
             />
           ) : (
             <>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat) => {
-                  const Icon = stat.icon;
+              {nsfwPurchaseCount > 0 ? (
+                <FanletterNsfwOptInControl
+                  className="mb-5"
+                  disabledBody={copy.nsfwHiddenBody}
+                  disabledTitle={copy.nsfwHiddenTitle}
+                  enabled={nsfwOptInEnabled}
+                  hiddenCount={nsfwPurchaseCount}
+                  locale={locale}
+                  tone="light"
+                />
+              ) : null}
 
-                  return (
-                    <div
-                      className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_12px_30px_rgba(8,18,12,0.08)]"
-                      key={stat.label}
-                    >
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-black/44">
-                        <Icon className="size-4 text-[#1f7c38]" />
-                        {stat.label}
-                      </div>
-                      <p className="mt-3 truncate text-2xl font-semibold tracking-normal">
-                        {stat.value}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+              {visibleItems.length === 0 ? (
+                <PurchaseStatePanel
+                  actionLabel={getFanletterNsfwCopy(locale).disabledCta}
+                  body={copy.nsfwHiddenBody}
+                  icon="empty"
+                  title={copy.nsfwHiddenTitle}
+                />
+              ) : (
+                <>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                    {stats.map((stat) => {
+                      const Icon = stat.icon;
 
-              <div className="mt-7 grid gap-4 xl:grid-cols-2">
-                {state.items.map((item) => {
-                  const itemReferralCode =
-                    item.authorReferralCode || referralCode;
-                  const contentHref = setPathSearchParams(
-                    buildPathWithReferral(
-                      `/${locale}/fanletter/content/${item.contentId}`,
-                      itemReferralCode,
-                    ),
-                    { returnTo: purchasesHref },
-                  );
-                  const profileHref = buildPathWithReferral(
-                    `/${locale}/fanletter/creator/${item.authorReferralCode}`,
-                    itemReferralCode,
-                  );
+                      return (
+                        <div
+                          className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_12px_30px_rgba(8,18,12,0.08)]"
+                          key={stat.label}
+                        >
+                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-black/44">
+                            <Icon className="size-4 text-[#1f7c38]" />
+                            {stat.label}
+                          </div>
+                          <p className="mt-3 truncate text-2xl font-semibold tracking-normal">
+                            {stat.value}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                  return (
-                    <PurchaseCard
-                      contentHref={contentHref}
-                      copy={copy}
-                      item={item}
-                      key={item.contentId}
-                      locale={locale}
-                      profileHref={profileHref}
-                    />
-                  );
-                })}
-              </div>
+                  <div className="mt-7 grid gap-4 xl:grid-cols-2">
+                    {visibleItems.map((item) => {
+                      const itemReferralCode =
+                        item.authorReferralCode || referralCode;
+                      const contentHref = setPathSearchParams(
+                        buildPathWithReferral(
+                          `/${locale}/fanletter/content/${item.contentId}`,
+                          itemReferralCode,
+                        ),
+                        { returnTo: purchasesHref },
+                      );
+                      const profileHref = buildPathWithReferral(
+                        `/${locale}/fanletter/creator/${item.authorReferralCode}`,
+                        itemReferralCode,
+                      );
 
-              {nextCursor ? (
+                      return (
+                        <PurchaseCard
+                          contentHref={contentHref}
+                          copy={copy}
+                          item={item}
+                          key={item.contentId}
+                          locale={locale}
+                          profileHref={profileHref}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {nextCursor && visibleItems.length > 0 ? (
                 <div className="mt-8 flex justify-center">
                   <button
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-semibold text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-60"

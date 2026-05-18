@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { FanletterPurchasesPage } from "@/components/fanletter-purchases-page";
@@ -8,6 +9,10 @@ import {
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
@@ -95,9 +100,16 @@ export default async function LocalizedFanletterPurchasesPage({
     notFound();
   }
 
+  const locale = lang as Locale;
+  const cookieStore = await cookies();
+  const nsfwOptInEnabled = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
+
   return (
     <FanletterPurchasesPage
-      locale={lang as Locale}
+      locale={locale}
+      nsfwOptInEnabled={nsfwOptInEnabled}
       referralCode={readFanletterReferralCode(query.ref)}
     />
   );
