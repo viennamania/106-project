@@ -8795,7 +8795,10 @@ export function FanletterContentDetailPage({
           ownerManage: "내 브이로그 관리",
           requestCta: "이어서 볼 장면 요청",
           requestStatusCta: "내 요청 상태 보기",
-          watchBadge: "세로 브이로그",
+          watchBadge:
+            content.priceType === "paid"
+              ? "팬 전용 브이로그"
+              : "AI 캐릭터 브이로그",
         }
       : {
           character: "Character",
@@ -8803,7 +8806,10 @@ export function FanletterContentDetailPage({
           ownerManage: "Manage my vlog",
           requestCta: "Request follow-up scene",
           requestStatusCta: "Track my request",
-          watchBadge: "Vertical vlog",
+          watchBadge:
+            content.priceType === "paid"
+              ? "Fan-only vlog"
+              : "AI character vlog",
         };
   const mobilePrimaryActionHref = shouldShowPaidUnlockPanel
     ? detailActionHref
