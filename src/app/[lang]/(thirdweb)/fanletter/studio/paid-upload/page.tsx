@@ -25,12 +25,12 @@ function getMetaCopy(locale: Locale) {
     ? {
         description:
           "팬 브이로그 요청에 답하는 직접 업로드 동영상을 1 USDT 유료 콘텐츠로 등록합니다.",
-        title: "팬 요청 유료 업로드 | FanLetter",
+        title: "팬 요청 답장 업로드 | FanLetter",
       }
     : {
         description:
           "Register a directly uploaded video in response to a fan vlog request as 1 USDT paid content.",
-        title: "Paid upload from fan request | FanLetter",
+        title: "Fan request reply upload | FanLetter",
       };
 }
 

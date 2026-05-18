@@ -1692,10 +1692,13 @@ export function CreatorContentStudioPage({
     locale === "ko"
       ? {
           description:
-            "팬이 남긴 브이로그 요청에 답할 때만 MP4, MOV, WEBM 동영상을 1 USDT 유료 콘텐츠로 등록합니다. 요청 없는 업로드는 팬 요청함에서 먼저 선택하세요.",
+            "팬이 남긴 브이로그 요청에 직접 업로드 영상으로 답장합니다.",
           eyebrow: "FanLetter Paid Upload",
           helper:
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
+          composerTitle: "요청에 영상으로 답장",
+          composerDescription:
+            "요청 내용은 제목과 본문에 반영되어 있습니다. 직접 업로드한 영상과 공개 티저만 확인하면 게시할 수 있습니다.",
           autoCoverFailed:
             "동영상은 업로드되었습니다. 커버 자동 생성은 실패했으니 커버를 직접 업로드하거나 AI 티저를 다시 생성해 주세요.",
           autoCoverGenerating:
@@ -1760,9 +1763,13 @@ export function CreatorContentStudioPage({
             "수익 지갑은 유료 게시 전에 자동 생성됩니다.",
           readinessWalletLabel: "정산 지갑",
           fanRequestContext:
-            "팬 요청 내용이 제목, 요약, 본문에 반영되었습니다. 직접 업로드한 동영상을 추가하면 이 요청은 1 USDT 유료 브이로그로 연결됩니다.",
+            "제목, 요약, 본문에 반영되었습니다.",
           fanRequestEyebrow: "Fan Request",
-          fanRequestTitle: "팬 요청 기반 유료 업로드",
+          fanRequestTitle: "팬이 요청한 브이로그",
+          primaryVideoDescription:
+            "팬 요청에 답하는 MP4, MOV, WEBM 원본 영상을 먼저 업로드하세요. 최대 1개, 200MB 이하입니다.",
+          primaryVideoTitle: "유료 동영상",
+          publishConditionsTitle: "게시 조건",
           manageVlogs: "브이로그 관리",
           priceBody:
             "직접 업로드한 동영상과 상세 본문은 결제 후 열람됩니다. 커버 이미지는 피드에 공개됩니다.",
@@ -1776,7 +1783,7 @@ export function CreatorContentStudioPage({
           ],
           salesCta: "판매 내역 보기",
           studioCta: "스튜디오로 돌아가기",
-          title: "팬 요청 유료 업로드",
+          title: "팬 요청 답장 업로드",
           uploadVideo: "유료 동영상 업로드",
           videoHint:
             "팬 브이로그 요청에 답하는 직접 업로드 MP4, MOV, WEBM 동영상만 1 USDT 유료 콘텐츠로 저장됩니다. 최대 1개, 200MB 이하입니다.",
@@ -1788,9 +1795,12 @@ export function CreatorContentStudioPage({
         }
       : {
           description:
-            "Register a directly uploaded MP4, MOV, or WEBM video as 1 USDT paid content only when responding to a fan vlog request. Choose a request first from the fan request inbox.",
+            "Reply to a fan vlog request with a directly uploaded paid video.",
           eyebrow: "FanLetter Paid Upload",
           helper: "Paid content requires one directly uploaded video.",
+          composerTitle: "Reply with a video",
+          composerDescription:
+            "The request is already applied to the title and body. Upload the video and confirm the public teaser to publish.",
           autoCoverFailed:
             "The video was uploaded. Automatic cover generation failed, so upload a cover or generate an AI teaser again.",
           autoCoverGenerating:
@@ -1855,9 +1865,13 @@ export function CreatorContentStudioPage({
             "The payout wallet is created automatically before paid publishing.",
           readinessWalletLabel: "Payout wallet",
           fanRequestContext:
-            "The fan request has been applied to the title, summary, and body. Add a directly uploaded video to connect this request to a 1 USDT paid vlog.",
+            "Applied to the title, summary, and body.",
           fanRequestEyebrow: "Fan Request",
-          fanRequestTitle: "Paid upload from fan request",
+          fanRequestTitle: "Fan requested vlog",
+          primaryVideoDescription:
+            "Upload the MP4, MOV, or WEBM source video that answers this fan request. One video, 200MB max.",
+          primaryVideoTitle: "Paid video",
+          publishConditionsTitle: "Publishing conditions",
           manageVlogs: "Manage vlogs",
           priceBody:
             "The uploaded video and detail body unlock after payment. Cover images stay visible in the feed.",
@@ -1871,7 +1885,7 @@ export function CreatorContentStudioPage({
           ],
           salesCta: "View sales",
           studioCta: "Back to studio",
-          title: "Paid upload from fan request",
+          title: "Fan request reply upload",
           uploadVideo: "Upload paid video",
           videoHint:
             "Only directly uploaded MP4, MOV, or WEBM videos responding to a fan vlog request are saved as 1 USDT paid content. One video, 200MB max.",
@@ -7595,8 +7609,8 @@ export function CreatorContentStudioPage({
     );
 
     return (
-      <section className="rounded-lg border border-[#44f26e]/18 bg-black/18 p-3 sm:p-4">
-        <div className="flex items-center justify-between gap-3">
+      <section className="rounded-lg border border-[#44f26e]/18 bg-black/14 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-white">
             {paidUploadComposerCopy.readinessTitle}
           </p>
@@ -7606,7 +7620,7 @@ export function CreatorContentStudioPage({
             {requiredReadinessItems.length}
           </span>
         </div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {readinessItems.map((item) => {
             const statusLabel = item.isReady
               ? paidUploadComposerCopy.readinessReady
@@ -7615,43 +7629,26 @@ export function CreatorContentStudioPage({
                 : paidUploadComposerCopy.readinessMissing;
 
             return (
-              <div
+              <span
                 className={cn(
-                  "rounded-lg border p-3",
+                  "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-xs font-semibold",
                   item.isReady
-                    ? "border-[#44f26e]/20 bg-[#44f26e]/10"
+                    ? "border-[#44f26e]/24 bg-[#44f26e]/12 text-[#d8ffe0]"
                     : item.isOptional
-                      ? "border-white/10 bg-white/[0.045]"
-                      : "border-amber-300/30 bg-amber-300/10",
+                      ? "border-white/10 bg-white/[0.045] text-white/60"
+                      : "border-amber-300/30 bg-amber-300/10 text-amber-100",
                 )}
                 key={item.label}
+                title={item.description}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold text-white">
-                    {item.label}
-                  </span>
-                  <span
-                    className={cn(
-                      "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[0.68rem] font-semibold",
-                      item.isReady
-                        ? "bg-[#44f26e] text-black"
-                        : item.isOptional
-                          ? "bg-white/10 text-white/68"
-                          : "bg-amber-300 text-amber-950",
-                    )}
-                  >
-                    {item.isReady ? (
-                      <Check className="size-3.5" />
-                    ) : (
-                      <AlertTriangle className="size-3.5" />
-                    )}
-                    {statusLabel}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs font-medium leading-5 text-white/54">
-                  {item.description}
-                </p>
-              </div>
+                {item.isReady ? (
+                  <Check className="size-3.5" />
+                ) : (
+                  <AlertTriangle className="size-3.5" />
+                )}
+                {item.label}
+                <span className="text-white/44">{statusLabel}</span>
+              </span>
             );
           })}
         </div>
@@ -7707,6 +7704,78 @@ export function CreatorContentStudioPage({
     const publishReadyClassCompact = isPaidUploadComposer
       ? "bg-[#44f26e] text-black shadow-[0_14px_28px_rgba(68,242,110,0.18)] hover:bg-[#64ff84] disabled:bg-[#44f26e] disabled:text-black"
       : "bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-800 disabled:bg-slate-800 disabled:text-white";
+    const renderPaidUploadVideoPanel = () => (
+      <section className="rounded-[24px] border border-[#44f26e]/24 bg-[#08130d] p-4 text-white shadow-[0_18px_48px_rgba(0,0,0,0.18)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              01
+            </p>
+            <h3 className="mt-1 text-base font-semibold text-white">
+              {paidUploadComposerCopy.primaryVideoTitle}
+            </h3>
+            <p className="mt-2 text-xs font-medium leading-5 text-white/58">
+              {paidUploadComposerCopy.primaryVideoDescription}
+            </p>
+          </div>
+          <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
+            {postForm.contentVideoUrls.length}/{CONTENT_VIDEO_LIMIT}
+          </span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            disabled={
+              isUploadingPostImage ||
+              isUploadingPostVideo ||
+              isGeneratingPaidVideoFrameCover ||
+              isGeneratingPostImage ||
+              postForm.contentVideoUrls.length >= CONTENT_VIDEO_LIMIT
+            }
+            onClick={() => {
+              postVideoInputRef.current?.click();
+            }}
+            type="button"
+          >
+            {isUploadingPostVideo ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <Film className="size-4" />
+            )}
+            {isUploadingPostVideo
+              ? `${Math.round(postVideoUploadProgress)}%`
+              : contentVideoUploadLabel}
+          </button>
+          {postForm.contentVideoUrls.length > 0 ? (
+            <button
+              className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+              onClick={() => {
+                setPostForm((current) => ({
+                  ...current,
+                  contentVideoUrls: [],
+                  generatedContentVideoUrls: [],
+                  priceType: "paid",
+                }));
+              }}
+              type="button"
+            >
+              {locale === "ko" ? "동영상 제거" : "Remove video"}
+            </button>
+          ) : null}
+        </div>
+        {postForm.contentVideoUrls.length > 0 ? (
+          <div className="mt-4 overflow-hidden rounded-[20px] border border-white/10 bg-black">
+            <video
+              className="aspect-video w-full bg-black object-contain"
+              controls
+              playsInline
+              preload="metadata"
+              src={postForm.contentVideoUrls[0]}
+            />
+          </div>
+        ) : null}
+      </section>
+    );
 
     return (
       <div
@@ -7726,7 +7795,7 @@ export function CreatorContentStudioPage({
               )}
             >
               {isPaidUploadComposer
-                ? paidUploadComposerCopy.eyebrow
+                ? paidUploadComposerCopy.fanRequestEyebrow
                 : contentCopy.page.studioEyebrow}
             </p>
             <h2
@@ -7736,7 +7805,7 @@ export function CreatorContentStudioPage({
               )}
             >
               {isPaidUploadComposer
-                ? paidUploadComposerCopy.title
+                ? paidUploadComposerCopy.composerTitle
                 : contentCopy.actions.createPost}
             </h2>
           </div>
@@ -7748,7 +7817,9 @@ export function CreatorContentStudioPage({
                 : "border-slate-200 bg-white text-slate-900",
             )}
           >
-            {publishedCount} {contentCopy.labels.published}
+            {isPaidUploadComposer
+              ? `${CONTENT_PAID_USDT_AMOUNT} USDT`
+              : `${publishedCount} ${contentCopy.labels.published}`}
           </div>
         </div>
 
@@ -7759,50 +7830,38 @@ export function CreatorContentStudioPage({
           )}
         >
           {isPaidUploadComposer
-            ? paidUploadComposerCopy.description
+            ? paidUploadComposerCopy.composerDescription
             : contentCopy.labels.studioNotice}
         </p>
-
-        {isFanletterPaidUpload ? (
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            {paidUploadComposerCopy.rules.map((rule, index) => (
-              <div
-                className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-semibold leading-5 text-white/64"
-                key={rule}
-              >
-                <span className="mr-2 text-[#44f26e]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                {rule}
-              </div>
-            ))}
-          </div>
-        ) : null}
 
         {isFanletterPaidUpload &&
         initialFanRequestId &&
         !isPaidUploadRequestWrongType ? (
-          <div className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4">
+          <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-white/[0.045] p-3">
             <div className="flex items-start gap-3">
-              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <PenSquare className="size-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
-                  {paidUploadComposerCopy.fanRequestEyebrow}
-                </p>
-                <h3 className="mt-1 text-base font-semibold text-white">
-                  {paidUploadComposerCopy.fanRequestTitle}
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                    {paidUploadComposerCopy.fanRequestEyebrow}
+                  </p>
+                  <span className="text-xs font-medium text-white/44">
+                    {paidUploadComposerCopy.fanRequestContext}
+                  </span>
+                </div>
+                <h3 className="mt-1 text-sm font-semibold text-white">
+                  {initialFanRequestCharacterName
+                    ? `${initialFanRequestCharacterName} · ${paidUploadComposerCopy.fanRequestTitle}`
+                    : paidUploadComposerCopy.fanRequestTitle}
                 </h3>
-                <p className="mt-2 text-xs font-medium leading-5 text-white/58">
-                  {paidUploadComposerCopy.fanRequestContext}
-                </p>
                 {initialFanRequestBody ? (
-                  <p className="mt-3 break-words rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-xs font-semibold leading-5 text-white/70 [overflow-wrap:anywhere]">
+                  <p className="mt-2 line-clamp-2 break-words text-sm font-semibold leading-6 text-white/72 [overflow-wrap:anywhere]">
                     {initialFanRequestBody}
                   </p>
                 ) : null}
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {initialFanRequestCharacterName ? (
                     <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[0.64rem] font-semibold text-white/54">
                       {initialFanRequestCharacterName}
@@ -7924,7 +7983,13 @@ export function CreatorContentStudioPage({
               ref={postVideoInputRef}
               type="file"
             />
+            {isPaidUploadComposer ? (
+              <div className="hidden sm:block">
+                {renderPaidUploadVideoPanel()}
+              </div>
+            ) : null}
             <section className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_42px_rgba(15,23,42,0.07)] sm:hidden">
+              {isPaidUploadComposer ? renderPaidUploadVideoPanel() : null}
               <button
                 className="group relative block aspect-square w-full overflow-hidden rounded-[26px] border border-dashed border-slate-300 bg-slate-100 text-left"
                 disabled={
@@ -8094,7 +8159,8 @@ export function CreatorContentStudioPage({
                 )}
               </div>
 
-              <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-3">
+              {!isPaidUploadComposer ? (
+                <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-950">
                     {locale === "ko" ? "콘텐츠 동영상" : "Content video"}
@@ -8148,7 +8214,8 @@ export function CreatorContentStudioPage({
                     </button>
                   )}
                 </div>
-              </div>
+                </div>
+              ) : null}
 
               {postForm.contentImageUrls.length > 0 ? (
                 <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -8296,7 +8363,9 @@ export function CreatorContentStudioPage({
                   })}
                 </div>
               )}
-              {isPaidUploadComposer ? renderPaidUploadPublicPreview() : null}
+              {isPaidUploadComposer && isAdvancedComposerOpen
+                ? renderPaidUploadPublicPreview()
+                : null}
               {hasUploadedPostVideo || hasGeneratedPostVideo ? (
                 <p className="text-center text-xs font-medium leading-5 text-slate-500">
                   {hasUploadedPostVideo
@@ -8539,9 +8608,6 @@ export function CreatorContentStudioPage({
                     ) : null}
                   </div>
                 </div>
-              ) : null}
-              {isPaidUploadComposer ? (
-                <div className="mt-4">{renderPaidUploadPublicPreview()}</div>
               ) : null}
             </div>
             <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
@@ -8819,7 +8885,8 @@ export function CreatorContentStudioPage({
                 </div>
               )}
             </div>
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+            {!isPaidUploadComposer ? (
+              <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-slate-900">
@@ -8921,7 +8988,8 @@ export function CreatorContentStudioPage({
                   />
                 </div>
               ) : null}
-            </div>
+              </div>
+            ) : null}
             <TextAreaField
               error={postBodyError}
               hint={contentCopy.hints.body}
@@ -9668,37 +9736,34 @@ export function CreatorContentStudioPage({
   }
 
   function renderFanletterPaidUploadRail() {
-    if (!isFanletterPaidUpload) {
+    if (
+      !isFanletterPaidUpload ||
+      isConnectionResolving ||
+      isDisconnected ||
+      isPaidUploadRequestBlocked
+    ) {
       return null;
     }
 
     return (
       <div className="hidden space-y-4 xl:sticky xl:top-6 xl:block xl:self-start">
         {renderPaidUploadPublicPreview({ compact: true })}
-        <div className="grid gap-2 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={postsManagerHref}
-          >
-            <LayoutGrid className="size-4" />
-            {paidUploadComposerCopy.manageVlogs}
-          </Link>
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
-            href={salesManagerHref}
-          >
-            <Coins className="size-4" />
-            {paidUploadComposerCopy.salesCta}
-          </Link>
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white/72 transition hover:bg-white/8 hover:!text-white"
-            href={studioHomeHref}
-          >
-            <ArrowLeft className="size-4" />
-            {paidUploadComposerCopy.studioCta}
-          </Link>
+        <div className="rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+          <p className="text-sm font-semibold text-white">
+            {paidUploadComposerCopy.publishConditionsTitle}
+          </p>
+          <div className="mt-3 space-y-2">
+            {paidUploadComposerCopy.rules.map((rule) => (
+              <div
+                className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-semibold leading-5 text-white/64"
+                key={rule}
+              >
+                <Check className="mt-0.5 size-3.5 shrink-0 text-[#44f26e]" />
+                <span>{rule}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        {renderRecentPostsPanel({ compact: true, tone: "fanletter" })}
       </div>
     );
   }
@@ -9712,8 +9777,9 @@ export function CreatorContentStudioPage({
         { returnTo: profileHref },
       )
     : null;
-  const headerDescription =
-    isConnectionResolving || state.status === "loading"
+  const headerDescription = isFanletterPaidUpload
+    ? pageDescription
+    : isConnectionResolving || state.status === "loading"
       ? contentCopy.messages.detailLoadingDescription
       : isDisconnected
         ? contentCopy.messages.connectRequired
@@ -9739,6 +9805,11 @@ export function CreatorContentStudioPage({
           },
         ]
       : [];
+  const shouldRenderFanletterPaidUploadRail =
+    isFanletterPaidUpload &&
+    !isConnectionResolving &&
+    !isDisconnected &&
+    !isPaidUploadRequestBlocked;
 
   if (shell === "embedded" && view === "character") {
     return <>{renderCharacterChangeCard()}</>;
@@ -9776,7 +9847,7 @@ export function CreatorContentStudioPage({
         }}
       />
 
-      {renderStudioTabs()}
+      {isFanletterPaidUpload ? null : renderStudioTabs()}
 
       {view === "hub" ? (
         <>
@@ -9810,13 +9881,17 @@ export function CreatorContentStudioPage({
           className={cn(
             "grid gap-3 sm:gap-5",
             isFanletterPaidUpload
-              ? "xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.38fr)]"
+              ? shouldRenderFanletterPaidUploadRail
+                ? "xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.38fr)]"
+                : "mx-auto w-full max-w-4xl"
               : "xl:grid-cols-[1.02fr_0.98fr]",
           )}
         >
           {renderComposerCard()}
           {isFanletterPaidUpload
-            ? renderFanletterPaidUploadRail()
+            ? shouldRenderFanletterPaidUploadRail
+              ? renderFanletterPaidUploadRail()
+              : null
             : renderSideRail("profile")}
         </section>
       )}
