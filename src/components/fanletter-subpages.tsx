@@ -2043,6 +2043,63 @@ function FanletterFeedCuriosityBoard({
   );
 }
 
+function FanletterFeedFanOnlyPreviewStrip({
+  items,
+  locale,
+  referralCode,
+}: {
+  items: FanletterPublicContentItem[];
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          body:
+            "공개 브이로그 흐름 아래에서 관심 있는 캐릭터의 잠금 콘텐츠만 따로 확인하세요.",
+          cta: "티저 보기",
+          eyebrow: "Fan-only Preview",
+          title: "팬 전용 미리보기",
+        }
+      : {
+          body:
+            "Preview locked fan-only content separately after the public vlog flow.",
+          cta: "View teaser",
+          eyebrow: "Fan-only Preview",
+          title: "Fan-only previews",
+        };
+
+  return (
+    <section className="mb-10 scroll-mt-36 rounded-lg border border-black/10 bg-[#07100b] p-4 text-white shadow-[0_18px_44px_rgba(8,18,12,0.16)] sm:scroll-mt-24 sm:p-5">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#44f26e]">
+            {labels.eyebrow}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+            {labels.title}
+          </h2>
+        </div>
+        <p className="max-w-xl text-sm font-medium leading-6 text-white/62">
+          {labels.body}
+        </p>
+      </div>
+      <ContentGrid
+        contentActionLabel={labels.cta}
+        empty=""
+        items={items}
+        locale={locale}
+        mobileLayout="adaptive"
+        referralCode={referralCode}
+      />
+    </section>
+  );
+}
+
 function FanletterCreatorRanking({
   items,
   locale,
@@ -5530,7 +5587,9 @@ export function FanletterFeedPage({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const rankedItems = [...items].sort((a, b) => {
+  const publicItems = items.filter((item) => item.priceType === "free");
+  const fanOnlyPreviewItems = items.filter((item) => item.priceType === "paid");
+  const rankedItems = [...publicItems].sort((a, b) => {
     const scoreDelta = getContentEngagementScore(b) - getContentEngagementScore(a);
 
     if (scoreDelta !== 0) {
@@ -5542,17 +5601,17 @@ export function FanletterFeedPage({
       new Date(a.publishedAt ?? 0).getTime()
     );
   });
-  const featuredItem = rankedItems[0] ?? items[0] ?? null;
+  const featuredItem = rankedItems[0] ?? publicItems[0] ?? null;
   const featuredContentId = featuredItem?.contentId ?? null;
-  const videoCount = items.filter((item) => item.mediaType === "video").length;
-  const latestSortedItems = [...items].sort(
+  const videoCount = publicItems.filter((item) => item.mediaType === "video").length;
+  const latestSortedItems = [...publicItems].sort(
     (a, b) =>
       new Date(b.publishedAt ?? 0).getTime() -
       new Date(a.publishedAt ?? 0).getTime(),
   );
   const absoluteLatestItem = latestSortedItems[0] ?? null;
   const commentItem =
-    items.filter((item) => item.social.commentCount > 0).sort((a, b) => {
+    publicItems.filter((item) => item.social.commentCount > 0).sort((a, b) => {
       const commentDelta = b.social.commentCount - a.social.commentCount;
 
       if (commentDelta !== 0) {
@@ -5562,7 +5621,7 @@ export function FanletterFeedPage({
       return getPublishedTime(b.publishedAt) - getPublishedTime(a.publishedAt);
     })[0] ?? null;
   const savedItem =
-    items.filter((item) => item.social.saveCount > 0).sort((a, b) => {
+    publicItems.filter((item) => item.social.saveCount > 0).sort((a, b) => {
       const saveDelta = b.social.saveCount - a.social.saveCount;
 
       if (saveDelta !== 0) {
@@ -5571,7 +5630,7 @@ export function FanletterFeedPage({
 
       return getPublishedTime(b.publishedAt) - getPublishedTime(a.publishedAt);
     })[0] ?? null;
-  const videoItems = items
+  const videoItems = publicItems
     .filter(
       (item) =>
         item.mediaType === "video" && item.contentId !== featuredContentId,
@@ -5588,18 +5647,18 @@ export function FanletterFeedPage({
     ...curatedContentIds,
     ...latestItems.map((item) => item.contentId),
   ]);
-  const remainingItems = items.filter(
+  const remainingItems = publicItems.filter(
     (item) => !highlightedContentIds.has(item.contentId),
   );
   const creatorItems = Array.from(
     new Map(
-      items.map((item) => [
+      publicItems.map((item) => [
         item.authorReferralCode ?? item.authorName,
         item,
       ]),
     ).values(),
   ).slice(0, 6);
-  const rankedCreatorCount = getRankedCreators(items).length;
+  const rankedCreatorCount = getRankedCreators(publicItems).length;
   const hasSearchQuery = filters.query.length > 0;
   const feedStatLabels =
     locale === "ko"
@@ -5675,7 +5734,7 @@ export function FanletterFeedPage({
         ? "더 많은 공개 브이로그"
         : "More public vlogs"
       : copy.feed.allContent;
-  const showAllContentSection = items.length === 0 || remainingItems.length > 0;
+  const showAllContentSection = publicItems.length === 0 || remainingItems.length > 0;
   const sectionTabCandidates: Array<FanletterChannelSectionTabItem | null> = [
     {
       href: followingHref,
@@ -5893,7 +5952,7 @@ export function FanletterFeedPage({
           />
 
           <FanletterCreatorRanking
-            items={items}
+            items={publicItems}
             locale={locale}
             referralCode={referralCode}
           />
@@ -5918,6 +5977,11 @@ export function FanletterFeedPage({
               />
             </>
           ) : null}
+          <FanletterFeedFanOnlyPreviewStrip
+            items={fanOnlyPreviewItems}
+            locale={locale}
+            referralCode={referralCode}
+          />
           <FanletterFeedPagination
             filters={filters}
             locale={locale}

@@ -38,6 +38,7 @@ const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
 const FANLETTER_PUBLIC_FAN_REQUEST_PREVIEW_LIMIT = 5;
 const FANLETTER_FAN_ONLY_CONTENT_LIMIT = 6;
 const FANLETTER_FEED_PAGE_SIZE = 24;
+const FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT = 4;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
 const SUMMARY_LIMIT = 180;
 const TITLE_LIMIT = 96;
@@ -1165,7 +1166,7 @@ export const getFanletterFeedPageData = cache(
     const sort = isFanletterFeedSort(options?.sort) ? options.sort : "latest";
     const postsCollection = await getContentPostsCollection();
     const contentFilter = await getPublicContentFilter({
-      includeNsfw,
+      includeNsfw: false,
       locale,
       query,
     });
@@ -1238,6 +1239,40 @@ export const getFanletterFeedPageData = cache(
         );
 
         items = sortedItems.slice(offset, offset + pageSize);
+      }
+    }
+
+    if (includeNsfw && page === 1 && !query) {
+      const fanOnlyPreviewPosts = await postsCollection
+        .find(getNsfwContentFilter({ locale }))
+        .sort({
+          publishedAt: -1,
+          createdAt: -1,
+          contentId: -1,
+        })
+        .limit(FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT)
+        .toArray();
+      const visibleContentIds = new Set(items.map((item) => item.contentId));
+      const previewPosts = fanOnlyPreviewPosts.filter(
+        (post) => !visibleContentIds.has(post.contentId),
+      );
+
+      if (previewPosts.length > 0) {
+        const [profileByEmail, socialByContentId] = await Promise.all([
+          getProfilesByAuthorEmail(previewPosts),
+          getSocialByContentId(previewPosts),
+        ]);
+
+        items = [
+          ...items,
+          ...previewPosts.map((post) =>
+            toPublicContentItem({
+              post,
+              profile: profileByEmail.get(post.authorEmail),
+              social: socialByContentId.get(post.contentId),
+            }),
+          ),
+        ];
       }
     }
 
