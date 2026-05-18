@@ -82,6 +82,7 @@ function getCopy(locale: Locale) {
           feed: "피드 보기",
           fanRequests: "팬 요청 선택",
           next: "다음",
+          noBalance: "회수 가능 잔고 없음",
           paidContent: "유료 콘텐츠 관리",
           previous: "이전",
           refresh: "새로고침",
@@ -136,6 +137,7 @@ function getCopy(locale: Locale) {
           feed: "View feed",
           fanRequests: "Choose fan request",
           next: "Next",
+          noBalance: "No balance to withdraw",
           paidContent: "Paid content management",
           previous: "Previous",
           refresh: "Refresh",
@@ -638,9 +640,9 @@ export function FanletterSalesPage({
     if (connection.isDisconnected || connectionStatus !== "connected" || !accountAddress) {
       return (
         <MessagePanel>
-          {copy.connectRequired}
+          <p>{copy.connectRequired}</p>
           <Link
-            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
+            className="mt-4 flex h-11 w-fit items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
             href={connectHref}
           >
             <WalletCards className="size-4" />
@@ -657,9 +659,9 @@ export function FanletterSalesPage({
     if (signupRequired) {
       return (
         <MessagePanel tone="error">
-          {state.error || copy.paymentRequired}
+          <p>{state.error || copy.paymentRequired}</p>
           <Link
-            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
+            className="mt-4 flex h-11 w-fit items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
             href={activateHref}
           >
             <ShieldCheck className="size-4" />
@@ -686,13 +688,16 @@ export function FanletterSalesPage({
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
             <Link
-              className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08]"
+              className="inline-flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08]"
               href={returnToHref}
               title={backLabel}
             >
               <ArrowLeft className="size-5" />
             </Link>
-            <Link className="flex min-w-0 items-center gap-2" href={homeHref}>
+            <Link
+              className="flex min-h-[44px] min-w-0 items-center gap-2 rounded-full px-1"
+              href={homeHref}
+            >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
               </span>
@@ -706,11 +711,12 @@ export function FanletterSalesPage({
                 locale={locale}
               />
               <FanletterAccountStatusLink
+                className="min-h-[44px]"
                 locale={locale}
                 referralCode={referralCode}
               />
               <button
-                className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08] disabled:opacity-50"
+                className="inline-flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08] disabled:opacity-50"
                 disabled={isInitialLoading}
                 onClick={() => {
                   void loadSales();
@@ -798,40 +804,43 @@ export function FanletterSalesPage({
         </div>
       </section>
 
-      <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
+      <section className="bg-[#f6f8f4] px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(17rem,23rem)_minmax(0,1fr)] lg:items-start">
-          <WalletPanel
-            accountAddress={accountAddress}
-            balanceLabel={balanceLabel}
-            canCreateWallet={canUseWorkspace && !hasSellerWallet}
-            canWithdraw={canUseWorkspace && hasWithdrawableBalance}
-            copied={copied}
-            copy={copy}
-            isCreatingWallet={isCreatingWallet}
-            isWalletUnlocked={walletUnlock.isUnlocked}
-            isWithdrawing={isWithdrawing}
-            onCopy={() => {
-              void copySellerWallet();
-            }}
-            onCreateWallet={() => {
-              void createSellerWallet();
-            }}
-            onWithdraw={() => {
-              void withdrawBalance();
-            }}
-            unlockHref={walletUnlock.unlockHref}
-            unlockLabel={walletUnlock.copy.unlockAction || copy.actions.unlock}
-            walletAddress={dashboard?.sellerWalletAddress ?? null}
-          />
+          <div className="order-2 lg:order-1">
+            <WalletPanel
+              accountAddress={accountAddress}
+              balanceLabel={balanceLabel}
+              canCreateWallet={canUseWorkspace && !hasSellerWallet}
+              canWithdraw={canUseWorkspace && hasWithdrawableBalance}
+              copied={copied}
+              copy={copy}
+              hasWithdrawableBalance={hasWithdrawableBalance}
+              isCreatingWallet={isCreatingWallet}
+              isWalletUnlocked={walletUnlock.isUnlocked}
+              isWithdrawing={isWithdrawing}
+              onCopy={() => {
+                void copySellerWallet();
+              }}
+              onCreateWallet={() => {
+                void createSellerWallet();
+              }}
+              onWithdraw={() => {
+                void withdrawBalance();
+              }}
+              unlockHref={walletUnlock.unlockHref}
+              unlockLabel={walletUnlock.copy.unlockAction || copy.actions.unlock}
+              walletAddress={dashboard?.sellerWalletAddress ?? null}
+            />
+          </div>
 
-          <div className="min-w-0">
+          <div className="order-1 min-w-0 lg:order-2">
             <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
                     {copy.labels.sales}
                   </p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-normal">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
                     {copy.labels.history}
                   </h2>
                   {pageInfo ? (
@@ -883,7 +892,7 @@ export function FanletterSalesPage({
                     {copy.emptyPaidUpload}
                   </p>
                   <Link
-                    className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
+                    className="mt-4 flex h-11 w-fit items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
                     href={fanRequestsHref}
                   >
                     <Upload className="size-4" />
@@ -911,7 +920,7 @@ export function FanletterSalesPage({
                     <div className="flex flex-wrap gap-2">
                       {pageInfo.hasPreviousPage ? (
                         <Link
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
                           href={buildSalesHref({
                             page: pageInfo.page - 1,
                           })}
@@ -922,7 +931,7 @@ export function FanletterSalesPage({
                       ) : null}
                       {pageInfo.hasNextPage ? (
                         <Link
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
                           href={buildSalesHref({
                             page: pageInfo.page + 1,
                           })}
@@ -975,6 +984,7 @@ function WalletPanel({
   canWithdraw,
   copied,
   copy,
+  hasWithdrawableBalance,
   isCreatingWallet,
   isWalletUnlocked,
   isWithdrawing,
@@ -991,6 +1001,7 @@ function WalletPanel({
   canWithdraw: boolean;
   copied: boolean;
   copy: ReturnType<typeof getCopy>;
+  hasWithdrawableBalance: boolean;
   isCreatingWallet: boolean;
   isWalletUnlocked: boolean;
   isWithdrawing: boolean;
@@ -1001,6 +1012,10 @@ function WalletPanel({
   unlockLabel: string;
   walletAddress: string | null;
 }) {
+  const withdrawButtonLabel = !hasWithdrawableBalance
+    ? copy.actions.noBalance
+    : copy.actions.withdraw;
+
   return (
     <aside className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:sticky lg:top-6">
       <div className="flex items-start justify-between gap-4">
@@ -1026,7 +1041,7 @@ function WalletPanel({
             {walletAddress}
           </p>
           <button
-            className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white/70"
+            className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white/70"
             onClick={onCopy}
             type="button"
           >
@@ -1047,20 +1062,23 @@ function WalletPanel({
       </div>
 
       <div className="mt-5 grid gap-2">
-        <button
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:cursor-not-allowed disabled:bg-black/[0.04] disabled:text-black/42"
-          disabled={!canCreateWallet || isCreatingWallet}
-          onClick={onCreateWallet}
-          type="button"
-        >
-          {isCreatingWallet ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <WalletMinimal className="size-4" />
-          )}
-          {isCreatingWallet ? copy.actions.creatingWallet : copy.actions.createWallet}
-        </button>
-        {!isWalletUnlocked && canWithdraw ? (
+        {!walletAddress ? (
+          <button
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:cursor-not-allowed disabled:bg-black/[0.04] disabled:text-black/42"
+            disabled={!canCreateWallet || isCreatingWallet}
+            onClick={onCreateWallet}
+            type="button"
+          >
+            {isCreatingWallet ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <WalletMinimal className="size-4" />
+            )}
+            {isCreatingWallet
+              ? copy.actions.creatingWallet
+              : copy.actions.createWallet}
+          </button>
+        ) : !isWalletUnlocked && canWithdraw ? (
           <WalletUnlockAction
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
             href={unlockHref}
@@ -1079,7 +1097,7 @@ function WalletPanel({
             ) : (
               <Coins className="size-4" />
             )}
-            {isWithdrawing ? copy.actions.withdrawing : copy.actions.withdraw}
+            {isWithdrawing ? copy.actions.withdrawing : withdrawButtonLabel}
           </button>
         )}
       </div>
@@ -1130,10 +1148,10 @@ function SaleHistoryCard({
         <h3 className="mt-3 text-xl font-semibold leading-tight tracking-normal text-black">
           {sale.contentTitle}
         </h3>
-        <div className="mt-3 grid gap-2 text-sm font-medium leading-6 text-black/58 sm:grid-cols-2">
-          <p>
+        <div className="mt-3 grid min-w-0 gap-2 text-sm font-medium leading-6 text-black/58 sm:grid-cols-2">
+          <p className="min-w-0 break-words">
             <span className="font-semibold text-black">{copy.labels.buyer}</span>{" "}
-            {sale.buyerEmail}
+            <span className="break-all">{sale.buyerEmail}</span>
           </p>
           <p>{formatDateTime(sale.verifiedAt ?? sale.createdAt, locale)}</p>
         </div>
