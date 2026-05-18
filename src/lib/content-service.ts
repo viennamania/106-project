@@ -562,6 +562,32 @@ function validateContentMaturityPolicy({
   }
 }
 
+const contentPostUpdateContentFields = [
+  "body",
+  "contentImageUrls",
+  "contentMaturityRating",
+  "contentVideoUrls",
+  "coverImageUrl",
+  "fanRequestId",
+  "locale",
+  "previewAssetIds",
+  "previewText",
+  "priceType",
+  "priceUsdt",
+  "status",
+  "summary",
+  "tags",
+  "title",
+] as const;
+
+function isContentMaturityOnlyUpdate(input: ContentPostUpdateRequest) {
+  return contentPostUpdateContentFields.every((field) => {
+    const hasField = Object.prototype.hasOwnProperty.call(input, field);
+
+    return field === "contentMaturityRating" ? hasField : !hasField;
+  });
+}
+
 function resolveContentPriceUsdt(priceType: ContentPriceType) {
   return priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null;
 }
@@ -2629,6 +2655,7 @@ export async function updateContentPostForMember(
     input.coverImageUrl !== undefined
       ? normalizeOptionalText(input.coverImageUrl, 500)
       : post.coverImageUrl ?? null;
+  const isMaturityOnlyUpdate = isContentMaturityOnlyUpdate(input);
 
   if (
     nextStatus === "published" &&
@@ -2651,7 +2678,11 @@ export async function updateContentPostForMember(
     });
   }
 
-  if (nextPriceType === "paid" && nextStatus !== "archived") {
+  if (
+    nextPriceType === "paid" &&
+    nextStatus !== "archived" &&
+    !isMaturityOnlyUpdate
+  ) {
     await resolveFanRequestForPaidContent({
       contentId: post.contentId,
       fanRequestId: input.fanRequestId ?? post.fanRequestId,
@@ -2733,7 +2764,9 @@ export async function updateContentPostForMember(
     throw new Error("Content not found.");
   }
 
-  await syncPaidContentFanRequestStatus({ member, post: nextPost });
+  if (!isMaturityOnlyUpdate) {
+    await syncPaidContentFanRequestStatus({ member, post: nextPost });
+  }
 
   if (post.status !== "published" && nextPost.status === "published") {
     await recordCreatorCharacterTimelineEventForMember(
