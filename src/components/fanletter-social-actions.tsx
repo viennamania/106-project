@@ -229,6 +229,7 @@ export function FanletterSocialActions({
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
   const isPanel = variant === "panel";
+  const isOwnerPanel = isPanel && isOwnContent;
 
   useEffect(() => {
     setSocial(initialSocial);
@@ -677,20 +678,35 @@ export function FanletterSocialActions({
   return (
     <section
       className={cn(
-        "mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6",
+        "mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)]",
+        isOwnerPanel ? "p-4 sm:p-5" : "p-5 sm:p-6",
         className,
       )}
       id="fanletter-comments"
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
             {copy.commentsEyebrow}
           </p>
-          <h2 className="mt-3 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.45rem]">
+          <h2
+            className={cn(
+              "mt-3 font-semibold leading-[1.05] tracking-normal [word-break:keep-all]",
+              isOwnerPanel
+                ? "text-2xl sm:text-[2rem]"
+                : "text-[1.65rem] sm:text-[2.45rem]",
+            )}
+          >
             {copy.commentsTitle}
           </h2>
-          <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+          <p
+            className={cn(
+              "mt-3 font-medium text-white/62",
+              isOwnerPanel
+                ? "text-sm leading-6"
+                : "text-sm leading-6 sm:text-base sm:leading-7",
+            )}
+          >
             {commentsHelper}
           </p>
         </div>
@@ -709,7 +725,13 @@ export function FanletterSocialActions({
         </button>
       </div>
 
-      <div className="mt-6 grid gap-2 sm:grid-cols-4">
+      <div
+        className={cn(
+          isOwnerPanel
+            ? "mt-4 grid grid-cols-2 gap-2"
+            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4",
+        )}
+      >
         <button
           className={cn(
             actionButtonClassName,
@@ -783,7 +805,12 @@ export function FanletterSocialActions({
         </p>
       ) : null}
 
-      <div className="mt-5 rounded-lg border border-white/10 bg-black/22 p-3 sm:p-4">
+      <div
+        className={cn(
+          "rounded-lg border border-white/10 bg-black/22 p-3 sm:p-4",
+          isOwnerPanel ? "mt-4" : "mt-5",
+        )}
+      >
         {social.commentCount > 0 ? (
           <div className="mb-3 flex flex-col gap-1 text-xs font-semibold text-white/42 sm:flex-row sm:items-center sm:justify-between">
             <p>{copy.showingComments(comments.length, social.commentCount)}</p>
@@ -806,7 +833,12 @@ export function FanletterSocialActions({
             {commentsError}
           </div>
         ) : comments.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-white/12 bg-white/[0.035] px-4 py-8 text-center text-sm font-medium text-white/48">
+          <div
+            className={cn(
+              "rounded-lg border border-dashed border-white/12 bg-white/[0.035] px-4 text-center text-sm font-medium text-white/48",
+              isOwnerPanel ? "py-5" : "py-6 sm:py-8",
+            )}
+          >
             {copy.noComments}
           </div>
         ) : (

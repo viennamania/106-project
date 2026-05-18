@@ -1152,6 +1152,7 @@ function MediaCard({
   alt,
   blurred = false,
   controls = true,
+  eager = false,
   imageUrl,
   mediaType,
   title,
@@ -1160,6 +1161,7 @@ function MediaCard({
   alt: string;
   blurred?: boolean;
   controls?: boolean;
+  eager?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
   title: string;
@@ -1197,6 +1199,7 @@ function MediaCard({
               : "object-cover"
           }
           fill
+          loading={eager ? "eager" : undefined}
           sizes="(max-width: 768px) 100vw, 50vw"
           src={imageUrl}
         />
@@ -4757,18 +4760,6 @@ function FanletterContentNextActions({
           icon: Rocket,
           title: labels.ownerCreateTitle,
         },
-        {
-          body: labels.channelBody,
-          href: channelHref,
-          icon: User,
-          title: labels.channelTitle,
-        },
-        {
-          body: labels.feedBody,
-          href: feedHref,
-          icon: Grid2X2,
-          title: labels.feedTitle,
-        },
       ]
     : [
         {
@@ -5024,9 +5015,9 @@ function FanletterOwnerContentPanel({
             </div>
           </div>
         </div>
-        <div className="grid gap-2 sm:grid-cols-3 lg:w-72 lg:grid-cols-1">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:w-72 lg:grid-cols-1">
           <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:col-span-1"
             href={manageHref}
           >
             {labels.manage}
@@ -5046,10 +5037,10 @@ function FanletterOwnerContentPanel({
           </Link>
         </div>
       </div>
-      <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {ownerStats.map(({ Icon, label, value }) => (
           <div
-            className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-3"
+            className="flex min-w-0 flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             key={label}
           >
             <div className="flex min-w-0 items-center gap-2">
@@ -5060,7 +5051,7 @@ function FanletterOwnerContentPanel({
                 {label}
               </span>
             </div>
-            <span className="min-w-0 truncate text-sm font-semibold text-white">
+            <span className="min-w-0 truncate text-sm font-semibold text-white sm:text-right">
               {value}
             </span>
           </div>
@@ -9200,7 +9191,7 @@ export function FanletterContentDetailPage({
   const shouldShowFanRequestPrompt = canRequestFollowUpScene;
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <section className="px-4 pb-8 pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
@@ -9239,11 +9230,11 @@ export function FanletterContentDetailPage({
             </div>
           </header>
 
-          <div className="mt-4 flex lg:hidden">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+          <div className="mt-3 flex lg:hidden">
+            <FanletterGlobalLanguageSwitcher compact tight locale={locale} />
           </div>
 
-          <div className="pt-5 lg:hidden">
+          <div className="pt-4 lg:hidden">
             <Link
               className="inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
               href={creatorHref}
@@ -9285,10 +9276,10 @@ export function FanletterContentDetailPage({
               ) : null}
             </div>
 
-            <h1 className="mt-4 break-words text-[2rem] font-semibold leading-[1.04] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all]">
+            <h1 className="mt-3 line-clamp-3 break-words text-[1.62rem] font-semibold leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all]">
               {content.title}
             </h1>
-            <p className="mt-3 line-clamp-2 break-words text-sm font-medium leading-6 text-white/64 [overflow-wrap:anywhere]">
+            <p className="mt-2 line-clamp-1 break-words text-sm font-medium leading-5 text-white/64 [overflow-wrap:anywhere]">
               {content.summary}
             </p>
 
@@ -9306,12 +9297,13 @@ export function FanletterContentDetailPage({
             />
           </div>
 
-          <div className="grid gap-4 pt-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
+          <div className="grid gap-4 pt-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
             <section className="overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6">
-              <div className="relative h-[52svh] min-h-[20rem] max-h-[28rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
+              <div className="relative h-[44svh] min-h-[18rem] max-h-[24rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
                 <MediaCard
                   alt={content.title}
                   blurred={shouldBlurDetailMedia}
+                  eager
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
                   title={content.title}
@@ -9444,6 +9436,17 @@ export function FanletterContentDetailPage({
                 </div>
               ) : null}
 
+              {isOwnContent ? (
+                <FanletterOwnerContentPanel
+                  channelHref={creatorHref}
+                  className="mt-6"
+                  content={content}
+                  createHref={createHref}
+                  locale={locale}
+                  manageHref={ownerManageHref}
+                />
+              ) : null}
+
               <FanletterSocialActions
                 contentId={content.contentId}
                 initialSocial={content.social}
@@ -9485,17 +9488,6 @@ export function FanletterContentDetailPage({
                     {displayContentBody}
                   </p>
                 </section>
-              ) : null}
-
-              {isOwnContent ? (
-                <FanletterOwnerContentPanel
-                  channelHref={creatorHref}
-                  className="mt-6"
-                  content={content}
-                  createHref={createHref}
-                  locale={locale}
-                  manageHref={ownerManageHref}
-                />
               ) : null}
 
               <FanletterCharacterMiniCard
