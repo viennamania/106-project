@@ -9,15 +9,69 @@ type FanletterHeroSlide = {
   videoUrl: string;
 };
 
-const SLIDE_INTERVAL_MS = 7000;
+type HeroSlidesOptions = {
+  maxSlides?: number;
+  randomizeOnMount?: boolean;
+};
 
-function useHeroSlides(slides: FanletterHeroSlide[]) {
+const SLIDE_INTERVAL_MS = 7000;
+const DEFAULT_MAX_SLIDES = 3;
+const MOBILE_BACKGROUND_MAX_SLIDES = 5;
+
+function getRandomSlideIndex(length: number) {
+  if (length < 2) {
+    return 0;
+  }
+
+  const cryptoApi = globalThis.crypto;
+
+  if (cryptoApi) {
+    const values = new Uint32Array(1);
+    cryptoApi.getRandomValues(values);
+
+    return values[0] % length;
+  }
+
+  return Math.floor(Math.random() * length);
+}
+
+function useHeroSlides(
+  slides: FanletterHeroSlide[],
+  options: HeroSlidesOptions = {},
+) {
+  const {
+    maxSlides = DEFAULT_MAX_SLIDES,
+    randomizeOnMount = false,
+  } = options;
   const playableSlides = useMemo(
-    () => slides.filter((slide) => slide.videoUrl.trim().length > 0).slice(0, 3),
-    [slides],
+    () =>
+      slides
+        .filter((slide) => slide.videoUrl.trim().length > 0)
+        .slice(0, maxSlides),
+    [maxSlides, slides],
+  );
+  const slideSignature = useMemo(
+    () => playableSlides.map((slide) => slide.videoUrl).join("|"),
+    [playableSlides],
   );
   const [activeIndex, setActiveIndex] = useState(0);
   const [canAutoAdvance, setCanAutoAdvance] = useState(false);
+  const resolvedActiveIndex =
+    playableSlides.length > 0 ? activeIndex % playableSlides.length : 0;
+
+  useEffect(() => {
+    if (!randomizeOnMount || playableSlides.length < 2) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setActiveIndex(getRandomSlideIndex(playableSlides.length));
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [playableSlides.length, randomizeOnMount, slideSignature]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -48,18 +102,26 @@ function useHeroSlides(slides: FanletterHeroSlide[]) {
   }, [canAutoAdvance, playableSlides.length]);
 
   return {
-    activeIndex,
-    activeSlide: playableSlides[activeIndex] ?? playableSlides[0] ?? null,
+    activeIndex: resolvedActiveIndex,
+    activeSlide:
+      playableSlides[resolvedActiveIndex] ?? playableSlides[0] ?? null,
     playableSlides,
   };
 }
 
 export function FanletterHeroBackgroundCarousel({
+  randomizeOnMount = false,
+  showMobilePreviews = false,
   slides,
 }: {
+  randomizeOnMount?: boolean;
+  showMobilePreviews?: boolean;
   slides: FanletterHeroSlide[];
 }) {
-  const { activeSlide, playableSlides } = useHeroSlides(slides);
+  const { activeIndex, activeSlide, playableSlides } = useHeroSlides(slides, {
+    maxSlides: MOBILE_BACKGROUND_MAX_SLIDES,
+    randomizeOnMount,
+  });
 
   if (playableSlides.length === 0) {
     return null;
@@ -79,6 +141,28 @@ export function FanletterHeroBackgroundCarousel({
         preload="metadata"
         src={activeSlide.videoUrl}
       />
+      {showMobilePreviews && playableSlides.length > 1 ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-3 top-[calc(env(safe-area-inset-top)+14.5rem)] z-[2] flex flex-col gap-1.5 sm:hidden"
+        >
+          {playableSlides.slice(0, 4).map((slide, index) => (
+            <span
+              className={`block size-10 overflow-hidden rounded-lg border bg-[#07100b] bg-cover bg-center shadow-[0_10px_26px_rgba(0,0,0,0.36)] transition ${
+                index === activeIndex
+                  ? "border-[#44f26e] opacity-100 ring-2 ring-[#44f26e]/26"
+                  : "border-white/18 opacity-58"
+              }`}
+              key={`${slide.videoUrl}:${index}`}
+              style={
+                slide.coverImageUrl
+                  ? { backgroundImage: `url(${slide.coverImageUrl})` }
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

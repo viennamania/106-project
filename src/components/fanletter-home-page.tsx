@@ -1323,13 +1323,14 @@ export function FanletterHomePage({
     { returnTo: onboardingHref },
   );
   const heroVideo = featuredVideos[0] ?? null;
-  const heroSlides = featuredVideos.slice(0, 3).map((video) => ({
+  const heroSlides = featuredVideos.slice(0, 5).map((video) => ({
     authorName: video.authorName,
     coverImageUrl: video.coverImageUrl,
     title: video.title,
     videoUrl: video.videoUrl,
   }));
-  const heroBackgroundSlides = heroSlides.slice(0, 1);
+  const heroBackgroundSlides = heroSlides;
+  const desktopHeroSlides = heroSlides.slice(0, 3);
   const hasHeroVideoSlides = heroBackgroundSlides.some((slide) =>
     slide.videoUrl.trim(),
   );
@@ -1580,7 +1581,11 @@ export function FanletterHomePage({
             }}
           />
         ) : null}
-        <FanletterHeroBackgroundCarousel slides={heroBackgroundSlides} />
+        <FanletterHeroBackgroundCarousel
+          randomizeOnMount
+          showMobilePreviews
+          slides={heroBackgroundSlides}
+        />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.1)_0%,rgba(3,5,4,0.18)_30%,rgba(3,5,4,0.72)_54%,rgba(3,5,4,0.96)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.62)_0%,rgba(3,5,4,0.24)_44%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)] lg:block" />
@@ -1753,8 +1758,8 @@ export function FanletterHomePage({
             </ScrollReveal>
 
             <div className="hidden lg:flex min-w-0 flex-col gap-3">
-              {heroSlides.length > 0 ? (
-                <FanletterDesktopHeroCardCarousel slides={heroSlides} />
+              {desktopHeroSlides.length > 0 ? (
+                <FanletterDesktopHeroCardCarousel slides={desktopHeroSlides} />
               ) : (
                 <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-white/14 bg-[radial-gradient(circle_at_50%_8%,rgba(68,242,110,0.16),transparent_34%),linear-gradient(180deg,#07160d_0%,#030504_100%)] p-5 shadow-[0_34px_90px_rgba(0,0,0,0.42)]">
                   <div className="flex h-full flex-col justify-between">
