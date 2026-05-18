@@ -64,6 +64,12 @@ const EMPTY_SUMMARY = {
   free: 0,
   paid: 0,
   published: 0,
+  statusFilters: {
+    all: 0,
+    archived: 0,
+    draft: 0,
+    published: 0,
+  },
 };
 
 function resolveManagerPostPreviewImage(

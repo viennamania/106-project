@@ -937,6 +937,12 @@ export type CreatorStudioPostsResponse = {
     free: number;
     paid: number;
     published: number;
+    statusFilters: {
+      all: number;
+      archived: number;
+      draft: number;
+      published: number;
+    };
   };
 };
 

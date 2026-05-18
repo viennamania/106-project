@@ -138,6 +138,12 @@ type StudioState = {
     free: number;
     paid: number;
     published: number;
+    statusFilters: {
+      all: number;
+      archived: number;
+      draft: number;
+      published: number;
+    };
   };
   status: "idle" | "loading" | "ready" | "error";
 };
@@ -327,6 +333,12 @@ const EMPTY_STUDIO_SUMMARY = {
   free: 0,
   paid: 0,
   published: 0,
+  statusFilters: {
+    all: 0,
+    archived: 0,
+    draft: 0,
+    published: 0,
+  },
 };
 const GENERATED_CONTENT_IMAGE_LIMIT = 5;
 const SERVER_BODY_REQUIRED_ERROR = "body is required.";

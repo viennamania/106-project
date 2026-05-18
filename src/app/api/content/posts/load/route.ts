@@ -19,6 +19,12 @@ const EMPTY_SUMMARY: CreatorStudioPostsLoadResponse["summary"] = {
   free: 0,
   paid: 0,
   published: 0,
+  statusFilters: {
+    all: 0,
+    archived: 0,
+    draft: 0,
+    published: 0,
+  },
 };
 
 type CreatorStudioPostsLoadRequest = SyncMemberRequest & {

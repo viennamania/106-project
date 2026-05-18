@@ -75,6 +75,12 @@ const EMPTY_SUMMARY: CreatorStudioPostsResponse["summary"] = {
   free: 0,
   paid: 0,
   published: 0,
+  statusFilters: {
+    all: 0,
+    archived: 0,
+    draft: 0,
+    published: 0,
+  },
 };
 
 function getCopy(locale: Locale) {
@@ -87,9 +93,10 @@ function getCopy(locale: Locale) {
           connect: "계정 연결",
           create: "새 브이로그 만들기",
           detail: "상세 보기",
+          fanRequests: "팬 요청 선택",
           feed: "피드 보기",
           next: "다음",
-          paidUpload: "유료 업로드",
+          paidUpload: "팬 요청 답장 업로드",
           previous: "이전",
           publish: "공개",
           refresh: "새로고침",
@@ -101,6 +108,12 @@ function getCopy(locale: Locale) {
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
         emptyTitle: "첫 브이로그를 만들 시간입니다.",
+        emptyFreeBody:
+          "피드에서 팬 유입을 만들 무료 공개 브이로그가 아직 없습니다. 먼저 공개용 브이로그를 만들어 팬 요청으로 이어지게 해보세요.",
+        emptyFreeTitle: "무료 공개 브이로그를 준비해보세요.",
+        emptyPaidBody:
+          "유료 팬 전용 브이로그는 팬이 남긴 브이로그 요청에 답장할 때 등록합니다. 팬 요청함에서 답장할 요청을 먼저 선택하세요.",
+        emptyPaidTitle: "답장할 팬 요청을 먼저 선택하세요.",
         eyebrow: "FanLetter Vlog Manager",
         labels: {
           all: "전체",
@@ -134,9 +147,10 @@ function getCopy(locale: Locale) {
           connect: "Connect account",
           create: "Create new vlog",
           detail: "View detail",
+          fanRequests: "Choose fan request",
           feed: "View feed",
           next: "Next",
-          paidUpload: "Paid upload",
+          paidUpload: "Fan request reply upload",
           previous: "Previous",
           publish: "Publish",
           refresh: "Refresh",
@@ -148,6 +162,12 @@ function getCopy(locale: Locale) {
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
         emptyTitle: "Create your first vlog.",
+        emptyFreeBody:
+          "No free public vlogs are ready for feed discovery yet. Create a public vlog first, then use it to grow fan requests.",
+        emptyFreeTitle: "Prepare a free public vlog.",
+        emptyPaidBody:
+          "Paid fan-only vlogs are registered when you answer a fan's vlog request. Choose the request from the fan request inbox first.",
+        emptyPaidTitle: "Choose a fan request first.",
         eyebrow: "FanLetter Vlog Manager",
         labels: {
           all: "All",
@@ -320,6 +340,7 @@ export function FanletterVlogManagementPage({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const fanRequestsHref = `${studioHref}#fan-requests`;
   const managerBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/studio/vlogs`,
     referralCode,
@@ -391,10 +412,6 @@ export function FanletterVlogManagementPage({
   const currentManagerHref = useMemo(() => buildManagerHref(), [buildManagerHref]);
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
-    { returnTo: currentManagerHref },
-  );
-  const paidUploadHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
     { returnTo: currentManagerHref },
   );
   const salesHref = setPathSearchParams(
@@ -632,22 +649,22 @@ export function FanletterVlogManagementPage({
     !state.error;
   const filterItems = [
     {
-      count: state.summary.all,
+      count: state.summary.statusFilters.all,
       key: "all" as const,
       label: copy.labels.all,
     },
     {
-      count: state.summary.published,
+      count: state.summary.statusFilters.published,
       key: "published" as const,
       label: copy.labels.published,
     },
     {
-      count: state.summary.draft,
+      count: state.summary.statusFilters.draft,
       key: "draft" as const,
       label: copy.labels.draft,
     },
     {
-      count: state.summary.archived,
+      count: state.summary.statusFilters.archived,
       key: "archived" as const,
       label: copy.labels.archived,
     },
@@ -670,10 +687,10 @@ export function FanletterVlogManagementPage({
     },
   ];
   const heroPrimaryHref =
-    appliedPrice === "paid" ? paidUploadHref : createHref;
+    appliedPrice === "paid" ? fanRequestsHref : createHref;
   const heroPrimaryIcon = appliedPrice === "paid" ? LockKeyhole : Plus;
   const heroPrimaryLabel =
-    appliedPrice === "paid" ? copy.actions.paidUpload : copy.actions.create;
+    appliedPrice === "paid" ? copy.actions.fanRequests : copy.actions.create;
   const heroSecondaryHref =
     appliedPrice === "paid" ? salesHref : feedHref;
   const heroSecondaryIcon = appliedPrice === "paid" ? Coins : Eye;
@@ -684,8 +701,8 @@ export function FanletterVlogManagementPage({
   const priceModeBody =
     appliedPrice === "paid"
       ? locale === "ko"
-        ? "유료 팬 전용 콘텐츠는 팬 요청 답장, 결제 열람, 판매 내역을 함께 관리합니다."
-        : "Paid fan-only content is managed around fan-request replies, unlocks, and sales."
+        ? "유료 팬 전용 콘텐츠는 팬 요청을 선택한 뒤 답장 업로드로 등록하고, 결제 열람과 판매 내역을 함께 관리합니다."
+        : "Paid fan-only content starts from a selected fan request, then connects reply uploads, unlocks, and sales."
       : appliedPrice === "free"
         ? locale === "ko"
           ? "무료 공개 브이로그는 피드 유입과 팬 요청을 만드는 콘텐츠로 관리합니다."
@@ -693,6 +710,32 @@ export function FanletterVlogManagementPage({
         : locale === "ko"
           ? "무료 공개와 유료 팬 전용을 분리해서 운영 상태를 빠르게 전환합니다."
           : "Switch between free public and paid fan-only operations without mixing the workflows.";
+  const hasResultNarrowing = Boolean(appliedQuery || appliedStatus !== "all");
+  const emptyState =
+    appliedPrice === "paid"
+      ? {
+          actionHref: fanRequestsHref,
+          actionLabel: copy.actions.fanRequests,
+          body: copy.emptyPaidBody,
+          Icon: LockKeyhole,
+          title: copy.emptyPaidTitle,
+        }
+      : appliedPrice === "free"
+        ? {
+            actionHref: createHref,
+            actionLabel: copy.actions.create,
+            body: copy.emptyFreeBody,
+            Icon: Plus,
+            title: copy.emptyFreeTitle,
+          }
+        : {
+            actionHref: createHref,
+            actionLabel: copy.actions.create,
+            body: copy.emptyBody,
+            Icon: Plus,
+            title: copy.emptyTitle,
+          };
+  const EmptyStateIcon = emptyState.Icon;
 
   function renderBlockedState() {
     if (connection.isResolving) {
@@ -1054,14 +1097,21 @@ export function FanletterVlogManagementPage({
             ) : state.posts.length === 0 ? (
               <div className="mt-5">
                 <MessagePanel>
-                  {appliedQuery || appliedStatus !== "all" ? (
+                  {hasResultNarrowing ? (
                     copy.noMatching
                   ) : (
                     <>
                       <span className="block text-lg font-semibold">
-                        {copy.emptyTitle}
+                        {emptyState.title}
                       </span>
-                      <span className="mt-2 block">{copy.emptyBody}</span>
+                      <span className="mt-2 block">{emptyState.body}</span>
+                      <Link
+                        className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
+                        href={emptyState.actionHref}
+                      >
+                        <EmptyStateIcon className="size-4" />
+                        {emptyState.actionLabel}
+                      </Link>
                     </>
                   )}
                 </MessagePanel>

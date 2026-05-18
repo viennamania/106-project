@@ -2263,6 +2263,12 @@ export async function getCreatorStudioPostsForMember(
     free: 0,
     paid: 0,
     published: 0,
+    statusFilters: {
+      all: 0,
+      archived: 0,
+      draft: 0,
+      published: 0,
+    },
   };
   const priceSummaryCounts = await postsCollection
     .aggregate<{ _id: string; count: number }>([
@@ -2272,6 +2278,24 @@ export async function getCreatorStudioPostsForMember(
       {
         $group: {
           _id: "$priceType",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+  const statusFilterCounts = await postsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: buildCreatorStudioPostsFilter(member.email, {
+          media: options?.media,
+          priceType: options?.priceType,
+          query: options?.query,
+          status: "all",
+        }),
+      },
+      {
+        $group: {
+          _id: "$status",
           count: { $sum: 1 },
         },
       },
@@ -2296,6 +2320,18 @@ export async function getCreatorStudioPostsForMember(
     } else {
       summary.free += item.count;
     }
+  }
+
+  for (const item of statusFilterCounts) {
+    if (item._id === "archived") {
+      summary.statusFilters.archived = item.count;
+    } else if (item._id === "draft") {
+      summary.statusFilters.draft = item.count;
+    } else if (item._id === "published") {
+      summary.statusFilters.published = item.count;
+    }
+
+    summary.statusFilters.all += item.count;
   }
 
   const usingPagination = Boolean(
