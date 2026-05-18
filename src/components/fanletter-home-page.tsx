@@ -1329,6 +1329,10 @@ export function FanletterHomePage({
     title: video.title,
     videoUrl: video.videoUrl,
   }));
+  const heroBackgroundSlides = heroSlides.slice(0, 1);
+  const hasHeroVideoSlides = heroBackgroundSlides.some((slide) =>
+    slide.videoUrl.trim(),
+  );
   const heroStats = [
     {
       format: "compact" as const,
@@ -1566,16 +1570,18 @@ export function FanletterHomePage({
   return (
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="relative min-h-[100svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.44] lg:opacity-[0.28]"
-          style={{
-            backgroundImage: heroVideo?.coverImageUrl
-              ? `url(${heroVideo.coverImageUrl})`
-              : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
-          }}
-        />
-        <FanletterHeroBackgroundCarousel slides={heroSlides} />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.14)_0%,rgba(3,5,4,0.16)_26%,rgba(3,5,4,0.88)_38%,rgba(3,5,4,0.98)_58%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
+        {!hasHeroVideoSlides ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-[0.44] lg:opacity-[0.28]"
+            style={{
+              backgroundImage: heroVideo?.coverImageUrl
+                ? `url(${heroVideo.coverImageUrl})`
+                : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
+            }}
+          />
+        ) : null}
+        <FanletterHeroBackgroundCarousel slides={heroBackgroundSlides} />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.1)_0%,rgba(3,5,4,0.18)_30%,rgba(3,5,4,0.72)_54%,rgba(3,5,4,0.96)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.62)_0%,rgba(3,5,4,0.24)_44%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)] lg:block" />
 

@@ -66,11 +66,11 @@ export function FanletterHeroBackgroundCarousel({
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 overflow-hidden">
       <video
         aria-hidden="true"
         autoPlay
-        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-[0.94] brightness-[0.96] contrast-[1.06] saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
+        className="absolute inset-0 h-full w-full object-contain object-center opacity-[0.92] brightness-[0.98] contrast-[1.04] saturate-[1.12] sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
         key={activeSlide.videoUrl}
         loop
         muted
