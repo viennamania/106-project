@@ -113,6 +113,8 @@ function getCopy(locale: Locale) {
           search: "검색",
           sales: "판매 내역",
           unmarkNsfw: "NSFW 해제",
+          viewAllMaturity: "전체 수위 보기",
+          viewNsfw: "NSFW만 보기",
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
@@ -150,6 +152,10 @@ function getCopy(locale: Locale) {
           "NSFW는 팬 요청에 답장한 직접 업로드 유료 영상에서만 켤 수 있습니다. 무료 공개와 AI 생성 영상은 일반 콘텐츠로 유지됩니다.",
         nsfwNoticeOff: "일반 콘텐츠로 전환했습니다.",
         nsfwNoticeOn: "NSFW 콘텐츠로 표시했습니다.",
+        nsfwShortcutActiveBody:
+          "NSFW 필터가 적용되어 있습니다. 전체 수위로 돌아가면 일반 콘텐츠와 함께 비교할 수 있습니다.",
+        nsfwShortcutBody:
+          "현재 페이지에 NSFW 카드가 없어도 NSFW 필터에서 전체 NSFW 콘텐츠를 모아 관리할 수 있습니다.",
         nsfwUnavailable:
           "직접 업로드한 유료 팬 전용 영상만 NSFW로 전환할 수 있습니다.",
         paymentRequired:
@@ -178,6 +184,8 @@ function getCopy(locale: Locale) {
           search: "Search",
           sales: "Sales",
           unmarkNsfw: "Clear NSFW",
+          viewAllMaturity: "View all maturity",
+          viewNsfw: "View NSFW only",
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
@@ -215,6 +223,10 @@ function getCopy(locale: Locale) {
           "NSFW can only be enabled for paid uploaded videos that answer a fan request. Free public and AI-generated videos stay general.",
         nsfwNoticeOff: "The vlog is now marked general.",
         nsfwNoticeOn: "The vlog is now marked NSFW.",
+        nsfwShortcutActiveBody:
+          "The NSFW filter is active. Return to all maturity levels to compare it with general content.",
+        nsfwShortcutBody:
+          "Even when this page has no NSFW cards, the NSFW filter keeps every NSFW item available for review.",
         nsfwUnavailable:
           "Only paid fan-only videos uploaded directly can be marked NSFW.",
         paymentRequired:
@@ -871,6 +883,21 @@ export function FanletterVlogManagementPage({
             title: copy.emptyTitle,
           };
   const EmptyStateIcon = emptyState.Icon;
+  const nsfwContentCount = state.summary.maturityFilters.nsfw;
+  const shouldShowNsfwManagementShortcut =
+    state.posts.length > 0 && nsfwContentCount > 0;
+  const nsfwManagementHref = buildManagerHref({
+    maturity: appliedMaturity === "nsfw" ? "all" : "nsfw",
+    page: 1,
+  });
+  const nsfwManagementLabel =
+    appliedMaturity === "nsfw"
+      ? copy.actions.viewAllMaturity
+      : copy.actions.viewNsfw;
+  const nsfwManagementBody =
+    appliedMaturity === "nsfw"
+      ? copy.nsfwShortcutActiveBody
+      : copy.nsfwShortcutBody;
 
   function renderBlockedState() {
     if (connection.isResolving) {
@@ -1319,6 +1346,33 @@ export function FanletterVlogManagementPage({
                     referralCode={referralCode}
                   />
                 ))}
+
+                {shouldShowNsfwManagementShortcut ? (
+                  <div className="flex flex-col gap-3 rounded-lg border border-[#e04f72]/20 bg-[#fff5f7] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 gap-3">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#2b0d16] text-white">
+                        <ShieldAlert className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-black">
+                          {copy.labels.nsfw} ·{" "}
+                          {formatNumber(nsfwContentCount, locale)}{" "}
+                          {copy.labels.results}
+                        </p>
+                        <p className="mt-1 text-sm font-medium leading-6 text-black/58">
+                          {nsfwManagementBody}
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[#2b0d16] px-4 text-sm font-semibold !text-white transition hover:bg-[#451322]"
+                      href={nsfwManagementHref}
+                    >
+                      {nsfwManagementLabel}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                ) : null}
 
                 {state.pageInfo ? (
                   <div className="flex flex-col gap-3 border-t border-black/10 pt-4 md:flex-row md:items-center md:justify-between">
