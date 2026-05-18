@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeDollarSign,
   CalendarClock,
@@ -31,8 +30,7 @@ import {
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
-import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
-import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
   ContentPostRecord,
@@ -796,6 +794,7 @@ function StatusPanel({
   locale,
   loading,
   onRetry,
+  referralCode,
   secondaryCta,
   secondaryHref,
   title,
@@ -806,17 +805,18 @@ function StatusPanel({
   locale: Locale;
   loading?: boolean;
   onRetry?: () => void;
+  referralCode: string | null;
   secondaryCta?: string;
   secondaryHref?: string;
   title: string;
 }) {
   return (
-    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-3xl items-center sm:min-h-[calc(100svh-3rem)]">
+    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <FanletterTabTopBar locale={locale} referralCode={referralCode} />
+      </div>
+      <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-3xl items-center py-6 sm:min-h-[calc(100svh-8rem)]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
-          <div className="mb-5 flex justify-end">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} />
-          </div>
           <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
             {loading ? (
               <Loader2 className="size-6 animate-spin" />
@@ -2333,6 +2333,7 @@ export function FanletterStudioPage({
         body={copy.loading}
         locale={locale}
         loading
+        referralCode={referralCode}
         title={copy.loading}
       />
     );
@@ -2345,6 +2346,7 @@ export function FanletterStudioPage({
         cta={copy.actions.connect}
         href={connectHref}
         locale={locale}
+        referralCode={referralCode}
         secondaryCta={copy.actions.feed}
         secondaryHref={feedHref}
         title={copy.connectTitle}
@@ -2359,6 +2361,7 @@ export function FanletterStudioPage({
         cta={copy.actions.connect}
         href={activateHref}
         locale={locale}
+        referralCode={referralCode}
         title={copy.paymentTitle}
       />
     );
@@ -2373,6 +2376,7 @@ export function FanletterStudioPage({
         onRetry={() => {
           void loadStudio();
         }}
+        referralCode={referralCode}
         title={copy.connectTitle}
       />
     );
@@ -2425,42 +2429,14 @@ export function FanletterStudioPage({
     <main className="min-h-screen bg-[#030504] text-white">
       <section className="border-b border-white/10 px-4 pb-6 pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex items-center justify-between gap-3">
-            <Link
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/14 bg-white/[0.06] text-white transition hover:bg-white/10"
-              href={homeHref}
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-            <Link className="flex min-w-0 items-center gap-2" href={homeHref}>
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <MessageCircleHeart className="size-5" />
-              </span>
-              <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
-              </span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <FanletterGlobalLanguageSwitcher
-                className="hidden lg:inline-flex"
-                locale={locale}
-              />
-              <FanletterAccountStatusLink
-                locale={locale}
-                referralCode={referralCode}
-              />
-              <Link
-                className="hidden h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
-                href={feedHref}
-              >
-                {copy.actions.feed}
-              </Link>
-            </div>
-          </header>
-
-          <div className="mt-4 flex lg:hidden">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} />
-          </div>
+          <FanletterTabTopBar
+            actionHref={feedHref}
+            actionLabel={copy.actions.feed}
+            backHref={homeHref}
+            homeHref={homeHref}
+            locale={locale}
+            referralCode={referralCode}
+          />
 
           <div className="grid gap-6 py-8 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-end">
             <div className="min-w-0">
