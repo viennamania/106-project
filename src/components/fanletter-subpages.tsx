@@ -4360,15 +4360,21 @@ function FanletterRelatedVlogs({
 }
 
 function FanletterFanRequestSourceCard({
+  canRequestFollowUp = true,
   channelHref,
   content,
+  followUpGateHref,
+  followUpGateLabel,
   isOwnContent = false,
   locale,
   ownerManageHref,
   requestHref,
 }: {
+  canRequestFollowUp?: boolean;
   channelHref: string;
   content: FanletterPublicContentDetail;
+  followUpGateHref?: string;
+  followUpGateLabel?: string;
   isOwnContent?: boolean;
   locale: Locale;
   ownerManageHref?: string;
@@ -4387,6 +4393,10 @@ function FanletterFanRequestSourceCard({
           cta: "이어서 볼 장면 요청",
           eyebrow: "팬 요청",
           flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
+          lockedCta: "잠금 해제 후 요청",
+          lockedFlow: ["팬 요청 접수", "브이로그 제작", "해금 후 요청"],
+          lockedResult:
+            "팬 요청을 바탕으로 제작된 브이로그입니다. 먼저 필요한 보기 권한과 잠금 해제를 완료하면 다음 장면 요청을 이어갈 수 있습니다.",
           message: "팬 메시지 기반",
           originalRequest: "원 요청 내용",
           requestedBy: "요청",
@@ -4403,6 +4413,10 @@ function FanletterFanRequestSourceCard({
           cta: "Request follow-up scene",
           eyebrow: "Fan Request",
           flow: ["Request received", "Vlog produced", "Next request open"],
+          lockedCta: "Unlock to request",
+          lockedFlow: ["Request received", "Vlog produced", "Request after unlock"],
+          lockedResult:
+            "This vlog was produced from a fan request. Complete the required viewing access and unlock before leaving a follow-up request.",
           message: "Inspired by a fan message",
           originalRequest: "Original request",
           requestedBy: "Request",
@@ -4417,6 +4431,19 @@ function FanletterFanRequestSourceCard({
   const typeLabel =
     source.requestType === "message" ? labels.message : labels.vlogRequest;
   const createdLabel = formatDate(source.createdAt, locale);
+  const isFollowUpGated = !isOwnContent && !canRequestFollowUp;
+  const primaryHref = isOwnContent
+    ? ownerManageHref ?? channelHref
+    : isFollowUpGated
+      ? followUpGateHref ?? channelHref
+      : requestHref;
+  const primaryLabel = isOwnContent
+    ? labels.ownerCta
+    : isFollowUpGated
+      ? followUpGateLabel ?? labels.lockedCta
+      : labels.cta;
+  const PrimaryIcon = isFollowUpGated ? LockKeyhole : PenLine;
+  const displayFlow = isFollowUpGated ? labels.lockedFlow : labels.flow;
 
   return (
     <section className="mt-6 rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
@@ -4437,7 +4464,11 @@ function FanletterFanRequestSourceCard({
               {labels.title}
             </h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-[#b9ffc8]">
-              {isOwnContent ? labels.ownerResult : labels.result}
+              {isOwnContent
+                ? labels.ownerResult
+                : isFollowUpGated
+                  ? labels.lockedResult
+                  : labels.result}
             </p>
             <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3">
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#8dffa5]">
@@ -4463,7 +4494,7 @@ function FanletterFanRequestSourceCard({
               ) : null}
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
-              {labels.flow.map((item, index) => (
+              {displayFlow.map((item, index) => (
                 <span
                   className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-semibold text-white/62"
                   key={item}
@@ -4480,10 +4511,10 @@ function FanletterFanRequestSourceCard({
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:w-56 lg:flex-col">
           <Link
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={isOwnContent ? ownerManageHref ?? channelHref : requestHref}
+            href={primaryHref}
           >
-            <PenLine className="size-4" />
-            {isOwnContent ? labels.ownerCta : labels.cta}
+            <PrimaryIcon className="size-4" />
+            {primaryLabel}
           </Link>
           <Link
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
@@ -9109,7 +9140,8 @@ export function FanletterContentDetailPage({
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
   const shouldShowDetailQuickActions = isOwnContent;
-  const shouldShowFanRequestPrompt = !isOwnContent && canViewerAccess;
+  const canRequestFollowUpScene = !isOwnContent && canViewerAccess;
+  const shouldShowFanRequestPrompt = canRequestFollowUpScene;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -9368,8 +9400,11 @@ export function FanletterContentDetailPage({
 
               {content.fanRequestSource ? (
                 <FanletterFanRequestSourceCard
+                  canRequestFollowUp={canRequestFollowUpScene}
                   channelHref={creatorHref}
                   content={content}
+                  followUpGateHref={detailActionHref}
+                  followUpGateLabel={detailActionLabel}
                   isOwnContent={isOwnContent}
                   locale={locale}
                   ownerManageHref={ownerManageHref}
