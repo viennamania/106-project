@@ -24,9 +24,9 @@ export function FanletterChannelSectionTabs({
     items.find((item) => item.sectionId !== null)?.id ?? items[0]?.id ?? "",
   );
   const [isMobileDocked, setIsMobileDocked] = useState(false);
-  const [navHeight, setNavHeight] = useState(0);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [navPlaceholderHeight, setNavPlaceholderHeight] = useState(0);
   const navRef = useRef<HTMLElement | null>(null);
+  const sentinelRef = useRef<HTMLSpanElement | null>(null);
   const sectionKey = useMemo(
     () =>
       items
@@ -134,39 +134,112 @@ export function FanletterChannelSectionTabs({
   }, [sectionKey, sectionTabs]);
 
   useEffect(() => {
+    const nav = navRef.current;
+
+    if (!nav) {
+      return;
+    }
+
+    function updatePlaceholderHeight() {
+      const nextNav = navRef.current;
+
+      if (!nextNav) {
+        setNavPlaceholderHeight(0);
+        return;
+      }
+
+      const navStyle = window.getComputedStyle(nextNav);
+      const marginBottom = Number.parseFloat(navStyle.marginBottom) || 0;
+      const nextHeight = Math.ceil(
+        nextNav.getBoundingClientRect().height + marginBottom,
+      );
+
+      setNavPlaceholderHeight((current) =>
+        current === nextHeight ? current : nextHeight,
+      );
+    }
+
+    updatePlaceholderHeight();
+    window.addEventListener("resize", updatePlaceholderHeight);
+
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updatePlaceholderHeight);
+
+    observer?.observe(nav);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updatePlaceholderHeight);
+    };
+  }, [sectionKey]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+
+    if (!sentinel) {
+      return;
+    }
+
+    const observedSentinel = sentinel;
     let frameId = 0;
     const mobileQuery = window.matchMedia("(max-width: 639px)");
 
-    function updateDockState() {
+    function updateDockState(sentinelTop?: number) {
+      const nextSentinelTop =
+        sentinelTop ?? observedSentinel.getBoundingClientRect().top;
+
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
-        const wrapper = wrapperRef.current;
-        const nav = navRef.current;
+        setIsMobileDocked((current) => {
+          const next = mobileQuery.matches && nextSentinelTop <= 0;
 
-        if (!wrapper || !nav) {
-          setIsMobileDocked(false);
-          return;
-        }
-
-        const nextHeight = nav.offsetHeight;
-
-        setNavHeight(nextHeight);
-        setIsMobileDocked(
-          mobileQuery.matches && wrapper.getBoundingClientRect().top <= 0,
-        );
+          return current === next ? current : next;
+        });
       });
     }
 
+    function handleMobileQueryChange() {
+      updateDockState();
+    }
+
+    function handleScroll() {
+      updateDockState();
+    }
+
     updateDockState();
-    window.addEventListener("scroll", updateDockState, { passive: true });
-    window.addEventListener("resize", updateDockState);
-    mobileQuery.addEventListener("change", updateDockState);
+
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            ([entry]) => {
+              if (!entry) {
+                updateDockState();
+                return;
+              }
+
+              updateDockState(entry.boundingClientRect.top);
+            },
+            { threshold: 0 },
+          );
+
+    observer?.observe(observedSentinel);
+
+    if (!observer) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    window.addEventListener("resize", handleMobileQueryChange);
+    mobileQuery.addEventListener("change", handleMobileQueryChange);
 
     return () => {
       window.cancelAnimationFrame(frameId);
-      window.removeEventListener("scroll", updateDockState);
-      window.removeEventListener("resize", updateDockState);
-      mobileQuery.removeEventListener("change", updateDockState);
+      observer?.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleMobileQueryChange);
+      mobileQuery.removeEventListener("change", handleMobileQueryChange);
     };
   }, []);
 
@@ -217,20 +290,24 @@ export function FanletterChannelSectionTabs({
 
   return (
     <div
-      ref={wrapperRef}
-      style={isMobileDocked ? { height: navHeight } : undefined}
+      style={
+        isMobileDocked && navPlaceholderHeight > 0
+          ? { height: navPlaceholderHeight }
+          : undefined
+      }
     >
+      <span aria-hidden="true" className="block h-px w-px" ref={sentinelRef} />
       <nav
         aria-label={ariaLabel}
         className={cn(
           isMobileDocked
-            ? "fixed inset-x-0 top-0 z-30 border-b border-[#44f26e]/18 bg-[#07100b]/94 px-3 py-2 shadow-[0_12px_28px_rgba(8,18,12,0.18)] text-white backdrop-blur"
-            : "sticky top-0 z-20 -mx-4 mb-5 border-y border-[#44f26e]/14 bg-[#07100b]/94 px-3 py-2 text-white backdrop-blur",
+            ? "fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0px)] z-30 mb-5 border-b border-[#44f26e]/18 bg-[#07100b]/94 px-3 py-2 text-white shadow-[0_12px_28px_rgba(8,18,12,0.18)] backdrop-blur"
+            : "relative z-20 -mx-4 mb-5 border-y border-[#44f26e]/14 bg-[#07100b]/94 px-3 py-2 text-white backdrop-blur",
           "sm:sticky sm:top-0 sm:z-20 sm:-mx-6 sm:mb-8 sm:border-b sm:border-black/10 sm:bg-[#f6f8f4]/94 sm:px-6 sm:py-3 sm:shadow-none lg:-mx-8 lg:px-8",
         )}
         ref={navRef}
       >
-        <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+        <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto overscroll-x-contain rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] [touch-action:pan-x_pan-y] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
           {items.map((tab) => {
             const active = tab.id === activeId;
 
@@ -243,8 +320,8 @@ export function FanletterChannelSectionTabs({
                     ? "bg-[#44f26e] !text-black shadow-[0_8px_18px_rgba(68,242,110,0.2)] sm:bg-black sm:!text-white sm:shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
                     : "bg-transparent !text-white/68 hover:bg-white/8 hover:!text-white sm:border sm:border-black/10 sm:bg-white sm:!text-black/58 sm:hover:border-[#29d85f]/60 sm:hover:!text-black",
                 )}
-                key={tab.id}
                 href={tab.href}
+                key={tab.id}
                 onClick={(event) => handleTabClick(event, tab)}
               >
                 <span className="truncate sm:hidden">
