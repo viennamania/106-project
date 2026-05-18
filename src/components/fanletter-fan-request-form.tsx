@@ -48,6 +48,7 @@ type LastSubmittedRequest = {
 
 type TemplateLoadStatus = "error" | "idle" | "loading" | "ready";
 type TemplateCategoryFilter = FanletterFanRequestTemplateCategory | "all";
+type FanletterFanRequestRecommendationMode = "paid" | "public";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -150,6 +151,40 @@ function getCopy(locale: Locale) {
         namePlaceholder: "선택 사항",
         newRequest: "다른 요청 남기기",
         note: "로그인 없이도 요청할 수 있고, 같은 요청은 중복 저장되지 않습니다.",
+        paidBodyPlaceholder:
+          "예: 팬 전용으로만 볼 수 있는 비공개 Q&A와 긴 루틴 브이로그를 보고 싶어요.",
+        paidExamples: [
+          {
+            body: "팬 질문에 더 길게 답하는 비공개 Q&A 브이로그",
+            category: "qna" as const,
+            title: "팬 전용 답장",
+          },
+          {
+            body: "공개 피드에는 짧게만 보여준 루틴의 긴 버전",
+            category: "routine" as const,
+            title: "비공개 루틴",
+          },
+          {
+            body: "다음 공개 브이로그 전에 먼저 보는 선공개 장면과 제작 노트",
+            category: "fanservice" as const,
+            title: "선공개 장면",
+          },
+          {
+            body: "팬 이름을 부르며 고마운 마음을 전하는 답장 장면",
+            category: "fanservice" as const,
+            title: "팬 감사 메시지",
+          },
+        ],
+        paidExamplesLabel: "팬 전용 추천 장면",
+        paidHelper:
+          "유료 콘텐츠와 연결된 요청은 스튜디오 요청함에 팬 전용 후속 장면으로 저장됩니다. 비공개 Q&A, 긴 루틴, 선공개처럼 결제 팬이 기대하는 맥락으로 남겨주세요.",
+        paidNote:
+          "잠금 해제 전에도 요청은 남길 수 있고, 같은 요청은 중복 저장되지 않습니다.",
+        paidRequestReady: "팬 전용 요청 문구를 수정하거나 바로 남길 수 있습니다.",
+        paidSuccessBody:
+          "제작되면 팬 전용 콘텐츠나 결제 팬 업데이트 후보로 이어질 수 있습니다.",
+        paidTemplatesHelper:
+          "팬 전용 후속 장면은 공개용보다 깊은 답장, 긴 루틴, 선공개처럼 프리미엄 맥락으로 추천됩니다.",
         requestKind: "요청 종류",
         requestPreview: "방금 보낸 요청",
         requestReceipt:
@@ -296,6 +331,40 @@ function getCopy(locale: Locale) {
         namePlaceholder: "Optional",
         newRequest: "Leave another",
         note: "You can leave a request without signing in. Duplicate requests are not saved.",
+        paidBodyPlaceholder:
+          "Example: I want a fan-only private Q&A and a longer routine vlog.",
+        paidExamples: [
+          {
+            body: "A private Q&A vlog with longer answers to fan questions",
+            category: "qna" as const,
+            title: "Fan-only reply",
+          },
+          {
+            body: "The longer version of a routine that was only teased on the public feed",
+            category: "routine" as const,
+            title: "Private routine",
+          },
+          {
+            body: "An early fan-only scene and production note before the next public vlog",
+            category: "fanservice" as const,
+            title: "Early-access scene",
+          },
+          {
+            body: "A thank-you reply moment that calls out fans by name",
+            category: "fanservice" as const,
+            title: "Fan thank-you",
+          },
+        ],
+        paidExamplesLabel: "Fan-only suggested scenes",
+        paidHelper:
+          "Requests connected to paid content are saved as fan-only follow-up ideas. Use premium contexts such as private Q&A, longer routines, or early-access scenes.",
+        paidNote:
+          "You can leave a request before unlocking. Duplicate requests are not saved.",
+        paidRequestReady: "Edit the fan-only request, or leave it now.",
+        paidSuccessBody:
+          "If produced, it can become a fan-only content candidate or an update for paying fans.",
+        paidTemplatesHelper:
+          "Fan-only follow-up ideas are suggested around deeper replies, longer routines, and early-access moments instead of public-feed scenes.",
         requestKind: "Request type",
         requestPreview: "Request just sent",
         requestReceipt:
@@ -391,6 +460,7 @@ export function FanletterFanRequestForm({
   helperOverride,
   locale,
   publicVlogsHref,
+  recommendationMode = "public",
   referralCode,
   sourceContentId,
   titleOverride,
@@ -402,6 +472,7 @@ export function FanletterFanRequestForm({
   helperOverride?: string;
   locale: Locale;
   publicVlogsHref?: string;
+  recommendationMode?: FanletterFanRequestRecommendationMode;
   referralCode?: string | null;
   sourceContentId?: string | null;
   titleOverride?: string;
@@ -471,27 +542,40 @@ export function FanletterFanRequestForm({
       };
     }
 
+    const isPaidRecommendation = recommendationMode === "paid";
+
     return {
       bodyLabel: copy.bodyLabel,
-      bodyPlaceholder: copy.bodyPlaceholder,
+      bodyPlaceholder: isPaidRecommendation
+        ? copy.paidBodyPlaceholder
+        : copy.bodyPlaceholder,
       emptyBody: copy.emptyBody,
-      examples: copy.examples,
-      examplesLabel: copy.examplesLabel,
+      examples: isPaidRecommendation ? copy.paidExamples : copy.examples,
+      examplesLabel: isPaidRecommendation
+        ? copy.paidExamplesLabel
+        : copy.examplesLabel,
       examplesStatusFallback: copy.examplesStatusFallback,
       examplesStatusLoading: copy.examplesStatusLoading,
-      helper: helperOverride ?? copy.helper,
-      note: copy.note,
+      helper:
+        helperOverride ?? (isPaidRecommendation ? copy.paidHelper : copy.helper),
+      note: isPaidRecommendation ? copy.paidNote : copy.note,
       receipt: copy.requestReceipt,
-      requestReady: copy.requestReady,
+      requestReady: isPaidRecommendation
+        ? copy.paidRequestReady
+        : copy.requestReady,
       saved: copy.saved,
       submit: copy.submit,
-      successBody: copy.successBody,
+      successBody: isPaidRecommendation
+        ? copy.paidSuccessBody
+        : copy.successBody,
       successSteps: copy.successSteps,
       successTitle: copy.successTitle,
-      templatesHelper: copy.templatesHelper,
+      templatesHelper: isPaidRecommendation
+        ? copy.paidTemplatesHelper
+        : copy.templatesHelper,
       title: titleOverride ?? copy.title,
     };
-  }, [copy, helperOverride, requestType, titleOverride]);
+  }, [copy, helperOverride, recommendationMode, requestType, titleOverride]);
   const fallbackTemplates = useMemo<FanletterFanRequestTemplateRecord[]>(
     () =>
       activeRequestCopy.examples.map((example, index) => ({
@@ -506,8 +590,22 @@ export function FanletterFanRequestForm({
       })),
     [activeRequestCopy.examples, locale, requestType],
   );
-  const displayTemplates =
-    requestTemplates.length > 0 ? requestTemplates : fallbackTemplates;
+  const displayTemplates = useMemo(() => {
+    if (requestType !== "vlog_request" || recommendationMode !== "paid") {
+      return requestTemplates.length > 0 ? requestTemplates : fallbackTemplates;
+    }
+
+    const fallbackBodies = new Set(
+      fallbackTemplates.map((template) => template.body),
+    );
+
+    return [
+      ...fallbackTemplates,
+      ...requestTemplates.filter(
+        (template) => !fallbackBodies.has(template.body),
+      ),
+    ];
+  }, [fallbackTemplates, recommendationMode, requestTemplates, requestType]);
   const templateCategoryValues = useMemo(
     () => Array.from(new Set(displayTemplates.map((template) => template.category))),
     [displayTemplates],

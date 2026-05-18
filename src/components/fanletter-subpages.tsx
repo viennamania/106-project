@@ -3536,6 +3536,7 @@ function FanletterFanPromptPanel({
   previewRequests = [],
   publicVlogsHref,
   referralCode,
+  recommendationMode = "public",
   requestHref,
   requestHubHref,
   returnToHref,
@@ -3558,6 +3559,7 @@ function FanletterFanPromptPanel({
   previewRequests?: FanletterPublicFanRequestPreview[];
   publicVlogsHref?: string;
   referralCode?: string | null;
+  recommendationMode?: "paid" | "public";
   requestHref: string;
   requestHubHref?: string;
   returnToHref?: string | null;
@@ -3724,12 +3726,28 @@ function FanletterFanPromptPanel({
           title: `Request ${characterName}'s next vlog`,
         };
   const compactCopy = sourceContentId
-    ? {
-        body: labels.compactBody,
-        eyebrow: labels.compactEyebrow,
-        formHelper: labels.compactFormHelper,
-        title: labels.compactTitle,
-      }
+    ? recommendationMode === "paid"
+      ? locale === "ko"
+        ? {
+            body: "잠금 해제 전에도 다음 팬 전용 브이로그에서 보고 싶은 질문, 긴 루틴, 선공개 장면을 남길 수 있습니다.",
+            eyebrow: "팬 전용 후속 요청",
+            formHelper:
+              "이 요청은 현재 팬 전용 콘텐츠와 연결되어 스튜디오 요청함에 저장됩니다.",
+            title: "팬 전용으로 이어서 보고 싶은 장면",
+          }
+        : {
+            body: "Even before unlocking, fans can request the question, longer routine, or early-access moment they want in the next fan-only vlog.",
+            eyebrow: "Fan-only follow-up",
+            formHelper:
+              "This request is saved to the studio inbox with the current fan-only content as context.",
+            title: "What fan-only scene should come next?",
+          }
+      : {
+          body: labels.compactBody,
+          eyebrow: labels.compactEyebrow,
+          formHelper: labels.compactFormHelper,
+          title: labels.compactTitle,
+        }
     : locale === "ko"
       ? {
           body: "팬 전용으로 보고 싶은 룩, 장소, 질문을 짧게 남겨주세요.",
@@ -3874,9 +3892,16 @@ function FanletterFanPromptPanel({
             helperOverride={compactCopy.formHelper}
             locale={locale}
             publicVlogsHref={publicVlogsHref}
+            recommendationMode={recommendationMode}
             referralCode={referralCode}
             sourceContentId={sourceContentId}
-            titleOverride={labels.compactFormTitle}
+            titleOverride={
+              recommendationMode === "paid"
+                ? locale === "ko"
+                  ? "팬 전용 후속 장면 요청"
+                  : "Request a fan-only follow-up"
+                : labels.compactFormTitle
+            }
           />
         ) : null}
       </section>
@@ -3917,6 +3942,7 @@ function FanletterFanPromptPanel({
           formId={requestFormId}
           locale={locale}
           publicVlogsHref={publicVlogsHref}
+          recommendationMode={recommendationMode}
           referralCode={referralCode}
           sourceContentId={sourceContentId}
         />
@@ -8745,6 +8771,8 @@ export function FanletterContentDetailPage({
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
   const paidUnlockSectionId = "fanletter-paid-unlock";
   const shouldShowPaidUnlockPanel = content.priceType === "paid" && !canViewerAccess;
+  const requestRecommendationMode =
+    content.priceType === "paid" ? "paid" : "public";
   const detailAccessLabel = isOwnContent
     ? content.priceType === "paid"
       ? locale === "ko"
@@ -9138,6 +9166,7 @@ export function FanletterContentDetailPage({
                   id={fanRequestSectionId}
                   locale={locale}
                   publicVlogsHref={`${creatorHref}#public-vlogs`}
+                  recommendationMode={requestRecommendationMode}
                   referralCode={effectiveReferralCode}
                   requestHref={fanRequestHref}
                   requestHubHref={`${creatorHref}#fan-requests`}
