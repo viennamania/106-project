@@ -113,7 +113,7 @@ function getCopy(locale: Locale) {
           feed: "브이로그 피드 보기",
           fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
-          paidUpload: "유료 콘텐츠 직접 업로드",
+          paidUpload: "팬 요청 유료 업로드",
           profileCreate: "캐릭터 만들기",
           profileManage: "캐릭터 확인/변경",
           refresh: "다시 확인",
@@ -155,7 +155,7 @@ function getCopy(locale: Locale) {
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         paidUploadBody:
-          "NSFW 가능성이 있는 직접 업로드 동영상은 1 USDT 유료 콘텐츠로 등록합니다.",
+          "팬이 남긴 브이로그 요청 카드에서만 직접 업로드 유료 등록을 시작합니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
         paymentTitle: "시작 준비 확인이 필요합니다.",
@@ -204,7 +204,7 @@ function getCopy(locale: Locale) {
           paidIntentBadge: "팬 전용 의도",
           paidUploadCta: "1 USDT 업로드 등록",
           paidUploadHint:
-            "직접 업로드 동영상은 팬 전용 유료 콘텐츠로 등록됩니다.",
+            "팬이 남긴 브이로그 요청에 답장할 때만 직접 업로드 유료 등록이 열립니다.",
           requester: "보낸 사람",
           source: "요청 위치 보기",
           sourceVlog: "브이로그 기반",
@@ -235,7 +235,7 @@ function getCopy(locale: Locale) {
             support: "응원",
           },
           usedNotice: "게시된 브이로그와 연결된 요청입니다.",
-          workflow: ["요청 확인", "무료 AI 생성 또는 유료 업로드 선택", "게시 후 자동 정리"],
+          workflow: ["요청 확인", "브이로그 요청이면 유료 업로드 선택", "게시 후 자동 정리"],
         },
         channelDistribution:
           "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
@@ -289,7 +289,7 @@ function getCopy(locale: Locale) {
           feed: "View vlog feed",
           fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
-          paidUpload: "Upload paid content",
+          paidUpload: "Paid upload from request",
           profileCreate: "Create character",
           profileManage: "Review/change character",
           refresh: "Check again",
@@ -331,7 +331,7 @@ function getCopy(locale: Locale) {
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
         paidUploadBody:
-          "Directly uploaded videos that may be NSFW are registered as 1 USDT paid content.",
+          "Start direct paid upload only from a fan vlog request card.",
         paymentRequired:
           "Confirm FanLetter readiness to use the AI character vlog studio.",
         paymentTitle: "Readiness confirmation is required.",
@@ -384,7 +384,7 @@ function getCopy(locale: Locale) {
           paidIntentBadge: "Fan-only intent",
           paidUploadCta: "Upload as 1 USDT",
           paidUploadHint:
-            "Directly uploaded video is registered as fan-only paid content.",
+            "Paid direct upload opens only when replying to a fan vlog request.",
           requester: "From",
           source: "View source",
           sourceVlog: "Source vlog",
@@ -417,7 +417,7 @@ function getCopy(locale: Locale) {
           usedNotice: "This request is linked to a published vlog.",
           workflow: [
             "Review request",
-            "Choose free AI generation or paid upload",
+            "Use paid upload only for vlog requests",
             "Auto-organise after publish",
           ],
         },
@@ -689,6 +689,14 @@ function shouldTreatFanRequestAsFanOnly(request: FanletterFanRequestRecord) {
     /팬\s*전용|비공개|잠금|유료|선공개|구독|fan[-\s]?only|private|locked|paid|early access|subscriber/.test(
       normalized,
     )
+  );
+}
+
+function canUseFanRequestForPaidUpload(request: FanletterFanRequestRecord) {
+  return (
+    request.requestType === "vlog_request" &&
+    !request.usedContentId &&
+    (request.status === "new" || request.status === "reviewed")
   );
 }
 
@@ -1130,11 +1138,14 @@ function FanRequestsSection({
                 locale,
                 request,
               });
-              const paidUploadFromRequestHref = buildFanRequestPaidUploadHref({
-                locale,
-                paidUploadHref,
-                request,
-              });
+              const canPaidUpload = canUseFanRequestForPaidUpload(request);
+              const paidUploadFromRequestHref = canPaidUpload
+                ? buildFanRequestPaidUploadHref({
+                    locale,
+                    paidUploadHref,
+                    request,
+                  })
+                : null;
               const isUpdating = updatingRequestId === request.requestId;
               const isTopPick = index === 0;
               const hasFanOnlyIntent = shouldTreatFanRequestAsFanOnly(request);
@@ -1190,16 +1201,20 @@ function FanRequestsSection({
                         : copy.fanRequests.create}
                       <ArrowRight className="size-3.5" />
                     </Link>
-                    <Link
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-amber-300/34 bg-amber-300/10 px-3 text-xs font-semibold !text-amber-100 transition hover:bg-amber-300/16"
-                      href={paidUploadFromRequestHref}
-                    >
-                      <Upload className="size-3.5" />
-                      {copy.fanRequests.paidUploadCta}
-                    </Link>
-                    <p className="text-xs font-medium leading-5 text-white/42">
-                      {copy.fanRequests.paidUploadHint}
-                    </p>
+                    {paidUploadFromRequestHref ? (
+                      <>
+                        <Link
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-amber-300/34 bg-amber-300/10 px-3 text-xs font-semibold !text-amber-100 transition hover:bg-amber-300/16"
+                          href={paidUploadFromRequestHref}
+                        >
+                          <Upload className="size-3.5" />
+                          {copy.fanRequests.paidUploadCta}
+                        </Link>
+                        <p className="text-xs font-medium leading-5 text-white/42">
+                          {copy.fanRequests.paidUploadHint}
+                        </p>
+                      </>
+                    ) : null}
                     <div className="grid grid-cols-2 gap-2">
                       {request.status === "new" ? (
                         <button
@@ -1331,11 +1346,14 @@ function FanRequestsSection({
               locale,
               request,
             });
-            const paidUploadFromRequestHref = buildFanRequestPaidUploadHref({
-              locale,
-              paidUploadHref,
-              request,
-            });
+            const canPaidUpload = canUseFanRequestForPaidUpload(request);
+            const paidUploadFromRequestHref = canPaidUpload
+              ? buildFanRequestPaidUploadHref({
+                  locale,
+                  paidUploadHref,
+                  request,
+                })
+              : null;
             const category = getFanRequestCategory(request);
             const hasFanOnlyIntent = shouldTreatFanRequestAsFanOnly(request);
             const createdLabel = formatDate(request.createdAt, locale);
@@ -1430,13 +1448,15 @@ function FanRequestsSection({
                         {copy.fanRequests.create}
                         <ArrowRight className="size-3.5" />
                       </Link>
-                      <Link
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold !text-amber-900 transition hover:bg-amber-100 sm:min-w-48"
-                        href={paidUploadFromRequestHref}
-                      >
-                        <Upload className="size-3.5" />
-                        {copy.fanRequests.paidUploadCta}
-                      </Link>
+                      {paidUploadFromRequestHref ? (
+                        <Link
+                          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold !text-amber-900 transition hover:bg-amber-100 sm:min-w-48"
+                          href={paidUploadFromRequestHref}
+                        >
+                          <Upload className="size-3.5" />
+                          {copy.fanRequests.paidUploadCta}
+                        </Link>
+                      ) : null}
                     </>
                   )}
                   {sourceHref ? (
@@ -2426,7 +2446,7 @@ export function FanletterStudioPage({
                 </Link>
                 <Link
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/10 px-4 py-2 text-center text-xs font-semibold leading-5 !text-[#d8ffe0] transition hover:bg-[#44f26e]/16 sm:h-12 sm:px-6 sm:text-sm"
-                  href={paidUploadHref}
+                  href={fanRequestsHref}
                 >
                   <Upload className="size-4" />
                   {copy.actions.paidUpload}
@@ -2606,7 +2626,7 @@ export function FanletterStudioPage({
               <ActionCard
                 Icon={Upload}
                 body={copy.paidUploadBody}
-                href={paidUploadHref}
+                href={fanRequestsHref}
                 title={copy.actions.paidUpload}
               />
             </div>
@@ -2742,7 +2762,7 @@ export function FanletterStudioPage({
               </Link>
               <Link
                 className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.06] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.1]"
-                href={paidUploadHref}
+                href={fanRequestsHref}
               >
                 <Upload className="size-4" />
                 {copy.actions.paidUpload}

@@ -7,6 +7,7 @@ import type { Filter } from "mongodb";
 import {
   CONTENT_FEED_PAGE_SIZE,
   CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR,
+  CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR,
   CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
   CONTENT_NETWORK_LEVEL_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
@@ -74,8 +75,10 @@ import {
   getContentPostSourceAttributionsCollection,
   getContentSocialActionsCollection,
   getCreatorProfilesCollection,
+  getFanletterFanRequestsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
+import { updateFanletterFanRequestStatusForCreator } from "@/lib/fanletter-fan-request-service";
 import {
   normalizeEmail,
   normalizeReferralCode,
@@ -529,6 +532,82 @@ function validateContentVideoPricingPolicy({
 
 function resolveContentPriceUsdt(priceType: ContentPriceType) {
   return priceType === "paid" ? CONTENT_PAID_USDT_AMOUNT : null;
+}
+
+function normalizeContentFanRequestId(value?: string | null) {
+  const normalized = value?.trim() ?? "";
+
+  return normalized ? normalized.slice(0, 120) : null;
+}
+
+function isDuplicateKeyError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 11000
+  );
+}
+
+async function resolveFanRequestForPaidContent({
+  contentId,
+  fanRequestId,
+  member,
+}: {
+  contentId?: string | null;
+  fanRequestId?: string | null;
+  member: Pick<MemberDocument, "email" | "referralCode">;
+}) {
+  const normalizedFanRequestId = normalizeContentFanRequestId(fanRequestId);
+
+  if (!normalizedFanRequestId) {
+    throw new Error(CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR);
+  }
+
+  if (!member.referralCode) {
+    throw new Error(CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR);
+  }
+
+  const requestsCollection = await getFanletterFanRequestsCollection();
+  const fanRequest = await requestsCollection.findOne({
+    creatorEmail: member.email,
+    requestId: normalizedFanRequestId,
+  });
+  const isSamePublishedContent =
+    Boolean(contentId) &&
+    fanRequest?.status === "used" &&
+    fanRequest.usedContentId === contentId;
+
+  if (
+    !fanRequest ||
+    fanRequest.creatorReferralCode !== member.referralCode ||
+    fanRequest.requestType !== "vlog_request" ||
+    Boolean(fanRequest.usedContentId && fanRequest.usedContentId !== contentId) ||
+    (!["new", "reviewed"].includes(fanRequest.status) && !isSamePublishedContent)
+  ) {
+    throw new Error(CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR);
+  }
+
+  return fanRequest;
+}
+
+async function syncPaidContentFanRequestStatus({
+  member,
+  post,
+}: {
+  member: Pick<MemberDocument, "email">;
+  post: Pick<ContentPostDocument, "contentId" | "fanRequestId" | "priceType" | "status">;
+}) {
+  if (post.priceType !== "paid" || post.status === "archived" || !post.fanRequestId) {
+    return;
+  }
+
+  await updateFanletterFanRequestStatusForCreator({
+    contentId: post.status === "published" ? post.contentId : null,
+    creatorEmail: member.email,
+    requestId: post.fanRequestId,
+    status: post.status === "published" ? "used" : "reviewed",
+  });
 }
 
 function formatUsdtAmountFromWei(value: bigint) {
@@ -2280,6 +2359,14 @@ export async function createContentPostForMember(
 
   validateContentVideoPricingPolicy({ contentVideoUrls, priceType });
 
+  const fanRequest =
+    priceType === "paid"
+      ? await resolveFanRequestForPaidContent({
+          fanRequestId: input.fanRequestId,
+          member,
+        })
+      : null;
+
   if (priceType === "paid") {
     await ensureCreatorPaidWalletForMember(member.email);
   }
@@ -2294,6 +2381,7 @@ export async function createContentPostForMember(
     contentVideoUrls,
     coverImageUrl,
     createdAt: now,
+    fanRequestId: fanRequest?.requestId ?? null,
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
     previewText: normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT),
@@ -2308,7 +2396,16 @@ export async function createContentPostForMember(
   };
 
   const postsCollection = await getContentPostsCollection();
-  await postsCollection.insertOne(post);
+  try {
+    await postsCollection.insertOne(post);
+  } catch (error) {
+    if (post.fanRequestId && isDuplicateKeyError(error)) {
+      throw new Error(CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR);
+    }
+
+    throw error;
+  }
+  await syncPaidContentFanRequestStatus({ member, post });
   await recordCreatorCharacterTimelineEventForMember(
     member.email,
     createContentTimelineEvent(post, "content_created"),
@@ -2390,6 +2487,11 @@ export async function updateContentPostForMember(
   }
 
   if (nextPriceType === "paid" && nextStatus !== "archived") {
+    await resolveFanRequestForPaidContent({
+      contentId: post.contentId,
+      fanRequestId: input.fanRequestId ?? post.fanRequestId,
+      member,
+    });
     await ensureCreatorPaidWalletForMember(member.email);
   }
 
@@ -2412,44 +2514,59 @@ export async function updateContentPostForMember(
           title: nextTitle,
         })
       : post.summary;
+  const nextFanRequestId =
+    nextPriceType === "paid" && nextStatus !== "archived"
+      ? normalizeContentFanRequestId(input.fanRequestId ?? post.fanRequestId)
+      : null;
 
-  await postsCollection.updateOne(
-    { contentId: post.contentId },
-    {
-      $set: {
-        body: nextBody,
-        contentImageUrls: nextContentImageUrls,
-        contentVideoUrls: nextContentVideoUrls,
-        coverImageUrl: nextCoverImageUrl,
-        locale:
-          input.locale !== undefined
-            ? normalizeContentLocale(input.locale)
-            : normalizeContentLocale(post.locale),
-        previewAssetIds:
-          input.previewAssetIds !== undefined
-            ? input.previewAssetIds.slice(0, 4)
-            : post.previewAssetIds,
-        previewText:
-          input.previewText !== undefined
-            ? normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT)
-            : post.previewText ?? null,
-        priceType: nextPriceType,
-        priceUsdt: resolveContentPriceUsdt(nextPriceType),
-        publishedAt: nextPublishedAt,
-        status: nextStatus,
-        summary: nextSummary,
-        tags: input.tags !== undefined ? normalizeTags(input.tags) : post.tags,
-        title: nextTitle,
-        updatedAt: now,
+  try {
+    await postsCollection.updateOne(
+      { contentId: post.contentId },
+      {
+        $set: {
+          body: nextBody,
+          contentImageUrls: nextContentImageUrls,
+          contentVideoUrls: nextContentVideoUrls,
+          coverImageUrl: nextCoverImageUrl,
+          fanRequestId: nextFanRequestId,
+          locale:
+            input.locale !== undefined
+              ? normalizeContentLocale(input.locale)
+              : normalizeContentLocale(post.locale),
+          previewAssetIds:
+            input.previewAssetIds !== undefined
+              ? input.previewAssetIds.slice(0, 4)
+              : post.previewAssetIds,
+          previewText:
+            input.previewText !== undefined
+              ? normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT)
+              : post.previewText ?? null,
+          priceType: nextPriceType,
+          priceUsdt: resolveContentPriceUsdt(nextPriceType),
+          publishedAt: nextPublishedAt,
+          status: nextStatus,
+          summary: nextSummary,
+          tags: input.tags !== undefined ? normalizeTags(input.tags) : post.tags,
+          title: nextTitle,
+          updatedAt: now,
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    if (nextFanRequestId && isDuplicateKeyError(error)) {
+      throw new Error(CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR);
+    }
+
+    throw error;
+  }
 
   const nextPost = await postsCollection.findOne({ contentId: post.contentId });
 
   if (!nextPost) {
     throw new Error("Content not found.");
   }
+
+  await syncPaidContentFanRequestStatus({ member, post: nextPost });
 
   if (post.status !== "published" && nextPost.status === "published") {
     await recordCreatorCharacterTimelineEventForMember(

@@ -193,8 +193,8 @@ function getCopy(locale: Locale) {
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
         freeOnlyPolicy:
-          "AI로 생성한 브이로그 동영상은 NSFW 콘텐츠가 아니므로 무료 공개로만 등록됩니다. 유료 콘텐츠는 스튜디오에서 직접 업로드한 동영상으로 등록하세요.",
-        paidUpload: "유료 콘텐츠 직접 업로드",
+          "AI로 생성한 브이로그 동영상은 무료 공개로만 등록됩니다. 유료 직접 업로드는 팬 요청함의 브이로그 요청에서 시작하세요.",
+        paidUpload: "팬 요청 유료 업로드",
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
@@ -339,8 +339,8 @@ function getCopy(locale: Locale) {
         feed: "View FanLetter vlog feed",
         free: "Free public",
         freeOnlyPolicy:
-          "AI-generated vlog videos are non-NSFW and can only be saved as free public content. Use Studio with a directly uploaded video for paid content.",
-        paidUpload: "Upload paid content",
+          "AI-generated vlog videos can only be saved as free public content. Start paid direct upload from a fan vlog request in the request inbox.",
+        paidUpload: "Paid upload from request",
         generate: "Generate AI vlog video",
         generated: "Generated",
         generatingVideo: "Generating AI video...",
@@ -700,10 +700,34 @@ export function FanletterCreatePage({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
-  const paidUploadHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
-    { returnTo: returnToHref || studioHref },
-  );
+  const fanRequestsHref = `${studioHref}#fan-requests`;
+  const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
+  const initialFanRequestType = initialPlan?.fanRequestType ?? null;
+  const paidUploadHref =
+    initialFanRequestId && initialFanRequestType === "vlog_request"
+      ? setPathSearchParams(
+          buildPathWithReferral(
+            `/${locale}/fanletter/studio/paid-upload`,
+            referralCode,
+          ),
+          {
+            fanRequestBody:
+              initialPlan?.fanRequestBody ?? initialPlan?.body ?? null,
+            fanRequestCharacterName:
+              initialPlan?.fanRequestCharacterName ?? null,
+            fanRequestId: initialFanRequestId,
+            fanRequestType: initialFanRequestType,
+            planAudience: "fan-only",
+            planBody: initialPlan?.body ?? null,
+            planMode: "video",
+            planPriceType: "paid",
+            planPrompt: initialPlan?.prompt ?? null,
+            planSummary: initialPlan?.summary ?? null,
+            planTitle: initialPlan?.title ?? null,
+            returnTo: returnToHref || studioHref,
+          },
+        )
+      : fanRequestsHref;
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
   const [email, setEmail] = useState<string | null>(memberSession.email);
@@ -741,7 +765,6 @@ export function FanletterCreatePage({
   const hasAvatar = Boolean(profile?.avatarImageUrl);
   const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
-  const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const fanOnlyIntent = Boolean(initialPlan?.fanOnlyIntent);
   const hasAvatarReferencePlan = Boolean(
     initialPlan?.avatarReferenceExpression ||
@@ -764,7 +787,6 @@ export function FanletterCreatePage({
   );
   const initialFanRequestBody =
     initialPlan?.fanRequestBody?.trim() || initialPlan?.body?.trim() || null;
-  const initialFanRequestType = initialPlan?.fanRequestType ?? null;
   const initialFanRequestCharacterName =
     initialPlan?.fanRequestCharacterName?.trim() ||
     profile?.characterPersona?.name?.trim() ||

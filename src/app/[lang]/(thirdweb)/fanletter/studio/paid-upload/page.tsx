@@ -8,6 +8,7 @@ import {
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
 import {
+  getFanletterCreateInitialPlanSearchParams,
   readFanletterCreateInitialPlan,
   type FanletterCreateSearchParams,
 } from "@/lib/fanletter-create-plan";
@@ -23,13 +24,13 @@ function getMetaCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "직접 업로드한 동영상을 1 USDT 유료 FanLetter 콘텐츠로 등록합니다.",
-        title: "유료 콘텐츠 직접 업로드 | FanLetter",
+          "팬 브이로그 요청에 답하는 직접 업로드 동영상을 1 USDT 유료 콘텐츠로 등록합니다.",
+        title: "팬 요청 유료 업로드 | FanLetter",
       }
     : {
         description:
-          "Register a directly uploaded video as 1 USDT paid FanLetter content.",
-        title: "Upload paid content | FanLetter",
+          "Register a directly uploaded video in response to a fan vlog request as 1 USDT paid content.",
+        title: "Paid upload from fan request | FanLetter",
       };
 }
 
@@ -79,16 +80,21 @@ export default async function LocalizedFanletterPaidUploadPage({
     referralCode,
     returnTo: query.returnTo,
   });
+  const initialPostPlan = readFanletterCreateInitialPlan(query);
+  const paidUploadPlanSearchParams =
+    getFanletterCreateInitialPlanSearchParams(query);
+  const currentPaidUploadHref = setPathSearchParams(paidUploadHref, {
+    ...paidUploadPlanSearchParams,
+    returnTo: returnToHref,
+  });
 
   return (
     <CreatorContentStudioPage
       dictionary={dictionary}
       homeHrefOverride={buildPathWithReferral(`/${locale}/fanletter`, referralCode)}
-      initialPostPlan={readFanletterCreateInitialPlan(query)}
+      initialPostPlan={initialPostPlan}
       locale={locale}
-      newPostHrefOverride={setPathSearchParams(paidUploadHref, {
-        returnTo: returnToHref,
-      })}
+      newPostHrefOverride={currentPaidUploadHref}
       postComposerMode="paid-upload"
       postsManagerHrefOverride={buildPathWithReferral(
         `/${locale}/fanletter/studio/vlogs`,
@@ -96,7 +102,7 @@ export default async function LocalizedFanletterPaidUploadPage({
       )}
       profileHrefOverride={setPathSearchParams(
         buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
-        { returnTo: paidUploadHref },
+        { returnTo: currentPaidUploadHref },
       )}
       referralCode={referralCode}
       returnToHref={returnToHref}

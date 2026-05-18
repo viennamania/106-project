@@ -81,7 +81,7 @@ function getCopy(locale: Locale) {
           creatingWallet: "정산 주소 준비 중",
           feed: "피드 보기",
           next: "다음",
-          paidUpload: "유료 콘텐츠 직접 업로드",
+          paidUpload: "팬 요청 유료 업로드",
           previous: "이전",
           refresh: "새로고침",
           unlock: "정산 기능 열기",
@@ -95,7 +95,7 @@ function getCopy(locale: Locale) {
         emptyHistory:
           "아직 판매 내역이 없습니다. 유료 브이로그를 공개하면 구매 내역이 이곳에 표시됩니다.",
         emptyPaidUpload:
-          "유료 등록은 AI 생성이 아니라 직접 업로드한 동영상으로 진행합니다.",
+          "유료 등록은 팬이 남긴 브이로그 요청에서 직접 업로드로 시작합니다.",
         eyebrow: "FanLetter Sales",
         labels: {
           balance: "정산 가능 잔고",
@@ -134,7 +134,7 @@ function getCopy(locale: Locale) {
           creatingWallet: "Creating settlement address",
           feed: "View feed",
           next: "Next",
-          paidUpload: "Upload paid content",
+          paidUpload: "Paid upload from request",
           previous: "Previous",
           refresh: "Refresh",
           unlock: "Unlock settlement",
@@ -148,7 +148,7 @@ function getCopy(locale: Locale) {
         emptyHistory:
           "No sales yet. Paid vlog purchases will appear here after you publish paid content.",
         emptyPaidUpload:
-          "Paid registration uses directly uploaded videos, not AI-generated videos.",
+          "Paid publishing starts from a fan vlog request with a directly uploaded video.",
         eyebrow: "FanLetter Sales",
         labels: {
           balance: "Settlement balance",
@@ -313,10 +313,10 @@ export function FanletterSalesPage({
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: currentManagerHref },
   );
-  const paidUploadHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
-    { returnTo: currentManagerHref },
-  );
+  const fanRequestsHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  )}#fan-requests`;
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const channelsHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
@@ -735,7 +735,7 @@ export function FanletterSalesPage({
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-4 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16"
-                  href={paidUploadHref}
+                  href={fanRequestsHref}
                 >
                   <Upload className="size-4" />
                   {copy.actions.paidUpload}
@@ -869,7 +869,7 @@ export function FanletterSalesPage({
                   </p>
                   <Link
                     className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
-                    href={paidUploadHref}
+                    href={fanRequestsHref}
                   >
                     <Upload className="size-4" />
                     {copy.actions.paidUpload}

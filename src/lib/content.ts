@@ -19,6 +19,8 @@ export const CONTENT_VIDEO_SOURCE_REQUIRED_ERROR =
   "Content videos must come from AI generation or direct video upload.";
 export const CONTENT_VIDEO_SOURCE_MIXED_ERROR =
   "Use either an AI-generated video or an uploaded video, not both.";
+export const CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR =
+  "Paid FanLetter content requires an unused fan vlog request.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
 export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
@@ -134,6 +136,9 @@ const contentVideoPolicyErrorMessages = new Set([
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
 ]);
+const contentFanRequestPolicyErrorMessages = new Set([
+  CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR,
+]);
 
 function safelyDecodePathSegment(segment: string) {
   try {
@@ -192,6 +197,10 @@ export function hasUploadedContentVideoUrl(urls: string[] | undefined) {
 
 export function isContentVideoPolicyErrorMessage(message: string) {
   return contentVideoPolicyErrorMessages.has(message);
+}
+
+export function isContentFanRequestPolicyErrorMessage(message: string) {
+  return contentFanRequestPolicyErrorMessages.has(message);
 }
 
 export type ContentImageGenerationAttemptDocument = {
@@ -452,6 +461,7 @@ export type ContentPostDocument = {
   contentVideoUrls?: string[];
   coverImageUrl: string | null;
   createdAt: Date;
+  fanRequestId?: string | null;
   locale?: Locale | null;
   previewAssetIds: string[];
   previewText: string | null;
@@ -542,6 +552,7 @@ export type ContentPostRecord = {
   contentVideoUrls: string[];
   coverImageUrl: string | null;
   createdAt: string;
+  fanRequestId: string | null;
   locale: Locale;
   previewText: string | null;
   priceType: ContentPriceType;
@@ -970,6 +981,7 @@ export type ContentPostCreateRequest = {
   coverImageUrl?: string | null;
   email: string;
   locale?: Locale | null;
+  fanRequestId?: string | null;
   previewAssetIds?: string[];
   previewText?: string | null;
   priceType: ContentPriceType;
@@ -1139,6 +1151,7 @@ export function serializeContentPost(
     contentVideoUrls: content.contentVideoUrls ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
+    fanRequestId: content.fanRequestId ?? null,
     locale: normalizeContentLocale(content.locale),
     previewText: content.previewText ?? null,
     priceType: content.priceType,

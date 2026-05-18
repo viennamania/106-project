@@ -46,6 +46,29 @@ function readPlanText(rawValue: string | string[] | undefined, limit: number) {
   return readFirstSearchParam(rawValue)?.trim().slice(0, limit) || undefined;
 }
 
+export function getFanletterCreateInitialPlanSearchParams(
+  query: FanletterCreateSearchParams,
+): Record<string, string | null> {
+  return {
+    fanRequestBody: readPlanText(query.fanRequestBody, 600) ?? null,
+    fanRequestCharacterName:
+      readPlanText(query.fanRequestCharacterName, 80) ?? null,
+    fanRequestId: readPlanText(query.fanRequestId, 120) ?? null,
+    fanRequestType: readPlanText(query.fanRequestType, 32) ?? null,
+    planAudience: readPlanText(query.planAudience, 32) ?? null,
+    planAvatarExpression:
+      readPlanText(query.planAvatarExpression, 32) ?? null,
+    planAvatarMode: readPlanText(query.planAvatarMode, 32) ?? null,
+    planBody: readPlanText(query.planBody, 600) ?? null,
+    planId: readPlanText(query.planId, 120) ?? null,
+    planMode: readPlanText(query.planMode, 32) ?? null,
+    planPriceType: readPlanText(query.planPriceType, 32) ?? null,
+    planPrompt: readPlanText(query.planPrompt, 1_200) ?? null,
+    planSummary: readPlanText(query.planSummary, 180) ?? null,
+    planTitle: readPlanText(query.planTitle, 88) ?? null,
+  };
+}
+
 export function readFanletterCreateInitialPlan(
   query: FanletterCreateSearchParams,
 ): FanletterCreateInitialPlan | undefined {

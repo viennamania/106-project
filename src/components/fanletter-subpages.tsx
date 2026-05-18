@@ -6126,15 +6126,10 @@ export function FanletterCreatorFanOnlyPage({
     `/${locale}/fanletter/studio/vlogs`,
     data.profile.referralCode,
   );
-  const ownerCreateHref = setPathSearchParams(
-    buildPathWithReferral(
-      `/${locale}/fanletter/studio/paid-upload`,
-      data.profile.referralCode,
-    ),
-    {
-      returnTo: fanOnlyHref,
-    },
-  );
+  const ownerCreateHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    data.profile.referralCode,
+  )}#fan-requests`;
   const requestSectionId = "fan-only-request";
   const requestFormId = `${requestSectionId}-form`;
   const requestHref = `${fanOnlyHref}#${requestFormId}`;

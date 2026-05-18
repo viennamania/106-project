@@ -608,6 +608,9 @@ export async function updateFanletterFanRequestStatusForCreator({
           ? { usedContentId: normalizedContentId }
           : {}),
       },
+      ...(normalizedStatus === "new" || normalizedStatus === "reviewed"
+        ? { $unset: { usedContentId: "" } }
+        : {}),
     },
     { returnDocument: "after" },
   );

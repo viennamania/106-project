@@ -865,6 +865,13 @@ export async function getContentPostsCollection() {
           createdAt: -1,
           contentId: -1,
         }),
+        collection.createIndex(
+          { fanRequestId: 1 },
+          {
+            unique: true,
+            partialFilterExpression: { fanRequestId: { $type: "string" } },
+          },
+        ),
         collection.createIndex({ locale: 1, status: 1, publishedAt: -1 }),
         collection.createIndex({ status: 1, createdAt: -1 }),
       ]);

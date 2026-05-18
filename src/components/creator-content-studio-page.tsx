@@ -957,6 +957,7 @@ export function CreatorContentStudioPage({
   );
   const newPostHref = newPostHrefOverride ?? defaultNewPostHref;
   const isFanletterSurface = surface === "fanletter";
+  const fanRequestsHref = `${studioHomeHref}#fan-requests`;
   const initialFanRequestId = initialPostPlan?.fanRequestId?.trim() || null;
   const initialFanRequestBody =
     initialPostPlan?.fanRequestBody?.trim() || initialPostPlan?.body?.trim() || null;
@@ -1691,7 +1692,7 @@ export function CreatorContentStudioPage({
     locale === "ko"
       ? {
           description:
-            "직접 업로드한 MP4, MOV, WEBM 동영상을 1 USDT 유료 콘텐츠로 등록합니다. AI 생성 브이로그는 무료 생성 화면에서만 사용하세요.",
+            "팬이 남긴 브이로그 요청에 답할 때만 MP4, MOV, WEBM 동영상을 1 USDT 유료 콘텐츠로 등록합니다. 요청 없는 업로드는 팬 요청함에서 먼저 선택하세요.",
           eyebrow: "FanLetter Paid Upload",
           helper:
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
@@ -1714,6 +1715,11 @@ export function CreatorContentStudioPage({
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
           connectCta: "계정 연결하기",
+          requestRequired:
+            "유료 직접 업로드는 팬이 남긴 브이로그 요청에서만 시작할 수 있습니다. 팬 요청함에서 브이로그 요청을 선택하세요.",
+          requestRequiredCta: "팬 요청함으로 이동",
+          requestTypeRequired:
+            "응원 메시지는 무료 답장 브이로그로 처리하고, 유료 직접 업로드는 브이로그 요청에서만 열립니다.",
           lockedPreviewFallbackText:
             "결제 후 비공개 영상과 전체 본문이 열립니다.",
           lockedPreviewFallbackTitle: "1 USDT 팬 전용 브이로그",
@@ -1763,16 +1769,17 @@ export function CreatorContentStudioPage({
           processTitle: "등록 흐름",
           publishCta: "유료 브이로그 게시",
           rules: [
+            "팬 브이로그 요청에서만 유료 직접 업로드 시작",
             "직접 업로드한 동영상만 유료 등록",
             "AI 생성 동영상은 무료 생성 화면에서만 사용",
             "커버 이미지는 공개, 본문과 영상은 결제 후 열람",
           ],
           salesCta: "판매 내역 보기",
           studioCta: "스튜디오로 돌아가기",
-          title: "유료 콘텐츠 직접 업로드",
+          title: "팬 요청 유료 업로드",
           uploadVideo: "유료 동영상 업로드",
           videoHint:
-            "직접 업로드한 MP4, MOV, WEBM 동영상만 1 USDT 유료 콘텐츠로 저장됩니다. 최대 1개, 200MB 이하입니다.",
+            "팬 브이로그 요청에 답하는 직접 업로드 MP4, MOV, WEBM 동영상만 1 USDT 유료 콘텐츠로 저장됩니다. 최대 1개, 200MB 이하입니다.",
           workflow: [
             "커버와 제목으로 공개 미리보기 구성",
             "직접 업로드한 동영상 1개 추가",
@@ -1781,7 +1788,7 @@ export function CreatorContentStudioPage({
         }
       : {
           description:
-            "Register a directly uploaded MP4, MOV, or WEBM video as 1 USDT paid content. AI-generated vlogs stay in the free creation flow.",
+            "Register a directly uploaded MP4, MOV, or WEBM video as 1 USDT paid content only when responding to a fan vlog request. Choose a request first from the fan request inbox.",
           eyebrow: "FanLetter Paid Upload",
           helper: "Paid content requires one directly uploaded video.",
           autoCoverFailed:
@@ -1803,6 +1810,11 @@ export function CreatorContentStudioPage({
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
           connectCta: "Connect account",
+          requestRequired:
+            "Paid direct upload can only start from a fan vlog request. Choose a vlog request from the fan request inbox.",
+          requestRequiredCta: "Go to fan requests",
+          requestTypeRequired:
+            "Support messages should use a free reply vlog. Paid direct upload only opens for vlog requests.",
           lockedPreviewFallbackText:
             "Unlock the private video and full note after payment.",
           lockedPreviewFallbackTitle: "1 USDT fan-only vlog",
@@ -1852,22 +1864,32 @@ export function CreatorContentStudioPage({
           processTitle: "Publishing flow",
           publishCta: "Publish paid vlog",
           rules: [
+            "Start paid direct upload only from a fan vlog request",
             "Only directly uploaded video can be paid",
             "AI-generated video stays in the free creation flow",
             "Cover is public, body and video unlock after payment",
           ],
           salesCta: "View sales",
           studioCta: "Back to studio",
-          title: "Upload paid content",
+          title: "Paid upload from fan request",
           uploadVideo: "Upload paid video",
           videoHint:
-            "Only directly uploaded MP4, MOV, or WEBM videos are saved as 1 USDT paid content. One video, 200MB max.",
+            "Only directly uploaded MP4, MOV, or WEBM videos responding to a fan vlog request are saved as 1 USDT paid content. One video, 200MB max.",
           workflow: [
             "Prepare the public cover, title, and summary",
             "Upload one direct video file",
             "Publish as a 1 USDT paid vlog",
           ],
         };
+  const isPaidUploadRequestMissing =
+    isFanletterPaidUpload && !initialFanRequestId;
+  const isPaidUploadRequestWrongType =
+    isFanletterPaidUpload && initialFanRequestType === "message";
+  const isPaidUploadRequestBlocked =
+    isPaidUploadRequestMissing || isPaidUploadRequestWrongType;
+  const paidUploadRequestBlockMessage = isPaidUploadRequestWrongType
+    ? paidUploadComposerCopy.requestTypeRequired
+    : paidUploadComposerCopy.requestRequired;
   const paidTeaserCoverStyles: Array<{
     description: string;
     id: PaidTeaserCoverStyle;
@@ -3408,6 +3430,15 @@ export function CreatorContentStudioPage({
   async function createPost(statusToSave: "draft" | "published") {
     const normalizedBody = postForm.body.trim();
 
+    if (isPaidUploadRequestBlocked) {
+      setState((current) => ({
+        ...current,
+        error: paidUploadRequestBlockMessage,
+        notice: null,
+      }));
+      return;
+    }
+
     if (!normalizedBody) {
       setPostBodyError(postBodyRequiredMessage);
       setState((current) => ({
@@ -3554,6 +3585,7 @@ export function CreatorContentStudioPage({
           contentVideoUrls: postForm.contentVideoUrls,
           coverImageUrl: coverImageUrlToSave,
           email,
+          fanRequestId: priceTypeToSave === "paid" ? initialFanRequestId : null,
           locale,
           previewText:
             priceTypeToSave === "paid"
@@ -4912,6 +4944,20 @@ export function CreatorContentStudioPage({
   }
 
   function renderBlockedState() {
+    if (isPaidUploadRequestBlocked) {
+      return (
+        <MessageCard tone="fanletter">
+          <span>{paidUploadRequestBlockMessage}</span>
+          <Link
+            className="mt-3 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={fanRequestsHref}
+          >
+            {paidUploadComposerCopy.requestRequiredCta}
+          </Link>
+        </MessageCard>
+      );
+    }
+
     if (isConnectionResolving) {
       return (
         <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
@@ -7641,8 +7687,12 @@ export function CreatorContentStudioPage({
       isGeneratingPaidVideoFrameCover ||
       isGeneratingPostImage;
     const draftDisabled =
-      composerBusy || (isPaidUploadComposer && !hasUploadedPostVideo);
-    const publishRequirementMessage = !hasRequiredPostMedia
+      composerBusy ||
+      isPaidUploadRequestBlocked ||
+      (isPaidUploadComposer && !hasUploadedPostVideo);
+    const publishRequirementMessage = isPaidUploadRequestBlocked
+      ? paidUploadRequestBlockMessage
+      : !hasRequiredPostMedia
       ? requiredPostMediaMessage
       : isPaidUploadComposer && !hasPaidUploadPreviewText
         ? paidUploadPreviewRequiredMessage
@@ -7729,7 +7779,9 @@ export function CreatorContentStudioPage({
           </div>
         ) : null}
 
-        {isFanletterPaidUpload && initialFanRequestId ? (
+        {isFanletterPaidUpload &&
+        initialFanRequestId &&
+        !isPaidUploadRequestWrongType ? (
           <div className="mt-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4">
             <div className="flex items-start gap-3">
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">

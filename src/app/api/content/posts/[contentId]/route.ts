@@ -1,4 +1,5 @@
 import {
+  isContentFanRequestPolicyErrorMessage,
   isContentVideoPolicyErrorMessage,
   type ContentDetailLoadResponse,
   type ContentDetailResponse,
@@ -341,6 +342,7 @@ export async function PATCH(
           : message === "Only the author can update this content."
             ? 403
             : message.endsWith("is required.") ||
+                isContentFanRequestPolicyErrorMessage(message) ||
                 isContentVideoPolicyErrorMessage(message) ||
                 message ===
                   "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
