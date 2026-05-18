@@ -70,7 +70,7 @@ export function FanletterHeroBackgroundCarousel({
       <video
         aria-hidden="true"
         autoPlay
-        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-95 brightness-[0.96] contrast-[1.06] saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
+        className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center opacity-[0.94] brightness-[0.96] contrast-[1.06] saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
         key={activeSlide.videoUrl}
         loop
         muted

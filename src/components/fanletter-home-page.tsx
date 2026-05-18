@@ -1575,8 +1575,8 @@ export function FanletterHomePage({
           }}
         />
         <FanletterHeroBackgroundCarousel slides={heroSlides} />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.42)_0%,rgba(3,5,4,0.18)_30%,rgba(3,5,4,0.42)_58%,rgba(3,5,4,0.86)_88%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.58)_0%,rgba(3,5,4,0.18)_48%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.14)_0%,rgba(3,5,4,0.16)_26%,rgba(3,5,4,0.88)_38%,rgba(3,5,4,0.98)_58%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.62)_0%,rgba(3,5,4,0.24)_44%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
@@ -1692,10 +1692,10 @@ export function FanletterHomePage({
               <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="max-w-[58rem] text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-4 sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
+              <h1 className="max-w-[21.5rem] text-[2.12rem] font-semibold leading-[1.03] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-4 max-w-[22rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">
+              <p className="mt-4 max-w-[21.5rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">
                 {copy.hero.description}
               </p>
               <div
@@ -1717,7 +1717,7 @@ export function FanletterHomePage({
                   {copy.cta.fan}
                 </Link>
               </div>
-              <div className="mt-6 max-w-2xl sm:mt-8">
+              <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
                 <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/56">
                   {copy.platformTrust.eyebrow}
                 </p>
