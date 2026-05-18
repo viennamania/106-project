@@ -948,6 +948,11 @@ export type CreatorStudioPostsResponse = {
     archived: number;
     draft: number;
     free: number;
+    maturityFilters: {
+      all: number;
+      general: number;
+      nsfw: number;
+    };
     paid: number;
     published: number;
     statusFilters: {

@@ -16,6 +16,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   type LucideIcon,
@@ -32,12 +33,14 @@ import {
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
-import type {
-  ContentPostMutationResponse,
-  ContentPostRecord,
-  ContentPostStatus,
-  CreatorProfileRecord,
-  CreatorStudioPostsResponse,
+import {
+  getContentVideoAssetSource,
+  type ContentMaturityRating,
+  type ContentPostMutationResponse,
+  type ContentPostRecord,
+  type ContentPostStatus,
+  type CreatorProfileRecord,
+  type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -54,6 +57,7 @@ import {
 
 type VlogStatusFilter = "all" | "archived" | "draft" | "published";
 type VlogPriceFilter = "all" | "free" | "paid";
+type VlogMaturityFilter = "all" | "general" | "nsfw";
 
 type VlogManagementState = {
   error: string | null;
@@ -73,6 +77,11 @@ const EMPTY_SUMMARY: CreatorStudioPostsResponse["summary"] = {
   archived: 0,
   draft: 0,
   free: 0,
+  maturityFilters: {
+    all: 0,
+    general: 0,
+    nsfw: 0,
+  },
   paid: 0,
   published: 0,
   statusFilters: {
@@ -95,6 +104,7 @@ function getCopy(locale: Locale) {
           detail: "상세 보기",
           fanRequests: "팬 요청 선택",
           feed: "피드 보기",
+          markNsfw: "NSFW 표시",
           next: "다음",
           paidUpload: "팬 요청 답장 업로드",
           previous: "이전",
@@ -102,6 +112,7 @@ function getCopy(locale: Locale) {
           refresh: "새로고침",
           search: "검색",
           sales: "판매 내역",
+          unmarkNsfw: "NSFW 해제",
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
@@ -122,6 +133,9 @@ function getCopy(locale: Locale) {
           draft: "임시저장",
           free: "무료",
           freePublic: "무료 공개",
+          generalContent: "일반",
+          maturity: "수위",
+          nsfw: "NSFW",
           page: "페이지",
           paid: "유료",
           paidFanOnly: "유료 팬 전용",
@@ -132,6 +146,12 @@ function getCopy(locale: Locale) {
         },
         loading: "브이로그 목록을 불러오고 있습니다.",
         noMatching: "조건에 맞는 브이로그가 없습니다.",
+        nsfwModeBody:
+          "NSFW는 팬 요청에 답장한 직접 업로드 유료 영상에서만 켤 수 있습니다. 무료 공개와 AI 생성 영상은 일반 콘텐츠로 유지됩니다.",
+        nsfwNoticeOff: "일반 콘텐츠로 전환했습니다.",
+        nsfwNoticeOn: "NSFW 콘텐츠로 표시했습니다.",
+        nsfwUnavailable:
+          "직접 업로드한 유료 팬 전용 영상만 NSFW로 전환할 수 있습니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
         searchPlaceholder: "제목, 요약, 본문으로 검색",
@@ -149,6 +169,7 @@ function getCopy(locale: Locale) {
           detail: "View detail",
           fanRequests: "Choose fan request",
           feed: "View feed",
+          markNsfw: "Mark NSFW",
           next: "Next",
           paidUpload: "Fan request reply upload",
           previous: "Previous",
@@ -156,6 +177,7 @@ function getCopy(locale: Locale) {
           refresh: "Refresh",
           search: "Search",
           sales: "Sales",
+          unmarkNsfw: "Clear NSFW",
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
@@ -176,6 +198,9 @@ function getCopy(locale: Locale) {
           draft: "Drafts",
           free: "Free",
           freePublic: "Free public",
+          generalContent: "General",
+          maturity: "Maturity",
+          nsfw: "NSFW",
           page: "Page",
           paid: "Paid",
           paidFanOnly: "Paid fan-only",
@@ -186,6 +211,12 @@ function getCopy(locale: Locale) {
         },
         loading: "Loading vlogs.",
         noMatching: "No vlogs match the current filters.",
+        nsfwModeBody:
+          "NSFW can only be enabled for paid uploaded videos that answer a fan request. Free public and AI-generated videos stay general.",
+        nsfwNoticeOff: "The vlog is now marked general.",
+        nsfwNoticeOn: "The vlog is now marked NSFW.",
+        nsfwUnavailable:
+          "Only paid fan-only videos uploaded directly can be marked NSFW.",
         paymentRequired:
           "Confirm FanLetter readiness to manage all vlogs.",
         searchPlaceholder: "Search by title, summary, or body",
@@ -206,6 +237,10 @@ function isVlogStatusFilter(value: string | null): value is VlogStatusFilter {
 
 function isVlogPriceFilter(value: string | null): value is VlogPriceFilter {
   return value === "all" || value === "free" || value === "paid";
+}
+
+function isVlogMaturityFilter(value: string | null): value is VlogMaturityFilter {
+  return value === "all" || value === "general" || value === "nsfw";
 }
 
 function normalizePageValue(value: string | null) {
@@ -300,18 +335,40 @@ function getPriceFilterLabel(
   return copy.labels.all;
 }
 
+function getMaturityFilterLabel(
+  copy: ReturnType<typeof getCopy>,
+  maturity: VlogMaturityFilter,
+) {
+  if (maturity === "nsfw") {
+    return copy.labels.nsfw;
+  }
+
+  if (maturity === "general") {
+    return copy.labels.generalContent;
+  }
+
+  return copy.labels.all;
+}
+
 function getResultsHeading(
   copy: ReturnType<typeof getCopy>,
   price: VlogPriceFilter,
   status: VlogStatusFilter,
+  maturity: VlogMaturityFilter,
 ) {
-  const statusLabel = getStatusLabel(copy, status);
+  const labels: string[] = [];
 
-  if (price === "all") {
-    return statusLabel;
+  if (price !== "all") {
+    labels.push(getPriceFilterLabel(copy, price));
   }
 
-  return `${getPriceFilterLabel(copy, price)} · ${statusLabel}`;
+  if (maturity !== "all") {
+    labels.push(getMaturityFilterLabel(copy, maturity));
+  }
+
+  labels.push(getStatusLabel(copy, status));
+
+  return labels.join(" · ");
 }
 
 export function FanletterVlogManagementPage({
@@ -365,6 +422,9 @@ export function FanletterVlogManagementPage({
   const appliedPrice = isVlogPriceFilter(searchParams.get("price"))
     ? (searchParams.get("price") as VlogPriceFilter)
     : "all";
+  const appliedMaturity = isVlogMaturityFilter(searchParams.get("maturity"))
+    ? (searchParams.get("maturity") as VlogMaturityFilter)
+    : "all";
   const appliedPage = normalizePageValue(searchParams.get("page"));
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [searchInput, setSearchInput] = useState(appliedQuery);
@@ -390,6 +450,7 @@ export function FanletterVlogManagementPage({
 
   const buildManagerHref = useCallback(
     (options?: {
+      maturity?: VlogMaturityFilter;
       page?: number;
       price?: VlogPriceFilter;
       query?: string;
@@ -397,17 +458,26 @@ export function FanletterVlogManagementPage({
     }) => {
       const page = options?.page ?? appliedPage;
       const price = options?.price ?? appliedPrice;
+      const maturity = options?.maturity ?? appliedMaturity;
       const query = options?.query ?? appliedQuery;
       const status = options?.status ?? appliedStatus;
 
       return setPathSearchParams(managerBaseHref, {
+        maturity: maturity !== "all" ? maturity : null,
         page: page > 1 ? String(page) : null,
         price: price !== "all" ? price : null,
         q: query || null,
         status: status !== "all" ? status : null,
       });
     },
-    [appliedPage, appliedPrice, appliedQuery, appliedStatus, managerBaseHref],
+    [
+      appliedMaturity,
+      appliedPage,
+      appliedPrice,
+      appliedQuery,
+      appliedStatus,
+      managerBaseHref,
+    ],
   );
   const currentManagerHref = useMemo(() => buildManagerHref(), [buildManagerHref]);
   const createHref = setPathSearchParams(
@@ -451,6 +521,7 @@ export function FanletterVlogManagementPage({
       const resolvedEmail = await resolveEmail();
       const params = new URLSearchParams({
         email: resolvedEmail,
+        maturity: appliedMaturity,
         media: "video",
         page: String(appliedPage),
         pageSize: String(VLOGS_PAGE_SIZE),
@@ -543,6 +614,7 @@ export function FanletterVlogManagementPage({
     }
   }, [
     accountAddress,
+    appliedMaturity,
     appliedPage,
     appliedPrice,
     appliedQuery,
@@ -642,6 +714,50 @@ export function FanletterVlogManagementPage({
     }
   }
 
+  async function updatePostMaturity(
+    post: ContentPostRecord,
+    nextContentMaturityRating: ContentMaturityRating,
+  ) {
+    if (!accountAddress) {
+      return;
+    }
+
+    setUpdatingPostId(post.contentId);
+
+    try {
+      const resolvedEmail = await resolveMemberEmail();
+      const response = await fetch(`/api/content/posts/${post.contentId}`, {
+        body: JSON.stringify({
+          contentMaturityRating: nextContentMaturityRating,
+          email: resolvedEmail,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      await readApiJson<ContentPostMutationResponse>(response, copy.loading);
+      await loadVlogs();
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          nextContentMaturityRating === "nsfw"
+            ? copy.nsfwNoticeOn
+            : copy.nsfwNoticeOff,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error: error instanceof Error ? error.message : copy.loading,
+        notice: null,
+      }));
+    } finally {
+      setUpdatingPostId(null);
+    }
+  }
+
   const isInitialLoading =
     state.status === "loading" &&
     !state.pageInfo &&
@@ -686,6 +802,23 @@ export function FanletterVlogManagementPage({
       label: copy.labels.paidFanOnly,
     },
   ];
+  const maturityFilterItems = [
+    {
+      count: state.summary.maturityFilters.all,
+      key: "all" as const,
+      label: copy.labels.all,
+    },
+    {
+      count: state.summary.maturityFilters.general,
+      key: "general" as const,
+      label: copy.labels.generalContent,
+    },
+    {
+      count: state.summary.maturityFilters.nsfw,
+      key: "nsfw" as const,
+      label: copy.labels.nsfw,
+    },
+  ];
   const heroPrimaryHref =
     appliedPrice === "paid" ? fanRequestsHref : createHref;
   const heroPrimaryIcon = appliedPrice === "paid" ? LockKeyhole : Plus;
@@ -710,7 +843,9 @@ export function FanletterVlogManagementPage({
         : locale === "ko"
           ? "무료 공개와 유료 팬 전용을 분리해서 운영 상태를 빠르게 전환합니다."
           : "Switch between free public and paid fan-only operations without mixing the workflows.";
-  const hasResultNarrowing = Boolean(appliedQuery || appliedStatus !== "all");
+  const hasResultNarrowing = Boolean(
+    appliedQuery || appliedStatus !== "all" || appliedMaturity !== "all",
+  );
   const emptyState =
     appliedPrice === "paid"
       ? {
@@ -942,7 +1077,12 @@ export function FanletterVlogManagementPage({
                     {copy.labels.results}
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-                    {getResultsHeading(copy, appliedPrice, appliedStatus)}
+                    {getResultsHeading(
+                      copy,
+                      appliedPrice,
+                      appliedStatus,
+                      appliedMaturity,
+                    )}
                   </h2>
                 </div>
                 {state.notice ? (
@@ -1084,6 +1224,47 @@ export function FanletterVlogManagementPage({
                   </Link>
                 ))}
               </div>
+
+              <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <p className="inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
+                      <ShieldAlert className="size-3.5" />
+                      {copy.labels.maturity}
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-black/62">
+                      {copy.nsfwModeBody}
+                    </p>
+                  </div>
+                  <div className="grid shrink-0 grid-cols-3 gap-2">
+                    {maturityFilterItems.map((item) => (
+                      <Link
+                        className={`inline-flex min-h-10 items-center justify-between gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                          appliedMaturity === item.key
+                            ? "border-black bg-black !text-white"
+                            : "border-black/10 bg-white text-black hover:border-black/20"
+                        }`}
+                        href={buildManagerHref({
+                          maturity: item.key,
+                          page: 1,
+                        })}
+                        key={item.key}
+                      >
+                        <span>{item.label}</span>
+                        <span
+                          className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[0.72rem] ${
+                            appliedMaturity === item.key
+                              ? "bg-white text-black"
+                              : "bg-black/[0.06] text-black/62"
+                          }`}
+                        >
+                          {formatNumber(item.count, locale)}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {blockedState ? (
@@ -1127,6 +1308,9 @@ export function FanletterVlogManagementPage({
                     locale={locale}
                     onArchive={() => {
                       void updatePostStatus(post, "archived");
+                    }}
+                    onToggleMaturity={(nextContentMaturityRating) => {
+                      void updatePostMaturity(post, nextContentMaturityRating);
                     }}
                     onPublish={() => {
                       void updatePostStatus(post, "published");
@@ -1238,6 +1422,7 @@ function VlogManagerCard({
   locale,
   onArchive,
   onPublish,
+  onToggleMaturity,
   post,
   referralCode,
 }: {
@@ -1247,10 +1432,17 @@ function VlogManagerCard({
   locale: Locale;
   onArchive: () => void;
   onPublish: () => void;
+  onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
   post: ContentPostRecord;
   referralCode: string | null;
 }) {
   const videoUrl = getPostVideoUrl(post);
+  const isNsfw = post.contentMaturityRating === "nsfw";
+  const canManageNsfw =
+    post.status !== "archived" &&
+    post.priceType === "paid" &&
+    getContentVideoAssetSource(videoUrl) === "uploaded";
+  const nextMaturity = isNsfw ? "general" : "nsfw";
   const detailHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/content/${post.contentId}`,
@@ -1291,6 +1483,9 @@ function VlogManagerCard({
             {getStatusLabel(copy, post.status)}
           </StatusPill>
           <StatusPill status={post.priceType}>{getPostPriceLabel(copy, post)}</StatusPill>
+          <StatusPill status={isNsfw ? "nsfw" : "general"}>
+            {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
+          </StatusPill>
         </div>
         <h3 className="mt-3 text-xl font-semibold tracking-normal text-black">
           {post.title}
@@ -1309,7 +1504,12 @@ function VlogManagerCard({
               : getStatusLabel(copy, post.status)}
           </span>
         </div>
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
+          <p className="mt-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
+            {copy.nsfwUnavailable}
+          </p>
+        ) : null}
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <Link
             className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
             href={detailHref}
@@ -1347,6 +1547,27 @@ function VlogManagerCard({
               {copy.actions.archive}
             </button>
           ) : null}
+          {canManageNsfw ? (
+            <button
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold transition disabled:opacity-50 ${
+                isNsfw
+                  ? "border border-black/10 bg-white text-black hover:border-black/20 hover:bg-[#f6f8f4]"
+                  : "bg-[#111] text-white hover:bg-black/82"
+              }`}
+              disabled={isUpdating}
+              onClick={() => {
+                onToggleMaturity(nextMaturity);
+              }}
+              type="button"
+            >
+              {isUpdating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ShieldAlert className="size-4" />
+              )}
+              {isNsfw ? copy.actions.unmarkNsfw : copy.actions.markNsfw}
+            </button>
+          ) : null}
         </div>
       </div>
     </article>
@@ -1367,6 +1588,10 @@ function StatusPill({
         ? "border-amber-200 bg-amber-50 text-amber-800"
         : status === "archived"
           ? "border-black/10 bg-black/[0.06] text-black/54"
+          : status === "nsfw"
+            ? "border-rose-200 bg-rose-50 text-rose-800"
+            : status === "general"
+              ? "border-black/10 bg-white text-black/58"
           : status === "paid"
             ? "border-[#44f26e]/36 bg-black text-white"
             : status === "free"

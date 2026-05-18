@@ -251,6 +251,7 @@ function decodeContentFeedActivityCursor(cursor?: string | null) {
 }
 
 type CreatorStudioPostsQueryOptions = {
+  maturity?: "all" | "general" | "nsfw" | null;
   media?: "all" | "video" | null;
   page?: number;
   pageSize?: number;
@@ -770,6 +771,12 @@ function buildCreatorStudioPostsFilter(
 
   if (options?.priceType === "free" || options?.priceType === "paid") {
     filter.priceType = options.priceType;
+  }
+
+  if (options?.maturity === "nsfw") {
+    filter.contentMaturityRating = "nsfw";
+  } else if (options?.maturity === "general") {
+    filter.contentMaturityRating = { $ne: "nsfw" };
   }
 
   if (query) {
@@ -2301,6 +2308,11 @@ export async function getCreatorStudioPostsForMember(
     archived: 0,
     draft: 0,
     free: 0,
+    maturityFilters: {
+      all: 0,
+      general: 0,
+      nsfw: 0,
+    },
     paid: 0,
     published: 0,
     statusFilters: {
@@ -2327,6 +2339,7 @@ export async function getCreatorStudioPostsForMember(
     .aggregate<{ _id: string; count: number }>([
       {
         $match: buildCreatorStudioPostsFilter(member.email, {
+          maturity: options?.maturity,
           media: options?.media,
           priceType: options?.priceType,
           query: options?.query,
@@ -2336,6 +2349,24 @@ export async function getCreatorStudioPostsForMember(
       {
         $group: {
           _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+  const maturityFilterCounts = await postsCollection
+    .aggregate<{ _id: string | null; count: number }>([
+      {
+        $match: buildCreatorStudioPostsFilter(member.email, {
+          media: options?.media,
+          priceType: options?.priceType,
+          query: options?.query,
+          status: options?.status,
+        }),
+      },
+      {
+        $group: {
+          _id: "$contentMaturityRating",
           count: { $sum: 1 },
         },
       },
@@ -2374,10 +2405,21 @@ export async function getCreatorStudioPostsForMember(
     summary.statusFilters.all += item.count;
   }
 
+  for (const item of maturityFilterCounts) {
+    if (item._id === "nsfw") {
+      summary.maturityFilters.nsfw = item.count;
+    } else {
+      summary.maturityFilters.general += item.count;
+    }
+
+    summary.maturityFilters.all += item.count;
+  }
+
   const usingPagination = Boolean(
     options &&
       (options.page !== undefined ||
         options.pageSize !== undefined ||
+        (options.maturity && options.maturity !== "all") ||
         options.media === "video" ||
         (options.priceType && options.priceType !== "all") ||
         options.query?.trim() ||
