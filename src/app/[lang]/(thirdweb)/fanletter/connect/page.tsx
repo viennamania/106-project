@@ -22,6 +22,37 @@ type FanletterConnectSearchParams = {
   returnTo?: string | string[];
 };
 
+function getFanletterConnectMetadataCopy(locale: Locale, returnToHref: string) {
+  const returnToPathname = returnToHref.split(/[?#]/, 1)[0];
+  const isContentReturn = returnToPathname.includes("/fanletter/content/");
+
+  if (locale === "ko") {
+    return isContentReturn
+      ? {
+          description:
+            "FanLetter 팬 전용 콘텐츠 결제와 전체 열람을 이어가기 위해 이메일 계정을 연결하세요.",
+          title: "FanLetter 팬 전용 콘텐츠 계정 연결",
+        }
+      : {
+          description:
+            "FanLetter 계정 연결과 시작 준비 확인을 완료하고 보던 위치로 돌아가세요.",
+          title: "FanLetter 계정 연결",
+        };
+  }
+
+  return isContentReturn
+    ? {
+        description:
+          "Connect your email account to continue FanLetter fan-only payment and full access.",
+        title: "FanLetter Fan-only Account Connect",
+      }
+    : {
+        description:
+          "Complete FanLetter account connection and readiness confirmation, then return where you left off.",
+        title: "FanLetter Account Connect",
+      };
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -33,22 +64,19 @@ export async function generateMetadata({
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readFanletterReferralCode(query.ref);
-  const title =
-    locale === "ko"
-      ? "FanLetter 온보딩 계정 연결"
-      : "FanLetter Onboarding Account Connect";
-  const description =
-    locale === "ko"
-      ? "FanLetter 온보딩의 첫 단계로 이메일 계정 연결과 시작 준비 확인을 완료하세요."
-      : "Complete email account connection and readiness confirmation as the first FanLetter onboarding step.";
+  const returnToHref = getSafeFanletterReturnTo({
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
+  const { description, title } = getFanletterConnectMetadataCopy(
+    locale,
+    returnToHref,
+  );
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     {
-      returnTo: getSafeFanletterReturnTo({
-        locale,
-        referralCode,
-        returnTo: query.returnTo,
-      }),
+      returnTo: returnToHref,
     },
   );
   const ogImagePath = buildFanletterOgImagePath({
@@ -57,7 +85,7 @@ export async function generateMetadata({
     referralCode,
     title,
     variant: "start",
-    version: "fanletter-connect-v1",
+    version: "fanletter-connect-v2",
   });
   const ogImage = {
     alt: getFanletterOgAlt(locale, "start"),

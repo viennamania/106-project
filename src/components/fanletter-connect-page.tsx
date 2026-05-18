@@ -56,6 +56,26 @@ type FanletterConnectSyncState = {
   validationError: string | null;
 };
 
+type FanletterConnectReturnKind =
+  | "content"
+  | "create"
+  | "creator"
+  | "feed"
+  | "home"
+  | "onboarding"
+  | "previous"
+  | "profile"
+  | "share"
+  | "studio";
+
+type FanletterConnectReturnTarget = {
+  backLabel: string;
+  body: string;
+  cta: string;
+  kind: FanletterConnectReturnKind;
+  label: string;
+};
+
 const FANLETTER_CONNECT_DISCONNECTED_GRACE_MS = 4500;
 
 const emptySyncState: FanletterConnectSyncState = {
@@ -168,6 +188,127 @@ function getCopy(locale: Locale) {
       };
 }
 
+function getContextCopy(
+  locale: Locale,
+  returnTarget: FanletterConnectReturnTarget,
+) {
+  const isContentReturn = returnTarget.kind === "content";
+
+  if (locale === "ko") {
+    if (isContentReturn) {
+      return {
+        accountBody:
+          "이메일 계정을 연결하면 팬 전용 콘텐츠 결제와 열람 권한, 구매 내역, 팬 요청이 같은 계정에 저장됩니다. 연결 후 보던 콘텐츠로 바로 돌아갑니다.",
+        completedBody:
+          "계정 연결이 확인되었습니다. 보던 팬 전용 콘텐츠로 돌아가 결제와 전체 열람을 이어가세요.",
+        connectBody:
+          "이메일로 FanLetter 계정을 연결하면 팬 전용 콘텐츠 결제, 구매 내역, 열람 권한이 같은 계정에 저장됩니다.",
+        helper:
+          "연결 상태가 확인되면 팬 전용 콘텐츠 결제와 열람 권한을 이 계정 기준으로 확인합니다.",
+        onboardingBody:
+          "캐릭터 만들기나 첫 브이로그 제작을 시작하려면 온보딩 체크리스트에서 이어갈 수 있습니다.",
+        onboardingCta: "온보딩 체크리스트 보기",
+        onboardingTitle: "필요할 때 온보딩으로 이동",
+        paymentBody:
+          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료하면 보던 팬 전용 콘텐츠로 돌아옵니다.",
+        primary: returnTarget.backLabel,
+        readinessBody:
+          "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 보던 팬 전용 콘텐츠로 돌아옵니다.",
+        returnBody: returnTarget.body,
+        returnCta: returnTarget.cta,
+        returnTitle: "보던 콘텐츠",
+        steps: ["이메일 로그인", "구매 계정 확인", "콘텐츠로 복귀"],
+        title: "팬 전용 콘텐츠를 열기 위해 계정을 연결하세요.",
+      };
+    }
+
+    return {
+      accountBody:
+        "계정 연결은 FanLetter를 시작하는 첫 단계입니다. 연결 후 보던 위치로 돌아가거나 온보딩 체크리스트에서 캐릭터 만들기와 첫 브이로그 생성을 이어갑니다.",
+      completedBody: `계정 연결이 확인되었습니다. ${returnTarget.label}에서 이어서 진행하세요.`,
+      connectBody:
+        "이메일로 FanLetter 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
+      helper: "연결 상태가 확인되면 보던 위치로 돌아갈 수 있습니다.",
+      onboardingBody:
+        "캐릭터 설정과 첫 브이로그 생성을 시작하려면 온보딩 체크리스트에서 이어갈 수 있습니다.",
+      onboardingCta: "온보딩 체크리스트 보기",
+      onboardingTitle: "온보딩도 이어갈 수 있음",
+      paymentBody:
+        "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 보던 위치로 돌아옵니다.",
+      primary:
+        returnTarget.kind === "onboarding"
+          ? "온보딩 계속하기"
+          : returnTarget.backLabel,
+      readinessBody:
+        "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 보던 위치로 돌아옵니다.",
+      returnBody: returnTarget.body,
+      returnCta: returnTarget.cta,
+      returnTitle: "연결 전 위치",
+      steps: ["이메일 로그인", "계정 연결 확인", "시작 준비 확인"],
+      title:
+        returnTarget.kind === "onboarding"
+          ? "계정 연결 후 온보딩을 이어가세요."
+          : "계정 연결 후 보던 위치로 돌아가세요.",
+    };
+  }
+
+  if (isContentReturn) {
+    return {
+      accountBody:
+        "Connect with email so fan-only payments, access, purchase history, and fan requests stay attached to the same account. After connecting, you will return to the content you were viewing.",
+      completedBody:
+        "Your account connection is ready. Return to the fan-only content to continue payment and full access.",
+      connectBody:
+        "Connect with email so fan-only payments, purchase history, and access stay attached to the same account.",
+      helper:
+        "After connection, FanLetter checks fan-only payment and access from this account.",
+      onboardingBody:
+        "If you want to create a character or first vlog, continue from the onboarding checklist.",
+      onboardingCta: "View onboarding checklist",
+      onboardingTitle: "Onboarding is optional here",
+      paymentBody:
+        "The account is connected, but readiness confirmation is still required. Complete it, then return to the fan-only content.",
+      primary: returnTarget.backLabel,
+      readinessBody:
+        "If signup verification is required, complete it and return to the fan-only content.",
+      returnBody: returnTarget.body,
+      returnCta: returnTarget.cta,
+      returnTitle: "Content you were viewing",
+      steps: ["Email login", "Purchase account", "Return to content"],
+      title: "Connect your account to unlock fan-only content.",
+    };
+  }
+
+  return {
+    accountBody:
+      "Account connection is the first FanLetter step. After connecting, return to where you came from or continue in the onboarding checklist.",
+    completedBody: `Your account connection is ready. Continue from ${returnTarget.label}.`,
+    connectBody:
+      "Connect with email so characters, fan requests, purchases, and sales stay attached to the same FanLetter account.",
+    helper: "After connection, you can return to where you came from.",
+    onboardingBody:
+      "Continue in the onboarding checklist when you want to set up a character and first vlog.",
+    onboardingCta: "View onboarding checklist",
+    onboardingTitle: "Onboarding is still available",
+    paymentBody:
+      "The account is connected, but readiness confirmation is still required. Complete it, then return to where you came from.",
+    primary:
+      returnTarget.kind === "onboarding"
+        ? "Continue onboarding"
+        : returnTarget.backLabel,
+    readinessBody:
+      "If signup verification is required, complete it and return to where you came from.",
+    returnBody: returnTarget.body,
+    returnCta: returnTarget.cta,
+    returnTitle: "Where you came from",
+    steps: ["Email login", "Account check", "Readiness check"],
+    title:
+      returnTarget.kind === "onboarding"
+        ? "Connect your account, then continue onboarding."
+        : "Connect your account, then return where you left off.",
+  };
+}
+
 function formatAddressLabel(address?: string | null) {
   const trimmed = address?.trim();
 
@@ -216,46 +357,186 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
       : "Needs confirmation";
 }
 
-function getReturnTargetLabel(path: string, locale: Locale) {
+function getReturnTarget(path: string, locale: Locale): FanletterConnectReturnTarget {
   const pathname = path.split(/[?#]/, 1)[0];
 
   if (pathname === `/${locale}/fanletter`) {
-    return locale === "ko" ? "FanLetter 홈" : "FanLetter home";
+    return locale === "ko"
+      ? {
+          backLabel: "FanLetter 홈으로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 FanLetter 홈으로 돌아갈 수 있습니다.",
+          cta: "FanLetter 홈으로 돌아가기",
+          kind: "home",
+          label: "FanLetter 홈",
+        }
+      : {
+          backLabel: "Back to FanLetter home",
+          body: "If you only need to confirm or cancel connection, you can return to FanLetter home.",
+          cta: "Back to FanLetter home",
+          kind: "home",
+          label: "FanLetter home",
+        };
   }
 
   if (pathname === `/${locale}/fanletter/onboarding`) {
-    return locale === "ko" ? "온보딩 체크리스트" : "onboarding checklist";
+    return locale === "ko"
+      ? {
+          backLabel: "온보딩으로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 온보딩 체크리스트로 돌아갈 수 있습니다.",
+          cta: "온보딩 체크리스트로 돌아가기",
+          kind: "onboarding",
+          label: "온보딩 체크리스트",
+        }
+      : {
+          backLabel: "Back to onboarding",
+          body: "If you only need to confirm or cancel connection, you can return to the onboarding checklist.",
+          cta: "Back to onboarding checklist",
+          kind: "onboarding",
+          label: "onboarding checklist",
+        };
   }
 
   if (pathname === `/${locale}/fanletter/studio`) {
-    return locale === "ko" ? "브이로그 스튜디오" : "vlog studio";
+    return locale === "ko"
+      ? {
+          backLabel: "브이로그 스튜디오로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 브이로그 스튜디오로 돌아갈 수 있습니다.",
+          cta: "브이로그 스튜디오로 돌아가기",
+          kind: "studio",
+          label: "브이로그 스튜디오",
+        }
+      : {
+          backLabel: "Back to vlog studio",
+          body: "If you only need to confirm or cancel connection, you can return to vlog studio.",
+          cta: "Back to vlog studio",
+          kind: "studio",
+          label: "vlog studio",
+        };
   }
 
   if (pathname === `/${locale}/fanletter/profile`) {
-    return locale === "ko" ? "캐릭터 설정" : "character setup";
+    return locale === "ko"
+      ? {
+          backLabel: "캐릭터 설정으로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 캐릭터 설정으로 돌아갈 수 있습니다.",
+          cta: "캐릭터 설정으로 돌아가기",
+          kind: "profile",
+          label: "캐릭터 설정",
+        }
+      : {
+          backLabel: "Back to character setup",
+          body: "If you only need to confirm or cancel connection, you can return to character setup.",
+          cta: "Back to character setup",
+          kind: "profile",
+          label: "character setup",
+        };
   }
 
   if (pathname === `/${locale}/fanletter/create`) {
-    return locale === "ko" ? "브이로그 만들기" : "vlog creation";
+    return locale === "ko"
+      ? {
+          backLabel: "브이로그 만들기로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 브이로그 만들기로 돌아갈 수 있습니다.",
+          cta: "브이로그 만들기로 돌아가기",
+          kind: "create",
+          label: "브이로그 만들기",
+        }
+      : {
+          backLabel: "Back to vlog creation",
+          body: "If you only need to confirm or cancel connection, you can return to vlog creation.",
+          cta: "Back to vlog creation",
+          kind: "create",
+          label: "vlog creation",
+        };
   }
 
   if (pathname === `/${locale}/fanletter/feed`) {
-    return locale === "ko" ? "브이로그 피드" : "vlog feed";
+    return locale === "ko"
+      ? {
+          backLabel: "브이로그 피드로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 브이로그 피드로 돌아갈 수 있습니다.",
+          cta: "브이로그 피드로 돌아가기",
+          kind: "feed",
+          label: "브이로그 피드",
+        }
+      : {
+          backLabel: "Back to vlog feed",
+          body: "If you only need to confirm or cancel connection, you can return to vlog feed.",
+          cta: "Back to vlog feed",
+          kind: "feed",
+          label: "vlog feed",
+        };
   }
 
   if (pathname.includes("/fanletter/share/")) {
-    return locale === "ko" ? "공유 페이지" : "share page";
+    return locale === "ko"
+      ? {
+          backLabel: "공유 페이지로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 공유 페이지로 돌아갈 수 있습니다.",
+          cta: "공유 페이지로 돌아가기",
+          kind: "share",
+          label: "공유 페이지",
+        }
+      : {
+          backLabel: "Back to share page",
+          body: "If you only need to confirm or cancel connection, you can return to the share page.",
+          cta: "Back to share page",
+          kind: "share",
+          label: "share page",
+        };
   }
 
   if (pathname.includes("/fanletter/creator/")) {
-    return locale === "ko" ? "캐릭터 채널" : "character channel";
+    return locale === "ko"
+      ? {
+          backLabel: "캐릭터 채널로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 캐릭터 채널로 돌아갈 수 있습니다.",
+          cta: "캐릭터 채널로 돌아가기",
+          kind: "creator",
+          label: "캐릭터 채널",
+        }
+      : {
+          backLabel: "Back to character channel",
+          body: "If you only need to confirm or cancel connection, you can return to the character channel.",
+          cta: "Back to character channel",
+          kind: "creator",
+          label: "character channel",
+        };
   }
 
   if (pathname.includes("/fanletter/content/")) {
-    return locale === "ko" ? "콘텐츠 상세" : "content detail";
+    return locale === "ko"
+      ? {
+          backLabel: "팬 전용 콘텐츠로 돌아가기",
+          body: "연결을 취소하면 보던 팬 전용 콘텐츠 페이지로 돌아갑니다.",
+          cta: "팬 전용 콘텐츠로 돌아가기",
+          kind: "content",
+          label: "팬 전용 콘텐츠",
+        }
+      : {
+          backLabel: "Back to fan-only content",
+          body: "If you cancel connection, you can return to the fan-only content you were viewing.",
+          cta: "Back to fan-only content",
+          kind: "content",
+          label: "fan-only content",
+        };
   }
 
-  return locale === "ko" ? "이전 페이지" : "previous page";
+  return locale === "ko"
+    ? {
+        backLabel: "이전 페이지로 돌아가기",
+        body: "연결을 취소하거나 확인만 하려면 이전 페이지로 돌아갈 수 있습니다.",
+        cta: "이전 페이지로 돌아가기",
+        kind: "previous",
+        label: "이전 페이지",
+      }
+    : {
+        backLabel: "Back to previous page",
+        body: "If you only need to confirm or cancel connection, you can return to the previous page.",
+        cta: "Back to previous page",
+        kind: "previous",
+        label: "previous page",
+      };
 }
 
 function StepStatus({
@@ -332,16 +613,14 @@ export function FanletterConnectPage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
-  const returnToPathname = returnToHref.split(/[?#]/, 1)[0];
-  const isReturnToOnboarding =
-    returnToPathname === `/${locale}/fanletter/onboarding`;
-  const returnTargetLabel = getReturnTargetLabel(returnToHref, locale);
-  const backLabel = isReturnToOnboarding
-    ? copy.backToOnboarding
-    : copy.backToTarget(returnTargetLabel);
+  const returnTarget = getReturnTarget(returnToHref, locale);
+  const contextCopy = getContextCopy(locale, returnTarget);
+  const isReturnToOnboarding = returnTarget.kind === "onboarding";
+  const backLabel = returnTarget.backLabel;
   const onboardingHref = isReturnToOnboarding
     ? returnToHref
     : setPathSearchParams(onboardingBaseHref, { returnTo: returnToHref });
+  const postConnectHref = isReturnToOnboarding ? onboardingHref : returnToHref;
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: onboardingHref },
@@ -356,7 +635,7 @@ export function FanletterConnectPage({
   );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
-    { returnTo: onboardingHref },
+    { returnTo: postConnectHref },
   );
   const cachedSessionMember = useMemo(() => {
     if (!accountAddress || !memberSession.member) {
@@ -385,14 +664,14 @@ export function FanletterConnectPage({
             ? copy.syncing
             : copy.disconnected;
   const cardBody = memberIsCompleted
-    ? copy.completedBody
+    ? contextCopy.completedBody
     : memberNeedsPayment
-      ? copy.paymentBody
+      ? contextCopy.paymentBody
       : connection.isResolving
         ? copy.restoring
         : connection.isConnected
-          ? copy.helper
-          : copy.connectBody;
+          ? contextCopy.helper
+          : contextCopy.connectBody;
 
   useEffect(() => {
     if (connectionStatus === "connected") {
@@ -521,6 +800,65 @@ export function FanletterConnectPage({
     setSyncNonce((current) => current + 1);
   }
 
+  function renderStepStatuses() {
+    return contextCopy.steps.map((step, index) => (
+      <StepStatus
+        done={
+          index === 0
+            ? connection.isConnected
+            : index === 1
+              ? Boolean(connectedMember || syncState.email)
+              : memberIsCompleted
+        }
+        key={step}
+        label={step}
+        loading={
+          (index === 0 && connection.isResolving) ||
+          (index === 2 && syncState.status === "syncing")
+        }
+      />
+    ));
+  }
+
+  function renderReturnActionCards(className: string) {
+    return (
+      <div className={className}>
+        <Link
+          className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 transition hover:bg-[#44f26e]/14"
+          href={onboardingHref}
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold text-[#9bffad]">
+            <Sparkles className="size-4" />
+            {contextCopy.onboardingTitle}
+          </span>
+          <span className="mt-2 block text-sm font-medium leading-6 text-white/62">
+            {contextCopy.onboardingBody}
+          </span>
+          <span className="mt-3 inline-flex text-xs font-semibold text-[#b9ffc8]">
+            {contextCopy.onboardingCta}
+          </span>
+        </Link>
+        {!isReturnToOnboarding ? (
+          <Link
+            className="rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:bg-white/[0.07]"
+            href={returnToHref}
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-white">
+              <ArrowLeft className="size-4 text-[#44f26e]" />
+              {contextCopy.returnTitle}
+            </span>
+            <span className="mt-2 block text-sm font-medium leading-6 text-white/58">
+              {contextCopy.returnBody}
+            </span>
+            <span className="mt-3 inline-flex text-xs font-semibold text-white/76">
+              {contextCopy.returnCta}
+            </span>
+          </Link>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#030504] text-white">
       <EmailLoginDialog
@@ -533,7 +871,7 @@ export function FanletterConnectPage({
         variant="fanletter"
       />
 
-      <section className="px-4 pb-10 pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 lg:px-8">
+      <section className="px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 sm:pb-10 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <header className="flex items-center justify-between gap-3">
             <Link
@@ -572,77 +910,28 @@ export function FanletterConnectPage({
             <FanletterGlobalLanguageSwitcher compact locale={locale} />
           </div>
 
-          <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
-            <div className="min-w-0">
+          <div className="grid gap-5 pb-8 pt-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-start lg:gap-8 lg:pb-14 lg:pt-20">
+            <div className="order-1 min-w-0">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
               <h1 className="mt-4 text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.85rem] lg:text-[4.15rem]">
-                {copy.title}
+                {contextCopy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
-                {copy.accountBody}
+                {contextCopy.accountBody}
               </p>
-              <div className="mt-8 grid gap-2 sm:grid-cols-3">
-                {copy.steps.map((step, index) => (
-                  <StepStatus
-                    done={
-                      index === 0
-                        ? connection.isConnected
-                        : index === 1
-                          ? Boolean(connectedMember || syncState.email)
-                          : memberIsCompleted
-                    }
-                    key={step}
-                    label={step}
-                    loading={
-                      (index === 0 && connection.isResolving) ||
-                      (index === 2 && syncState.status === "syncing")
-                    }
-                  />
-                ))}
+              <div className="mt-8 hidden gap-2 lg:grid lg:grid-cols-3">
+                {renderStepStatuses()}
               </div>
-              <div
-                className={`mt-5 grid gap-3 ${
-                  isReturnToOnboarding ? "" : "sm:grid-cols-2"
-                }`}
-              >
-                <Link
-                  className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 transition hover:bg-[#44f26e]/14"
-                  href={onboardingHref}
-                >
-                  <span className="flex items-center gap-2 text-sm font-semibold text-[#9bffad]">
-                    <Sparkles className="size-4" />
-                    {copy.onboardingTitle}
-                  </span>
-                  <span className="mt-2 block text-sm font-medium leading-6 text-white/62">
-                    {copy.onboardingBody}
-                  </span>
-                  <span className="mt-3 inline-flex text-xs font-semibold text-[#b9ffc8]">
-                    {copy.onboardingCta}
-                  </span>
-                </Link>
-                {!isReturnToOnboarding ? (
-                  <Link
-                    className="rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:bg-white/[0.07]"
-                    href={returnToHref}
-                  >
-                    <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                      <ArrowLeft className="size-4 text-[#44f26e]" />
-                      {copy.returnTitle}
-                    </span>
-                    <span className="mt-2 block text-sm font-medium leading-6 text-white/58">
-                      {copy.returnBody(returnTargetLabel)}
-                    </span>
-                    <span className="mt-3 inline-flex text-xs font-semibold text-white/76">
-                      {copy.returnCta(returnTargetLabel)}
-                    </span>
-                  </Link>
-                ) : null}
-              </div>
+              {renderReturnActionCards(
+                `mt-5 hidden gap-3 lg:grid ${
+                  isReturnToOnboarding ? "" : "lg:grid-cols-2"
+                }`,
+              )}
             </div>
 
-            <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-5">
+            <div className="order-2 rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                   {memberIsCompleted ? (
@@ -680,7 +969,7 @@ export function FanletterConnectPage({
                 </div>
               ) : null}
 
-              <div className="mt-5 grid gap-2">
+              <div className="mt-5 hidden gap-2 sm:grid">
                 <div className="rounded-lg border border-white/10 bg-black/30 p-3">
                   <div className="flex items-center gap-3">
                     <UserRound className="size-4 text-[#44f26e]" />
@@ -745,9 +1034,9 @@ export function FanletterConnectPage({
                   <>
                     <Link
                       className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
-                      href={onboardingHref}
+                      href={postConnectHref}
                     >
-                      {copy.primary}
+                      {contextCopy.primary}
                       <ArrowRight className="size-4" />
                     </Link>
                     <div className="grid gap-2 sm:grid-cols-3">
@@ -809,28 +1098,37 @@ export function FanletterConnectPage({
                 ) : null}
               </div>
             </div>
+
+            <div className="order-3 grid gap-2 sm:grid-cols-3 lg:hidden">
+              {renderStepStatuses()}
+            </div>
+            {renderReturnActionCards(
+              `order-4 grid gap-3 lg:hidden ${
+                isReturnToOnboarding ? "" : "sm:grid-cols-2"
+              }`,
+            )}
           </div>
 
           <div className="grid gap-3 border-t border-white/10 pt-6 md:grid-cols-3">
             {[
               {
                 Icon: Mail,
-                body: copy.connectBody,
-                title: copy.steps[0],
+                body: contextCopy.connectBody,
+                title: contextCopy.steps[0],
               },
               {
                 Icon: ShieldCheck,
-                body: copy.helper,
-                title: copy.steps[1],
+                body: contextCopy.helper,
+                title: contextCopy.steps[1],
               },
               {
                 Icon: Sparkles,
                 body: memberIsCompleted
-                  ? copy.completedBody
+                  ? contextCopy.completedBody
                   : memberNeedsPayment
-                    ? copy.paymentBody
-                    : copy.readinessBody,
-                title: copy.steps[2],
+                    ? contextCopy.paymentBody
+                    : contextCopy.readinessBody,
+                title: contextCopy.steps[2],
               },
             ].map((item) => {
               const Icon = item.Icon;
