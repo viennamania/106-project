@@ -48,7 +48,7 @@ type LastSubmittedRequest = {
 
 type TemplateLoadStatus = "error" | "idle" | "loading" | "ready";
 type TemplateCategoryFilter = FanletterFanRequestTemplateCategory | "all";
-type FanletterFanRequestRecommendationMode = "paid" | "public";
+type FanletterFanRequestRecommendationMode = "nsfw" | "paid" | "public";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -175,6 +175,40 @@ function getCopy(locale: Locale) {
             title: "팬 감사 메시지",
           },
         ],
+        nsfwBodyPlaceholder:
+          "예: NSFW 팬 전용으로 더 과감한 룩북과 프라이빗 Q&A를 보고 싶어요.",
+        nsfwExamples: [
+          {
+            body: "성인 팬 전용 톤으로 더 솔직하게 답하는 프라이빗 Q&A 브이로그",
+            category: "qna" as const,
+            title: "NSFW 프라이빗 Q&A",
+          },
+          {
+            body: "공개 피드보다 과감한 스타일링과 분위기를 담은 팬 전용 룩북",
+            category: "outfit" as const,
+            title: "과감한 룩북",
+          },
+          {
+            body: "늦은 밤 방 안에서 차분하게 이어지는 성인 팬 전용 루틴",
+            category: "routine" as const,
+            title: "늦은 밤 루틴",
+          },
+          {
+            body: "다음 NSFW 팬 전용 브이로그의 분위기를 먼저 보여주는 비공개 티저",
+            category: "fanservice" as const,
+            title: "NSFW 비공개 티저",
+          },
+        ],
+        nsfwExamplesLabel: "NSFW 팬 전용 추천 장면",
+        nsfwHelper:
+          "NSFW 콘텐츠와 연결된 요청은 성인 팬 전용 후속 장면으로 저장됩니다. 공개 피드용 장면보다 과감한 룩, 프라이빗 Q&A, 성인 팬 전용 루틴처럼 NSFW 맥락을 분명히 남겨주세요.",
+        nsfwNote:
+          "NSFW 보기와 잠금 해제 후 남기는 요청입니다. 같은 요청은 중복 저장되지 않습니다.",
+        nsfwRequestReady: "NSFW 팬 전용 요청 문구를 수정하거나 바로 남길 수 있습니다.",
+        nsfwSuccessBody:
+          "제작되면 NSFW 팬 전용 콘텐츠나 성인 팬 업데이트 후보로 이어질 수 있습니다.",
+        nsfwTemplatesHelper:
+          "NSFW 팬 전용 후속 장면은 프라이빗 Q&A, 과감한 룩북, 늦은 밤 루틴처럼 성인 팬 전용 맥락으로 추천됩니다.",
         paidExamplesLabel: "팬 전용 추천 장면",
         paidHelper:
           "유료 콘텐츠와 연결된 요청은 스튜디오 요청함에 팬 전용 후속 장면으로 저장됩니다. 비공개 Q&A, 긴 루틴, 선공개처럼 결제 팬이 기대하는 맥락으로 남겨주세요.",
@@ -355,6 +389,40 @@ function getCopy(locale: Locale) {
             title: "Fan thank-you",
           },
         ],
+        nsfwBodyPlaceholder:
+          "Example: I want an NSFW fan-only lookbook and a more private Q&A.",
+        nsfwExamples: [
+          {
+            body: "A private Q&A vlog with a more adult fan-only tone",
+            category: "qna" as const,
+            title: "NSFW private Q&A",
+          },
+          {
+            body: "A fan-only lookbook with bolder styling than the public feed",
+            category: "outfit" as const,
+            title: "Bolder lookbook",
+          },
+          {
+            body: "A calm late-night routine made for adult fan-only viewers",
+            category: "routine" as const,
+            title: "Late-night routine",
+          },
+          {
+            body: "A private teaser that previews the mood of the next NSFW fan-only vlog",
+            category: "fanservice" as const,
+            title: "NSFW private teaser",
+          },
+        ],
+        nsfwExamplesLabel: "NSFW fan-only suggested scenes",
+        nsfwHelper:
+          "Requests connected to NSFW content are saved as adult fan-only follow-up ideas. Use clear NSFW context such as bolder styling, private Q&A, or adult fan-only routines instead of public-feed scenes.",
+        nsfwNote:
+          "This request is available after NSFW visibility and unlock. Duplicate requests are not saved.",
+        nsfwRequestReady: "Edit the NSFW fan-only request, or leave it now.",
+        nsfwSuccessBody:
+          "If produced, it can become an NSFW fan-only content candidate or an adult fan update.",
+        nsfwTemplatesHelper:
+          "NSFW fan-only follow-up ideas are suggested around private Q&A, bolder lookbooks, and late-night routines for adult fan-only viewers.",
         paidExamplesLabel: "Fan-only suggested scenes",
         paidHelper:
           "Requests connected to paid content are saved as fan-only follow-up ideas. Use premium contexts such as private Q&A, longer routines, or early-access scenes.",
@@ -542,35 +610,60 @@ export function FanletterFanRequestForm({
       };
     }
 
-    const isPaidRecommendation = recommendationMode === "paid";
+    const isNsfwRecommendation = recommendationMode === "nsfw";
+    const isPaidRecommendation =
+      recommendationMode === "paid" || isNsfwRecommendation;
 
     return {
       bodyLabel: copy.bodyLabel,
-      bodyPlaceholder: isPaidRecommendation
+      bodyPlaceholder: isNsfwRecommendation
+        ? copy.nsfwBodyPlaceholder
+        : isPaidRecommendation
         ? copy.paidBodyPlaceholder
         : copy.bodyPlaceholder,
       emptyBody: copy.emptyBody,
-      examples: isPaidRecommendation ? copy.paidExamples : copy.examples,
-      examplesLabel: isPaidRecommendation
+      examples: isNsfwRecommendation
+        ? copy.nsfwExamples
+        : isPaidRecommendation
+          ? copy.paidExamples
+          : copy.examples,
+      examplesLabel: isNsfwRecommendation
+        ? copy.nsfwExamplesLabel
+        : isPaidRecommendation
         ? copy.paidExamplesLabel
         : copy.examplesLabel,
       examplesStatusFallback: copy.examplesStatusFallback,
       examplesStatusLoading: copy.examplesStatusLoading,
       helper:
-        helperOverride ?? (isPaidRecommendation ? copy.paidHelper : copy.helper),
-      note: isPaidRecommendation ? copy.paidNote : copy.note,
+        helperOverride ??
+        (isNsfwRecommendation
+          ? copy.nsfwHelper
+          : isPaidRecommendation
+            ? copy.paidHelper
+            : copy.helper),
+      note: isNsfwRecommendation
+        ? copy.nsfwNote
+        : isPaidRecommendation
+          ? copy.paidNote
+          : copy.note,
       receipt: copy.requestReceipt,
-      requestReady: isPaidRecommendation
+      requestReady: isNsfwRecommendation
+        ? copy.nsfwRequestReady
+        : isPaidRecommendation
         ? copy.paidRequestReady
         : copy.requestReady,
       saved: copy.saved,
       submit: copy.submit,
-      successBody: isPaidRecommendation
+      successBody: isNsfwRecommendation
+        ? copy.nsfwSuccessBody
+        : isPaidRecommendation
         ? copy.paidSuccessBody
         : copy.successBody,
       successSteps: copy.successSteps,
       successTitle: copy.successTitle,
-      templatesHelper: isPaidRecommendation
+      templatesHelper: isNsfwRecommendation
+        ? copy.nsfwTemplatesHelper
+        : isPaidRecommendation
         ? copy.paidTemplatesHelper
         : copy.templatesHelper,
       title: titleOverride ?? copy.title,
@@ -591,8 +684,12 @@ export function FanletterFanRequestForm({
     [activeRequestCopy.examples, locale, requestType],
   );
   const displayTemplates = useMemo(() => {
-    if (requestType !== "vlog_request" || recommendationMode !== "paid") {
+    if (requestType !== "vlog_request" || recommendationMode === "public") {
       return requestTemplates.length > 0 ? requestTemplates : fallbackTemplates;
+    }
+
+    if (recommendationMode === "nsfw") {
+      return fallbackTemplates;
     }
 
     const fallbackBodies = new Set(

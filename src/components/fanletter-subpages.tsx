@@ -3642,7 +3642,7 @@ function FanletterFanPromptPanel({
   previewRequests?: FanletterPublicFanRequestPreview[];
   publicVlogsHref?: string;
   referralCode?: string | null;
-  recommendationMode?: "paid" | "public";
+  recommendationMode?: "nsfw" | "paid" | "public";
   requestHref: string;
   requestHubHref?: string;
   returnToHref?: string | null;
@@ -3809,17 +3809,33 @@ function FanletterFanPromptPanel({
           title: `Request ${characterName}'s next vlog`,
         };
   const compactCopy = sourceContentId
-    ? recommendationMode === "paid"
+    ? recommendationMode === "nsfw"
       ? locale === "ko"
         ? {
-            body: "잠금 해제 전에도 다음 팬 전용 브이로그에서 보고 싶은 질문, 긴 루틴, 선공개 장면을 남길 수 있습니다.",
+            body: "잠금 해제한 NSFW 콘텐츠를 바탕으로 더 보고 싶은 성인 팬 전용 Q&A, 과감한 룩북, 프라이빗 루틴을 남길 수 있습니다.",
+            eyebrow: "NSFW 팬 전용 후속 요청",
+            formHelper:
+              "이 요청은 현재 NSFW 팬 전용 콘텐츠와 연결되어 스튜디오 요청함에 저장됩니다.",
+            title: "NSFW 팬 전용으로 이어서 보고 싶은 장면",
+          }
+        : {
+            body: "Use the unlocked NSFW post as context, then request the adult fan-only Q&A, bolder lookbook, or private routine you want next.",
+            eyebrow: "NSFW fan-only follow-up",
+            formHelper:
+              "This request is saved to the studio inbox with the current NSFW fan-only content as context.",
+            title: "What NSFW fan-only scene should come next?",
+          }
+    : recommendationMode === "paid"
+      ? locale === "ko"
+        ? {
+            body: "잠금 해제한 콘텐츠를 바탕으로 다음 팬 전용 브이로그에서 보고 싶은 질문, 긴 루틴, 선공개 장면을 남길 수 있습니다.",
             eyebrow: "팬 전용 후속 요청",
             formHelper:
               "이 요청은 현재 팬 전용 콘텐츠와 연결되어 스튜디오 요청함에 저장됩니다.",
             title: "팬 전용으로 이어서 보고 싶은 장면",
           }
         : {
-            body: "Even before unlocking, fans can request the question, longer routine, or early-access moment they want in the next fan-only vlog.",
+            body: "Use the unlocked content as context, then request the question, longer routine, or early-access moment you want in the next fan-only vlog.",
             eyebrow: "Fan-only follow-up",
             formHelper:
               "This request is saved to the studio inbox with the current fan-only content as context.",
@@ -3979,7 +3995,11 @@ function FanletterFanPromptPanel({
             referralCode={referralCode}
             sourceContentId={sourceContentId}
             titleOverride={
-              recommendationMode === "paid"
+              recommendationMode === "nsfw"
+                ? locale === "ko"
+                  ? "NSFW 팬 전용 후속 장면 요청"
+                  : "Request an NSFW fan-only follow-up"
+                : recommendationMode === "paid"
                 ? locale === "ko"
                   ? "팬 전용 후속 장면 요청"
                   : "Request a fan-only follow-up"
@@ -8997,8 +9017,11 @@ export function FanletterContentDetailPage({
   const shouldShowPaidUnlockPanel =
     content.priceType === "paid" && !canViewerAccess && !requiresNsfwOptIn;
   const shouldBlurDetailMedia = shouldShowPaidUnlockPanel || requiresNsfwOptIn;
-  const requestRecommendationMode =
-    content.priceType === "paid" ? "paid" : "public";
+  const requestRecommendationMode = isNsfwContent
+    ? "nsfw"
+    : content.priceType === "paid"
+      ? "paid"
+      : "public";
   const detailAccessLabel = isOwnContent
     ? content.priceType === "paid"
       ? locale === "ko"
@@ -9086,6 +9109,7 @@ export function FanletterContentDetailPage({
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
   const shouldShowDetailQuickActions = isOwnContent;
+  const shouldShowFanRequestPrompt = !isOwnContent && canViewerAccess;
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
@@ -9414,7 +9438,7 @@ export function FanletterContentDetailPage({
                 locale={locale}
                 manageHref={ownerManageHref}
               />
-            ) : (
+            ) : shouldShowFanRequestPrompt ? (
               <>
                 <FanletterFanPromptPanel
                   characterName={contentCharacterName}
@@ -9441,7 +9465,7 @@ export function FanletterContentDetailPage({
                   sourceContentId={content.contentId}
                 />
               </>
-            )}
+            ) : null}
 
             {canViewerAccess &&
             content.contentVideoUrls.length > 1 ? (
