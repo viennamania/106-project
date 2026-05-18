@@ -1246,6 +1246,12 @@ function ContentCard({
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
   const nsfwCopy = getFanletterNsfwCopy(locale);
+  const mediaLabel =
+    item.mediaType === "video"
+      ? locale === "ko"
+        ? "영상"
+        : "Video"
+      : copy.feed.freePublic;
 
   return (
     <article
@@ -1280,13 +1286,13 @@ function ContentCard({
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#121b16_54%,#1d2f23)] text-white/72">
               <PlayCircle className="size-14 text-[#44f26e]" />
               <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-                Video
+                {mediaLabel}
               </span>
             </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.76)_100%)]" />
           <span className="absolute left-2.5 top-2.5 inline-flex rounded-full bg-white px-2.5 py-1 text-[0.62rem] font-semibold text-black sm:left-3 sm:top-3 sm:px-3 sm:text-[0.68rem]">
-            Video
+            {mediaLabel}
           </span>
           {isNsfw ? (
             <span className="absolute right-2.5 top-2.5 inline-flex rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white sm:right-3 sm:top-3 sm:px-3 sm:text-[0.68rem]">
@@ -1379,7 +1385,7 @@ function ContentCard({
             <span />
           )}
           <Link
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-black px-3 text-xs font-semibold !text-white sm:h-9"
             href={href}
           >
             {contentActionLabel ?? copy.actions.openContent}
@@ -1942,7 +1948,7 @@ function FanletterFeedCuriosityBoard({
       <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-[#1f7c38]">
-            FanLetter Pick
+            {locale === "ko" ? "FanLetter 추천" : "FanLetter Pick"}
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-normal">
             {labels.title}
@@ -2057,7 +2063,7 @@ function FanletterCreatorRanking({
       ? {
           body: "좋아요, 댓글, 저장 반응이 높은 캐릭터를 성과 기반 리더보드로 보여줍니다.",
           cta: "채널 보기",
-          eyebrow: "Character Ranking",
+          eyebrow: "캐릭터 랭킹",
           latest: "최근 브이로그",
           leader: "팬 반응 1위",
           publicPosts: "공개",
@@ -5417,7 +5423,7 @@ function FanletterFeedMobileGuide({
         <div className="mt-3 grid grid-cols-2 gap-2 min-[430px]:grid-cols-3">
           {guideItems.map(({ Icon, body, href, title }) => (
             <Link
-              className="group inline-flex h-10 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-2.5 text-sm font-semibold transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+              className="group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-2.5 text-sm font-semibold transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
               href={href}
               key={`${href}-${title}`}
             >
@@ -5438,25 +5444,25 @@ function FanletterFeedMobileGuide({
         <div className="mt-3 grid grid-cols-2 gap-2">
           {canGoPrevious ? (
             <Link
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+              className="inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
               href={previousHref}
             >
               {labels.previous}
             </Link>
           ) : (
-            <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
               {labels.previous}
             </span>
           )}
           {canGoNext ? (
             <Link
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
               href={nextHref}
             >
               {labels.next}
             </Link>
           ) : (
-            <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
+            <span className="inline-flex h-11 items-center justify-center rounded-full border border-white/8 px-4 text-sm font-semibold text-white/28">
               {labels.next}
             </span>
           )}
@@ -5712,11 +5718,13 @@ export function FanletterFeedPage({
       ? {
           pageCreators: "이 페이지 캐릭터",
           pageVideos: "이 페이지 영상",
+          title: "오늘의 공개 브이로그",
           total: "전체 공개",
         }
       : {
           pageCreators: "Page creators",
           pageVideos: "Page videos",
+          title: "Today's public vlogs",
           total: "All public",
         };
   const feedStats = [
@@ -5737,7 +5745,7 @@ export function FanletterFeedPage({
     locale === "ko"
       ? {
           body: "처음 둘러볼 캐릭터를 최신 브이로그와 반응 신호 기준으로 추천합니다.",
-          eyebrow: "Character Discovery",
+          eyebrow: "캐릭터 발견",
           title: copy.feed.suggestedCreators,
         }
       : {
@@ -5876,7 +5884,7 @@ export function FanletterFeedPage({
                     {locale === "ko" ? "캐릭터 브이로그" : "Character Vlog"}
                   </p>
                   <h2 className="mt-3 min-w-0 max-w-full break-words text-[1.85rem] font-semibold leading-[1.08] tracking-normal [overflow-wrap:anywhere] sm:text-3xl sm:[word-break:keep-all]">
-                    {copy.feed.title}
+                    {feedStatLabels.title}
                   </h2>
                   <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {feedStats.map((stat) => (
