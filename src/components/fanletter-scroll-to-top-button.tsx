@@ -89,7 +89,7 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
   return (
     <button
       aria-label={copy.label}
-      className="fixed bottom-[calc(5.9rem+env(safe-area-inset-bottom))] right-3 z-50 inline-flex size-10 items-center justify-center rounded-full border border-[#44f26e]/42 bg-[#44f26e] text-xs font-semibold text-black shadow-[0_18px_44px_rgba(0,0,0,0.32)] transition hover:bg-[#67ff88] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:bottom-6 sm:right-6 sm:h-11 sm:w-auto sm:gap-2 sm:px-4"
+      className="fixed bottom-[calc(5.9rem+env(safe-area-inset-bottom))] right-3 z-50 inline-flex size-11 items-center justify-center rounded-full border border-[#44f26e]/42 bg-[#44f26e] text-xs font-semibold text-black shadow-[0_18px_44px_rgba(0,0,0,0.32)] transition hover:bg-[#67ff88] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:bottom-6 sm:right-6 sm:w-auto sm:gap-2 sm:px-4"
       onClick={() => {
         const prefersReducedMotion = window.matchMedia(
           "(prefers-reduced-motion: reduce)",

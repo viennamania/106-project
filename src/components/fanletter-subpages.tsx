@@ -4180,7 +4180,7 @@ function FanletterFanPromptPanel({
               </p>
             </div>
             <Link
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 px-3 text-sm font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/10"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 px-3 text-sm font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/10 sm:h-10"
               href={displayRequestHref}
             >
               <PenLine className="size-4" />
@@ -4244,7 +4244,7 @@ function FanletterFanPromptPanel({
                         </p>
                         {contentHref ? (
                           <Link
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:h-10"
                             href={contentHref}
                           >
                             {labels.fulfilledCta}
@@ -7261,7 +7261,6 @@ export function FanletterCreatorPage({
               referralCode={effectiveReferralCode}
               revealItems
               returnToHref={recentPublicVlogsHref}
-              showVideoPreview
             />
           </FanletterScrollReveal>
 

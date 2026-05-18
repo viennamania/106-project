@@ -1123,7 +1123,7 @@ export function FanletterFanRequestForm({
             return (
               <button
                 aria-pressed={active}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition sm:min-h-0 sm:px-3 sm:py-1.5 ${
                   active
                     ? "border-[#44f26e] bg-[#44f26e] text-black"
                     : "border-[#44f26e]/22 bg-black/18 text-[#b9ffc8] hover:border-[#44f26e]/56 hover:bg-[#44f26e]/12"

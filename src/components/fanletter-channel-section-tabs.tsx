@@ -227,9 +227,7 @@ export function FanletterChannelSectionTabs({
 
     observer?.observe(observedSentinel);
 
-    if (!observer) {
-      window.addEventListener("scroll", handleScroll, { passive: true });
-    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     window.addEventListener("resize", handleMobileQueryChange);
     mobileQuery.addEventListener("change", handleMobileQueryChange);
@@ -307,7 +305,7 @@ export function FanletterChannelSectionTabs({
         )}
         ref={navRef}
       >
-        <div className="mx-auto flex max-w-[92rem] gap-2 overflow-x-auto overscroll-x-contain rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] [touch-action:pan-x_pan-y] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+        <div className="mx-auto flex max-w-[92rem] touch-auto gap-2 overflow-x-auto overscroll-x-contain rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
           {items.map((tab) => {
             const active = tab.id === activeId;
 
