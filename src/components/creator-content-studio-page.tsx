@@ -1718,6 +1718,10 @@ export function CreatorContentStudioPage({
           generateTeaserCover: "AI 티저 커버 생성",
           generatingTeaserCover: "AI 티저 생성 중...",
           connectCta: "계정 연결하기",
+          connectDescription:
+            "같은 회원 이메일로 연결하면 이 요청에 영상을 업로드하고 공개 티저를 확인할 수 있습니다.",
+          connectTitle: "계정 연결 후 업로드 가능",
+          loadingStatus: "업로드 준비 상태를 확인하는 중입니다.",
           requestRequired:
             "유료 직접 업로드는 팬이 남긴 브이로그 요청에서만 시작할 수 있습니다. 팬 요청함에서 브이로그 요청을 선택하세요.",
           requestRequiredCta: "팬 요청함으로 이동",
@@ -1764,7 +1768,7 @@ export function CreatorContentStudioPage({
           readinessWalletLabel: "정산 지갑",
           fanRequestContext:
             "제목, 요약, 본문에 반영되었습니다.",
-          fanRequestEyebrow: "Fan Request",
+          fanRequestEyebrow: "팬 요청",
           fanRequestTitle: "팬이 요청한 브이로그",
           primaryVideoDescription:
             "팬 요청에 답하는 MP4, MOV, WEBM 원본 영상을 먼저 업로드하세요. 최대 1개, 200MB 이하입니다.",
@@ -1820,6 +1824,10 @@ export function CreatorContentStudioPage({
           generateTeaserCover: "Generate AI teaser cover",
           generatingTeaserCover: "Generating teaser...",
           connectCta: "Connect account",
+          connectDescription:
+            "Connect with the same member email to upload the video for this request and review the public teaser.",
+          connectTitle: "Connect account to upload",
+          loadingStatus: "Checking upload readiness.",
           requestRequired:
             "Paid direct upload can only start from a fan vlog request. Choose a vlog request from the fan request inbox.",
           requestRequiredCta: "Go to fan requests",
@@ -1966,7 +1974,7 @@ export function CreatorContentStudioPage({
       ? newPostHref
       : view === "new"
         ? isFanletterPaidUpload
-          ? postsManagerHref
+          ? null
           : profileHref
         : null;
   const headerShortcutLabel =
@@ -1976,7 +1984,7 @@ export function CreatorContentStudioPage({
       ? contentCopy.actions.createPost
       : view === "new"
         ? isFanletterPaidUpload
-          ? paidUploadComposerCopy.manageVlogs
+          ? null
           : contentCopy.labels.creatorSettings
         : null;
   const salesManagerLabel = locale === "ko" ? "판매 관리" : "Sales";
@@ -4972,6 +4980,17 @@ export function CreatorContentStudioPage({
       );
     }
 
+    if (isFanletterPaidUpload && isConnectionResolving) {
+      return (
+        <MessageCard tone="fanletter">
+          <span className="inline-flex items-center gap-2">
+            <LoaderCircle className="size-4 animate-spin" />
+            {paidUploadComposerCopy.loadingStatus}
+          </span>
+        </MessageCard>
+      );
+    }
+
     if (isConnectionResolving) {
       return (
         <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
@@ -4981,6 +5000,25 @@ export function CreatorContentStudioPage({
     }
 
     if (isDisconnected) {
+      if (isFanletterPaidUpload) {
+        return (
+          <MessageCard tone="fanletter">
+            <span className="block text-base font-semibold text-white">
+              {paidUploadComposerCopy.connectTitle}
+            </span>
+            <span className="mt-1 block text-sm leading-6 text-[#d8ffe0]/72">
+              {paidUploadComposerCopy.connectDescription}
+            </span>
+            <Link
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={connectHref}
+            >
+              {paidUploadComposerCopy.connectCta}
+            </Link>
+          </MessageCard>
+        );
+      }
+
       return (
         <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
           <span>{contentCopy.messages.connectRequired}</span>
@@ -5002,6 +5040,17 @@ export function CreatorContentStudioPage({
     }
 
     if (state.status === "loading" && !state.member) {
+      if (isFanletterPaidUpload) {
+        return (
+          <MessageCard tone="fanletter">
+            <span className="inline-flex items-center gap-2">
+              <LoaderCircle className="size-4 animate-spin" />
+              {paidUploadComposerCopy.loadingStatus}
+            </span>
+          </MessageCard>
+        );
+      }
+
       return (
         <MessageCard tone={isFanletterPaidUpload ? "fanletter" : "neutral"}>
           {contentCopy.actions.refresh}...
