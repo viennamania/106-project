@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterSalesPage } from "@/components/fanletter-sales-page";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  getSafeFanletterReturnTo,
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
 type FanletterSalesSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getMetaCopy(locale: Locale) {
@@ -52,10 +57,25 @@ export default async function LocalizedFanletterSalesPage({
     notFound();
   }
 
+  const locale = lang as Locale;
+  const referralCode = readFanletterReferralCode(query.ref);
+  const explicitReturnToHref = normalizeFanletterReturnToPath(
+    query.returnTo,
+    locale,
+  );
+  const returnToHref = getSafeFanletterReturnTo({
+    fallbackPath: `/${locale}/fanletter/studio`,
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
+
   return (
     <FanletterSalesPage
-      locale={lang as Locale}
-      referralCode={readFanletterReferralCode(query.ref)}
+      locale={locale}
+      preserveReturnTo={Boolean(explicitReturnToHref)}
+      referralCode={referralCode}
+      returnToHref={returnToHref}
     />
   );
 }

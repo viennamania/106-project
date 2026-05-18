@@ -80,8 +80,9 @@ function getCopy(locale: Locale) {
           createWallet: "정산 주소 준비",
           creatingWallet: "정산 주소 준비 중",
           feed: "피드 보기",
+          fanRequests: "팬 요청 선택",
           next: "다음",
-          paidUpload: "팬 요청 유료 업로드",
+          paidContent: "유료 콘텐츠 관리",
           previous: "이전",
           refresh: "새로고침",
           unlock: "정산 기능 열기",
@@ -133,8 +134,9 @@ function getCopy(locale: Locale) {
           createWallet: "Create settlement address",
           creatingWallet: "Creating settlement address",
           feed: "View feed",
+          fanRequests: "Choose fan request",
           next: "Next",
-          paidUpload: "Paid upload from request",
+          paidContent: "Paid content management",
           previous: "Previous",
           refresh: "Refresh",
           unlock: "Unlock settlement",
@@ -261,10 +263,14 @@ function getPageLabel(page: number, totalPages: number, locale: Locale) {
 
 export function FanletterSalesPage({
   locale,
+  preserveReturnTo,
   referralCode,
+  returnToHref,
 }: {
   locale: Locale;
+  preserveReturnTo: boolean;
   referralCode: string | null;
+  returnToHref: string;
 }) {
   const copy = getCopy(locale);
   const searchParams = useSearchParams();
@@ -296,9 +302,10 @@ export function FanletterSalesPage({
 
       return setPathSearchParams(managerBaseHref, {
         page: page > 1 ? String(page) : null,
+        returnTo: preserveReturnTo ? returnToHref : null,
       });
     },
-    [appliedPage, managerBaseHref],
+    [appliedPage, managerBaseHref, preserveReturnTo, returnToHref],
   );
   const currentManagerHref = useMemo(() => buildSalesHref(), [buildSalesHref]);
   const connectHref = setPathSearchParams(
@@ -313,10 +320,7 @@ export function FanletterSalesPage({
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: currentManagerHref },
   );
-  const fanRequestsHref = `${buildPathWithReferral(
-    `/${locale}/fanletter/studio`,
-    referralCode,
-  )}#fan-requests`;
+  const fanRequestsHref = `${studioHref}#fan-requests`;
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const channelsHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
@@ -345,6 +349,17 @@ export function FanletterSalesPage({
   });
   const hasSellerWallet = Boolean(dashboard?.sellerWalletAddress);
   const hasWithdrawableBalance = isPositiveWei(dashboard?.balance?.amountWei);
+  const isPaidVlogManagerReturn = returnToHref.includes(
+    `/${locale}/fanletter/studio/vlogs`,
+  );
+  const primaryActionHref = isPaidVlogManagerReturn ? returnToHref : createHref;
+  const primaryActionLabel = isPaidVlogManagerReturn
+    ? copy.actions.paidContent
+    : copy.actions.create;
+  const PrimaryActionIcon = isPaidVlogManagerReturn ? ArrowLeft : Plus;
+  const backLabel = isPaidVlogManagerReturn
+    ? copy.actions.paidContent
+    : copy.actions.back;
   const canUseWorkspace =
     connectionStatus === "connected" && dashboard?.member.status === "completed";
   const isInitialLoading = state.status === "loading" && !dashboard;
@@ -672,8 +687,8 @@ export function FanletterSalesPage({
           <header className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04] transition hover:bg-white/[0.08]"
-              href={studioHref}
-              title={copy.actions.back}
+              href={returnToHref}
+              title={backLabel}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -728,17 +743,17 @@ export function FanletterSalesPage({
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#6cff89]"
-                  href={createHref}
+                  href={primaryActionHref}
                 >
-                  <Plus className="size-4" />
-                  {copy.actions.create}
+                  <PrimaryActionIcon className="size-4" />
+                  {primaryActionLabel}
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-4 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16"
                   href={fanRequestsHref}
                 >
                   <Upload className="size-4" />
-                  {copy.actions.paidUpload}
+                  {copy.actions.fanRequests}
                 </Link>
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
@@ -872,7 +887,7 @@ export function FanletterSalesPage({
                     href={fanRequestsHref}
                   >
                     <Upload className="size-4" />
-                    {copy.actions.paidUpload}
+                    {copy.actions.fanRequests}
                   </Link>
                 </MessagePanel>
               </div>
