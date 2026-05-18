@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { FanletterCreatorPromoSharePage } from "@/components/fanletter-subpages";
@@ -13,6 +14,10 @@ import {
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
 import { getFanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
 import {
   readFanletterReferralCode,
   readFirstSearchParam,
@@ -46,13 +51,13 @@ function getPromoShareMetadata({
 
   if (locale === "ko") {
     return {
-      description: `무료 브이로그 ${publicCount}개와 팬 전용 티저 ${fanOnlyCount}개를 먼저 확인할 수 있는 FanLetter 공유 전용 페이지입니다.`,
+      description: `무료 브이로그 ${publicCount}개와 팬 전용 미리보기 ${fanOnlyCount}개를 확인할 수 있는 FanLetter 공유 페이지입니다.`,
       title: `${characterName} AI 브이로그 프로모션`,
     };
   }
 
   return {
-    description: `A FanLetter promotional share page with ${publicCount} free vlogs and ${fanOnlyCount} fan-only teasers.`,
+    description: `A FanLetter share page with ${publicCount} free vlogs and ${fanOnlyCount} fan-only previews.`,
     title: `${characterName} AI vlog promotion`,
   };
 }
@@ -182,6 +187,10 @@ export default async function LocalizedFanletterPromoSharePage({
 
   const locale = lang as Locale;
   const normalizedShareId = normalizeShareId(shareId);
+  const cookieStore = await cookies();
+  const includeNsfw = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
   const creatorReferralCode = normalizeReferralCode(
     readFirstSearchParam(query.creator),
   );
@@ -190,7 +199,12 @@ export default async function LocalizedFanletterPromoSharePage({
     notFound();
   }
 
-  const data = await getFanletterCreatorPageData(locale, creatorReferralCode, null);
+  const data = await getFanletterCreatorPageData(
+    locale,
+    creatorReferralCode,
+    null,
+    { includeNsfw },
+  );
 
   if (!data) {
     notFound();

@@ -707,6 +707,85 @@ function getDisplayPaidTeaser(item: FanletterPublicContentItem, locale: Locale) 
     : getDisplayContentSummary(item, locale);
 }
 
+const PROMO_SHARE_SENSITIVE_TEXT_PATTERN =
+  /\b(adult|bikini|bolder|erotic|explicit|lingerie|naked|nude|nsfw|private q&a|sensual|sex|sexual|underwear)\b|과감|노출|란제리|비키니|섹시|성인|속옷|야한|프라이빗/i;
+
+function isSensitivePromoShareText(value: string) {
+  return PROMO_SHARE_SENSITIVE_TEXT_PATTERN.test(value);
+}
+
+function isLowSignalPromoShareText(value: string) {
+  const normalized = value.trim().replace(/\s+/g, "");
+
+  if (!normalized) {
+    return true;
+  }
+
+  const characters = Array.from(normalized);
+  const uniqueCharacters = new Set(characters);
+  const jamoCount = characters.filter((character) =>
+    /[ㄱ-ㅎㅏ-ㅣ]/.test(character),
+  ).length;
+
+  return (
+    /(.)\1{4,}/u.test(normalized) ||
+    (characters.length >= 5 && uniqueCharacters.size <= 2) ||
+    (characters.length >= 4 && jamoCount / characters.length >= 0.5)
+  );
+}
+
+function getPromoShareContentTitle(
+  item: FanletterPublicContentItem,
+  locale: Locale,
+) {
+  const title = getDisplayContentTitle(item, locale);
+  const rawTextCandidates = [item.title, item.summary, item.previewText].filter(
+    Boolean,
+  );
+
+  if (
+    isSensitivePromoShareText(title) ||
+    isLowSignalPromoShareText(title) ||
+    rawTextCandidates.some(
+      (value) =>
+        isSensitivePromoShareText(value ?? "") ||
+        isLowSignalPromoShareText(value ?? ""),
+    )
+  ) {
+    return locale === "ko"
+      ? "팬 전용 브이로그 미리보기"
+      : "Fan-only vlog preview";
+  }
+
+  return title;
+}
+
+function getPromoSharePaidTeaser(
+  item: FanletterPublicContentItem,
+  locale: Locale,
+) {
+  const teaser = getDisplayPaidTeaser(item, locale);
+  const rawTextCandidates = [item.title, item.summary, item.previewText].filter(
+    Boolean,
+  );
+
+  if (
+    isSensitivePromoShareText(teaser) ||
+    isLowSignalPromoShareText(teaser) ||
+    rawTextCandidates.some(
+      (value) =>
+        isSensitivePromoShareText(value ?? "") ||
+        isLowSignalPromoShareText(value ?? ""),
+    )
+  ) {
+    return locale === "ko"
+      ? "팬 전용 콘텐츠는 미리보기와 이용 조건만 먼저 표시됩니다."
+      : "Fan-only content shows a preview and access details first.";
+  }
+
+  return teaser;
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -7481,25 +7560,25 @@ export function FanletterCreatorPromoSharePage({
       ? {
           channel: "채널 바로가기",
           creatorBadge: "SNS 공유 전용",
-          description: `${channelName}의 무료 공개 브이로그와 팬 전용 티저를 한 화면에서 먼저 확인하세요.`,
-          mobileDescription: `무료 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 티저 ${formatNumber(data.fanOnlyContentCount, locale)}개를 먼저 확인하세요.`,
+          description: `${channelName}의 무료 공개 브이로그와 팬 전용 미리보기를 한 화면에서 확인하세요.`,
+          mobileDescription: `무료 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 미리보기 ${formatNumber(data.fanOnlyContentCount, locale)}개를 확인하세요.`,
           activityBody:
-            "공개 브이로그, 팬 전용 티저, 팬 요청 기록을 시간순으로 모아 캐릭터가 계속 움직이고 있다는 신호를 보여줍니다.",
+            "공개 브이로그, 팬 전용 미리보기, 팬 요청 기록을 시간순으로 모아 캐릭터 채널의 최근 흐름을 보여줍니다.",
           activityEmpty: "최근 활동 기록이 준비되면 이 영역에 시간순으로 표시됩니다.",
           activityEyebrow: "라이브 활동 기록",
-          activityFanOnly: "팬 전용 티저",
+          activityFanOnly: "팬 전용 미리보기",
           activityPublic: "공개 브이로그",
           activityRequest: "팬 요청",
           activityTitle: "최근에 움직인 순간",
           fanOnly: "팬 전용",
           fanOnlyBody:
-            "잠금 콘텐츠는 티저와 가격 신호만 먼저 보여주고, 결제 후 전체 영상과 본문이 열립니다.",
+            "팬 전용 콘텐츠는 미리보기와 이용 조건만 먼저 보여주고, 선택한 콘텐츠는 결제 후 전체 영상과 본문이 열립니다.",
           fanOnlyEmpty: "팬 전용 콘텐츠가 준비되면 이 영역에서 먼저 노출됩니다.",
-          fanOnlyTitle: "팬 전용 티저",
+          fanOnlyTitle: "팬 전용 미리보기",
           free: "무료 공개",
           growthBody:
-            "팬클럽 팔로우, 유료 콘텐츠 언락, 팬레터 요청이 캐릭터의 다음 표정과 브이로그 미션으로 이어지는 구조를 보여줍니다.",
-          growthCta: "팬 전용 티저 보기",
+            "팬클럽 팔로우, 팬 전용 콘텐츠 참여, 팬레터 요청이 캐릭터의 다음 표정과 브이로그 미션으로 이어지는 구조를 보여줍니다.",
+          growthCta: "팬 전용 보기",
           growthEyebrow: "팬클럽 성장 신호",
           growthFallbackMission:
             "팬 전용 콘텐츠와 팬레터가 쌓이면 다음 성장 미션이 열립니다.",
@@ -7512,13 +7591,13 @@ export function FanletterCreatorPromoSharePage({
           growthLevelLabel: "AI 성장 레벨",
           growthNextMission: "다음 성장 미션",
           growthPaidBody: (count: string) =>
-            `${count}회의 유료 콘텐츠 판매량이 팬들이 더 보고 싶은 장면의 신호가 됩니다.`,
-          growthPaidHint: "누적 유료 언락",
-          growthPaidLabel: "유료 콘텐츠 판매량",
+            `${count}회의 팬 전용 콘텐츠 참여가 다음 콘텐츠 방향을 정하는 신호가 됩니다.`,
+          growthPaidHint: "누적 팬 전용 참여",
+          growthPaidLabel: "팬 전용 참여",
           growthPaidPendingBody:
-            "첫 유료 언락이 생기면 팬들이 더 보고 싶은 장면의 신호로 이곳에 연결됩니다.",
-          growthPaidPendingHint: "첫 언락 대기",
-          growthPaidPendingLead: "판매 신호 준비 중",
+            "첫 팬 전용 참여가 생기면 다음 콘텐츠 방향을 정하는 신호로 이곳에 연결됩니다.",
+          growthPaidPendingHint: "첫 참여 대기",
+          growthPaidPendingLead: "참여 신호 준비 중",
           growthPaidPendingValue: "준비 중",
           growthProgressLabel: "성장 진행률",
           growthRequestBody: (count: string) =>
@@ -7527,9 +7606,9 @@ export function FanletterCreatorPromoSharePage({
           growthRequestLabel: "팬레터 요청",
           growthRequestLead: "팬레터 피드백",
           growthTitle: "팬들이 함께 키우는 AI 캐릭터",
-          topPaidEmpty: "팬 전용 콘텐츠 판매 신호가 쌓이면 이곳에 먼저 표시됩니다.",
-          topPaidSales: (count: string) => `${count}회 판매`,
-          topPaidTitle: "팬들이 언락한 콘텐츠",
+          topPaidEmpty: "팬 전용 콘텐츠 반응이 쌓이면 이곳에 먼저 표시됩니다.",
+          topPaidSales: (count: string) => `${count}회 선택`,
+          topPaidTitle: "팬들이 선택한 콘텐츠",
           heroCta: "무료 브이로그 보기",
           expressionBody:
             "같은 캐릭터 정체성으로 생성된 대표, 미소, 리액션, 집중 컷을 한 번에 확인하세요.",
@@ -7544,14 +7623,24 @@ export function FanletterCreatorPromoSharePage({
           identityEyebrow: "캐릭터 아이덴티티",
           identitySkills: "성장 스킬",
           identityTitle: `${channelName}의 페르소나`,
-          locked: "잠금 티저",
-          partner: "추천 파트너",
+          locked: "팬 전용 미리보기",
+          nsfwBadge: "성인 팬 전용",
+          nsfwDisabledBody:
+            "이 공유 페이지는 기본적으로 일반 공개 콘텐츠와 일반 팬 전용 미리보기만 보여줍니다. 성인 팬 전용 콘텐츠는 보기 동의 후 표시됩니다.",
+          nsfwDisabledCta: "성인 팬 전용 보기 켜기",
+          nsfwDisabledTitle: "성인 팬 전용 콘텐츠 안내",
+          nsfwEnabledBody:
+            "성인 팬 전용 미리보기가 이 공유 페이지와 팬 전용 영역에 표시됩니다.",
+          nsfwEnabledCta: "성인 팬 전용 숨기기",
+          nsfwEnabledTitle: "성인 팬 전용 표시 중",
+          nsfwHiddenCount: (count: string) => `숨겨진 성인 팬 전용 콘텐츠 ${count}개`,
+          partner: "캠페인 파트너",
           partnerBody:
             "이 공유 페이지는 캠페인별 스폰서 영역을 포함합니다. 지금은 Fanvue를 기본 파트너로 연결합니다.",
           partnerTitle: `${sponsor.name}에서 AI 크리에이터 트렌드 보기`,
           publicEmpty: "공개 브이로그가 준비되면 이 공유 페이지에서 먼저 볼 수 있습니다.",
           publicTitle: "먼저 볼 공개 브이로그",
-          secondaryCta: "팬 전용 티저 보기",
+          secondaryCta: "팬 전용 보기",
           serviceBody:
             "SNS에서 들어온 팬은 캐릭터를 먼저 보고, 더 알고 싶은 사용자는 FanLetter 서비스 홈에서 AI 캐릭터 생성, 공개 브이로그, 팬 전용 콘텐츠 흐름을 이어서 확인합니다.",
           serviceEyebrow: "FanLetter 서비스 연결",
@@ -7559,7 +7648,7 @@ export function FanletterCreatorPromoSharePage({
           serviceRewardDisclosure:
             "이 공유 링크로 가입을 완료하면 공유 페이지를 만든 회원에게 FanLetter 보상이 적립될 수 있습니다.",
           serviceStart: "나도 AI 캐릭터 만들기",
-          serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 티저", "서비스 시작"],
+          serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 확인", "서비스 시작"],
           serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
           shareCode: "공유 코드",
           stickyServiceCta: "서비스 보기",
@@ -7570,25 +7659,25 @@ export function FanletterCreatorPromoSharePage({
       : {
           channel: "Open channel",
           creatorBadge: "SNS share edition",
-          description: `Preview ${channelName}'s free public vlogs and fan-only teasers from one promotional page.`,
-          mobileDescription: `Preview ${formatNumber(data.publicContentCount, locale)} free vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only teasers.`,
+          description: `Preview ${channelName}'s free public vlogs and fan-only previews from one share page.`,
+          mobileDescription: `Preview ${formatNumber(data.publicContentCount, locale)} free vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only previews.`,
           activityBody:
-            "Public vlogs, fan-only teasers, and fan requests are arranged by time to show that this character keeps moving.",
+            "Public vlogs, fan-only previews, and fan requests are arranged by time to show the channel's recent flow.",
           activityEmpty: "Recent activity will appear here in chronological order.",
           activityEyebrow: "Live activity log",
-          activityFanOnly: "Fan-only teaser",
+          activityFanOnly: "Fan-only preview",
           activityPublic: "Public vlog",
           activityRequest: "Fan request",
           activityTitle: "Recent moments",
           fanOnly: "Fan-only",
           fanOnlyBody:
-            "Locked posts show teaser and price signals first. Full video and body open after payment.",
+            "Fan-only posts show preview and access details first. Selected posts open fully after payment.",
           fanOnlyEmpty: "Fan-only content will appear here when it is ready.",
-          fanOnlyTitle: "Fan-only teasers",
+          fanOnlyTitle: "Fan-only previews",
           free: "Free public",
           growthBody:
-            "Fan club follows, paid unlocks, and fan letters are shown as the loop that shapes the character's next expressions and vlog missions.",
-          growthCta: "View fan-only teasers",
+            "Fan club follows, fan-only participation, and fan letters are shown as the loop that shapes the character's next expressions and vlog missions.",
+          growthCta: "View fan-only",
           growthEyebrow: "Fan club growth signals",
           growthFallbackMission:
             "The next growth mission opens as fan-only content and fan letters build up.",
@@ -7601,13 +7690,13 @@ export function FanletterCreatorPromoSharePage({
           growthLevelLabel: "AI growth level",
           growthNextMission: "Next growth mission",
           growthPaidBody: (count: string) =>
-            `${count} paid content sales show which private scenes fans want to see more of.`,
-          growthPaidHint: "Total paid unlocks",
-          growthPaidLabel: "Paid content sales",
+            `${count} fan-only interactions help guide what the channel makes next.`,
+          growthPaidHint: "Total fan-only participation",
+          growthPaidLabel: "Fan-only participation",
           growthPaidPendingBody:
-            "The first paid unlock will connect here as a signal for the scenes fans want more of.",
-          growthPaidPendingHint: "Awaiting first unlock",
-          growthPaidPendingLead: "Sales signal pending",
+            "The first fan-only interaction will connect here as a signal for what to make next.",
+          growthPaidPendingHint: "Awaiting first interaction",
+          growthPaidPendingLead: "Participation signal pending",
           growthPaidPendingValue: "Pending",
           growthProgressLabel: "Growth progress",
           growthRequestBody: (count: string) =>
@@ -7616,9 +7705,9 @@ export function FanletterCreatorPromoSharePage({
           growthRequestLabel: "Fan letters",
           growthRequestLead: "Fan letter feedback",
           growthTitle: "Fans grow this AI character together",
-          topPaidEmpty: "Paid fan-only signals will appear here as fans unlock content.",
-          topPaidSales: (count: string) => `${count} sales`,
-          topPaidTitle: "Content fans unlocked",
+          topPaidEmpty: "Fan-only reactions will appear here as fans choose content.",
+          topPaidSales: (count: string) => `${count} picks`,
+          topPaidTitle: "Content fans picked",
           heroCta: "Watch free vlogs",
           expressionBody:
             "Review the default, smile, reaction, and focus cuts generated from the same character identity.",
@@ -7633,14 +7722,24 @@ export function FanletterCreatorPromoSharePage({
           identityEyebrow: "Character identity",
           identitySkills: "Growth skills",
           identityTitle: `${channelName}'s persona`,
-          locked: "Locked teaser",
-          partner: "Recommended partner",
+          locked: "Fan-only preview",
+          nsfwBadge: "Adult fan-only",
+          nsfwDisabledBody:
+            "This share page shows general public content and general fan-only previews by default. Adult fan-only content appears after opt-in.",
+          nsfwDisabledCta: "Show adult fan-only",
+          nsfwDisabledTitle: "Adult fan-only content",
+          nsfwEnabledBody:
+            "Adult fan-only previews are shown on this share page and in fan-only areas.",
+          nsfwEnabledCta: "Hide adult fan-only",
+          nsfwEnabledTitle: "Adult fan-only visible",
+          nsfwHiddenCount: (count: string) => `${count} adult fan-only posts hidden`,
+          partner: "Campaign partner",
           partnerBody:
             "This share page includes a campaign sponsor area. Fanvue is connected as the default partner.",
           partnerTitle: `See AI creator trends on ${sponsor.name}`,
           publicEmpty: "Public vlogs will appear here first when ready.",
           publicTitle: "Start with public vlogs",
-          secondaryCta: "View fan-only teasers",
+          secondaryCta: "View fan-only",
           serviceBody:
             "Fans arriving from social can preview the character first. Visitors who want the wider product can continue to the FanLetter home page for AI character creation, public vlogs, and fan-only content flows.",
           serviceEyebrow: "FanLetter service link",
@@ -7648,7 +7747,7 @@ export function FanletterCreatorPromoSharePage({
           serviceRewardDisclosure:
             "Completing signup through this shared link may award a FanLetter reward to the member who created this share page.",
           serviceStart: "Create my AI character",
-          serviceSteps: ["Social share", "Character preview", "Fan-only teaser", "Start service"],
+          serviceSteps: ["Social share", "Character preview", "Fan-only view", "Start service"],
           serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
           shareCode: "Share code",
           stickyServiceCta: "Service",
@@ -7719,11 +7818,11 @@ export function FanletterCreatorPromoSharePage({
       .filter((item) => Boolean(item.publishedAt))
       .slice(0, 3)
       .map((item) => ({
-        body: getCompactTextSnippet(getDisplayPaidTeaser(item, locale), 86),
+        body: getCompactTextSnippet(getPromoSharePaidTeaser(item, locale), 86),
         date: item.publishedAt as string,
         Icon: LockKeyhole,
         label: labels.activityFanOnly,
-        title: getDisplayContentTitle(item, locale),
+        title: getPromoShareContentTitle(item, locale),
       })),
     ...data.fanRequestPreviews
       .filter((request) => Boolean(request.createdAt))
@@ -7793,7 +7892,7 @@ export function FanletterCreatorPromoSharePage({
       Icon: LockKeyhole,
       hint: paidContentUnlockHint,
       label: labels.growthPaidLabel,
-      mobileLabel: locale === "ko" ? "유료 언락" : "Unlocks",
+      mobileLabel: locale === "ko" ? "팬 참여" : "Fan picks",
       value: paidContentUnlockLabel,
     },
   ];
@@ -7819,6 +7918,12 @@ export function FanletterCreatorPromoSharePage({
         : labels.growthPaidPendingLead,
     },
   ];
+  const showNsfwShareControl =
+    data.hiddenNsfwCount > 0 || data.nsfwOptInEnabled;
+  const nsfwHiddenCountText =
+    data.hiddenNsfwCount > 0
+      ? labels.nsfwHiddenCount(formatNumber(data.hiddenNsfwCount, locale))
+      : undefined;
 
   return (
     <main className="min-h-screen bg-[#050806] pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
@@ -8373,7 +8478,7 @@ export function FanletterCreatorPromoSharePage({
                         </div>
                         <div className="min-w-0">
                           <p className="line-clamp-2 break-words text-sm font-semibold leading-5 text-white [overflow-wrap:anywhere]">
-                            {getDisplayContentTitle(item, locale)}
+                            {getPromoShareContentTitle(item, locale)}
                           </p>
                           <div className="mt-2 flex flex-wrap items-center gap-1.5">
                             <span className="rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.6rem] font-semibold text-black">
@@ -8478,6 +8583,23 @@ export function FanletterCreatorPromoSharePage({
             </div>
           </FanletterScrollReveal>
 
+          {showNsfwShareControl ? (
+            <FanletterScrollReveal className="mb-5" delayMs={40}>
+              <FanletterNsfwOptInControl
+                disabledBody={labels.nsfwDisabledBody}
+                disabledCta={labels.nsfwDisabledCta}
+                disabledTitle={labels.nsfwDisabledTitle}
+                enabled={data.nsfwOptInEnabled}
+                enabledBody={labels.nsfwEnabledBody}
+                enabledCta={labels.nsfwEnabledCta}
+                enabledTitle={labels.nsfwEnabledTitle}
+                hiddenCount={data.hiddenNsfwCount}
+                hiddenCountText={nsfwHiddenCountText}
+                locale={locale}
+              />
+            </FanletterScrollReveal>
+          ) : null}
+
           {fanOnlyItems.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-3">
               {fanOnlyItems.map((item, index) => {
@@ -8487,7 +8609,8 @@ export function FanletterCreatorPromoSharePage({
                   referralCode: effectiveReferralCode,
                   returnToHref: shareHref,
                 });
-                const title = getDisplayContentTitle(item, locale);
+                const title = getPromoShareContentTitle(item, locale);
+                const isNsfw = item.contentMaturityRating === "nsfw";
 
                 return (
                   <FanletterScrollReveal
@@ -8514,13 +8637,13 @@ export function FanletterCreatorPromoSharePage({
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.72)_100%)]" />
                         <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
                           <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
-                            {labels.locked}
+                            {isNsfw ? labels.nsfwBadge : labels.locked}
                           </span>
                           <h3 className="mt-3 line-clamp-2 break-words text-xl font-semibold leading-tight tracking-normal [overflow-wrap:anywhere] sm:text-2xl">
                             {title}
                           </h3>
                           <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/64">
-                            {getDisplayPaidTeaser(item, locale)}
+                            {getPromoSharePaidTeaser(item, locale)}
                           </p>
                           <p className="mt-3 text-sm font-semibold text-[#b9ffc8]">
                             {item.priceUsdt ?? "1"} USDT

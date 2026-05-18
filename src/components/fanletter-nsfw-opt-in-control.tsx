@@ -22,6 +22,7 @@ export function FanletterNsfwOptInControl({
   enabledCta,
   enabledTitle,
   hiddenCount = 0,
+  hiddenCountText,
   locale,
   tone = "auto",
 }: {
@@ -34,6 +35,7 @@ export function FanletterNsfwOptInControl({
   enabledCta?: string;
   enabledTitle?: string;
   hiddenCount?: number;
+  hiddenCountText?: string;
   locale: Locale;
   tone?: "auto" | "dark" | "light";
 }) {
@@ -109,7 +111,7 @@ export function FanletterNsfwOptInControl({
                   isDarkTone ? "text-rose-100" : "text-rose-700",
                 )}
               >
-                {copy.hiddenCount(hiddenCountLabel)}
+                {hiddenCountText ?? copy.hiddenCount(hiddenCountLabel)}
               </p>
             ) : null}
           </div>
