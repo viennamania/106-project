@@ -79,6 +79,7 @@ type FanletterPaidUnlockPanelProps = {
   onboardingHref: string;
   priceUsdt: string | null;
   referralCode: string | null;
+  showTeaserPreview?: boolean;
 };
 
 const usdtContract = getContract({
@@ -349,6 +350,7 @@ export function FanletterPaidUnlockPanel({
   onboardingHref,
   priceUsdt,
   referralCode,
+  showTeaserPreview = true,
 }: FanletterPaidUnlockPanelProps) {
   const copy = getCopy(locale);
   const router = useRouter();
@@ -446,6 +448,7 @@ export function FanletterPaidUnlockPanel({
   const displayTitle = detail?.title ?? initialTitle;
   const displaySummary = detail?.summary ?? initialSummary;
   const displayCoverImageUrl = detail?.coverImageUrl ?? initialCoverImageUrl;
+  const lockedMediaCount = contentImageCount + contentVideoCount;
   const shouldShowLoading = loadStatus === "loading" || isResolving;
   const unlockItems = [
     {
@@ -989,47 +992,53 @@ export function FanletterPaidUnlockPanel({
 
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#44f26e]/28 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.24)_100%)] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
-      <div className="grid gap-0 lg:grid-cols-[0.84fr_1.16fr]">
-        <div className="relative min-h-[18rem] border-b border-white/10 bg-black/30 lg:border-b-0 lg:border-r">
-          {displayCoverImageUrl ? (
-            <Image
-              alt={displayTitle}
-              className={
-                isUnlocked
-                  ? "object-cover"
-                  : "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
-              }
-              fill
-              sizes="(max-width: 1024px) 100vw, 38vw"
-              src={displayCoverImageUrl}
-            />
-          ) : (
-            <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(145deg,#07100b,#102019_56%,#1a3722)]">
-              <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(68,242,110,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(68,242,110,0.12)_1px,transparent_1px)] [background-size:34px_34px]" />
-              <div className="absolute left-1/2 top-[38%] flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-[#44f26e]/26 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_0_44px_rgba(68,242,110,0.16)]">
-                <LockKeyhole className="size-9" />
+      <div
+        className={
+          showTeaserPreview ? "grid gap-0 lg:grid-cols-[0.84fr_1.16fr]" : ""
+        }
+      >
+        {showTeaserPreview ? (
+          <div className="relative min-h-[18rem] border-b border-white/10 bg-black/30 lg:border-b-0 lg:border-r">
+            {displayCoverImageUrl ? (
+              <Image
+                alt={displayTitle}
+                className={
+                  isUnlocked
+                    ? "object-cover"
+                    : "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
+                }
+                fill
+                sizes="(max-width: 1024px) 100vw, 38vw"
+                src={displayCoverImageUrl}
+              />
+            ) : (
+              <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(145deg,#07100b,#102019_56%,#1a3722)]">
+                <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(68,242,110,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(68,242,110,0.12)_1px,transparent_1px)] [background-size:34px_34px]" />
+                <div className="absolute left-1/2 top-[38%] flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-[#44f26e]/26 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_0_44px_rgba(68,242,110,0.16)]">
+                  <LockKeyhole className="size-9" />
+                </div>
               </div>
+            )}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.68)_100%)]" />
+            <div className="absolute left-4 top-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/56 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur">
+                <PlayCircle className="size-3.5 text-[#44f26e]" />
+                {copy.teaserBadge}
+              </span>
             </div>
-          )}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.68)_100%)]" />
-          <div className="absolute left-4 top-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/56 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur">
-              <PlayCircle className="size-3.5 text-[#44f26e]" />
-              {copy.teaserBadge}
-            </span>
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
+                {paidUnlockAmount} USDT
+              </span>
+              <h2 className="mt-3 break-words text-2xl font-semibold leading-tight">
+                {displayTitle}
+              </h2>
+              <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-white/70">
+                {displaySummary}
+              </p>
+            </div>
           </div>
-          <div className="absolute inset-x-0 bottom-0 p-5">
-            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
-              {paidUnlockAmount} USDT
-            </span>
-            <h2 className="mt-3 break-words text-2xl font-semibold leading-tight">
-              {displayTitle}
-            </h2>
-            <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-white/70">
-              {displaySummary}
-            </p>
-          </div>
-        </div>
+        ) : null}
 
         <div className="p-5 sm:p-6">
           {isUnlocked ? (
@@ -1042,6 +1051,23 @@ export function FanletterPaidUnlockPanel({
             />
           ) : (
             <div>
+              {!showTeaserPreview ? (
+                <div className="mb-5 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/32 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                    <PlayCircle className="size-3.5 text-[#44f26e]" />
+                    {copy.teaserBadge}
+                  </span>
+                  <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-black">
+                    {paidUnlockAmount} USDT
+                  </span>
+                  {lockedMediaCount > 0 ? (
+                    <span className="inline-flex rounded-full border border-white/12 bg-white/[0.055] px-3 py-1.5 text-xs font-semibold text-white/62">
+                      {formatTokenDisplay(String(lockedMediaCount), locale)}
+                      {locale === "ko" ? "개 미디어" : " media"}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 {copy.lockedEyebrow}
               </p>

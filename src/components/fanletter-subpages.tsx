@@ -9223,6 +9223,7 @@ export function FanletterContentDetailPage({
                     onboardingHref={onboardingHref}
                     priceUsdt={content.priceUsdt}
                     referralCode={effectiveReferralCode}
+                    showTeaserPreview={false}
                   />
                 </div>
               ) : null}
