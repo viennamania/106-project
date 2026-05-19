@@ -133,6 +133,7 @@ export default async function LocalizedFanletterFeedPage({
 
   return (
     <FanletterFeedPage
+      fanOnlyPreviewItems={data.fanOnlyPreviewItems}
       filters={data.filters}
       hiddenNsfwCount={data.hiddenNsfwCount}
       items={data.items}

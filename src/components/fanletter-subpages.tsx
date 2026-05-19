@@ -2092,14 +2092,14 @@ function FanletterFeedFanOnlyPreviewStrip({
     locale === "ko"
       ? {
           body:
-            "공개 브이로그 흐름 아래에서 관심 있는 캐릭터의 잠금 콘텐츠만 따로 확인하세요.",
+            "공개 브이로그 흐름과 별도로 추천되는 잠금 티저입니다. 관심 있는 캐릭터의 팬 전용 콘텐츠만 따로 확인하세요.",
           cta: "티저 보기",
           eyebrow: "Fan-only Preview",
           title: "팬 전용 미리보기",
         }
       : {
           body:
-            "Preview locked fan-only content separately after the public vlog flow.",
+            "Locked teasers are recommended separately from the public vlog flow so you can preview fan-only content independently.",
           cta: "View teaser",
           eyebrow: "Fan-only Preview",
           title: "Fan-only previews",
@@ -5587,10 +5587,12 @@ function FanletterFeedPagination({
   filters,
   locale,
   referralCode,
+  variant = "default",
 }: {
   filters: FanletterFeedFilters;
   locale: Locale;
   referralCode: string | null;
+  variant?: "default" | "desktop";
 }) {
   if (filters.pageCount <= 1) {
     return null;
@@ -5624,7 +5626,10 @@ function FanletterFeedPagination({
   return (
     <nav
       aria-label={labels.page}
-      className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className={cn(
+        "mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        variant === "desktop" && "hidden lg:flex",
+      )}
     >
       <p className="text-sm font-semibold text-black/50">
         {labels.page} {formatNumber(filters.page, locale)} /{" "}
@@ -5738,6 +5743,7 @@ function FanletterCreatorVlogsPagination({
 }
 
 export function FanletterFeedPage({
+  fanOnlyPreviewItems,
   filters,
   hiddenNsfwCount,
   items,
@@ -5745,6 +5751,7 @@ export function FanletterFeedPage({
   nsfwOptInEnabled,
   referralCode,
 }: {
+  fanOnlyPreviewItems: FanletterPublicContentItem[];
   filters: FanletterFeedFilters;
   hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
@@ -5754,7 +5761,6 @@ export function FanletterFeedPage({
 }) {
   const copy = getCopy(locale);
   const publicItems = items.filter((item) => item.priceType === "free");
-  const fanOnlyPreviewItems = items.filter((item) => item.priceType === "paid");
   const rankedItems = [...publicItems].sort((a, b) => {
     const scoreDelta = getContentEngagementScore(b) - getContentEngagementScore(a);
 
@@ -6114,12 +6120,6 @@ export function FanletterFeedPage({
             savedItem={savedItem}
           />
 
-          <FanletterFeedMobileGuide
-            filters={filters}
-            locale={locale}
-            referralCode={referralCode}
-          />
-
           <FanletterCreatorRanking
             items={publicItems}
             locale={locale}
@@ -6147,15 +6147,22 @@ export function FanletterFeedPage({
               />
             </>
           ) : null}
-          <FanletterFeedFanOnlyPreviewStrip
-            items={fanOnlyPreviewItems}
+          <FanletterFeedMobileGuide
+            filters={filters}
             locale={locale}
-            nsfwOptInEnabled={nsfwOptInEnabled}
             referralCode={referralCode}
           />
           <FanletterFeedPagination
             filters={filters}
             locale={locale}
+            referralCode={referralCode}
+            variant="desktop"
+          />
+
+          <FanletterFeedFanOnlyPreviewStrip
+            items={fanOnlyPreviewItems}
+            locale={locale}
+            nsfwOptInEnabled={nsfwOptInEnabled}
             referralCode={referralCode}
           />
         </div>

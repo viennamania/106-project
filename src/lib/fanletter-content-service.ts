@@ -181,6 +181,7 @@ export type FanletterPublicCharacter = {
 };
 
 export type FanletterFeedPageData = {
+  fanOnlyPreviewItems: FanletterPublicContentItem[];
   filters: FanletterFeedFilters;
   hiddenNsfwCount: number;
   items: FanletterPublicContentItem[];
@@ -1279,6 +1280,7 @@ export const getFanletterFeedPageData = cache(
     const pageSize = FANLETTER_FEED_PAGE_SIZE;
     let page = normalizeFeedPage(options?.page);
     let items: FanletterPublicContentItem[] = [];
+    let fanOnlyPreviewItems: FanletterPublicContentItem[] = [];
     const totalCount =
       sort === "latest"
         ? totalMatchingCount
@@ -1382,20 +1384,18 @@ export const getFanletterFeedPageData = cache(
           getSocialByContentId(previewPosts),
         ]);
 
-        items = [
-          ...items,
-          ...previewPosts.map((post) =>
-            toPublicContentItem({
-              post,
-              profile: profileByEmail.get(post.authorEmail),
-              social: socialByContentId.get(post.contentId),
-            }),
-          ),
-        ];
+        fanOnlyPreviewItems = previewPosts.map((post) =>
+          toPublicContentItem({
+            post,
+            profile: profileByEmail.get(post.authorEmail),
+            social: socialByContentId.get(post.contentId),
+          }),
+        );
       }
     }
 
     return {
+      fanOnlyPreviewItems,
       filters: {
         page,
         pageCount,
