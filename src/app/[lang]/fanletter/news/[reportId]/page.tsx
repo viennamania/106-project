@@ -71,6 +71,12 @@ function getCopy(locale: Locale) {
         openCreator: "캐릭터 채널",
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
+        reporterCardBody:
+          "이 뉴스는 표시된 FanLetter 팬 기자 코드로 생성된 AI 팬 리포트입니다.",
+        reporterCardTitle: "이 뉴스의 팬 기자",
+        reporterCode: "기자 코드",
+        reporterDesk: "FanLetter 팬 기자",
+        reporterVerified: "계정 기반 리포트",
         reportUrl: "뉴스 공유 주소",
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
@@ -111,6 +117,12 @@ function getCopy(locale: Locale) {
         openCreator: "Character channel",
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
+        reporterCardBody:
+          "This AI fan report is attributed to the displayed FanLetter reporter code.",
+        reporterCardTitle: "Fan reporter for this story",
+        reporterCode: "Reporter code",
+        reporterDesk: "FanLetter fan reporter",
+        reporterVerified: "Account-based report",
         reportUrl: "News share URL",
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
@@ -199,6 +211,95 @@ function NewsSiteHeader({
         </nav>
       </div>
     </header>
+  );
+}
+
+function ReporterSpotlight({
+  copy,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  report: FanletterNewsReportDocument;
+}) {
+  const reporterInitial =
+    report.reporterReferralCode.trim().charAt(0).toUpperCase() ||
+    report.reporterName.trim().charAt(0).toUpperCase() ||
+    "F";
+
+  return (
+    <section className="mt-6 rounded-lg border border-black/12 bg-[#111510] p-4 text-white shadow-[0_16px_44px_rgba(0,0,0,0.16)] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-xl font-black text-black">
+          {reporterInitial}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-bold uppercase tracking-[0.18em] text-[#44f26e]">
+            {copy.reporterCardTitle}
+          </p>
+          <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all]">
+            {report.reporterName}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+            {copy.reporterCardBody}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-0 sm:w-64 sm:shrink-0">
+        <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+          <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-white/42">
+            {copy.reporterCode}
+          </p>
+          <p className="mt-1 break-all text-sm font-black text-white">
+            {report.reporterReferralCode}
+          </p>
+        </div>
+        <div className="rounded-lg border border-[#44f26e]/28 bg-[#44f26e]/12 p-3">
+          <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#b9ffc8]/70">
+            FanLetter
+          </p>
+          <p className="mt-1 text-sm font-black text-[#b9ffc8]">
+            {copy.reporterVerified}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ReporterInfoCard({
+  copy,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  report: FanletterNewsReportDocument;
+}) {
+  return (
+    <section className="rounded-lg border border-black/12 bg-white p-4 text-[#111510]">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+          <PenLine className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
+            {copy.reporterDesk}
+          </p>
+          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all]">
+            {report.reporterName}
+          </h2>
+        </div>
+      </div>
+      <div className="mt-4 rounded-lg border border-black/10 bg-[#f5f6f2] p-3">
+        <p className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-black/42">
+          {copy.reporterCode}
+        </p>
+        <p className="mt-1 break-all text-lg font-black text-[#111510]">
+          {report.reporterReferralCode}
+        </p>
+      </div>
+      <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+        {copy.reporterCardBody}
+      </p>
+    </section>
   );
 }
 
@@ -574,6 +675,8 @@ export default async function LocalizedFanletterNewsReportPage({
               {report.dek}
             </p>
 
+            <ReporterSpotlight copy={copy} report={report} />
+
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-bold text-black/54">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1.5">
                 <PenLine className="size-3.5 text-[#16702e]" />
@@ -631,6 +734,8 @@ export default async function LocalizedFanletterNewsReportPage({
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-5">
+            <ReporterInfoCard copy={copy} report={report} />
+
             <CharacterInfoCard
               copy={copy}
               creatorHref={creatorHref}
