@@ -620,7 +620,14 @@ export default async function LocalizedFanletterNewsReportPage({
   const copy = getCopy(locale);
   const referralCode =
     readFanletterReferralCode(query.ref) ?? report.reporterReferralCode;
-  const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const newsHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    referralCode,
+  );
+  const fanletterHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter`,
+    referralCode,
+  );
   const reportHref = buildPathWithReferral(
     `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
@@ -630,7 +637,7 @@ export default async function LocalizedFanletterNewsReportPage({
         `/${locale}/fanletter/creator/${report.creatorReferralCode}`,
         referralCode,
       )
-    : homeHref;
+    : fanletterHomeHref;
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body);
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
@@ -645,7 +652,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
-      <NewsSiteHeader copy={copy} homeHref={homeHref} />
+      <NewsSiteHeader copy={copy} homeHref={newsHomeHref} />
 
       <article className="mx-auto max-w-7xl px-4 pb-12 pt-5 sm:px-6 sm:pt-7 lg:px-8">
         <div className="border-y border-black/14 py-3 text-center text-[0.68rem] font-bold uppercase tracking-[0.22em] text-black/52">

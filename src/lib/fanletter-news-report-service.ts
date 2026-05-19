@@ -599,6 +599,27 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
   });
 });
 
+export const getLatestFanletterNewsReports = cache(
+  async ({
+    limit = 24,
+    locale,
+  }: {
+    limit?: number;
+    locale: Locale;
+  }) => {
+    const reportsCollection = await getFanletterNewsReportsCollection();
+
+    return reportsCollection
+      .find({
+        locale,
+        status: "published",
+      })
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .limit(Math.max(1, Math.min(limit, 48)))
+      .toArray();
+  },
+);
+
 export const getRelatedFanletterNewsReports = cache(
   async ({
     creatorReferralCode,
