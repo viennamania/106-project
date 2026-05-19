@@ -8969,10 +8969,12 @@ function FanletterCharacterMiniCard({
 
 function FanletterNsfwContentGate({
   creatorHref,
+  isPaidContent = true,
   locale,
   priceUsdt,
 }: {
   creatorHref: string;
+  isPaidContent?: boolean;
   locale: Locale;
   priceUsdt: string | null;
 }) {
@@ -8981,28 +8983,40 @@ function FanletterNsfwContentGate({
       ? {
           badge: "NSFW 팬 전용",
           body:
-            "이 콘텐츠는 성인 팬 전용 신호가 있는 유료 업로드 영상입니다. NSFW 보기 동의 후 상세 티저와 결제 단계가 이어집니다.",
+            isPaidContent
+              ? "이 콘텐츠는 성인 팬 전용 신호가 있는 유료 업로드 영상입니다. NSFW 보기 동의 후 상세 티저와 결제 단계가 이어집니다."
+              : "이 콘텐츠는 성인 신호가 있는 AI 캐릭터 콘텐츠입니다. NSFW 보기 동의 후 미디어와 추천 장면이 표시됩니다.",
           creator: "캐릭터 채널 보기",
           media: "동의 전 미디어 블러",
           noCharge: "이 단계에서는 결제되지 않음",
-          paidNext: `${priceUsdt ?? "1"} USDT 잠금 해제는 다음 단계`,
+          paidNext: isPaidContent
+            ? `${priceUsdt ?? "1"} USDT 잠금 해제는 다음 단계`
+            : "NSFW 보기 동의 후 미디어 표시",
           title: "NSFW 보기 설정이 필요합니다",
           toggleBody:
-            "켜면 이 콘텐츠와 팬 전용 영역의 NSFW 콘텐츠가 표시됩니다. 언제든 다시 끌 수 있습니다.",
+            isPaidContent
+              ? "켜면 이 콘텐츠와 팬 전용 영역의 NSFW 콘텐츠가 표시됩니다. 유료 잠금 해제는 별도로 진행되며 언제든 다시 끌 수 있습니다."
+              : "켜면 이 콘텐츠와 팬 전용 영역의 NSFW 콘텐츠가 표시됩니다. 언제든 다시 끌 수 있습니다.",
           toggleCta: "NSFW 보기 켜기",
           toggleTitle: "이 콘텐츠 표시 준비",
         }
       : {
           badge: "NSFW fan-only",
           body:
-            "This paid uploaded video has adult fan-only signals. Turn on NSFW visibility first, then continue to the teaser and payment step.",
+            isPaidContent
+              ? "This paid uploaded video has adult fan-only signals. Turn on NSFW visibility first, then continue to the teaser and payment step."
+              : "This AI character content has adult signals. Turn on NSFW visibility to show the media and recommendations.",
           creator: "View character channel",
           media: "Media stays blurred before opt-in",
           noCharge: "No payment at this step",
-          paidNext: `${priceUsdt ?? "1"} USDT unlock is next`,
+          paidNext: isPaidContent
+            ? `${priceUsdt ?? "1"} USDT unlock is next`
+            : "Media appears after NSFW opt-in",
           title: "NSFW visibility is required",
           toggleBody:
-            "Turning this on shows this post and NSFW posts in fan-only areas. You can turn it off again anytime.",
+            isPaidContent
+              ? "Turning this on shows this post and NSFW posts in fan-only areas. Paid unlock stays separate, and you can turn it off again anytime."
+              : "Turning this on shows this post and NSFW posts in fan-only areas. You can turn it off again anytime.",
           toggleCta: "Show NSFW",
           toggleTitle: "Prepare this content",
         };
@@ -9167,14 +9181,35 @@ export function FanletterContentDetailPage({
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const requiresNsfwOptIn =
     isNsfwContent && !content.nsfwOptInEnabled && !isOwnContent;
+  const paidContentLocked =
+    content.priceType === "paid" && !canViewerAccess && !isOwnContent;
   const shouldShowPaidUnlockPanel =
-    content.priceType === "paid" && !canViewerAccess && !requiresNsfwOptIn;
-  const shouldBlurDetailMedia = shouldShowPaidUnlockPanel || requiresNsfwOptIn;
-  const requestRecommendationMode = isNsfwContent
+    paidContentLocked && !requiresNsfwOptIn;
+  const shouldBlurDetailMedia = paidContentLocked || requiresNsfwOptIn;
+  const shouldShowNsfwVisibilityControl =
+    isNsfwContent && !isOwnContent && !requiresNsfwOptIn;
+  const requestRecommendationMode = isNsfwContent && !requiresNsfwOptIn
     ? "nsfw"
     : content.priceType === "paid"
       ? "paid"
       : "public";
+  const nsfwVisibilityLabels =
+    locale === "ko"
+      ? {
+          enabledBody:
+            paidContentLocked
+              ? "NSFW 보기는 켜져 있습니다. 이 상태에서도 유료 잠금은 유지되며 결제 전 미디어는 계속 블러 처리됩니다. 끄면 이 콘텐츠는 다시 NSFW 게이트 뒤로 숨겨집니다."
+              : "NSFW 보기는 켜져 있습니다. 끄면 이 콘텐츠 미디어와 NSFW 추천 장면이 다시 블러 처리됩니다.",
+          enabledCta: "NSFW 보기 끄기",
+          enabledTitle: "NSFW 표시 중",
+        }
+      : {
+          enabledBody: paidContentLocked
+            ? "NSFW visibility is on. Paid lock still applies, so media remains blurred before payment. Turn it off to place this post behind the NSFW gate again."
+            : "NSFW visibility is on. Turn it off to blur this media and hide NSFW recommendations again.",
+          enabledCta: "Hide NSFW",
+          enabledTitle: "NSFW visible",
+        };
   const detailAccessLabel = isOwnContent
     ? content.priceType === "paid"
       ? locale === "ko"
@@ -9262,7 +9297,7 @@ export function FanletterContentDetailPage({
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
   const canRequestFollowUpScene = !isOwnContent && canViewerAccess;
-  const shouldShowFanRequestPrompt = canRequestFollowUpScene;
+  const shouldShowFanRequestPrompt = canRequestFollowUpScene && !requiresNsfwOptIn;
   const returnToPathname = returnToHref?.split(/[?#]/, 1)[0] ?? null;
   const isPurchasesReturn =
     returnToPathname === `/${locale}/fanletter/purchases`;
@@ -9539,12 +9574,25 @@ export function FanletterContentDetailPage({
                 <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
                   <FanletterNsfwContentGate
                     creatorHref={creatorHref}
+                    isPaidContent={content.priceType === "paid"}
                     locale={locale}
                     priceUsdt={content.priceUsdt}
                   />
                 </div>
               ) : shouldShowPaidUnlockPanel ? (
                 <div className="scroll-mt-6 lg:scroll-mt-8" id={paidUnlockSectionId}>
+                  {shouldShowNsfwVisibilityControl ? (
+                    <FanletterNsfwOptInControl
+                      className="mb-4"
+                      enabled
+                      enabledBody={nsfwVisibilityLabels.enabledBody}
+                      enabledCta={nsfwVisibilityLabels.enabledCta}
+                      enabledTitle={nsfwVisibilityLabels.enabledTitle}
+                      hiddenCount={0}
+                      locale={locale}
+                      tone="dark"
+                    />
+                  ) : null}
                   <FanletterPaidUnlockPanel
                     connectHref={connectHref}
                     contentImageCount={content.contentImageCount}
@@ -9564,6 +9612,17 @@ export function FanletterContentDetailPage({
                     showTeaserPreview={false}
                   />
                 </div>
+              ) : shouldShowNsfwVisibilityControl ? (
+                <FanletterNsfwOptInControl
+                  className="mb-6"
+                  enabled
+                  enabledBody={nsfwVisibilityLabels.enabledBody}
+                  enabledCta={nsfwVisibilityLabels.enabledCta}
+                  enabledTitle={nsfwVisibilityLabels.enabledTitle}
+                  hiddenCount={0}
+                  locale={locale}
+                  tone="dark"
+                />
               ) : null}
 
               {isOwnContent ? (
