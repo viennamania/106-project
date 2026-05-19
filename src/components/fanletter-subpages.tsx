@@ -9851,7 +9851,6 @@ export function FanletterContentDetailPage({
                 initialSocial={content.social}
                 isOwnContent={isOwnContent}
                 locale={locale}
-                reporterReferralCode={effectiveReferralCode}
                 shareHref={currentHref}
                 summary={content.summary}
                 title={content.title}

@@ -45,7 +45,6 @@ type FanletterSocialActionsProps = {
   initialSocial: ContentSocialSummaryRecord;
   isOwnContent?: boolean;
   locale: Locale;
-  reporterReferralCode?: string | null;
   shareHref: string;
   summary?: string;
   title: string;
@@ -219,7 +218,6 @@ export function FanletterSocialActions({
   initialSocial,
   isOwnContent = false,
   locale,
-  reporterReferralCode,
   shareHref,
   summary,
   title,
@@ -595,11 +593,23 @@ export function FanletterSocialActions({
     setBusyAction("report");
 
     try {
+      if (!connection.isConnected || !accountAddress) {
+        setToast(connection.isResolving ? copy.loading : copy.signInRequired);
+        return;
+      }
+
+      const resolvedEmail = await resolveEmail();
+
+      if (!resolvedEmail) {
+        throw new Error(copy.signInRequired);
+      }
+
       const response = await fetch("/api/fanletter/news-reports", {
         body: JSON.stringify({
           contentId,
+          email: resolvedEmail,
           locale,
-          referralCode: reporterReferralCode,
+          walletAddress: accountAddress,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -656,12 +666,17 @@ export function FanletterSocialActions({
       setBusyAction(null);
     }
   }, [
+    accountAddress,
+    connection.isConnected,
+    connection.isResolving,
     contentId,
+    copy.loading,
     copy.reportCopied,
     copy.reportFailed,
     copy.reportReady,
+    copy.signInRequired,
     locale,
-    reporterReferralCode,
+    resolveEmail,
   ]);
 
   const compactButtonClassName =
