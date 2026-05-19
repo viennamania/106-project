@@ -598,3 +598,45 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
     status: "published",
   });
 });
+
+export const getRelatedFanletterNewsReports = cache(
+  async ({
+    creatorReferralCode,
+    excludeContentId,
+    excludeReportId,
+    limit = 4,
+    locale,
+  }: {
+    creatorReferralCode?: string | null;
+    excludeContentId?: string | null;
+    excludeReportId: string;
+    limit?: number;
+    locale: Locale;
+  }) => {
+    const normalizedCreatorReferralCode =
+      normalizeReferralCode(creatorReferralCode);
+    const normalizedReportId = excludeReportId.trim();
+    const normalizedContentId = excludeContentId?.trim();
+
+    if (!normalizedCreatorReferralCode || !normalizedReportId) {
+      return [];
+    }
+
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const query = {
+      creatorReferralCode: normalizedCreatorReferralCode,
+      locale,
+      reportId: { $ne: normalizedReportId },
+      status: "published" as const,
+      ...(normalizedContentId
+        ? { contentId: { $ne: normalizedContentId } }
+        : {}),
+    };
+
+    return reportsCollection
+      .find(query)
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .limit(Math.max(1, Math.min(limit, 8)))
+      .toArray();
+  },
+);

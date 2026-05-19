@@ -1178,6 +1178,13 @@ export async function getFanletterNewsReportsCollection() {
         ),
         collection.createIndex({ contentId: 1, createdAt: -1 }),
         collection.createIndex({ reporterReferralCode: 1, createdAt: -1 }),
+        collection.createIndex({
+          creatorReferralCode: 1,
+          locale: 1,
+          status: 1,
+          sourcePublishedAt: -1,
+          createdAt: -1,
+        }),
         collection.createIndex({ status: 1, createdAt: -1 }),
       ]);
 

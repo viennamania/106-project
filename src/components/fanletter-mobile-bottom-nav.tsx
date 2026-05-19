@@ -88,8 +88,13 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     pathname.startsWith(`${basePath}/studio/paid-upload/`);
   const isPromotionalShareFlow =
     pathname === `${basePath}/share` || pathname.startsWith(`${basePath}/share/`);
+  const isStandaloneNewsFlow =
+    pathname === `${basePath}/news` || pathname.startsWith(`${basePath}/news/`);
 
-  if (hasHydrated && (isFocusedStudioFlow || isPromotionalShareFlow)) {
+  if (
+    isStandaloneNewsFlow ||
+    (hasHydrated && (isFocusedStudioFlow || isPromotionalShareFlow))
+  ) {
     return null;
   }
 
@@ -129,7 +134,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/content`,
         `${basePath}/creator`,
         `${basePath}/following`,
-        `${basePath}/news`,
         `${basePath}/purchases`,
         `${basePath}/requests`,
       ],
