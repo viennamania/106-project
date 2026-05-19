@@ -7096,7 +7096,7 @@ export function FanletterCreatorPage({
               publicVlogsHref={publicVlogsHref}
             />
             <FanletterChannelShareButton
-              className="max-sm:hidden max-sm:h-10 max-sm:w-fit max-sm:self-start max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:px-4 max-sm:text-xs"
+              className="h-11 w-full border-white/12 bg-white/[0.045] text-sm hover:bg-white/[0.075] sm:h-12 sm:w-auto sm:bg-transparent"
               href={channelHref}
               locale={locale}
               promotionalShare={{
