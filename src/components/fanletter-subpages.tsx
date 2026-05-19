@@ -1245,6 +1245,7 @@ function ContentCard({
   contentActionLabel,
   item,
   locale,
+  nsfwOptInEnabled = false,
   referralCode,
   returnToHref,
   showVideoPreview = false,
@@ -1253,6 +1254,7 @@ function ContentCard({
   contentActionLabel?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   referralCode: string | null;
   returnToHref?: string | null;
   showVideoPreview?: boolean;
@@ -1265,6 +1267,7 @@ function ContentCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
+  const shouldBlurMedia = isLocked && (!isNsfw || !nsfwOptInEnabled);
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const mediaLabel =
     item.mediaType === "video"
@@ -1294,7 +1297,7 @@ function ContentCard({
               alt=""
               aria-hidden="true"
               className={
-                isLocked
+                shouldBlurMedia
                   ? "scale-[1.06] object-cover blur-md brightness-[0.76] saturate-[0.9]"
                   : "object-cover"
               }
@@ -1426,6 +1429,7 @@ function ContentGrid({
   items,
   locale,
   mobileLayout = "two-column",
+  nsfwOptInEnabled = false,
   referralCode,
   revealItems = false,
   returnToHref,
@@ -1439,6 +1443,7 @@ function ContentGrid({
   items: FanletterPublicContentItem[];
   locale: Locale;
   mobileLayout?: "adaptive" | "two-column";
+  nsfwOptInEnabled?: boolean;
   referralCode: string | null;
   revealItems?: boolean;
   returnToHref?: string | null;
@@ -1478,6 +1483,7 @@ function ContentGrid({
               item={item}
               key={item.contentId}
               locale={locale}
+              nsfwOptInEnabled={nsfwOptInEnabled}
               referralCode={referralCode}
               returnToHref={returnToHref}
               showVideoPreview={showVideoPreview}
@@ -1496,6 +1502,7 @@ function ContentGrid({
               contentActionLabel={contentActionLabel}
               item={item}
               locale={locale}
+              nsfwOptInEnabled={nsfwOptInEnabled}
               referralCode={referralCode}
               returnToHref={returnToHref}
               showVideoPreview={showVideoPreview}
@@ -1511,12 +1518,14 @@ function FeaturedFeedCard({
   authorNameOverride,
   item,
   locale,
+  nsfwOptInEnabled = false,
   referralCode,
   returnToHref,
 }: {
   authorNameOverride?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   referralCode: string | null;
   returnToHref?: string | null;
 }) {
@@ -1530,6 +1539,7 @@ function FeaturedFeedCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
+  const shouldBlurMedia = isLocked && (!isNsfw || !nsfwOptInEnabled);
   const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
@@ -1552,7 +1562,7 @@ function FeaturedFeedCard({
             <Image
               alt={displayTitle}
               className={
-                isLocked
+                shouldBlurMedia
                   ? "scale-[1.06] object-cover blur-md brightness-[0.76] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
                   : "object-cover transition duration-500 group-hover:scale-[1.03]"
               }
@@ -2066,10 +2076,12 @@ function FanletterFeedCuriosityBoard({
 function FanletterFeedFanOnlyPreviewStrip({
   items,
   locale,
+  nsfwOptInEnabled,
   referralCode,
 }: {
   items: FanletterPublicContentItem[];
   locale: Locale;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   if (items.length === 0) {
@@ -2114,6 +2126,7 @@ function FanletterFeedFanOnlyPreviewStrip({
         items={items}
         locale={locale}
         mobileLayout="adaptive"
+        nsfwOptInEnabled={nsfwOptInEnabled}
         referralCode={referralCode}
       />
     </section>
@@ -5853,6 +5866,7 @@ export function FanletterFeedPage({
               <FeaturedFeedCard
                 item={featuredItem}
                 locale={locale}
+                nsfwOptInEnabled={nsfwOptInEnabled}
                 referralCode={referralCode}
               />
 
@@ -5925,6 +5939,7 @@ export function FanletterFeedPage({
                     item={item}
                     key={item.contentId}
                     locale={locale}
+                    nsfwOptInEnabled={nsfwOptInEnabled}
                     referralCode={referralCode}
                     showVideoPreview
                   />
@@ -5946,6 +5961,7 @@ export function FanletterFeedPage({
                     item={item}
                     key={item.contentId}
                     locale={locale}
+                    nsfwOptInEnabled={nsfwOptInEnabled}
                     referralCode={referralCode}
                     showVideoPreview
                   />
@@ -5998,6 +6014,7 @@ export function FanletterFeedPage({
                 emptyActionLabel={emptyFeedActionLabel}
                 items={remainingItems}
                 locale={locale}
+                nsfwOptInEnabled={nsfwOptInEnabled}
                 referralCode={referralCode}
               />
             </>
@@ -6005,6 +6022,7 @@ export function FanletterFeedPage({
           <FanletterFeedFanOnlyPreviewStrip
             items={fanOnlyPreviewItems}
             locale={locale}
+            nsfwOptInEnabled={nsfwOptInEnabled}
             referralCode={referralCode}
           />
           <FanletterFeedPagination
