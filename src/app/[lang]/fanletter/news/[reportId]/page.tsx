@@ -872,6 +872,9 @@ export default async function LocalizedFanletterNewsReportPage({
   const relatedNsfwReportCount = relatedReports.filter(isNsfwReport).length;
   const nsfwNewsCount = relatedNsfwReportCount + (isCurrentNsfwReport ? 1 : 0);
   const shouldShowNsfwControl = nsfwNewsCount > 0 || includeNsfw;
+  const nsfwTextBlurClass = shouldBlurCurrentReport
+    ? "select-none blur-[2px]"
+    : "";
   const facts = [
     { label: copy.sixW.who, value: report.who },
     { label: copy.sixW.when, value: report.when },
@@ -906,10 +909,14 @@ export default async function LocalizedFanletterNewsReportPage({
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-[#16702e]">
               {copy.dateline}
             </p>
-            <h1 className="mt-3 max-w-5xl break-words text-[2.65rem] font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.9rem]">
+            <h1
+              className={`mt-3 max-w-5xl break-words text-[2.65rem] font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.9rem] ${nsfwTextBlurClass}`}
+            >
               {report.title}
             </h1>
-            <p className="mt-5 max-w-3xl border-l-4 border-[#44f26e] pl-4 text-base font-semibold leading-7 text-black/70 sm:text-xl sm:leading-8">
+            <p
+              className={`mt-5 max-w-3xl border-l-4 border-[#44f26e] pl-4 text-base font-semibold leading-7 text-black/70 sm:text-xl sm:leading-8 ${nsfwTextBlurClass}`}
+            >
               {report.dek}
             </p>
 
@@ -969,7 +976,9 @@ export default async function LocalizedFanletterNewsReportPage({
                   <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
                     {fact.label}
                   </p>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-black/72">
+                  <p
+                    className={`mt-2 text-sm font-semibold leading-6 text-black/72 ${nsfwTextBlurClass}`}
+                  >
                     {fact.value}
                   </p>
                 </div>
@@ -983,7 +992,7 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
               <div
                 className={`max-w-3xl space-y-5 text-[1.08rem] font-medium leading-8 text-black/78 sm:text-[1.18rem] sm:leading-9 ${
-                  shouldBlurCurrentReport ? "select-none blur-[2px]" : ""
+                  nsfwTextBlurClass
                 }`}
               >
                 {articleParagraphs.map((paragraph) => (
@@ -1018,10 +1027,14 @@ export default async function LocalizedFanletterNewsReportPage({
               <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
                 {copy.sourceContext}
               </p>
-              <h2 className="mt-3 break-words text-xl font-black leading-tight [word-break:keep-all]">
+              <h2
+                className={`mt-3 break-words text-xl font-black leading-tight [word-break:keep-all] ${nsfwTextBlurClass}`}
+              >
                 {report.sourceTitle}
               </h2>
-              <p className="mt-2 text-sm font-medium leading-6 text-black/58">
+              <p
+                className={`mt-2 text-sm font-medium leading-6 text-black/58 ${nsfwTextBlurClass}`}
+              >
                 {report.sourceSummary}
               </p>
               <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-black/58">
