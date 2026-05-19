@@ -7800,14 +7800,15 @@ export function FanletterCreatorPromoSharePage({
           locked: "팬 전용 미리보기",
           nsfwBadge: "성인 팬 전용",
           nsfwDisabledBody:
-            "이 공유 페이지는 기본적으로 일반 공개 콘텐츠와 일반 팬 전용 미리보기만 보여줍니다. 성인 팬 전용 콘텐츠는 보기 동의 후 표시됩니다.",
+            "공유 페이지의 유료 미리보기는 블러 없이 표시됩니다. 성인 팬 전용 표시는 콘텐츠 성격을 안내하는 용도로만 보여줍니다.",
           nsfwDisabledCta: "성인 팬 전용 보기 켜기",
-          nsfwDisabledTitle: "성인 팬 전용 콘텐츠 안내",
+          nsfwDisabledTitle: "성인 팬 전용 미리보기 안내",
           nsfwEnabledBody:
-            "성인 팬 전용 미리보기가 이 공유 페이지와 팬 전용 영역에 표시됩니다.",
-          nsfwEnabledCta: "성인 팬 전용 숨기기",
+            "성인 팬 전용 유료 미리보기를 블러 없이 보여주고, 팬 전용 영역에서도 같은 기준으로 안내합니다.",
+          nsfwEnabledCta: "성인 팬 전용 표시 끄기",
           nsfwEnabledTitle: "성인 팬 전용 표시 중",
-          nsfwHiddenCount: (count: string) => `숨겨진 성인 팬 전용 콘텐츠 ${count}개`,
+          nsfwHiddenCount: (count: string) =>
+            `성인 팬 전용 콘텐츠 ${count}개도 블러 없이 표시됩니다.`,
           partner: "캠페인 파트너",
           partnerBody:
             "이 공유 페이지는 캠페인별 스폰서 영역을 포함합니다. 지금은 Fanvue를 기본 파트너로 연결합니다.",
@@ -7899,14 +7900,15 @@ export function FanletterCreatorPromoSharePage({
           locked: "Fan-only preview",
           nsfwBadge: "Adult fan-only",
           nsfwDisabledBody:
-            "This share page shows general public content and general fan-only previews by default. Adult fan-only content appears after opt-in.",
+            "Paid previews on this share page stay unblurred. Adult fan-only labels only clarify the content type.",
           nsfwDisabledCta: "Show adult fan-only",
-          nsfwDisabledTitle: "Adult fan-only content",
+          nsfwDisabledTitle: "Adult fan-only preview notice",
           nsfwEnabledBody:
-            "Adult fan-only previews are shown on this share page and in fan-only areas.",
-          nsfwEnabledCta: "Hide adult fan-only",
+            "Adult fan-only paid previews stay unblurred here and use the same notice style in fan-only areas.",
+          nsfwEnabledCta: "Turn adult fan-only off",
           nsfwEnabledTitle: "Adult fan-only visible",
-          nsfwHiddenCount: (count: string) => `${count} adult fan-only posts hidden`,
+          nsfwHiddenCount: (count: string) =>
+            `${count} adult fan-only posts are shown without blur.`,
           partner: "Campaign partner",
           partnerBody:
             "This share page includes a campaign sponsor area. Fanvue is connected as the default partner.",
@@ -8639,7 +8641,7 @@ export function FanletterCreatorPromoSharePage({
                             <Image
                               alt=""
                               aria-hidden="true"
-                              className="object-cover blur-[3px] transition group-hover:scale-105"
+                              className="object-cover transition group-hover:scale-105"
                               fill
                               sizes="4rem"
                               src={item.coverImageUrl}
@@ -8798,7 +8800,7 @@ export function FanletterCreatorPromoSharePage({
                         {item.coverImageUrl ? (
                           <Image
                             alt={title}
-                            className="scale-105 object-cover blur-[5px] transition duration-500 group-hover:scale-110"
+                            className="object-cover transition duration-500 group-hover:scale-105"
                             fill
                             sizes="(max-width: 768px) 100vw, 32vw"
                             src={item.coverImageUrl}
