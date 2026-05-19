@@ -2903,31 +2903,6 @@ async function verifyContentPaymentTransaction({
   };
 }
 
-async function assertContentVisibleToBuyer(
-  post: ContentPostDocument,
-  buyer: MemberDocument,
-  options: {
-    referralCode?: string | null;
-  } = {},
-) {
-  if (post.status !== "published") {
-    throw new Error("Content not found.");
-  }
-
-  if (isContentAuthorReferralLink(post, options.referralCode)) {
-    return;
-  }
-
-  const ancestors = await resolveNetworkAncestors(buyer);
-  const visibleReferralCodes = new Set(
-    ancestors.map((ancestor) => ancestor.referralCode),
-  );
-
-  if (!visibleReferralCodes.has(post.authorReferralCode)) {
-    throw new Error("Content is not available in your network.");
-  }
-}
-
 function isContentAuthorReferralLink(
   post: ContentPostDocument,
   referralCode?: string | null,
@@ -2968,10 +2943,6 @@ export async function createContentOrderForMember(
   if (post.priceType !== "paid") {
     throw new Error("This content is free.");
   }
-
-  await assertContentVisibleToBuyer(post, buyer, {
-    referralCode: input.referralCode,
-  });
 
   const existingEntitlement = await getContentEntitlementForMember(
     post.contentId,
@@ -3364,6 +3335,10 @@ export async function getContentDetailForMember(
     const hasPaidUnlock = post.priceType === "paid" && Boolean(entitlement);
 
     if (!hasPaidUnlock) {
+      if (post.priceType === "paid") {
+        throw new Error("This content requires a paid unlock.");
+      }
+
       const ancestors = await resolveNetworkAncestors(member);
       const visibleReferralCodes = new Set(
         ancestors.map((ancestor) => ancestor.referralCode),
@@ -3376,9 +3351,6 @@ export async function getContentDetailForMember(
         throw new Error("Content is not available in your network.");
       }
 
-      if (post.priceType === "paid") {
-        throw new Error("This content requires a paid unlock.");
-      }
     }
   }
 
