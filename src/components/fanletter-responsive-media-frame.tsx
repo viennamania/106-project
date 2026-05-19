@@ -29,6 +29,10 @@ type FanletterResponsiveMediaFrameProps = {
   videoUrl: string | null;
 };
 
+type ResponsiveVideoFrameStyle = CSSProperties & {
+  "--fanletter-video-max-width"?: string;
+};
+
 function getVideoOrientation(aspectRatio: number | null) {
   if (!aspectRatio) {
     return "portrait";
@@ -73,20 +77,21 @@ export function FanletterResponsiveMediaFrame({
     videoMetadataState?.src === videoUrl ? videoMetadataState.metadata : null;
   const aspectRatio = videoMetadata?.aspectRatio ?? null;
   const orientation = getVideoOrientation(aspectRatio);
-  const frameStyle = useMemo<CSSProperties | undefined>(() => {
+  const frameStyle = useMemo<ResponsiveVideoFrameStyle | undefined>(() => {
     if (!videoMetadata) {
       return undefined;
     }
 
-    const nextStyle: CSSProperties = {
+    const nextStyle: ResponsiveVideoFrameStyle = {
       aspectRatio: `${videoMetadata.width} / ${videoMetadata.height}`,
     };
 
     if (orientation === "portrait") {
       const portraitWidthByViewport = ((aspectRatio ?? 9 / 16) * 72).toFixed(3);
-      nextStyle.maxWidth = `min(100%, ${portraitWidthByViewport}svh, 32rem)`;
+      nextStyle["--fanletter-video-max-width"] =
+        `min(100%, ${portraitWidthByViewport}svh, 32rem)`;
     } else if (orientation === "square") {
-      nextStyle.maxWidth = "min(100%, 72svh, 42rem)";
+      nextStyle["--fanletter-video-max-width"] = "min(100%, 72svh, 42rem)";
     }
 
     return nextStyle;
@@ -100,8 +105,8 @@ export function FanletterResponsiveMediaFrame({
           orientation === "landscape"
             ? "aspect-video max-w-full"
             : orientation === "square"
-              ? "aspect-square max-w-[min(100%,72svh,42rem)]"
-              : "aspect-[9/16] max-w-[min(100%,40.5svh,32rem)]",
+              ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
+              : "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]",
           blurred && "bg-[#050806]",
           className,
         )}
