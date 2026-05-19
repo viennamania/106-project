@@ -59,6 +59,7 @@ import {
   FanletterSetupStepText,
 } from "@/components/fanletter-setup-status-actions";
 import { FanletterSocialActions } from "@/components/fanletter-social-actions";
+import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   FanletterCreatorFanOnlyPageData,
@@ -9331,45 +9332,14 @@ export function FanletterContentDetailPage({
     <main className="min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <section className="px-4 pb-8 pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex items-center justify-between gap-3">
-            <Link
-              className="inline-flex size-11 items-center justify-center rounded-full border border-white/14 bg-white/[0.04]"
-              href={backHref}
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-            <Link
-              className="flex min-w-0 items-center gap-2"
-              href={homeHref}
-            >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <MessageCircleHeart className="size-5" />
-              </span>
-              <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
-                FanLetter
-              </span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <FanletterGlobalLanguageSwitcher
-                className="hidden lg:inline-flex"
-                locale={locale}
-              />
-              <FanletterAccountStatusLink
-                locale={locale}
-                referralCode={effectiveReferralCode}
-              />
-              <Link
-                className="hidden h-11 items-center justify-center rounded-full border border-[#44f26e]/50 bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:inline-flex"
-                href={detailActionHref}
-              >
-                {detailActionLabel}
-              </Link>
-            </div>
-          </header>
-
-          <div className="mt-3 flex lg:hidden">
-            <FanletterGlobalLanguageSwitcher compact tight locale={locale} />
-          </div>
+          <FanletterTabTopBar
+            actionHref={detailActionHref}
+            actionLabel={detailActionLabel}
+            backHref={backHref}
+            homeHref={homeHref}
+            locale={locale}
+            referralCode={effectiveReferralCode}
+          />
 
           <div className="pt-4 lg:hidden">
             <Link
