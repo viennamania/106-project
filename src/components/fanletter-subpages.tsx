@@ -950,8 +950,11 @@ function FanletterShell({
   hideStartNavItem = false,
   heroActionsClassName,
   heroAsideClassName,
+  heroBackdrop,
   heroContentClassName,
   heroGridClassName,
+  heroInnerClassName,
+  heroSectionClassName,
   heroSpacingClassName,
   locale,
   referralCode,
@@ -969,8 +972,11 @@ function FanletterShell({
   hideStartNavItem?: boolean;
   heroActionsClassName?: string;
   heroAsideClassName?: string;
+  heroBackdrop?: ReactNode;
   heroContentClassName?: string;
   heroGridClassName?: string;
+  heroInnerClassName?: string;
+  heroSectionClassName?: string;
   heroSpacingClassName?: string;
   locale: Locale;
   referralCode: string | null;
@@ -1018,8 +1024,16 @@ function FanletterShell({
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#030504] text-white">
       <FanletterHashScroller />
-      <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section
+        className={cn(
+          "relative overflow-hidden border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8",
+          heroSectionClassName,
+        )}
+      >
+        {heroBackdrop ? (
+          <div className="pointer-events-none absolute inset-0">{heroBackdrop}</div>
+        ) : null}
+        <div className={cn("relative z-10 mx-auto max-w-7xl", heroInnerClassName)}>
           <header className="flex items-center justify-between gap-3">
             <Link className="flex min-h-11 min-w-0 items-center gap-2" href={homeHref}>
               <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-9">
@@ -6858,6 +6872,9 @@ export function FanletterCreatorPage({
         new Date(a.publishedAt ?? 0).getTime()
       );
     })[0] ?? null;
+  const heroVisualVideoUrl = !isOwner ? featuredItem?.primaryVideoUrl ?? null : null;
+  const heroVisualImageUrl =
+    featuredItem?.coverImageUrl ?? channelAvatarUrl ?? data.profile.avatarImageUrl;
   const latestItems = data.items
     .filter((item) => item.contentId !== featuredItem?.contentId)
     .slice(0, 8);
@@ -6907,35 +6924,65 @@ export function FanletterCreatorPage({
       ? {
           contentDetail: "상세 보기",
           fanRequest: "팬 요청 보내기",
+          fanClub: "팬클럽",
+          fanOnly: "팬 전용",
+          fanOnlyShort: "팬 전용",
+          fanRequestSignal: "팬 요청",
+          growth: "성장",
+          mobileOwnerPrimary: "새 브이로그",
+          mobileOwnerSecondary: "스튜디오",
+          mobilePrimary: "무료 브이로그",
+          mobileSecondary: data.fanOnlyContentCount > 0 ? "팬 전용" : "팬 요청",
           ownerCreate: "새 브이로그 만들기",
           ownerRequests: "요청함 관리",
           recentPublicVlogs: "최근 공개 브이로그",
           publicVlogs: "공개 브이로그 보기",
           publicVlogsAll: `전체 공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개 보기`,
+          publicVlogsShort: "무료 공개",
+          expressionSet: "표정 컷",
         }
       : {
           contentDetail: "View details",
           fanRequest: "Send fan request",
+          fanClub: "Fan club",
+          fanOnly: "Fan-only",
+          fanOnlyShort: "Fan-only",
+          fanRequestSignal: "Requests",
+          growth: "Growth",
+          mobileOwnerPrimary: "New vlog",
+          mobileOwnerSecondary: "Studio",
+          mobilePrimary: "Free vlogs",
+          mobileSecondary: data.fanOnlyContentCount > 0 ? "Fan-only" : "Request",
           ownerCreate: "Create new vlog",
           ownerRequests: "Manage requests",
           recentPublicVlogs: "Latest public vlogs",
           publicVlogs: "View public vlogs",
           publicVlogsAll: `View all ${formatNumber(data.publicContentCount, locale)} public vlogs`,
+          publicVlogsShort: "Free public",
+          expressionSet: "Expression cuts",
         };
+  const growthLevelLabel = character ? `Lv.${character.growth.level}` : "FanLetter";
+  const fanRequestCount =
+    character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
   const channelStats = [
     {
-      label: copy.creator.publicPosts,
+      label: channelActionLabels.publicVlogsShort,
       value: formatNumber(data.publicContentCount, locale),
     },
     {
-      label: copy.creator.characterVideoSignal,
-      value: formatNumber(character?.videoContentCount ?? data.items.length, locale),
+      label: channelActionLabels.fanOnlyShort,
+      value: formatNumber(data.fanOnlyContentCount, locale),
     },
     {
-      label: copy.creator.characterImageSignal,
-      value: formatNumber(character?.avatarImageSet.length ?? 0, locale),
+      label: channelActionLabels.fanClub,
+      value: formatNumber(data.communityStats.fanClubMemberCount, locale),
+    },
+    {
+      label: channelActionLabels.growth,
+      value: growthLevelLabel,
     },
   ];
+  const expressionPreviewItems = character?.avatarImageSet.slice(0, 4) ?? [];
   const channelShareTitle =
     locale === "ko"
       ? `${channelName} AI 브이로그 채널`
@@ -7025,67 +7072,128 @@ export function FanletterCreatorPage({
   const roleLabels = viewerModeLabels[viewerMode];
   const heroDescription = roleLabels.heroDescription;
   const PrimaryCtaIcon = isOwner ? Clapperboard : isLoggedInFan ? Crown : Video;
+  const mobilePrimaryHref = isOwner ? ownerCreateHref : publicVlogsHref;
+  const mobilePrimaryLabel = isOwner
+    ? channelActionLabels.mobileOwnerPrimary
+    : channelActionLabels.mobilePrimary;
+  const mobileSecondaryHref = isOwner
+    ? ownerStudioHref
+    : data.fanOnlyContentCount > 0
+      ? fanOnlyHref
+      : fanRequestsSectionHref;
+  const mobileSecondaryLabel = isOwner
+    ? channelActionLabels.mobileOwnerSecondary
+    : channelActionLabels.mobileSecondary;
+  const MobileSecondaryIcon = isOwner
+    ? Rocket
+    : data.fanOnlyContentCount > 0
+      ? Crown
+      : MessageCircleHeart;
 
   return (
-    <FanletterShell
-      actions={
-        <>
-          <FanletterFollowCta
-            creatorReferralCode={data.profile.referralCode}
-            fanOnlyHref={fanOnlyHref}
-            followHref={followHref}
-            isAuthenticated={isAuthenticated}
-            isOwner={isOwner}
+    <>
+      <div className="fixed inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] z-30 sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-2 rounded-full border border-white/12 bg-[#030504]/88 p-1.5 shadow-[0_18px_46px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+          <Link
+            className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 text-[0.82rem] font-semibold !text-black transition hover:bg-[#64ff84]"
+            href={mobilePrimaryHref}
+          >
+            <Video className="size-4 shrink-0" />
+            <span className="truncate">{mobilePrimaryLabel}</span>
+          </Link>
+          <Link
+            className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-white/16 bg-white/8 px-2.5 text-[0.82rem] font-semibold !text-white transition hover:bg-white/12"
+            href={mobileSecondaryHref}
+          >
+            <MobileSecondaryIcon className="size-4 shrink-0" />
+            <span className="truncate">{mobileSecondaryLabel}</span>
+          </Link>
+        </div>
+      </div>
+      <FanletterShell
+        actions={
+          <>
+            <FanletterFollowCta
+              creatorReferralCode={data.profile.referralCode}
+              fanOnlyHref={fanOnlyHref}
+              followHref={followHref}
+              isAuthenticated={isAuthenticated}
+              isOwner={isOwner}
+              locale={locale}
+              ownerCreateHref={ownerCreateHref}
+              ownerStudioHref={ownerStudioHref}
+              publicVlogsHref={publicVlogsHref}
+            />
+            <FanletterChannelShareButton
+              className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
+              href={channelHref}
+              locale={locale}
+              promotionalShare={{
+                creatorReferralCode: data.profile.referralCode,
+                sponsorSlug: "fanvue",
+              }}
+              referralCode={effectiveReferralCode}
+              shareIdScope="fanpromo"
+              summary={channelShareSummary}
+              title={channelShareTitle}
+              trackingSource="fanletter-creator-promo-share"
+            />
+          </>
+        }
+        aside={
+          <FanletterChannelHeroPreview
+            channelAvatarUrl={channelAvatarUrl}
+            channelName={channelName}
+            character={character}
+            eagerMedia
+            fanOnlyContentCount={data.fanOnlyContentCount}
+            featuredItem={featuredItem}
             locale={locale}
-            ownerCreateHref={ownerCreateHref}
-            ownerStudioHref={ownerStudioHref}
-            publicVlogsHref={publicVlogsHref}
-          />
-          <FanletterChannelShareButton
-            className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
-            href={channelHref}
-            locale={locale}
-            promotionalShare={{
-              creatorReferralCode: data.profile.referralCode,
-              sponsorSlug: "fanvue",
-            }}
+            publicContentCount={data.publicContentCount}
             referralCode={effectiveReferralCode}
-            shareIdScope="fanpromo"
-            summary={channelShareSummary}
-            title={channelShareTitle}
-            trackingSource="fanletter-creator-promo-share"
+            returnToHref={channelHref}
           />
-        </>
-      }
-      aside={
-        <FanletterChannelHeroPreview
-          channelAvatarUrl={channelAvatarUrl}
-          channelName={channelName}
-          character={character}
-          eagerMedia
-          fanOnlyContentCount={data.fanOnlyContentCount}
-          featuredItem={featuredItem}
-          locale={locale}
-          publicContentCount={data.publicContentCount}
-          referralCode={effectiveReferralCode}
-          returnToHref={channelHref}
-        />
-      }
-      description={heroDescription}
-      descriptionClassName="mt-4 max-w-xl text-sm leading-6 max-sm:line-clamp-3 sm:mt-5 sm:text-lg sm:leading-8"
-      eyebrow={roleLabels.shellEyebrow}
-      hideStartNavItem={isOwner}
-      heroAsideClassName="max-sm:-mt-1"
-      heroActionsClassName="mt-6 sm:mt-8"
-      heroGridClassName="gap-5 sm:gap-8 lg:items-start"
-      heroSpacingClassName="pt-8 sm:pt-16"
-      locale={locale}
-      referralCode={effectiveReferralCode}
-      showStartAction={false}
-      title={channelName}
-      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
-    >
-      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
+        }
+        description={heroDescription}
+        descriptionClassName="mt-4 max-w-xl text-sm leading-6 max-sm:line-clamp-3 sm:mt-5 sm:text-lg sm:leading-8"
+        eyebrow={roleLabels.shellEyebrow}
+        hideStartNavItem={isOwner}
+        heroAsideClassName="max-sm:-mt-1"
+        heroBackdrop={
+          <>
+            {heroVisualVideoUrl ? (
+              <FanletterAutoplayVideo
+                ariaHidden
+                className="absolute inset-0 h-full w-full object-cover object-[center_24%] opacity-[0.46] sm:object-[center_30%] sm:opacity-[0.28] lg:scale-[1.08] lg:object-[64%_30%]"
+                poster={heroVisualImageUrl ?? undefined}
+                src={heroVisualVideoUrl}
+              />
+            ) : heroVisualImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover object-[center_24%] opacity-[0.6] sm:object-[center_30%] sm:opacity-[0.34] sm:blur-[2px] lg:scale-[1.08] lg:object-[64%_30%]"
+                fill
+                priority
+                sizes="100vw"
+                src={heroVisualImageUrl}
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.26)_0%,rgba(3,5,4,0.42)_42%,rgba(3,5,4,0.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(3,5,4,0.92)_0%,rgba(3,5,4,0.68)_44%,rgba(3,5,4,0.2)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-[44%] bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)]" />
+          </>
+        }
+        heroActionsClassName="mt-6 sm:mt-8"
+        heroGridClassName="gap-5 sm:gap-8 lg:items-start"
+        heroSectionClassName="min-h-[92svh] pb-[calc(6.25rem+env(safe-area-inset-bottom))] sm:min-h-[720px] sm:pb-12"
+        heroSpacingClassName="pt-7 sm:pt-16"
+        locale={locale}
+        referralCode={effectiveReferralCode}
+        showStartAction={false}
+        title={channelName}
+        titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
+      >
+      <section className="bg-[#f6f8f4] px-4 pb-[calc(11.25rem+env(safe-area-inset-bottom))] pt-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <FanletterChannelTabs
           channelHref={channelHref}
           fanOnlyContentCount={data.fanOnlyContentCount}
@@ -7158,7 +7266,48 @@ export function FanletterCreatorPage({
                 </div>
               ) : null}
 
-              <div className="mt-6 grid gap-2 sm:grid-cols-3">
+              {expressionPreviewItems.length > 0 ? (
+                <div className="mt-5 flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.045] p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                      {expressionPreviewItems.map((avatar) => (
+                        <span
+                          className="relative size-12 overflow-hidden rounded-lg border border-white/18 bg-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.2)]"
+                          key={avatar.url}
+                        >
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-cover"
+                            fill
+                            sizes="48px"
+                            src={avatar.url}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">
+                        {channelActionLabels.expressionSet}
+                      </p>
+                      <p className="mt-1 text-xs font-medium text-white/48">
+                        {formatNumber(character?.avatarImageSet.length ?? 0, locale)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-white/58 sm:min-w-[12rem]">
+                    <span className="rounded-full border border-white/10 bg-black/18 px-3 py-1.5">
+                      {channelActionLabels.fanRequestSignal}{" "}
+                      {formatNumber(fanRequestCount, locale)}
+                    </span>
+                    <span className="rounded-full border border-[#44f26e]/20 bg-[#44f26e]/10 px-3 py-1.5 text-[#b9ffc8]">
+                      {growthLevelLabel}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {channelStats.map((stat) => (
                   <div
                     className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
@@ -7344,7 +7493,8 @@ export function FanletterCreatorPage({
           ) : null}
         </div>
       </section>
-    </FanletterShell>
+      </FanletterShell>
+    </>
   );
 }
 
