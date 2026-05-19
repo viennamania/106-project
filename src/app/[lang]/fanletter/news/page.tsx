@@ -3,12 +3,15 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import {
   AlertTriangle,
+  ArrowRight,
   BadgeCheck,
-  CalendarDays,
+  Clock3,
   FileText,
   Flame,
+  Megaphone,
   Newspaper,
   PenLine,
   Radio,
@@ -46,16 +49,19 @@ function getCopy(locale: Locale) {
           paid: "팬 전용",
           public: "공개",
         },
-        allNews: "전체 뉴스",
+        allNews: "AI 캐릭터 엔터테인먼트 뉴스룸",
         characterWire: "AI 캐릭터 와이어",
         dek:
-          "팬 기자가 생성한 AI 캐릭터 브이로그 리포트를 한곳에서 읽는 FanLetter 뉴스 홈입니다.",
+          "팬 기자가 생성한 AI 캐릭터 브이로그 리포트를 엔터테인먼트 뉴스 포맷으로 모아 읽는 FanLetter News입니다.",
+        edition: "AI 캐릭터·팬 리포트 전문 뉴스",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 이곳에 최신 뉴스가 모입니다.",
         emptyTitle: "아직 공개된 FanLetter 뉴스가 없습니다.",
         heroEyebrow: "FanLetter Entertainment News",
+        issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
         latest: "최신 리포트",
         lead: "오늘의 리드",
+        leadKicker: "FanLetter exclusive",
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
         nsfwControl: {
           disabledBody:
@@ -71,6 +77,7 @@ function getCopy(locale: Locale) {
         reporterDesk: "팬 기자 데스크",
         reporterRank: "활동 기자",
         siteName: "FanLetter News",
+        ticker: "뉴스 브리핑",
         topStories: "톱스토리",
       }
     : {
@@ -79,16 +86,19 @@ function getCopy(locale: Locale) {
           paid: "Fan-only",
           public: "Public",
         },
-        allNews: "All News",
+        allNews: "AI Character Entertainment Newsroom",
         characterWire: "AI Character Wire",
         dek:
-          "A FanLetter news home for AI character vlog reports created by fan reporters.",
+          "FanLetter News collects AI character vlog reports from fan reporters in an entertainment-news format.",
+        edition: "AI character and fan-report news",
         emptyBody:
           "Create an AI report from a content detail page and the latest stories will appear here.",
         emptyTitle: "No FanLetter news has been published yet.",
         heroEyebrow: "FanLetter Entertainment News",
+        issueLabel: "Today's FanLetter entertainment briefing",
         latest: "Latest Reports",
         lead: "Lead Story",
+        leadKicker: "FanLetter exclusive",
         navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
         nsfwControl: {
           disabledBody:
@@ -103,6 +113,7 @@ function getCopy(locale: Locale) {
         reporterDesk: "Fan Reporter Desk",
         reporterRank: "Active reporters",
         siteName: "FanLetter News",
+        ticker: "News Briefing",
         topStories: "Top Stories",
       };
 }
@@ -233,35 +244,101 @@ function NewsMasthead({
   }).format(new Date());
 
   return (
-    <header className="border-b border-black/12 bg-white text-[#111510]">
+    <header className="border-b border-black/12 bg-[#fbfbf6] text-[#111510]">
+      <div className="border-b border-black/10 bg-[#111510] text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[0.66rem] font-bold uppercase tracking-[0.18em] sm:px-6 lg:px-8">
+          <span>{copy.heroEyebrow}</span>
+          <span className="hidden text-white/58 sm:inline">{copy.edition}</span>
+        </div>
+      </div>
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4">
+        <div className="grid gap-4 border-b-4 border-[#111510] pb-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <Link
-            className="inline-flex items-center gap-2 text-2xl font-black !text-[#111510] sm:text-4xl"
+            className="inline-flex items-center gap-3 text-[2.45rem] font-black leading-none !text-[#111510] sm:text-[4.9rem]"
             href={newsHomeHref}
           >
-            <span className="flex size-9 items-center justify-center rounded-md bg-[#44f26e] text-black sm:size-10">
-              <Newspaper className="size-5" />
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[#44f26e] text-black sm:size-16">
+              <Newspaper className="size-6 sm:size-8" />
             </span>
             {copy.siteName}
           </Link>
-          <div className="hidden text-right text-xs font-bold text-black/48 sm:block">
+          <div className="max-w-xs border-l border-black/12 pl-4 text-left text-xs font-bold leading-5 text-black/52 sm:text-right">
             <p>{today}</p>
-            <p className="mt-1 text-[#16702e]">{copy.allNews}</p>
+            <p className="mt-1 text-[#16702e]">{copy.edition}</p>
           </div>
         </div>
-        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-black/10 pt-3">
+        <nav
+          aria-label={copy.siteName}
+          className="mt-3 flex gap-2 overflow-x-auto"
+        >
           {copy.navItems.map((item) => (
             <span
-              className="shrink-0 rounded-full border border-black/10 px-3 py-1 text-xs font-bold text-black/62"
+              className="shrink-0 border border-black/12 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-black/62"
               key={item}
             >
               {item}
             </span>
           ))}
-        </div>
+        </nav>
       </div>
     </header>
+  );
+}
+
+function NewsTicker({
+  copy,
+  reports,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  reports: FanletterNewsReportDocument[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-y border-black/12 bg-white text-[#111510]">
+      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
+        <div className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+          <Megaphone className="size-4" />
+          {copy.ticker}
+        </div>
+        <div className="flex min-w-0 gap-2 overflow-x-auto text-sm font-bold text-black/68">
+          {reports.map((report) => (
+            <span
+              className="shrink-0 border-l border-black/12 pl-3"
+              key={report.reportId}
+            >
+              {report.title}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SectionHeader({
+  eyebrow,
+  icon,
+  title,
+}: {
+  eyebrow?: string;
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="mb-4 flex items-end justify-between gap-3 border-b-4 border-[#111510] pb-3">
+      <div>
+        {eyebrow ? (
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="mt-1 text-2xl font-black tracking-normal">{title}</h2>
+      </div>
+      <span className="text-[#16702e]">{icon}</span>
+    </div>
   );
 }
 
@@ -282,18 +359,18 @@ function LeadStory({
 
   return (
     <Link
-      className="group block overflow-hidden rounded-lg bg-[#111510] text-white shadow-[0_24px_80px_rgba(0,0,0,0.16)]"
+      className="group grid overflow-hidden rounded-lg border border-black bg-[#111510] text-white shadow-[0_24px_80px_rgba(0,0,0,0.16)] lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[16/11]"
+        className="aspect-[16/11] lg:order-2 lg:h-full lg:aspect-auto"
         nsfwLabel={nsfwCopy.badge}
         priority
         report={report}
         sizes="(max-width: 1024px) 100vw, 58rem"
       />
-      <div className="p-4 sm:p-6">
+      <div className="flex flex-col justify-between p-5 sm:p-7 lg:min-h-[31rem] lg:p-8">
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-black text-black">
             <Flame className="size-3.5" />
@@ -304,8 +381,11 @@ function LeadStory({
             {getAccessLabel(report, copy)}
           </span>
         </div>
+        <p className="mt-6 text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+          {copy.leadKicker}
+        </p>
         <h1
-          className={`mt-4 break-words text-[2.35rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[4.1rem] ${
+          className={`mt-3 break-words text-[2.65rem] font-black leading-[0.98] [word-break:keep-all] sm:text-[4.45rem] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
@@ -325,12 +405,13 @@ function LeadStory({
           </span>
           {publishedAt ? (
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-3.5 text-[#44f26e]" />
+              <Clock3 className="size-3.5 text-[#44f26e]" />
               {publishedAt}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1.5 text-[#b9ffc8]">
+          <span className="inline-flex items-center gap-1.5 text-[#b9ffc8] transition group-hover:translate-x-1">
             {copy.read}
+            <ArrowRight className="size-3.5" />
           </span>
         </div>
       </div>
@@ -461,12 +542,12 @@ function ReporterRank({
   }
 
   return (
-    <section className="rounded-lg border border-black/10 bg-white p-4">
-      <div className="flex items-center gap-2">
-        <Radio className="size-4 text-[#16702e]" />
+    <section className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_14px_44px_rgba(0,0,0,0.06)]">
+      <div className="flex items-center gap-2 bg-[#111510] px-4 py-3 text-white">
+        <Radio className="size-4 text-[#44f26e]" />
         <h2 className="text-lg font-black">{copy.reporterRank}</h2>
       </div>
-      <div className="mt-4 space-y-3">
+      <div className="space-y-3 p-4">
         {reporters.map((reporter, index) => (
           <div
             className="flex items-center justify-between gap-3"
@@ -545,16 +626,52 @@ export default async function LocalizedFanletterNewsHomePage({
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
       <NewsMasthead copy={copy} locale={locale} newsHomeHref={newsHomeHref} />
+      <NewsTicker copy={copy} reports={reports.slice(0, 5)} />
 
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
-        <div className="border-y border-black/12 py-4">
-          <p className="text-sm font-black text-[#16702e]">{copy.heroEyebrow}</p>
-          <h1 className="mt-2 max-w-5xl text-[2.8rem] font-black leading-[0.98] [word-break:keep-all] sm:text-[5.2rem]">
-            {copy.allNews}
-          </h1>
-          <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-xl sm:leading-8">
-            {copy.dek}
-          </p>
+        <div className="grid gap-5 border-y border-black/14 bg-white px-4 py-5 sm:px-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#16702e]">
+              {copy.heroEyebrow}
+            </p>
+            <h1 className="mt-2 max-w-5xl text-[2.65rem] font-black leading-[0.98] [word-break:keep-all] sm:text-[5rem]">
+              {copy.allNews}
+            </h1>
+            <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-xl sm:leading-8">
+              {copy.dek}
+            </p>
+          </div>
+          <div className="border-t border-black/12 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+            <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-black/42">
+              {copy.issueLabel}
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="border border-black/10 bg-[#f5f6f2] p-3">
+                <p className="text-xl font-black">
+                  {formatNumber(reports.length, locale)}
+                </p>
+                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                  News
+                </p>
+              </div>
+              <div className="border border-black/10 bg-[#f5f6f2] p-3">
+                <p className="text-xl font-black">
+                  {formatNumber(reporterStats.length, locale)}
+                </p>
+                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                  Desk
+                </p>
+              </div>
+              <div className="border border-black/10 bg-[#f5f6f2] p-3">
+                <p className="text-xl font-black">
+                  {formatNumber(nsfwReportCount, locale)}
+                </p>
+                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                  NSFW
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {shouldShowNsfwControl ? (
@@ -585,11 +702,11 @@ export default async function LocalizedFanletterNewsHomePage({
             />
 
             <aside className="space-y-5">
-              <section className="rounded-lg border border-black/10 bg-white p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-black/10 pb-3">
-                  <h2 className="text-xl font-black">{copy.topStories}</h2>
-                  <Flame className="size-5 text-[#e5484d]" />
-                </div>
+              <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_14px_44px_rgba(0,0,0,0.06)]">
+                <SectionHeader
+                  icon={<Flame className="size-5 text-[#e5484d]" />}
+                  title={copy.topStories}
+                />
                 <div className="mt-4 space-y-4">
                   {topStories.map((report) => (
                     <CompactStory
@@ -612,10 +729,11 @@ export default async function LocalizedFanletterNewsHomePage({
 
             {featureReports.length > 0 ? (
               <section className="lg:col-span-2">
-                <div className="mb-4 flex items-center gap-2 border-b-4 border-[#111510] pb-3">
-                  <Sparkles className="size-5 text-[#16702e]" />
-                  <h2 className="text-2xl font-black">{copy.characterWire}</h2>
-                </div>
+                <SectionHeader
+                  eyebrow={copy.heroEyebrow}
+                  icon={<Sparkles className="size-6" />}
+                  title={copy.characterWire}
+                />
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {featureReports.map((report) => (
                     <FeatureCard
@@ -632,11 +750,11 @@ export default async function LocalizedFanletterNewsHomePage({
 
             {latestReports.length > 0 ? (
               <section className="lg:col-span-2">
-                <div className="mb-4 flex items-center gap-2 border-b border-black/12 pb-3">
-                  <FileText className="size-5 text-[#16702e]" />
-                  <h2 className="text-2xl font-black">{copy.latest}</h2>
-                </div>
-                <div className="grid gap-4 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+                <SectionHeader
+                  icon={<FileText className="size-6" />}
+                  title={copy.latest}
+                />
+                <div className="grid gap-4 border border-black/10 bg-white p-4 shadow-[0_14px_44px_rgba(0,0,0,0.05)] sm:grid-cols-2 lg:grid-cols-3">
                   {latestReports.map((report) => (
                     <CompactStory
                       copy={copy}

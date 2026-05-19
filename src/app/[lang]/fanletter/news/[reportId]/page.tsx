@@ -8,8 +8,10 @@ import {
   BadgeCheck,
   CalendarDays,
   Clapperboard,
+  Clock3,
   FileText,
   LockKeyhole,
+  Megaphone,
   MessageCircleHeart,
   Newspaper,
   PenLine,
@@ -280,34 +282,47 @@ function shouldBlurReport(
 function NewsSiteHeader({
   copy,
   homeHref,
+  locale,
 }: {
   copy: ReturnType<typeof getCopy>;
   homeHref: string;
+  locale: Locale;
 }) {
+  const today = new Intl.DateTimeFormat(locale, {
+    dateStyle: "full",
+  }).format(new Date());
+
   return (
-    <header className="border-b border-black/10 bg-white text-[#111510]">
+    <header className="border-b border-black/12 bg-[#fbfbf6] text-[#111510]">
+      <div className="border-b border-black/10 bg-[#111510] text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[0.66rem] font-bold uppercase tracking-[0.18em] sm:px-6 lg:px-8">
+          <span>{copy.articleEyebrow}</span>
+          <span className="hidden text-white/58 sm:inline">{copy.edition}</span>
+        </div>
+      </div>
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4">
+        <div className="grid gap-4 border-b-4 border-[#111510] pb-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <Link
-            className="inline-flex items-center gap-2 text-2xl font-black tracking-normal !text-[#111510] sm:text-3xl"
+            className="inline-flex items-center gap-3 text-[2.25rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
             href={homeHref}
           >
-            <span className="flex size-9 items-center justify-center rounded-md bg-[#44f26e] text-black">
-              <Newspaper className="size-5" />
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-[#44f26e] text-black sm:size-14">
+              <Newspaper className="size-6" />
             </span>
             {copy.siteName}
           </Link>
-          <span className="hidden max-w-md text-right text-xs font-semibold leading-5 text-black/52 sm:block">
-            {copy.edition}
-          </span>
+          <div className="max-w-sm border-l border-black/12 pl-4 text-xs font-bold leading-5 text-black/52">
+            <p>{today}</p>
+            <p className="mt-1 text-[#16702e]">{copy.edition}</p>
+          </div>
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-2 overflow-x-auto border-t border-black/10 pt-3"
+          className="flex gap-2 overflow-x-auto"
         >
           {copy.navItems.map((item) => (
             <span
-              className="shrink-0 rounded-full border border-black/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-black/62"
+              className="shrink-0 border border-black/12 bg-white px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-black/62"
               key={item}
             >
               {item}
@@ -886,15 +901,22 @@ export default async function LocalizedFanletterNewsReportPage({
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
-      <NewsSiteHeader copy={copy} homeHref={newsHomeHref} />
+      <NewsSiteHeader copy={copy} homeHref={newsHomeHref} locale={locale} />
 
       <article className="mx-auto max-w-7xl px-4 pb-12 pt-5 sm:px-6 sm:pt-7 lg:px-8">
-        <div className="border-y border-black/14 py-3 text-center text-[0.68rem] font-bold uppercase tracking-[0.22em] text-black/52">
-          {copy.articleEyebrow}
+        <div className="grid gap-2 border-y border-black/14 bg-white px-4 py-3 text-[0.68rem] font-black uppercase tracking-[0.18em] text-black/56 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <span className="inline-flex items-center gap-2 text-[#16702e]">
+            <Megaphone className="size-4" />
+            {copy.articleEyebrow}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <Clock3 className="size-4 text-[#16702e]" />
+            {publishedAt ?? copy.dateline}
+          </span>
         </div>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-          <div className="min-w-0 bg-white p-4 shadow-[0_18px_60px_rgba(0,0,0,0.08)] sm:p-7 lg:p-9">
+          <div className="min-w-0 border-t-4 border-[#111510] bg-white p-4 shadow-[0_18px_60px_rgba(0,0,0,0.08)] sm:p-7 lg:p-9">
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-black">
                 <ShieldCheck className="size-3.5" />
