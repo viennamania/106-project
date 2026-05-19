@@ -2420,6 +2420,7 @@ function FanletterChannelHeroPreview({
   featuredItem,
   featuredMode = "public",
   locale,
+  nsfwOptInEnabled = false,
   publicContentCount,
   referralCode,
   returnToHref,
@@ -2432,6 +2433,7 @@ function FanletterChannelHeroPreview({
   featuredItem: FanletterPublicContentItem | null;
   featuredMode?: "public" | "fan-only";
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   publicContentCount: number;
   referralCode: string | null;
   returnToHref?: string | null;
@@ -2470,6 +2472,8 @@ function FanletterChannelHeroPreview({
     isFanOnlyFeatured && featuredItem && !featuredItem.canViewerAccess,
   );
   const isFeaturedNsfw = featuredItem?.contentMaturityRating === "nsfw";
+  const shouldBlurFeaturedMedia =
+    featuredLocked && (!isFeaturedNsfw || !nsfwOptInEnabled);
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const featuredPrice = `${featuredItem?.priceUsdt ?? "1"} USDT`;
   const wallLabel = isFanOnlyFeatured
@@ -2520,7 +2524,7 @@ function FanletterChannelHeroPreview({
             alt=""
             aria-hidden="true"
             className={
-              featuredLocked
+              shouldBlurFeaturedMedia
                 ? "scale-[1.06] object-cover blur-md brightness-[0.74] saturate-[0.92] transition duration-500 group-hover:scale-[1.09]"
                 : "object-cover transition duration-500 group-hover:scale-[1.025]"
             }
@@ -3158,6 +3162,7 @@ function FanletterFanOnlyPreview({
   isOwner = false,
   items,
   locale,
+  nsfwOptInEnabled = false,
   ownerCreateHref,
   ownerManageHref,
   publicVlogsHref,
@@ -3171,6 +3176,7 @@ function FanletterFanOnlyPreview({
   isOwner?: boolean;
   items: FanletterPublicContentItem[];
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   ownerCreateHref?: string;
   ownerManageHref?: string;
   publicVlogsHref: string;
@@ -3178,6 +3184,7 @@ function FanletterFanOnlyPreview({
   requestFormId: string;
   requestHref: string;
 }) {
+  const nsfwCopy = getFanletterNsfwCopy(locale);
   const labels =
     locale === "ko"
       ? {
@@ -3469,6 +3476,9 @@ function FanletterFanOnlyPreview({
               const displayTeaser = getDisplayPaidTeaser(item, locale);
               const displayTitle = getDisplayContentTitle(item, locale);
               const hasAccess = isOwner || item.canViewerAccess;
+              const isNsfw = item.contentMaturityRating === "nsfw";
+              const shouldBlurMedia =
+                !hasAccess && (!isNsfw || !nsfwOptInEnabled);
               const lockedMediaLabel = getLockedMediaLabel(item, locale);
               const reactionCount =
                 item.social.commentCount + item.social.saveCount;
@@ -3518,7 +3528,12 @@ function FanletterFanOnlyPreview({
 
               return (
                 <Link
-                  className="group min-w-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.055] text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+                  className={cn(
+                    "group min-w-0 overflow-hidden rounded-lg border bg-white/[0.055] text-white transition hover:bg-white/[0.075]",
+                    isNsfw
+                      ? "border-rose-400/70 ring-1 ring-rose-300/40 hover:border-rose-300"
+                      : "border-white/10 hover:border-[#44f26e]/42",
+                  )}
                   href={href}
                   key={item.contentId}
                 >
@@ -3528,9 +3543,9 @@ function FanletterFanOnlyPreview({
                         alt=""
                         aria-hidden="true"
                         className={
-                          hasAccess
-                            ? "object-cover transition duration-500 group-hover:scale-[1.025]"
-                            : "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                          shouldBlurMedia
+                            ? "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                            : "object-cover transition duration-500 group-hover:scale-[1.025]"
                         }
                         fill
                         loading={itemIndex === 0 ? "eager" : undefined}
@@ -3547,16 +3562,23 @@ function FanletterFanOnlyPreview({
                     )}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.2)_42%,rgba(0,0,0,0.86)_100%)]" />
                     <div className="absolute left-3 right-3 top-3 flex items-center justify-between gap-2">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] ${
-                          hasAccess
-                            ? "bg-[#44f26e] text-black"
-                            : "border border-white/16 bg-black/54 text-white"
-                        }`}
-                      >
-                        <StatusIcon className="size-3.5" />
-                        {primaryBadgeLabel}
-                      </span>
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] ${
+                            hasAccess
+                              ? "bg-[#44f26e] text-black"
+                              : "border border-white/16 bg-black/54 text-white"
+                          }`}
+                        >
+                          <StatusIcon className="size-3.5" />
+                          {primaryBadgeLabel}
+                        </span>
+                        {isNsfw ? (
+                          <span className="inline-flex rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+                            {nsfwCopy.badge}
+                          </span>
+                        ) : null}
+                      </div>
                       <span
                         className={`inline-flex rounded-full border px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] ${
                           hasAccess
@@ -6158,6 +6180,7 @@ export function FanletterCreatorVlogsPage({
           fanOnlyContentCount={data.fanOnlyContentCount}
           featuredItem={featuredItem}
           locale={locale}
+          nsfwOptInEnabled={data.nsfwOptInEnabled}
           publicContentCount={data.publicContentCount}
           referralCode={effectiveReferralCode}
           returnToHref={vlogsHref}
@@ -6243,6 +6266,7 @@ export function FanletterCreatorVlogsPage({
             emptyActionLabel={labels.backToChannel}
             items={data.items}
             locale={locale}
+            nsfwOptInEnabled={data.nsfwOptInEnabled}
             referralCode={effectiveReferralCode}
             returnToHref={vlogsHref}
             showVideoPreview
@@ -6469,6 +6493,7 @@ export function FanletterCreatorFanOnlyPage({
           featuredItem={firstFanOnlyItem ?? data.items[0] ?? null}
           featuredMode={firstFanOnlyItem ? "fan-only" : "public"}
           locale={locale}
+          nsfwOptInEnabled={data.nsfwOptInEnabled}
           publicContentCount={data.publicContentCount}
           referralCode={effectiveReferralCode}
           returnToHref={fanOnlyHref}
@@ -6502,6 +6527,7 @@ export function FanletterCreatorFanOnlyPage({
             isOwner={isOwner}
             items={data.fanOnlyItems}
             locale={locale}
+            nsfwOptInEnabled={data.nsfwOptInEnabled}
             ownerCreateHref={ownerCreateHref}
             ownerManageHref={ownerVlogsHref}
             publicVlogsHref={publicVlogsHref}
@@ -6540,6 +6566,7 @@ export function FanletterCreatorFanOnlyPage({
                 emptyActionLabel={copy.actions.openContent}
                 items={data.items.slice(0, 6)}
                 locale={locale}
+                nsfwOptInEnabled={data.nsfwOptInEnabled}
                 referralCode={effectiveReferralCode}
                 returnToHref={fanOnlyHref}
                 showVideoPreview
@@ -7139,6 +7166,7 @@ export function FanletterCreatorPage({
             fanOnlyContentCount={data.fanOnlyContentCount}
             featuredItem={featuredItem}
             locale={locale}
+            nsfwOptInEnabled={data.nsfwOptInEnabled}
             publicContentCount={data.publicContentCount}
             referralCode={effectiveReferralCode}
             returnToHref={channelHref}
@@ -7368,6 +7396,7 @@ export function FanletterCreatorPage({
                 authorNameOverride={channelName}
                 item={featuredItem}
                 locale={locale}
+                nsfwOptInEnabled={data.nsfwOptInEnabled}
                 referralCode={effectiveReferralCode}
                 returnToHref={`${channelHref}#featured-vlog`}
               />
@@ -7421,6 +7450,7 @@ export function FanletterCreatorPage({
                 isOwner={isOwner}
                 items={data.fanOnlyItems}
                 locale={locale}
+                nsfwOptInEnabled={data.nsfwOptInEnabled}
                 ownerCreateHref={ownerCreateHref}
                 ownerManageHref={ownerVlogsHref}
                 publicVlogsHref={publicVlogsHref}
@@ -7466,6 +7496,7 @@ export function FanletterCreatorPage({
               }
               items={contentItems}
               locale={locale}
+              nsfwOptInEnabled={data.nsfwOptInEnabled}
               referralCode={effectiveReferralCode}
               revealItems
               returnToHref={recentPublicVlogsHref}
