@@ -4,8 +4,10 @@ import type { Filter } from "mongodb";
 import { unstable_cache } from "next/cache";
 
 import {
+  type ContentMaturityRating,
   type ContentPostDocument,
   type CreatorProfileDocument,
+  hasUploadedContentVideoUrl,
   normalizeContentLocale,
 } from "@/lib/content";
 import { defaultLocale, type Locale } from "@/lib/i18n";
@@ -22,6 +24,7 @@ const FEATURED_PAID_VIDEO_LIMIT = 4;
 const FEATURED_VIDEO_CANDIDATE_LIMIT = 48;
 const RECENCY_DECAY_DAYS = 21;
 const TEXT_LIMIT = 170;
+const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
 const LANDING_TEXT_SENSITIVE_PATTERN =
   /(adult|big bust|bikini|black eyeliner|blue eyes|cinematic lighting|create a|dramatic lighting|erotic|face shape|flirty|fluid motion|give a kiss|hands behind|hyper-realistic|intricate design|lingerie|long eyelashes|lora|lust|make me|masterpiece|messy wet hair|motion blur|my hand|naked|negative prompt|nude|nsfw|photo-realistic|photorealistic|porn|prompt|ring light|seed|selfie|sex|sexy|soft oval face|standard iphone selfie|standing pose|textures|underwear|uploaded reference|wet hair|white beauty|with my hand|노출|비키니|섹시|성인|속옷|야한)/i;
 
@@ -52,6 +55,7 @@ export type FanletterFeaturedVideo = {
   authorAvatarImageUrl: string | null;
   authorName: string;
   authorReferralCode: string | null;
+  contentMaturityRating: ContentMaturityRating;
   contentId: string;
   coverImageUrl: string | null;
   priceLabel: "free" | "paid";
@@ -75,7 +79,9 @@ export type FanletterLiveStats = {
 export type FanletterLandingData = {
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
+  hiddenNsfwCount: number;
   liveStats: FanletterLiveStats;
+  nsfwOptInEnabled: boolean;
 };
 
 export type FanletterCandidateSignals = {
@@ -272,6 +278,94 @@ function looksLikePersonaDescriptorText(value: string) {
 
 function getVideoUrl(post: ContentPostDocument) {
   return post.contentVideoUrls?.find((url) => typeof url === "string" && url);
+}
+
+function hasMissingMaturityRating(post: ContentPostDocument) {
+  return post.contentMaturityRating === undefined || post.contentMaturityRating === null;
+}
+
+function hasLegacyNsfwVideoSignal(post: ContentPostDocument) {
+  return (
+    post.priceType === "paid" &&
+    hasMissingMaturityRating(post) &&
+    hasUploadedContentVideoUrl(post.contentVideoUrls) &&
+    (post.contentVideoUrls ?? []).some((url) =>
+      LEGACY_NSFW_VIDEO_URL_PATTERN.test(url),
+    )
+  );
+}
+
+function resolveLandingContentMaturityRating(
+  post: ContentPostDocument,
+): ContentMaturityRating {
+  if (post.contentMaturityRating === "nsfw" || hasLegacyNsfwVideoSignal(post)) {
+    return "nsfw";
+  }
+
+  return "general";
+}
+
+function getLegacyNsfwVideoSignalFilter(): Filter<ContentPostDocument> {
+  return {
+    $and: [
+      { priceType: "paid" },
+      { "contentVideoUrls.0": { $exists: true } },
+      { contentVideoUrls: LEGACY_NSFW_VIDEO_URL_PATTERN },
+      {
+        $or: [
+          { contentMaturityRating: { $exists: false } },
+          { contentMaturityRating: null },
+        ],
+      },
+    ],
+  };
+}
+
+function getNsfwVisibilityFilter(): Filter<ContentPostDocument> {
+  return {
+    $or: [
+      { contentMaturityRating: "nsfw" },
+      getLegacyNsfwVideoSignalFilter(),
+    ],
+  };
+}
+
+function getNonNsfwVisibilityFilter(): Filter<ContentPostDocument> {
+  return {
+    $nor: [
+      { contentMaturityRating: "nsfw" },
+      getLegacyNsfwVideoSignalFilter(),
+    ],
+  };
+}
+
+function getPublishedVideoFilter({
+  locale,
+  priceType,
+}: {
+  locale: Locale;
+  priceType?: "free" | "paid";
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    "contentVideoUrls.0": { $exists: true },
+    ...(priceType ? { priceType } : {}),
+    status: "published",
+  };
+}
+
+function withNsfwVisibility(
+  filter: Filter<ContentPostDocument>,
+  visibility: "general" | "nsfw",
+): Filter<ContentPostDocument> {
+  return {
+    $and: [
+      filter,
+      visibility === "nsfw"
+        ? getNsfwVisibilityFilter()
+        : getNonNsfwVisibilityFilter(),
+    ],
+  };
 }
 
 function getAuthorName(
@@ -595,19 +689,18 @@ async function getFeaturedVideoPosts({
   limit,
   locale,
   priceType,
+  visibility = "general",
 }: {
   limit?: number;
   locale: Locale;
   priceType: "free" | "paid";
+  visibility?: "general" | "nsfw";
 }) {
   const postsCollection = await getContentPostsCollection();
-  const baseFilter: Filter<ContentPostDocument> = {
-    ...getPublishedContentLocaleFilter(locale),
-    "contentVideoUrls.0": { $exists: true },
-    contentMaturityRating: { $ne: "nsfw" },
-    priceType,
-    status: "published",
-  };
+  const baseFilter = withNsfwVisibility(
+    getPublishedVideoFilter({ locale, priceType }),
+    visibility,
+  );
   const sort = {
     publishedAt: -1,
     createdAt: -1,
@@ -716,6 +809,7 @@ function toFeaturedVideo({
     authorAvatarImageUrl: profile?.avatarImageUrl ?? null,
     authorName,
     authorReferralCode: post.authorReferralCode || null,
+    contentMaturityRating: resolveLandingContentMaturityRating(post),
     contentId: post.contentId,
     coverImageUrl:
       post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null,
@@ -731,21 +825,26 @@ function toFeaturedVideo({
 }
 
 export const getFanletterLandingData = unstable_cache(
-  async (locale: Locale): Promise<FanletterLandingData> => {
+  async (
+    locale: Locale,
+    includeNsfw = false,
+  ): Promise<FanletterLandingData> => {
     const postsCollection = await getContentPostsCollection();
     const profilesCollection = await getCreatorProfilesCollection();
     const ordersCollection = await getContentOrdersCollection();
-    const publishedContentFilter: Filter<ContentPostDocument> = {
-      ...getPublishedContentLocaleFilter(locale),
-      "contentVideoUrls.0": { $exists: true },
-      contentMaturityRating: { $ne: "nsfw" },
-      status: "published",
-    };
+    const publishedContentFilter = withNsfwVisibility(
+      getPublishedVideoFilter({ locale }),
+      "general",
+    );
     const publicVideoFilter: Filter<ContentPostDocument> = {
       ...publishedContentFilter,
       "contentVideoUrls.0": { $exists: true },
       priceType: "free",
     };
+    const nsfwPublishedVideoFilter = withNsfwVisibility(
+      getPublishedVideoFilter({ locale }),
+      "nsfw",
+    );
     const totalSalesPipeline = [
       {
         $match: {
@@ -777,6 +876,8 @@ export const getFanletterLandingData = unstable_cache(
       totalSalesRows,
       featuredPosts,
       featuredPaidPosts,
+      featuredNsfwPaidPosts,
+      hiddenNsfwCount,
     ] = await Promise.all([
       postsCollection.countDocuments(publishedContentFilter),
       postsCollection.countDocuments(publicVideoFilter),
@@ -791,14 +892,33 @@ export const getFanletterLandingData = unstable_cache(
         locale,
         priceType: "paid",
       }),
+      includeNsfw
+        ? getFeaturedVideoPosts({
+            limit: FEATURED_PAID_VIDEO_LIMIT,
+            locale,
+            priceType: "paid",
+            visibility: "nsfw",
+          })
+        : Promise.resolve([]),
+      includeNsfw
+        ? Promise.resolve(0)
+        : postsCollection.countDocuments(nsfwPublishedVideoFilter),
     ]);
+    const resolvedFeaturedPaidPosts = [
+      ...featuredNsfwPaidPosts,
+      ...featuredPaidPosts,
+    ].filter(
+      (post, index, posts) =>
+        posts.findIndex((candidate) => candidate.contentId === post.contentId) ===
+        index,
+    ).slice(0, FEATURED_PAID_VIDEO_LIMIT);
     const [profileByEmail, paidSignalsByContentId] = await Promise.all([
-      getProfileByEmail([...featuredPosts, ...featuredPaidPosts]),
-      getCandidateSignals(featuredPaidPosts),
+      getProfileByEmail([...featuredPosts, ...resolvedFeaturedPaidPosts]),
+      getCandidateSignals(resolvedFeaturedPaidPosts),
     ]);
 
     return {
-      featuredPaidVideos: featuredPaidPosts.flatMap((post) => {
+      featuredPaidVideos: resolvedFeaturedPaidPosts.flatMap((post) => {
         const video = toFeaturedVideo({
           locale,
           post,
@@ -817,6 +937,7 @@ export const getFanletterLandingData = unstable_cache(
 
         return video ? [video] : [];
       }),
+      hiddenNsfwCount,
       liveStats: {
         activeCreatorCount,
         confirmedSalesCount,
@@ -824,9 +945,10 @@ export const getFanletterLandingData = unstable_cache(
         publicVideoCount,
         totalSalesUsdt: totalSalesRows[0]?.totalSalesUsdt ?? 0,
       },
+      nsfwOptInEnabled: includeNsfw,
     };
   },
-  ["fanletter-landing-data-v11"],
+  ["fanletter-landing-data-v12"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],

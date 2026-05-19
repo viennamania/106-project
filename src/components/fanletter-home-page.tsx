@@ -22,6 +22,7 @@ import {
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import {
   AnimatedNumber,
@@ -32,6 +33,7 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -897,15 +899,18 @@ function FanletterPaidPreviewRail({
   featuredPaidVideos,
   homeHref,
   locale,
+  nsfwOptInEnabled,
   referralCode,
 }: {
   copy: FanletterCopy;
   featuredPaidVideos: FanletterFeaturedVideo[];
   homeHref: string;
   locale: Locale;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   const previewVideos = featuredPaidVideos.slice(0, 3);
+  const nsfwCopy = getFanletterNsfwCopy(locale);
 
   if (previewVideos.length === 0) {
     return null;
@@ -936,7 +941,9 @@ function FanletterPaidPreviewRail({
         <div className="grid gap-3 sm:grid-cols-3">
           {previewVideos.map((video, index) => {
             const hook = getPaidCardHook(video, locale);
+            const isNsfw = video.contentMaturityRating === "nsfw";
             const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
+            const shouldBlurMedia = !isNsfw || !nsfwOptInEnabled;
             const videoHref = setPathSearchParams(
               buildPathWithReferral(
                 `/${locale}/fanletter/content/${video.contentId}`,
@@ -952,7 +959,12 @@ function FanletterPaidPreviewRail({
                 key={video.contentId}
               >
                 <Link
-                  className="group block h-full overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] text-white transition hover:-translate-y-0.5 hover:border-[#44f26e]/42 hover:bg-white/[0.09]"
+                  className={joinClasses(
+                    "group block h-full overflow-hidden rounded-lg border bg-white/[0.07] text-white transition hover:-translate-y-0.5 hover:bg-white/[0.09]",
+                    isNsfw
+                      ? "border-rose-300/70 ring-1 ring-rose-300/36 hover:border-rose-200"
+                      : "border-white/12 hover:border-[#44f26e]/42",
+                  )}
                   href={videoHref}
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-black">
@@ -960,7 +972,11 @@ function FanletterPaidPreviewRail({
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="scale-[1.06] object-cover opacity-85 blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                        className={
+                          shouldBlurMedia
+                            ? "scale-[1.06] object-cover opacity-85 blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                            : "object-cover opacity-95 transition duration-500 group-hover:scale-[1.025]"
+                        }
                         fill
                         sizes="(min-width: 1024px) 22vw, 33vw"
                         src={video.coverImageUrl}
@@ -969,8 +985,15 @@ function FanletterPaidPreviewRail({
                       <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#132519_58%,#030504)]" />
                     )}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.30)_48%,rgba(0,0,0,0.88)_100%)]" />
-                    <div className="absolute left-3 top-3 rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-black">
-                      {priceLabel}
+                    <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+                      <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-black">
+                        {priceLabel}
+                      </span>
+                      {isNsfw ? (
+                        <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white">
+                          {nsfwCopy.badge}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="absolute bottom-3 left-3 right-3">
                       <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9bffad]">
@@ -1006,6 +1029,7 @@ function FanletterPaidSpotlightSection({
   featuredPaidVideos,
   homeHref,
   locale,
+  nsfwOptInEnabled,
   purchasesHref,
   referralCode,
 }: {
@@ -1013,9 +1037,11 @@ function FanletterPaidSpotlightSection({
   featuredPaidVideos: FanletterFeaturedVideo[];
   homeHref: string;
   locale: Locale;
+  nsfwOptInEnabled: boolean;
   purchasesHref: string;
   referralCode: string | null;
 }) {
+  const nsfwCopy = getFanletterNsfwCopy(locale);
   const fallbackCards = copy.paidSpotlight.unlockItems.map((item, index) => {
     const Icon = index === 0 ? LockKeyhole : index === 1 ? Clapperboard : MessageCircle;
 
@@ -1124,7 +1150,9 @@ function FanletterPaidSpotlightSection({
               );
               const cardTitle = getPaidCardTitle(video, locale);
               const hook = getPaidCardHook(video, locale);
+              const isNsfw = video.contentMaturityRating === "nsfw";
               const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
+              const shouldBlurMedia = !isNsfw || !nsfwOptInEnabled;
               const unlockLabel =
                 locale === "ko"
                   ? `${priceLabel} 잠금 해제`
@@ -1146,7 +1174,12 @@ function FanletterPaidSpotlightSection({
                   key={video.contentId}
                 >
                   <Link
-                    className="group flex h-full min-h-[34rem] flex-col overflow-hidden rounded-lg border border-white/12 bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:shadow-[0_30px_82px_rgba(0,0,0,0.34)]"
+                    className={joinClasses(
+                      "group flex h-full min-h-[34rem] flex-col overflow-hidden rounded-lg border bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:shadow-[0_30px_82px_rgba(0,0,0,0.34)]",
+                      isNsfw
+                        ? "border-rose-300 ring-2 ring-rose-300/44"
+                        : "border-white/12",
+                    )}
                     href={videoHref}
                   >
                     <div className="relative h-[20rem] shrink-0 overflow-hidden bg-[#030504]">
@@ -1154,7 +1187,11 @@ function FanletterPaidSpotlightSection({
                         <Image
                           alt=""
                           aria-hidden="true"
-                          className="scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                          className={
+                            shouldBlurMedia
+                              ? "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                              : "object-cover transition duration-500 group-hover:scale-[1.025]"
+                          }
                           fill
                           sizes="(min-width: 1280px) 22vw, (min-width: 768px) 46vw, 100vw"
                           src={video.coverImageUrl}
@@ -1163,9 +1200,16 @@ function FanletterPaidSpotlightSection({
                         <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#142517_54%,#030504)]" />
                       )}
                       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.26)_45%,rgba(0,0,0,0.88)_100%)]" />
-                      <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-black">
-                        <LockKeyhole className="size-3.5" />
-                        {priceLabel}
+                      <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-black">
+                          <LockKeyhole className="size-3.5" />
+                          {priceLabel}
+                        </span>
+                        {isNsfw ? (
+                          <span className="inline-flex rounded-full bg-rose-500 px-2.5 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+                            {nsfwCopy.badge}
+                          </span>
+                        ) : null}
                       </div>
                       <div className="absolute right-3 top-3 max-w-[8rem] truncate rounded-full border border-white/18 bg-black/64 px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-white backdrop-blur">
                         {proofLabel}
@@ -1290,15 +1334,19 @@ function FanletterPaidSpotlightSection({
 export function FanletterHomePage({
   featuredPaidVideos,
   featuredVideos,
+  hiddenNsfwCount,
   locale,
   liveStats,
+  nsfwOptInEnabled,
   referralCode,
   shareContext,
 }: {
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
+  hiddenNsfwCount: number;
   locale: Locale;
   liveStats: FanletterLiveStats;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
   shareContext?: FanletterHomeShareContext | null;
 }) {
@@ -1408,6 +1456,7 @@ export function FanletterHomePage({
     },
   ];
   const nicheVideos = featuredVideos.slice(0, 3);
+  const shouldShowNsfwControl = hiddenNsfwCount > 0 || nsfwOptInEnabled;
   const footerLabels =
     locale === "ko"
       ? {
@@ -2229,11 +2278,26 @@ export function FanletterHomePage({
         </div>
       </section>
 
+      {shouldShowNsfwControl ? (
+        <section className="border-b border-white/8 bg-[#07100b] px-4 py-4 text-white sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[92rem]">
+            <FanletterNsfwOptInControl
+              compact
+              enabled={nsfwOptInEnabled}
+              hiddenCount={hiddenNsfwCount}
+              locale={locale}
+              tone="dark"
+            />
+          </div>
+        </section>
+      ) : null}
+
       <FanletterPaidPreviewRail
         copy={copy}
         featuredPaidVideos={featuredPaidVideos}
         homeHref={homeHref}
         locale={locale}
+        nsfwOptInEnabled={nsfwOptInEnabled}
         referralCode={referralCode}
       />
 
@@ -2242,6 +2306,7 @@ export function FanletterHomePage({
         featuredPaidVideos={featuredPaidVideos}
         homeHref={homeHref}
         locale={locale}
+        nsfwOptInEnabled={nsfwOptInEnabled}
         purchasesHref={purchasesHref}
         referralCode={referralCode}
       />

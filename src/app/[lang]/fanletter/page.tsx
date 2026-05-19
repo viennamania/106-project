@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import {
@@ -13,6 +14,10 @@ import {
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
 import { getFanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
 import {
   readFanletterReferralCode,
   readFirstSearchParam,
@@ -124,8 +129,12 @@ export default async function FanletterRoutePage({
   const sponsor = getFanletterPromoSponsor(readFirstSearchParam(query.sponsor));
   const shouldLoadShareContext =
     shareSource === "share" && Boolean(shareCreatorReferralCode);
+  const cookieStore = await cookies();
+  const includeNsfw = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
   const [landingData, shareCreatorData] = await Promise.all([
-    getFanletterLandingData(locale),
+    getFanletterLandingData(locale, includeNsfw),
     shouldLoadShareContext && shareCreatorReferralCode
       ? getFanletterCreatorPageData(locale, shareCreatorReferralCode, null)
       : Promise.resolve(null),
@@ -182,8 +191,10 @@ export default async function FanletterRoutePage({
     <FanletterHomePage
       featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
+      hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={lang}
       liveStats={landingData.liveStats}
+      nsfwOptInEnabled={landingData.nsfwOptInEnabled}
       referralCode={referralCode}
       shareContext={shareContext}
     />
