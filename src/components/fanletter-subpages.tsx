@@ -3058,6 +3058,7 @@ function FanletterFollowCta({
     locale === "ko"
       ? {
           connect: "연결하고 팔로우",
+          connectShort: "연결",
           fanOnly: "팬 전용 보기",
           ownerCreate: "새 브이로그",
           ownerStudio: "스튜디오 관리",
@@ -3065,6 +3066,7 @@ function FanletterFollowCta({
         }
       : {
           connect: "Connect and follow",
+          connectShort: "Connect",
           fanOnly: "View fan-only",
           ownerCreate: "New vlog",
           ownerStudio: "Manage studio",
@@ -3073,20 +3075,21 @@ function FanletterFollowCta({
 
   if (isOwner) {
     return (
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:flex-row">
         <Link
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:h-12 sm:px-5"
           href={ownerStudioHref ?? fanOnlyHref}
         >
-          <Clapperboard className="size-4" />
-          {labels.ownerStudio}
+          <Clapperboard className="size-4 shrink-0" />
+          <span className="truncate">{labels.ownerStudio}</span>
         </Link>
         <Link
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-3 text-xs font-semibold !text-white transition hover:bg-white/12 sm:h-12 sm:px-5 sm:text-sm"
           href={ownerCreateHref ?? fanOnlyHref}
         >
-          <Rocket className="size-4" />
-          {labels.ownerCreate}
+          <Rocket className="size-4 shrink-0" />
+          <span className="sr-only sm:hidden">{labels.ownerCreate}</span>
+          <span className="hidden sm:inline">{labels.ownerCreate}</span>
         </Link>
       </div>
     );
@@ -3094,39 +3097,41 @@ function FanletterFollowCta({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:flex-row">
         <Link
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:h-12 sm:px-5"
           href={publicVlogsHref ?? fanOnlyHref}
         >
-          <Video className="size-4" />
-          {labels.publicFirst}
+          <Video className="size-4 shrink-0" />
+          <span className="truncate">{labels.publicFirst}</span>
         </Link>
         <Link
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-3 text-xs font-semibold !text-white transition hover:bg-white/12 sm:h-12 sm:px-5 sm:text-sm"
           href={followHref}
         >
-          <BellPlus className="size-4" />
-          {labels.connect}
+          <BellPlus className="size-4 shrink-0" />
+          <span className="sm:hidden">{labels.connectShort}</span>
+          <span className="hidden sm:inline">{labels.connect}</span>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:flex-row">
+      <Link
+        className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84] sm:h-12 sm:border sm:border-white/16 sm:bg-transparent sm:px-5 sm:!text-white sm:hover:bg-white/8"
+        href={fanOnlyHref}
+      >
+        <Crown className="size-4 shrink-0" />
+        <span className="truncate">{labels.fanOnly}</span>
+      </Link>
       <FanletterFollowButton
+        className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-white/14 bg-white/8 px-3 text-xs font-semibold !text-white transition hover:bg-white/12 sm:h-12 sm:gap-2 sm:border-[#44f26e]/36 sm:bg-white/10 sm:px-5 sm:text-sm sm:hover:bg-white/14"
         creatorReferralCode={creatorReferralCode}
         fallbackHref={followHref}
         locale={locale}
       />
-      <Link
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/8"
-        href={fanOnlyHref}
-      >
-        <Crown className="size-4" />
-        {labels.fanOnly}
-      </Link>
     </div>
   );
 }
@@ -7090,7 +7095,7 @@ export function FanletterCreatorPage({
               publicVlogsHref={publicVlogsHref}
             />
             <FanletterChannelShareButton
-              className="max-sm:h-11 max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:text-xs"
+              className="max-sm:hidden max-sm:h-10 max-sm:w-fit max-sm:self-start max-sm:border-white/12 max-sm:bg-white/[0.035] max-sm:px-4 max-sm:text-xs"
               href={channelHref}
               locale={locale}
               promotionalShare={{
@@ -7123,13 +7128,14 @@ export function FanletterCreatorPage({
         descriptionClassName="mt-4 max-w-xl text-sm leading-6 max-sm:line-clamp-3 sm:mt-5 sm:text-lg sm:leading-8"
         eyebrow={roleLabels.shellEyebrow}
         hideStartNavItem={isOwner}
+        heroContentClassName="max-sm:flex max-sm:min-h-[calc(100svh-12.5rem)] max-sm:flex-col"
         heroAsideClassName="hidden sm:block"
         heroBackdrop={
           <>
             {heroVisualVideoUrl ? (
               <FanletterAutoplayVideo
                 ariaHidden
-                className="absolute inset-0 h-full w-full object-cover object-[center_24%] opacity-[0.46] sm:object-[center_30%] sm:opacity-[0.28] lg:scale-[1.08] lg:object-[64%_30%]"
+                className="absolute inset-0 h-full w-full object-cover object-[center_32%] opacity-[0.68] sm:object-[center_30%] sm:opacity-[0.28] lg:scale-[1.08] lg:object-[64%_30%]"
                 poster={heroVisualImageUrl ?? undefined}
                 src={heroVisualVideoUrl}
               />
@@ -7137,18 +7143,18 @@ export function FanletterCreatorPage({
               <Image
                 alt=""
                 aria-hidden="true"
-                className="object-cover object-[center_24%] opacity-[0.6] sm:object-[center_30%] sm:opacity-[0.34] sm:blur-[2px] lg:scale-[1.08] lg:object-[64%_30%]"
+                className="object-cover object-[center_32%] opacity-[0.76] sm:object-[center_30%] sm:opacity-[0.34] sm:blur-[2px] lg:scale-[1.08] lg:object-[64%_30%]"
                 fill
                 priority
                 sizes="100vw"
                 src={heroVisualImageUrl}
               />
             ) : null}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.26)_0%,rgba(3,5,4,0.42)_42%,rgba(3,5,4,0.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(3,5,4,0.92)_0%,rgba(3,5,4,0.68)_44%,rgba(3,5,4,0.2)_100%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-[44%] bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.18)_0%,rgba(3,5,4,0.3)_42%,rgba(3,5,4,0.78)_100%)] sm:bg-[linear-gradient(90deg,rgba(3,5,4,0.92)_0%,rgba(3,5,4,0.68)_44%,rgba(3,5,4,0.2)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-[34%] bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,rgba(3,5,4,0.86)_100%)]" />
           </>
         }
-        heroActionsClassName="mt-6 sm:mt-8"
+        heroActionsClassName="mt-4 max-sm:mt-auto max-sm:pb-[calc(4.75rem+env(safe-area-inset-bottom))] sm:mt-8"
         heroGridClassName="gap-5 sm:gap-8 lg:items-start"
         heroSectionClassName="min-h-[92svh] pb-[calc(6.25rem+env(safe-area-inset-bottom))] sm:min-h-[720px] sm:pb-12"
         heroSpacingClassName="pt-7 sm:pt-16"
