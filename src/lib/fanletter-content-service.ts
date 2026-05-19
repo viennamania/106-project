@@ -1135,6 +1135,66 @@ function getNsfwContentFilter({
   };
 }
 
+function getFanOnlyPreviewContentFilter({
+  locale,
+  visibility = "general",
+}: {
+  locale: Locale;
+  visibility?: "general" | "nsfw";
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    "contentVideoUrls.0": { $exists: true },
+    ...(visibility === "nsfw"
+      ? getNsfwVisibilityFilter()
+      : getNonNsfwVisibilityFilter()),
+    priceType: "paid",
+    status: "published",
+  };
+}
+
+function mergeFeedFanOnlyPreviewPosts({
+  generalPosts,
+  limit,
+  nsfwPosts,
+  visibleContentIds,
+}: {
+  generalPosts: ContentPostDocument[];
+  limit: number;
+  nsfwPosts: ContentPostDocument[];
+  visibleContentIds: Set<string>;
+}) {
+  const selected: ContentPostDocument[] = [];
+  const selectedContentIds = new Set(visibleContentIds);
+  const addPost = (post: ContentPostDocument) => {
+    if (selected.length >= limit || selectedContentIds.has(post.contentId)) {
+      return;
+    }
+
+    selected.push(post);
+    selectedContentIds.add(post.contentId);
+  };
+  const [firstGeneralPost, ...remainingGeneralPosts] = generalPosts;
+
+  if (firstGeneralPost) {
+    addPost(firstGeneralPost);
+  }
+
+  if (nsfwPosts.length > 0) {
+    addPost(nsfwPosts[0]);
+  }
+
+  for (const post of remainingGeneralPosts) {
+    addPost(post);
+  }
+
+  for (const post of nsfwPosts.slice(1)) {
+    addPost(post);
+  }
+
+  return selected;
+}
+
 export async function getFanletterPublicContentItems({
   locale,
   limit = FANLETTER_PUBLIC_CONTENT_LIMIT,
@@ -1269,20 +1329,39 @@ export const getFanletterFeedPageData = cache(
       }
     }
 
-    if (includeNsfw && page === 1 && !query) {
-      const fanOnlyPreviewPosts = await postsCollection
-        .find(getNsfwContentFilter({ locale }))
-        .sort({
-          publishedAt: -1,
-          createdAt: -1,
-          contentId: -1,
-        })
-        .limit(FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT)
-        .toArray();
+    if (page === 1 && !query) {
+      const fanOnlyPreviewSort = {
+        publishedAt: -1,
+        createdAt: -1,
+        contentId: -1,
+      } as const;
+      const [generalFanOnlyPreviewPosts, nsfwFanOnlyPreviewPosts] =
+        await Promise.all([
+          postsCollection
+            .find(getFanOnlyPreviewContentFilter({ locale }))
+            .sort(fanOnlyPreviewSort)
+            .limit(FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT)
+            .toArray(),
+          includeNsfw
+            ? postsCollection
+                .find(
+                  getFanOnlyPreviewContentFilter({
+                    locale,
+                    visibility: "nsfw",
+                  }),
+                )
+                .sort(fanOnlyPreviewSort)
+                .limit(FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT)
+                .toArray()
+            : Promise.resolve([]),
+        ]);
       const visibleContentIds = new Set(items.map((item) => item.contentId));
-      const previewPosts = fanOnlyPreviewPosts.filter(
-        (post) => !visibleContentIds.has(post.contentId),
-      );
+      const previewPosts = mergeFeedFanOnlyPreviewPosts({
+        generalPosts: generalFanOnlyPreviewPosts,
+        limit: FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT,
+        nsfwPosts: nsfwFanOnlyPreviewPosts,
+        visibleContentIds,
+      });
 
       if (previewPosts.length > 0) {
         const [profileByEmail, socialByContentId] = await Promise.all([
