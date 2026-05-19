@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
+
+export type FanletterVideoMetadata = {
+  aspectRatio: number;
+  height: number;
+  width: number;
+};
 
 type FanletterAutoplayVideoProps = {
   ariaHidden?: boolean;
   className?: string;
   controls?: boolean;
+  onMetadata?: (metadata: FanletterVideoMetadata) => void;
   poster?: string;
   src: string;
   title?: string;
@@ -30,11 +37,26 @@ export function FanletterAutoplayVideo({
   ariaHidden = false,
   className,
   controls = false,
+  onMetadata,
   poster,
   src,
   title,
 }: FanletterAutoplayVideoProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const handleLoadedMetadata = useCallback(() => {
+    const video = videoRef.current;
+
+    if (!video?.videoWidth || !video.videoHeight) {
+      return;
+    }
+
+    onMetadata?.({
+      aspectRatio: video.videoWidth / video.videoHeight,
+      height: video.videoHeight,
+      width: video.videoWidth,
+    });
+  }, [onMetadata]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -126,6 +148,7 @@ export function FanletterAutoplayVideo({
       data-fanletter-autoplay-video="true"
       loop
       muted
+      onLoadedMetadata={handleLoadedMetadata}
       playsInline
       poster={poster}
       preload="none"

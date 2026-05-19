@@ -45,6 +45,7 @@ import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-l
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
+import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import { FanletterScrollReveal } from "@/components/fanletter-scroll-reveal";
 import {
   FanletterSetupHeroDescription,
@@ -9395,25 +9396,22 @@ export function FanletterContentDetailPage({
           </div>
 
           <div className="grid gap-4 pt-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
-            <section className="overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6">
-              <div
-                className={cn(
-                  "relative overflow-hidden bg-black",
-                  primaryVideoUrl
-                    ? "h-[72svh] min-h-[26rem] sm:h-[min(78svh,42rem)] sm:min-h-[34rem] lg:h-[min(70svh,40rem)]"
-                    : "aspect-[4/5]",
-                )}
+            <section
+              className={cn(
+                "overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6",
+                primaryVideoUrl && "sm:mx-auto sm:w-fit sm:max-w-full",
+              )}
+            >
+              <FanletterResponsiveMediaFrame
+                alt={content.title}
+                blurred={shouldBlurDetailMedia}
+                className={primaryVideoUrl ? "min-h-[24rem] sm:min-h-0" : undefined}
+                eager
+                imageUrl={primaryImageUrl}
+                mediaType={content.mediaType}
+                title={content.title}
+                videoUrl={primaryVideoUrl}
               >
-                <MediaCard
-                  alt={content.title}
-                  blurred={shouldBlurDetailMedia}
-                  eager
-                  fit={primaryVideoUrl ? "contain" : "cover"}
-                  imageUrl={primaryImageUrl}
-                  mediaType={content.mediaType}
-                  title={content.title}
-                  videoUrl={primaryVideoUrl}
-                />
                 <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-3">
                   <span className="inline-flex rounded-full bg-black/62 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
                     {detailLabels.watchBadge}
@@ -9429,7 +9427,7 @@ export function FanletterContentDetailPage({
                     </span>
                   </div>
                 </div>
-              </div>
+              </FanletterResponsiveMediaFrame>
               <div className="border-t border-white/8 p-3">
                 <SocialMetrics content={content} locale={locale} />
               </div>
