@@ -88,15 +88,15 @@ export function FanletterContentDetailCtaGroup({
     : defaultPrimaryLabel;
   const containerClassName =
     variant === "mobile"
-      ? "mt-4 grid grid-cols-2 gap-2"
+      ? "mt-3 grid grid-cols-2 gap-2"
       : "mt-7 flex flex-wrap items-center gap-3";
   const primaryClassName =
     variant === "mobile"
-      ? "inline-flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-center text-sm font-semibold leading-tight !text-black transition hover:bg-[#64ff84]"
+      ? "inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-center text-[0.82rem] font-semibold leading-tight !text-black transition hover:bg-[#64ff84]"
       : "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]";
   const secondaryClassName =
     variant === "mobile"
-      ? "inline-flex h-11 items-center justify-center rounded-full border border-white/14 px-3 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-white/10"
+      ? "inline-flex h-10 items-center justify-center rounded-full border border-white/14 px-3 text-center text-[0.82rem] font-semibold leading-tight !text-white transition hover:bg-white/10"
       : "inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-semibold !text-white transition hover:bg-white/10";
 
   return (

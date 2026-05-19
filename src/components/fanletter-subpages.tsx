@@ -2375,20 +2375,20 @@ function SocialMetrics({
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
       {metrics.map((metric) => {
         const Icon = metric.icon;
 
         return (
           <div
-            className="rounded-lg border border-white/10 bg-white/[0.04] p-3"
+            className="rounded-lg border border-white/10 bg-white/[0.04] p-2 sm:p-3"
             key={metric.label}
           >
-            <Icon className="size-4 text-[#44f26e]" />
-            <p className="mt-2 text-xl font-semibold leading-none">
+            <Icon className="size-3.5 text-[#44f26e] sm:size-4" />
+            <p className="mt-1.5 text-base font-semibold leading-none sm:mt-2 sm:text-xl">
               {formatNumber(metric.value, locale)}
             </p>
-            <p className="mt-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-white/48">
+            <p className="mt-1 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-white/48 sm:text-[0.64rem] sm:tracking-[0.12em]">
               {metric.label}
             </p>
           </div>
@@ -9037,35 +9037,36 @@ function FanletterNsfwContentGate({
   ];
 
   return (
-    <section className="mb-6 overflow-hidden rounded-lg border border-rose-300/38 bg-[linear-gradient(135deg,rgba(244,63,94,0.22),rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.2))] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
-      <div className="p-5 sm:p-6">
-        <span className="inline-flex rounded-full bg-rose-400 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-rose-950">
+    <section className="mb-4 overflow-hidden rounded-lg border border-rose-300/38 bg-[linear-gradient(135deg,rgba(244,63,94,0.22),rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.2))] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)] sm:mb-6">
+      <div className="p-4 sm:p-6">
+        <span className="inline-flex rounded-full bg-rose-400 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-rose-950 sm:px-3 sm:text-xs sm:tracking-[0.12em]">
           {labels.badge}
         </span>
-        <h2 className="mt-4 break-words text-2xl font-semibold leading-tight sm:text-3xl">
+        <h2 className="mt-3 break-words text-xl font-semibold leading-tight sm:mt-4 sm:text-3xl">
           {labels.title}
         </h2>
-        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/68">
+        <p className="mt-2 max-w-2xl text-xs font-medium leading-5 text-white/68 sm:mt-3 sm:text-sm sm:leading-6">
           {labels.body}
         </p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-5 sm:gap-2">
           {gateItems.map(({ Icon, label }) => (
             <div
-              className="rounded-lg border border-white/10 bg-black/22 p-3"
+              className="rounded-lg border border-white/10 bg-black/22 p-2 sm:p-3"
               key={label}
             >
-              <span className="inline-flex size-8 items-center justify-center rounded-lg bg-rose-300 text-rose-950">
-                <Icon className="size-4" />
+              <span className="inline-flex size-7 items-center justify-center rounded-lg bg-rose-300 text-rose-950 sm:size-8">
+                <Icon className="size-3.5 sm:size-4" />
               </span>
-              <p className="mt-3 text-sm font-semibold leading-5 text-white">
+              <p className="mt-2 text-[0.68rem] font-semibold leading-4 text-white sm:mt-3 sm:text-sm sm:leading-5">
                 {label}
               </p>
             </div>
           ))}
         </div>
       </div>
-      <div className="border-t border-white/10 p-4 sm:p-5">
+      <div className="border-t border-white/10 p-3 sm:p-5">
         <FanletterNsfwOptInControl
+          compact
           disabledBody={labels.toggleBody}
           disabledCta={labels.toggleCta}
           disabledTitle={labels.toggleTitle}
@@ -9075,7 +9076,7 @@ function FanletterNsfwContentGate({
           tone="dark"
         />
         <Link
-          className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-4 text-sm font-semibold !text-white transition hover:bg-white/10 sm:w-auto"
+          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-4 text-sm font-semibold !text-white transition hover:bg-white/10 sm:mt-3 sm:h-11 sm:w-auto"
           href={creatorHref}
         >
           {labels.creator}
@@ -9341,28 +9342,35 @@ export function FanletterContentDetailPage({
             referralCode={effectiveReferralCode}
           />
 
-          <div className="pt-4 lg:hidden">
-            <Link
-              className="inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
-              href={creatorHref}
-            >
-              <Avatar
-                imageUrl={contentCharacterAvatarUrl}
-                name={contentCharacterName}
-                sizeClassName="size-9"
-              />
-              <span className="min-w-0">
-                <span className="block text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#44f26e]">
-                  {detailLabels.character}
+          <div className="pt-3 lg:hidden">
+            <div className="flex items-center gap-2">
+              <Link
+                className="inline-flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1.5 text-white transition hover:border-[#44f26e]/40 hover:bg-white/[0.065]"
+                href={creatorHref}
+              >
+                <Avatar
+                  imageUrl={contentCharacterAvatarUrl}
+                  name={contentCharacterName}
+                  sizeClassName="size-8"
+                />
+                <span className="min-w-0">
+                  <span className="block text-[0.56rem] font-semibold uppercase tracking-[0.12em] text-[#44f26e]">
+                    {detailLabels.character}
+                  </span>
+                  <span className="block truncate text-[0.82rem] font-semibold">
+                    {contentCharacterName}
+                  </span>
                 </span>
-                <span className="block truncate text-sm font-semibold">
-                  {contentCharacterName}
+                <ArrowRight className="size-3.5 shrink-0 text-[#44f26e]" />
+              </Link>
+              {formatDate(content.publishedAt, locale) ? (
+                <span className="shrink-0 rounded-full border border-white/12 px-2.5 py-1 text-[0.68rem] font-semibold text-white/58">
+                  {formatDate(content.publishedAt, locale)}
                 </span>
-              </span>
-              <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
-            </Link>
+              ) : null}
+            </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-black">
                 {content.mediaType === "video" ? (
                   <PlayCircle className="size-3.5" />
@@ -9376,17 +9384,12 @@ export function FanletterContentDetailPage({
                   {nsfwCopy.badge}
                 </span>
               ) : null}
-              {formatDate(content.publishedAt, locale) ? (
-                <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-white/58">
-                  {formatDate(content.publishedAt, locale)}
-                </span>
-              ) : null}
             </div>
 
-            <h1 className="mt-3 line-clamp-3 break-words text-[1.62rem] font-semibold leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all]">
+            <h1 className="mt-2 line-clamp-2 break-words text-[1.28rem] font-semibold leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all]">
               {content.title}
             </h1>
-            <p className="mt-2 line-clamp-1 break-words text-sm font-medium leading-5 text-white/64 [overflow-wrap:anywhere]">
+            <p className="mt-1 line-clamp-1 break-words text-[0.82rem] font-medium leading-5 text-white/64 [overflow-wrap:anywhere]">
               {content.summary}
             </p>
 
@@ -9404,11 +9407,12 @@ export function FanletterContentDetailPage({
             />
           </div>
 
-          <div className="grid gap-4 pt-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
+          <div className="grid gap-3 pt-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
             <section
               className={cn(
                 "overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6",
-                shouldUseVideoMediaShell && "sm:mx-auto sm:w-fit sm:max-w-full",
+                shouldUseVideoMediaShell &&
+                  "mx-auto w-full max-w-[21.5rem] sm:w-fit sm:max-w-full",
               )}
             >
               <FanletterResponsiveMediaFrame
