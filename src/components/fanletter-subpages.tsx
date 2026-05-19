@@ -1267,7 +1267,7 @@ function ContentCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
-  const shouldBlurMedia = isLocked && (!isNsfw || !nsfwOptInEnabled);
+  const shouldBlurMedia = isNsfw && !nsfwOptInEnabled;
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const mediaLabel =
     item.mediaType === "video"
@@ -1539,7 +1539,7 @@ function FeaturedFeedCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
-  const shouldBlurMedia = isLocked && (!isNsfw || !nsfwOptInEnabled);
+  const shouldBlurMedia = isNsfw && !nsfwOptInEnabled;
   const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
@@ -2472,8 +2472,7 @@ function FanletterChannelHeroPreview({
     isFanOnlyFeatured && featuredItem && !featuredItem.canViewerAccess,
   );
   const isFeaturedNsfw = featuredItem?.contentMaturityRating === "nsfw";
-  const shouldBlurFeaturedMedia =
-    featuredLocked && (!isFeaturedNsfw || !nsfwOptInEnabled);
+  const shouldBlurFeaturedMedia = isFeaturedNsfw && !nsfwOptInEnabled;
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const featuredPrice = `${featuredItem?.priceUsdt ?? "1"} USDT`;
   const wallLabel = isFanOnlyFeatured
