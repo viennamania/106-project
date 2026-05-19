@@ -1153,6 +1153,7 @@ function MediaCard({
   blurred = false,
   controls = true,
   eager = false,
+  fit = "cover",
   imageUrl,
   mediaType,
   title,
@@ -1162,11 +1163,14 @@ function MediaCard({
   blurred?: boolean;
   controls?: boolean;
   eager?: boolean;
+  fit?: "contain" | "cover";
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
   title: string;
   videoUrl: string | null;
 }) {
+  const fitClassName = fit === "contain" ? "object-contain" : "object-cover";
+
   if (videoUrl) {
     return (
       <>
@@ -1174,7 +1178,7 @@ function MediaCard({
           className={
             blurred
               ? "h-full w-full scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
-              : "h-full w-full object-cover"
+              : cn("h-full w-full", fitClassName)
           }
           controls={controls}
           poster={imageUrl ?? undefined}
@@ -1196,7 +1200,7 @@ function MediaCard({
           className={
             blurred
               ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
-              : "object-cover"
+              : fitClassName
           }
           fill
           loading={eager ? "eager" : undefined}
@@ -9137,6 +9141,30 @@ export function FanletterContentDetailPage({
   const desktopSecondaryActionLabel = creatorActionLabel;
   const canRequestFollowUpScene = !isOwnContent && canViewerAccess;
   const shouldShowFanRequestPrompt = canRequestFollowUpScene;
+  const returnToPathname = returnToHref?.split(/[?#]/, 1)[0] ?? null;
+  const isPurchasesReturn =
+    returnToPathname === `/${locale}/fanletter/purchases`;
+  const shouldShowPurchaseContext =
+    isPurchasesReturn &&
+    canViewerAccess &&
+    !isOwnContent &&
+    Boolean(returnToHref);
+  const purchaseContextLabels =
+    locale === "ko"
+      ? {
+          body: "결제 완료된 팬 전용 브이로그입니다. 원본 세로 프레임으로 이어서 볼 수 있습니다.",
+          price: content.priceUsdt ? `${content.priceUsdt} USDT` : "구매 완료",
+          return: "구매함으로 돌아가기",
+          state: "전체 열람 가능",
+          title: "구매함에서 열람 중",
+        }
+      : {
+          body: "This fan-only vlog is unlocked. Continue watching in the original vertical frame.",
+          price: content.priceUsdt ? `${content.priceUsdt} USDT` : "Purchased",
+          return: "Back to purchases",
+          state: "Full access",
+          title: "Viewing from purchases",
+        };
 
   return (
     <main className="min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
@@ -9247,11 +9275,19 @@ export function FanletterContentDetailPage({
 
           <div className="grid gap-4 pt-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-8 lg:pt-12">
             <section className="overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6">
-              <div className="relative h-[44svh] min-h-[18rem] max-h-[24rem] bg-[#07100b] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-[4/5]">
+              <div
+                className={cn(
+                  "relative overflow-hidden bg-black",
+                  primaryVideoUrl
+                    ? "h-[72svh] min-h-[26rem] sm:h-[min(78svh,42rem)] sm:min-h-[34rem] lg:h-[min(70svh,40rem)]"
+                    : "aspect-[4/5]",
+                )}
+              >
                 <MediaCard
                   alt={content.title}
                   blurred={shouldBlurDetailMedia}
                   eager
+                  fit={primaryVideoUrl ? "contain" : "cover"}
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
                   title={content.title}
@@ -9276,6 +9312,33 @@ export function FanletterContentDetailPage({
               <div className="border-t border-white/8 p-3">
                 <SocialMetrics content={content} locale={locale} />
               </div>
+              {shouldShowPurchaseContext && returnToHref ? (
+                <div className="border-t border-white/8 p-3">
+                  <div className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3">
+                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                      {purchaseContextLabels.title}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-white">
+                      {purchaseContextLabels.body}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-black">
+                        {purchaseContextLabels.state}
+                      </span>
+                      <span className="rounded-full border border-white/12 bg-black/24 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-white/68">
+                        {purchaseContextLabels.price}
+                      </span>
+                    </div>
+                    <Link
+                      className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/36 bg-black/22 px-4 text-sm font-semibold !text-[#b9ffc8] transition hover:bg-black/34"
+                      href={returnToHref}
+                    >
+                      {purchaseContextLabels.return}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
               <div className="hidden sm:block">
                 <FanletterDetailWatchPanel
                   channelHref={creatorHref}
@@ -9503,7 +9566,7 @@ export function FanletterContentDetailPage({
                       key={videoUrl}
                     >
                       <video
-                        className="aspect-[9/14] w-full object-cover"
+                        className="aspect-[9/16] w-full bg-black object-contain"
                         controls
                         muted
                         playsInline
