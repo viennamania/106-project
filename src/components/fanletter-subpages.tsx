@@ -7072,44 +7072,9 @@ export function FanletterCreatorPage({
   const roleLabels = viewerModeLabels[viewerMode];
   const heroDescription = roleLabels.heroDescription;
   const PrimaryCtaIcon = isOwner ? Clapperboard : isLoggedInFan ? Crown : Video;
-  const mobilePrimaryHref = isOwner ? ownerCreateHref : publicVlogsHref;
-  const mobilePrimaryLabel = isOwner
-    ? channelActionLabels.mobileOwnerPrimary
-    : channelActionLabels.mobilePrimary;
-  const mobileSecondaryHref = isOwner
-    ? ownerStudioHref
-    : data.fanOnlyContentCount > 0
-      ? fanOnlyHref
-      : fanRequestsSectionHref;
-  const mobileSecondaryLabel = isOwner
-    ? channelActionLabels.mobileOwnerSecondary
-    : channelActionLabels.mobileSecondary;
-  const MobileSecondaryIcon = isOwner
-    ? Rocket
-    : data.fanOnlyContentCount > 0
-      ? Crown
-      : MessageCircleHeart;
 
   return (
     <>
-      <div className="fixed inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] z-30 sm:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-2 gap-2 rounded-full border border-white/12 bg-[#030504]/88 p-1.5 shadow-[0_18px_46px_rgba(0,0,0,0.34)] backdrop-blur-xl">
-          <Link
-            className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 text-[0.82rem] font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={mobilePrimaryHref}
-          >
-            <Video className="size-4 shrink-0" />
-            <span className="truncate">{mobilePrimaryLabel}</span>
-          </Link>
-          <Link
-            className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-white/16 bg-white/8 px-2.5 text-[0.82rem] font-semibold !text-white transition hover:bg-white/12"
-            href={mobileSecondaryHref}
-          >
-            <MobileSecondaryIcon className="size-4 shrink-0" />
-            <span className="truncate">{mobileSecondaryLabel}</span>
-          </Link>
-        </div>
-      </div>
       <FanletterShell
         actions={
           <>
@@ -7158,7 +7123,7 @@ export function FanletterCreatorPage({
         descriptionClassName="mt-4 max-w-xl text-sm leading-6 max-sm:line-clamp-3 sm:mt-5 sm:text-lg sm:leading-8"
         eyebrow={roleLabels.shellEyebrow}
         hideStartNavItem={isOwner}
-        heroAsideClassName="max-sm:-mt-1"
+        heroAsideClassName="hidden sm:block"
         heroBackdrop={
           <>
             {heroVisualVideoUrl ? (
