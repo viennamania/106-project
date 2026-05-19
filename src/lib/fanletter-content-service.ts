@@ -123,6 +123,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   contentImageUrls: string[];
   contentVideoUrls: string[];
   fanRequestSource: FanletterPublicFanRequestSource | null;
+  hiddenNsfwCount: number;
   nsfwOptInEnabled: boolean;
   tags: string[];
   viewerRelation: "audience" | "owner";
@@ -1507,10 +1508,20 @@ export const getFanletterPublicContentDetail = cache(
     const authorReferralCode = normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     );
+    const includeAuthorNsfw = includeNsfw || isOwner;
     const authorContentFilter = authorReferralCode
-      ? await getPublicContentFilter({ locale, referralCode: authorReferralCode })
+      ? await getPublicContentFilter({
+          includeNsfw: includeAuthorNsfw,
+          locale,
+          referralCode: authorReferralCode,
+        })
       : null;
-    const [authorPosts, authorPublicContentCount, authorFanRequestMetrics] =
+    const [
+      authorPosts,
+      authorPublicContentCount,
+      authorFanRequestMetrics,
+      hiddenNsfwCount,
+    ] =
       authorContentFilter
         ? await Promise.all([
             postsCollection
@@ -1528,8 +1539,13 @@ export const getFanletterPublicContentDetail = cache(
                   () => EMPTY_PUBLIC_FAN_REQUEST_METRICS,
                 )
               : EMPTY_PUBLIC_FAN_REQUEST_METRICS,
+            !includeAuthorNsfw && authorReferralCode
+              ? postsCollection.countDocuments(
+                  getNsfwContentFilter({ locale, referralCode: authorReferralCode }),
+                )
+              : Promise.resolve(0),
           ])
-        : [[], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS];
+        : [[], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS, 0];
     const authorRecentPosts = authorPosts
       .filter((authorPost) => authorPost.contentId !== post.contentId)
       .slice(0, 4);
@@ -1566,6 +1582,7 @@ export const getFanletterPublicContentDetail = cache(
       contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
       contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
       fanRequestSource,
+      hiddenNsfwCount,
       nsfwOptInEnabled: includeNsfw,
       tags: post.tags,
       viewerRelation: isOwner ? "owner" : "audience",

@@ -4448,23 +4448,34 @@ function FanletterRelatedVlogCard({
   fallbackImageUrl,
   item,
   locale,
+  nsfwOptInEnabled = false,
   referralCode,
 }: {
   fallbackImageUrl: string | null;
   item: FanletterPublicContentItem;
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   referralCode: string | null;
 }) {
   const href = getContentHref({ item, locale, referralCode });
   const fallbackThumbUrl = item.authorAvatarImageUrl ?? fallbackImageUrl;
   const displaySummary = getDisplayContentSummary(item, locale);
   const displayTitle = getDisplayContentTitle(item, locale);
+  const isNsfw = item.contentMaturityRating === "nsfw";
+  const nsfwCopy = getFanletterNsfwCopy(locale);
   const shouldBlurCover =
-    item.priceType === "paid" && !item.canViewerAccess;
+    item.priceType === "paid" &&
+    !item.canViewerAccess &&
+    (!isNsfw || !nsfwOptInEnabled);
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[5.75rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-white/[0.045] p-3 transition hover:bg-white/[0.07]"
+      className={cn(
+        "group grid min-w-0 grid-cols-[5.75rem_minmax(0,1fr)] gap-3 rounded-lg border bg-white/[0.045] p-3 transition hover:bg-white/[0.07]",
+        isNsfw
+          ? "border-rose-300/66 ring-1 ring-rose-300/34 hover:border-rose-200"
+          : "border-white/10",
+      )}
       href={href}
     >
       <div className="relative aspect-[9/14] overflow-hidden rounded-lg bg-[#07100b]">
@@ -4495,6 +4506,11 @@ function FanletterRelatedVlogCard({
             </span>
           </div>
         )}
+        {isNsfw ? (
+          <span className="absolute left-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+            {nsfwCopy.badge}
+          </span>
+        ) : null}
       </div>
       <div className="min-w-0 self-center">
         <p className="line-clamp-2 break-words text-base font-semibold leading-tight text-white [overflow-wrap:anywhere]">
@@ -4516,11 +4532,13 @@ function FanletterRelatedVlogs({
   fallbackImageUrl,
   items,
   locale,
+  nsfwOptInEnabled = false,
   referralCode,
 }: {
   fallbackImageUrl: string | null;
   items: FanletterPublicContentItem[];
   locale: Locale;
+  nsfwOptInEnabled?: boolean;
   referralCode: string | null;
 }) {
   if (items.length === 0) {
@@ -4531,11 +4549,15 @@ function FanletterRelatedVlogs({
     locale === "ko"
       ? {
           eyebrow: "같은 캐릭터",
-          title: "다음에 볼 공개 브이로그",
+          title: items.some((item) => item.contentMaturityRating === "nsfw")
+            ? "다음 팬 전용 브이로그"
+            : "다음에 볼 공개 브이로그",
         }
       : {
           eyebrow: "Same character",
-          title: "Public vlogs to watch next",
+          title: items.some((item) => item.contentMaturityRating === "nsfw")
+            ? "Fan-only vlogs to watch next"
+            : "Public vlogs to watch next",
         };
 
   return (
@@ -4558,6 +4580,7 @@ function FanletterRelatedVlogs({
             item={item}
             key={item.contentId}
             locale={locale}
+            nsfwOptInEnabled={nsfwOptInEnabled}
             referralCode={referralCode}
           />
         ))}
@@ -9353,6 +9376,10 @@ export function FanletterContentDetailPage({
   const desktopSecondaryActionLabel = creatorActionLabel;
   const canRequestFollowUpScene = !isOwnContent && canViewerAccess;
   const shouldShowFanRequestPrompt = canRequestFollowUpScene && !requiresNsfwOptIn;
+  const shouldShowRelatedNsfwControl =
+    !isOwnContent &&
+    !isNsfwContent &&
+    (content.hiddenNsfwCount > 0 || content.nsfwOptInEnabled);
   const returnToPathname = returnToHref?.split(/[?#]/, 1)[0] ?? null;
   const isPurchasesReturn =
     returnToPathname === `/${locale}/fanletter/purchases`;
@@ -9783,6 +9810,17 @@ export function FanletterContentDetailPage({
               </section>
             ) : null}
 
+            {shouldShowRelatedNsfwControl ? (
+              <FanletterNsfwOptInControl
+                className="mt-6"
+                compact
+                enabled={content.nsfwOptInEnabled}
+                hiddenCount={content.hiddenNsfwCount}
+                locale={locale}
+                tone="dark"
+              />
+            ) : null}
+
             <FanletterRelatedVlogs
               fallbackImageUrl={
                 content.authorCharacter?.avatarImageSet[0]?.url ??
@@ -9790,6 +9828,7 @@ export function FanletterContentDetailPage({
               }
               items={content.authorRecentContent}
               locale={locale}
+              nsfwOptInEnabled={content.nsfwOptInEnabled}
               referralCode={isOwnContent ? ownerReferralCode : effectiveReferralCode}
             />
 
