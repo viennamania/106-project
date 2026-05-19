@@ -835,6 +835,305 @@ export async function GET(request: Request) {
   if (creatorData && visualUrl && layout === "promo") {
     const creatorDisplayName = truncateText(
       visualName ?? stripFanletterTitleSuffix(title),
+      32,
+    );
+    const promoHeroImageUrl = creatorCoverImageUrl ?? creatorAvatarImageUrl ?? visualUrl;
+    const promoHeadline = latestTitle
+      ? truncateText(latestTitle, 42)
+      : truncateText(title, 44);
+    const promoDescription = truncateText(description, 72);
+    const promoKicker =
+      locale === "ko" ? "FanLetter 공유 미리보기" : "FanLetter share preview";
+    const promoVisualLabel =
+      creatorCoverImageUrl
+        ? locale === "ko"
+          ? "대표 브이로그"
+          : "Featured vlog"
+        : locale === "ko"
+          ? "AI 캐릭터"
+          : "AI character";
+    const promoMetricCards = metrics.slice(0, 3);
+    const showAvatarInset =
+      Boolean(creatorAvatarImageUrl) && creatorAvatarImageUrl !== promoHeroImageUrl;
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            background: "#030504",
+            color: "white",
+            display: "flex",
+            fontFamily: fanletterOgFontFamily,
+            height: "100%",
+            overflow: "hidden",
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+          <img
+            alt=""
+            height="630"
+            src={promoHeroImageUrl}
+            style={{
+              display: "flex",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              width: "100%",
+            }}
+            width="1200"
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(3,5,4,0.16) 0%, rgba(3,5,4,0.1) 38%, rgba(3,5,4,0.88) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(3,5,4,0.78) 0%, rgba(3,5,4,0.24) 44%, rgba(3,5,4,0.08) 100%)",
+              inset: 0,
+              position: "absolute",
+            }}
+          />
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.16)",
+              borderRadius: 38,
+              inset: 22,
+              position: "absolute",
+            }}
+          />
+
+          <div
+            style={{
+              alignItems: "center",
+              background: "rgba(3,5,4,0.68)",
+              border: "1px solid rgba(255,255,255,0.16)",
+              borderRadius: 999,
+              display: "flex",
+              gap: 12,
+              left: 46,
+              padding: "8px 16px 8px 8px",
+              position: "absolute",
+              top: 42,
+            }}
+          >
+            <div
+              style={{
+                alignItems: "center",
+                background: "#44f26e",
+                borderRadius: 13,
+                color: "#030504",
+                display: "flex",
+                fontSize: 24,
+                fontWeight: 900,
+                height: 46,
+                justifyContent: "center",
+                width: 46,
+              }}
+            >
+              F
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
+                FanLetter
+              </div>
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.62)",
+                  display: "flex",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                }}
+              >
+                AI CHARACTER VLOG
+              </div>
+            </div>
+          </div>
+
+          {showAvatarInset ? (
+            <div
+              style={{
+                background: "rgba(3,5,4,0.5)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 32,
+                boxShadow: "0 26px 80px rgba(0,0,0,0.36)",
+                display: "flex",
+                height: 152,
+                overflow: "hidden",
+                padding: 8,
+                position: "absolute",
+                right: 48,
+                top: 42,
+                width: 152,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse requires plain img for remote assets. */}
+              <img
+                alt=""
+                height="136"
+                src={creatorAvatarImageUrl ?? promoHeroImageUrl}
+                style={{
+                  borderRadius: 24,
+                  display: "flex",
+                  height: "100%",
+                  objectFit: "cover",
+                  width: "100%",
+                }}
+                width="136"
+              />
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              bottom: 42,
+              display: "flex",
+              flexDirection: "column",
+              gap: 18,
+              left: 48,
+              position: "absolute",
+              width: 684,
+            }}
+          >
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: "#44f26e",
+                borderRadius: 999,
+                color: "#07100b",
+                display: "flex",
+                fontSize: 18,
+                fontWeight: 900,
+                padding: "10px 15px",
+              }}
+            >
+              {promoVisualLabel}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  color: "white",
+                  display: "flex",
+                  fontSize: 66,
+                  fontWeight: 900,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.98,
+                }}
+              >
+                {creatorDisplayName}
+              </div>
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.82)",
+                  display: "flex",
+                  fontSize: 28,
+                  fontWeight: 900,
+                  lineHeight: 1.18,
+                }}
+              >
+                {promoHeadline}
+              </div>
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.58)",
+                  display: "flex",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  lineHeight: 1.32,
+                }}
+              >
+                {promoDescription}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              alignItems: "stretch",
+              background: "rgba(3,5,4,0.66)",
+              border: "1px solid rgba(255,255,255,0.16)",
+              borderRadius: 30,
+              bottom: 42,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              padding: 18,
+              position: "absolute",
+              right: 48,
+              width: 310,
+            }}
+          >
+            <div
+              style={{
+                color: "rgba(255,255,255,0.56)",
+                display: "flex",
+                fontSize: 13,
+                fontWeight: 900,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+              }}
+            >
+              {promoKicker}
+            </div>
+            {promoMetricCards.map((metric) => (
+              <div
+                key={metric.label}
+                style={{
+                  alignItems: "center",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 22,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "13px 15px",
+                }}
+              >
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.58)",
+                    display: "flex",
+                    fontSize: 16,
+                    fontWeight: 800,
+                  }}
+                >
+                  {metric.label}
+                </div>
+                <div
+                  style={{
+                    color: "#44f26e",
+                    display: "flex",
+                    fontSize: 25,
+                    fontWeight: 900,
+                  }}
+                >
+                  {metric.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      await getFanletterOgImageOptions(),
+    );
+  }
+
+  if (creatorData && visualUrl && layout === "promo-gallery") {
+    const creatorDisplayName = truncateText(
+      visualName ?? stripFanletterTitleSuffix(title),
       28,
     );
     const promoVisualUrl = creatorAvatarImageUrl ?? visualUrl;

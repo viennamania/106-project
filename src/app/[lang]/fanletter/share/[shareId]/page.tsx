@@ -119,7 +119,7 @@ export async function generateMetadata({
     variant: "creator",
     version:
       buildFanletterOgVersionToken(
-        "creator-promo-share-og-v3",
+        "creator-promo-share-og-v4",
         normalizedShareId,
         creatorReferralCode,
         sponsor.slug,
