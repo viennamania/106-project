@@ -685,6 +685,41 @@ function pickWeightedFeaturedPosts({
   return selected;
 }
 
+function mergeFeaturedPaidPosts({
+  generalPosts,
+  limit,
+  nsfwPosts,
+}: {
+  generalPosts: ContentPostDocument[];
+  limit: number;
+  nsfwPosts: ContentPostDocument[];
+}) {
+  const selected: ContentPostDocument[] = [];
+  const selectedContentIds = new Set<string>();
+  const addPost = (post: ContentPostDocument) => {
+    if (selected.length >= limit || selectedContentIds.has(post.contentId)) {
+      return;
+    }
+
+    selected.push(post);
+    selectedContentIds.add(post.contentId);
+  };
+
+  if (nsfwPosts.length > 0) {
+    addPost(nsfwPosts[0]);
+  }
+
+  for (const post of generalPosts) {
+    addPost(post);
+  }
+
+  for (const post of nsfwPosts.slice(1)) {
+    addPost(post);
+  }
+
+  return selected;
+}
+
 async function getFeaturedVideoPosts({
   limit,
   locale,
@@ -904,14 +939,11 @@ export const getFanletterLandingData = unstable_cache(
         ? Promise.resolve(0)
         : postsCollection.countDocuments(nsfwPublishedVideoFilter),
     ]);
-    const resolvedFeaturedPaidPosts = [
-      ...featuredNsfwPaidPosts,
-      ...featuredPaidPosts,
-    ].filter(
-      (post, index, posts) =>
-        posts.findIndex((candidate) => candidate.contentId === post.contentId) ===
-        index,
-    ).slice(0, FEATURED_PAID_VIDEO_LIMIT);
+    const resolvedFeaturedPaidPosts = mergeFeaturedPaidPosts({
+      generalPosts: featuredPaidPosts,
+      limit: FEATURED_PAID_VIDEO_LIMIT,
+      nsfwPosts: featuredNsfwPaidPosts,
+    });
     const [profileByEmail, paidSignalsByContentId] = await Promise.all([
       getProfileByEmail([...featuredPosts, ...resolvedFeaturedPaidPosts]),
       getCandidateSignals(resolvedFeaturedPaidPosts),
@@ -948,7 +980,7 @@ export const getFanletterLandingData = unstable_cache(
       nsfwOptInEnabled: includeNsfw,
     };
   },
-  ["fanletter-landing-data-v12"],
+  ["fanletter-landing-data-v13"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],

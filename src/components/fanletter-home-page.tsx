@@ -943,7 +943,7 @@ function FanletterPaidPreviewRail({
             const hook = getPaidCardHook(video, locale);
             const isNsfw = video.contentMaturityRating === "nsfw";
             const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
-            const shouldBlurMedia = !isNsfw || !nsfwOptInEnabled;
+            const shouldBlurMedia = isNsfw && !nsfwOptInEnabled;
             const videoHref = setPathSearchParams(
               buildPathWithReferral(
                 `/${locale}/fanletter/content/${video.contentId}`,
@@ -1152,7 +1152,7 @@ function FanletterPaidSpotlightSection({
               const hook = getPaidCardHook(video, locale);
               const isNsfw = video.contentMaturityRating === "nsfw";
               const priceLabel = `${video.priceUsdt ?? "1"} USDT`;
-              const shouldBlurMedia = !isNsfw || !nsfwOptInEnabled;
+              const shouldBlurMedia = isNsfw && !nsfwOptInEnabled;
               const unlockLabel =
                 locale === "ko"
                   ? `${priceLabel} 잠금 해제`
