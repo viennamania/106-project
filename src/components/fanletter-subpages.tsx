@@ -3478,7 +3478,7 @@ function FanletterFanOnlyPreview({
               const hasAccess = isOwner || item.canViewerAccess;
               const isNsfw = item.contentMaturityRating === "nsfw";
               const shouldBlurMedia =
-                !hasAccess && (!isNsfw || !nsfwOptInEnabled);
+                isNsfw && !nsfwOptInEnabled && !isOwner;
               const lockedMediaLabel = getLockedMediaLabel(item, locale);
               const reactionCount =
                 item.social.commentCount + item.social.saveCount;
