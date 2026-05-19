@@ -9177,6 +9177,8 @@ export function FanletterContentDetailPage({
   const backHref = returnToHref ?? fallbackBackHref;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? null;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
+  const shouldUseVideoMediaShell =
+    content.mediaType === "video" && Boolean(primaryVideoUrl || primaryImageUrl);
   const paidUnlockSectionId = "fanletter-paid-unlock";
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const requiresNsfwOptIn =
@@ -9436,13 +9438,12 @@ export function FanletterContentDetailPage({
             <section
               className={cn(
                 "overflow-hidden rounded-lg border border-white/10 bg-[#07100b] shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:sticky lg:top-6",
-                primaryVideoUrl && "sm:mx-auto sm:w-fit sm:max-w-full",
+                shouldUseVideoMediaShell && "sm:mx-auto sm:w-fit sm:max-w-full",
               )}
             >
               <FanletterResponsiveMediaFrame
                 alt={content.title}
                 blurred={shouldBlurDetailMedia}
-                className={primaryVideoUrl ? "min-h-[24rem] sm:min-h-0" : undefined}
                 eager
                 imageUrl={primaryImageUrl}
                 mediaType={content.mediaType}

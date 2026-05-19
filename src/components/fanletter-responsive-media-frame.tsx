@@ -5,6 +5,7 @@ import { Clapperboard } from "lucide-react";
 import {
   type CSSProperties,
   type ReactNode,
+  type SyntheticEvent,
   useCallback,
   useMemo,
   useState,
@@ -33,7 +34,13 @@ type ResponsiveVideoFrameStyle = CSSProperties & {
   "--fanletter-video-max-width"?: string;
 };
 
-function getVideoOrientation(aspectRatio: number | null) {
+type ResponsiveMediaMetadata = {
+  aspectRatio: number;
+  height: number;
+  width: number;
+};
+
+function getMediaOrientation(aspectRatio: number | null) {
   if (!aspectRatio) {
     return "portrait";
   }
@@ -64,6 +71,10 @@ export function FanletterResponsiveMediaFrame({
     metadata: FanletterVideoMetadata;
     src: string;
   } | null>(null);
+  const [imageMetadataState, setImageMetadataState] = useState<{
+    metadata: ResponsiveMediaMetadata;
+    src: string;
+  } | null>(null);
 
   const handleMetadata = useCallback((metadata: FanletterVideoMetadata) => {
     if (!videoUrl) {
@@ -72,18 +83,44 @@ export function FanletterResponsiveMediaFrame({
 
     setVideoMetadataState({ metadata, src: videoUrl });
   }, [videoUrl]);
+  const handleImageLoad = useCallback(
+    (event: SyntheticEvent<HTMLImageElement>) => {
+      if (!imageUrl) {
+        return;
+      }
+
+      const image = event.currentTarget;
+
+      if (!image.naturalWidth || !image.naturalHeight) {
+        return;
+      }
+
+      setImageMetadataState({
+        metadata: {
+          aspectRatio: image.naturalWidth / image.naturalHeight,
+          height: image.naturalHeight,
+          width: image.naturalWidth,
+        },
+        src: imageUrl,
+      });
+    },
+    [imageUrl],
+  );
 
   const videoMetadata =
     videoMetadataState?.src === videoUrl ? videoMetadataState.metadata : null;
-  const aspectRatio = videoMetadata?.aspectRatio ?? null;
-  const orientation = getVideoOrientation(aspectRatio);
+  const imageMetadata =
+    imageMetadataState?.src === imageUrl ? imageMetadataState.metadata : null;
+  const activeMetadata = videoUrl ? videoMetadata : imageMetadata;
+  const aspectRatio = activeMetadata?.aspectRatio ?? null;
+  const orientation = getMediaOrientation(aspectRatio);
   const frameStyle = useMemo<ResponsiveVideoFrameStyle | undefined>(() => {
-    if (!videoMetadata) {
+    if (!activeMetadata) {
       return undefined;
     }
 
     const nextStyle: ResponsiveVideoFrameStyle = {
-      aspectRatio: `${videoMetadata.width} / ${videoMetadata.height}`,
+      aspectRatio: `${activeMetadata.width} / ${activeMetadata.height}`,
     };
 
     if (orientation === "portrait") {
@@ -95,7 +132,7 @@ export function FanletterResponsiveMediaFrame({
     }
 
     return nextStyle;
-  }, [aspectRatio, orientation, videoMetadata]);
+  }, [activeMetadata, aspectRatio, orientation]);
 
   if (videoUrl) {
     return (
@@ -135,9 +172,17 @@ export function FanletterResponsiveMediaFrame({
   return (
     <div
       className={cn(
-        "relative aspect-[4/5] w-full overflow-hidden bg-black",
+        "relative w-full overflow-hidden bg-black transition-[max-width] duration-300",
+        orientation === "landscape"
+          ? "aspect-video max-w-full"
+          : orientation === "square"
+            ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
+            : mediaType === "video"
+              ? "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]"
+              : "aspect-[4/5]",
         className,
       )}
+      style={frameStyle}
     >
       {imageUrl ? (
         <>
@@ -150,6 +195,7 @@ export function FanletterResponsiveMediaFrame({
             }
             fill
             loading={eager ? "eager" : undefined}
+            onLoad={handleImageLoad}
             sizes="(max-width: 768px) 100vw, 50vw"
             src={imageUrl}
           />
