@@ -1542,8 +1542,16 @@ export const getFanletterPublicContentDetail = cache(
           referralCode: authorReferralCode,
         })
       : null;
+    const authorRelatedContentFilter = authorReferralCode
+      ? await getPublicContentFilter({
+          includeNsfw: true,
+          locale,
+          referralCode: authorReferralCode,
+        })
+      : null;
     const [
       authorPosts,
+      authorRelatedPosts,
       authorPublicContentCount,
       authorFanRequestMetrics,
       hiddenNsfwCount,
@@ -1559,6 +1567,17 @@ export const getFanletterPublicContentDetail = cache(
               })
               .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
               .toArray(),
+            authorRelatedContentFilter
+              ? postsCollection
+                  .find(authorRelatedContentFilter)
+                  .sort({
+                    publishedAt: -1,
+                    createdAt: -1,
+                    contentId: -1,
+                  })
+                  .limit(FANLETTER_PUBLIC_CONTENT_LIMIT)
+                  .toArray()
+              : Promise.resolve([]),
             postsCollection.countDocuments(authorContentFilter),
             authorReferralCode
               ? getPublicFanRequestMetrics(authorReferralCode).catch(
@@ -1571,12 +1590,15 @@ export const getFanletterPublicContentDetail = cache(
                 )
               : Promise.resolve(0),
           ])
-        : [[], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS, 0];
+        : [[], [], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS, 0];
     const authorRecentPosts = pickAuthorRecentContentPosts(
-      authorPosts,
+      authorRelatedPosts,
       post.contentId,
     );
-    const authorSocialByContentId = await getSocialByContentId(authorPosts);
+    const authorSocialByContentId = await getSocialByContentId([
+      ...authorPosts,
+      ...authorRelatedPosts,
+    ]);
 
     return {
       ...toPublicContentItem({

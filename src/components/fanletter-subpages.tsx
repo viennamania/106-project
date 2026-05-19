@@ -4503,7 +4503,12 @@ function FanletterRelatedVlogCard({
         ) : fallbackThumbUrl ? (
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.025]"
+            className={cn(
+              "absolute inset-0 bg-cover bg-center transition duration-500",
+              shouldBlurCover
+                ? "scale-[1.06] blur-lg brightness-[0.74] saturate-[0.9] group-hover:scale-[1.09]"
+                : "group-hover:scale-[1.025]",
+            )}
             style={{ backgroundImage: `url(${fallbackThumbUrl})` }}
           />
         ) : (
@@ -9453,6 +9458,26 @@ export function FanletterContentDetailPage({
     !isOwnContent &&
     !isNsfwContent &&
     (content.hiddenNsfwCount > 0 || content.nsfwOptInEnabled);
+  const relatedNsfwControlLabels =
+    locale === "ko"
+      ? {
+          disabledBody:
+            "팬 전용 목록은 유지하고 NSFW 커버만 블러 처리합니다. 켜면 커버가 선명하게 표시됩니다.",
+          disabledTitle: "NSFW 커버 블러 처리",
+          hiddenCountText: `블러 처리된 NSFW 팬 전용 브이로그 ${formatNumber(
+            content.hiddenNsfwCount,
+            locale,
+          )}개`,
+        }
+      : {
+          disabledBody:
+            "Fan-only recommendations stay visible while NSFW covers are blurred. Turn this on to show covers clearly.",
+          disabledTitle: "NSFW covers blurred",
+          hiddenCountText: `${formatNumber(
+            content.hiddenNsfwCount,
+            locale,
+          )} NSFW fan-only vlogs blurred`,
+        };
   const returnToPathname = returnToHref?.split(/[?#]/, 1)[0] ?? null;
   const isPurchasesReturn =
     returnToPathname === `/${locale}/fanletter/purchases`;
@@ -9887,8 +9912,11 @@ export function FanletterContentDetailPage({
               <FanletterNsfwOptInControl
                 className="mt-6"
                 compact
+                disabledBody={relatedNsfwControlLabels.disabledBody}
+                disabledTitle={relatedNsfwControlLabels.disabledTitle}
                 enabled={content.nsfwOptInEnabled}
                 hiddenCount={content.hiddenNsfwCount}
+                hiddenCountText={relatedNsfwControlLabels.hiddenCountText}
                 locale={locale}
                 tone="dark"
               />
