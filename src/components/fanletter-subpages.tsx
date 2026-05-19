@@ -9185,7 +9185,9 @@ export function FanletterContentDetailPage({
     content.priceType === "paid" && !canViewerAccess && !isOwnContent;
   const shouldShowPaidUnlockPanel =
     paidContentLocked && !requiresNsfwOptIn;
-  const shouldBlurDetailMedia = paidContentLocked || requiresNsfwOptIn;
+  const shouldBlurDetailMedia =
+    requiresNsfwOptIn || (paidContentLocked && !isNsfwContent);
+  const shouldUseLockedDetailCta = paidContentLocked || requiresNsfwOptIn;
   const shouldShowNsfwVisibilityControl =
     isNsfwContent && !isOwnContent && !requiresNsfwOptIn;
   const requestRecommendationMode = isNsfwContent && !requiresNsfwOptIn
@@ -9198,14 +9200,14 @@ export function FanletterContentDetailPage({
       ? {
           enabledBody:
             paidContentLocked
-              ? "NSFW 보기는 켜져 있습니다. 이 상태에서도 유료 잠금은 유지되며 결제 전 미디어는 계속 블러 처리됩니다. 끄면 이 콘텐츠는 다시 NSFW 게이트 뒤로 숨겨집니다."
+              ? "NSFW 보기는 켜져 있습니다. 미디어 티저는 선명하게 표시되지만 전체 영상과 본문 잠금 해제는 결제로 별도 진행됩니다. 끄면 이 콘텐츠는 다시 NSFW 게이트 뒤로 숨겨집니다."
               : "NSFW 보기는 켜져 있습니다. 끄면 이 콘텐츠 미디어와 NSFW 추천 장면이 다시 블러 처리됩니다.",
           enabledCta: "NSFW 보기 끄기",
           enabledTitle: "NSFW 표시 중",
         }
       : {
           enabledBody: paidContentLocked
-            ? "NSFW visibility is on. Paid lock still applies, so media remains blurred before payment. Turn it off to place this post behind the NSFW gate again."
+            ? "NSFW visibility is on. The media teaser is shown clearly, while full video and body unlock still require payment. Turn it off to place this post behind the NSFW gate again."
             : "NSFW visibility is on. Turn it off to blur this media and hide NSFW recommendations again.",
           enabledCta: "Hide NSFW",
           enabledTitle: "NSFW visible",
@@ -9280,12 +9282,12 @@ export function FanletterContentDetailPage({
               ? "Fan-only vlog"
               : "AI character vlog",
         };
-  const mobilePrimaryActionHref = shouldBlurDetailMedia
+  const mobilePrimaryActionHref = shouldUseLockedDetailCta
     ? detailActionHref
     : isOwnContent
       ? ownerManageHref
       : fanRequestHref;
-  const mobilePrimaryActionLabel = shouldBlurDetailMedia
+  const mobilePrimaryActionLabel = shouldUseLockedDetailCta
     ? detailActionLabel
     : isOwnContent
       ? detailLabels.ownerManage
@@ -9420,7 +9422,7 @@ export function FanletterContentDetailPage({
               creatorReferralCode={content.authorReferralCode}
               defaultPrimaryHref={mobilePrimaryActionHref}
               defaultPrimaryLabel={mobilePrimaryActionLabel}
-              primaryIcon={shouldBlurDetailMedia ? "lock" : "pen"}
+              primaryIcon={shouldUseLockedDetailCta ? "lock" : "pen"}
               requestStatusHref={requestStatusHref}
               requestStatusLabel={detailLabels.requestStatusCta}
               secondaryHref={mobileSecondaryActionHref}
@@ -9560,7 +9562,7 @@ export function FanletterContentDetailPage({
                   creatorReferralCode={content.authorReferralCode}
                   defaultPrimaryHref={desktopPrimaryActionHref}
                   defaultPrimaryLabel={desktopPrimaryActionLabel}
-                  primaryIcon={shouldBlurDetailMedia ? "lock" : "pen"}
+                  primaryIcon={shouldUseLockedDetailCta ? "lock" : "pen"}
                   requestStatusHref={requestStatusHref}
                   requestStatusLabel={detailLabels.requestStatusCta}
                   secondaryHref={desktopSecondaryActionHref}
