@@ -111,7 +111,12 @@ export function FanletterResponsiveMediaFrame({
     videoMetadataState?.src === videoUrl ? videoMetadataState.metadata : null;
   const imageMetadata =
     imageMetadataState?.src === imageUrl ? imageMetadataState.metadata : null;
-  const activeMetadata = videoUrl ? videoMetadata : imageMetadata;
+  const shouldUseImageMetadata = !videoUrl && mediaType !== "video";
+  const activeMetadata = videoUrl
+    ? videoMetadata
+    : shouldUseImageMetadata
+      ? imageMetadata
+      : null;
   const aspectRatio = activeMetadata?.aspectRatio ?? null;
   const orientation = getMediaOrientation(aspectRatio);
   const frameStyle = useMemo<ResponsiveVideoFrameStyle | undefined>(() => {
