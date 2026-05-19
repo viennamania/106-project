@@ -40,6 +40,9 @@ const FANLETTER_FAN_ONLY_CONTENT_LIMIT = 6;
 const FANLETTER_FEED_PAGE_SIZE = 24;
 const FANLETTER_FEED_FAN_ONLY_PREVIEW_LIMIT = 4;
 const FANLETTER_FEED_MAX_SORT_CANDIDATES = 240;
+const FANLETTER_CHARACTER_DIRECTORY_PAGE_SIZE = 24;
+const FANLETTER_CHARACTER_DIRECTORY_MAX_CANDIDATES = 360;
+const FANLETTER_CHARACTER_DIRECTORY_RECENT_POST_LIMIT = 1200;
 const SUMMARY_LIMIT = 180;
 const TITLE_LIMIT = 96;
 const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
@@ -58,12 +61,31 @@ export const fanletterFeedSortOptions = [
 
 export type FanletterFeedSort = (typeof fanletterFeedSortOptions)[number];
 
+export const fanletterCharacterDirectorySortOptions = [
+  "featured",
+  "latest",
+  "vlogs",
+  "fan-only",
+] as const;
+
+export type FanletterCharacterDirectorySort =
+  (typeof fanletterCharacterDirectorySortOptions)[number];
+
 export type FanletterFeedFilters = {
   page: number;
   pageCount: number;
   pageSize: number;
   query: string;
   sort: FanletterFeedSort;
+  totalCount: number;
+};
+
+export type FanletterCharacterDirectoryFilters = {
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  query: string;
+  sort: FanletterCharacterDirectorySort;
   totalCount: number;
 };
 
@@ -154,6 +176,23 @@ export type FanletterCreatorProfile = {
   referralCode: string;
 };
 
+export type FanletterCharacterDirectoryItem = {
+  avatarImageUrl: string | null;
+  character: FanletterPublicCharacter;
+  displayName: string;
+  fanClubMemberCount: number;
+  fanOnlyContentCount: number;
+  latestContentId: string | null;
+  latestContentMaturityRating: ContentMaturityRating;
+  latestCoverImageUrl: string | null;
+  latestPublishedAt: string | null;
+  latestTitle: string | null;
+  publicContentCount: number;
+  referralCode: string;
+  score: number;
+  totalContentCount: number;
+};
+
 type FanletterPublicFanRequestMetrics = {
   completedCount: number;
   pendingCount: number;
@@ -187,6 +226,20 @@ export type FanletterFeedPageData = {
   items: FanletterPublicContentItem[];
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
+};
+
+export type FanletterCharacterDirectoryPageData = {
+  filters: FanletterCharacterDirectoryFilters;
+  hiddenNsfwCount: number;
+  items: FanletterCharacterDirectoryItem[];
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  stats: {
+    activeCharacterCount: number;
+    fanClubMemberCount: number;
+    fanOnlyContentCount: number;
+    publicContentCount: number;
+  };
 };
 
 export type FanletterCreatorVlogsPageData = {
@@ -263,12 +316,24 @@ function isFanletterFeedSort(value: string | null | undefined): value is Fanlett
   return fanletterFeedSortOptions.includes(value as FanletterFeedSort);
 }
 
+function isFanletterCharacterDirectorySort(
+  value: string | null | undefined,
+): value is FanletterCharacterDirectorySort {
+  return fanletterCharacterDirectorySortOptions.includes(
+    value as FanletterCharacterDirectorySort,
+  );
+}
+
 function normalizeFeedPage(value: number | null | undefined) {
   if (!value || !Number.isFinite(value)) {
     return 1;
   }
 
   return Math.max(1, Math.floor(value));
+}
+
+function getPublishedTime(value: string | null) {
+  return value ? new Date(value).getTime() : 0;
 }
 
 function getFanletterEngagementScore(item: FanletterPublicContentItem) {
@@ -1208,6 +1273,458 @@ function mergeFeedFanOnlyPreviewPosts({
 
   return selected;
 }
+
+type CharacterDirectoryContentCountRow = {
+  _id: string;
+  fanOnlyContentCount: number;
+  publicContentCount: number;
+  totalContentCount: number;
+};
+
+type CharacterDirectoryLatestPostRow = {
+  _id: string;
+  post: ContentPostDocument;
+};
+
+type CharacterDirectoryCountRow = {
+  _id: string;
+  count: number;
+};
+
+type CharacterDirectoryFanRequestRow = {
+  _id: string;
+  completedCount: number;
+  pendingCount: number;
+  totalCount: number;
+};
+
+function getCharacterDirectoryProfileFilter(
+  query: string,
+): Filter<CreatorProfileDocument> {
+  const baseFilter: Filter<CreatorProfileDocument> = {
+    "characterPersona.name": { $type: "string" },
+    referralCode: { $type: "string" },
+    status: "active",
+  };
+
+  if (!query) {
+    return baseFilter;
+  }
+
+  const regex = new RegExp(escapeRegExp(query), "i");
+
+  return {
+    $and: [
+      baseFilter,
+      {
+        $or: [
+          { displayName: regex },
+          { email: regex },
+          { intro: regex },
+          { referralCode: regex },
+          { "characterPersona.name": regex },
+          { "characterPersona.summary": regex },
+          { "characterPersona.lockedTraits": regex },
+        ],
+      },
+    ],
+  };
+}
+
+function getCharacterDirectoryScore({
+  fanClubMemberCount,
+  fanOnlyContentCount,
+  latestPublishedAt,
+  publicContentCount,
+  requestCount,
+  totalXp,
+}: {
+  fanClubMemberCount: number;
+  fanOnlyContentCount: number;
+  latestPublishedAt: string | null;
+  publicContentCount: number;
+  requestCount: number;
+  totalXp: number;
+}) {
+  const latestTime = latestPublishedAt ? new Date(latestPublishedAt).getTime() : 0;
+  const recencyDays = latestTime
+    ? Math.max(0, (Date.now() - latestTime) / (24 * 60 * 60 * 1000))
+    : 90;
+  const recencyScore = Math.max(0, 45 - recencyDays);
+
+  return (
+    publicContentCount * 5 +
+    fanOnlyContentCount * 6 +
+    fanClubMemberCount * 8 +
+    requestCount * 4 +
+    Math.min(90, Math.floor(totalXp / 8)) +
+    recencyScore
+  );
+}
+
+function sortCharacterDirectoryItems(
+  items: FanletterCharacterDirectoryItem[],
+  sort: FanletterCharacterDirectorySort,
+) {
+  return [...items].sort((a, b) => {
+    if (sort === "latest") {
+      const latestDelta =
+        getPublishedTime(b.latestPublishedAt) -
+        getPublishedTime(a.latestPublishedAt);
+
+      if (latestDelta !== 0) {
+        return latestDelta;
+      }
+    }
+
+    if (sort === "vlogs") {
+      const vlogDelta = b.publicContentCount - a.publicContentCount;
+
+      if (vlogDelta !== 0) {
+        return vlogDelta;
+      }
+    }
+
+    if (sort === "fan-only") {
+      const fanOnlyDelta = b.fanOnlyContentCount - a.fanOnlyContentCount;
+
+      if (fanOnlyDelta !== 0) {
+        return fanOnlyDelta;
+      }
+    }
+
+    const scoreDelta = b.score - a.score;
+
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return a.character.name.localeCompare(b.character.name);
+  });
+}
+
+export const getFanletterCharacterDirectoryPageData = cache(
+  async (
+    locale: Locale,
+    referralCodeInput: string | null,
+    options?: {
+      includeNsfw?: boolean | null;
+      page?: number | null;
+      query?: string | null;
+      sort?: string | null;
+    },
+  ): Promise<FanletterCharacterDirectoryPageData> => {
+    const referralCode = normalizeReferralCode(referralCodeInput);
+    const includeNsfw = options?.includeNsfw === true;
+    const query = compactSearchQuery(options?.query);
+    const sort = isFanletterCharacterDirectorySort(options?.sort)
+      ? options.sort
+      : "featured";
+    const profilesCollection = await getCreatorProfilesCollection();
+    const postsCollection = await getContentPostsCollection();
+    const followsCollection = await getFanletterCharacterFollowsCollection();
+    const requestsCollection = await getFanletterFanRequestsCollection();
+    const profiles = await profilesCollection
+      .find(getCharacterDirectoryProfileFilter(query))
+      .sort({
+        updatedAt: -1,
+        configuredAt: -1,
+        createdAt: -1,
+      })
+      .limit(FANLETTER_CHARACTER_DIRECTORY_MAX_CANDIDATES)
+      .toArray();
+    const referralCodes = profiles
+      .map((profile) => normalizeReferralCode(profile.referralCode))
+      .filter((value): value is string => Boolean(value));
+
+    if (referralCodes.length === 0) {
+      return {
+        filters: {
+          page: 1,
+          pageCount: 1,
+          pageSize: FANLETTER_CHARACTER_DIRECTORY_PAGE_SIZE,
+          query,
+          sort,
+          totalCount: 0,
+        },
+        hiddenNsfwCount: 0,
+        items: [],
+        nsfwOptInEnabled: includeNsfw,
+        referralCode,
+        stats: {
+          activeCharacterCount: 0,
+          fanClubMemberCount: 0,
+          fanOnlyContentCount: 0,
+          publicContentCount: 0,
+        },
+      };
+    }
+
+    const baseContentMatch: Filter<ContentPostDocument> = {
+      ...getPublishedContentLocaleFilter(locale),
+      "contentVideoUrls.0": { $exists: true },
+      authorReferralCode: { $in: referralCodes },
+      status: "published",
+    };
+    const [
+      contentCountRows,
+      latestPostRows,
+      recentPosts,
+      nsfwCountRows,
+      followCountRows,
+      fanRequestRows,
+    ] = await Promise.all([
+      postsCollection
+        .aggregate<CharacterDirectoryContentCountRow>([
+          { $match: baseContentMatch },
+          {
+            $group: {
+              _id: "$authorReferralCode",
+              fanOnlyContentCount: {
+                $sum: {
+                  $cond: [{ $eq: ["$priceType", "paid"] }, 1, 0],
+                },
+              },
+              publicContentCount: {
+                $sum: {
+                  $cond: [{ $eq: ["$priceType", "free"] }, 1, 0],
+                },
+              },
+              totalContentCount: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      postsCollection
+        .aggregate<CharacterDirectoryLatestPostRow>([
+          { $match: baseContentMatch },
+          {
+            $sort: {
+              publishedAt: -1,
+              createdAt: -1,
+              contentId: -1,
+            },
+          },
+          {
+            $group: {
+              _id: "$authorReferralCode",
+              post: { $first: "$$ROOT" },
+            },
+          },
+        ])
+        .toArray(),
+      postsCollection
+        .find(baseContentMatch)
+        .sort({
+          publishedAt: -1,
+          createdAt: -1,
+          contentId: -1,
+        })
+        .limit(FANLETTER_CHARACTER_DIRECTORY_RECENT_POST_LIMIT)
+        .toArray(),
+      postsCollection
+        .aggregate<CharacterDirectoryCountRow>([
+          {
+            $match: {
+              $and: [
+                baseContentMatch,
+                getNsfwVisibilityFilter(),
+                { priceType: "paid" },
+              ],
+            },
+          },
+          {
+            $group: {
+              _id: "$authorReferralCode",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      followsCollection
+        .aggregate<CharacterDirectoryCountRow>([
+          {
+            $match: {
+              creatorReferralCode: { $in: referralCodes },
+            },
+          },
+          {
+            $group: {
+              _id: "$creatorReferralCode",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      requestsCollection
+        .aggregate<CharacterDirectoryFanRequestRow>([
+          {
+            $match: {
+              creatorReferralCode: { $in: referralCodes },
+              status: { $in: ["new", "reviewed", "used"] },
+            },
+          },
+          {
+            $group: {
+              _id: "$creatorReferralCode",
+              completedCount: {
+                $sum: {
+                  $cond: [{ $eq: ["$status", "used"] }, 1, 0],
+                },
+              },
+              pendingCount: {
+                $sum: {
+                  $cond: [{ $in: ["$status", ["new", "reviewed"]] }, 1, 0],
+                },
+              },
+              totalCount: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+    ]);
+    const contentCountsByReferralCode = new Map(
+      contentCountRows.map((row) => [row._id, row]),
+    );
+    const latestPostByReferralCode = new Map(
+      latestPostRows.map((row) => [row._id, row.post]),
+    );
+    const followCountByReferralCode = new Map(
+      followCountRows.map((row) => [row._id, row.count]),
+    );
+    const fanRequestMetricsByReferralCode = new Map(
+      fanRequestRows.map((row) => [
+        row._id,
+        {
+          completedCount: row.completedCount,
+          pendingCount: row.pendingCount,
+          totalCount: row.totalCount,
+        } satisfies FanletterPublicFanRequestMetrics,
+      ]),
+    );
+    const recentPostsByReferralCode = new Map<string, ContentPostDocument[]>();
+
+    recentPosts.forEach((post) => {
+      const postReferralCode = normalizeReferralCode(post.authorReferralCode);
+
+      if (!postReferralCode) {
+        return;
+      }
+
+      const postsForCharacter = recentPostsByReferralCode.get(postReferralCode) ?? [];
+
+      if (postsForCharacter.length < 8) {
+        postsForCharacter.push(post);
+        recentPostsByReferralCode.set(postReferralCode, postsForCharacter);
+      }
+    });
+
+    const items = profiles.flatMap((profile) => {
+      const profileReferralCode = normalizeReferralCode(profile.referralCode);
+
+      if (!profileReferralCode) {
+        return [];
+      }
+
+      const counts = contentCountsByReferralCode.get(profileReferralCode);
+      const recentCharacterPosts =
+        recentPostsByReferralCode.get(profileReferralCode) ?? [];
+      const fanRequestMetrics =
+        fanRequestMetricsByReferralCode.get(profileReferralCode) ??
+        EMPTY_PUBLIC_FAN_REQUEST_METRICS;
+      const publicContentCount = counts?.publicContentCount ?? 0;
+      const fanOnlyContentCount = counts?.fanOnlyContentCount ?? 0;
+      const totalContentCount = counts?.totalContentCount ?? 0;
+      const character = getPublicCharacter({
+        fanRequestMetrics,
+        locale,
+        posts: recentCharacterPosts,
+        profile,
+        publicContentCount,
+      });
+
+      if (!character) {
+        return [];
+      }
+
+      const latestPost = latestPostByReferralCode.get(profileReferralCode) ?? null;
+      const latestPublishedAt = latestPost
+        ? (latestPost.publishedAt ?? latestPost.createdAt).toISOString()
+        : null;
+      const score = getCharacterDirectoryScore({
+        fanClubMemberCount: followCountByReferralCode.get(profileReferralCode) ?? 0,
+        fanOnlyContentCount,
+        latestPublishedAt,
+        publicContentCount,
+        requestCount: fanRequestMetrics.totalCount,
+        totalXp: character.growth.totalXp,
+      });
+
+      return [
+        {
+          avatarImageUrl:
+            character.avatarImageSet[0]?.url ?? profile.avatarImageUrl ?? null,
+          character,
+          displayName: compactText(profile.displayName, 48),
+          fanClubMemberCount:
+            followCountByReferralCode.get(profileReferralCode) ?? 0,
+          fanOnlyContentCount,
+          latestContentId: latestPost?.contentId ?? null,
+          latestContentMaturityRating: latestPost
+            ? resolveFanletterContentMaturityRating(latestPost)
+            : "general",
+          latestCoverImageUrl: latestPost ? getCoverImageUrl(latestPost) : null,
+          latestPublishedAt,
+          latestTitle: latestPost ? compactText(latestPost.title, TITLE_LIMIT) : null,
+          publicContentCount,
+          referralCode: profileReferralCode,
+          score,
+          totalContentCount,
+        } satisfies FanletterCharacterDirectoryItem,
+      ];
+    });
+    const sortedItems = sortCharacterDirectoryItems(items, sort);
+    const totalCount = sortedItems.length;
+    const pageSize = FANLETTER_CHARACTER_DIRECTORY_PAGE_SIZE;
+    const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+    const page = Math.min(normalizeFeedPage(options?.page), pageCount);
+    const offset = (page - 1) * pageSize;
+    const pageItems = sortedItems.slice(offset, offset + pageSize);
+    const hiddenNsfwCount = includeNsfw
+      ? 0
+      : nsfwCountRows.reduce((total, row) => total + row.count, 0);
+
+    return {
+      filters: {
+        page,
+        pageCount,
+        pageSize,
+        query,
+        sort,
+        totalCount,
+      },
+      hiddenNsfwCount,
+      items: pageItems,
+      nsfwOptInEnabled: includeNsfw,
+      referralCode,
+      stats: {
+        activeCharacterCount: totalCount,
+        fanClubMemberCount: followCountRows.reduce(
+          (total, row) => total + row.count,
+          0,
+        ),
+        fanOnlyContentCount: sortedItems.reduce(
+          (total, item) => total + item.fanOnlyContentCount,
+          0,
+        ),
+        publicContentCount: sortedItems.reduce(
+          (total, item) => total + item.publicContentCount,
+          0,
+        ),
+      },
+    };
+  },
+);
 
 export async function getFanletterPublicContentItems({
   locale,

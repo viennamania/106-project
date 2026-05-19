@@ -5885,6 +5885,10 @@ export function FanletterFeedPage({
     `/${locale}/fanletter/following`,
     referralCode,
   );
+  const charactersHref = buildPathWithReferral(
+    `/${locale}/fanletter/characters`,
+    referralCode,
+  );
   const startHref = buildPathWithReferral(
     `/${locale}/fanletter/start`,
     referralCode,
@@ -5908,6 +5912,12 @@ export function FanletterFeedPage({
       : copy.feed.allContent;
   const showAllContentSection = publicItems.length === 0 || remainingItems.length > 0;
   const sectionTabCandidates: Array<FanletterChannelSectionTabItem | null> = [
+    {
+      href: charactersHref,
+      id: "characters",
+      label: locale === "ko" ? "전체 캐릭터" : "All characters",
+      sectionId: null,
+    },
     {
       href: followingHref,
       id: "following",
