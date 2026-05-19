@@ -58,6 +58,7 @@ import {
   getThirdwebUserEmail,
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
+import { cn } from "@/lib/utils";
 
 type StudioStatus = "error" | "idle" | "loading" | "ready";
 
@@ -1760,10 +1761,14 @@ function PostPreviewCard({
   const videoUrl = resolvePostVideo(post);
   const dateLabel = formatDate(post.publishedAt ?? post.updatedAt, locale);
   const priceLabel = getPostPriceLabel(post, copy, locale);
+  const isNsfw = post.contentMaturityRating === "nsfw";
 
   return (
     <Link
-      className="group flex overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)] sm:block"
+      className={cn(
+        "group flex overflow-hidden rounded-lg border bg-white text-black shadow-[0_18px_42px_rgba(8,18,12,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)] sm:block",
+        isNsfw ? "border-rose-300 ring-1 ring-rose-200" : "border-black/10",
+      )}
       href={href}
     >
       <div className="relative h-40 w-[7.5rem] shrink-0 bg-black sm:aspect-[4/5] sm:h-auto sm:w-full">
@@ -1800,6 +1805,11 @@ function PostPreviewCard({
             <span className="hidden rounded-full bg-black/64 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white sm:inline-flex">
               video
             </span>
+            {isNsfw ? (
+              <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-semibold uppercase text-white">
+                {copy.labels.nsfw}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -1812,7 +1822,9 @@ function PostPreviewCard({
         </p>
         <div className="mt-auto flex flex-col gap-1 pt-3 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-black/42 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-0 sm:text-xs sm:tracking-[0.12em]">
           <span>{dateLabel ?? "-"}</span>
-          <span>{priceLabel}</span>
+          <span className={isNsfw ? "text-rose-700" : undefined}>
+            {isNsfw ? `${priceLabel} · ${copy.labels.nsfw}` : priceLabel}
+          </span>
         </div>
       </div>
     </Link>
