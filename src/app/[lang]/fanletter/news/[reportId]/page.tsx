@@ -28,14 +28,21 @@ import {
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportById,
+  getFanletterNewsReporterProfile,
   getRelatedFanletterNewsReports,
+  type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
-import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import {
+  defaultLocale,
+  hasLocale,
+  localeLabels,
+  type Locale,
+} from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterNewsReportSearchParams = {
@@ -76,6 +83,21 @@ function getCopy(locale: Locale) {
         reporterCardTitle: "이 뉴스의 팬 기자",
         reporterCode: "기자 코드",
         reporterDesk: "FanLetter 팬 기자",
+        reporterEmptyValue: "기록 없음",
+        reporterStats: {
+          firstReport: "첫 리포트",
+          joined: "계정 연결",
+          lastConnected: "최근 연결",
+          latestReport: "최근 리포트",
+          locale: "활동 언어",
+          reports: "작성 뉴스",
+          status: "계정 상태",
+        },
+        reporterStatus: {
+          completed: "활성 계정",
+          pending_payment: "연결 확인 중",
+          unknown: "확인 중",
+        },
         reporterVerified: "계정 기반 리포트",
         reportUrl: "뉴스 공유 주소",
         sourceContext: "기사 배경",
@@ -122,6 +144,21 @@ function getCopy(locale: Locale) {
         reporterCardTitle: "Fan reporter for this story",
         reporterCode: "Reporter code",
         reporterDesk: "FanLetter fan reporter",
+        reporterEmptyValue: "No record",
+        reporterStats: {
+          firstReport: "First report",
+          joined: "Account linked",
+          lastConnected: "Last connected",
+          latestReport: "Latest report",
+          locale: "Active language",
+          reports: "Published stories",
+          status: "Account status",
+        },
+        reporterStatus: {
+          completed: "Active account",
+          pending_payment: "Connection pending",
+          unknown: "Checking",
+        },
         reporterVerified: "Account-based report",
         reportUrl: "News share URL",
         sourceContext: "Story context",
@@ -157,6 +194,37 @@ function splitArticleBody(body: string) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatReporterDate(
+  value: Date | null | undefined,
+  locale: Locale,
+  copy: ReturnType<typeof getCopy>,
+) {
+  return value ? formatDate(value, locale) : copy.reporterEmptyValue;
+}
+
+function getReporterLocaleLabel(value: Locale | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return localeLabels[value];
+}
+
+function getReporterStatusLabel(
+  status: FanletterNewsReporterProfile["status"] | undefined,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (status === "completed") {
+    return copy.reporterStatus.completed;
+  }
+
+  if (status === "pending_payment") {
+    return copy.reporterStatus.pending_payment;
+  }
+
+  return copy.reporterStatus.unknown;
 }
 
 function getContentAccessLabel(
@@ -216,18 +284,40 @@ function NewsSiteHeader({
 
 function ReporterSpotlight({
   copy,
+  locale,
   report,
+  reporterProfile,
 }: {
   copy: ReturnType<typeof getCopy>;
+  locale: Locale;
   report: FanletterNewsReportDocument;
+  reporterProfile: FanletterNewsReporterProfile | null;
 }) {
   const reporterInitial =
     report.reporterReferralCode.trim().charAt(0).toUpperCase() ||
     report.reporterName.trim().charAt(0).toUpperCase() ||
     "F";
+  const reporterStats = [
+    {
+      label: copy.reporterCode,
+      value: report.reporterReferralCode,
+    },
+    {
+      label: copy.reporterStats.reports,
+      value: formatNumber(Math.max(reporterProfile?.reportCount ?? 1, 1), locale),
+    },
+    {
+      label: copy.reporterStats.latestReport,
+      value: formatReporterDate(reporterProfile?.latestReportAt, locale, copy),
+    },
+    {
+      label: copy.reporterStats.status,
+      value: getReporterStatusLabel(reporterProfile?.status, copy),
+    },
+  ];
 
   return (
-    <section className="mt-6 rounded-lg border border-black/12 bg-[#111510] p-4 text-white shadow-[0_16px_44px_rgba(0,0,0,0.16)] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+    <section className="mt-6 rounded-lg border border-black/12 bg-[#111510] p-4 text-white shadow-[0_16px_44px_rgba(0,0,0,0.16)] sm:p-5">
       <div className="flex min-w-0 items-start gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-xl font-black text-black">
           {reporterInitial}
@@ -244,16 +334,21 @@ function ReporterSpotlight({
           </p>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-0 sm:w-64 sm:shrink-0">
-        <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
-          <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-white/42">
-            {copy.reporterCode}
-          </p>
-          <p className="mt-1 break-all text-sm font-black text-white">
-            {report.reporterReferralCode}
-          </p>
-        </div>
-        <div className="rounded-lg border border-[#44f26e]/28 bg-[#44f26e]/12 p-3">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {reporterStats.map((stat) => (
+          <div
+            className="min-w-0 rounded-lg border border-white/10 bg-white/[0.06] p-3"
+            key={stat.label}
+          >
+            <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-white/42">
+              {stat.label}
+            </p>
+            <p className="mt-1 truncate text-sm font-black text-white">
+              {stat.value}
+            </p>
+          </div>
+        ))}
+        <div className="col-span-2 rounded-lg border border-[#44f26e]/28 bg-[#44f26e]/12 p-3 sm:col-span-4">
           <p className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#b9ffc8]/70">
             FanLetter
           </p>
@@ -268,11 +363,39 @@ function ReporterSpotlight({
 
 function ReporterInfoCard({
   copy,
+  locale,
   report,
+  reporterProfile,
 }: {
   copy: ReturnType<typeof getCopy>;
+  locale: Locale;
   report: FanletterNewsReportDocument;
+  reporterProfile: FanletterNewsReporterProfile | null;
 }) {
+  const reporterLocaleLabel = getReporterLocaleLabel(reporterProfile?.locale);
+  const profileRows = [
+    {
+      label: copy.reporterStats.reports,
+      value: formatNumber(Math.max(reporterProfile?.reportCount ?? 1, 1), locale),
+    },
+    {
+      label: copy.reporterStats.joined,
+      value: formatReporterDate(reporterProfile?.joinedAt, locale, copy),
+    },
+    {
+      label: copy.reporterStats.firstReport,
+      value: formatReporterDate(reporterProfile?.firstReportAt, locale, copy),
+    },
+    {
+      label: copy.reporterStats.lastConnected,
+      value: formatReporterDate(reporterProfile?.lastConnectedAt, locale, copy),
+    },
+    {
+      label: copy.reporterStats.locale,
+      value: reporterLocaleLabel ?? copy.reporterEmptyValue,
+    },
+  ];
+
   return (
     <section className="rounded-lg border border-black/12 bg-white p-4 text-[#111510]">
       <div className="flex items-start gap-3">
@@ -299,6 +422,31 @@ function ReporterInfoCard({
       <p className="mt-3 text-sm font-medium leading-6 text-black/58">
         {copy.reporterCardBody}
       </p>
+      <div className="mt-4 rounded-lg border border-black/10 bg-[#f5f6f2] p-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-black/42">
+            {copy.reporterStats.status}
+          </span>
+          <span className="rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-black text-black">
+            {getReporterStatusLabel(reporterProfile?.status, copy)}
+          </span>
+        </div>
+        <dl className="mt-3 grid gap-2">
+          {profileRows.map((row) => (
+            <div
+              className="flex items-center justify-between gap-3 border-t border-black/10 pt-2"
+              key={row.label}
+            >
+              <dt className="shrink-0 text-xs font-bold text-black/46">
+                {row.label}
+              </dt>
+              <dd className="min-w-0 truncate text-right text-sm font-black text-[#111510]">
+                {row.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </section>
   );
 }
@@ -605,7 +753,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const [sourceContent, relatedReports] = await Promise.all([
+  const [sourceContent, relatedReports, reporterProfile] = await Promise.all([
     getFanletterPublicContentDetail(report.contentId, locale, null, {
       includeNsfw,
     }).catch(() => null),
@@ -615,6 +763,9 @@ export default async function LocalizedFanletterNewsReportPage({
       excludeReportId: report.reportId,
       limit: 4,
       locale,
+    }),
+    getFanletterNewsReporterProfile({
+      reporterReferralCode: report.reporterReferralCode,
     }),
   ]);
   const copy = getCopy(locale);
@@ -682,7 +833,12 @@ export default async function LocalizedFanletterNewsReportPage({
               {report.dek}
             </p>
 
-            <ReporterSpotlight copy={copy} report={report} />
+            <ReporterSpotlight
+              copy={copy}
+              locale={locale}
+              report={report}
+              reporterProfile={reporterProfile}
+            />
 
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-bold text-black/54">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1.5">
@@ -741,7 +897,12 @@ export default async function LocalizedFanletterNewsReportPage({
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-5">
-            <ReporterInfoCard copy={copy} report={report} />
+            <ReporterInfoCard
+              copy={copy}
+              locale={locale}
+              report={report}
+              reporterProfile={reporterProfile}
+            />
 
             <CharacterInfoCard
               copy={copy}

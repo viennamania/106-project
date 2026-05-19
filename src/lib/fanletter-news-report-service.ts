@@ -13,11 +13,12 @@ import type {
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode } from "@/lib/member";
+import { normalizeReferralCode, type MemberStatus } from "@/lib/member";
 import {
   getContentPostsCollection,
   getCreatorProfilesCollection,
   getFanletterNewsReportsCollection,
+  getMembersCollection,
 } from "@/lib/mongodb";
 
 const DEFAULT_MODEL = "gpt-5.4";
@@ -67,6 +68,17 @@ export type CreateFanletterNewsReportInput = {
   contentId?: string | null;
   locale?: string | null;
   reporterReferralCode?: string | null;
+};
+
+export type FanletterNewsReporterProfile = {
+  firstReportAt: Date | null;
+  joinedAt: Date | null;
+  lastConnectedAt: Date | null;
+  latestReportAt: Date | null;
+  locale: Locale | null;
+  referralCode: string;
+  reportCount: number;
+  status: MemberStatus | null;
 };
 
 function trimToLength(value: string | null | undefined, limit: number) {
@@ -617,6 +629,78 @@ export const getLatestFanletterNewsReports = cache(
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
       .limit(Math.max(1, Math.min(limit, 48)))
       .toArray();
+  },
+);
+
+export const getFanletterNewsReporterProfile = cache(
+  async ({
+    reporterReferralCode,
+  }: {
+    reporterReferralCode?: string | null;
+  }): Promise<FanletterNewsReporterProfile | null> => {
+    const normalizedReporterReferralCode =
+      normalizeReferralCode(reporterReferralCode);
+
+    if (!normalizedReporterReferralCode) {
+      return null;
+    }
+
+    const [membersCollection, reportsCollection] = await Promise.all([
+      getMembersCollection(),
+      getFanletterNewsReportsCollection(),
+    ]);
+    const reportQuery = {
+      reporterReferralCode: normalizedReporterReferralCode,
+      status: "published" as const,
+    };
+    const [member, reportCount, latestReport, firstReport] = await Promise.all([
+      membersCollection.findOne(
+        { referralCode: normalizedReporterReferralCode },
+        {
+          projection: {
+            createdAt: 1,
+            lastConnectedAt: 1,
+            locale: 1,
+            referralCode: 1,
+            registrationCompletedAt: 1,
+            status: 1,
+          },
+        },
+      ),
+      reportsCollection.countDocuments(reportQuery),
+      reportsCollection
+        .find(reportQuery, {
+          projection: {
+            createdAt: 1,
+            sourcePublishedAt: 1,
+          },
+        })
+        .sort({ sourcePublishedAt: -1, createdAt: -1 })
+        .limit(1)
+        .next(),
+      reportsCollection
+        .find(reportQuery, {
+          projection: {
+            createdAt: 1,
+            sourcePublishedAt: 1,
+          },
+        })
+        .sort({ sourcePublishedAt: 1, createdAt: 1 })
+        .limit(1)
+        .next(),
+    ]);
+
+    return {
+      firstReportAt: firstReport?.sourcePublishedAt ?? firstReport?.createdAt ?? null,
+      joinedAt: member?.registrationCompletedAt ?? member?.createdAt ?? null,
+      lastConnectedAt: member?.lastConnectedAt ?? null,
+      latestReportAt:
+        latestReport?.sourcePublishedAt ?? latestReport?.createdAt ?? null,
+      locale: member?.locale && hasLocale(member.locale) ? member.locale : null,
+      referralCode: normalizedReporterReferralCode,
+      reportCount,
+      status: member?.status ?? null,
+    };
   },
 );
 
