@@ -4463,6 +4463,14 @@ function FanletterRelatedVlogCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const nsfwCopy = getFanletterNsfwCopy(locale);
+  const accessBadge =
+    item.priceType === "paid"
+      ? locale === "ko"
+        ? "팬 전용"
+        : "Fan-only"
+      : locale === "ko"
+        ? "무료 공개"
+        : "Free";
   const shouldBlurCover =
     item.priceType === "paid" &&
     !item.canViewerAccess &&
@@ -4506,11 +4514,23 @@ function FanletterRelatedVlogCard({
             </span>
           </div>
         )}
-        {isNsfw ? (
-          <span className="absolute left-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
-            {nsfwCopy.badge}
+        <div className="absolute left-2 top-2 flex max-w-[calc(100%-1rem)] flex-wrap gap-1">
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.08em] shadow-[0_10px_24px_rgba(0,0,0,0.22)]",
+              item.priceType === "paid"
+                ? "bg-[#44f26e] text-black"
+                : "bg-white/88 text-black",
+            )}
+          >
+            {accessBadge}
           </span>
-        ) : null}
+          {isNsfw ? (
+            <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+              {nsfwCopy.badge}
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="min-w-0 self-center">
         <p className="line-clamp-2 break-words text-base font-semibold leading-tight text-white [overflow-wrap:anywhere]">
@@ -4526,6 +4546,10 @@ function FanletterRelatedVlogCard({
       </div>
     </Link>
   );
+}
+
+function isFanOnlyRelatedVlogItem(item: FanletterPublicContentItem) {
+  return item.priceType === "paid" || item.contentMaturityRating === "nsfw";
 }
 
 function FanletterRelatedVlogs({
@@ -4545,20 +4569,55 @@ function FanletterRelatedVlogs({
     return null;
   }
 
+  const fanOnlyItems = items.filter((item) => isFanOnlyRelatedVlogItem(item));
+  const publicItems = items.filter((item) => !isFanOnlyRelatedVlogItem(item));
+  const hasFanOnlyItems = fanOnlyItems.length > 0;
+  const hasPublicItems = publicItems.length > 0;
+  const hasMixedAccessTypes = hasFanOnlyItems && hasPublicItems;
   const labels =
     locale === "ko"
       ? {
           eyebrow: "같은 캐릭터",
-          title: items.some((item) => item.contentMaturityRating === "nsfw")
-            ? "다음 팬 전용 브이로그"
-            : "다음에 볼 공개 브이로그",
+          fanOnlyTitle: "팬 전용 브이로그",
+          publicTitle: "공개 브이로그",
+          title: hasMixedAccessTypes
+            ? "다음에 볼 브이로그"
+            : hasFanOnlyItems
+              ? "팬 전용 브이로그"
+              : "공개 브이로그",
         }
       : {
           eyebrow: "Same character",
-          title: items.some((item) => item.contentMaturityRating === "nsfw")
-            ? "Fan-only vlogs to watch next"
-            : "Public vlogs to watch next",
+          fanOnlyTitle: "Fan-only vlogs",
+          publicTitle: "Public vlogs",
+          title: hasMixedAccessTypes
+            ? "Vlogs to watch next"
+            : hasFanOnlyItems
+              ? "Fan-only vlogs"
+              : "Public vlogs",
         };
+  const groups = [
+    ...(hasFanOnlyItems
+      ? [
+          {
+            Icon: Crown,
+            items: fanOnlyItems,
+            key: "fan-only",
+            title: labels.fanOnlyTitle,
+          },
+        ]
+      : []),
+    ...(hasPublicItems
+      ? [
+          {
+            Icon: PlayCircle,
+            items: publicItems,
+            key: "public",
+            title: labels.publicTitle,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <section className="mt-6 rounded-lg border border-white/10 bg-[#07100b] p-4 sm:p-5">
@@ -4573,16 +4632,30 @@ function FanletterRelatedVlogs({
         </div>
         <ArrowRight className="size-5 shrink-0 text-white/34" />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((item) => (
-          <FanletterRelatedVlogCard
-            fallbackImageUrl={fallbackImageUrl}
-            item={item}
-            key={item.contentId}
-            locale={locale}
-            nsfwOptInEnabled={nsfwOptInEnabled}
-            referralCode={referralCode}
-          />
+      <div className="space-y-5">
+        {groups.map(({ Icon, items: groupItems, key, title }) => (
+          <div key={key}>
+            {hasMixedAccessTypes ? (
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/8 text-[#44f26e]">
+                  <Icon className="size-4" />
+                </span>
+                <h3 className="text-sm font-semibold text-white">{title}</h3>
+              </div>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {groupItems.map((item) => (
+                <FanletterRelatedVlogCard
+                  fallbackImageUrl={fallbackImageUrl}
+                  item={item}
+                  key={item.contentId}
+                  locale={locale}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={referralCode}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </section>

@@ -819,6 +819,32 @@ function toPublicContentItem({
   };
 }
 
+function isFanOnlyRelatedContentPost(post: ContentPostDocument) {
+  return (
+    post.priceType === "paid" ||
+    resolveFanletterContentMaturityRating(post) === "nsfw"
+  );
+}
+
+function pickAuthorRecentContentPosts(
+  posts: ContentPostDocument[],
+  currentContentId: string,
+) {
+  const candidates = posts.filter((post) => post.contentId !== currentContentId);
+  const fanOnlyPosts = candidates
+    .filter((post) => isFanOnlyRelatedContentPost(post))
+    .slice(0, 4);
+  const publicPosts = candidates
+    .filter((post) => !isFanOnlyRelatedContentPost(post))
+    .slice(0, 4);
+
+  if (fanOnlyPosts.length > 0 && publicPosts.length > 0) {
+    return [...fanOnlyPosts, ...publicPosts];
+  }
+
+  return candidates.slice(0, 4);
+}
+
 async function getViewerEntitlementContentIds({
   contentIds,
   viewerEmail,
@@ -1546,9 +1572,10 @@ export const getFanletterPublicContentDetail = cache(
               : Promise.resolve(0),
           ])
         : [[], 0, EMPTY_PUBLIC_FAN_REQUEST_METRICS, 0];
-    const authorRecentPosts = authorPosts
-      .filter((authorPost) => authorPost.contentId !== post.contentId)
-      .slice(0, 4);
+    const authorRecentPosts = pickAuthorRecentContentPosts(
+      authorPosts,
+      post.contentId,
+    );
     const authorSocialByContentId = await getSocialByContentId(authorPosts);
 
     return {
