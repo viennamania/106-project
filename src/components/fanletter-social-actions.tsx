@@ -6,6 +6,7 @@ import {
   Heart,
   Loader2,
   MessageCircle,
+  Newspaper,
   RefreshCw,
   Send,
   Share2,
@@ -44,10 +45,20 @@ type FanletterSocialActionsProps = {
   initialSocial: ContentSocialSummaryRecord;
   isOwnContent?: boolean;
   locale: Locale;
+  reporterReferralCode?: string | null;
   shareHref: string;
   summary?: string;
   title: string;
   variant?: FanletterSocialActionsVariant;
+};
+
+type FanletterNewsReportCreateResponse = {
+  report: {
+    dek: string;
+    reportId: string;
+    shareHref: string;
+    title: string;
+  };
 };
 
 function getCopy(locale: Locale) {
@@ -73,6 +84,11 @@ function getCopy(locale: Locale) {
           "이 브이로그는 내 콘텐츠입니다. 공유와 댓글 확인은 가능하고 좋아요/저장은 팬 반응만 집계합니다.",
         ownerCommentPlaceholder: "내 브이로그에 고정할 답글이나 공지를 남기기...",
         post: "게시",
+        reportCopied: "AI 팬 리포트 링크를 복사했습니다.",
+        reportFailed: "AI 팬 리포트를 만들지 못했습니다.",
+        reportReady: "AI 팬 리포트가 준비되었습니다.",
+        reportShare: "AI 리포트",
+        reportView: "리포트 보기",
         refresh: "새로고침",
         save: "저장",
         saved: "저장됨",
@@ -106,6 +122,11 @@ function getCopy(locale: Locale) {
           "This is your content. Sharing and comments remain available, while likes and saves count fan reactions only.",
         ownerCommentPlaceholder: "Add a reply or note to your vlog...",
         post: "Post",
+        reportCopied: "AI fan report link copied.",
+        reportFailed: "Could not create the AI fan report.",
+        reportReady: "AI fan report is ready.",
+        reportShare: "AI report",
+        reportView: "View report",
         refresh: "Refresh",
         save: "Save",
         saved: "Saved",
@@ -198,6 +219,7 @@ export function FanletterSocialActions({
   initialSocial,
   isOwnContent = false,
   locale,
+  reporterReferralCode,
   shareHref,
   summary,
   title,
@@ -218,9 +240,9 @@ export function FanletterSocialActions({
   const [social, setSocial] =
     useState<ContentSocialSummaryRecord>(initialSocial);
   const [toast, setToast] = useState<string | null>(null);
-  const [busyAction, setBusyAction] = useState<"like" | "save" | "share" | null>(
-    null,
-  );
+  const [busyAction, setBusyAction] =
+    useState<"like" | "report" | "save" | "share" | null>(null);
+  const [newsReportHref, setNewsReportHref] = useState<string | null>(null);
   const [comments, setComments] = useState<ContentCommentRecord[]>([]);
   const [commentsPageInfo, setCommentsPageInfo] =
     useState<ContentCommentsResponse["pageInfo"] | null>(null);
@@ -567,6 +589,81 @@ export function FanletterSocialActions({
     }
   }, [copy.copied, copy.copyFailed, shareHref, summary, title]);
 
+  const createNewsReport = useCallback(async () => {
+    setToast(null);
+    setNewsReportHref(null);
+    setBusyAction("report");
+
+    try {
+      const response = await fetch("/api/fanletter/news-reports", {
+        body: JSON.stringify({
+          contentId,
+          locale,
+          referralCode: reporterReferralCode,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | FanletterNewsReportCreateResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("report" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : copy.reportFailed,
+        );
+      }
+
+      const reportUrl = new URL(
+        data.report.shareHref,
+        window.location.origin,
+      ).toString();
+
+      setNewsReportHref(data.report.shareHref);
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            text: data.report.dek,
+            title: data.report.title,
+            url: reportUrl,
+          });
+          setToast(copy.reportReady);
+          return;
+        } catch (error) {
+          if (
+            typeof error === "object" &&
+            error !== null &&
+            "name" in error &&
+            error.name === "AbortError"
+          ) {
+            setToast(copy.reportReady);
+            return;
+          }
+        }
+      }
+
+      await copyToClipboard(reportUrl);
+      setToast(copy.reportCopied);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : copy.reportFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  }, [
+    contentId,
+    copy.reportCopied,
+    copy.reportFailed,
+    copy.reportReady,
+    locale,
+    reporterReferralCode,
+  ]);
+
   const compactButtonClassName =
     "inline-flex min-w-0 items-center justify-center gap-1.5 rounded-lg border border-black/10 bg-[#f6f8f4] px-2.5 py-2 text-xs font-semibold text-black/64 transition hover:border-[#29d85f]/60 hover:bg-[#effff3] hover:text-black disabled:cursor-not-allowed disabled:opacity-60";
   const panelButtonClassName =
@@ -729,7 +826,7 @@ export function FanletterSocialActions({
         className={cn(
           isOwnerPanel
             ? "mt-4 grid grid-cols-2 gap-2"
-            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4",
+            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-5",
         )}
       >
         <button
@@ -794,15 +891,38 @@ export function FanletterSocialActions({
           )}
           <span>{copy.share}</span>
         </button>
+        <button
+          className={actionButtonClassName}
+          disabled={busyAction === "report"}
+          onClick={() => {
+            void createNewsReport();
+          }}
+          type="button"
+        >
+          {busyAction === "report" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Newspaper className="size-4" />
+          )}
+          <span>{copy.reportShare}</span>
+        </button>
       </div>
 
       {toast ? (
-        <p
+        <div
           aria-live="polite"
-          className="mt-3 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-sm font-semibold text-[#b9ffc8]"
+          className="mt-3 flex flex-col gap-2 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-sm font-semibold text-[#b9ffc8] sm:flex-row sm:items-center sm:justify-between"
         >
-          {toast}
-        </p>
+          <span>{toast}</span>
+          {newsReportHref ? (
+            <Link
+              className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/32 px-3 text-xs font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
+              href={newsReportHref}
+            >
+              {copy.reportView}
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       <div

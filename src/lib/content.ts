@@ -451,6 +451,37 @@ export type FanletterCharacterFollowDocument = {
   updatedAt: Date;
 };
 
+export type FanletterNewsReportDocument = {
+  body: string;
+  contentId: string;
+  contentMaturityRating: ContentMaturityRating;
+  coverImageUrl: string | null;
+  createdAt: Date;
+  creatorName: string;
+  creatorReferralCode: string | null;
+  dek: string;
+  generatedBy: "fallback" | "openai";
+  how: string;
+  locale: Locale;
+  model: string | null;
+  priceType: ContentPriceType;
+  reporterName: string;
+  reporterReferralCode: string;
+  reportId: string;
+  sourceHref: string;
+  sourcePublishedAt: Date | null;
+  sourceSummary: string;
+  sourceTitle: string;
+  status: "published";
+  title: string;
+  updatedAt: Date;
+  what: string;
+  when: string;
+  where: string;
+  who: string;
+  why: string;
+};
+
 export type ContentAssetDocument = {
   assetId: string;
   blobUrl: string;

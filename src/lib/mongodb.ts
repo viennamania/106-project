@@ -38,6 +38,7 @@ import type {
   FanletterCharacterFollowDocument,
   FanletterFanRequestDocument,
   FanletterFanRequestTemplateDocument,
+  FanletterNewsReportDocument,
   ContentImageGenerationDocument,
   FanletterVlogPlanDocument,
   ContentOrderDocument,
@@ -142,6 +143,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterCharacterFollowsCollectionPromise?: Promise<
     Collection<FanletterCharacterFollowDocument>
+  >;
+  mongoFanletterNewsReportsCollectionPromise?: Promise<
+    Collection<FanletterNewsReportDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1152,6 +1156,36 @@ export async function getFanletterCharacterFollowsCollection() {
   }
 
   return globalForMongo.mongoFanletterCharacterFollowsCollectionPromise;
+}
+
+export async function getFanletterNewsReportsCollection() {
+  if (!globalForMongo.mongoFanletterNewsReportsCollectionPromise) {
+    globalForMongo.mongoFanletterNewsReportsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_NEWS_REPORTS_COLLECTION ??
+        "fanletterNewsReports";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterNewsReportDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ reportId: 1 }, { unique: true }),
+        collection.createIndex(
+          { contentId: 1, reporterReferralCode: 1, locale: 1 },
+          { unique: true },
+        ),
+        collection.createIndex({ contentId: 1, createdAt: -1 }),
+        collection.createIndex({ reporterReferralCode: 1, createdAt: -1 }),
+        collection.createIndex({ status: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterNewsReportsCollectionPromise;
 }
 
 export async function getFanletterVlogPlansCollection() {

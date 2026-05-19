@@ -129,6 +129,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/content`,
         `${basePath}/creator`,
         `${basePath}/following`,
+        `${basePath}/news`,
         `${basePath}/purchases`,
         `${basePath}/requests`,
       ],
