@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  AlertTriangle,
   BadgeCheck,
   CalendarDays,
   FileText,
@@ -14,8 +16,14 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import { getLatestFanletterNewsReports } from "@/lib/fanletter-news-report-service";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  getFanletterNsfwCopy,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -49,6 +57,16 @@ function getCopy(locale: Locale) {
         latest: "최신 리포트",
         lead: "오늘의 리드",
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
+        nsfwControl: {
+          disabledBody:
+            "NSFW 뉴스는 목록에 유지하되 성인 팬 전용 커버와 기사 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
+          disabledTitle: "NSFW 뉴스 미리보기 블러",
+          enabledBody:
+            "NSFW 뉴스 미리보기가 선명하게 표시됩니다. 끄면 다시 커버와 기사 미리보기가 블러 처리됩니다.",
+          enabledTitle: "NSFW 뉴스 표시 중",
+          hiddenCountText: (count: string) =>
+            `블러 처리된 NSFW 뉴스 ${count}개`,
+        },
         read: "기사 보기",
         reporterDesk: "팬 기자 데스크",
         reporterRank: "활동 기자",
@@ -72,6 +90,15 @@ function getCopy(locale: Locale) {
         latest: "Latest Reports",
         lead: "Lead Story",
         navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
+        nsfwControl: {
+          disabledBody:
+            "NSFW stories remain listed, with adult fan-only covers and story previews blurred until opt-in.",
+          disabledTitle: "NSFW news previews blurred",
+          enabledBody:
+            "NSFW news previews are visible. Turn this off to blur covers and story previews again.",
+          enabledTitle: "NSFW news visible",
+          hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
+        },
         read: "Read story",
         reporterDesk: "Fan Reporter Desk",
         reporterRank: "Active reporters",
@@ -115,6 +142,17 @@ function getAccessLabel(
   return report.priceType === "paid" ? copy.access.paid : copy.access.public;
 }
 
+function isNsfwReport(report: FanletterNewsReportDocument) {
+  return report.contentMaturityRating === "nsfw";
+}
+
+function shouldBlurReport(
+  report: FanletterNewsReportDocument,
+  nsfwOptInEnabled: boolean,
+) {
+  return isNsfwReport(report) && !nsfwOptInEnabled;
+}
+
 function getReporterStats(reports: FanletterNewsReportDocument[]) {
   const map = new Map<string, ReporterStat>();
 
@@ -134,12 +172,16 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
 }
 
 function NewsImage({
+  blurred = false,
   className,
+  nsfwLabel,
   priority = false,
   report,
   sizes,
 }: {
+  blurred?: boolean;
   className?: string;
+  nsfwLabel?: string;
   priority?: boolean;
   report: FanletterNewsReportDocument;
   sizes: string;
@@ -150,7 +192,11 @@ function NewsImage({
         <Image
           alt=""
           aria-hidden="true"
-          className="object-cover"
+          className={
+            blurred
+              ? "scale-[1.06] object-cover blur-md brightness-[0.68] saturate-[0.86]"
+              : "object-cover"
+          }
           fill
           priority={priority}
           sizes={sizes}
@@ -161,6 +207,14 @@ function NewsImage({
           <Newspaper className="size-12" />
         </div>
       )}
+      {blurred ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-3 text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/62 px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white shadow-[0_14px_34px_rgba(0,0,0,0.3)]">
+            <AlertTriangle className="size-3.5 text-rose-300" />
+            {nsfwLabel}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -213,14 +267,18 @@ function NewsMasthead({
 
 function LeadStory({
   copy,
+  nsfwOptInEnabled,
   referralCode,
   report,
 }: {
   copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
   report: FanletterNewsReportDocument;
 }) {
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+  const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
 
   return (
     <Link
@@ -228,7 +286,9 @@ function LeadStory({
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
+        blurred={shouldBlur}
         className="aspect-[16/11]"
+        nsfwLabel={nsfwCopy.badge}
         priority
         report={report}
         sizes="(max-width: 1024px) 100vw, 58rem"
@@ -244,10 +304,18 @@ function LeadStory({
             {getAccessLabel(report, copy)}
           </span>
         </div>
-        <h1 className="mt-4 break-words text-[2.35rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[4.1rem]">
+        <h1
+          className={`mt-4 break-words text-[2.35rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[4.1rem] ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.title}
         </h1>
-        <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-white/68 sm:text-lg sm:leading-8">
+        <p
+          className={`mt-4 max-w-3xl text-base font-semibold leading-7 text-white/68 sm:text-lg sm:leading-8 ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.dek}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-white/50">
@@ -272,14 +340,18 @@ function LeadStory({
 
 function CompactStory({
   copy,
+  nsfwOptInEnabled,
   referralCode,
   report,
 }: {
   copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
   report: FanletterNewsReportDocument;
 }) {
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+  const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
 
   return (
     <Link
@@ -287,7 +359,9 @@ function CompactStory({
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
+        blurred={shouldBlur}
         className="aspect-[4/5] rounded-lg"
+        nsfwLabel={nsfwCopy.badge}
         report={report}
         sizes="6rem"
       />
@@ -295,10 +369,18 @@ function CompactStory({
         <p className="text-[0.68rem] font-black text-[#16702e]">
           {getAccessLabel(report, copy)}
         </p>
-        <h2 className="mt-1 line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e]">
+        <h2
+          className={`mt-1 line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.title}
         </h2>
-        <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58">
+        <p
+          className={`mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58 ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.dek}
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-bold text-black/42">
@@ -312,14 +394,18 @@ function CompactStory({
 
 function FeatureCard({
   copy,
+  nsfwOptInEnabled,
   referralCode,
   report,
 }: {
   copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
   report: FanletterNewsReportDocument;
 }) {
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+  const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
 
   return (
     <Link
@@ -327,7 +413,9 @@ function FeatureCard({
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
+        blurred={shouldBlur}
         className="aspect-[16/10]"
+        nsfwLabel={nsfwCopy.badge}
         report={report}
         sizes="(max-width: 768px) 100vw, 22rem"
       />
@@ -336,10 +424,18 @@ function FeatureCard({
           <span>{report.creatorName}</span>
           <span>{getAccessLabel(report, copy)}</span>
         </div>
-        <h2 className="mt-2 line-clamp-2 break-words text-xl font-black leading-6 [word-break:keep-all] group-hover:text-[#16702e]">
+        <h2
+          className={`mt-2 line-clamp-2 break-words text-xl font-black leading-6 [word-break:keep-all] group-hover:text-[#16702e] ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.title}
         </h2>
-        <p className="mt-2 line-clamp-3 text-sm font-medium leading-6 text-black/58">
+        <p
+          className={`mt-2 line-clamp-3 text-sm font-medium leading-6 text-black/58 ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
           {report.dek}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-black/42">
@@ -429,16 +525,22 @@ export default async function LocalizedFanletterNewsHomePage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const cookieStore = await cookies();
+  const nsfwOptInEnabled = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
   );
   const reports = await getLatestFanletterNewsReports({ limit: 28, locale });
+  const nsfwReportCount = reports.filter(isNsfwReport).length;
   const [leadReport, ...restReports] = reports;
   const topStories = restReports.slice(0, 5);
   const featureReports = restReports.slice(5, 11);
   const latestReports = restReports.slice(11);
   const reporterStats = getReporterStats(reports);
+  const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
@@ -455,9 +557,32 @@ export default async function LocalizedFanletterNewsHomePage({
           </p>
         </div>
 
+        {shouldShowNsfwControl ? (
+          <div className="mt-5">
+            <FanletterNsfwOptInControl
+              disabledBody={copy.nsfwControl.disabledBody}
+              disabledTitle={copy.nsfwControl.disabledTitle}
+              enabled={nsfwOptInEnabled}
+              enabledBody={copy.nsfwControl.enabledBody}
+              enabledTitle={copy.nsfwControl.enabledTitle}
+              hiddenCount={nsfwReportCount}
+              hiddenCountText={copy.nsfwControl.hiddenCountText(
+                formatNumber(nsfwReportCount, locale),
+              )}
+              locale={locale}
+              tone={nsfwOptInEnabled ? "dark" : "light"}
+            />
+          </div>
+        ) : null}
+
         {leadReport ? (
           <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-            <LeadStory copy={copy} referralCode={referralCode} report={leadReport} />
+            <LeadStory
+              copy={copy}
+              nsfwOptInEnabled={nsfwOptInEnabled}
+              referralCode={referralCode}
+              report={leadReport}
+            />
 
             <aside className="space-y-5">
               <section className="rounded-lg border border-black/10 bg-white p-4">
@@ -470,6 +595,7 @@ export default async function LocalizedFanletterNewsHomePage({
                     <CompactStory
                       copy={copy}
                       key={report.reportId}
+                      nsfwOptInEnabled={nsfwOptInEnabled}
                       referralCode={referralCode}
                       report={report}
                     />
@@ -495,6 +621,7 @@ export default async function LocalizedFanletterNewsHomePage({
                     <FeatureCard
                       copy={copy}
                       key={report.reportId}
+                      nsfwOptInEnabled={nsfwOptInEnabled}
                       referralCode={referralCode}
                       report={report}
                     />
@@ -514,6 +641,7 @@ export default async function LocalizedFanletterNewsHomePage({
                     <CompactStory
                       copy={copy}
                       key={report.reportId}
+                      nsfwOptInEnabled={nsfwOptInEnabled}
                       referralCode={referralCode}
                       report={report}
                     />

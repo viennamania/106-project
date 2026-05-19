@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  AlertTriangle,
   BadgeCheck,
   CalendarDays,
   Clapperboard,
@@ -18,6 +19,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
@@ -34,6 +36,7 @@ import {
 } from "@/lib/fanletter-news-report-service";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
+  getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
@@ -75,6 +78,18 @@ function getCopy(locale: Locale) {
         embeddedTitle: "빌트인 원본 브이로그",
         generated: "AI 생성",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스"],
+        nsfwBlurNotice:
+          "NSFW 보기 동의 전에는 원본 브이로그와 기사 본문 일부가 블러 처리됩니다.",
+        nsfwControl: {
+          disabledBody:
+            "이 뉴스와 관련 NSFW 뉴스는 유지하되 원본 브이로그, 커버, 기사 본문을 블러 처리합니다. 켜면 선명하게 표시됩니다.",
+          disabledTitle: "NSFW 뉴스 블러 처리",
+          enabledBody:
+            "NSFW 뉴스가 선명하게 표시됩니다. 끄면 이 뉴스와 관련 NSFW 뉴스가 다시 블러 처리됩니다.",
+          enabledTitle: "NSFW 뉴스 표시 중",
+          hiddenCountText: (count: string) =>
+            `블러 처리된 NSFW 뉴스 ${count}개`,
+        },
         openCreator: "캐릭터 채널",
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
@@ -136,6 +151,17 @@ function getCopy(locale: Locale) {
         embeddedTitle: "Built-in source vlog",
         generated: "AI generated",
         navItems: ["AI characters", "Fan reports", "Vlog news"],
+        nsfwBlurNotice:
+          "The source vlog and parts of the article stay blurred before NSFW opt-in.",
+        nsfwControl: {
+          disabledBody:
+            "This story and related NSFW stories remain available, with the source vlog, covers, and article body blurred until opt-in.",
+          disabledTitle: "NSFW news blurred",
+          enabledBody:
+            "NSFW news is visible. Turn this off to blur this story and related NSFW stories again.",
+          enabledTitle: "NSFW news visible",
+          hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
+        },
         openCreator: "Character channel",
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
@@ -238,6 +264,17 @@ function getContentAccessLabel(
   return item.priceType === "paid"
     ? copy.contentBadge.paid
     : copy.contentBadge.public;
+}
+
+function isNsfwReport(report: FanletterNewsReportDocument) {
+  return report.contentMaturityRating === "nsfw";
+}
+
+function shouldBlurReport(
+  report: FanletterNewsReportDocument,
+  nsfwOptInEnabled: boolean,
+) {
+  return isNsfwReport(report) && !nsfwOptInEnabled;
 }
 
 function NewsSiteHeader({
@@ -453,11 +490,13 @@ function ReporterInfoCard({
 
 function SourceVlogEmbed({
   accessLabel,
+  blurred,
   copy,
   reportCoverImageUrl,
   sourceContent,
 }: {
   accessLabel: string;
+  blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   reportCoverImageUrl: string | null;
   sourceContent: FanletterPublicContentDetail | null;
@@ -469,6 +508,7 @@ function SourceVlogEmbed({
     sourceContent?.contentImageUrls[0] ??
     reportCoverImageUrl;
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
+  const noticeMessage = blurred ? copy.nsfwBlurNotice : copy.embeddedLocked;
 
   return (
     <section className="mt-8 overflow-hidden rounded-lg border border-black/12 bg-[#0a0d0a] text-white shadow-[0_18px_54px_rgba(0,0,0,0.16)]">
@@ -484,18 +524,23 @@ function SourceVlogEmbed({
       </div>
       <FanletterResponsiveMediaFrame
         alt={sourceContent?.title ?? copy.embeddedTitle}
+        blurred={blurred}
         eager
         imageUrl={sourceImageUrl}
         mediaType={sourceContent?.mediaType ?? "video"}
         title={sourceContent?.title ?? copy.embeddedTitle}
         videoUrl={sourceVideoUrl}
       >
-        {!hasEmbeddedVideo ? (
+        {blurred || !hasEmbeddedVideo ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
             <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
-              <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
+              {blurred ? (
+                <AlertTriangle className="mx-auto size-7 text-rose-300" />
+              ) : (
+                <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
+              )}
               <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
-                {copy.embeddedLocked}
+                {noticeMessage}
               </p>
             </div>
           </div>
@@ -599,10 +644,12 @@ function CharacterInfoCard({
 
 function RelatedNewsList({
   copy,
+  nsfwOptInEnabled,
   referralCode,
   reports,
 }: {
   copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
   referralCode: string | null;
   reports: FanletterNewsReportDocument[];
 }) {
@@ -628,6 +675,9 @@ function RelatedNewsList({
               referralCode,
             );
             const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+            const nsfwCopy = getFanletterNsfwCopy(report.locale);
+            const isNsfw = isNsfwReport(report);
+            const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
 
             return (
               <Link
@@ -640,7 +690,11 @@ function RelatedNewsList({
                     <Image
                       alt=""
                       aria-hidden="true"
-                      className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                      className={
+                        shouldBlur
+                          ? "scale-[1.06] object-cover blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.08]"
+                          : "object-cover transition duration-300 group-hover:scale-[1.04]"
+                      }
                       fill
                       sizes="6rem"
                       src={report.coverImageUrl}
@@ -650,12 +704,33 @@ function RelatedNewsList({
                       <Newspaper className="size-7 text-[#44f26e]" />
                     </div>
                   )}
+                  {isNsfw ? (
+                    <div
+                      className={`absolute p-2 text-center ${
+                        shouldBlur
+                          ? "inset-0 flex items-center justify-center bg-black/34"
+                          : "right-0 top-0"
+                      }`}
+                    >
+                      <span className="inline-flex rounded-full bg-rose-500 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+                        {nsfwCopy.badge}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="min-w-0">
-                  <p className="line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all]">
+                  <p
+                    className={`line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] ${
+                      shouldBlur ? "select-none blur-[2px]" : ""
+                    }`}
+                  >
                     {report.title}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58">
+                  <p
+                    className={`mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58 ${
+                      shouldBlur ? "select-none blur-[2px]" : ""
+                    }`}
+                  >
                     {report.dek}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
@@ -792,6 +867,11 @@ export default async function LocalizedFanletterNewsReportPage({
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body);
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
+  const isCurrentNsfwReport = isNsfwReport(report);
+  const shouldBlurCurrentReport = shouldBlurReport(report, includeNsfw);
+  const relatedNsfwReportCount = relatedReports.filter(isNsfwReport).length;
+  const nsfwNewsCount = relatedNsfwReportCount + (isCurrentNsfwReport ? 1 : 0);
+  const shouldShowNsfwControl = nsfwNewsCount > 0 || includeNsfw;
   const facts = [
     { label: copy.sixW.who, value: report.who },
     { label: copy.sixW.when, value: report.when },
@@ -840,6 +920,24 @@ export default async function LocalizedFanletterNewsReportPage({
               reporterProfile={reporterProfile}
             />
 
+            {shouldShowNsfwControl ? (
+              <div className="mt-4">
+                <FanletterNsfwOptInControl
+                  disabledBody={copy.nsfwControl.disabledBody}
+                  disabledTitle={copy.nsfwControl.disabledTitle}
+                  enabled={includeNsfw}
+                  enabledBody={copy.nsfwControl.enabledBody}
+                  enabledTitle={copy.nsfwControl.enabledTitle}
+                  hiddenCount={nsfwNewsCount}
+                  hiddenCountText={copy.nsfwControl.hiddenCountText(
+                    formatNumber(nsfwNewsCount, locale),
+                  )}
+                  locale={locale}
+                  tone={includeNsfw ? "dark" : "light"}
+                />
+              </div>
+            ) : null}
+
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-bold text-black/54">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1.5">
                 <PenLine className="size-3.5 text-[#16702e]" />
@@ -859,6 +957,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
             <SourceVlogEmbed
               accessLabel={accessLabel}
+              blurred={shouldBlurCurrentReport}
               copy={copy}
               reportCoverImageUrl={report.coverImageUrl}
               sourceContent={sourceContent}
@@ -882,7 +981,11 @@ export default async function LocalizedFanletterNewsReportPage({
                 <FileText className="size-4" />
                 {copy.aiReport}
               </div>
-              <div className="max-w-3xl space-y-5 text-[1.08rem] font-medium leading-8 text-black/78 sm:text-[1.18rem] sm:leading-9">
+              <div
+                className={`max-w-3xl space-y-5 text-[1.08rem] font-medium leading-8 text-black/78 sm:text-[1.18rem] sm:leading-9 ${
+                  shouldBlurCurrentReport ? "select-none blur-[2px]" : ""
+                }`}
+              >
                 {articleParagraphs.map((paragraph) => (
                   <p className="[word-break:keep-all]" key={paragraph}>
                     {paragraph}
@@ -935,6 +1038,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
           <RelatedNewsList
             copy={copy}
+            nsfwOptInEnabled={includeNsfw}
             referralCode={referralCode}
             reports={relatedReports}
           />
