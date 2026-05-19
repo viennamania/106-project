@@ -4472,9 +4472,7 @@ function FanletterRelatedVlogCard({
         ? "무료 공개"
         : "Free";
   const shouldBlurCover =
-    item.priceType === "paid" &&
-    !item.canViewerAccess &&
-    (!isNsfw || !nsfwOptInEnabled);
+    isNsfw && !nsfwOptInEnabled && !item.canViewerAccess;
 
   return (
     <Link
@@ -9358,8 +9356,7 @@ export function FanletterContentDetailPage({
     content.priceType === "paid" && !canViewerAccess && !isOwnContent;
   const shouldShowPaidUnlockPanel =
     paidContentLocked && !requiresNsfwOptIn;
-  const shouldBlurDetailMedia =
-    requiresNsfwOptIn || (paidContentLocked && !isNsfwContent);
+  const shouldBlurDetailMedia = requiresNsfwOptIn;
   const shouldUseLockedDetailCta = paidContentLocked || requiresNsfwOptIn;
   const shouldShowNsfwVisibilityControl =
     isNsfwContent && !isOwnContent && !requiresNsfwOptIn;
