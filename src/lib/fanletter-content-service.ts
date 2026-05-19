@@ -1135,6 +1135,21 @@ function getNsfwContentFilter({
   };
 }
 
+function getAuthorRelatedContentFilter({
+  locale,
+  referralCode,
+}: {
+  locale: Locale;
+  referralCode: string;
+}): Filter<ContentPostDocument> {
+  return {
+    ...getPublishedContentLocaleFilter(locale),
+    authorReferralCode: referralCode,
+    "contentVideoUrls.0": { $exists: true },
+    status: "published",
+  };
+}
+
 function getFanOnlyPreviewContentFilter({
   locale,
   visibility = "general",
@@ -1622,8 +1637,7 @@ export const getFanletterPublicContentDetail = cache(
         })
       : null;
     const authorRelatedContentFilter = authorReferralCode
-      ? await getPublicContentFilter({
-          includeNsfw: true,
+      ? getAuthorRelatedContentFilter({
           locale,
           referralCode: authorReferralCode,
         })
