@@ -1100,7 +1100,6 @@ async function getPublicContentFilter({
 }
 
 function getFanOnlyContentFilter({
-  includeNsfw = false,
   locale,
   referralCode,
 }: {
@@ -1112,7 +1111,6 @@ function getFanOnlyContentFilter({
     ...getPublishedContentLocaleFilter(locale),
     authorReferralCode: referralCode,
     "contentVideoUrls.0": { $exists: true },
-    ...(includeNsfw ? {} : getNonNsfwVisibilityFilter()),
     priceType: "paid",
     status: "published",
   };

@@ -6455,6 +6455,13 @@ export function FanletterCreatorFanOnlyPage({
           publicVlogs: `공개 브이로그 ${publicCountLabel}개`,
           shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 FanLetter 채널입니다.`,
           shareTitle: `${channelName} 팬 전용 브이로그`,
+          nsfwBlurDisabledBody:
+            "팬 전용 유료 브이로그 목록은 모두 유지하고 NSFW 썸네일만 블러 처리합니다.",
+          nsfwBlurDisabledTitle: "NSFW 미리보기 블러",
+          nsfwBlurEnabledBody:
+            "팬 전용 유료 브이로그 목록은 그대로 두고 NSFW 썸네일 블러만 해제합니다.",
+          nsfwBlurEnabledTitle: "NSFW 블러 해제 중",
+          nsfwBlurCount: (count: string) => `NSFW 블러 대상 ${count}개`,
           statAccessMode: "열람 방식",
           statAccessModeValue: "개별 결제",
           statFanOnly: "팬 전용",
@@ -6486,6 +6493,13 @@ export function FanletterCreatorFanOnlyPage({
           publicVlogs: `${publicCountLabel} public vlogs`,
           shareSummary: `A FanLetter channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
           shareTitle: `${channelName} fan-only vlogs`,
+          nsfwBlurDisabledBody:
+            "All paid fan-only vlogs stay in the list; only NSFW thumbnails are blurred.",
+          nsfwBlurDisabledTitle: "NSFW previews blurred",
+          nsfwBlurEnabledBody:
+            "The paid fan-only list stays the same while NSFW thumbnail blur is removed.",
+          nsfwBlurEnabledTitle: "NSFW blur off",
+          nsfwBlurCount: (count: string) => `${count} NSFW previews blurred`,
           statAccessMode: "Access",
           statAccessModeValue: "Per vlog",
           statFanOnly: "Fan-only",
@@ -6621,8 +6635,15 @@ export function FanletterCreatorFanOnlyPage({
         <div className="mx-auto max-w-[92rem]">
           <FanletterNsfwOptInControl
             className="mb-6"
+            disabledBody={labels.nsfwBlurDisabledBody}
+            disabledTitle={labels.nsfwBlurDisabledTitle}
             enabled={data.nsfwOptInEnabled}
+            enabledBody={labels.nsfwBlurEnabledBody}
+            enabledTitle={labels.nsfwBlurEnabledTitle}
             hiddenCount={data.hiddenNsfwCount}
+            hiddenCountText={labels.nsfwBlurCount(
+              formatNumber(data.hiddenNsfwCount, locale),
+            )}
             locale={locale}
           />
 
