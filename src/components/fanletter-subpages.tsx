@@ -4752,12 +4752,13 @@ function FanletterFanRequestSourceCard({
       : labels.cta;
   const PrimaryIcon = isFollowUpGated ? LockKeyhole : PenLine;
   const displayFlow = isFollowUpGated ? labels.lockedFlow : labels.flow;
+  const shouldShowActionButtons = !isFollowUpGated;
 
   return (
-    <section className="mt-6 rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-4 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
+    <section className="mt-6 rounded-lg border border-[#44f26e]/34 bg-[#07100b] p-3 text-white shadow-[0_20px_58px_rgba(0,0,0,0.24)] sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-11">
             {source.requestType === "message" ? (
               <MessageCircleHeart className="size-5" />
             ) : (
@@ -4768,21 +4769,21 @@ function FanletterFanRequestSourceCard({
             <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
               {labels.eyebrow}
             </p>
-            <h2 className="mt-2 text-xl font-semibold tracking-normal">
+            <h2 className="mt-1.5 text-lg font-semibold tracking-normal sm:mt-2 sm:text-xl">
               {labels.title}
             </h2>
-            <p className="mt-2 text-sm font-semibold leading-6 text-[#b9ffc8]">
+            <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-[#b9ffc8] sm:line-clamp-none">
               {isOwnContent
                 ? labels.ownerResult
                 : isFollowUpGated
                   ? labels.lockedResult
                   : labels.result}
             </p>
-            <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3">
+            <div className="mt-3 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 p-3 sm:mt-4">
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#8dffa5]">
                 {labels.originalRequest}
               </p>
-              <p className="mt-2 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere]">
+              <p className="mt-2 line-clamp-2 break-words text-sm font-semibold leading-6 text-white [overflow-wrap:anywhere] sm:line-clamp-none">
                 {source.body}
               </p>
             </div>
@@ -4801,7 +4802,7 @@ function FanletterFanRequestSourceCard({
                 </span>
               ) : null}
             </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <div className="mt-4 hidden gap-2 sm:grid sm:grid-cols-3">
               {displayFlow.map((item, index) => (
                 <span
                   className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-semibold text-white/62"
@@ -4816,22 +4817,29 @@ function FanletterFanRequestSourceCard({
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:w-56 lg:flex-col">
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-            href={primaryHref}
-          >
-            <PrimaryIcon className="size-4" />
-            {primaryLabel}
-          </Link>
-          <Link
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-            href={channelHref}
-          >
-            {labels.channelCta}
-            <ArrowRight className="size-4" />
-          </Link>
-        </div>
+        {shouldShowActionButtons ? (
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:w-56 lg:flex-col">
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+              href={primaryHref}
+            >
+              <PrimaryIcon className="size-4" />
+              {primaryLabel}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+              href={channelHref}
+            >
+              {labels.channelCta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        ) : (
+          <span className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 text-xs font-semibold text-[#b9ffc8] lg:mt-1">
+            <LockKeyhole className="size-3.5" />
+            {labels.lockedCta}
+          </span>
+        )}
       </div>
     </section>
   );
@@ -9195,10 +9203,21 @@ function FanletterNsfwContentGate({
         <h2 className="mt-3 break-words text-xl font-semibold leading-tight sm:mt-4 sm:text-3xl">
           {labels.title}
         </h2>
-        <p className="mt-2 max-w-2xl text-xs font-medium leading-5 text-white/68 sm:mt-3 sm:text-sm sm:leading-6">
+        <p className="mt-2 line-clamp-2 max-w-2xl text-xs font-medium leading-5 text-white/68 sm:mt-3 sm:line-clamp-none sm:text-sm sm:leading-6">
           {labels.body}
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-5 sm:gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5 sm:hidden">
+          {gateItems.slice(0, 2).map(({ Icon, label }) => (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/22 px-2.5 py-1 text-[0.64rem] font-semibold text-white/78"
+              key={label}
+            >
+              <Icon className="size-3.5 text-rose-200" />
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="mt-3 hidden grid-cols-3 gap-1.5 sm:mt-5 sm:grid sm:gap-2">
           {gateItems.map(({ Icon, label }) => (
             <div
               className="rounded-lg border border-white/10 bg-black/22 p-2 sm:p-3"
@@ -9226,7 +9245,7 @@ function FanletterNsfwContentGate({
           tone="dark"
         />
         <Link
-          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-4 text-sm font-semibold !text-white transition hover:bg-white/10 sm:mt-3 sm:h-11 sm:w-auto"
+          className="mt-2 hidden h-10 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-4 text-sm font-semibold !text-white transition hover:bg-white/10 sm:mt-3 sm:inline-flex sm:h-11 sm:w-auto"
           href={creatorHref}
         >
           {labels.creator}
@@ -9424,6 +9443,8 @@ export function FanletterContentDetailPage({
             content.priceType === "paid"
               ? "팬 전용 브이로그"
               : "AI 캐릭터 브이로그",
+          mobileNsfwStep: "NSFW 설정으로 이동",
+          mobileUnlockStep: "잠금 해제 단계 보기",
         }
       : {
           character: "Character",
@@ -9435,6 +9456,8 @@ export function FanletterContentDetailPage({
             content.priceType === "paid"
               ? "Fan-only vlog"
               : "AI character vlog",
+          mobileNsfwStep: "Go to NSFW settings",
+          mobileUnlockStep: "View unlock step",
         };
   const mobilePrimaryActionHref = shouldUseLockedDetailCta
     ? detailActionHref
@@ -9442,14 +9465,22 @@ export function FanletterContentDetailPage({
       ? ownerManageHref
       : fanRequestHref;
   const mobilePrimaryActionLabel = shouldUseLockedDetailCta
-    ? detailActionLabel
+    ? requiresNsfwOptIn
+      ? detailLabels.mobileNsfwStep
+      : detailLabels.mobileUnlockStep
     : isOwnContent
       ? detailLabels.ownerManage
       : detailLabels.requestCta;
-  const mobileSecondaryActionHref = creatorActionHref;
-  const mobileSecondaryActionLabel = creatorActionLabel;
+  const mobileSecondaryActionHref = shouldUseLockedDetailCta
+    ? null
+    : creatorActionHref;
+  const mobileSecondaryActionLabel = shouldUseLockedDetailCta
+    ? null
+    : creatorActionLabel;
   const desktopPrimaryActionHref = mobilePrimaryActionHref;
-  const desktopPrimaryActionLabel = mobilePrimaryActionLabel;
+  const desktopPrimaryActionLabel = shouldUseLockedDetailCta
+    ? detailActionLabel
+    : mobilePrimaryActionLabel;
   const desktopSecondaryActionHref = creatorActionHref;
   const desktopSecondaryActionLabel = creatorActionLabel;
   const canRequestFollowUpScene = !isOwnContent && canViewerAccess;
@@ -9735,6 +9766,7 @@ export function FanletterContentDetailPage({
                   {shouldShowNsfwVisibilityControl ? (
                     <FanletterNsfwOptInControl
                       className="mb-4"
+                      compact
                       enabled
                       enabledBody={nsfwVisibilityLabels.enabledBody}
                       enabledCta={nsfwVisibilityLabels.enabledCta}
@@ -9766,6 +9798,7 @@ export function FanletterContentDetailPage({
               ) : shouldShowNsfwVisibilityControl ? (
                 <FanletterNsfwOptInControl
                   className="mb-6"
+                  compact
                   enabled
                   enabledBody={nsfwVisibilityLabels.enabledBody}
                   enabledCta={nsfwVisibilityLabels.enabledCta}

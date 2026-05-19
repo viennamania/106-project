@@ -16,8 +16,8 @@ type FanletterContentDetailCtaGroupProps = {
   primaryIcon: "lock" | "pen";
   requestStatusHref: string;
   requestStatusLabel: string;
-  secondaryHref: string;
-  secondaryLabel: string;
+  secondaryHref?: string | null;
+  secondaryLabel?: string | null;
   sourceContentId: string;
   variant: "desktop" | "mobile";
 };
@@ -86,13 +86,16 @@ export function FanletterContentDetailCtaGroup({
   const primaryLabel = hasSubmittedRequest
     ? requestStatusLabel
     : defaultPrimaryLabel;
+  const hasSecondary = Boolean(secondaryHref && secondaryLabel);
   const containerClassName =
     variant === "mobile"
-      ? "mt-3 grid grid-cols-2 gap-2"
+      ? hasSecondary
+        ? "mt-3 grid grid-cols-2 gap-2"
+        : "mt-3"
       : "mt-7 flex flex-wrap items-center gap-3";
   const primaryClassName =
     variant === "mobile"
-      ? "inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-center text-[0.82rem] font-semibold leading-tight !text-black transition hover:bg-[#64ff84]"
+      ? "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-center text-[0.82rem] font-semibold leading-tight !text-black transition hover:bg-[#64ff84]"
       : "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#64ff84]";
   const secondaryClassName =
     variant === "mobile"
@@ -105,10 +108,12 @@ export function FanletterContentDetailCtaGroup({
         {variant === "desktop" ? <PrimaryIcon className="size-4" /> : null}
         {primaryLabel}
       </Link>
-      <Link className={secondaryClassName} href={secondaryHref}>
-        {secondaryLabel}
-        {variant === "desktop" ? <ArrowRight className="size-4" /> : null}
-      </Link>
+      {hasSecondary ? (
+        <Link className={secondaryClassName} href={secondaryHref ?? "#"}>
+          {secondaryLabel}
+          {variant === "desktop" ? <ArrowRight className="size-4" /> : null}
+        </Link>
+      ) : null}
     </div>
   );
 }
