@@ -54,6 +54,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
@@ -879,10 +880,16 @@ export default async function LocalizedFanletterNewsReportPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
+  const memberServerSession = await readMemberServerSession();
   const [sourceContent, relatedReports, reporterProfile] = await Promise.all([
-    getFanletterPublicContentDetail(report.contentId, locale, null, {
-      includeNsfw,
-    }).catch(() => null),
+    getFanletterPublicContentDetail(
+      report.contentId,
+      locale,
+      memberServerSession?.email ?? null,
+      {
+        includeNsfw,
+      },
+    ).catch(() => null),
     getRelatedFanletterNewsReports({
       creatorReferralCode: report.creatorReferralCode,
       excludeContentId: report.contentId,
@@ -941,8 +948,10 @@ export default async function LocalizedFanletterNewsReportPage({
   const nsfwTextBlurClass = shouldBlurCurrentReport
     ? "select-none blur-[2px]"
     : "";
-  const shouldShowPaidUnlockPanel =
+  const isPaidSourceContent =
     (sourceContent?.priceType ?? report.priceType) === "paid";
+  const shouldShowPaidUnlockPanel =
+    isPaidSourceContent && sourceContent?.canViewerAccess !== true;
   const paidUnlockSectionId = "fanletter-news-paid-unlock";
   const paidUnlockAmount =
     sourceContent?.priceUsdt ??
@@ -1031,7 +1040,7 @@ export default async function LocalizedFanletterNewsReportPage({
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
               copy={copy}
-              isPaidContent={shouldShowPaidUnlockPanel}
+              isPaidContent={isPaidSourceContent}
               paidUnlockHref={paidUnlockHref}
               priceUsdt={paidUnlockAmount}
               reportCoverImageUrl={report.coverImageUrl}
