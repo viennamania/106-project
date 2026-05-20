@@ -373,6 +373,14 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
     .slice(0, 5);
 }
 
+function getNewsroomReporterCount(reports: FanletterNewsReportDocument[]) {
+  return new Set(
+    reports
+      .map((report) => report.reporterReferralCode.trim())
+      .filter(Boolean),
+  ).size;
+}
+
 async function hydrateReporterStats(reporters: ReporterStat[]) {
   const hydrated = await Promise.all(
     reporters.map(async (reporter) => {
@@ -1405,6 +1413,11 @@ export default async function LocalizedFanletterNewsHomePage({
     activeReporterReferralCode && activeReporterProfile
       ? activeReporterProfile.reportCount
       : reports.length;
+  const displayedReporterCount = activeReporterReferralCode
+    ? displayedNewsCount > 0
+      ? 1
+      : 0
+    : getNewsroomReporterCount(reports);
   const charactersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters`,
     referralCode,
@@ -1595,7 +1608,7 @@ export default async function LocalizedFanletterNewsHomePage({
                   </div>
                   <div className="bg-[#f5f6f2] p-3">
                     <p className="text-lg font-black">
-                      {formatNumber(reporterStats.length, locale)}
+                      {formatNumber(displayedReporterCount, locale)}
                     </p>
                     <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
                       {copy.newsroomStatLabels.reporters}
