@@ -1268,6 +1268,12 @@ function ContentCard({
   const isNsfw = item.contentMaturityRating === "nsfw";
   const isLocked = item.priceType === "paid" && !item.canViewerAccess;
   const shouldBlurMedia = isNsfw && !nsfwOptInEnabled;
+  const shouldShowVideoPreview =
+    Boolean(item.primaryVideoUrl) &&
+    !isLocked &&
+    (showVideoPreview || !item.coverImageUrl);
+  const videoPosterUrl =
+    item.coverImageUrl ?? item.authorAvatarImageUrl ?? undefined;
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const mediaLabel =
     item.mediaType === "video"
@@ -1285,11 +1291,15 @@ function ContentCard({
     >
       <Link className="block" href={href}>
         <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b] sm:aspect-[9/14]">
-          {item.primaryVideoUrl && showVideoPreview && !isLocked ? (
+          {shouldShowVideoPreview && item.primaryVideoUrl ? (
             <FanletterAutoplayVideo
               ariaHidden
-              className="absolute inset-0 h-full w-full object-cover"
-              poster={item.coverImageUrl ?? undefined}
+              className={cn(
+                "absolute inset-0 h-full w-full object-cover",
+                shouldBlurMedia &&
+                  "scale-[1.06] blur-md brightness-[0.76] saturate-[0.9]",
+              )}
+              poster={videoPosterUrl}
               src={item.primaryVideoUrl}
             />
           ) : item.coverImageUrl ? (
