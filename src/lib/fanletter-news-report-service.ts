@@ -128,15 +128,59 @@ function getContentMaturityRating(
   return post.contentMaturityRating === "nsfw" ? "nsfw" : "general";
 }
 
-function getCoverImageUrl(
-  post: ContentPostDocument,
-  maturityRating: ContentMaturityRating,
-) {
-  if (maturityRating === "nsfw") {
-    return null;
+function getCoverImageUrl(post: ContentPostDocument) {
+  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+}
+
+async function hydrateFanletterNewsReportCoverImageUrls<
+  T extends FanletterNewsReportDocument,
+>(reports: T[]) {
+  const missingCoverContentIds = [
+    ...new Set(
+      reports
+        .filter((report) => !report.coverImageUrl)
+        .map((report) => report.contentId)
+        .filter(Boolean),
+    ),
+  ];
+
+  if (missingCoverContentIds.length === 0) {
+    return reports;
   }
 
-  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+  const postsCollection = await getContentPostsCollection();
+  const posts = await postsCollection
+    .find(
+      {
+        contentId: { $in: missingCoverContentIds },
+      },
+      {
+        projection: {
+          contentId: 1,
+          contentImageUrls: 1,
+          coverImageUrl: 1,
+        },
+      },
+    )
+    .toArray();
+  const coverImageUrlByContentId = new Map(
+    posts
+      .map((post) => [post.contentId, getCoverImageUrl(post)] as const)
+      .filter((entry): entry is readonly [string, string] => Boolean(entry[1])),
+  );
+
+  return reports.map((report) => {
+    const coverImageUrl = coverImageUrlByContentId.get(report.contentId);
+
+    if (!coverImageUrl) {
+      return report;
+    }
+
+    return {
+      ...report,
+      coverImageUrl,
+    } as T;
+  });
 }
 
 function getCreatorName(
@@ -543,7 +587,7 @@ export async function getOrCreateFanletterNewsReport({
     body: payload.body,
     contentId: post.contentId,
     contentMaturityRating,
-    coverImageUrl: getCoverImageUrl(post, contentMaturityRating),
+    coverImageUrl: getCoverImageUrl(post),
     createdAt: now,
     creatorName,
     creatorReferralCode: normalizeReferralCode(
@@ -605,10 +649,14 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
 
   const reportsCollection = await getFanletterNewsReportsCollection();
 
-  return reportsCollection.findOne({
+  const report = await reportsCollection.findOne({
     reportId: normalizedReportId,
     status: "published",
   });
+
+  return report
+    ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
+    : null;
 });
 
 export const getLatestFanletterNewsReports = cache(
@@ -621,7 +669,7 @@ export const getLatestFanletterNewsReports = cache(
   }) => {
     const reportsCollection = await getFanletterNewsReportsCollection();
 
-    return reportsCollection
+    const reports = await reportsCollection
       .find({
         locale,
         status: "published",
@@ -629,6 +677,8 @@ export const getLatestFanletterNewsReports = cache(
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
       .limit(Math.max(1, Math.min(limit, 48)))
       .toArray();
+
+    return hydrateFanletterNewsReportCoverImageUrls(reports);
   },
 );
 
@@ -738,10 +788,12 @@ export const getRelatedFanletterNewsReports = cache(
         : {}),
     };
 
-    return reportsCollection
+    const reports = await reportsCollection
       .find(query)
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
       .limit(Math.max(1, Math.min(limit, 8)))
       .toArray();
+
+    return hydrateFanletterNewsReportCoverImageUrls(reports);
   },
 );
