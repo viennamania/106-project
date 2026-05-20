@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import {
   AlertTriangle,
   Clapperboard,
+  Coins,
   FileText,
   LockKeyhole,
   MessageCircleHeart,
@@ -16,9 +17,15 @@ import {
 
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
-import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
+import {
+  FanletterPaidUnlockPanel,
+  FanletterPaidUnlockTrigger,
+} from "@/components/fanletter-paid-unlock-panel";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
-import type { FanletterNewsReportDocument } from "@/lib/content";
+import {
+  CONTENT_PAID_USDT_AMOUNT,
+  type FanletterNewsReportDocument,
+} from "@/lib/content";
 import {
   getFanletterPublicContentDetail,
   type FanletterPublicContentDetail,
@@ -75,7 +82,10 @@ function getCopy(locale: Locale) {
         edition: "AI 캐릭터와 팬 참여를 다루는 FanLetter 온라인 뉴스",
         embeddedLocked:
           "잠금 콘텐츠는 공개 티저와 기사 작성 가능한 정보만 뉴스 화면에 표시됩니다.",
+        embeddedLockedPaid: (amount: string) =>
+          `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
         embeddedTitle: "빌트인 원본 브이로그",
+        embeddedUnlockCta: "결제하고 원본 보기",
         generated: "AI 생성",
         publishedLabel: "기사입력",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스"],
@@ -138,7 +148,10 @@ function getCopy(locale: Locale) {
         edition: "FanLetter online news for AI characters and fan participation",
         embeddedLocked:
           "Locked content is represented with public teaser details available for the news page.",
+        embeddedLockedPaid: (amount: string) =>
+          `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
         embeddedTitle: "Built-in source vlog",
+        embeddedUnlockCta: "Pay and watch source",
         generated: "AI generated",
         publishedLabel: "Published",
         navItems: ["AI characters", "Fan reports", "Vlog news"],
@@ -495,12 +508,18 @@ function SourceVlogEmbed({
   accessLabel,
   blurred,
   copy,
+  isPaidContent,
+  paidUnlockHref,
+  priceUsdt,
   reportCoverImageUrl,
   sourceContent,
 }: {
   accessLabel: string;
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
+  isPaidContent: boolean;
+  paidUnlockHref: string | null;
+  priceUsdt: string | null;
   reportCoverImageUrl: string | null;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
@@ -511,7 +530,15 @@ function SourceVlogEmbed({
     sourceContent?.contentImageUrls[0] ??
     reportCoverImageUrl;
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
-  const noticeMessage = blurred ? copy.nsfwBlurNotice : copy.embeddedLocked;
+  const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
+  const paidUnlockLabel = `${paidUnlockAmount} USDT`;
+  const shouldShowPaidUnlockCta =
+    isPaidContent && !sourceContent?.canViewerAccess && !blurred;
+  const noticeMessage = blurred
+    ? copy.nsfwBlurNotice
+    : shouldShowPaidUnlockCta
+      ? copy.embeddedLockedPaid(paidUnlockLabel)
+      : copy.embeddedLocked;
 
   return (
     <section className="mt-7 border-y border-black/12 py-5">
@@ -546,6 +573,17 @@ function SourceVlogEmbed({
                 <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
                   {noticeMessage}
                 </p>
+                {shouldShowPaidUnlockCta && paidUnlockHref ? (
+                  <FanletterPaidUnlockTrigger
+                    className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                    href={paidUnlockHref}
+                  >
+                    <Coins className="size-4" />
+                    <span>
+                      {paidUnlockLabel} {copy.embeddedUnlockCta}
+                    </span>
+                  </FanletterPaidUnlockTrigger>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -905,6 +943,13 @@ export default async function LocalizedFanletterNewsReportPage({
     : "";
   const shouldShowPaidUnlockPanel =
     (sourceContent?.priceType ?? report.priceType) === "paid";
+  const paidUnlockSectionId = "fanletter-news-paid-unlock";
+  const paidUnlockAmount =
+    sourceContent?.priceUsdt ??
+    (shouldShowPaidUnlockPanel ? CONTENT_PAID_USDT_AMOUNT : null);
+  const paidUnlockHref = shouldShowPaidUnlockPanel
+    ? `${articleHref}#${paidUnlockSectionId}`
+    : null;
   const facts = [
     { label: copy.sixW.who, value: report.who },
     { label: copy.sixW.when, value: report.when },
@@ -986,43 +1031,49 @@ export default async function LocalizedFanletterNewsReportPage({
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
               copy={copy}
+              isPaidContent={shouldShowPaidUnlockPanel}
+              paidUnlockHref={paidUnlockHref}
+              priceUsdt={paidUnlockAmount}
               reportCoverImageUrl={report.coverImageUrl}
               sourceContent={sourceContent}
             />
 
             {shouldShowPaidUnlockPanel ? (
-              <FanletterPaidUnlockPanel
-                connectHref={walletHref}
-                contentId={report.contentId}
-                contentImageCount={sourceContent?.contentImageCount ?? 0}
-                contentMaturityRating={
-                  sourceContent?.contentMaturityRating ??
-                  report.contentMaturityRating
-                }
-                contentVideoCount={sourceContent?.contentVideoCount ?? 1}
-                creatorHref={creatorHref}
-                currentHref={articleHref}
-                initialBody={
-                  sourceContent?.body ??
-                  report.sourceSummary ??
-                  report.dek
-                }
-                initialCoverImageUrl={
-                  sourceContent?.coverImageUrl ?? report.coverImageUrl
-                }
-                initialSummary={
-                  sourceContent?.summary ??
-                  report.sourceSummary ??
-                  report.dek
-                }
-                initialTitle={sourceContent?.title ?? report.sourceTitle}
-                locale={locale}
-                onboardingHref={paidUnlockOnboardingHref}
-                priceUsdt={sourceContent?.priceUsdt ?? null}
-                referralCode={referralCode}
-                showTeaserPreview={false}
-                trackingSource="fanletter-news-detail"
-              />
+              <div className="scroll-mt-6" id={paidUnlockSectionId}>
+                <FanletterPaidUnlockPanel
+                  autoOpenHash={`#${paidUnlockSectionId}`}
+                  connectHref={walletHref}
+                  contentId={report.contentId}
+                  contentImageCount={sourceContent?.contentImageCount ?? 0}
+                  contentMaturityRating={
+                    sourceContent?.contentMaturityRating ??
+                    report.contentMaturityRating
+                  }
+                  contentVideoCount={sourceContent?.contentVideoCount ?? 1}
+                  creatorHref={creatorHref}
+                  currentHref={articleHref}
+                  initialBody={
+                    sourceContent?.body ??
+                    report.sourceSummary ??
+                    report.dek
+                  }
+                  initialCoverImageUrl={
+                    sourceContent?.coverImageUrl ?? report.coverImageUrl
+                  }
+                  initialSummary={
+                    sourceContent?.summary ??
+                    report.sourceSummary ??
+                    report.dek
+                  }
+                  initialTitle={sourceContent?.title ?? report.sourceTitle}
+                  locale={locale}
+                  onboardingHref={paidUnlockOnboardingHref}
+                  priceUsdt={paidUnlockAmount}
+                  referralCode={referralCode}
+                  showTeaserPreview={false}
+                  trackingSource="fanletter-news-detail"
+                />
+              </div>
             ) : null}
 
             <section className="mt-7 border-y border-black/12 bg-[#f7f7f4] px-4 py-5">

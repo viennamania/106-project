@@ -3,7 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   CheckCircle2,
   Coins,
@@ -67,6 +74,7 @@ type PaidUnlockState = {
 };
 
 type FanletterPaidUnlockPanelProps = {
+  autoOpenHash?: string;
   connectHref: string;
   contentId: string;
   creatorHref: string;
@@ -86,12 +94,58 @@ type FanletterPaidUnlockPanelProps = {
   trackingSource?: string;
 };
 
+const FANLETTER_PAID_UNLOCK_OPEN_EVENT = "fanletter:paid-unlock-open";
+
 const usdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
   client: thirdwebClient,
 });
 const FANLETTER_ACCESS_REQUEST_TIMEOUT_MS = 12000;
+
+function normalizeHashValue(value?: string | null) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  return trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+}
+
+function getHashFromHref(href: string) {
+  const hashIndex = href.indexOf("#");
+
+  return hashIndex >= 0 ? href.slice(hashIndex) : null;
+}
+
+export function FanletterPaidUnlockTrigger({
+  children,
+  className,
+  href,
+}: {
+  children: ReactNode;
+  className?: string;
+  href: string;
+}) {
+  const targetHash = normalizeHashValue(getHashFromHref(href));
+
+  return (
+    <Link
+      className={className}
+      href={href}
+      onClick={() => {
+        window.dispatchEvent(
+          new CustomEvent(FANLETTER_PAID_UNLOCK_OPEN_EVENT, {
+            detail: { hash: targetHash },
+          }),
+        );
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
 
 function formatAddressLabel(address?: string | null) {
   const trimmed = address?.trim();
@@ -340,6 +394,7 @@ function translatePaidUnlockError(message: string, locale: Locale) {
 }
 
 export function FanletterPaidUnlockPanel({
+  autoOpenHash,
   connectHref,
   contentId,
   contentImageCount,
@@ -419,6 +474,10 @@ export function FanletterPaidUnlockPanel({
     status: "idle",
     txHash: null,
   });
+  const normalizedAutoOpenHash = useMemo(
+    () => normalizeHashValue(autoOpenHash),
+    [autoOpenHash],
+  );
   const paidOrderRef = useRef<ContentOrderRecord | null>(null);
   const paidRecipientWalletRef = useRef<string | null>(null);
   const accessLoadKeyRef = useRef<string | null>(null);
@@ -997,6 +1056,55 @@ export function FanletterPaidUnlockPanel({
     }));
     setIsPaymentOpen(true);
   }, [contentId, paidUnlockAmount, referralCode, trackingSource]);
+  const canOpenPaymentModalFromTrigger =
+    !isPaymentOpen &&
+    !isDisconnected &&
+    gateReason !== "connect" &&
+    gateReason !== "signup" &&
+    gateReason !== "network";
+  const openPaymentFromTrigger = useCallback(
+    (targetHash?: string | null) => {
+      if (!normalizedAutoOpenHash || !canOpenPaymentModalFromTrigger) {
+        return;
+      }
+
+      const normalizedTargetHash = normalizeHashValue(targetHash);
+
+      if (normalizedTargetHash !== normalizedAutoOpenHash) {
+        return;
+      }
+
+      openPayment();
+    },
+    [canOpenPaymentModalFromTrigger, normalizedAutoOpenHash, openPayment],
+  );
+
+  useEffect(() => {
+    if (!normalizedAutoOpenHash) {
+      return;
+    }
+
+    const handleHashChange = () => {
+      openPaymentFromTrigger(window.location.hash);
+    };
+    const handleOpenEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{ hash?: string | null }>).detail;
+
+      openPaymentFromTrigger(detail?.hash ?? window.location.hash);
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener(FANLETTER_PAID_UNLOCK_OPEN_EVENT, handleOpenEvent);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      window.removeEventListener(
+        FANLETTER_PAID_UNLOCK_OPEN_EVENT,
+        handleOpenEvent,
+      );
+    };
+  }, [normalizedAutoOpenHash, openPaymentFromTrigger]);
 
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#44f26e]/28 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.24)_100%)] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
