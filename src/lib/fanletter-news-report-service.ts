@@ -304,8 +304,7 @@ function createReporterIdentity({
   return {
     reporterAvatarImageUrl: getReporterAvatarImageUrl(profile, member),
     reporterCharacterName,
-    reporterName:
-      reporterCharacterName ?? getReporterName(reporterReferralCode, locale),
+    reporterName: getReporterName(reporterReferralCode, locale),
   };
 }
 

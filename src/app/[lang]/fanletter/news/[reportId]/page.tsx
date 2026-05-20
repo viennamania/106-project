@@ -176,6 +176,18 @@ function getArticleDisplayTitle(title: string) {
   return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
+function getReporterDisplayName(report: FanletterNewsReportDocument) {
+  const reporterId = report.reporterReferralCode.trim();
+
+  if (!reporterId) {
+    return report.reporterName;
+  }
+
+  return report.locale === "ko"
+    ? `${reporterId} 팬 기자`
+    : `Fan reporter ${reporterId}`;
+}
+
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
@@ -266,10 +278,7 @@ function ReporterByline({
   report: FanletterNewsReportDocument;
   reporterProfile: FanletterNewsReporterProfile | null;
 }) {
-  const reporterDisplayName =
-    reporterProfile?.displayName.trim() ||
-    report.reporterCharacterName?.trim() ||
-    report.reporterName;
+  const reporterDisplayName = getReporterDisplayName(report);
   const reporterAvatarImageUrl =
     reporterProfile?.avatarImageUrl ?? report.reporterAvatarImageUrl ?? null;
   const reporterInitial =
@@ -566,7 +575,7 @@ function RelatedNewsList({
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
                     {publishedAt ? <span>{publishedAt}</span> : null}
-                    <span>{report.reporterName}</span>
+                    <span>{getReporterDisplayName(report)}</span>
                   </div>
                 </div>
               </Link>

@@ -132,6 +132,18 @@ function getArticleDisplayTitle(title: string) {
   return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
+function getReporterDisplayName(report: FanletterNewsReportDocument) {
+  const reporterId = report.reporterReferralCode.trim();
+
+  if (!reporterId) {
+    return report.reporterName;
+  }
+
+  return report.locale === "ko"
+    ? `${reporterId} 팬 기자`
+    : `Fan reporter ${reporterId}`;
+}
+
 function getReportHref(
   report: FanletterNewsReportDocument,
   referralCode: string | null,
@@ -172,7 +184,7 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
 
     map.set(report.reporterReferralCode, {
       count: (existing?.count ?? 0) + 1,
-      name: report.reporterName,
+      name: getReporterDisplayName(report),
       referralCode: report.reporterReferralCode,
     });
   }
@@ -395,7 +407,7 @@ function LeadStory({
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold text-black/44">
           <span className="inline-flex items-center gap-1.5">
             <PenLine className="size-3.5 text-[#16702e]" />
-            {report.reporterName}
+            {getReporterDisplayName(report)}
           </span>
           {publishedAt ? (
             <span className="inline-flex items-center gap-1.5">
@@ -460,7 +472,7 @@ function CompactStory({
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-bold text-black/42">
           {publishedAt ? <span>{publishedAt}</span> : null}
-          <span>{report.reporterName}</span>
+          <span>{getReporterDisplayName(report)}</span>
         </div>
       </div>
     </Link>
@@ -516,7 +528,7 @@ function FeatureCard({
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-black/42">
           {publishedAt ? <span>{publishedAt}</span> : null}
-          <span>{report.reporterName}</span>
+          <span>{getReporterDisplayName(report)}</span>
         </div>
       </div>
     </Link>
