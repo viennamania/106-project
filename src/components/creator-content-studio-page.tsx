@@ -55,6 +55,7 @@ import {
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_MAX_BYTES,
+  contentCoverImagePlacements,
   contentCoverGenerationProgressSteps,
   getContentVideoAssetSource,
 } from "@/lib/content";
@@ -66,6 +67,7 @@ import type {
   CreatorCharacterTimelineEvent,
   CreatorCharacterWorldLocation,
   ContentCoverImageCandidate,
+  ContentCoverImagePlacement,
   CreatorProfileAvatarCandidate,
   CreatorProfileAvatarGenerateResponse,
   CreatorProfileRecord,
@@ -323,6 +325,7 @@ function createCoverImageCandidate({
   contentType,
   height = null,
   pathname,
+  placements = [],
   source,
   timestampSec = null,
   url,
@@ -331,6 +334,7 @@ function createCoverImageCandidate({
   contentType: string | null;
   height?: number | null;
   pathname: string | null;
+  placements?: ContentCoverImagePlacement[];
   source: ContentCoverImageCandidate["source"];
   timestampSec?: number | null;
   url: string;
@@ -342,6 +346,7 @@ function createCoverImageCandidate({
     createdAt: new Date().toISOString(),
     height,
     pathname,
+    placements,
     source,
     timestampSec,
     url,
@@ -372,6 +377,27 @@ function getCoverImageCandidateLabel(
   }
 
   return locale === "ko" ? "직접 업로드" : "Manual upload";
+}
+
+function getCoverImagePlacementLabel(
+  placement: ContentCoverImagePlacement,
+  locale: Locale,
+) {
+  const labels: Record<ContentCoverImagePlacement, { en: string; ko: string }> = {
+    detail: { en: "Detail", ko: "상세" },
+    feed: { en: "Feed", ko: "피드" },
+    news: { en: "News", ko: "뉴스" },
+    share: { en: "Share", ko: "공유" },
+  };
+  const label = labels[placement];
+
+  return locale === "ko" ? label.ko : label.en;
+}
+
+function getCoverImagePlacementHelp(locale: Locale) {
+  return locale === "ko"
+    ? "노출 위치를 지정하면 피드, 뉴스, 공유 화면에서 해당 커버를 우선 사용합니다."
+    : "Assign placements to prioritize this cover in feed, news, and share surfaces.";
 }
 
 function createInitialPostForm(
@@ -7966,6 +7992,30 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function toggleCoverImageCandidatePlacement(
+    candidateId: string,
+    placement: ContentCoverImagePlacement,
+  ) {
+    setPostForm((current) => ({
+      ...current,
+      coverImageCandidates: current.coverImageCandidates.map((candidate) => {
+        if (candidate.candidateId !== candidateId) {
+          return candidate;
+        }
+
+        const currentPlacements = candidate.placements ?? [];
+        const nextPlacements = currentPlacements.includes(placement)
+          ? currentPlacements.filter((item) => item !== placement)
+          : [...currentPlacements, placement];
+
+        return {
+          ...candidate,
+          placements: nextPlacements,
+        };
+      }),
+    }));
+  }
+
   function renderComposerCard() {
     const blockedState = renderBlockedState();
     const coverUploadLabel =
@@ -9142,7 +9192,7 @@ export function CreatorContentStudioPage({
                         postForm.coverImageUrl === candidate.url;
 
                       return (
-                        <button
+                        <div
                           className={cn(
                             "group overflow-hidden rounded-lg border bg-white text-left transition",
                             selected
@@ -9150,36 +9200,76 @@ export function CreatorContentStudioPage({
                               : "border-slate-200 hover:border-slate-300",
                           )}
                           key={candidate.candidateId}
-                          onClick={() => {
-                            setPostForm((current) => ({
-                              ...current,
-                              coverImageUrl: candidate.url,
-                            }));
-                          }}
-                          type="button"
                         >
-                          <span
-                            className="block aspect-[16/10] bg-slate-900 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${candidate.url})` }}
-                          />
-                          <span className="block px-2 py-2">
-                            <span className="block truncate text-[0.68rem] font-semibold text-slate-700">
-                              {getCoverImageCandidateLabel(
-                                candidate.source,
-                                locale,
-                              )}
+                          <button
+                            className="block w-full text-left"
+                            onClick={() => {
+                              setPostForm((current) => ({
+                                ...current,
+                                coverImageUrl: candidate.url,
+                              }));
+                            }}
+                            type="button"
+                          >
+                            <span
+                              className="block aspect-[16/10] bg-slate-900 bg-cover bg-center"
+                              style={{ backgroundImage: `url(${candidate.url})` }}
+                            />
+                            <span className="block px-2 py-2">
+                              <span className="block truncate text-[0.68rem] font-semibold text-slate-700">
+                                {getCoverImageCandidateLabel(
+                                  candidate.source,
+                                  locale,
+                                )}
+                              </span>
+                              <span className="mt-0.5 block text-[0.62rem] font-medium text-slate-500">
+                                {selected
+                                  ? locale === "ko"
+                                    ? "대표 선택됨"
+                                    : "Selected"
+                                  : locale === "ko"
+                                    ? "대표로 선택"
+                                    : "Use as cover"}
+                              </span>
                             </span>
-                            <span className="mt-0.5 block text-[0.62rem] font-medium text-slate-500">
-                              {selected
-                                ? locale === "ko"
-                                  ? "대표 선택됨"
-                                  : "Selected"
-                                : locale === "ko"
-                                  ? "대표로 선택"
-                                  : "Use as cover"}
-                            </span>
-                          </span>
-                        </button>
+                          </button>
+                          <div className="border-t border-slate-100 px-2 pb-2 pt-2">
+                            <p className="mb-1 text-[0.6rem] font-medium leading-4 text-slate-500">
+                              {getCoverImagePlacementHelp(locale)}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {contentCoverImagePlacements.map((placement) => {
+                                const active =
+                                  candidate.placements?.includes(placement) ??
+                                  false;
+
+                                return (
+                                  <button
+                                    className={cn(
+                                      "inline-flex h-7 items-center rounded-full border px-2 text-[0.58rem] font-semibold transition",
+                                      active
+                                        ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                                        : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:text-slate-800",
+                                    )}
+                                    key={placement}
+                                    onClick={() => {
+                                      toggleCoverImageCandidatePlacement(
+                                        candidate.candidateId,
+                                        placement,
+                                      );
+                                    }}
+                                    type="button"
+                                  >
+                                    {getCoverImagePlacementLabel(
+                                      placement,
+                                      locale,
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>

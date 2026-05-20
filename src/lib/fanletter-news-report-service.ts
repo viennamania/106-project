@@ -11,6 +11,7 @@ import type {
   CreatorProfileDocument,
   FanletterNewsReportDocument,
 } from "@/lib/content";
+import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -186,7 +187,10 @@ function getContentMaturityRating(
 }
 
 function getCoverImageUrl(post: ContentPostDocument) {
-  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+  return resolveContentCoverImageUrl(post, {
+    fallbackPlacements: ["share", "feed", "detail"],
+    placement: "news",
+  });
 }
 
 async function hydrateFanletterNewsReportCoverImageUrls<
@@ -215,6 +219,7 @@ async function hydrateFanletterNewsReportCoverImageUrls<
         projection: {
           contentId: 1,
           contentImageUrls: 1,
+          coverImageCandidates: 1,
           coverImageUrl: 1,
         },
       },

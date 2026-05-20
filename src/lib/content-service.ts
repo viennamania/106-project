@@ -17,6 +17,7 @@ import {
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
+  contentCoverImagePlacements,
   creatorAvatarExpressions,
   createEmptyContentSocialSummary,
   getContentVideoAssetSource,
@@ -66,6 +67,7 @@ import {
   type CreatorCharacterTimelineEvent,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
+import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import {
   normalizeCreatorCharacterRealismProfile,
 } from "@/lib/fanletter-realism-policy";
@@ -498,9 +500,30 @@ function normalizeNullablePositiveNumber(value: unknown) {
   return Number(value.toFixed(2));
 }
 
+function normalizeCoverImagePlacements(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const allowedPlacements = new Set<string>(contentCoverImagePlacements);
+
+  return Array.from(
+    new Set(
+      value
+        .map((placement) => (typeof placement === "string" ? placement : ""))
+        .filter(
+          (
+            placement,
+          ): placement is (typeof contentCoverImagePlacements)[number] =>
+            allowedPlacements.has(placement),
+        ),
+    ),
+  );
+}
+
 function normalizeCoverImageCandidates(
   values: ContentCoverImageCandidate[] | null | undefined,
-) {
+): ContentCoverImageCandidate[] {
   if (!Array.isArray(values)) {
     return [];
   }
@@ -522,19 +545,22 @@ function normalizeCoverImageCandidates(
         `cover-${randomUUID().replace(/-/g, "").slice(0, 16)}`;
       const createdAt = normalizeDateLike(item?.createdAt).toISOString();
 
-      return {
+      const candidate: ContentCoverImageCandidate = {
         candidateId,
         contentType: normalizeOptionalText(item?.contentType, 80),
         createdAt,
         height: normalizeNullablePositiveNumber(item?.height),
         pathname: normalizeOptionalText(item?.pathname, 500),
+        placements: normalizeCoverImagePlacements(item?.placements),
         source: normalizeCoverImageCandidateSource(item?.source),
         timestampSec: normalizeNullablePositiveNumber(item?.timestampSec),
         url,
         width: normalizeNullablePositiveNumber(item?.width),
-      } satisfies ContentCoverImageCandidate;
+      };
+
+      return candidate;
     })
-    .filter((item): item is ContentCoverImageCandidate => Boolean(item))
+    .filter((item): item is ContentCoverImageCandidate => item !== null)
     .slice(0, CONTENT_COVER_IMAGE_CANDIDATE_LIMIT);
 }
 
@@ -628,6 +654,7 @@ const contentPostUpdateContentFields = [
   "contentImageUrls",
   "contentMaturityRating",
   "contentVideoUrls",
+  "coverImageCandidates",
   "coverImageUrl",
   "fanRequestId",
   "locale",
@@ -755,9 +782,15 @@ function addDecimalStrings(left: string, right: string) {
 }
 
 function resolvePrimaryContentImageUrl(
-  post: Pick<ContentPostDocument, "coverImageUrl" | "contentImageUrls">,
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >,
 ) {
-  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+  return resolveContentCoverImageUrl(post, {
+    fallbackPlacements: ["detail"],
+    placement: "share",
+  });
 }
 
 function hasContentVideo(post: Pick<ContentPostDocument, "contentVideoUrls">) {

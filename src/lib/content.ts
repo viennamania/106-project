@@ -497,6 +497,14 @@ export type ContentAssetDocument = {
 };
 
 export type ContentCoverImageCandidateSource = "ai" | "frame" | "manual";
+export const contentCoverImagePlacements = [
+  "detail",
+  "feed",
+  "news",
+  "share",
+] as const;
+export type ContentCoverImagePlacement =
+  (typeof contentCoverImagePlacements)[number];
 
 export type ContentCoverImageCandidate = {
   candidateId: string;
@@ -504,6 +512,7 @@ export type ContentCoverImageCandidate = {
   createdAt: string;
   height: number | null;
   pathname: string | null;
+  placements?: ContentCoverImagePlacement[];
   source: ContentCoverImageCandidateSource;
   timestampSec: number | null;
   url: string;

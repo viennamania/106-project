@@ -10,6 +10,7 @@ import {
   hasUploadedContentVideoUrl,
   normalizeContentLocale,
 } from "@/lib/content";
+import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
   getContentOrdersCollection,
@@ -846,8 +847,10 @@ function toFeaturedVideo({
     authorReferralCode: post.authorReferralCode || null,
     contentMaturityRating: resolveLandingContentMaturityRating(post),
     contentId: post.contentId,
-    coverImageUrl:
-      post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null,
+    coverImageUrl: resolveContentCoverImageUrl(post, {
+      fallbackPlacements: ["detail", "share"],
+      placement: "feed",
+    }),
     priceLabel: post.priceType,
     priceUsdt: post.priceUsdt ?? null,
     previewText,

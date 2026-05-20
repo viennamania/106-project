@@ -18,6 +18,7 @@ import {
   hasUploadedContentVideoUrl,
   normalizeContentLocale,
 } from "@/lib/content";
+import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { getContentSocialSummaryForViewer } from "@/lib/content-service";
 import {
   buildFanletterCharacterGrowthRecord,
@@ -680,8 +681,15 @@ function getPublicCharacter({
   };
 }
 
-function getCoverImageUrl(post: ContentPostDocument) {
-  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+function getCoverImageUrl(
+  post: ContentPostDocument,
+  placement: "detail" | "feed" = "feed",
+) {
+  return resolveContentCoverImageUrl(post, {
+    fallbackPlacements:
+      placement === "detail" ? ["feed", "share"] : ["detail", "share"],
+    placement,
+  });
 }
 
 function getPrimaryVideoUrl(post: ContentPostDocument) {
@@ -849,11 +857,13 @@ async function getCreatorCommunityStats({
 
 function toPublicContentItem({
   canViewerAccess,
+  coverPlacement = "feed",
   post,
   profile,
   social,
 }: {
   canViewerAccess?: boolean;
+  coverPlacement?: "detail" | "feed";
   post: ContentPostDocument;
   profile: CreatorProfileDocument | null | undefined;
   social?: ContentSocialSummaryRecord;
@@ -869,7 +879,7 @@ function toPublicContentItem({
     contentImageCount: post.contentImageUrls?.length ?? 0,
     contentMaturityRating: resolveFanletterContentMaturityRating(post),
     contentVideoCount: post.contentVideoUrls?.length ?? 0,
-    coverImageUrl: getCoverImageUrl(post),
+    coverImageUrl: getCoverImageUrl(post, coverPlacement),
     mediaType: getMediaType(post),
     previewText: post.previewText?.trim()
       ? compactText(post.previewText, SUMMARY_LIMIT)
@@ -2211,6 +2221,7 @@ export const getFanletterPublicContentDetail = cache(
     return {
       ...toPublicContentItem({
         canViewerAccess,
+        coverPlacement: "detail",
         post,
         profile,
         social,

@@ -12,6 +12,7 @@ import type {
   FanletterFollowedCharactersResponse,
 } from "@/lib/content";
 import { normalizeContentLocale } from "@/lib/content";
+import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
@@ -103,7 +104,10 @@ function getFanletterPublicContentBaseFilter(
 }
 
 function getCoverImageUrl(post: ContentPostDocument) {
-  return post.coverImageUrl ?? post.contentImageUrls?.[0] ?? null;
+  return resolveContentCoverImageUrl(post, {
+    fallbackPlacements: ["detail", "share"],
+    placement: "feed",
+  });
 }
 
 function getPrimaryVideoUrl(post: ContentPostDocument) {
