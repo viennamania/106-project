@@ -20,6 +20,7 @@ import {
   UserRound,
   UsersRound,
   WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -53,6 +54,7 @@ function getCopy(locale: Locale) {
         connectBody:
           "팔로우한 캐릭터 목록은 연결된 FanLetter 계정 기준으로 불러옵니다.",
         connectTitle: "연결 후 팔로우 목록을 확인하세요.",
+        continueWatching: "이어보기",
         emptyBody:
           "마음에 드는 캐릭터 채널에서 팔로우를 누르면 이곳에 최신 브이로그가 모입니다.",
         emptyCta: "캐릭터 둘러보기",
@@ -68,6 +70,7 @@ function getCopy(locale: Locale) {
         homeEyebrow: "Fan home",
         homeTitle: "오늘 이어볼 팬 홈",
         latest: "최신 브이로그",
+        latestUpdated: "최근 업데이트",
         latestFrom: "최신 공개 브이로그",
         loading: "팔로우한 캐릭터를 확인하는 중입니다.",
         messageType: "응원 메시지",
@@ -97,6 +100,9 @@ function getCopy(locale: Locale) {
         noLatest:
           "아직 공개 브이로그가 없으면 캐릭터 채널에서 다음 장면을 먼저 요청할 수 있습니다.",
         openLatest: "최신 브이로그 보기",
+        overviewBody:
+          "팔로우한 캐릭터의 새 브이로그, 팬 요청, 채널 이동을 한 번에 확인합니다.",
+        overviewTitle: "팔로우 현황",
         publicVlogs: "공개 브이로그",
         purchases: "구매함",
         quickActions: "바로 이어가기",
@@ -107,6 +113,7 @@ function getCopy(locale: Locale) {
         requestExamples: ["새로운 룩", "오늘의 장소", "팬 질문 답변"],
         requestQueue: "요청 가능한 캐릭터",
         requestTitle: "다음 브이로그를 요청하세요",
+        spotlight: "업데이트 캐릭터",
         statusNew: "접수됨",
         statusReviewed: "검토 중",
         statusUsed: "제작 완료",
@@ -116,6 +123,7 @@ function getCopy(locale: Locale) {
           "내가 팔로우한 AI 캐릭터의 최신 공개 브이로그, 팬 요청, 채널 이동을 한 화면에서 이어봅니다.",
         title: "팬 홈",
         updated: "업데이트",
+        updatedCharacters: "최근 활동",
         unfollow: "팔로우 해제",
         unfollowError: "팔로우를 해제하지 못했습니다.",
         unfollowing: "해제 중",
@@ -130,6 +138,7 @@ function getCopy(locale: Locale) {
         connectBody:
           "Followed characters are loaded from your connected FanLetter account.",
         connectTitle: "Connect to see your following list.",
+        continueWatching: "Continue watching",
         emptyBody:
           "Follow a character channel you like, then its latest vlogs will appear here.",
         emptyCta: "Browse characters",
@@ -145,6 +154,7 @@ function getCopy(locale: Locale) {
         homeEyebrow: "Fan home",
         homeTitle: "Your fan home today",
         latest: "Latest vlog",
+        latestUpdated: "Recently updated",
         latestFrom: "Latest public vlog",
         loading: "Checking followed characters.",
         messageType: "Message",
@@ -174,6 +184,9 @@ function getCopy(locale: Locale) {
         noLatest:
           "If there is no public vlog yet, open the character channel and request the next scene first.",
         openLatest: "Open latest vlog",
+        overviewBody:
+          "Track new vlogs, fan requests, and channel jumps from followed characters in one view.",
+        overviewTitle: "Following overview",
         publicVlogs: "Public vlogs",
         purchases: "Purchases",
         quickActions: "Continue",
@@ -184,6 +197,7 @@ function getCopy(locale: Locale) {
         requestExamples: ["New look", "Today's place", "Fan Q&A"],
         requestQueue: "Characters open for requests",
         requestTitle: "Request the next vlog",
+        spotlight: "Updated characters",
         statusNew: "Received",
         statusReviewed: "Reviewing",
         statusUsed: "Produced",
@@ -193,6 +207,7 @@ function getCopy(locale: Locale) {
           "Continue into latest public vlogs, fan requests, and channels from AI characters you follow.",
         title: "Fan Home",
         updated: "Updated",
+        updatedCharacters: "Recent activity",
         unfollow: "Unfollow",
         unfollowError: "Could not unfollow this character.",
         unfollowing: "Unfollowing",
@@ -228,6 +243,48 @@ function toTimestamp(value: string | null | undefined) {
 
 function getInitial(name: string) {
   return name.trim().charAt(0).toUpperCase() || "F";
+}
+
+function sortCharactersByLatest(
+  characters: FanletterFollowedCharacterRecord[],
+) {
+  return [...characters].sort(
+    (left, right) =>
+      toTimestamp(right.latestContent?.publishedAt ?? right.updatedAt) -
+      toTimestamp(left.latestContent?.publishedAt ?? left.updatedAt),
+  );
+}
+
+function getCharacterChannelHref({
+  character,
+  locale,
+  referralCode,
+}: {
+  character: FanletterFollowedCharacterRecord;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/creator/${character.referralCode}`,
+    referralCode ?? character.referralCode,
+  );
+}
+
+function getCharacterLatestHref({
+  character,
+  locale,
+  referralCode,
+}: {
+  character: FanletterFollowedCharacterRecord;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return character.latestContent
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/content/${character.latestContent.contentId}`,
+        referralCode ?? character.referralCode,
+      )
+    : getCharacterChannelHref({ character, locale, referralCode });
 }
 
 async function readApiJson<T>(response: Response, fallback: string): Promise<T> {
@@ -278,6 +335,64 @@ function CharacterAvatar({
     >
       {imageUrl ? null : getInitial(name)}
     </span>
+  );
+}
+
+function CharacterCover({
+  character,
+  className = "",
+  sizes,
+}: {
+  character: FanletterFollowedCharacterRecord;
+  className?: string;
+  sizes: string;
+}) {
+  const latest = character.latestContent;
+
+  if (latest?.primaryVideoUrl) {
+    return (
+      <FanletterAutoplayVideo
+        ariaHidden
+        className={`absolute inset-0 h-full w-full object-cover ${className}`}
+        poster={latest.coverImageUrl ?? undefined}
+        src={latest.primaryVideoUrl}
+      />
+    );
+  }
+
+  if (latest?.coverImageUrl) {
+    return (
+      <Image
+        alt=""
+        aria-hidden="true"
+        className={`object-cover ${className}`}
+        fill
+        sizes={sizes}
+        src={latest.coverImageUrl}
+      />
+    );
+  }
+
+  if (character.avatarImageUrl) {
+    return (
+      <Image
+        alt=""
+        aria-hidden="true"
+        className={`object-cover object-top ${className}`}
+        fill
+        sizes={sizes}
+        src={character.avatarImageUrl}
+      />
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#111b15_52%,#1b2d22)] text-white/72">
+      <Clapperboard className="size-12 text-[#44f26e]" />
+      <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+        FanLetter
+      </span>
+    </div>
   );
 }
 
@@ -357,6 +472,96 @@ function FollowingHeader({
   );
 }
 
+function FollowingHeroPreview({
+  characters,
+  locale,
+  referralCode,
+}: {
+  characters: FanletterFollowedCharacterRecord[];
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const previewCharacters = sortCharactersByLatest(characters).slice(0, 3);
+  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+  const hasPreviewCharacters = previewCharacters.length > 0;
+
+  return (
+    <aside className="hidden min-w-0 lg:block">
+      <div className="border border-white/12 bg-white/[0.045] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur">
+        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+          <div>
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.updatedCharacters}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-white/72">
+              {hasPreviewCharacters
+                ? `${formatNumber(characters.length, locale)} ${copy.followingCount}`
+                : copy.homeTitle}
+            </p>
+          </div>
+          <Sparkles className="size-5 text-[#44f26e]" />
+        </div>
+        <div className="grid gap-2">
+          {hasPreviewCharacters ? (
+            previewCharacters.map((character, index) => {
+              const latest = character.latestContent;
+              const href = getCharacterLatestHref({
+                character,
+                locale,
+                referralCode,
+              });
+
+              return (
+                <Link
+                  className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 border border-white/10 bg-black/22 p-2 transition hover:border-[#44f26e]/42 hover:bg-black/32"
+                  href={href}
+                  key={character.referralCode}
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b]">
+                    <CharacterCover
+                      character={character}
+                      className="transition duration-500 group-hover:scale-[1.03]"
+                      sizes="6rem"
+                    />
+                    <span className="absolute left-1.5 top-1.5 flex size-6 items-center justify-center bg-[#44f26e] text-xs font-semibold text-black">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="min-w-0 self-center">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {character.characterName}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/54">
+                      {latest?.title ?? character.characterSummary}
+                    </p>
+                    <p className="mt-2 text-[0.68rem] font-semibold text-[#44f26e]">
+                      {copy.continueWatching}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="border border-white/10 bg-black/20 p-5">
+              <p className="text-sm font-semibold leading-6 text-white/58">
+                {copy.summary}
+              </p>
+              <Link
+                className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                href={feedHref}
+              >
+                {copy.allFeed}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function FollowedCharacterCard({
   character,
   isUpdating,
@@ -371,16 +576,8 @@ function FollowedCharacterCard({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const channelHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${character.referralCode}`,
-    referralCode ?? character.referralCode,
-  );
-  const latestHref = character.latestContent
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/content/${character.latestContent.contentId}`,
-        referralCode ?? character.referralCode,
-      )
-    : channelHref;
+  const channelHref = getCharacterChannelHref({ character, locale, referralCode });
+  const latestHref = getCharacterLatestHref({ character, locale, referralCode });
   const latest = character.latestContent;
   const metrics = [
     {
@@ -397,30 +594,11 @@ function FollowedCharacterCard({
     <article className="overflow-hidden rounded-lg border border-black/10 bg-white text-black shadow-[0_18px_44px_rgba(8,18,12,0.1)]">
       <Link className="group block" href={latestHref}>
         <div className="relative aspect-[9/13] overflow-hidden bg-[#07100b]">
-          {latest?.primaryVideoUrl ? (
-            <FanletterAutoplayVideo
-              ariaHidden
-              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-              poster={latest.coverImageUrl ?? undefined}
-              src={latest.primaryVideoUrl}
-            />
-          ) : latest?.coverImageUrl ? (
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="object-cover transition duration-500 group-hover:scale-[1.025]"
-              fill
-              sizes="(max-width: 640px) 100vw, 26vw"
-              src={latest.coverImageUrl}
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#111b15_52%,#1b2d22)] text-white/72">
-              <Clapperboard className="size-14 text-[#44f26e]" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-                FanLetter
-              </span>
-            </div>
-          )}
+          <CharacterCover
+            character={character}
+            className="transition duration-500 group-hover:scale-[1.025]"
+            sizes="(max-width: 640px) 100vw, 26vw"
+          />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_46%,rgba(0,0,0,0.82)_100%)]" />
           <div className="absolute left-3 right-3 top-3 flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
@@ -532,6 +710,151 @@ function FollowedCharacterCard({
   );
 }
 
+function FanHomeOverview({
+  characters,
+  locale,
+  referralCode,
+  stats,
+}: {
+  characters: FanletterFollowedCharacterRecord[];
+  locale: Locale;
+  referralCode: string | null;
+  stats: Array<{
+    icon: LucideIcon;
+    label: string;
+    value: number;
+  }>;
+}) {
+  const copy = getCopy(locale);
+  const sortedCharacters = sortCharactersByLatest(characters);
+  const latestCharacter = sortedCharacters[0] ?? null;
+  const latestHref = latestCharacter
+    ? getCharacterLatestHref({
+        character: latestCharacter,
+        locale,
+        referralCode,
+      })
+    : buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
+
+  return (
+    <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <div className="border border-black/10 bg-white p-5 shadow-[0_18px_44px_rgba(8,18,12,0.1)] sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#1f7c38]">
+              {copy.homeEyebrow}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+              {copy.overviewTitle}
+            </h2>
+            <p className="mt-3 text-sm font-medium leading-6 text-black/58">
+              {copy.overviewBody}
+            </p>
+          </div>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+            <Heart className="size-5" />
+          </span>
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+
+            return (
+              <div
+                className="border border-black/10 bg-[#f6f8f4] p-3"
+                key={stat.label}
+              >
+                <Icon className="size-4 text-[#1f7c38]" />
+                <p className="mt-3 text-2xl font-semibold leading-none">
+                  {formatNumber(stat.value, locale)}
+                </p>
+                <p className="mt-2 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-black/42">
+                  {stat.label}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid gap-3 border border-black/10 bg-[#07100b] p-3 text-white shadow-[0_18px_44px_rgba(8,18,12,0.12)] sm:grid-cols-[minmax(0,1fr)_minmax(13rem,0.62fr)]">
+        {latestCharacter ? (
+          <Link
+            className="group grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border border-white/10 bg-white/[0.045] p-3 transition hover:border-[#44f26e]/42 hover:bg-white/[0.07]"
+            href={latestHref}
+          >
+            <div className="relative aspect-[4/5] overflow-hidden bg-black">
+              <CharacterCover
+                character={latestCharacter}
+                className="transition duration-500 group-hover:scale-[1.03]"
+                sizes="8rem"
+              />
+            </div>
+            <div className="min-w-0 self-center">
+              <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                {copy.latestUpdated}
+              </p>
+              <h3 className="mt-2 line-clamp-2 break-words text-xl font-semibold leading-tight [overflow-wrap:anywhere]">
+                {latestCharacter.latestContent?.title ??
+                  latestCharacter.characterName}
+              </h3>
+              <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/56">
+                {latestCharacter.characterSummary}
+              </p>
+              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#44f26e]">
+                {copy.continueWatching}
+                <ArrowRight className="size-4" />
+              </span>
+            </div>
+          </Link>
+        ) : null}
+
+        <div className="border border-white/10 bg-black/18 p-4">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+            {copy.spotlight}
+          </p>
+          <div className="mt-4 grid gap-2">
+            {sortedCharacters.slice(0, 5).map((character) => {
+              const channelHref = getCharacterChannelHref({
+                character,
+                locale,
+                referralCode,
+              });
+
+              return (
+                <Link
+                  className="group flex min-w-0 items-center gap-3 border border-white/10 bg-white/[0.045] p-2 transition hover:border-[#44f26e]/42"
+                  href={channelHref}
+                  key={character.referralCode}
+                >
+                  <CharacterAvatar
+                    imageUrl={character.avatarImageUrl}
+                    name={character.characterName}
+                    sizeClassName="size-10"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {character.characterName}
+                    </p>
+                    <p className="mt-1 truncate text-xs font-medium text-white/42">
+                      {formatDate(
+                        character.latestContent?.publishedAt ??
+                          character.updatedAt,
+                        locale,
+                      ) ?? character.referralCode}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-4 shrink-0 text-white/30 transition group-hover:text-[#44f26e]" />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FanHomeDashboard({
   characters,
   locale,
@@ -542,11 +865,7 @@ function FanHomeDashboard({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const sortedByLatest = [...characters].sort(
-    (left, right) =>
-      toTimestamp(right.latestContent?.publishedAt ?? right.updatedAt) -
-      toTimestamp(left.latestContent?.publishedAt ?? left.updatedAt),
-  );
+  const sortedByLatest = sortCharactersByLatest(characters);
   const featured = sortedByLatest[0] ?? characters[0];
 
   if (!featured) {
@@ -554,17 +873,17 @@ function FanHomeDashboard({
   }
 
   const latest = featured.latestContent;
-  const channelHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${featured.referralCode}`,
-    referralCode ?? featured.referralCode,
-  );
+  const channelHref = getCharacterChannelHref({
+    character: featured,
+    locale,
+    referralCode,
+  });
   const requestHref = `${channelHref}#fan-requests`;
-  const watchHref = latest
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/content/${latest.contentId}`,
-        referralCode ?? featured.referralCode,
-      )
-    : channelHref;
+  const watchHref = getCharacterLatestHref({
+    character: featured,
+    locale,
+    referralCode,
+  });
   const feedHref = buildPathWithReferral(
     `/${locale}/fanletter/feed`,
     referralCode,
@@ -611,30 +930,11 @@ function FanHomeDashboard({
       <article className="overflow-hidden rounded-lg bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)]">
         <div className="grid min-h-[26rem] md:grid-cols-[minmax(0,0.72fr)_minmax(0,0.88fr)]">
           <Link className="group relative min-h-[22rem] bg-black" href={watchHref}>
-            {latest?.primaryVideoUrl ? (
-              <FanletterAutoplayVideo
-                ariaHidden
-                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-                poster={latest.coverImageUrl ?? undefined}
-                src={latest.primaryVideoUrl}
-              />
-            ) : latest?.coverImageUrl ? (
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="object-cover transition duration-500 group-hover:scale-[1.025]"
-                fill
-                sizes="(max-width: 768px) 100vw, 42vw"
-                src={latest.coverImageUrl}
-              />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#102015_58%,#1b2d22)] text-white/70">
-                <Clapperboard className="size-14 text-[#44f26e]" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-                  FanLetter
-                </span>
-              </div>
-            )}
+            <CharacterCover
+              character={featured}
+              className="transition duration-500 group-hover:scale-[1.025]"
+              sizes="(max-width: 768px) 100vw, 42vw"
+            />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.16)_48%,rgba(0,0,0,0.76)_100%)]" />
             <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black">
               <PlayCircle className="size-3.5" />
@@ -1111,13 +1411,8 @@ function LatestVlogStrip({
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
-  const items = characters
+  const items = sortCharactersByLatest(characters)
     .filter((character) => character.latestContent)
-    .sort(
-      (left, right) =>
-        toTimestamp(right.latestContent?.publishedAt ?? right.updatedAt) -
-        toTimestamp(left.latestContent?.publishedAt ?? left.updatedAt),
-    )
     .slice(0, 6);
 
   if (items.length === 0) {
@@ -1134,15 +1429,11 @@ function LatestVlogStrip({
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((character) => {
           const latest = character.latestContent;
-          const href = latest
-            ? buildPathWithReferral(
-                `/${locale}/fanletter/content/${latest.contentId}`,
-                referralCode ?? character.referralCode,
-              )
-            : buildPathWithReferral(
-                `/${locale}/fanletter/creator/${character.referralCode}`,
-                referralCode ?? character.referralCode,
-              );
+          const href = getCharacterLatestHref({
+            character,
+            locale,
+            referralCode,
+          });
 
           return (
             <Link
@@ -1151,27 +1442,11 @@ function LatestVlogStrip({
               key={character.referralCode}
             >
               <div className="relative aspect-[9/14] overflow-hidden rounded-lg bg-[#07100b]">
-                {latest?.primaryVideoUrl ? (
-                  <FanletterAutoplayVideo
-                    ariaHidden
-                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-                    poster={latest.coverImageUrl ?? undefined}
-                    src={latest.primaryVideoUrl}
-                  />
-                ) : latest?.coverImageUrl ? (
-                  <Image
-                    alt=""
-                    aria-hidden="true"
-                    className="object-cover transition duration-500 group-hover:scale-[1.025]"
-                    fill
-                    sizes="6rem"
-                    src={latest.coverImageUrl}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#101820] text-white/52">
-                    <VideoFallbackIcon />
-                  </div>
-                )}
+                <CharacterCover
+                  character={character}
+                  className="transition duration-500 group-hover:scale-[1.025]"
+                  sizes="6rem"
+                />
               </div>
               <div className="min-w-0 self-center">
                 <p className="truncate text-sm font-semibold text-[#1f7c38]">
@@ -1190,10 +1465,6 @@ function LatestVlogStrip({
       </div>
     </section>
   );
-}
-
-function VideoFallbackIcon() {
-  return <PlayCircle className="size-8 text-[#44f26e]" />;
 }
 
 function StatePanel({
@@ -1633,43 +1904,50 @@ export function FanletterFollowingPage({
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <FollowingHeader locale={locale} referralCode={referralCode} />
-          <div className="pt-14 sm:pt-24">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
-              {copy.eyebrow}
-            </p>
-            <h1 className="mt-4 max-w-5xl text-[2.6rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]">
-              {copy.title}
-            </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
-              {copy.summary}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-2">
-              <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={feedHref}
-              >
-                <Sparkles className="size-4" />
-                {copy.allFeed}
-              </Link>
-              <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-                href={purchasesHref}
-              >
-                <BadgeCheck className="size-4" />
-                {copy.purchases}
-              </Link>
-              <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/8"
-                onClick={() => {
-                  void loadReceiptRequests();
-                  void loadFollowing();
-                }}
-                type="button"
-              >
-                <RefreshCw className="size-4" />
-                {copy.retry}
-              </button>
+          <div className="grid gap-8 pt-12 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.42fr)] lg:items-end">
+            <div className="min-w-0">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
+                {copy.eyebrow}
+              </p>
+              <h1 className="mt-4 max-w-5xl text-[2.6rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]">
+                {copy.title}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+                {copy.summary}
+              </p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <Link
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
+                  href={feedHref}
+                >
+                  <Sparkles className="size-4" />
+                  {copy.allFeed}
+                </Link>
+                <Link
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
+                  href={purchasesHref}
+                >
+                  <BadgeCheck className="size-4" />
+                  {copy.purchases}
+                </Link>
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/8"
+                  onClick={() => {
+                    void loadReceiptRequests();
+                    void loadFollowing();
+                  }}
+                  type="button"
+                >
+                  <RefreshCw className="size-4" />
+                  {copy.retry}
+                </button>
+              </div>
             </div>
+            <FollowingHeroPreview
+              characters={characters}
+              locale={locale}
+              referralCode={referralCode}
+            />
           </div>
         </div>
       </section>
@@ -1786,6 +2064,12 @@ export function FanletterFollowingPage({
                   {actionError}
                 </p>
               ) : null}
+              <FanHomeOverview
+                characters={characters}
+                locale={locale}
+                referralCode={referralCode}
+                stats={stats}
+              />
               <FanHomeDashboard
                 characters={characters}
                 locale={locale}
@@ -1815,26 +2099,6 @@ export function FanletterFollowingPage({
                 requests={trackedFanRequests}
                 status={trackedFanRequestStatus}
               />
-              <div className="mb-8 grid gap-3 md:grid-cols-3">
-                {stats.map((stat) => {
-                  const Icon = stat.icon;
-
-                  return (
-                    <div
-                      className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_14px_34px_rgba(8,18,12,0.08)]"
-                      key={stat.label}
-                    >
-                      <Icon className="size-5 text-[#1f7c38]" />
-                      <p className="mt-4 text-3xl font-semibold leading-none">
-                        {formatNumber(stat.value, locale)}
-                      </p>
-                      <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-black/42">
-                        {stat.label}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
 
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold tracking-normal">
