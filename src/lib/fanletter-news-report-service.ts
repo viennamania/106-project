@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { cache } from "react";
+import type { Filter } from "mongodb";
 
 import type {
   ContentMaturityRating,
@@ -91,6 +92,51 @@ export type FanletterNewsReporterProfile = {
   reportCount: number;
   status: MemberStatus | null;
 };
+
+export type FanletterNewsReporterBackfillInput = {
+  limit?: number;
+  locale?: string | null;
+  reporterReferralCode?: string | null;
+  reportId?: string | null;
+  write?: boolean;
+};
+
+export type FanletterNewsReporterBackfillItem = {
+  action: "failed" | "unchanged" | "updated" | "would_update";
+  nextReporterAvatarImageUrl: string | null;
+  nextReporterCharacterName: string | null;
+  nextReporterName: string;
+  previousReporterAvatarImageUrl: string | null;
+  previousReporterCharacterName: string | null;
+  previousReporterName: string;
+  reportId: string;
+  reporterReferralCode: string;
+  title: string;
+  updates: Array<
+    "reporterAvatarImageUrl" | "reporterCharacterName" | "reporterName"
+  >;
+  error?: string;
+};
+
+export type FanletterNewsReporterBackfillResult = {
+  dryRun: boolean;
+  failed: number;
+  items: FanletterNewsReporterBackfillItem[];
+  limit: number;
+  scanned: number;
+  unchanged: number;
+  updated: number;
+  wouldUpdate: number;
+};
+
+type FanletterNewsReporterIdentity = {
+  reporterAvatarImageUrl: string | null;
+  reporterCharacterName: string | null;
+  reporterName: string;
+};
+
+const DEFAULT_REPORTER_BACKFILL_LIMIT = 100;
+const MAX_REPORTER_BACKFILL_LIMIT = 500;
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.replace(/\s+/g, " ").trim().slice(0, limit) ?? "";
@@ -252,7 +298,7 @@ function createReporterIdentity({
     "avatarImageSet" | "avatarImageUrl" | "characterPersona" | "displayName"
   > | null;
   reporterReferralCode: string;
-}) {
+}): FanletterNewsReporterIdentity {
   const reporterCharacterName = getReporterCharacterName(profile, member);
 
   return {
@@ -261,6 +307,57 @@ function createReporterIdentity({
     reporterName:
       reporterCharacterName ?? getReporterName(reporterReferralCode, locale),
   };
+}
+
+function getReporterIdentityUpdates(
+  report: Pick<
+    FanletterNewsReportDocument,
+    | "reporterAvatarImageUrl"
+    | "reporterCharacterName"
+    | "reporterName"
+  >,
+  reporterIdentity: FanletterNewsReporterIdentity,
+) {
+  const reporterUpdates: Partial<FanletterNewsReportDocument> = {};
+
+  if (report.reporterName !== reporterIdentity.reporterName) {
+    reporterUpdates.reporterName = reporterIdentity.reporterName;
+  }
+
+  if (
+    (report.reporterCharacterName ?? null) !==
+    reporterIdentity.reporterCharacterName
+  ) {
+    reporterUpdates.reporterCharacterName =
+      reporterIdentity.reporterCharacterName;
+  }
+
+  if (
+    (report.reporterAvatarImageUrl ?? null) !==
+    reporterIdentity.reporterAvatarImageUrl
+  ) {
+    reporterUpdates.reporterAvatarImageUrl =
+      reporterIdentity.reporterAvatarImageUrl;
+  }
+
+  return reporterUpdates;
+}
+
+function getReporterUpdateFields(
+  updates: Partial<FanletterNewsReportDocument>,
+): FanletterNewsReporterBackfillItem["updates"] {
+  return [
+    updates.reporterAvatarImageUrl !== undefined
+      ? "reporterAvatarImageUrl"
+      : null,
+    updates.reporterCharacterName !== undefined
+      ? "reporterCharacterName"
+      : null,
+    updates.reporterName !== undefined ? "reporterName" : null,
+  ].filter(
+    (field): field is FanletterNewsReporterBackfillItem["updates"][number] =>
+      Boolean(field),
+  );
 }
 
 async function getReporterIdentitySnapshot({
@@ -667,27 +764,10 @@ export async function getOrCreateFanletterNewsReport({
   });
 
   if (existing) {
-    const reporterUpdates: Partial<FanletterNewsReportDocument> = {};
-
-    if (existing.reporterName !== reporterIdentity.reporterName) {
-      reporterUpdates.reporterName = reporterIdentity.reporterName;
-    }
-
-    if (
-      (existing.reporterCharacterName ?? null) !==
-      reporterIdentity.reporterCharacterName
-    ) {
-      reporterUpdates.reporterCharacterName =
-        reporterIdentity.reporterCharacterName;
-    }
-
-    if (
-      (existing.reporterAvatarImageUrl ?? null) !==
-      reporterIdentity.reporterAvatarImageUrl
-    ) {
-      reporterUpdates.reporterAvatarImageUrl =
-        reporterIdentity.reporterAvatarImageUrl;
-    }
+    const reporterUpdates = getReporterIdentityUpdates(
+      existing,
+      reporterIdentity,
+    );
 
     if (Object.keys(reporterUpdates).length === 0) {
       return existing;
@@ -819,6 +899,181 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
     ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
     : null;
 });
+
+function normalizeBackfillLimit(limit: number | undefined) {
+  if (!Number.isFinite(limit) || !limit || limit <= 0) {
+    return DEFAULT_REPORTER_BACKFILL_LIMIT;
+  }
+
+  return Math.min(Math.floor(limit), MAX_REPORTER_BACKFILL_LIMIT);
+}
+
+function buildReporterBackfillFilter(
+  input: FanletterNewsReporterBackfillInput,
+) {
+  const filter: Filter<FanletterNewsReportDocument> = {
+    status: "published",
+  };
+  const normalizedLocale =
+    input.locale && hasLocale(input.locale)
+      ? normalizeContentLocale(input.locale)
+      : null;
+  const reporterReferralCode = normalizeReferralCode(
+    input.reporterReferralCode,
+  );
+  const reportId = trimToLength(input.reportId, 120);
+
+  if (normalizedLocale) {
+    filter.locale = normalizedLocale;
+  }
+
+  if (reporterReferralCode) {
+    filter.reporterReferralCode = reporterReferralCode;
+  }
+
+  if (reportId) {
+    filter.reportId = reportId;
+  }
+
+  if (!reportId && !reporterReferralCode) {
+    filter.$or = [
+      { reporterAvatarImageUrl: { $exists: false } },
+      { reporterCharacterName: { $exists: false } },
+      { reporterName: { $regex: "( 팬 기자$)|(^Fan reporter )" } },
+    ];
+  }
+
+  return filter;
+}
+
+function createReporterBackfillItem({
+  action,
+  error,
+  report,
+  reporterIdentity,
+  updates,
+}: {
+  action: FanletterNewsReporterBackfillItem["action"];
+  error?: string;
+  report: FanletterNewsReportDocument;
+  reporterIdentity: FanletterNewsReporterIdentity;
+  updates: Partial<FanletterNewsReportDocument>;
+}): FanletterNewsReporterBackfillItem {
+  return {
+    action,
+    error,
+    nextReporterAvatarImageUrl: reporterIdentity.reporterAvatarImageUrl,
+    nextReporterCharacterName: reporterIdentity.reporterCharacterName,
+    nextReporterName: reporterIdentity.reporterName,
+    previousReporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+    previousReporterCharacterName: report.reporterCharacterName ?? null,
+    previousReporterName: report.reporterName,
+    reporterReferralCode: report.reporterReferralCode,
+    reportId: report.reportId,
+    title: report.title,
+    updates: getReporterUpdateFields(updates),
+  };
+}
+
+export async function backfillFanletterNewsReporterProfiles(
+  input: FanletterNewsReporterBackfillInput = {},
+): Promise<FanletterNewsReporterBackfillResult> {
+  const dryRun = !input.write;
+  const limit = normalizeBackfillLimit(input.limit);
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const reports = await reportsCollection
+    .find(buildReporterBackfillFilter(input))
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .limit(limit)
+    .toArray();
+  const result: FanletterNewsReporterBackfillResult = {
+    dryRun,
+    failed: 0,
+    items: [],
+    limit,
+    scanned: reports.length,
+    unchanged: 0,
+    updated: 0,
+    wouldUpdate: 0,
+  };
+
+  for (const report of reports) {
+    try {
+      const reporterIdentity = await getReporterIdentitySnapshot({
+        locale: report.locale,
+        reporterReferralCode: report.reporterReferralCode,
+      });
+      const updates = getReporterIdentityUpdates(report, reporterIdentity);
+
+      if (Object.keys(updates).length === 0) {
+        result.unchanged += 1;
+        result.items.push(
+          createReporterBackfillItem({
+            action: "unchanged",
+            report,
+            reporterIdentity,
+            updates,
+          }),
+        );
+        continue;
+      }
+
+      if (dryRun) {
+        result.wouldUpdate += 1;
+        result.items.push(
+          createReporterBackfillItem({
+            action: "would_update",
+            report,
+            reporterIdentity,
+            updates,
+          }),
+        );
+        continue;
+      }
+
+      await reportsCollection.updateOne(
+        { reportId: report.reportId },
+        {
+          $set: {
+            ...updates,
+            updatedAt: new Date(),
+          },
+        },
+      );
+      result.updated += 1;
+      result.items.push(
+        createReporterBackfillItem({
+          action: "updated",
+          report,
+          reporterIdentity,
+          updates,
+        }),
+      );
+    } catch (error) {
+      const reporterIdentity = {
+        reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+        reporterCharacterName: report.reporterCharacterName ?? null,
+        reporterName: report.reporterName,
+      };
+
+      result.failed += 1;
+      result.items.push(
+        createReporterBackfillItem({
+          action: "failed",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to backfill reporter profile.",
+          report,
+          reporterIdentity,
+          updates: {},
+        }),
+      );
+    }
+  }
+
+  return result;
+}
 
 export const getLatestFanletterNewsReports = cache(
   async ({
