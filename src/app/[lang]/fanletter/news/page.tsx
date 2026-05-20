@@ -25,6 +25,7 @@ import {
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   getFanletterNewsCharacterStats,
+  hydrateFanletterNewsCharacterStats,
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import {
@@ -954,13 +955,11 @@ function NewsCharacterDirectory({
   characters,
   copy,
   locale,
-  nsfwOptInEnabled,
   referralCode,
 }: {
   characters: FanletterNewsCharacterStat[];
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
-  nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   if (characters.length === 0) {
@@ -987,7 +986,7 @@ function NewsCharacterDirectory({
           </p>
         </div>
         <Link
-          className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-black/14 px-4 py-2 text-center text-sm font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:w-auto"
           href={directoryHref}
         >
           {copy.characterDirectory.cta}
@@ -1002,58 +1001,67 @@ function NewsCharacterDirectory({
             referralCode ?? character.referralCode,
           );
           const report = character.representativeReport;
-          const nsfwCopy = getFanletterNsfwCopy(locale);
-          const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
           const latestReportAt = formatDate(character.latestReportAt, locale);
 
           return (
             <Link
-              className="group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] overflow-hidden border border-black/10 bg-[#f7faf4] transition hover:border-[#19b84b] hover:bg-white sm:block"
+              className="group min-w-0 overflow-hidden border border-black/10 bg-[#f7faf4] p-3 transition hover:border-[#19b84b] hover:bg-white"
               href={channelHref}
               key={character.referralCode}
             >
-              <div className="relative">
-                <NewsImage
-                  blurred={shouldBlur}
-                  className="aspect-[4/5] h-full min-h-[8.75rem] sm:min-h-0"
-                  nsfwLabel={nsfwCopy.badge}
-                  report={report}
-                  sizes="(max-width: 640px) 7rem, (max-width: 1280px) 50vw, 15rem"
-                />
-                <span className="absolute left-2 top-2 inline-flex items-center gap-1 bg-[#44f26e] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black">
-                  <Sparkles className="size-3.5" />
-                  AI
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="relative size-[4.75rem] shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510]">
+                  {character.avatarImageUrl ? (
+                    <Image
+                      alt={character.name}
+                      className="h-full w-full object-cover"
+                      fill
+                      sizes="5rem"
+                      src={character.avatarImageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        character.avatarImageUrl,
+                      )}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/70">
+                      <UserRound className="size-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="inline-flex items-center gap-1 bg-[#44f26e] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black">
+                    <Sparkles className="size-3.5" />
+                    AI
+                  </span>
+                  <h3 className="mt-2 truncate text-lg font-black tracking-normal">
+                    {character.name}
+                  </h3>
+                  <p className="mt-1 truncate text-xs font-bold text-black/42">
+                    @{character.referralCode}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                {copy.characterDirectory.latest}
+              </p>
+              <p className="mt-1 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-black/60">
+                {getArticleDisplayTitle(report.title)}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5 text-[0.66rem] font-black">
+                <span className="bg-[#111510] px-2 py-1 text-white">
+                  {formatNumber(character.newsCount, locale)}{" "}
+                  {copy.characterDirectory.news}
+                </span>
+                <span className="border border-black/10 bg-white px-2 py-1 text-black/62">
+                  {formatNumber(character.fanOnlyCount, locale)}{" "}
+                  {copy.characterDirectory.fanOnly}
                 </span>
               </div>
-              <div className="min-w-0 p-3">
-                <p className="truncate text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-                  {copy.characterDirectory.latest}
-                </p>
-                <h3 className="mt-1 truncate text-lg font-black tracking-normal">
-                  {character.name}
-                </h3>
-                <p className="mt-1 truncate text-xs font-bold text-black/42">
-                  @{character.referralCode}
-                </p>
-                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-black/60">
-                  {getArticleDisplayTitle(report.title)}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1.5 text-[0.66rem] font-black">
-                  <span className="bg-[#111510] px-2 py-1 text-white">
-                    {formatNumber(character.newsCount, locale)}{" "}
-                    {copy.characterDirectory.news}
-                  </span>
-                  <span className="border border-black/10 bg-white px-2 py-1 text-black/62">
-                    {formatNumber(character.fanOnlyCount, locale)}{" "}
-                    {copy.characterDirectory.fanOnly}
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-[0.68rem] font-bold text-black/42">
-                  <span className="truncate">{latestReportAt}</span>
-                  <span className="shrink-0 text-[#16702e] group-hover:underline">
-                    {copy.characterDirectory.open}
-                  </span>
-                </div>
+              <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-[0.68rem] font-bold text-black/42">
+                <span className="min-w-0 truncate">{latestReportAt}</span>
+                <span className="shrink-0 text-[#16702e] group-hover:underline">
+                  {copy.characterDirectory.open}
+                </span>
               </div>
             </Link>
           );
@@ -1382,8 +1390,12 @@ export default async function LocalizedFanletterNewsHomePage({
   const photoDeskReports = restReports.slice(7, 11);
   const featureReports = restReports.slice(11, 20);
   const latestSectionReports = restReports.slice(20);
-  const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
-  const characterNewsStats = getFanletterNewsCharacterStats(allReports, 8);
+  const [reporterStats, characterNewsStats] = await Promise.all([
+    hydrateReporterStats(getReporterStats(allReports)),
+    hydrateFanletterNewsCharacterStats(
+      getFanletterNewsCharacterStats(allReports, 8),
+    ),
+  ]);
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
   const activeReporterName = activeReporterReferralCode
     ? activeReporterProfile?.displayName ??
@@ -1504,7 +1516,6 @@ export default async function LocalizedFanletterNewsHomePage({
                 characters={characterNewsStats}
                 copy={copy}
                 locale={locale}
-                nsfwOptInEnabled={nsfwOptInEnabled}
                 referralCode={referralCode}
               />
 

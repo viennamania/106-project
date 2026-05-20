@@ -19,6 +19,7 @@ import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-co
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
   getFanletterNewsCharacterStats,
+  hydrateFanletterNewsCharacterStats,
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -224,10 +225,12 @@ function NewsCharactersMasthead({
 
 function NewsCharacterImage({
   blurred,
+  eager = false,
   report,
   sizes,
 }: {
   blurred: boolean;
+  eager?: boolean;
   report: FanletterNewsReportDocument;
   sizes: string;
 }) {
@@ -245,6 +248,7 @@ function NewsCharacterImage({
               : "object-cover"
           }
           fill
+          loading={eager ? "eager" : undefined}
           sizes={sizes}
           src={report.coverImageUrl}
           unoptimized={shouldBypassFanletterImageOptimization(
@@ -264,6 +268,39 @@ function NewsCharacterImage({
           </span>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function NewsCharacterAvatar({
+  character,
+  className = "size-16",
+  sizes = "4rem",
+}: {
+  character: FanletterNewsCharacterStat;
+  className?: string;
+  sizes?: string;
+}) {
+  return (
+    <div
+      className={`relative shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510] ${className}`}
+    >
+      {character.avatarImageUrl ? (
+        <Image
+          alt={character.name}
+          className="h-full w-full object-cover"
+          fill
+          sizes={sizes}
+          src={character.avatarImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(
+            character.avatarImageUrl,
+          )}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-white/72">
+          <UserRound className="size-8" />
+        </div>
+      )}
     </div>
   );
 }
@@ -295,17 +332,27 @@ function CharacterLead({
       <Link className="relative block min-h-[24rem]" href={reportHref}>
         <NewsCharacterImage
           blurred={shouldBlur}
+          eager
           report={report}
           sizes="(max-width: 1024px) 100vw, 44rem"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/22 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-          <span className="inline-flex bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
-            {copy.topDesk}
-          </span>
-          <h2 className="mt-3 break-words text-[2.35rem] font-black leading-[1.05] [word-break:keep-all] sm:text-[3.25rem]">
-            {character.name}
-          </h2>
+          <div className="flex min-w-0 items-end gap-3 sm:gap-4">
+            <NewsCharacterAvatar
+              character={character}
+              className="size-20 border-white/20 sm:size-24"
+              sizes="6rem"
+            />
+            <div className="min-w-0">
+              <span className="inline-flex bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+                {copy.topDesk}
+              </span>
+              <h2 className="mt-3 break-words text-[2.35rem] font-black leading-[1.05] [word-break:keep-all] sm:text-[3.25rem]">
+                {character.name}
+              </h2>
+            </div>
+          </div>
         </div>
       </Link>
       <div className="flex flex-col justify-between p-5 sm:p-6">
@@ -409,14 +456,21 @@ function CharacterCard({
         <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
           {copy.latest}
         </p>
-        <div className="mt-1 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="truncate text-xl font-black tracking-normal">
-              {character.name}
-            </h2>
-            <p className="mt-0.5 truncate text-xs font-bold text-black/42">
-              @{character.referralCode}
-            </p>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <NewsCharacterAvatar
+              character={character}
+              className="size-14"
+              sizes="3.5rem"
+            />
+            <div className="min-w-0">
+              <h2 className="truncate text-xl font-black tracking-normal">
+                {character.name}
+              </h2>
+              <p className="mt-0.5 truncate text-xs font-bold text-black/42">
+                @{character.referralCode}
+              </p>
+            </div>
           </div>
           <span className="shrink-0 bg-[#44f26e] px-2 py-1 text-xs font-black text-black">
             {formatNumber(character.newsCount, locale)}
@@ -512,7 +566,9 @@ export default async function LocalizedFanletterNewsCharactersPage({
     referralCode,
   );
   const reports = await getLatestFanletterNewsReports({ limit: 48, locale });
-  const characters = getFanletterNewsCharacterStats(reports, 48);
+  const characters = await hydrateFanletterNewsCharacterStats(
+    getFanletterNewsCharacterStats(reports, 48),
+  );
   const [leadCharacter, ...restCharacters] = characters;
   const nsfwNewsCount = reports.filter(isNsfwReport).length;
   const shouldShowNsfwControl = nsfwNewsCount > 0 || nsfwOptInEnabled;

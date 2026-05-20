@@ -1,6 +1,8 @@
 import type { FanletterNewsReportDocument } from "@/lib/content";
+import { getCreatorProfilesCollection } from "@/lib/mongodb";
 
 export type FanletterNewsCharacterStat = {
+  avatarImageUrl: string | null;
   fanOnlyCount: number;
   latestReportAt: Date | null;
   name: string;
@@ -29,6 +31,7 @@ export function getFanletterNewsCharacterStats(
 
     if (!existing) {
       map.set(referralCode, {
+        avatarImageUrl: null,
         fanOnlyCount: report.priceType === "paid" ? 1 : 0,
         latestReportAt: reportDate,
         name: report.creatorName.trim() || referralCode,
@@ -50,6 +53,7 @@ export function getFanletterNewsCharacterStats(
         Boolean(existing.representativeReport.coverImageUrl));
 
     map.set(referralCode, {
+      avatarImageUrl: existing.avatarImageUrl,
       fanOnlyCount:
         existing.fanOnlyCount + (report.priceType === "paid" ? 1 : 0),
       latestReportAt:
@@ -75,4 +79,48 @@ export function getFanletterNewsCharacterStats(
           (left.latestReportAt?.getTime() ?? 0),
     )
     .slice(0, Math.max(1, limit));
+}
+
+export async function hydrateFanletterNewsCharacterStats(
+  characters: FanletterNewsCharacterStat[],
+) {
+  if (characters.length === 0) {
+    return characters;
+  }
+
+  const referralCodes = Array.from(
+    new Set(characters.map((character) => character.referralCode)),
+  );
+  const profilesCollection = await getCreatorProfilesCollection();
+  const profiles = await profilesCollection
+    .find(
+      { referralCode: { $in: referralCodes } },
+      {
+        projection: {
+          avatarImageSet: 1,
+          avatarImageUrl: 1,
+          characterPersona: 1,
+          displayName: 1,
+          referralCode: 1,
+        },
+      },
+    )
+    .toArray();
+  const profilesByReferralCode = new Map(
+    profiles.map((profile) => [profile.referralCode, profile]),
+  );
+
+  return characters.map((character) => {
+    const profile = profilesByReferralCode.get(character.referralCode);
+    const avatarImageUrl =
+      profile?.avatarImageSet?.[0]?.url ?? profile?.avatarImageUrl ?? null;
+    const profileName =
+      profile?.characterPersona?.name?.trim() || profile?.displayName?.trim();
+
+    return {
+      ...character,
+      avatarImageUrl,
+      name: profileName || character.name,
+    };
+  });
 }
