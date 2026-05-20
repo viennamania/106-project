@@ -13,7 +13,12 @@ import type {
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import { normalizeReferralCode, type MemberStatus } from "@/lib/member";
+import {
+  normalizeEmail,
+  normalizeReferralCode,
+  type MemberDocument,
+  type MemberStatus,
+} from "@/lib/member";
 import {
   getContentPostsCollection,
   getCreatorProfilesCollection,
@@ -58,6 +63,8 @@ type FanletterNewsReportGenerationInput = {
   creatorName: string;
   locale: Locale;
   priceType: ContentPriceType;
+  reporterAvatarImageUrl: string | null;
+  reporterCharacterName: string | null;
   reporterName: string;
   sourcePublishedAt: Date | null;
   sourceSummary: string;
@@ -67,11 +74,13 @@ type FanletterNewsReportGenerationInput = {
 export type CreateFanletterNewsReportInput = {
   contentId?: string | null;
   locale?: string | null;
+  reporterEmail?: string | null;
   reporterReferralCode?: string | null;
 };
 
 export type FanletterNewsReporterProfile = {
   avatarImageUrl: string | null;
+  characterName: string | null;
   displayName: string;
   firstReportAt: Date | null;
   joinedAt: Date | null;
@@ -201,6 +210,102 @@ function getReporterName(reporterReferralCode: string, locale: Locale) {
   return locale === "ko"
     ? `${reporterReferralCode} 팬 기자`
     : `Fan reporter ${reporterReferralCode}`;
+}
+
+function getReporterAvatarImageUrl(
+  profile: Pick<
+    CreatorProfileDocument,
+    "avatarImageSet" | "avatarImageUrl"
+  > | null,
+  member: Pick<MemberDocument, "landingBranding"> | null,
+) {
+  return (
+    profile?.avatarImageSet?.[0]?.url ??
+    profile?.avatarImageUrl ??
+    member?.landingBranding?.heroImageUrl ??
+    null
+  );
+}
+
+function getReporterCharacterName(
+  profile: Pick<CreatorProfileDocument, "characterPersona" | "displayName"> | null,
+  member: Pick<MemberDocument, "landingBranding"> | null,
+) {
+  return (
+    trimToLength(profile?.characterPersona?.name, 64) ||
+    trimToLength(profile?.displayName, 64) ||
+    trimToLength(member?.landingBranding?.brandName, 64) ||
+    null
+  );
+}
+
+function createReporterIdentity({
+  locale,
+  member,
+  profile,
+  reporterReferralCode,
+}: {
+  locale: Locale;
+  member: Pick<MemberDocument, "landingBranding"> | null;
+  profile: Pick<
+    CreatorProfileDocument,
+    "avatarImageSet" | "avatarImageUrl" | "characterPersona" | "displayName"
+  > | null;
+  reporterReferralCode: string;
+}) {
+  const reporterCharacterName = getReporterCharacterName(profile, member);
+
+  return {
+    reporterAvatarImageUrl: getReporterAvatarImageUrl(profile, member),
+    reporterCharacterName,
+    reporterName:
+      reporterCharacterName ?? getReporterName(reporterReferralCode, locale),
+  };
+}
+
+async function getReporterIdentitySnapshot({
+  locale,
+  reporterEmail,
+  reporterReferralCode,
+}: {
+  locale: Locale;
+  reporterEmail?: string | null;
+  reporterReferralCode: string;
+}) {
+  const normalizedReporterEmail = normalizeEmail(reporterEmail ?? "");
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne(
+    normalizedReporterEmail
+      ? { email: normalizedReporterEmail }
+      : { referralCode: reporterReferralCode },
+    {
+      projection: {
+        email: 1,
+        landingBranding: 1,
+        referralCode: 1,
+      },
+    },
+  );
+  const profile = member?.email
+    ? await (await getCreatorProfilesCollection()).findOne(
+        { email: member.email },
+        {
+          projection: {
+            avatarImageSet: 1,
+            avatarImageUrl: 1,
+            characterPersona: 1,
+            displayName: 1,
+          },
+        },
+      )
+    : null;
+
+  return createReporterIdentity({
+    locale,
+    member,
+    profile,
+    reporterReferralCode,
+  });
 }
 
 function formatSourceDate(value: Date | null, locale: Locale) {
@@ -446,6 +551,7 @@ function createOpenAiReportPayload(input: FanletterNewsReportGenerationInput) {
           "This must be positioned as an AI fan report, not independent journalism or a verified real-world news article.",
           "Use only the facts supplied by the user. Do not invent dates, locations, identities, purchase numbers, quotes, or events.",
           "The reporter byline is the sharing FanLetter member. Keep the reporter name exactly as provided.",
+          "Use reporterProfile only for reporter identity context; do not describe or infer appearance from avatar URLs.",
           "If the content is paid or NSFW, do not reveal hidden scenes, explicit details, or full paid-body information. Use only the supplied public teaser context.",
           "Keep copy suitable for general sharing. Avoid exaggerated sexualized or sensational wording.",
           `Write all user-facing text in ${language}.`,
@@ -459,6 +565,11 @@ function createOpenAiReportPayload(input: FanletterNewsReportGenerationInput) {
           fanletterSurface: "FanLetter",
           paidOrPublic: input.priceType,
           reporterName: input.reporterName,
+          reporterProfile: {
+            avatarImageUrl: input.reporterAvatarImageUrl,
+            characterName: input.reporterCharacterName,
+            displayName: input.reporterName,
+          },
           restrictedContextOnly: isRestricted,
           sourceBodyContext: input.contentBodyContext,
           sourcePublishedAt: sourceDate,
@@ -529,6 +640,7 @@ export function createFanletterNewsReportShareHref(
 export async function getOrCreateFanletterNewsReport({
   contentId,
   locale,
+  reporterEmail,
   reporterReferralCode,
 }: CreateFanletterNewsReportInput) {
   const normalizedContentId = contentId?.trim() ?? "";
@@ -541,6 +653,12 @@ export async function getOrCreateFanletterNewsReport({
     throw new Error("contentId is required.");
   }
 
+  const reporterIdentity = await getReporterIdentitySnapshot({
+    locale: normalizedLocale,
+    reporterEmail,
+    reporterReferralCode: normalizedReporterReferralCode,
+  });
+
   const reportsCollection = await getFanletterNewsReportsCollection();
   const existing = await reportsCollection.findOne({
     contentId: normalizedContentId,
@@ -549,7 +667,48 @@ export async function getOrCreateFanletterNewsReport({
   });
 
   if (existing) {
-    return existing;
+    const reporterUpdates: Partial<FanletterNewsReportDocument> = {};
+
+    if (existing.reporterName !== reporterIdentity.reporterName) {
+      reporterUpdates.reporterName = reporterIdentity.reporterName;
+    }
+
+    if (
+      (existing.reporterCharacterName ?? null) !==
+      reporterIdentity.reporterCharacterName
+    ) {
+      reporterUpdates.reporterCharacterName =
+        reporterIdentity.reporterCharacterName;
+    }
+
+    if (
+      (existing.reporterAvatarImageUrl ?? null) !==
+      reporterIdentity.reporterAvatarImageUrl
+    ) {
+      reporterUpdates.reporterAvatarImageUrl =
+        reporterIdentity.reporterAvatarImageUrl;
+    }
+
+    if (Object.keys(reporterUpdates).length === 0) {
+      return existing;
+    }
+
+    const updatedAt = new Date();
+    await reportsCollection.updateOne(
+      { reportId: existing.reportId },
+      {
+        $set: {
+          ...reporterUpdates,
+          updatedAt,
+        },
+      },
+    );
+
+    return {
+      ...existing,
+      ...reporterUpdates,
+      updatedAt,
+    };
   }
 
   const postsCollection = await getContentPostsCollection();
@@ -566,10 +725,6 @@ export async function getOrCreateFanletterNewsReport({
   const profile = await profilesCollection.findOne({ email: post.authorEmail });
   const contentMaturityRating = getContentMaturityRating(post);
   const creatorName = getCreatorName(post, profile);
-  const reporterName = getReporterName(
-    normalizedReporterReferralCode,
-    normalizedLocale,
-  );
   const sourcePublishedAt = post.publishedAt ?? post.createdAt ?? null;
   const sourceSummary = trimToLength(post.summary || post.previewText, 220);
   const contentBodyContext = getSourceBodyContext(post, contentMaturityRating);
@@ -579,7 +734,9 @@ export async function getOrCreateFanletterNewsReport({
     creatorName,
     locale: normalizedLocale,
     priceType: post.priceType,
-    reporterName,
+    reporterAvatarImageUrl: reporterIdentity.reporterAvatarImageUrl,
+    reporterCharacterName: reporterIdentity.reporterCharacterName,
+    reporterName: reporterIdentity.reporterName,
     sourcePublishedAt,
     sourceSummary,
     sourceTitle: post.title,
@@ -601,7 +758,9 @@ export async function getOrCreateFanletterNewsReport({
     locale: normalizedLocale,
     model: generatedBy === "openai" ? getFanletterNewsReportModel() : null,
     priceType: post.priceType,
-    reporterName,
+    reporterAvatarImageUrl: reporterIdentity.reporterAvatarImageUrl,
+    reporterCharacterName: reporterIdentity.reporterCharacterName,
+    reporterName: reporterIdentity.reporterName,
     reporterReferralCode: normalizedReporterReferralCode,
     reportId: `news_${randomUUID().replace(/-/g, "").slice(0, 24)}`,
     sourceHref: buildPathWithReferral(
@@ -697,10 +856,12 @@ export const getFanletterNewsReporterProfile = cache(
       return null;
     }
 
-    const [membersCollection, reportsCollection] = await Promise.all([
-      getMembersCollection(),
-      getFanletterNewsReportsCollection(),
-    ]);
+    const [membersCollection, profilesCollection, reportsCollection] =
+      await Promise.all([
+        getMembersCollection(),
+        getCreatorProfilesCollection(),
+        getFanletterNewsReportsCollection(),
+      ]);
     const reportQuery = {
       reporterReferralCode: normalizedReporterReferralCode,
       status: "published" as const,
@@ -742,15 +903,32 @@ export const getFanletterNewsReporterProfile = cache(
         .limit(1)
         .next(),
     ]);
+    const profile = member?.email
+      ? await profilesCollection.findOne(
+          { email: member.email },
+          {
+            projection: {
+              avatarImageSet: 1,
+              avatarImageUrl: 1,
+              characterPersona: 1,
+              displayName: 1,
+            },
+          },
+        )
+      : null;
     const memberLocale =
       member?.locale && hasLocale(member.locale) ? member.locale : null;
-    const displayName =
-      trimToLength(member?.landingBranding?.brandName, 80) ||
-      getReporterName(normalizedReporterReferralCode, memberLocale ?? defaultLocale);
+    const reporterIdentity = createReporterIdentity({
+      locale: memberLocale ?? defaultLocale,
+      member,
+      profile,
+      reporterReferralCode: normalizedReporterReferralCode,
+    });
 
     return {
-      avatarImageUrl: member?.landingBranding?.heroImageUrl ?? null,
-      displayName,
+      avatarImageUrl: reporterIdentity.reporterAvatarImageUrl,
+      characterName: reporterIdentity.reporterCharacterName,
+      displayName: reporterIdentity.reporterName,
       firstReportAt: firstReport?.sourcePublishedAt ?? firstReport?.createdAt ?? null,
       joinedAt: member?.registrationCompletedAt ?? member?.createdAt ?? null,
       lastConnectedAt: member?.lastConnectedAt ?? null,

@@ -267,7 +267,11 @@ function ReporterByline({
   reporterProfile: FanletterNewsReporterProfile | null;
 }) {
   const reporterDisplayName =
-    reporterProfile?.displayName.trim() || report.reporterName;
+    reporterProfile?.displayName.trim() ||
+    report.reporterCharacterName?.trim() ||
+    report.reporterName;
+  const reporterAvatarImageUrl =
+    reporterProfile?.avatarImageUrl ?? report.reporterAvatarImageUrl ?? null;
   const reporterInitial =
     reporterDisplayName.trim().charAt(0).toUpperCase() ||
     report.reporterReferralCode.trim().charAt(0).toUpperCase() ||
@@ -278,14 +282,14 @@ function ReporterByline({
     <section className="mt-5 flex min-w-0 flex-col gap-3 border-y border-black/12 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
-          {reporterProfile?.avatarImageUrl ? (
+          {reporterAvatarImageUrl ? (
             <Image
               alt=""
               aria-hidden="true"
               className="object-cover"
               fill
               sizes="2.75rem"
-              src={reporterProfile.avatarImageUrl}
+              src={reporterAvatarImageUrl}
             />
           ) : (
             reporterInitial

@@ -465,6 +465,8 @@ export type FanletterNewsReportDocument = {
   locale: Locale;
   model: string | null;
   priceType: ContentPriceType;
+  reporterAvatarImageUrl?: string | null;
+  reporterCharacterName?: string | null;
   reporterName: string;
   reporterReferralCode: string;
   reportId: string;

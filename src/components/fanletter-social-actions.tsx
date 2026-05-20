@@ -54,6 +54,9 @@ type FanletterSocialActionsProps = {
 type FanletterNewsReportCreateResponse = {
   report: {
     dek: string;
+    reporterAvatarImageUrl: string | null;
+    reporterCharacterName: string | null;
+    reporterName: string;
     reportId: string;
     shareHref: string;
     title: string;

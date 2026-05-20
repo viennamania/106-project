@@ -81,12 +81,16 @@ export async function POST(request: Request) {
     const report = await getOrCreateFanletterNewsReport({
       contentId: body?.contentId,
       locale: body?.locale,
+      reporterEmail: credentials.email,
       reporterReferralCode,
     });
 
     return Response.json({
       report: {
         dek: report.dek,
+        reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+        reporterCharacterName: report.reporterCharacterName ?? null,
+        reporterName: report.reporterName,
         reportId: report.reportId,
         shareHref: createFanletterNewsReportShareHref(report),
         title: report.title,
