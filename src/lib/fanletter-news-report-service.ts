@@ -80,6 +80,12 @@ export type CreateFanletterNewsReportInput = {
   reporterReferralCode?: string | null;
 };
 
+export type GetFanletterNewsReportForReporterInput = {
+  contentId?: string | null;
+  locale?: string | null;
+  reporterReferralCode?: string | null;
+};
+
 export type FanletterNewsReporterProfile = {
   avatarImageUrl: string | null;
   characterName: string | null;
@@ -888,6 +894,38 @@ export async function getOrCreateFanletterNewsReport({
       reporterReferralCode: document.reporterReferralCode,
     })) ?? document
   );
+}
+
+export async function getFanletterNewsReportForReporter({
+  contentId,
+  locale,
+  reporterReferralCode,
+}: GetFanletterNewsReportForReporterInput) {
+  const normalizedContentId = contentId?.trim() ?? "";
+  const normalizedLocale =
+    locale && hasLocale(locale) ? normalizeContentLocale(locale) : defaultLocale;
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reporterReferralCode);
+
+  if (!normalizedContentId) {
+    throw new Error("contentId is required.");
+  }
+
+  if (!normalizedReporterReferralCode) {
+    return null;
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const report = await reportsCollection.findOne({
+    contentId: normalizedContentId,
+    locale: normalizedLocale,
+    reporterReferralCode: normalizedReporterReferralCode,
+    status: "published",
+  });
+
+  return report
+    ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
+    : null;
 }
 
 export const getFanletterNewsReportById = cache(async (reportId: string) => {

@@ -51,16 +51,24 @@ type FanletterSocialActionsProps = {
   variant?: FanletterSocialActionsVariant;
 };
 
+type FanletterNewsReportStatus = "checking" | "idle" | "missing" | "ready";
+
+type FanletterNewsReportSummary = {
+  dek: string;
+  reporterAvatarImageUrl: string | null;
+  reporterCharacterName: string | null;
+  reporterName: string;
+  reportId: string;
+  shareHref: string;
+  title: string;
+};
+
 type FanletterNewsReportCreateResponse = {
-  report: {
-    dek: string;
-    reporterAvatarImageUrl: string | null;
-    reporterCharacterName: string | null;
-    reporterName: string;
-    reportId: string;
-    shareHref: string;
-    title: string;
-  };
+  report: FanletterNewsReportSummary;
+};
+
+type FanletterNewsReportLookupResponse = {
+  report: FanletterNewsReportSummary | null;
 };
 
 function getCopy(locale: Locale) {
@@ -89,6 +97,11 @@ function getCopy(locale: Locale) {
         reportCopied: "AI 팬 리포트 링크를 복사했습니다.",
         reportFailed: "AI 팬 리포트를 만들지 못했습니다.",
         reportReady: "AI 팬 리포트가 준비되었습니다.",
+        reportExisting: "내 AI 리포트 보기",
+        reportExistingHelper:
+          "이미 이 브이로그로 만든 AI 리포트가 있습니다. 회원당 한 번만 생성되며 이 버튼으로 다시 열 수 있습니다.",
+        reportOnceHelper:
+          "AI 리포트는 로그인한 회원별로 브이로그당 한 번만 생성됩니다.",
         reportShare: "AI 리포트",
         reportView: "리포트 보기",
         refresh: "새로고침",
@@ -127,6 +140,11 @@ function getCopy(locale: Locale) {
         reportCopied: "AI fan report link copied.",
         reportFailed: "Could not create the AI fan report.",
         reportReady: "AI fan report is ready.",
+        reportExisting: "View my AI report",
+        reportExistingHelper:
+          "You already created an AI report for this vlog. Each connected member can create one report per vlog.",
+        reportOnceHelper:
+          "AI reports can be created once per vlog for each connected member.",
         reportShare: "AI report",
         reportView: "View report",
         refresh: "Refresh",
@@ -244,6 +262,10 @@ export function FanletterSocialActions({
   const [busyAction, setBusyAction] =
     useState<"like" | "report" | "save" | "share" | null>(null);
   const [newsReportHref, setNewsReportHref] = useState<string | null>(null);
+  const [newsReport, setNewsReport] =
+    useState<FanletterNewsReportSummary | null>(null);
+  const [newsReportStatus, setNewsReportStatus] =
+    useState<FanletterNewsReportStatus>("idle");
   const [comments, setComments] = useState<ContentCommentRecord[]>([]);
   const [commentsPageInfo, setCommentsPageInfo] =
     useState<ContentCommentsResponse["pageInfo"] | null>(null);
@@ -306,6 +328,60 @@ export function FanletterSocialActions({
       setSocial(data.social);
     }
   }, [accountAddress, connection.isConnected, contentId, resolveEmail]);
+
+  const loadExistingNewsReport = useCallback(async () => {
+    if (!isPanel || !connection.isConnected || !accountAddress) {
+      setNewsReport(null);
+      setNewsReportHref(null);
+      setNewsReportStatus("idle");
+      return;
+    }
+
+    setNewsReportStatus("checking");
+    setNewsReport(null);
+
+    try {
+      const resolvedEmail = await resolveEmail();
+
+      if (!resolvedEmail) {
+        setNewsReportStatus("idle");
+        return;
+      }
+
+      const params = new URLSearchParams({
+        contentId,
+        email: resolvedEmail,
+        locale,
+        walletAddress: accountAddress,
+      });
+      const response = await fetch(
+        `/api/fanletter/news-reports?${params.toString()}`,
+        { cache: "no-store" },
+      );
+      const data = (await response.json().catch(() => null)) as
+        | FanletterNewsReportLookupResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("report" in data)) {
+        setNewsReportStatus("idle");
+        return;
+      }
+
+      setNewsReport(data.report);
+      setNewsReportHref(data.report?.shareHref ?? null);
+      setNewsReportStatus(data.report ? "ready" : "missing");
+    } catch {
+      setNewsReportStatus("idle");
+    }
+  }, [
+    accountAddress,
+    connection.isConnected,
+    contentId,
+    isPanel,
+    locale,
+    resolveEmail,
+  ]);
 
   const loadComments = useCallback(async ({
     append = false,
@@ -395,6 +471,10 @@ export function FanletterSocialActions({
 
     void loadViewerSocial();
   }, [accountAddress, connection.isConnected, loadViewerSocial]);
+
+  useEffect(() => {
+    void loadExistingNewsReport();
+  }, [loadExistingNewsReport]);
 
   const updateSocialAction = useCallback(
     async (action: "like" | "save", value: boolean) => {
@@ -637,7 +717,9 @@ export function FanletterSocialActions({
         window.location.origin,
       ).toString();
 
+      setNewsReport(data.report);
       setNewsReportHref(data.report.shareHref);
+      setNewsReportStatus("ready");
 
       if (navigator.share) {
         try {
@@ -696,6 +778,10 @@ export function FanletterSocialActions({
   const actionIconClassName = isPanel ? "size-4" : "size-3.5";
   const likeLabel = social.likedByViewer ? copy.liked : copy.like;
   const saveLabel = social.savedByViewer ? copy.saved : copy.save;
+  const reportLabel = newsReport ? copy.reportExisting : copy.reportShare;
+  const reportHelper = newsReport
+    ? copy.reportExistingHelper
+    : copy.reportOnceHelper;
   const commentsHelper = isOwnContent
     ? copy.ownerCommentsHelper
     : copy.commentsHelper;
@@ -909,22 +995,38 @@ export function FanletterSocialActions({
           )}
           <span>{copy.share}</span>
         </button>
-        <button
-          className={actionButtonClassName}
-          disabled={busyAction === "report"}
-          onClick={() => {
-            void createNewsReport();
-          }}
-          type="button"
-        >
-          {busyAction === "report" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
+        {newsReport ? (
+          <Link
+            className={cn(actionButtonClassName, activeClassName)}
+            href={newsReport.shareHref}
+          >
             <Newspaper className="size-4" />
-          )}
-          <span>{copy.reportShare}</span>
-        </button>
+            <span>{reportLabel}</span>
+          </Link>
+        ) : (
+          <button
+            className={actionButtonClassName}
+            disabled={
+              busyAction === "report" || newsReportStatus === "checking"
+            }
+            onClick={() => {
+              void createNewsReport();
+            }}
+            type="button"
+          >
+            {busyAction === "report" || newsReportStatus === "checking" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Newspaper className="size-4" />
+            )}
+            <span>{reportLabel}</span>
+          </button>
+        )}
       </div>
+
+      <p className="mt-2 text-xs font-medium leading-5 text-white/45">
+        {reportHelper}
+      </p>
 
       {toast ? (
         <div

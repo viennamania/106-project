@@ -1,10 +1,12 @@
 import {
   createFanletterNewsReportShareHref,
+  getFanletterNewsReportForReporter,
   getOrCreateFanletterNewsReport,
 } from "@/lib/fanletter-news-report-service";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeReferralCode } from "@/lib/member";
+import type { FanletterNewsReportDocument } from "@/lib/content";
 
 type FanletterNewsReportCreateRequest = {
   contentId?: string | null;
@@ -29,6 +31,109 @@ function getErrorStatus(message: string) {
   return 500;
 }
 
+function serializeNewsReport(report: FanletterNewsReportDocument) {
+  return {
+    dek: report.dek,
+    reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+    reporterCharacterName: report.reporterCharacterName ?? null,
+    reporterName: report.reporterName,
+    reportId: report.reportId,
+    shareHref: createFanletterNewsReportShareHref(report),
+    title: report.title,
+  };
+}
+
+async function resolveReporterCredentials({
+  email,
+  walletAddress,
+}: {
+  email?: string | null;
+  walletAddress?: string | null;
+}) {
+  const hasRequestCredentials = Boolean(email && walletAddress);
+  const session = hasRequestCredentials ? null : await readMemberServerSession();
+  const credentials = hasRequestCredentials
+    ? {
+        email,
+        walletAddress,
+      }
+    : session
+      ? {
+          email: session.email,
+          walletAddress: session.walletAddress,
+        }
+      : null;
+
+  if (!credentials?.email || !credentials.walletAddress) {
+    return {
+      error: jsonError("Connect your account to create an AI fan report.", 401),
+      reporterReferralCode: null,
+    };
+  }
+
+  const authorization = await validateMemberWalletOwner({
+    allowedStatuses: ["completed", "pending_payment"],
+    email: credentials.email,
+    walletAddress: credentials.walletAddress,
+  });
+
+  if (authorization.error) {
+    return {
+      error: authorization.error,
+      reporterReferralCode: null,
+    };
+  }
+
+  const reporterReferralCode = normalizeReferralCode(
+    authorization.member?.referralCode,
+  );
+
+  if (!reporterReferralCode) {
+    return {
+      error: jsonError("Connected account does not have a fan reporter code.", 403),
+      reporterReferralCode: null,
+    };
+  }
+
+  return {
+    credentials,
+    error: null,
+    reporterReferralCode,
+  };
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  try {
+    const reporter = await resolveReporterCredentials({
+      email: searchParams.get("email"),
+      walletAddress: searchParams.get("walletAddress"),
+    });
+
+    if (reporter.error) {
+      return reporter.error;
+    }
+
+    const report = await getFanletterNewsReportForReporter({
+      contentId: searchParams.get("contentId"),
+      locale: searchParams.get("locale"),
+      reporterReferralCode: reporter.reporterReferralCode,
+    });
+
+    return Response.json({
+      report: report ? serializeNewsReport(report) : null,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to load FanLetter news report.";
+
+    return jsonError(message, getErrorStatus(message));
+  }
+}
+
 export async function POST(request: Request) {
   let body: FanletterNewsReportCreateRequest | null = null;
 
@@ -39,62 +144,24 @@ export async function POST(request: Request) {
   }
 
   try {
-    const hasRequestCredentials = Boolean(body?.email && body.walletAddress);
-    const session = hasRequestCredentials ? null : await readMemberServerSession();
-    const credentials = hasRequestCredentials
-      ? {
-          email: body?.email,
-          walletAddress: body?.walletAddress,
-        }
-      : session
-        ? {
-            email: session.email,
-            walletAddress: session.walletAddress,
-          }
-        : null;
-
-    if (!credentials?.email || !credentials.walletAddress) {
-      return jsonError("Connect your account to create an AI fan report.", 401);
-    }
-
-    const authorization = await validateMemberWalletOwner({
-      allowedStatuses: ["completed", "pending_payment"],
-      email: credentials.email,
-      walletAddress: credentials.walletAddress,
+    const reporter = await resolveReporterCredentials({
+      email: body?.email,
+      walletAddress: body?.walletAddress,
     });
 
-    if (authorization.error) {
-      return authorization.error;
-    }
-
-    const reporterReferralCode = normalizeReferralCode(
-      authorization.member?.referralCode,
-    );
-
-    if (!reporterReferralCode) {
-      return jsonError(
-        "Connected account does not have a fan reporter code.",
-        403,
-      );
+    if (reporter.error) {
+      return reporter.error;
     }
 
     const report = await getOrCreateFanletterNewsReport({
       contentId: body?.contentId,
       locale: body?.locale,
-      reporterEmail: credentials.email,
-      reporterReferralCode,
+      reporterEmail: reporter.credentials.email,
+      reporterReferralCode: reporter.reporterReferralCode,
     });
 
     return Response.json({
-      report: {
-        dek: report.dek,
-        reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
-        reporterCharacterName: report.reporterCharacterName ?? null,
-        reporterName: report.reporterName,
-        reportId: report.reportId,
-        shareHref: createFanletterNewsReportShareHref(report),
-        title: report.title,
-      },
+      report: serializeNewsReport(report),
     });
   } catch (error) {
     const message =
