@@ -6,10 +6,12 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
+  ArrowRight,
   Clock3,
   FileText,
   Newspaper,
   PenLine,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -42,6 +44,15 @@ type ReporterStat = {
   referralCode: string;
 };
 
+type CharacterNewsStat = {
+  fanOnlyCount: number;
+  latestReportAt: Date | null;
+  name: string;
+  newsCount: number;
+  referralCode: string;
+  representativeReport: FanletterNewsReportDocument;
+};
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -51,6 +62,16 @@ function getCopy(locale: Locale) {
           public: "공개",
         },
         allNews: "AI 캐릭터 엔터테인먼트 뉴스룸",
+        characterDirectory: {
+          body:
+            "뉴스가 생성된 AI 캐릭터 채널을 한곳에서 확인하세요. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
+          cta: "AI 캐릭터 전체 목록",
+          fanOnly: "팬 전용",
+          latest: "최근 기사",
+          news: "뉴스",
+          open: "캐릭터 채널 보기",
+          title: "뉴스 속 AI 캐릭터",
+        },
         characterWire: "AI 캐릭터 와이어",
         dek:
           "팬 기자가 생성한 AI 캐릭터 브이로그 리포트를 엔터테인먼트 뉴스 포맷으로 모아 읽는 FanLetter News입니다.",
@@ -109,6 +130,16 @@ function getCopy(locale: Locale) {
           public: "Public",
         },
         allNews: "AI Character Entertainment Newsroom",
+        characterDirectory: {
+          body:
+            "Browse the AI character channels generating FanLetter News, then jump into each character's latest reports and fan-only vlog stream.",
+          cta: "All AI characters",
+          fanOnly: "Fan-only",
+          latest: "Latest story",
+          news: "News",
+          open: "View character channel",
+          title: "AI Characters In The News",
+        },
         characterWire: "AI Character Wire",
         dek:
           "FanLetter News collects AI character vlog reports from fan reporters in an entertainment-news format.",
@@ -273,6 +304,63 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
     .slice(0, 5);
 }
 
+function getCharacterNewsStats(reports: FanletterNewsReportDocument[]) {
+  const map = new Map<string, CharacterNewsStat>();
+
+  for (const report of reports) {
+    const referralCode = report.creatorReferralCode?.trim();
+
+    if (!referralCode) {
+      continue;
+    }
+
+    const reportDate = report.sourcePublishedAt ?? report.createdAt ?? null;
+    const existing = map.get(referralCode);
+
+    if (!existing) {
+      map.set(referralCode, {
+        fanOnlyCount: report.priceType === "paid" ? 1 : 0,
+        latestReportAt: reportDate,
+        name: report.creatorName.trim() || referralCode,
+        newsCount: 1,
+        referralCode,
+        representativeReport: report,
+      });
+      continue;
+    }
+
+    const existingDateTime = existing.latestReportAt?.getTime() ?? 0;
+    const reportDateTime = reportDate?.getTime() ?? 0;
+    const shouldUseAsRepresentative =
+      (report.coverImageUrl && !existing.representativeReport.coverImageUrl) ||
+      (report.coverImageUrl &&
+        reportDateTime > existingDateTime &&
+        Boolean(existing.representativeReport.coverImageUrl));
+
+    map.set(referralCode, {
+      fanOnlyCount:
+        existing.fanOnlyCount + (report.priceType === "paid" ? 1 : 0),
+      latestReportAt:
+        reportDateTime > existingDateTime ? reportDate : existing.latestReportAt,
+      name: existing.name,
+      newsCount: existing.newsCount + 1,
+      referralCode,
+      representativeReport: shouldUseAsRepresentative
+        ? report
+        : existing.representativeReport,
+    });
+  }
+
+  return Array.from(map.values())
+    .sort(
+      (left, right) =>
+        right.newsCount - left.newsCount ||
+        (right.latestReportAt?.getTime() ?? 0) -
+          (left.latestReportAt?.getTime() ?? 0),
+    )
+    .slice(0, 8);
+}
+
 async function hydrateReporterStats(reporters: ReporterStat[]) {
   const hydrated = await Promise.all(
     reporters.map(async (reporter) => {
@@ -342,11 +430,13 @@ function NewsImage({
 }
 
 function NewsMasthead({
+  charactersHref,
   copy,
   locale,
   navigationBaseHref,
   newsHomeHref,
 }: {
+  charactersHref: string;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   navigationBaseHref: string;
@@ -355,11 +445,11 @@ function NewsMasthead({
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
   }).format(new Date());
-  const navTargets = [
-    "#top-stories",
-    "#fan-reporters",
-    "#character-wire",
-    "#latest-news",
+  const navHrefs = [
+    `${navigationBaseHref}#top-stories`,
+    `${navigationBaseHref}#fan-reporters`,
+    charactersHref,
+    `${navigationBaseHref}#latest-news`,
   ];
 
   return (
@@ -389,7 +479,7 @@ function NewsMasthead({
           {copy.navItems.map((item, index) => (
             <Link
               className="shrink-0 text-[0.76rem] font-black uppercase tracking-[0.12em] text-black/58 transition hover:text-[#16702e]"
-              href={`${navigationBaseHref}${navTargets[index] ?? ""}`}
+              href={navHrefs[index] ?? navigationBaseHref}
               key={item}
             >
               {item}
@@ -837,6 +927,119 @@ function PhotoDeskStory({
   );
 }
 
+function NewsCharacterDirectory({
+  characters,
+  copy,
+  locale,
+  nsfwOptInEnabled,
+  referralCode,
+}: {
+  characters: CharacterNewsStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+}) {
+  if (characters.length === 0) {
+    return null;
+  }
+
+  const directoryHref = buildPathWithReferral(
+    `/${locale}/fanletter/characters`,
+    referralCode,
+  );
+
+  return (
+    <section className="border border-black/12 bg-white p-4 sm:p-5" id="ai-characters">
+      <div className="mb-4 grid gap-3 border-b-2 border-[#111510] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div>
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
+            Character Desk
+          </p>
+          <h2 className="mt-1 text-2xl font-black tracking-normal">
+            {copy.characterDirectory.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+            {copy.characterDirectory.body}
+          </p>
+        </div>
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          href={directoryHref}
+        >
+          {copy.characterDirectory.cta}
+          <ArrowRight className="size-4" />
+        </Link>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {characters.map((character) => {
+          const channelHref = buildPathWithReferral(
+            `/${locale}/fanletter/creator/${character.referralCode}`,
+            referralCode ?? character.referralCode,
+          );
+          const report = character.representativeReport;
+          const nsfwCopy = getFanletterNsfwCopy(locale);
+          const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+          const latestReportAt = formatDate(character.latestReportAt, locale);
+
+          return (
+            <Link
+              className="group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] overflow-hidden border border-black/10 bg-[#f7faf4] transition hover:border-[#19b84b] hover:bg-white sm:block"
+              href={channelHref}
+              key={character.referralCode}
+            >
+              <div className="relative">
+                <NewsImage
+                  blurred={shouldBlur}
+                  className="aspect-[4/5] h-full min-h-[8.75rem] sm:min-h-0"
+                  nsfwLabel={nsfwCopy.badge}
+                  report={report}
+                  sizes="(max-width: 640px) 7rem, (max-width: 1280px) 50vw, 15rem"
+                />
+                <span className="absolute left-2 top-2 inline-flex items-center gap-1 bg-[#44f26e] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black">
+                  <Sparkles className="size-3.5" />
+                  AI
+                </span>
+              </div>
+              <div className="min-w-0 p-3">
+                <p className="truncate text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                  {copy.characterDirectory.latest}
+                </p>
+                <h3 className="mt-1 truncate text-lg font-black tracking-normal">
+                  {character.name}
+                </h3>
+                <p className="mt-1 truncate text-xs font-bold text-black/42">
+                  @{character.referralCode}
+                </p>
+                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-black/60">
+                  {getArticleDisplayTitle(report.title)}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5 text-[0.66rem] font-black">
+                  <span className="bg-[#111510] px-2 py-1 text-white">
+                    {formatNumber(character.newsCount, locale)}{" "}
+                    {copy.characterDirectory.news}
+                  </span>
+                  <span className="border border-black/10 bg-white px-2 py-1 text-black/62">
+                    {formatNumber(character.fanOnlyCount, locale)}{" "}
+                    {copy.characterDirectory.fanOnly}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-[0.68rem] font-bold text-black/42">
+                  <span className="truncate">{latestReportAt}</span>
+                  <span className="shrink-0 text-[#16702e] group-hover:underline">
+                    {copy.characterDirectory.open}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function ReporterRank({
   copy,
   locale,
@@ -1128,6 +1331,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const featureReports = restReports.slice(11, 20);
   const latestReports = restReports.slice(20);
   const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
+  const characterNewsStats = getCharacterNewsStats(allReports);
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
   const activeReporterName = activeReporterReferralCode
     ? activeReporterProfile?.displayName ??
@@ -1137,10 +1341,15 @@ export default async function LocalizedFanletterNewsHomePage({
     activeReporterReferralCode && activeReporterProfile
       ? activeReporterProfile.reportCount
       : reports.length;
+  const charactersHref = buildPathWithReferral(
+    `/${locale}/fanletter/characters`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
       <NewsMasthead
+        charactersHref={charactersHref}
         copy={copy}
         locale={locale}
         navigationBaseHref={currentNewsHref}
@@ -1226,6 +1435,14 @@ export default async function LocalizedFanletterNewsHomePage({
                 nsfwOptInEnabled={nsfwOptInEnabled}
                 referralCode={referralCode}
                 reports={photoDeskReports}
+              />
+
+              <NewsCharacterDirectory
+                characters={characterNewsStats}
+                copy={copy}
+                locale={locale}
+                nsfwOptInEnabled={nsfwOptInEnabled}
+                referralCode={referralCode}
               />
 
               {featureReports.length > 0 ? (
