@@ -71,6 +71,8 @@ export type CreateFanletterNewsReportInput = {
 };
 
 export type FanletterNewsReporterProfile = {
+  avatarImageUrl: string | null;
+  displayName: string;
   firstReportAt: Date | null;
   joinedAt: Date | null;
   lastConnectedAt: Date | null;
@@ -710,6 +712,7 @@ export const getFanletterNewsReporterProfile = cache(
           projection: {
             createdAt: 1,
             lastConnectedAt: 1,
+            landingBranding: 1,
             locale: 1,
             referralCode: 1,
             registrationCompletedAt: 1,
@@ -739,14 +742,21 @@ export const getFanletterNewsReporterProfile = cache(
         .limit(1)
         .next(),
     ]);
+    const memberLocale =
+      member?.locale && hasLocale(member.locale) ? member.locale : null;
+    const displayName =
+      trimToLength(member?.landingBranding?.brandName, 80) ||
+      getReporterName(normalizedReporterReferralCode, memberLocale ?? defaultLocale);
 
     return {
+      avatarImageUrl: member?.landingBranding?.heroImageUrl ?? null,
+      displayName,
       firstReportAt: firstReport?.sourcePublishedAt ?? firstReport?.createdAt ?? null,
       joinedAt: member?.registrationCompletedAt ?? member?.createdAt ?? null,
       lastConnectedAt: member?.lastConnectedAt ?? null,
       latestReportAt:
         latestReport?.sourcePublishedAt ?? latestReport?.createdAt ?? null,
-      locale: member?.locale && hasLocale(member.locale) ? member.locale : null,
+      locale: memberLocale,
       referralCode: normalizedReporterReferralCode,
       reportCount,
       status: member?.status ?? null,
