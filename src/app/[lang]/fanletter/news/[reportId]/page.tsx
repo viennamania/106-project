@@ -92,6 +92,9 @@ function getCopy(locale: Locale) {
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
         summaryTitle: "기사 요약",
+        visualCaption:
+          "FanLetter News 대표 이미지. 원본 브이로그와 AI 캐릭터 리포트의 공개 정보를 바탕으로 표시됩니다.",
+        visualLead: "기사 대표 이미지",
         sixW: {
           how: "어떻게",
           what: "무엇을",
@@ -145,6 +148,9 @@ function getCopy(locale: Locale) {
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
+        visualCaption:
+          "FanLetter News lead image, shown from the source vlog and AI character report context.",
+        visualLead: "Lead image",
         sixW: {
           how: "How",
           what: "What",
@@ -337,6 +343,74 @@ function ReporterByline({
         </Link>
       </div>
     </section>
+  );
+}
+
+function ArticleVisualLead({
+  accessLabel,
+  blurred,
+  copy,
+  report,
+  sourceContent,
+}: {
+  accessLabel: string;
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  report: FanletterNewsReportDocument;
+  sourceContent: FanletterPublicContentDetail | null;
+}) {
+  const imageUrl =
+    report.coverImageUrl ??
+    sourceContent?.coverImageUrl ??
+    sourceContent?.authorAvatarImageUrl ??
+    null;
+
+  return (
+    <figure className="mt-6 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_54px_rgba(12,18,14,0.16)]">
+      <div className="relative aspect-[4/5] min-h-[24rem] overflow-hidden sm:aspect-[16/9] sm:min-h-[28rem]">
+        {imageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className={
+              blurred
+                ? "scale-[1.06] object-cover object-top blur-md brightness-[0.68] saturate-[0.86]"
+                : "object-cover object-top"
+            }
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 760px"
+            src={imageUrl}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_50%,#24372a)]">
+            <Newspaper className="size-16 text-[#44f26e]" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/12 to-transparent" />
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.12em] sm:left-5 sm:top-5">
+          <span className="bg-[#44f26e] px-2.5 py-1.5 text-black">
+            {copy.visualLead}
+          </span>
+          <span className="border border-white/24 bg-white/12 px-2.5 py-1.5 text-white/82 backdrop-blur">
+            {accessLabel}
+          </span>
+        </div>
+        {blurred ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/28 p-5 text-center">
+            <div className="max-w-sm border border-white/14 bg-black/66 p-4">
+              <AlertTriangle className="mx-auto size-7 text-rose-300" />
+              <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
+                {copy.nsfwBlurNotice}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <figcaption className="border-t border-white/12 px-4 py-3 text-xs font-semibold leading-5 text-white/54">
+        {copy.visualCaption}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -778,6 +852,14 @@ export default async function LocalizedFanletterNewsReportPage({
                 reporterNewsHref={reporterNewsHref}
               />
             </header>
+
+            <ArticleVisualLead
+              accessLabel={accessLabel}
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              report={report}
+              sourceContent={sourceContent}
+            />
 
             {shouldShowNsfwControl ? (
               <div className="mt-5">

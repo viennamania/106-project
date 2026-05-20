@@ -67,6 +67,9 @@ function getCopy(locale: Locale) {
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
+        photoDesk: "포토 뉴스",
+        photoDeskBody:
+          "커버 이미지가 좋은 AI 캐릭터 뉴스를 한눈에 훑어볼 수 있게 모았습니다.",
         newsroomStats: "뉴스룸 현황",
         newsroomStatLabels: {
           news: "뉴스",
@@ -123,6 +126,9 @@ function getCopy(locale: Locale) {
         lead: "Lead Story",
         leadKicker: "FanLetter exclusive",
         navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
+        photoDesk: "Photo Desk",
+        photoDeskBody:
+          "A visual scan of AI character stories with the strongest cover moments.",
         newsroomStats: "Newsroom Status",
         newsroomStatLabels: {
           news: "News",
@@ -698,6 +704,139 @@ function FeatureCard({
   );
 }
 
+function PhotoDesk({
+  copy,
+  nsfwOptInEnabled,
+  referralCode,
+  reports,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  const [leadPhoto, ...restPhotos] = reports;
+
+  return (
+    <section className="border-y-2 border-[#111510] bg-[#111510] p-3 text-white sm:p-4">
+      <div className="mb-4 grid gap-2 border-b border-white/18 pb-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
+        <div>
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+            FanLetter Visual
+          </p>
+          <h2 className="mt-1 text-2xl font-black tracking-normal">
+            {copy.photoDesk}
+          </h2>
+        </div>
+        <p className="text-sm font-semibold leading-6 text-white/58 sm:text-right">
+          {copy.photoDeskBody}
+        </p>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.16fr)_minmax(18rem,0.84fr)]">
+        {leadPhoto ? (
+          <PhotoDeskStory
+            copy={copy}
+            featured
+            nsfwOptInEnabled={nsfwOptInEnabled}
+            referralCode={referralCode}
+            report={leadPhoto}
+          />
+        ) : null}
+        {restPhotos.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {restPhotos.slice(0, 3).map((report) => (
+              <PhotoDeskStory
+                copy={copy}
+                key={report.reportId}
+                nsfwOptInEnabled={nsfwOptInEnabled}
+                referralCode={referralCode}
+                report={report}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function PhotoDeskStory({
+  copy,
+  featured = false,
+  nsfwOptInEnabled,
+  referralCode,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  featured?: boolean;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  report: FanletterNewsReportDocument;
+}) {
+  const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+  const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+  const title = getArticleDisplayTitle(report.title);
+
+  return (
+    <Link
+      className={`group relative block overflow-hidden border border-white/16 bg-black text-white ${
+        featured ? "min-h-[22rem]" : "min-h-[10.5rem]"
+      }`}
+      href={getReportHref(report, referralCode)}
+    >
+      <div className="absolute inset-0">
+        <NewsImage
+          blurred={shouldBlur}
+          className="h-full w-full"
+          nsfwLabel={nsfwCopy.badge}
+          priority={featured}
+          report={report}
+          sizes={
+            featured
+              ? "(max-width: 1024px) 100vw, 48rem"
+              : "(max-width: 1024px) 33vw, 19rem"
+          }
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/24 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em]">
+          <span className="bg-[#44f26e] px-2 py-1 text-black">
+            {getAccessLabel(report, copy)}
+          </span>
+          {publishedAt ? (
+            <span className="border border-white/20 bg-white/12 px-2 py-1 text-white/72">
+              {publishedAt}
+            </span>
+          ) : null}
+        </div>
+        <h2
+          className={`mt-2 break-words font-black leading-tight [word-break:keep-all] group-hover:text-[#44f26e] ${
+            featured ? "line-clamp-3 text-3xl" : "line-clamp-2 text-lg"
+          } ${shouldBlur ? "select-none blur-[2px]" : ""}`}
+        >
+          {title}
+        </h2>
+        {featured ? (
+          <p
+            className={`mt-2 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/68 ${
+              shouldBlur ? "select-none blur-[2px]" : ""
+            }`}
+          >
+            {report.dek}
+          </p>
+        ) : null}
+      </div>
+    </Link>
+  );
+}
+
 function ReporterRank({
   copy,
   locale,
@@ -985,8 +1124,9 @@ export default async function LocalizedFanletterNewsHomePage({
     : [];
   const heroSideReports = restReports.slice(0, 2);
   const topStories = restReports.slice(2, 7);
-  const featureReports = restReports.slice(7, 16);
-  const latestReports = restReports.slice(16);
+  const photoDeskReports = restReports.slice(7, 11);
+  const featureReports = restReports.slice(11, 20);
+  const latestReports = restReports.slice(20);
   const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
   const activeReporterName = activeReporterReferralCode
@@ -1080,6 +1220,13 @@ export default async function LocalizedFanletterNewsHomePage({
                   tone={nsfwOptInEnabled ? "dark" : "light"}
                 />
               ) : null}
+
+              <PhotoDesk
+                copy={copy}
+                nsfwOptInEnabled={nsfwOptInEnabled}
+                referralCode={referralCode}
+                reports={photoDeskReports}
+              />
 
               {featureReports.length > 0 ? (
                 <section id="character-wire">
