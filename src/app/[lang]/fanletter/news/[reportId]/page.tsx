@@ -428,28 +428,39 @@ function ArticleVisualLead({
 
   return (
     <figure className="mt-6 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_54px_rgba(12,18,14,0.16)]">
-      <div className="relative aspect-[4/5] min-h-[24rem] overflow-hidden sm:aspect-[16/9] sm:min-h-[28rem]">
+      <div className="relative aspect-[4/5] min-h-[24rem] overflow-hidden sm:aspect-[16/10] sm:min-h-[28rem]">
         {imageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className={
-              blurred
-                ? "scale-[1.06] object-cover object-top blur-md brightness-[0.68] saturate-[0.86]"
-                : "object-cover object-top"
-            }
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 760px"
-            src={imageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
-          />
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
+              fill
+              sizes="(max-width: 1024px) 100vw, 760px"
+              src={imageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={
+                blurred
+                  ? "object-contain blur-md brightness-[0.68] saturate-[0.86]"
+                  : "object-contain"
+              }
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 760px"
+              src={imageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_50%,#24372a)]">
             <Newspaper className="size-16 text-[#44f26e]" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/12 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/18" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.12em] sm:left-5 sm:top-5">
           <span className="bg-[#44f26e] px-2.5 py-1.5 text-black">
             {copy.visualLead}
