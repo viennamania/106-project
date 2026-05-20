@@ -83,6 +83,7 @@ type FanletterPaidUnlockPanelProps = {
   priceUsdt: string | null;
   referralCode: string | null;
   showTeaserPreview?: boolean;
+  trackingSource?: string;
 };
 
 const usdtContract = getContract({
@@ -355,6 +356,7 @@ export function FanletterPaidUnlockPanel({
   priceUsdt,
   referralCode,
   showTeaserPreview = true,
+  trackingSource = "fanletter-content-detail",
 }: FanletterPaidUnlockPanelProps) {
   const copy = getCopy(locale);
   const router = useRouter();
@@ -985,7 +987,7 @@ export function FanletterPaidUnlockPanel({
       contentId,
       metadata: {
         amountUsdt: paidUnlockAmount,
-        source: "fanletter-content-detail",
+        source: trackingSource,
       },
       referralCode,
     });
@@ -994,7 +996,7 @@ export function FanletterPaidUnlockPanel({
       error: null,
     }));
     setIsPaymentOpen(true);
-  }, [contentId, paidUnlockAmount, referralCode]);
+  }, [contentId, paidUnlockAmount, referralCode, trackingSource]);
 
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#44f26e]/28 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.24)_100%)] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">

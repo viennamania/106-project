@@ -16,6 +16,7 @@ import {
 
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
@@ -881,6 +882,10 @@ export default async function LocalizedFanletterNewsReportPage({
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: articleHref },
   );
+  const paidUnlockOnboardingHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, referralCode),
+    { returnTo: articleHref },
+  );
   const creatorHref = report.creatorReferralCode
     ? buildPathWithReferral(
         `/${locale}/fanletter/creator/${report.creatorReferralCode}`,
@@ -898,6 +903,8 @@ export default async function LocalizedFanletterNewsReportPage({
   const nsfwTextBlurClass = shouldBlurCurrentReport
     ? "select-none blur-[2px]"
     : "";
+  const shouldShowPaidUnlockPanel =
+    (sourceContent?.priceType ?? report.priceType) === "paid";
   const facts = [
     { label: copy.sixW.who, value: report.who },
     { label: copy.sixW.when, value: report.when },
@@ -982,6 +989,41 @@ export default async function LocalizedFanletterNewsReportPage({
               reportCoverImageUrl={report.coverImageUrl}
               sourceContent={sourceContent}
             />
+
+            {shouldShowPaidUnlockPanel ? (
+              <FanletterPaidUnlockPanel
+                connectHref={walletHref}
+                contentId={report.contentId}
+                contentImageCount={sourceContent?.contentImageCount ?? 0}
+                contentMaturityRating={
+                  sourceContent?.contentMaturityRating ??
+                  report.contentMaturityRating
+                }
+                contentVideoCount={sourceContent?.contentVideoCount ?? 1}
+                creatorHref={creatorHref}
+                currentHref={articleHref}
+                initialBody={
+                  sourceContent?.body ??
+                  report.sourceSummary ??
+                  report.dek
+                }
+                initialCoverImageUrl={
+                  sourceContent?.coverImageUrl ?? report.coverImageUrl
+                }
+                initialSummary={
+                  sourceContent?.summary ??
+                  report.sourceSummary ??
+                  report.dek
+                }
+                initialTitle={sourceContent?.title ?? report.sourceTitle}
+                locale={locale}
+                onboardingHref={paidUnlockOnboardingHref}
+                priceUsdt={sourceContent?.priceUsdt ?? null}
+                referralCode={referralCode}
+                showTeaserPreview={false}
+                trackingSource="fanletter-news-detail"
+              />
+            ) : null}
 
             <section className="mt-7 border-y border-black/12 bg-[#f7f7f4] px-4 py-5">
               <div className="mb-4 flex items-center gap-2 text-sm font-black text-[#111510]">
