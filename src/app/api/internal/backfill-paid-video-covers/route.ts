@@ -1,6 +1,8 @@
 import {
   backfillPaidVideoCovers,
   type PaidVideoCoverBackfillMode,
+  type PaidVideoCoverBackfillPriceType,
+  paidVideoCoverBackfillPriceTypes,
   paidVideoCoverBackfillStyles,
   type PaidVideoCoverBackfillStyle,
 } from "@/lib/paid-video-cover-backfill-service";
@@ -16,6 +18,7 @@ type BackfillRequestBody = {
   includeDrafts?: unknown;
   includeGeneratedVideos?: unknown;
   limit?: unknown;
+  priceType?: unknown;
   replaceExistingCovers?: unknown;
   style?: unknown;
   write?: unknown;
@@ -125,6 +128,28 @@ function readOptionalCoverMode(value: unknown) {
   return value as PaidVideoCoverBackfillMode;
 }
 
+function readOptionalPriceType(value: unknown) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error("priceType must be a string.");
+  }
+
+  if (
+    !paidVideoCoverBackfillPriceTypes.includes(
+      value as PaidVideoCoverBackfillPriceType,
+    )
+  ) {
+    throw new Error(
+      `priceType must be one of: ${paidVideoCoverBackfillPriceTypes.join(", ")}.`,
+    );
+  }
+
+  return value as PaidVideoCoverBackfillPriceType;
+}
+
 async function readBackfillRequestBody(request: Request) {
   const payloadText = await request.text();
 
@@ -155,6 +180,7 @@ async function readBackfillRequestBody(request: Request) {
       "includeGeneratedVideos",
     ),
     limit: readOptionalLimit(body.limit),
+    priceType: readOptionalPriceType(body.priceType),
     replaceExistingCovers: readOptionalBoolean(
       body.replaceExistingCovers,
       "replaceExistingCovers",
@@ -198,7 +224,7 @@ export async function POST(request: Request) {
     return jsonError(
       error instanceof Error
         ? error.message
-        : "Failed to backfill paid video covers.",
+        : "Failed to backfill video covers.",
       500,
     );
   }

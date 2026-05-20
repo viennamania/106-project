@@ -43,6 +43,7 @@ const coverMode = normalizeCoverMode(readArgValue("--cover-mode"));
 const contentId = readArgValue("--content-id");
 const email = readArgValue("--email")?.trim().toLowerCase() ?? "";
 const limit = readPositiveInteger(readArgValue("--limit"), 25);
+const targetPriceType = normalizePriceType(readArgValue("--price-type"));
 const style = normalizeStyle(readArgValue("--style"));
 const mongoUri = process.env.MONGODB_URI?.trim() ?? "";
 const mongoDbName = process.env.MONGODB_DB_NAME?.trim() ?? "";
@@ -93,6 +94,7 @@ try {
     failed: 0,
     generated: 0,
     limit,
+    priceType: targetPriceType,
     promotedExistingImage: 0,
     replaceExistingCovers,
     scanned: candidates.length,
@@ -103,7 +105,7 @@ try {
     wouldPromoteExistingImage: 0,
   };
 
-  console.log("Paid video cover backfill candidates:");
+  console.log("Video cover backfill candidates:");
   console.log(
     JSON.stringify(
       {
@@ -114,6 +116,7 @@ try {
         limit,
         mode: write ? "write" : "dry-run",
         coverMode,
+        priceType: targetPriceType,
         replaceExistingCovers,
         style,
         total: candidates.length,
@@ -174,7 +177,7 @@ try {
           action: "would_extract_video_frame",
           coverImageUrl: trimToLength(post.coverImageUrl, 500) || undefined,
           reason: replaceExistingCovers
-            ? "Would replace the current cover with a frame from the paid video."
+            ? "Would replace the current cover with a frame from the video."
             : undefined,
         });
       } else {
@@ -263,7 +266,7 @@ try {
   }
 
   console.log("");
-  console.log("Paid video cover backfill summary:");
+  console.log("Video cover backfill summary:");
   console.log(JSON.stringify(summary, null, 2));
 
   if (dryRun) {
@@ -317,12 +320,21 @@ function normalizeCoverMode(value) {
   return normalized === "ai" ? "ai" : "video-frame";
 }
 
+function normalizePriceType(value) {
+  const normalized = value?.trim();
+
+  return normalized === "free" || normalized === "all" ? normalized : "paid";
+}
+
 function buildCandidateFilter() {
   const filter = {
     "contentVideoUrls.0": { $exists: true },
-    priceType: "paid",
     status: "published",
   };
+
+  if (targetPriceType !== "all") {
+    filter.priceType = targetPriceType;
+  }
 
   if (includeDrafts) {
     delete filter.status;
@@ -366,7 +378,7 @@ function sanitizeBaseName(name) {
     .replace(/^-|-$/g, "")
     .slice(0, 48);
 
-  return normalized || "paid-video-cover";
+  return normalized || "video-cover";
 }
 
 function applyImagePhotoQualityPreset(prompt) {
@@ -418,6 +430,7 @@ function buildPaidCoverPrompt({ post, profile, style }) {
   const summary = trimToLength(post.summary, SUMMARY_LIMIT);
   const previewText = trimToLength(post.previewText, PREVIEW_LIMIT);
   const body = trimToLength(post.body, BODY_LIMIT);
+  const isPaid = post.priceType === "paid";
   const characterName = trimToLength(
     profile?.characterPersona?.name || profile?.displayName,
     80,
@@ -425,8 +438,12 @@ function buildPaidCoverPrompt({ post, profile, style }) {
 
   return applyImagePhotoQualityPreset(
     [
-      "Create a public teaser cover image for a locked 1 USDT FanLetter paid vlog.",
-      "The cover is visible before payment, so create curiosity without revealing the full paid video content.",
+      isPaid
+        ? "Create a public teaser cover image for a locked 1 USDT FanLetter paid vlog."
+        : "Create a public FanLetter AI character vlog cover image for an unlocked feed video.",
+      isPaid
+        ? "The cover is visible before payment, so create curiosity without revealing the full paid video content."
+        : "Create a clear, inviting thumbnail that represents the vlog mood.",
       STYLE_PROMPTS[style],
       characterName
         ? `Keep the AI character mood consistent with: ${characterName}.`
@@ -437,7 +454,7 @@ function buildPaidCoverPrompt({ post, profile, style }) {
       body ? `Use body context only as subtle mood, not literal spoilers: ${body}.` : null,
       "Safe-for-work only: no nudity, sexual framing, private body focus, gore, weapons, minors, or explicit scenes.",
       "Do not include text, letters, numbers, logos, watermarks, UI, price labels, or payment icons.",
-      "Do not create an exact still frame from the paid video. Use a tasteful editorial teaser composition instead.",
+      "Do not create an exact still frame from the video. Use a tasteful editorial teaser composition instead.",
       "Use cinematic lighting, one clear focal subject, tasteful negative space, and a premium vertical-vlog teaser mood.",
       "Landscape aspect ratio, suitable for feed cards, detail headers, and social sharing previews.",
     ]
@@ -449,10 +466,13 @@ function buildPaidCoverPrompt({ post, profile, style }) {
 function buildSafeRetryPrompt({ post }) {
   const title = trimToLength(post.title, TITLE_LIMIT);
   const summary = trimToLength(post.summary, SUMMARY_LIMIT);
+  const isPaid = post.priceType === "paid";
 
   return applyImagePhotoQualityPreset(
     [
-      "Create a public-safe teaser cover image for a locked paid creator vlog.",
+      isPaid
+        ? "Create a public-safe teaser cover image for a locked paid creator vlog."
+        : "Create a public-safe cover image for an unlocked AI character vlog.",
       "Use a non-human symbolic composition: refined objects, architecture, interiors, soft light, natural textures, or a premium still life.",
       "Do not depict people, faces, bodies, silhouettes, skin, crowds, hands, clothing, minors, nudity, erotic framing, violence, gore, weapons, or medical injury.",
       "Do not include text, letters, numbers, logos, watermarks, UI, price labels, or payment icons.",
@@ -468,7 +488,7 @@ function buildSafeRetryPrompt({ post }) {
 function buildNeutralFallbackPrompt() {
   return applyImagePhotoQualityPreset(
     [
-      "Create a premium public teaser cover for a paid creator vlog.",
+      "Create a premium public cover for an AI character vlog.",
       "Use a completely non-human, safe-for-work abstract editorial composition with polished light, refined materials, soft depth, subtle geometric structure, and a trustworthy modern tone.",
       "Do not depict people, faces, bodies, silhouettes, skin, clothing, text, typography, letters, numbers, logos, watermarks, weapons, violence, medical scenes, or sexual content.",
       "Landscape aspect ratio, suitable for feed cards and detail headers.",
@@ -600,7 +620,7 @@ async function extractVideoFrameCoverBuffer(videoUrl) {
 
 async function extractAndUploadVideoFrameCover({ post, referralCode, videoUrl }) {
   if (!videoUrl) {
-    throw new Error("Post is missing a paid video URL.");
+    throw new Error("Post is missing a video URL.");
   }
 
   const imageBytes = await extractVideoFrameCoverBuffer(videoUrl);
@@ -609,7 +629,7 @@ async function extractAndUploadVideoFrameCover({ post, referralCode, videoUrl })
     referralCode,
     "generated",
     `${Date.now()}-${sanitizeBaseName(
-      `${trimToLength(post.title, TITLE_LIMIT) || post.contentId || "paid-video"}-frame-cover`,
+      `${trimToLength(post.title, TITLE_LIMIT) || post.contentId || "video"}-frame-cover`,
     )}.jpg`,
   ].join("/");
   const uploaded = await put(
@@ -707,7 +727,7 @@ async function generateAndUploadPaidCover({ post, profile, style }) {
     referralCode,
     "generated",
     `${Date.now()}-${sanitizeBaseName(
-      post.title || post.summary || post.contentId || "paid-video-cover",
+      post.title || post.summary || post.contentId || "video-cover",
     )}.png`,
   ].join("/");
   const uploaded = await put(

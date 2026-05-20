@@ -42,6 +42,7 @@ const result = await runBackfillPaidVideoCoversRequest({
   includeDrafts: args.includes("--include-drafts"),
   includeGeneratedVideos: args.includes("--include-generated-videos"),
   limit: readPositiveInteger(readArgValue("--limit")),
+  priceType: readArgValue("--price-type"),
   replaceExistingCovers: args.includes("--replace-existing-covers"),
   style: readArgValue("--style"),
   write: args.includes("--write"),

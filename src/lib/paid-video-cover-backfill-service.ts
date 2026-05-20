@@ -32,8 +32,17 @@ export const paidVideoCoverBackfillStyles = [
   "safe",
 ] as const;
 
+export const paidVideoCoverBackfillPriceTypes = [
+  "paid",
+  "free",
+  "all",
+] as const;
+
 export type PaidVideoCoverBackfillStyle =
   (typeof paidVideoCoverBackfillStyles)[number];
+
+export type PaidVideoCoverBackfillPriceType =
+  (typeof paidVideoCoverBackfillPriceTypes)[number];
 
 export type PaidVideoCoverBackfillInput = {
   allowAiFallback?: boolean;
@@ -43,6 +52,7 @@ export type PaidVideoCoverBackfillInput = {
   includeDrafts?: boolean;
   includeGeneratedVideos?: boolean;
   limit?: number;
+  priceType?: PaidVideoCoverBackfillPriceType;
   replaceExistingCovers?: boolean;
   style?: PaidVideoCoverBackfillStyle;
   write?: boolean;
@@ -68,6 +78,7 @@ export type PaidVideoCoverBackfillItem = {
   error?: string;
   fallbackError?: string;
   pathname?: string;
+  priceType: string | null;
   publishedAt: string | null;
   reason?: string;
   style?: PaidVideoCoverBackfillStyle;
@@ -82,6 +93,7 @@ export type PaidVideoCoverBackfillResult = {
   generated: number;
   items: PaidVideoCoverBackfillItem[];
   limit: number;
+  priceType: PaidVideoCoverBackfillPriceType;
   promotedExistingImage: number;
   replaceExistingCovers: boolean;
   scanned: number;
@@ -127,6 +139,14 @@ function normalizeStyle(
     : "curiosity";
 }
 
+function normalizePriceType(
+  priceType: PaidVideoCoverBackfillPriceType | undefined,
+): PaidVideoCoverBackfillPriceType {
+  return priceType && paidVideoCoverBackfillPriceTypes.includes(priceType)
+    ? priceType
+    : "paid";
+}
+
 function normalizeCoverMode(
   coverMode: PaidVideoCoverBackfillMode | undefined,
 ): PaidVideoCoverBackfillMode {
@@ -166,19 +186,20 @@ function sanitizeBaseName(name: string) {
     .replace(/^-|-$/g, "")
     .slice(0, 48);
 
-  return normalized || "paid-video-cover";
+  return normalized || "video-cover";
 }
 
 function createItem(
   post: Partial<ContentPostDocument>,
   item: Omit<
     PaidVideoCoverBackfillItem,
-    "authorEmail" | "contentId" | "publishedAt" | "title"
+    "authorEmail" | "contentId" | "priceType" | "publishedAt" | "title"
   >,
 ): PaidVideoCoverBackfillItem {
   return {
     authorEmail: normalizeString(post.authorEmail, 160) || null,
     contentId: normalizeString(post.contentId, 100) || null,
+    priceType: normalizeString(post.priceType, 20) || null,
     publishedAt: serializeDate(post.publishedAt),
     title: normalizeString(post.title, TITLE_LIMIT) || null,
     ...item,
@@ -192,15 +213,23 @@ function isGeneratedVideoUrl(videoUrl: string) {
 function buildCandidateFilter(
   input: Pick<
     PaidVideoCoverBackfillInput,
-    "contentId" | "email" | "includeDrafts" | "replaceExistingCovers"
+    | "contentId"
+    | "email"
+    | "includeDrafts"
+    | "priceType"
+    | "replaceExistingCovers"
   >,
 ): Filter<ContentPostDocument> {
   const filter: Filter<ContentPostDocument> = {
     "contentVideoUrls.0": { $exists: true },
-    priceType: "paid",
   };
+  const targetPriceType = normalizePriceType(input.priceType);
   const contentId = normalizeString(input.contentId, 100);
   const email = normalizeEmail(input.email);
+
+  if (targetPriceType !== "all") {
+    filter.priceType = targetPriceType;
+  }
 
   if (!input.includeDrafts) {
     filter.status = "published";
@@ -226,7 +255,7 @@ function buildCandidateFilter(
   return filter;
 }
 
-function buildPaidCoverVisualBrief(options: {
+function buildVideoCoverVisualBrief(options: {
   post: ContentPostDocument;
   profile: CreatorProfileSnapshot;
   style: PaidVideoCoverBackfillStyle;
@@ -235,17 +264,22 @@ function buildPaidCoverVisualBrief(options: {
     options.profile?.characterPersona?.name || options.profile?.displayName,
     80,
   );
+  const isPaid = options.post.priceType === "paid";
 
   return [
-    "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog.",
-    "Create curiosity before payment without revealing the full paid content.",
+    isPaid
+      ? "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog."
+      : "FanLetter public AI character vlog cover for an unlocked feed video.",
+    isPaid
+      ? "Create curiosity before payment without revealing the full paid content."
+      : "Create a clear, inviting public thumbnail that represents the vlog mood.",
     STYLE_PROMPTS[options.style],
     characterName
       ? `Keep the AI character mood consistent with: ${characterName}.`
       : null,
     "Safe-for-work only: no nudity, sexual framing, private body focus, gore, weapons, minors, or explicit scenes.",
     "Do not include text, letters, numbers, logos, watermarks, UI, price labels, or payment icons.",
-    "Do not create an exact still frame from the paid video. Use a tasteful editorial teaser composition instead.",
+    "Do not create an exact still frame from the video. Use a tasteful editorial teaser composition instead.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -389,7 +423,7 @@ async function extractAndUploadVideoFrameCover({
   }
 
   if (!videoUrl) {
-    throw new Error("Post is missing a paid video URL.");
+    throw new Error("Post is missing a video URL.");
   }
 
   const imageBytes = await extractVideoFrameCoverBuffer(videoUrl);
@@ -402,7 +436,7 @@ async function extractAndUploadVideoFrameCover({
     referralCode,
     "generated",
     `${Date.now()}-${sanitizeBaseName(
-      `${normalizeString(post.title, TITLE_LIMIT) || post.contentId || "paid-video"}-frame-cover`,
+      `${normalizeString(post.title, TITLE_LIMIT) || post.contentId || "video"}-frame-cover`,
     )}.jpg`,
   ].join("/");
   const uploaded = await put(
@@ -459,6 +493,7 @@ export async function backfillPaidVideoCovers(
   const allowAiFallback = normalizeAllowAiFallback(input.allowAiFallback);
   const coverMode = normalizeCoverMode(input.coverMode);
   const limit = normalizeLimit(input.limit);
+  const priceType = normalizePriceType(input.priceType);
   const style = normalizeStyle(input.style);
   const postsCollection = await getContentPostsCollection();
   const candidates = await postsCollection
@@ -475,6 +510,7 @@ export async function backfillPaidVideoCovers(
     generated: 0,
     items: [],
     limit,
+    priceType,
     promotedExistingImage: 0,
     replaceExistingCovers: Boolean(input.replaceExistingCovers),
     scanned: candidates.length,
@@ -542,7 +578,7 @@ export async function backfillPaidVideoCovers(
             action: "would_extract_video_frame",
             coverImageUrl: normalizeString(post.coverImageUrl, 500) || undefined,
             reason: input.replaceExistingCovers
-              ? "Would replace the current cover with a frame from the paid video."
+              ? "Would replace the current cover with a frame from the video."
               : undefined,
           }),
         );
@@ -594,7 +630,7 @@ export async function backfillPaidVideoCovers(
               normalizeString(post.previewText, PREVIEW_LIMIT) ||
               normalizeString(post.summary, SUMMARY_LIMIT),
             title: normalizeString(post.title, TITLE_LIMIT),
-            visualBrief: buildPaidCoverVisualBrief({
+            visualBrief: buildVideoCoverVisualBrief({
               post,
               profile,
               style,
@@ -610,7 +646,7 @@ export async function backfillPaidVideoCovers(
             normalizeString(post.previewText, PREVIEW_LIMIT) ||
             normalizeString(post.summary, SUMMARY_LIMIT),
           title: normalizeString(post.title, TITLE_LIMIT),
-          visualBrief: buildPaidCoverVisualBrief({
+          visualBrief: buildVideoCoverVisualBrief({
             post,
             profile,
             style,

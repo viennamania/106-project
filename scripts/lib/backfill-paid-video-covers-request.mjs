@@ -50,6 +50,10 @@ function normalizeRequestPayload(overrides = {}) {
     typeof overrides.contentId === "string"
       ? overrides.contentId.trim()
       : process.env.PAID_VIDEO_COVERS_BACKFILL_CONTENT_ID?.trim();
+  const priceType =
+    typeof overrides.priceType === "string"
+      ? overrides.priceType.trim()
+      : process.env.PAID_VIDEO_COVERS_BACKFILL_PRICE_TYPE?.trim();
   const style =
     typeof overrides.style === "string"
       ? overrides.style.trim()
@@ -89,6 +93,10 @@ function normalizeRequestPayload(overrides = {}) {
 
   if (contentId) {
     payload.contentId = contentId;
+  }
+
+  if (priceType) {
+    payload.priceType = priceType;
   }
 
   if (style) {
