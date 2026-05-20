@@ -5,18 +5,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   AlertTriangle,
-  BadgeCheck,
-  CalendarDays,
   Clapperboard,
-  Clock3,
   FileText,
   LockKeyhole,
-  Megaphone,
   MessageCircleHeart,
   Newspaper,
   PlayCircle,
-  ShieldCheck,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -59,6 +53,7 @@ function getCopy(locale: Locale) {
         articleEyebrow: "AI Character News",
         articleNotice:
           "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 기사로 표시하지 않습니다.",
+        articleSection: "연예",
         byline: "팬 기자",
         characterStats: {
           level: "성장 단계",
@@ -71,12 +66,12 @@ function getCopy(locale: Locale) {
           paid: "팬 전용 유료 브이로그",
           public: "공개 브이로그",
         },
-        dateline: "FanLetter 브이로그 뉴스",
         edition: "AI 캐릭터와 팬 참여를 다루는 FanLetter 온라인 뉴스",
         embeddedLocked:
           "잠금 콘텐츠는 공개 티저와 기사 작성 가능한 정보만 뉴스 화면에 표시됩니다.",
         embeddedTitle: "빌트인 원본 브이로그",
         generated: "AI 생성",
+        publishedLabel: "기사입력",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스"],
         nsfwBlurNotice:
           "NSFW 보기 동의 전에는 원본 브이로그와 기사 본문 일부가 블러 처리됩니다.",
@@ -93,9 +88,9 @@ function getCopy(locale: Locale) {
         openCreator: "캐릭터 채널",
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
-        reportUrl: "뉴스 공유 주소",
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
+        summaryTitle: "기사 요약",
         sixW: {
           how: "어떻게",
           what: "무엇을",
@@ -111,6 +106,7 @@ function getCopy(locale: Locale) {
         articleEyebrow: "AI Character News",
         articleNotice:
           "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
+        articleSection: "Entertainment",
         byline: "Fan reporter",
         characterStats: {
           level: "Growth level",
@@ -123,12 +119,12 @@ function getCopy(locale: Locale) {
           paid: "Fan-only paid vlog",
           public: "Public vlog",
         },
-        dateline: "FanLetter vlog news",
         edition: "FanLetter online news for AI characters and fan participation",
         embeddedLocked:
           "Locked content is represented with public teaser details available for the news page.",
         embeddedTitle: "Built-in source vlog",
         generated: "AI generated",
+        publishedLabel: "Published",
         navItems: ["AI characters", "Fan reports", "Vlog news"],
         nsfwBlurNotice:
           "The source vlog and parts of the article stay blurred before NSFW opt-in.",
@@ -144,9 +140,9 @@ function getCopy(locale: Locale) {
         openCreator: "Character channel",
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
-        reportUrl: "News share URL",
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
+        summaryTitle: "Story summary",
         sixW: {
           how: "How",
           what: "What",
@@ -174,6 +170,10 @@ function splitArticleBody(body: string) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function getArticleDisplayTitle(title: string) {
+  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -218,36 +218,32 @@ function NewsSiteHeader({
   }).format(new Date());
 
   return (
-    <header className="border-b border-black/12 bg-[#fbfbf6] text-[#111510]">
-      <div className="border-b border-black/10 bg-[#111510] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[0.66rem] font-bold uppercase tracking-[0.18em] sm:px-6 lg:px-8">
-          <span>{copy.articleEyebrow}</span>
-          <span className="hidden text-white/58 sm:inline">{copy.edition}</span>
+    <header className="border-b border-black/14 bg-white text-[#111510]">
+      <div className="border-b border-black/10 bg-[#f7f7f4]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.72rem] font-semibold text-black/52 sm:px-6 lg:px-8">
+          <span>{today}</span>
+          <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 border-b-4 border-[#111510] pb-4 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="mx-auto flex max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
           <Link
-            className="inline-flex items-center gap-3 text-[2.25rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
+            className="inline-flex items-center gap-3 text-[2rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[3.3rem]"
             href={homeHref}
           >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-[#44f26e] text-black sm:size-14">
-              <Newspaper className="size-6" />
-            </span>
             {copy.siteName}
           </Link>
-          <div className="max-w-sm border-l border-black/12 pl-4 text-xs font-bold leading-5 text-black/52">
-            <p>{today}</p>
-            <p className="mt-1 text-[#16702e]">{copy.edition}</p>
-          </div>
+          <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
+            {copy.articleEyebrow}
+          </span>
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-2 overflow-x-auto"
+          className="flex gap-5 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62"
         >
           {copy.navItems.map((item) => (
             <span
-              className="shrink-0 border border-black/12 bg-white px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-black/62"
+              className="shrink-0"
               key={item}
             >
               {item}
@@ -261,10 +257,12 @@ function NewsSiteHeader({
 
 function ReporterByline({
   copy,
+  publishedAt,
   report,
   reporterProfile,
 }: {
   copy: ReturnType<typeof getCopy>;
+  publishedAt: string | null;
   report: FanletterNewsReportDocument;
   reporterProfile: FanletterNewsReporterProfile | null;
 }) {
@@ -277,28 +275,38 @@ function ReporterByline({
     "F";
 
   return (
-    <section className="mt-5 flex min-w-0 items-center gap-3 border-y border-black/12 bg-[#f5f6f2] px-3 py-3 sm:px-4">
-      <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-base font-black text-[#44f26e]">
-        {reporterProfile?.avatarImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="object-cover"
-            fill
-            sizes="3rem"
-            src={reporterProfile.avatarImageUrl}
-          />
-        ) : (
-          reporterInitial
-        )}
-      </span>
-      <div className="min-w-0">
-        <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
-          {copy.byline}
-        </p>
-        <p className="mt-0.5 truncate text-base font-black text-[#111510]">
-          {reporterDisplayName}
-        </p>
+    <section className="mt-5 flex min-w-0 flex-col gap-3 border-y border-black/12 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
+          {reporterProfile?.avatarImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover"
+              fill
+              sizes="2.75rem"
+              src={reporterProfile.avatarImageUrl}
+            />
+          ) : (
+            reporterInitial
+          )}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.72rem] font-bold text-black/46">
+            {copy.byline}
+          </p>
+          <p className="mt-0.5 truncate text-sm font-bold text-[#111510]">
+            {reporterDisplayName}
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-black/48">
+        {publishedAt ? (
+          <span>
+            {copy.publishedLabel} {publishedAt}
+          </span>
+        ) : null}
+        <span>{copy.generated}</span>
       </div>
     </section>
   );
@@ -327,41 +335,46 @@ function SourceVlogEmbed({
   const noticeMessage = blurred ? copy.nsfwBlurNotice : copy.embeddedLocked;
 
   return (
-    <section className="mt-8 overflow-hidden rounded-lg border border-black/12 bg-[#0a0d0a] text-white shadow-[0_18px_54px_rgba(0,0,0,0.16)]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
-        <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-white/80">
-          <Clapperboard className="size-4 text-[#44f26e]" />
+    <section className="mt-7 border-y border-black/12 py-5">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-2 text-sm font-bold text-[#111510]">
+          <Clapperboard className="size-4 text-[#16702e]" />
           {copy.embeddedTitle}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-black">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/64">
           <PlayCircle className="size-3.5" />
           {accessLabel}
         </span>
       </div>
-      <FanletterResponsiveMediaFrame
-        alt={sourceContent?.title ?? copy.embeddedTitle}
-        blurred={blurred}
-        eager
-        imageUrl={sourceImageUrl}
-        mediaType={sourceContent?.mediaType ?? "video"}
-        title={sourceContent?.title ?? copy.embeddedTitle}
-        videoUrl={sourceVideoUrl}
-      >
-        {blurred || !hasEmbeddedVideo ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
-            <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
-              {blurred ? (
-                <AlertTriangle className="mx-auto size-7 text-rose-300" />
-              ) : (
-                <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
-              )}
-              <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
-                {noticeMessage}
-              </p>
+      <div className="overflow-hidden border border-black/10 bg-black">
+        <FanletterResponsiveMediaFrame
+          alt={sourceContent?.title ?? copy.embeddedTitle}
+          blurred={blurred}
+          eager
+          imageUrl={sourceImageUrl}
+          mediaType={sourceContent?.mediaType ?? "video"}
+          title={sourceContent?.title ?? copy.embeddedTitle}
+          videoUrl={sourceVideoUrl}
+        >
+          {blurred || !hasEmbeddedVideo ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
+              <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
+                {blurred ? (
+                  <AlertTriangle className="mx-auto size-7 text-rose-300" />
+                ) : (
+                  <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
+                )}
+                <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
+                  {noticeMessage}
+                </p>
+              </div>
             </div>
-          </div>
-        ) : null}
-      </FanletterResponsiveMediaFrame>
+          ) : null}
+        </FanletterResponsiveMediaFrame>
+      </div>
+      <p className="mt-2 text-xs font-medium leading-5 text-black/46">
+        {sourceContent?.title ?? copy.sourceTitle}
+      </p>
     </section>
   );
 }
@@ -387,67 +400,68 @@ function CharacterInfoCard({
     (sourceContent?.social.saveCount ?? 0);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-black/12 bg-[#111510] text-white">
-      <div className="relative aspect-[4/5] bg-black">
-        {avatarImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="object-cover object-top"
-            fill
-            loading="eager"
-            sizes="(max-width: 1024px) 100vw, 22rem"
-            src={avatarImageUrl}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#18251e)]">
-            <UserRound className="size-16 text-[#44f26e]" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/12 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-4">
-          <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#44f26e]">
+    <section className="border border-black/12 bg-white p-4 text-[#111510]">
+      <div className="flex gap-3">
+        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#111510]">
+          {avatarImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover object-top"
+              fill
+              loading="eager"
+              sizes="5rem"
+              src={avatarImageUrl}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#18251e)]">
+              <UserRound className="size-8 text-[#44f26e]" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-[#16702e]">
             {copy.characterTitle}
           </p>
-          <h2 className="mt-2 break-words text-3xl font-black leading-tight [word-break:keep-all]">
+          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all]">
             {characterName}
           </h2>
+          <p className="mt-2 line-clamp-3 text-sm font-medium leading-5 text-black/58">
+            {character?.summary ?? sourceContent?.summary}
+          </p>
         </div>
       </div>
-      <div className="p-4">
-        <p className="line-clamp-3 text-sm font-medium leading-6 text-white/64">
-          {character?.summary ?? sourceContent?.summary}
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-lg border border-white/10 bg-white/[0.05] p-3">
+      <div className="mt-4">
+        <div className="grid grid-cols-3 gap-2 border-y border-black/10 py-3">
+          <div>
             <p className="text-lg font-bold">
               {character ? `Lv.${character.growth.level}` : "-"}
             </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-white/42">
+            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
               {copy.characterStats.level}
             </p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.05] p-3">
+          <div>
             <p className="text-lg font-bold">
               {sourceContent
                 ? formatNumber(sourceContent.authorPublicContentCount, locale)
                 : "-"}
             </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-white/42">
+            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
               {copy.characterStats.vlogs}
             </p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.05] p-3">
+          <div>
             <p className="text-lg font-bold">
               {sourceContent ? formatNumber(reactionCount, locale) : "-"}
             </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-white/42">
+            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
               {copy.characterStats.reactions}
             </p>
           </div>
         </div>
         <Link
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.05] px-4 text-sm font-bold !text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.08]"
+          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/14 bg-[#111510] px-4 text-sm font-bold !text-white transition hover:bg-black"
           href={creatorHref}
         >
           <MessageCircleHeart className="size-4 text-[#44f26e]" />
@@ -470,21 +484,18 @@ function RelatedNewsList({
   reports: FanletterNewsReportDocument[];
 }) {
   return (
-    <section className="border-t-4 border-[#111510] bg-white p-4 text-[#111510] shadow-[0_18px_60px_rgba(0,0,0,0.08)] sm:p-7 lg:col-span-2 lg:p-8">
-      <div className="flex items-center justify-between gap-3">
+    <section className="border border-black/12 bg-white p-4 text-[#111510]">
+      <div className="border-b border-black/12 pb-3">
         <div>
-          <p className="text-[0.66rem] font-bold uppercase tracking-[0.18em] text-[#16702e]">
-            Related News
-          </p>
-          <h2 className="mt-2 text-2xl font-black tracking-normal">
+          <p className="text-xs font-bold text-[#16702e]">FanLetter News</p>
+          <h2 className="mt-1 text-lg font-black tracking-normal">
             {copy.relatedNews}
           </h2>
         </div>
-        <Sparkles className="size-6 text-[#19b84b]" />
       </div>
 
       {reports.length > 0 ? (
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4">
           {reports.map((report) => {
             const href = buildPathWithReferral(
               `/${report.locale}/fanletter/news/${report.reportId}`,
@@ -497,7 +508,7 @@ function RelatedNewsList({
 
             return (
               <Link
-                className="group grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] gap-3 border-b border-black/12 pb-4 transition hover:border-[#19b84b]"
+                className="group grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b]"
                 href={href}
                 key={report.reportId}
               >
@@ -536,14 +547,14 @@ function RelatedNewsList({
                 </div>
                 <div className="min-w-0">
                   <p
-                    className={`line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] ${
+                    className={`line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] ${
                       shouldBlur ? "select-none blur-[2px]" : ""
                     }`}
                   >
-                    {report.title}
+                    {getArticleDisplayTitle(report.title)}
                   </p>
                   <p
-                    className={`mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58 ${
+                    className={`mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/58 ${
                       shouldBlur ? "select-none blur-[2px]" : ""
                     }`}
                   >
@@ -559,7 +570,7 @@ function RelatedNewsList({
           })}
         </div>
       ) : (
-        <p className="mt-5 rounded-lg border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
+        <p className="mt-4 border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
           {copy.relatedNewsEmpty}
         </p>
       )}
@@ -575,8 +586,9 @@ export async function generateMetadata({
   const { lang, reportId } = await params;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const report = await getFanletterNewsReportById(reportId);
+  const reportTitle = report ? getArticleDisplayTitle(report.title) : null;
   const title = report
-    ? `${report.title} | FanLetter News`
+    ? `${reportTitle} | FanLetter News`
     : locale === "ko"
       ? "FanLetter AI 팬 리포트"
       : "FanLetter AI fan report";
@@ -660,6 +672,7 @@ export default async function LocalizedFanletterNewsReportPage({
     }),
   ]);
   const copy = getCopy(locale);
+  const articleTitle = getArticleDisplayTitle(report.title);
   const referralCode =
     readFanletterReferralCode(query.ref) ?? report.reporterReferralCode;
   const newsHomeHref = buildPathWithReferral(
@@ -668,10 +681,6 @@ export default async function LocalizedFanletterNewsReportPage({
   );
   const fanletterHomeHref = buildPathWithReferral(
     `/${locale}/fanletter`,
-    referralCode,
-  );
-  const reportHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
   );
   const creatorHref = report.creatorReferralCode
@@ -701,56 +710,42 @@ export default async function LocalizedFanletterNewsReportPage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
+    <main className="min-h-screen bg-white text-[#111510]">
       <NewsSiteHeader copy={copy} homeHref={newsHomeHref} locale={locale} />
 
-      <article className="mx-auto max-w-7xl px-4 pb-12 pt-5 sm:px-6 sm:pt-7 lg:px-8">
-        <div className="grid gap-2 border-y border-black/14 bg-white px-4 py-3 text-[0.68rem] font-black uppercase tracking-[0.18em] text-black/56 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <span className="inline-flex items-center gap-2 text-[#16702e]">
-            <Megaphone className="size-4" />
-            {copy.articleEyebrow}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <Clock3 className="size-4 text-[#16702e]" />
-            {publishedAt ?? copy.dateline}
-          </span>
-        </div>
+      <article className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_300px] lg:items-start">
+          <div className="min-w-0">
+            <header className="border-b border-black/14 pb-6">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-bold text-black/54">
+                <span className="text-[#16702e]">{copy.articleSection}</span>
+                <span className="h-3 w-px bg-black/18" aria-hidden="true" />
+                <span>{accessLabel}</span>
+                <span className="h-3 w-px bg-black/18" aria-hidden="true" />
+                <span>{copy.aiReport}</span>
+              </div>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-          <div className="min-w-0 border-t-4 border-[#111510] bg-white p-4 shadow-[0_18px_60px_rgba(0,0,0,0.08)] sm:p-7 lg:p-9">
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-black">
-                <ShieldCheck className="size-3.5" />
-                {accessLabel}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-black/[0.04] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-black/62">
-                <BadgeCheck className="size-3.5" />
-                {copy.generated}
-              </span>
-            </div>
+              <h1
+                className={`mt-4 max-w-4xl break-words text-[2.05rem] font-black leading-[1.16] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[2.9rem] sm:leading-[1.12] ${nsfwTextBlurClass}`}
+              >
+                {articleTitle}
+              </h1>
+              <p
+                className={`mt-4 max-w-3xl text-[1.05rem] font-medium leading-8 text-black/62 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+              >
+                {report.dek}
+              </p>
 
-            <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-[#16702e]">
-              {copy.dateline}
-            </p>
-            <h1
-              className={`mt-3 max-w-5xl break-words text-[2.65rem] font-black leading-[0.98] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.9rem] ${nsfwTextBlurClass}`}
-            >
-              {report.title}
-            </h1>
-            <p
-              className={`mt-5 max-w-3xl border-l-4 border-[#44f26e] pl-4 text-base font-semibold leading-7 text-black/70 sm:text-xl sm:leading-8 ${nsfwTextBlurClass}`}
-            >
-              {report.dek}
-            </p>
-
-            <ReporterByline
-              copy={copy}
-              report={report}
-              reporterProfile={reporterProfile}
-            />
+              <ReporterByline
+                copy={copy}
+                publishedAt={publishedAt}
+                report={report}
+                reporterProfile={reporterProfile}
+              />
+            </header>
 
             {shouldShowNsfwControl ? (
-              <div className="mt-4">
+              <div className="mt-5">
                 <FanletterNsfwOptInControl
                   disabledBody={copy.nsfwControl.disabledBody}
                   disabledTitle={copy.nsfwControl.disabledTitle}
@@ -767,19 +762,6 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-bold text-black/54">
-              {publishedAt ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1.5">
-                  <CalendarDays className="size-3.5 text-[#16702e]" />
-                  {publishedAt}
-                </span>
-              ) : null}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1.5">
-                <FileText className="size-3.5 text-[#16702e]" />
-                {copy.aiReport}
-              </span>
-            </div>
-
             <SourceVlogEmbed
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
@@ -788,28 +770,30 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
-            <section className="mt-8 grid gap-px overflow-hidden rounded-lg border border-black/10 bg-black/10 sm:grid-cols-2">
-              {facts.map((fact) => (
-                <div className="bg-[#f9faf6] p-4" key={fact.label}>
-                  <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
-                    {fact.label}
-                  </p>
-                  <p
-                    className={`mt-2 text-sm font-semibold leading-6 text-black/72 ${nsfwTextBlurClass}`}
-                  >
-                    {fact.value}
-                  </p>
-                </div>
-              ))}
+            <section className="mt-7 border-y border-black/12 bg-[#f7f7f4] px-4 py-5">
+              <div className="mb-4 flex items-center gap-2 text-sm font-black text-[#111510]">
+                <FileText className="size-4 text-[#16702e]" />
+                {copy.summaryTitle}
+              </div>
+              <dl className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+                {facts.map((fact) => (
+                  <div className="min-w-0" key={fact.label}>
+                    <dt className="text-xs font-bold text-[#16702e]">
+                      {fact.label}
+                    </dt>
+                    <dd
+                      className={`mt-1 text-sm font-medium leading-6 text-black/72 ${nsfwTextBlurClass}`}
+                    >
+                      {fact.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </section>
 
-            <section className="mt-8 border-t border-black/12 pt-6">
-              <div className="mb-5 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-[#16702e]">
-                <FileText className="size-4" />
-                {copy.aiReport}
-              </div>
+            <section className="mt-8">
               <div
-                className={`max-w-3xl space-y-5 text-[1.08rem] font-medium leading-8 text-black/78 sm:text-[1.18rem] sm:leading-9 ${
+                className={`max-w-[42rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
                   nsfwTextBlurClass
                 }`}
               >
@@ -821,12 +805,19 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             </section>
 
-            <p className="mt-6 rounded-lg border border-black/10 bg-[#f5f6f2] px-4 py-3 text-xs font-medium leading-5 text-black/50">
+            <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
               {copy.articleNotice}
             </p>
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-5">
+            <RelatedNewsList
+              copy={copy}
+              nsfwOptInEnabled={includeNsfw}
+              referralCode={referralCode}
+              reports={relatedReports}
+            />
+
             <CharacterInfoCard
               copy={copy}
               creatorHref={creatorHref}
@@ -834,12 +825,12 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
-            <section className="rounded-lg border border-black/12 bg-white p-4 text-[#111510]">
-              <p className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#16702e]">
+            <section className="border border-black/12 bg-white p-4 text-[#111510]">
+              <p className="text-xs font-bold text-[#16702e]">
                 {copy.sourceContext}
               </p>
               <h2
-                className={`mt-3 break-words text-xl font-black leading-tight [word-break:keep-all] ${nsfwTextBlurClass}`}
+                className={`mt-3 break-words text-lg font-black leading-tight [word-break:keep-all] ${nsfwTextBlurClass}`}
               >
                 {report.sourceTitle}
               </h2>
@@ -848,24 +839,12 @@ export default async function LocalizedFanletterNewsReportPage({
               >
                 {report.sourceSummary}
               </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-black/58">
+              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/58">
                 <Clapperboard className="size-3.5 text-[#16702e]" />
                 {copy.sourceTitle}
               </span>
             </section>
-
-            <section className="rounded-lg border border-black/12 bg-white p-4 text-xs font-medium leading-5 text-black/48">
-              <p className="font-bold text-black/72">{copy.reportUrl}</p>
-              <p className="mt-1 break-all">{reportHref}</p>
-            </section>
           </aside>
-
-          <RelatedNewsList
-            copy={copy}
-            nsfwOptInEnabled={includeNsfw}
-            referralCode={referralCode}
-            reports={relatedReports}
-          />
         </div>
       </article>
     </main>
