@@ -47,20 +47,20 @@ function getCopy(locale: Locale) {
     ? {
         checking: "지갑 확인 중",
         connected: "지갑 연결됨",
-        connect: "지갑 연결",
+        connect: "뉴스 지갑 연결",
         issue: "지갑 확인 필요",
         payment: "가입 확인 필요",
         setupMissing: "지갑 설정 필요",
-        wallet: "FanLetter 지갑 보기",
+        wallet: "뉴스 지갑 상태 보기",
       }
     : {
         checking: "Checking wallet",
         connected: "Wallet connected",
-        connect: "Connect wallet",
+        connect: "Connect news wallet",
         issue: "Check wallet",
         payment: "Verify signup",
         setupMissing: "Wallet setup needed",
-        wallet: "View FanLetter wallet",
+        wallet: "View news wallet status",
       };
 }
 
@@ -93,10 +93,9 @@ function getToneClassName(tone: NewsWalletConnectTone) {
 function FanletterNewsWalletConnectFallback({
   className,
   locale,
-  referralCode,
+  walletHref,
 }: FanletterNewsWalletConnectProps) {
   const copy = getCopy(locale);
-  const href = buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode);
 
   return (
     <Link
@@ -105,7 +104,7 @@ function FanletterNewsWalletConnectFallback({
         getToneClassName("muted"),
         className,
       )}
-      href={href}
+      href={walletHref}
       title={copy.connect}
     >
       <WalletMinimal className="size-4 shrink-0" />
@@ -134,7 +133,7 @@ function FanletterNewsWalletConnectInner({
     [fallbackPath, pathname, search],
   );
   const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: currentHref },
   );
   const activateHref = setPathSearchParams(

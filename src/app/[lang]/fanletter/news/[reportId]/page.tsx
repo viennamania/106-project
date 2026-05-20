@@ -42,7 +42,10 @@ import {
   hasLocale,
   type Locale,
 } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
@@ -870,9 +873,13 @@ export default async function LocalizedFanletterNewsReportPage({
     `/${locale}/fanletter`,
     referralCode,
   );
-  const walletHref = buildPathWithReferral(
-    `/${locale}/fanletter/wallet`,
+  const articleHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
+  );
+  const walletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
+    { returnTo: articleHref },
   );
   const creatorHref = report.creatorReferralCode
     ? buildPathWithReferral(
