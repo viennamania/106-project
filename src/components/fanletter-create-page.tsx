@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { upload as uploadBlob } from "@vercel/blob/client";
 import {
   ArrowRight,
   CheckCircle2,
@@ -9,6 +10,7 @@ import {
   Clapperboard,
   Loader2,
   Play,
+  Upload,
   UserRound,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -27,6 +29,10 @@ import {
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
+  CONTENT_POSTS_BLOB_PATH_SEGMENT,
+  CONTENT_UPLOADED_VIDEO_PATH_SEGMENT,
+  CONTENT_VIDEO_MAX_BYTES,
+  contentVideoMimeTypes,
 } from "@/lib/content";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
@@ -44,6 +50,7 @@ import {
 import { captureVideoCoverFrameFromUrl } from "@/lib/video-frame-cover-client";
 
 type CreateMode = "video";
+type CreateSourceMode = "ai" | "upload";
 type FanRequestSyncStatus = "failed" | "idle" | "reviewed" | "syncing" | "used";
 type GenerationStatus = "error" | "idle" | "loading" | "ready";
 type RestorableGenerationStatus = Exclude<GenerationStatus, "loading">;
@@ -52,7 +59,9 @@ type LocalDraftStatus = "cleared" | "idle" | "restored" | "saved";
 type GeneratedMedia = {
   contentType: string;
   coverImageUrl: string | null;
+  fileName: string | null;
   revisedPrompt: string | null;
+  source: CreateSourceMode;
   url: string;
 };
 
@@ -190,7 +199,7 @@ function getCopy(locale: Locale) {
         feed: "FanLetter 브이로그 피드 보기",
         free: "무료 공개",
         freeOnlyPolicy:
-          "AI로 생성한 브이로그 동영상은 무료 공개로만 등록됩니다. 유료 직접 업로드는 팬 요청함의 브이로그 요청에서 시작하세요.",
+          "AI 생성 영상과 직접 업로드 영상은 이 화면에서 무료 공개 브이로그로 등록됩니다. 유료 직접 업로드는 팬 요청함의 브이로그 요청에서 시작하세요.",
         paidUpload: "팬 요청 유료 업로드",
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
@@ -230,6 +239,30 @@ function getCopy(locale: Locale) {
         title: "제목",
         titlePlaceholder: "오늘의 브이로그 제목",
         titleText: "오늘의 AI 캐릭터 브이로그를 바로 만드세요.",
+        upload: {
+          body:
+            "이미 만든 MP4, MOV, WEBM 브이로그를 무료 공개 콘텐츠로 올립니다. 팬 전용 유료 업로드와 NSFW 설정은 팬 요청 기반 업로드에서만 사용합니다.",
+          fallbackTitle: "무료 공개 브이로그 업로드",
+          fileHelp: (size: string) => `MP4, MOV, WEBM · 최대 ${size}MB`,
+          missingReferral: "회원 추천 코드를 확인하지 못했습니다.",
+          progress: (percent: number) => `업로드 ${Math.round(percent)}%`,
+          ready: "업로드한 브이로그 동영상이 준비되었습니다.",
+          result: "업로드 동영상 미리보기",
+          select: "동영상 선택",
+          selected: "선택한 동영상",
+          tabAi: "AI로 만들기",
+          tabUpload: "동영상 업로드",
+          teaserFailed:
+            "동영상은 업로드됐지만 티저 이미지는 자동 적용하지 못했습니다. 게시 전 다시 시도합니다.",
+          teaserGenerating: "업로드 동영상에서 공개 티저 이미지를 준비하고 있습니다.",
+          teaserReady: "업로드 동영상 티저 이미지가 자동 적용되었습니다.",
+          title: "무료 공개 동영상 업로드",
+          unsupported: "MP4, MOV, WEBM 동영상만 업로드할 수 있습니다.",
+          uploadCta: "무료 동영상 업로드",
+          uploading: "동영상을 업로드하고 있습니다.",
+          videoTooLarge: (size: string) =>
+            `동영상은 ${size}MB 이하로 업로드해주세요.`,
+        },
         video: "생성 결과: 숏폼 브이로그 동영상",
         videoBody:
           "이미지가 아니라 세로형 AI 브이로그 동영상을 생성해 모바일 캐릭터 피드에 바로 연결합니다.",
@@ -336,7 +369,7 @@ function getCopy(locale: Locale) {
         feed: "View FanLetter vlog feed",
         free: "Free public",
         freeOnlyPolicy:
-          "AI-generated vlog videos can only be saved as free public content. Start paid direct upload from a fan vlog request in the request inbox.",
+          "AI-generated and directly uploaded videos are saved here as free public vlogs. Start paid direct upload from a fan vlog request in the request inbox.",
         paidUpload: "Paid upload from request",
         generate: "Generate AI vlog video",
         generated: "Generated",
@@ -377,6 +410,30 @@ function getCopy(locale: Locale) {
         title: "Title",
         titlePlaceholder: "Today's vlog title",
         titleText: "Create today's AI character vlog inside FanLetter.",
+        upload: {
+          body:
+            "Upload an existing MP4, MOV, or WEBM vlog as free public content. Fan-only paid upload and NSFW controls stay limited to fan-request uploads.",
+          fallbackTitle: "Free public vlog upload",
+          fileHelp: (size: string) => `MP4, MOV, WEBM · up to ${size}MB`,
+          missingReferral: "Could not find the member referral code.",
+          progress: (percent: number) => `Uploading ${Math.round(percent)}%`,
+          ready: "The uploaded vlog video is ready.",
+          result: "Uploaded video preview",
+          select: "Choose video",
+          selected: "Selected video",
+          tabAi: "Create with AI",
+          tabUpload: "Upload video",
+          teaserFailed:
+            "The video was uploaded, but the teaser image could not be applied automatically. FanLetter will retry before publishing.",
+          teaserGenerating: "Preparing a public teaser image from the uploaded video.",
+          teaserReady: "The uploaded video teaser image has been applied automatically.",
+          title: "Upload a free public video",
+          unsupported: "Only MP4, MOV, and WEBM videos are supported.",
+          uploadCta: "Upload free video",
+          uploading: "Uploading video.",
+          videoTooLarge: (size: string) =>
+            `Video must be ${size}MB or smaller.`,
+        },
         video: "Output: short-form vlog video",
         videoBody:
           "Generate a vertical AI vlog video, not an image, and connect it directly to the mobile character feed.",
@@ -447,8 +504,13 @@ function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
       typeof media.coverImageUrl === "string" && media.coverImageUrl.trim()
         ? media.coverImageUrl
         : null,
+    fileName:
+      typeof media.fileName === "string" && media.fileName.trim()
+        ? media.fileName
+        : null,
     revisedPrompt:
       typeof media.revisedPrompt === "string" ? media.revisedPrompt : null,
+    source: media.source === "upload" ? "upload" : "ai",
     url: media.url,
   };
 }
@@ -590,6 +652,39 @@ function formatDraftSavedAt(value: number | null, locale: Locale) {
   }).format(new Date(value));
 }
 
+function formatFileSize(bytes: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  }).format(bytes / (1024 * 1024));
+}
+
+function sanitizeUploadBaseName(name: string) {
+  const baseName = name.replace(/\.[^.]+$/u, "");
+  const normalized = baseName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/-+/gu, "-")
+    .replace(/^-|-$/gu, "")
+    .slice(0, 48);
+
+  return normalized || "fanletter-vlog";
+}
+
+function resolveVideoExtension(file: File) {
+  const fileName = file.name.toLowerCase();
+
+  if (fileName.endsWith(".webm")) {
+    return ".webm";
+  }
+
+  if (fileName.endsWith(".mov")) {
+    return ".mov";
+  }
+
+  return ".mp4";
+}
+
 function inferTitle(form: CreateForm, fallback: string) {
   return (
     form.title.trim() ||
@@ -729,6 +824,8 @@ export function FanletterCreatePage({
       : fanRequestsHref;
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
+  const [createSourceMode, setCreateSourceMode] =
+    useState<CreateSourceMode>("ai");
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
   const [fanRequestSyncError, setFanRequestSyncError] = useState<string | null>(
@@ -749,6 +846,7 @@ export function FanletterCreatePage({
   const [localDraftStatus, setLocalDraftStatus] =
     useState<LocalDraftStatus>("idle");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [loadStatus, setLoadStatus] =
     useState<"idle" | "loading" | "ready" | "error">("idle");
   const [member, setMember] = useState<MemberRecord | null>(
@@ -756,9 +854,11 @@ export function FanletterCreatePage({
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [profile, setProfile] = useState<CreatorProfileRecord | null>(null);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const loadInFlightRef = useRef(false);
   const localDraftRestoredRef = useRef(false);
   const saveInFlightRef = useRef(false);
+  const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
   const hasAvatar = Boolean(profile?.avatarImageUrl);
@@ -823,15 +923,23 @@ export function FanletterCreatePage({
         form.prompt.trim()),
   );
   const hasPublishedContent = createdContent?.status === "published";
-  const canPublish = Boolean(generatedMedia?.url) && !hasPublishedContent;
+  const canPublish =
+    Boolean(generatedMedia?.url) && !hasPublishedContent && !isUploadingVideo;
   const heroEyebrow = avatarExperienceCopy?.eyebrow ?? copy.eyebrow;
   const heroTitleText = avatarExperienceCopy?.titleText ?? copy.titleText;
-  const selectedModeCopy = avatarExperienceCopy?.videoBody ?? copy.videoBody;
+  const isUploadMode =
+    createSourceMode === "upload" || generatedMedia?.source === "upload";
+  const uploadMaxSizeLabel = formatFileSize(CONTENT_VIDEO_MAX_BYTES, locale);
+  const selectedModeCopy = isUploadMode
+    ? copy.upload.body
+    : avatarExperienceCopy?.videoBody ?? copy.videoBody;
   const promptLabel = avatarExperienceCopy?.prompt ?? copy.prompt;
   const promptPlaceholder =
     avatarExperienceCopy?.promptPlaceholder ?? copy.promptPlaceholder;
   const generateCta = avatarExperienceCopy?.generate ?? copy.generate;
-  const resultLabel = avatarExperienceCopy?.result ?? copy.result;
+  const resultLabel = isUploadMode
+    ? copy.upload.result
+    : avatarExperienceCopy?.result ?? copy.result;
   const videoLabel = avatarExperienceCopy?.video ?? copy.video;
   const videoBody = avatarExperienceCopy?.videoBody ?? copy.videoBody;
   const planContextEyebrow = hasAvatarReferencePlan
@@ -931,6 +1039,8 @@ export function FanletterCreatePage({
         form.title.trim() ||
         copy.avatarExperience.referencePreviewTitle);
   const generatedVideoUrl = generatedMedia?.url ?? null;
+  const publishTitleFallback =
+    generatedMedia?.source === "upload" ? copy.upload.fallbackTitle : generateCta;
   const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
   const localDraftLabel =
     localDraftStatus === "restored"
@@ -1227,7 +1337,9 @@ export function FanletterCreatePage({
       const generatedVideo = {
         contentType: data.contentType,
         coverImageUrl: null,
+        fileName: null,
         revisedPrompt: data.revisedPrompt,
+        source: "ai" as const,
         url: data.url,
       };
       let coverImageUrl: string | null = null;
@@ -1261,6 +1373,101 @@ export function FanletterCreatePage({
     }
   }
 
+  async function uploadFreeVideo(file: File) {
+    if (!accountAddress) {
+      setError(copy.accountRequiredBody);
+      return;
+    }
+
+    if (!contentVideoMimeTypes.includes(file.type as (typeof contentVideoMimeTypes)[number])) {
+      setError(copy.upload.unsupported);
+      return;
+    }
+
+    if (file.size > CONTENT_VIDEO_MAX_BYTES) {
+      setError(copy.upload.videoTooLarge(uploadMaxSizeLabel));
+      return;
+    }
+
+    const uploadReferralCode = member?.referralCode;
+
+    if (!uploadReferralCode) {
+      setError(copy.upload.missingReferral);
+      return;
+    }
+
+    try {
+      setCreatedContent(null);
+      setError(null);
+      setGeneratedMedia(null);
+      setGenerationMessage(copy.upload.uploading);
+      setGenerationStatus("loading");
+      setIsUploadingVideo(true);
+      setNotice(null);
+      setVideoUploadProgress(0);
+
+      const resolvedEmail = await resolveEmail();
+      const pathname = [
+        CONTENT_POSTS_BLOB_PATH_SEGMENT,
+        uploadReferralCode,
+        CONTENT_UPLOADED_VIDEO_PATH_SEGMENT,
+        `${Date.now()}-${sanitizeUploadBaseName(file.name)}${resolveVideoExtension(file)}`,
+      ].join("/");
+      const uploaded = await uploadBlob(pathname, file, {
+        access: "public",
+        clientPayload: JSON.stringify({
+          email: resolvedEmail,
+          walletAddress: accountAddress,
+        }),
+        contentType: file.type,
+        handleUploadUrl: "/api/content/posts/video-upload",
+        multipart: true,
+        onUploadProgress: (progress) => {
+          setVideoUploadProgress(progress.percentage);
+          setGenerationMessage(copy.upload.progress(progress.percentage));
+        },
+      });
+      const uploadedVideo: GeneratedMedia = {
+        contentType: file.type,
+        coverImageUrl: null,
+        fileName: file.name,
+        revisedPrompt: null,
+        source: "upload",
+        url: uploaded.url,
+      };
+      let coverImageUrl: string | null = null;
+
+      setGeneratedMedia(uploadedVideo);
+      setGenerationMessage(copy.upload.teaserGenerating);
+
+      try {
+        coverImageUrl = await createGeneratedVideoTeaserCover({
+          email: resolvedEmail,
+          title: inferTitle(form, copy.upload.fallbackTitle),
+          videoUrl: uploaded.url,
+        });
+      } catch {
+        coverImageUrl = null;
+      }
+
+      setGeneratedMedia({
+        ...uploadedVideo,
+        coverImageUrl,
+      });
+      setGenerationMessage(copy.upload.ready);
+      setGenerationStatus("ready");
+      setNotice(coverImageUrl ? copy.upload.teaserReady : copy.upload.teaserFailed);
+    } catch (uploadError) {
+      const message = getErrorMessage(uploadError, copy.errorFallback);
+
+      setError(message);
+      setGenerationMessage(message);
+      setGenerationStatus("error");
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  }
+
   async function savePost(status: "draft" | "published") {
     if (saveInFlightRef.current) {
       return;
@@ -1286,7 +1493,7 @@ export function FanletterCreatePage({
       return;
     }
 
-    const title = inferTitle(form, generateCta);
+    const title = inferTitle(form, publishTitleFallback);
     const body = form.body.trim() || form.prompt.trim() || title;
     const summary = inferSummary(form) || body.replace(/\s+/g, " ").slice(0, 140);
     let savedContent: ContentPostRecord | null = null;
@@ -1304,7 +1511,11 @@ export function FanletterCreatePage({
 
       if (generatedVideoUrl && !coverImageUrlToSave) {
         try {
-          setGenerationMessage(copy.teaserGenerating);
+          setGenerationMessage(
+            generatedMedia?.source === "upload"
+              ? copy.upload.teaserGenerating
+              : copy.teaserGenerating,
+          );
           coverImageUrlToSave = await createGeneratedVideoTeaserCover({
             email: resolvedEmail,
             title,
@@ -1830,19 +2041,53 @@ export function FanletterCreatePage({
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
               </p>
-              <h2 className="mt-3 text-2xl font-semibold">{promptLabel}</h2>
+              <h2 className="mt-3 text-2xl font-semibold">
+                {createSourceMode === "upload" ? copy.upload.title : promptLabel}
+              </h2>
+              <div className="mt-4 grid rounded-full border border-white/12 bg-black/24 p-1 text-sm font-semibold sm:grid-cols-2">
+                {([
+                  ["ai", copy.upload.tabAi, Clapperboard],
+                  ["upload", copy.upload.tabUpload, Upload],
+                ] as const).map(([mode, label, Icon]) => {
+                  const isSelected = createSourceMode === mode;
+
+                  return (
+                    <button
+                      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 py-2 transition ${
+                        isSelected
+                          ? "bg-[#44f26e] text-black"
+                          : "text-white/62 hover:bg-white/8 hover:text-white"
+                      }`}
+                      key={mode}
+                      onClick={() => {
+                        setCreateSourceMode(mode);
+                      }}
+                      type="button"
+                    >
+                      <Icon className="size-4" />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="mt-5 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-4 text-[#d7ffdf]">
                 <div className="flex items-start justify-between gap-3">
-                  <Clapperboard className="size-5 shrink-0 text-[#44f26e]" />
+                  {createSourceMode === "upload" ? (
+                    <Upload className="size-5 shrink-0 text-[#44f26e]" />
+                  ) : (
+                    <Clapperboard className="size-5 shrink-0 text-[#44f26e]" />
+                  )}
                   {isAvatarVideoExperience ? (
                     <span className="rounded-full border border-[#44f26e]/28 bg-black/24 px-2.5 py-1 text-[0.65rem] font-semibold text-[#9dffb0]">
                       {copy.avatarExperience.qualityTitle}
                     </span>
                   ) : null}
                 </div>
-                <span className="mt-3 block text-sm font-semibold">{videoLabel}</span>
+                <span className="mt-3 block text-sm font-semibold">
+                  {createSourceMode === "upload" ? copy.upload.title : videoLabel}
+                </span>
                 <p className="mt-2 text-sm font-medium leading-6 text-white/62">
-                  {videoBody}
+                  {createSourceMode === "upload" ? copy.upload.body : videoBody}
                 </p>
               </div>
               <div className="mt-5 grid gap-3">
@@ -1872,37 +2117,103 @@ export function FanletterCreatePage({
                     value={form.summary}
                   />
                 </label>
-                <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-                    {promptLabel}
-                  </span>
-                  <textarea
-                    className="mt-2 min-h-44 w-full resize-none rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
-                    onChange={(event) => {
-                      updateForm({ prompt: event.target.value });
-                    }}
-                    placeholder={promptPlaceholder}
-                    value={form.prompt}
-                  />
-                </label>
-              </div>
-              <button
-                className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={generationStatus === "loading"}
-                onClick={() => {
-                  void generateMedia();
-                }}
-                type="button"
-              >
-                {generationStatus === "loading" ? (
-                  <Loader2 className="size-4 animate-spin" />
+                {createSourceMode === "ai" ? (
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                      {promptLabel}
+                    </span>
+                    <textarea
+                      className="mt-2 min-h-44 w-full resize-none rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                      onChange={(event) => {
+                        updateForm({ prompt: event.target.value });
+                      }}
+                      placeholder={promptPlaceholder}
+                      value={form.prompt}
+                    />
+                  </label>
                 ) : (
-                  <Clapperboard className="size-4" />
+                  <div className="rounded-2xl border border-white/12 bg-white/[0.06] p-4">
+                    <input
+                      accept={contentVideoMimeTypes.join(",")}
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null;
+
+                        if (file) {
+                          void uploadFreeVideo(file);
+                        }
+
+                        event.currentTarget.value = "";
+                      }}
+                      ref={videoUploadInputRef}
+                      type="file"
+                    />
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">
+                          {copy.upload.select}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-white/46">
+                          {copy.upload.fileHelp(uploadMaxSizeLabel)}
+                        </p>
+                      </div>
+                      <button
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={isUploadingVideo}
+                        onClick={() => {
+                          videoUploadInputRef.current?.click();
+                        }}
+                        type="button"
+                      >
+                        {isUploadingVideo ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Upload className="size-4" />
+                        )}
+                        {isUploadingVideo ? copy.upload.uploading : copy.upload.uploadCta}
+                      </button>
+                    </div>
+                    {isUploadingVideo ? (
+                      <div className="mt-4">
+                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-[#44f26e] transition-[width]"
+                            style={{ width: `${Math.max(4, videoUploadProgress)}%` }}
+                          />
+                        </div>
+                        <p className="mt-2 text-xs font-semibold text-[#c9ffd5]">
+                          {copy.upload.progress(videoUploadProgress)}
+                        </p>
+                      </div>
+                    ) : null}
+                    {generatedMedia?.source === "upload" ? (
+                      <p className="mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
+                        {copy.upload.selected}:{" "}
+                        {generatedMedia.fileName ?? copy.upload.fallbackTitle}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
-                {generationStatus === "loading"
-                  ? copy.generatingVideo
-                  : generateCta}
-              </button>
+              </div>
+              {createSourceMode === "ai" ? (
+                <button
+                  className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={generationStatus === "loading"}
+                  onClick={() => {
+                    void generateMedia();
+                  }}
+                  type="button"
+                >
+                  {generationStatus === "loading" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Clapperboard className="size-4" />
+                  )}
+                  {generationStatus === "loading"
+                    ? copy.generatingVideo
+                    : generateCta}
+                </button>
+              ) : null}
             </section>
 
             <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">

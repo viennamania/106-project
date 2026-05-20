@@ -12,7 +12,6 @@ import {
   CONTENT_NETWORK_LEVEL_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
-  CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR,
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
@@ -616,10 +615,6 @@ function validateContentVideoPricingPolicy({
 
   if (hasGeneratedVideo && priceType === "paid") {
     throw new Error(CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR);
-  }
-
-  if (hasUploadedVideo && priceType === "free") {
-    throw new Error(CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR);
   }
 
   if (priceType === "paid" && !hasUploadedVideo) {

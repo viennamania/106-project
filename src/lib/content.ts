@@ -11,8 +11,6 @@ export const CONTENT_UPLOADED_VIDEO_PATH_SEGMENT = "videos";
 export const CONTENT_GENERATED_VIDEO_PATH_SEGMENT = "generated-content-videos";
 export const CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR =
   "Paid content requires a directly uploaded video.";
-export const CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR =
-  "Uploaded videos must be saved as paid content.";
 export const CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR =
   "AI-generated videos must be saved as free content.";
 export const CONTENT_VIDEO_SOURCE_REQUIRED_ERROR =
@@ -135,7 +133,6 @@ export type ContentVideoAssetSource = "generated" | "unknown" | "uploaded";
 
 const contentVideoPolicyErrorMessages = new Set([
   CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
-  CONTENT_UPLOADED_VIDEO_PAID_ONLY_ERROR,
   CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
