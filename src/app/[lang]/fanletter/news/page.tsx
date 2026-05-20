@@ -23,6 +23,10 @@ import {
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsCharacterStats,
+  type FanletterNewsCharacterStat,
+} from "@/lib/fanletter-news-character-directory";
+import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
@@ -44,15 +48,6 @@ type ReporterStat = {
   referralCode: string;
 };
 
-type CharacterNewsStat = {
-  fanOnlyCount: number;
-  latestReportAt: Date | null;
-  name: string;
-  newsCount: number;
-  referralCode: string;
-  representativeReport: FanletterNewsReportDocument;
-};
-
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -65,7 +60,7 @@ function getCopy(locale: Locale) {
         characterDirectory: {
           body:
             "뉴스가 생성된 AI 캐릭터 채널을 한곳에서 확인하세요. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
-          cta: "AI 캐릭터 전체 목록",
+          cta: "뉴스 AI 캐릭터 전체 보기",
           fanOnly: "팬 전용",
           latest: "최근 기사",
           news: "뉴스",
@@ -133,7 +128,7 @@ function getCopy(locale: Locale) {
         characterDirectory: {
           body:
             "Browse the AI character channels generating FanLetter News, then jump into each character's latest reports and fan-only vlog stream.",
-          cta: "All AI characters",
+          cta: "All news AI characters",
           fanOnly: "Fan-only",
           latest: "Latest story",
           news: "News",
@@ -302,63 +297,6 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
   return Array.from(map.values())
     .sort((left, right) => right.count - left.count)
     .slice(0, 5);
-}
-
-function getCharacterNewsStats(reports: FanletterNewsReportDocument[]) {
-  const map = new Map<string, CharacterNewsStat>();
-
-  for (const report of reports) {
-    const referralCode = report.creatorReferralCode?.trim();
-
-    if (!referralCode) {
-      continue;
-    }
-
-    const reportDate = report.sourcePublishedAt ?? report.createdAt ?? null;
-    const existing = map.get(referralCode);
-
-    if (!existing) {
-      map.set(referralCode, {
-        fanOnlyCount: report.priceType === "paid" ? 1 : 0,
-        latestReportAt: reportDate,
-        name: report.creatorName.trim() || referralCode,
-        newsCount: 1,
-        referralCode,
-        representativeReport: report,
-      });
-      continue;
-    }
-
-    const existingDateTime = existing.latestReportAt?.getTime() ?? 0;
-    const reportDateTime = reportDate?.getTime() ?? 0;
-    const shouldUseAsRepresentative =
-      (report.coverImageUrl && !existing.representativeReport.coverImageUrl) ||
-      (report.coverImageUrl &&
-        reportDateTime > existingDateTime &&
-        Boolean(existing.representativeReport.coverImageUrl));
-
-    map.set(referralCode, {
-      fanOnlyCount:
-        existing.fanOnlyCount + (report.priceType === "paid" ? 1 : 0),
-      latestReportAt:
-        reportDateTime > existingDateTime ? reportDate : existing.latestReportAt,
-      name: existing.name,
-      newsCount: existing.newsCount + 1,
-      referralCode,
-      representativeReport: shouldUseAsRepresentative
-        ? report
-        : existing.representativeReport,
-    });
-  }
-
-  return Array.from(map.values())
-    .sort(
-      (left, right) =>
-        right.newsCount - left.newsCount ||
-        (right.latestReportAt?.getTime() ?? 0) -
-          (left.latestReportAt?.getTime() ?? 0),
-    )
-    .slice(0, 8);
 }
 
 async function hydrateReporterStats(reporters: ReporterStat[]) {
@@ -934,7 +872,7 @@ function NewsCharacterDirectory({
   nsfwOptInEnabled,
   referralCode,
 }: {
-  characters: CharacterNewsStat[];
+  characters: FanletterNewsCharacterStat[];
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   nsfwOptInEnabled: boolean;
@@ -945,7 +883,7 @@ function NewsCharacterDirectory({
   }
 
   const directoryHref = buildPathWithReferral(
-    `/${locale}/fanletter/characters`,
+    `/${locale}/fanletter/news/characters`,
     referralCode,
   );
 
@@ -1331,7 +1269,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const featureReports = restReports.slice(11, 20);
   const latestReports = restReports.slice(20);
   const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
-  const characterNewsStats = getCharacterNewsStats(allReports);
+  const characterNewsStats = getFanletterNewsCharacterStats(allReports, 8);
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
   const activeReporterName = activeReporterReferralCode
     ? activeReporterProfile?.displayName ??
@@ -1342,7 +1280,7 @@ export default async function LocalizedFanletterNewsHomePage({
       ? activeReporterProfile.reportCount
       : reports.length;
   const charactersHref = buildPathWithReferral(
-    `/${locale}/fanletter/characters`,
+    `/${locale}/fanletter/news/characters`,
     referralCode,
   );
 
