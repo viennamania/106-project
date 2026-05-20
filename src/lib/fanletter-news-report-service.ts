@@ -1119,6 +1119,21 @@ export const getLatestFanletterNewsReports = cache(
   },
 );
 
+export const getFanletterNewsReportsForCharacterDirectory = cache(
+  async ({ locale }: { locale: Locale }) => {
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const reports = await reportsCollection
+      .find({
+        locale,
+        status: "published",
+      })
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .toArray();
+
+    return hydrateFanletterNewsReportCoverImageUrls(reports);
+  },
+);
+
 export const getFanletterNewsReporterProfile = cache(
   async ({
     reporterReferralCode,

@@ -23,7 +23,7 @@ import {
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
-import { getLatestFanletterNewsReports } from "@/lib/fanletter-news-report-service";
+import { getFanletterNewsReportsForCharacterDirectory } from "@/lib/fanletter-news-report-service";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
@@ -565,9 +565,9 @@ export default async function LocalizedFanletterNewsCharactersPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
-  const reports = await getLatestFanletterNewsReports({ limit: 48, locale });
+  const reports = await getFanletterNewsReportsForCharacterDirectory({ locale });
   const characters = await hydrateFanletterNewsCharacterStats(
-    getFanletterNewsCharacterStats(reports, 48),
+    getFanletterNewsCharacterStats(reports, reports.length),
   );
   const [leadCharacter, ...restCharacters] = characters;
   const nsfwNewsCount = reports.filter(isNsfwReport).length;
