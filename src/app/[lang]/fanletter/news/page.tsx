@@ -258,12 +258,12 @@ function NewsMasthead({
   return (
     <header className="border-b border-black/16 bg-white text-[#111510]">
       <div className="border-b border-black/10 bg-[#f3f4ef]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-black/50 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-black/50 sm:px-6 lg:px-8">
           <span>{today}</span>
           <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
           <Link
             className="inline-flex items-center text-[2.25rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.5rem]"
@@ -306,7 +306,7 @@ function NewsTicker({
 
   return (
     <section className="border-b border-black/12 bg-white text-[#111510]">
-      <div className="mx-auto grid max-w-6xl gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
         <div className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
           {copy.ticker}
         </div>
@@ -367,58 +367,111 @@ function LeadStory({
 
   return (
     <Link
-      className="group grid gap-5 border-b border-black/16 bg-white pb-6 lg:grid-cols-[minmax(0,1fr)_18.5rem] lg:items-start"
+      className="group relative block overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_18px_44px_rgba(10,18,12,0.16)]"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="order-2 aspect-[16/10] border border-black/10"
+        className="aspect-[4/5] min-h-[30rem] sm:aspect-[16/10] lg:min-h-[34rem]"
         nsfwLabel={nsfwCopy.badge}
         priority
         report={report}
-        sizes="(max-width: 1024px) 100vw, 20rem"
+        sizes="(max-width: 1024px) 100vw, 54rem"
       />
-      <div className="min-w-0">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/34 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-5 pt-24 sm:p-7 sm:pt-32">
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center border border-[#16702e]/30 bg-[#ecfff0] px-2.5 py-1 text-xs font-black text-[#16702e]">
+          <span className="inline-flex items-center bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
             {copy.lead}
           </span>
-          <span className="inline-flex items-center border border-black/12 px-2.5 py-1 text-xs font-bold text-black/58">
+          <span className="inline-flex items-center border border-white/24 bg-white/12 px-2.5 py-1 text-xs font-bold text-white/84 backdrop-blur">
             {getAccessLabel(report, copy)}
           </span>
         </div>
-        <p className="mt-4 text-[0.66rem] font-black uppercase tracking-[0.18em] text-black/38">
+        <p className="mt-4 text-[0.66rem] font-black uppercase tracking-[0.18em] text-white/58">
           {copy.leadKicker}
         </p>
-        <h1
-          className={`mt-2 break-words text-[2.1rem] font-black leading-[1.12] tracking-normal [word-break:keep-all] sm:text-[3.05rem] ${
+        <h2
+          className={`mt-2 max-w-4xl break-words text-[2.25rem] font-black leading-[1.05] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem] lg:text-[3.9rem] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
           {title}
-        </h1>
+        </h2>
         <p
-          className={`mt-3 max-w-3xl text-base font-semibold leading-7 text-black/62 ${
+          className={`mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/78 sm:text-base sm:leading-7 ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
           {report.dek}
         </p>
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold text-black/44">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold text-white/62">
           <span className="inline-flex items-center gap-1.5">
-            <PenLine className="size-3.5 text-[#16702e]" />
+            <PenLine className="size-3.5 text-[#44f26e]" />
             {getReporterDisplayName(report)}
           </span>
           {publishedAt ? (
             <span className="inline-flex items-center gap-1.5">
-              <Clock3 className="size-3.5 text-[#16702e]" />
+              <Clock3 className="size-3.5 text-[#44f26e]" />
               {publishedAt}
             </span>
           ) : null}
-          <span className="font-black text-[#16702e] group-hover:underline">
+          <span className="font-black text-[#44f26e] group-hover:underline">
             {copy.read}
           </span>
         </div>
+      </div>
+    </Link>
+  );
+}
+
+function HeroSideStory({
+  copy,
+  nsfwOptInEnabled,
+  referralCode,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  report: FanletterNewsReportDocument;
+}) {
+  const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+  const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+  const title = getArticleDisplayTitle(report.title);
+
+  return (
+    <Link
+      className="group relative block overflow-hidden border border-black/12 bg-[#111510] text-white"
+      href={getReportHref(report, referralCode)}
+    >
+      <NewsImage
+        blurred={shouldBlur}
+        className="aspect-[4/5] min-h-[15.5rem] sm:aspect-[16/10] lg:aspect-auto lg:h-[16.5rem]"
+        nsfwLabel={nsfwCopy.badge}
+        report={report}
+        sizes="(max-width: 1024px) 50vw, 20rem"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/86 via-black/26 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        <div className="mb-2 flex flex-wrap gap-2 text-[0.64rem] font-black uppercase tracking-[0.1em]">
+          <span className="bg-[#44f26e] px-2 py-1 text-black">
+            {getAccessLabel(report, copy)}
+          </span>
+          {publishedAt ? (
+            <span className="border border-white/20 bg-white/12 px-2 py-1 text-white/76">
+              {publishedAt}
+            </span>
+          ) : null}
+        </div>
+        <h2
+          className={`line-clamp-3 break-words text-xl font-black leading-6 text-white [word-break:keep-all] group-hover:text-[#44f26e] ${
+            shouldBlur ? "select-none blur-[2px]" : ""
+          }`}
+        >
+          {title}
+        </h2>
       </div>
     </Link>
   );
@@ -497,36 +550,41 @@ function FeatureCard({
 
   return (
     <Link
-      className="group block border-t border-black/14 bg-white pt-4"
+      className="group relative block overflow-hidden border border-black/12 bg-[#111510] text-white"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[16/10] border border-black/10"
+        className="aspect-[4/5] sm:aspect-[16/11]"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="(max-width: 768px) 100vw, 22rem"
+        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 24rem"
       />
-      <div className="p-4">
-        <div className="flex flex-wrap gap-2 text-[0.68rem] font-black text-[#16702e]">
-          <span>{report.creatorName}</span>
-          <span>{getAccessLabel(report, copy)}</span>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/26 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        <div className="flex flex-wrap gap-2 text-[0.68rem] font-black">
+          <span className="bg-[#44f26e] px-2 py-1 text-black">
+            {report.creatorName}
+          </span>
+          <span className="border border-white/20 bg-white/12 px-2 py-1 text-white/78">
+            {getAccessLabel(report, copy)}
+          </span>
         </div>
         <h2
-          className={`mt-2 line-clamp-2 break-words text-xl font-black leading-6 [word-break:keep-all] group-hover:text-[#16702e] ${
+          className={`mt-2 line-clamp-2 break-words text-xl font-black leading-6 text-white [word-break:keep-all] group-hover:text-[#44f26e] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
           {title}
         </h2>
         <p
-          className={`mt-2 line-clamp-3 text-sm font-medium leading-6 text-black/58 ${
+          className={`mt-2 line-clamp-2 text-sm font-medium leading-6 text-white/72 ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
           {report.dek}
         </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-black/42">
+        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-white/56">
           {publishedAt ? <span>{publishedAt}</span> : null}
           <span>{getReporterDisplayName(report)}</span>
         </div>
@@ -605,18 +663,28 @@ function RankedStoryList({
       <div className="divide-y divide-black/10">
         {reports.map((report, index) => {
           const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+          const nsfwCopy = getFanletterNsfwCopy(report.locale);
           const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
           const title = getArticleDisplayTitle(report.title);
 
           return (
             <Link
-              className="group grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
+              className="group grid grid-cols-[4.8rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
               href={getReportHref(report, referralCode)}
               key={report.reportId}
             >
-              <span className="pt-0.5 text-xl font-black leading-none text-[#16702e]">
-                {index + 1}
-              </span>
+              <div className="relative">
+                <NewsImage
+                  blurred={shouldBlur}
+                  className="aspect-[4/5] border border-black/10"
+                  nsfwLabel={nsfwCopy.badge}
+                  report={report}
+                  sizes="5rem"
+                />
+                <span className="absolute left-1 top-1 flex size-6 items-center justify-center bg-[#44f26e] text-xs font-black leading-none text-black">
+                  {index + 1}
+                </span>
+              </div>
               <div className="min-w-0">
                 <h2
                   className={`line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
@@ -680,10 +748,16 @@ export default async function LocalizedFanletterNewsHomePage({
   );
   const reports = await getLatestFanletterNewsReports({ limit: 28, locale });
   const nsfwReportCount = reports.filter(isNsfwReport).length;
-  const [leadReport, ...restReports] = reports;
-  const topStories = restReports.slice(0, 5);
-  const featureReports = restReports.slice(5, 11);
-  const latestReports = restReports.slice(11);
+  const leadReport =
+    reports.find((report) => !shouldBlurReport(report, nsfwOptInEnabled)) ??
+    reports[0];
+  const restReports = leadReport
+    ? reports.filter((report) => report.reportId !== leadReport.reportId)
+    : [];
+  const heroSideReports = restReports.slice(0, 2);
+  const topStories = restReports.slice(2, 7);
+  const featureReports = restReports.slice(7, 16);
+  const latestReports = restReports.slice(16);
   const reporterStats = getReporterStats(reports);
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
 
@@ -692,74 +766,61 @@ export default async function LocalizedFanletterNewsHomePage({
       <NewsMasthead copy={copy} locale={locale} newsHomeHref={newsHomeHref} />
       <NewsTicker copy={copy} reports={reports.slice(0, 5)} />
 
-      <section className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-        {shouldShowNsfwControl ? (
-          <div className="mb-5">
-            <FanletterNsfwOptInControl
-              disabledBody={copy.nsfwControl.disabledBody}
-              disabledTitle={copy.nsfwControl.disabledTitle}
-              enabled={nsfwOptInEnabled}
-              enabledBody={copy.nsfwControl.enabledBody}
-              enabledTitle={copy.nsfwControl.enabledTitle}
-              hiddenCount={nsfwReportCount}
-              hiddenCountText={copy.nsfwControl.hiddenCountText(
-                formatNumber(nsfwReportCount, locale),
-              )}
-              locale={locale}
-              tone={nsfwOptInEnabled ? "dark" : "light"}
-            />
-          </div>
-        ) : null}
-
+      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         {leadReport ? (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             <div className="min-w-0 space-y-8">
-              <div className="grid gap-4 border-b border-black/12 pb-4 sm:grid-cols-[minmax(0,1fr)_18rem] sm:items-end">
-                <div>
-                  <p className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-                    {copy.issueLabel}
-                  </p>
-                  <h1 className="mt-2 break-words text-[2rem] font-black leading-[1.12] [word-break:keep-all] sm:text-[2.8rem]">
-                    {copy.allNews}
-                  </h1>
-                  <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
-                    {copy.dek}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="border border-black/10 bg-white p-3">
-                    <p className="text-xl font-black">
-                      {formatNumber(reports.length, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      News
-                    </p>
-                  </div>
-                  <div className="border border-black/10 bg-white p-3">
-                    <p className="text-xl font-black">
-                      {formatNumber(reporterStats.length, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      Desk
-                    </p>
-                  </div>
-                  <div className="border border-black/10 bg-white p-3">
-                    <p className="text-xl font-black">
-                      {formatNumber(nsfwReportCount, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      NSFW
-                    </p>
-                  </div>
-                </div>
+              <div className="border-b border-black/12 pb-4">
+                <p className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  {copy.issueLabel}
+                </p>
+                <h1 className="mt-2 max-w-4xl break-words text-[1.85rem] font-black leading-[1.08] [word-break:keep-all] sm:text-[2.65rem]">
+                  {copy.allNews}
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+                  {copy.dek}
+                </p>
               </div>
 
-              <LeadStory
-                copy={copy}
-                nsfwOptInEnabled={nsfwOptInEnabled}
-                referralCode={referralCode}
-                report={leadReport}
-              />
+              <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+                <LeadStory
+                  copy={copy}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={referralCode}
+                  report={leadReport}
+                />
+
+                {heroSideReports.length > 0 ? (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {heroSideReports.map((report) => (
+                      <HeroSideStory
+                        copy={copy}
+                        key={report.reportId}
+                        nsfwOptInEnabled={nsfwOptInEnabled}
+                        referralCode={referralCode}
+                        report={report}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+
+              {shouldShowNsfwControl ? (
+                <FanletterNsfwOptInControl
+                  compact
+                  disabledBody={copy.nsfwControl.disabledBody}
+                  disabledTitle={copy.nsfwControl.disabledTitle}
+                  enabled={nsfwOptInEnabled}
+                  enabledBody={copy.nsfwControl.enabledBody}
+                  enabledTitle={copy.nsfwControl.enabledTitle}
+                  hiddenCount={nsfwReportCount}
+                  hiddenCountText={copy.nsfwControl.hiddenCountText(
+                    formatNumber(nsfwReportCount, locale),
+                  )}
+                  locale={locale}
+                  tone={nsfwOptInEnabled ? "dark" : "light"}
+                />
+              ) : null}
 
               {featureReports.length > 0 ? (
                 <section>
@@ -768,7 +829,7 @@ export default async function LocalizedFanletterNewsHomePage({
                     icon={<Newspaper className="size-5" />}
                     title={copy.characterWire}
                   />
-                  <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {featureReports.map((report) => (
                       <FeatureCard
                         copy={copy}
