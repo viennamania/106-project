@@ -57,6 +57,9 @@ function getCopy(locale: Locale) {
         edition: "AI 캐릭터·팬 리포트 전문 뉴스",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 이곳에 최신 뉴스가 모입니다.",
+        emptyReporterBody: (name: string) =>
+          `${name}가 만든 공개 뉴스가 아직 없습니다. 전체 뉴스룸에서 다른 팬 기자의 리포트를 먼저 확인해보세요.`,
+        emptyReporterTitle: (name: string) => `${name}의 뉴스가 아직 없습니다.`,
         emptyTitle: "아직 공개된 FanLetter 뉴스가 없습니다.",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
@@ -65,6 +68,11 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
         newsroomStats: "뉴스룸 현황",
+        newsroomStatLabels: {
+          news: "뉴스",
+          nsfw: "NSFW",
+          reporters: "기자",
+        },
         nsfwControl: {
           disabledBody:
             "NSFW 뉴스는 목록에 유지하되 성인 팬 전용 커버와 기사 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
@@ -85,10 +93,11 @@ function getCopy(locale: Locale) {
         },
         reporterDesk: "팬 기자 데스크",
         reporterNewsCta: "이 기자 뉴스 보기",
+        reporterReportUnit: "뉴스",
         reporterRank: "활동 기자",
         siteName: "FanLetter News",
         ticker: "뉴스 브리핑",
-        topStories: "많이 본 뉴스",
+        topStories: "주요 뉴스",
       }
     : {
         access: {
@@ -103,6 +112,10 @@ function getCopy(locale: Locale) {
         edition: "AI character and fan-report news",
         emptyBody:
           "Create an AI report from a content detail page and the latest stories will appear here.",
+        emptyReporterBody: (name: string) =>
+          `${name} has not published fan-reporter news yet. Browse the full newsroom for other fan reports.`,
+        emptyReporterTitle: (name: string) =>
+          `${name} has no news yet.`,
         emptyTitle: "No FanLetter news has been published yet.",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "Today's FanLetter entertainment briefing",
@@ -111,6 +124,11 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
         newsroomStats: "Newsroom Status",
+        newsroomStatLabels: {
+          news: "News",
+          nsfw: "NSFW",
+          reporters: "Desk",
+        },
         nsfwControl: {
           disabledBody:
             "NSFW stories remain listed, with adult fan-only covers and story previews blurred until opt-in.",
@@ -130,10 +148,11 @@ function getCopy(locale: Locale) {
         },
         reporterDesk: "Fan Reporter Desk",
         reporterNewsCta: "View reporter news",
+        reporterReportUnit: "Stories",
         reporterRank: "Active reporters",
         siteName: "FanLetter News",
         ticker: "News Briefing",
-        topStories: "Most Read",
+        topStories: "Top Stories",
       };
 }
 
@@ -167,6 +186,12 @@ function getReporterDisplayName(report: FanletterNewsReportDocument) {
   return report.locale === "ko"
     ? `${reporterId} 팬 기자`
     : `Fan reporter ${reporterId}`;
+}
+
+function getReporterFallbackDisplayName(locale: Locale, referralCode: string) {
+  return locale === "ko"
+    ? `${referralCode} 팬 기자`
+    : `Fan reporter ${referralCode}`;
 }
 
 function getReportHref(
@@ -243,7 +268,7 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
 }
 
 async function hydrateReporterStats(reporters: ReporterStat[]) {
-  return Promise.all(
+  const hydrated = await Promise.all(
     reporters.map(async (reporter) => {
       const profile = await getFanletterNewsReporterProfile({
         reporterReferralCode: reporter.referralCode,
@@ -258,6 +283,8 @@ async function hydrateReporterStats(reporters: ReporterStat[]) {
       };
     }),
   );
+
+  return hydrated.sort((left, right) => right.count - left.count).slice(0, 5);
 }
 
 function NewsImage({
@@ -311,15 +338,23 @@ function NewsImage({
 function NewsMasthead({
   copy,
   locale,
+  navigationBaseHref,
   newsHomeHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  navigationBaseHref: string;
   newsHomeHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
   }).format(new Date());
+  const navTargets = [
+    "#top-stories",
+    "#fan-reporters",
+    "#character-wire",
+    "#latest-news",
+  ];
 
   return (
     <header className="border-b border-black/16 bg-white text-[#111510]">
@@ -345,13 +380,14 @@ function NewsMasthead({
           aria-label={copy.siteName}
           className="flex gap-5 overflow-x-auto border-b border-black/10 py-3"
         >
-          {copy.navItems.map((item) => (
-            <span
-              className="shrink-0 text-[0.76rem] font-black uppercase tracking-[0.12em] text-black/58"
+          {copy.navItems.map((item, index) => (
+            <Link
+              className="shrink-0 text-[0.76rem] font-black uppercase tracking-[0.12em] text-black/58 transition hover:text-[#16702e]"
+              href={`${navigationBaseHref}${navTargets[index] ?? ""}`}
               key={item}
             >
               {item}
-            </span>
+            </Link>
           ))}
         </nav>
       </div>
@@ -361,9 +397,11 @@ function NewsMasthead({
 
 function NewsTicker({
   copy,
+  referralCode,
   reports,
 }: {
   copy: ReturnType<typeof getCopy>;
+  referralCode: string | null;
   reports: FanletterNewsReportDocument[];
 }) {
   if (reports.length === 0) {
@@ -378,12 +416,13 @@ function NewsTicker({
         </div>
         <div className="flex min-w-0 gap-2 overflow-x-auto text-sm font-bold text-black/68">
           {reports.map((report) => (
-            <span
-              className="shrink-0 border-l border-black/12 pl-3"
+            <Link
+              className="shrink-0 border-l border-black/12 pl-3 transition hover:text-[#16702e]"
+              href={getReportHref(report, referralCode)}
               key={report.reportId}
             >
               {getArticleDisplayTitle(report.title)}
-            </span>
+            </Link>
           ))}
         </div>
       </div>
@@ -677,7 +716,10 @@ function ReporterRank({
   }
 
   return (
-    <section className="border border-black/12 bg-white p-4">
+    <section
+      className="border border-black/12 bg-white p-4"
+      id="fan-reporters"
+    >
       <SectionHeader
         icon={<PenLine className="size-5" />}
         title={copy.reporterRank}
@@ -728,8 +770,13 @@ function ReporterRank({
                       @{reporter.referralCode}
                     </p>
                   </div>
-                  <span className="shrink-0 bg-[#44f26e] px-2 py-1 text-[0.68rem] font-black text-black">
-                    {formatNumber(reporter.count, locale)}
+                  <span className="grid shrink-0 justify-items-center bg-[#44f26e] px-2 py-1 text-black">
+                    <span className="text-[0.72rem] font-black leading-none">
+                      {formatNumber(reporter.count, locale)}
+                    </span>
+                    <span className="mt-0.5 text-[0.52rem] font-black uppercase leading-none tracking-[0.08em]">
+                      {copy.reporterReportUnit}
+                    </span>
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.66rem] font-bold text-black/46">
@@ -762,9 +809,7 @@ function ReporterFilterBanner({
 }) {
   const reporterName =
     profile?.displayName ??
-    (locale === "ko"
-      ? `${reporterReferralCode} 팬 기자`
-      : `Fan reporter ${reporterReferralCode}`);
+    getReporterFallbackDisplayName(locale, reporterReferralCode);
   const reportCount = formatNumber(profile?.reportCount ?? 0, locale);
 
   return (
@@ -913,8 +958,11 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const currentNewsHref = activeReporterReferralCode
+    ? getReporterNewsHref(locale, activeReporterReferralCode, referralCode)
+    : newsHomeHref;
   const [allReports, reports, activeReporterProfile] = await Promise.all([
-    getLatestFanletterNewsReports({ limit: 28, locale }),
+    getLatestFanletterNewsReports({ limit: 48, locale }),
     activeReporterReferralCode
       ? getLatestFanletterNewsReports({
           limit: 28,
@@ -941,11 +989,28 @@ export default async function LocalizedFanletterNewsHomePage({
   const latestReports = restReports.slice(16);
   const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
+  const activeReporterName = activeReporterReferralCode
+    ? activeReporterProfile?.displayName ??
+      getReporterFallbackDisplayName(locale, activeReporterReferralCode)
+    : null;
+  const displayedNewsCount =
+    activeReporterReferralCode && activeReporterProfile
+      ? activeReporterProfile.reportCount
+      : reports.length;
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
-      <NewsMasthead copy={copy} locale={locale} newsHomeHref={newsHomeHref} />
-      <NewsTicker copy={copy} reports={reports.slice(0, 5)} />
+      <NewsMasthead
+        copy={copy}
+        locale={locale}
+        navigationBaseHref={currentNewsHref}
+        newsHomeHref={newsHomeHref}
+      />
+      <NewsTicker
+        copy={copy}
+        referralCode={referralCode}
+        reports={reports.slice(0, 5)}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         {leadReport ? (
@@ -973,7 +1038,10 @@ export default async function LocalizedFanletterNewsHomePage({
                 />
               ) : null}
 
-              <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <section
+                className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
+                id="top-stories"
+              >
                 <LeadStory
                   copy={copy}
                   nsfwOptInEnabled={nsfwOptInEnabled}
@@ -1014,7 +1082,7 @@ export default async function LocalizedFanletterNewsHomePage({
               ) : null}
 
               {featureReports.length > 0 ? (
-                <section>
+                <section id="character-wire">
                   <SectionHeader
                     eyebrow={copy.heroEyebrow}
                     icon={<Newspaper className="size-5" />}
@@ -1035,7 +1103,7 @@ export default async function LocalizedFanletterNewsHomePage({
               ) : null}
 
               {latestReports.length > 0 ? (
-                <section>
+                <section id="latest-news">
                   <SectionHeader
                     icon={<FileText className="size-5" />}
                     title={copy.latest}
@@ -1079,10 +1147,10 @@ export default async function LocalizedFanletterNewsHomePage({
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-[#f5f6f2] p-3">
                     <p className="text-lg font-black">
-                      {formatNumber(reports.length, locale)}
+                      {formatNumber(displayedNewsCount, locale)}
                     </p>
                     <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      News
+                      {copy.newsroomStatLabels.news}
                     </p>
                   </div>
                   <div className="bg-[#f5f6f2] p-3">
@@ -1090,7 +1158,7 @@ export default async function LocalizedFanletterNewsHomePage({
                       {formatNumber(reporterStats.length, locale)}
                     </p>
                     <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      Desk
+                      {copy.newsroomStatLabels.reporters}
                     </p>
                   </div>
                   <div className="bg-[#f5f6f2] p-3">
@@ -1098,7 +1166,7 @@ export default async function LocalizedFanletterNewsHomePage({
                       {formatNumber(nsfwReportCount, locale)}
                     </p>
                     <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      NSFW
+                      {copy.newsroomStatLabels.nsfw}
                     </p>
                   </div>
                 </div>
@@ -1108,10 +1176,24 @@ export default async function LocalizedFanletterNewsHomePage({
         ) : (
           <section className="mt-6 rounded-lg border border-black/10 bg-white p-8 text-center">
             <UserRound className="mx-auto size-12 text-[#16702e]" />
-            <h2 className="mt-4 text-2xl font-black">{copy.emptyTitle}</h2>
+            <h2 className="mt-4 text-2xl font-black">
+              {activeReporterName
+                ? copy.emptyReporterTitle(activeReporterName)
+                : copy.emptyTitle}
+            </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-6 text-black/58">
-              {copy.emptyBody}
+              {activeReporterName
+                ? copy.emptyReporterBody(activeReporterName)
+                : copy.emptyBody}
             </p>
+            {activeReporterName ? (
+              <Link
+                className="mt-5 inline-flex h-11 items-center justify-center border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={newsHomeHref}
+              >
+                {copy.reporterFilter.allNews}
+              </Link>
+            ) : null}
           </section>
         )}
       </section>
