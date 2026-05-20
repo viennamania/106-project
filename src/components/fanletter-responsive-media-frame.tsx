@@ -111,7 +111,7 @@ export function FanletterResponsiveMediaFrame({
     videoMetadataState?.src === videoUrl ? videoMetadataState.metadata : null;
   const imageMetadata =
     imageMetadataState?.src === imageUrl ? imageMetadataState.metadata : null;
-  const shouldUseImageMetadata = !videoUrl && mediaType !== "video";
+  const shouldUseImageMetadata = !videoUrl && Boolean(imageUrl);
   const activeMetadata = videoUrl
     ? videoMetadata
     : shouldUseImageMetadata
@@ -177,7 +177,7 @@ export function FanletterResponsiveMediaFrame({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden bg-black transition-[max-width] duration-300",
+        "relative mx-auto w-full overflow-hidden bg-black transition-[max-width] duration-300",
         orientation === "landscape"
           ? "aspect-video max-w-full"
           : orientation === "square"
