@@ -88,6 +88,7 @@ function getCopy(locale: Locale) {
         openCreator: "캐릭터 채널",
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
+        reporterNewsCta: "이 기자 뉴스 보기",
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
         summaryTitle: "기사 요약",
@@ -140,6 +141,7 @@ function getCopy(locale: Locale) {
         openCreator: "Character channel",
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
+        reporterNewsCta: "View reporter news",
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
@@ -177,11 +179,13 @@ function getArticleDisplayTitle(title: string) {
 }
 
 function getReporterDisplayName(report: FanletterNewsReportDocument) {
-  const reporterId = report.reporterReferralCode.trim();
+  const reporterName = report.reporterName.trim();
 
-  if (!reporterId) {
-    return report.reporterName;
+  if (reporterName) {
+    return reporterName;
   }
+
+  const reporterId = report.reporterReferralCode.trim();
 
   return report.locale === "ko"
     ? `${reporterId} 팬 기자`
@@ -272,13 +276,16 @@ function ReporterByline({
   publishedAt,
   report,
   reporterProfile,
+  reporterNewsHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   publishedAt: string | null;
   report: FanletterNewsReportDocument;
   reporterProfile: FanletterNewsReporterProfile | null;
+  reporterNewsHref: string;
 }) {
-  const reporterDisplayName = getReporterDisplayName(report);
+  const reporterDisplayName =
+    reporterProfile?.displayName ?? getReporterDisplayName(report);
   const reporterAvatarImageUrl =
     reporterProfile?.avatarImageUrl ?? report.reporterAvatarImageUrl ?? null;
   const reporterInitial =
@@ -313,13 +320,21 @@ function ReporterByline({
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-black/48">
-        {publishedAt ? (
-          <span>
-            {copy.publishedLabel} {publishedAt}
-          </span>
-        ) : null}
-        <span>{copy.generated}</span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium text-black/48">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {publishedAt ? (
+            <span>
+              {copy.publishedLabel} {publishedAt}
+            </span>
+          ) : null}
+          <span>{copy.generated}</span>
+        </div>
+        <Link
+          className="inline-flex h-8 items-center justify-center border border-black/14 px-3 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          href={reporterNewsHref}
+        >
+          {copy.reporterNewsCta}
+        </Link>
       </div>
     </section>
   );
@@ -692,6 +707,12 @@ export default async function LocalizedFanletterNewsReportPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const reporterNewsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news?reporter=${encodeURIComponent(
+      report.reporterReferralCode,
+    )}`,
+    referralCode,
+  );
   const fanletterHomeHref = buildPathWithReferral(
     `/${locale}/fanletter`,
     referralCode,
@@ -754,6 +775,7 @@ export default async function LocalizedFanletterNewsReportPage({
                 publishedAt={publishedAt}
                 report={report}
                 reporterProfile={reporterProfile}
+                reporterNewsHref={reporterNewsHref}
               />
             </header>
 

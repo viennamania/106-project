@@ -15,7 +15,11 @@ import {
 
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type { FanletterNewsReportDocument } from "@/lib/content";
-import { getLatestFanletterNewsReports } from "@/lib/fanletter-news-report-service";
+import {
+  getFanletterNewsReporterProfile,
+  getLatestFanletterNewsReports,
+  type FanletterNewsReporterProfile,
+} from "@/lib/fanletter-news-report-service";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
@@ -27,10 +31,13 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterNewsHomeSearchParams = {
   ref?: string | string[];
+  reporter?: string | string[];
 };
 
 type ReporterStat = {
+  avatarImageUrl: string | null;
   count: number;
+  latestReportAt: Date | null;
   name: string;
   referralCode: string;
 };
@@ -69,7 +76,15 @@ function getCopy(locale: Locale) {
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
         read: "기사 보기",
+        reporterFilter: {
+          allNews: "전체 뉴스 보기",
+          body: (count: string) =>
+            `${count}개의 AI 캐릭터 리포트를 작성했습니다. 이 팬 기자가 만든 뉴스만 모아볼 수 있습니다.`,
+          eyebrow: "팬 기자 채널",
+          title: (name: string) => `${name}의 FanLetter News`,
+        },
         reporterDesk: "팬 기자 데스크",
+        reporterNewsCta: "이 기자 뉴스 보기",
         reporterRank: "활동 기자",
         siteName: "FanLetter News",
         ticker: "뉴스 브리핑",
@@ -106,7 +121,15 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
         },
         read: "Read story",
+        reporterFilter: {
+          allNews: "All news",
+          body: (count: string) =>
+            `${count} AI character reports published. View only the stories from this fan reporter.`,
+          eyebrow: "Fan reporter channel",
+          title: (name: string) => `${name}'s FanLetter News`,
+        },
         reporterDesk: "Fan Reporter Desk",
+        reporterNewsCta: "View reporter news",
         reporterRank: "Active reporters",
         siteName: "FanLetter News",
         ticker: "News Briefing",
@@ -133,11 +156,13 @@ function getArticleDisplayTitle(title: string) {
 }
 
 function getReporterDisplayName(report: FanletterNewsReportDocument) {
-  const reporterId = report.reporterReferralCode.trim();
+  const reporterName = report.reporterName.trim();
 
-  if (!reporterId) {
-    return report.reporterName;
+  if (reporterName) {
+    return reporterName;
   }
+
+  const reporterId = report.reporterReferralCode.trim();
 
   return report.locale === "ko"
     ? `${reporterId} 팬 기자`
@@ -150,6 +175,19 @@ function getReportHref(
 ) {
   return buildPathWithReferral(
     `/${report.locale}/fanletter/news/${report.reportId}`,
+    referralCode,
+  );
+}
+
+function getReporterNewsHref(
+  locale: Locale,
+  reporterReferralCode: string,
+  referralCode: string | null,
+) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/news?reporter=${encodeURIComponent(
+      reporterReferralCode,
+    )}`,
     referralCode,
   );
 }
@@ -181,10 +219,20 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
 
   for (const report of reports) {
     const existing = map.get(report.reporterReferralCode);
+    const reportDate = report.sourcePublishedAt ?? report.createdAt ?? null;
+    const latestReportAt =
+      existing?.latestReportAt && reportDate
+        ? existing.latestReportAt > reportDate
+          ? existing.latestReportAt
+          : reportDate
+        : existing?.latestReportAt ?? reportDate;
 
     map.set(report.reporterReferralCode, {
+      avatarImageUrl:
+        existing?.avatarImageUrl ?? report.reporterAvatarImageUrl ?? null,
       count: (existing?.count ?? 0) + 1,
-      name: getReporterDisplayName(report),
+      latestReportAt,
+      name: existing?.name ?? getReporterDisplayName(report),
       referralCode: report.reporterReferralCode,
     });
   }
@@ -192,6 +240,24 @@ function getReporterStats(reports: FanletterNewsReportDocument[]) {
   return Array.from(map.values())
     .sort((left, right) => right.count - left.count)
     .slice(0, 5);
+}
+
+async function hydrateReporterStats(reporters: ReporterStat[]) {
+  return Promise.all(
+    reporters.map(async (reporter) => {
+      const profile = await getFanletterNewsReporterProfile({
+        reporterReferralCode: reporter.referralCode,
+      });
+
+      return {
+        ...reporter,
+        avatarImageUrl: profile?.avatarImageUrl ?? reporter.avatarImageUrl,
+        count: profile?.reportCount ?? reporter.count,
+        latestReportAt: profile?.latestReportAt ?? reporter.latestReportAt,
+        name: profile?.displayName ?? reporter.name,
+      };
+    }),
+  );
 }
 
 function NewsImage({
@@ -596,11 +662,15 @@ function FeatureCard({
 function ReporterRank({
   copy,
   locale,
+  referralCode,
   reporters,
+  selectedReporterReferralCode,
 }: {
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  referralCode: string | null;
   reporters: ReporterStat[];
+  selectedReporterReferralCode: string | null;
 }) {
   if (reporters.length === 0) {
     return null;
@@ -613,28 +683,124 @@ function ReporterRank({
         title={copy.reporterRank}
       />
       <div className="space-y-3">
-        {reporters.map((reporter, index) => (
-          <div
-            className="flex items-center justify-between gap-3"
-            key={reporter.referralCode}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-7 shrink-0 items-center justify-center border border-black/14 bg-[#f5f6f2] text-xs font-black text-[#16702e]">
-                {index + 1}
+        {reporters.map((reporter, index) => {
+          const isSelected =
+            reporter.referralCode === selectedReporterReferralCode;
+          const latestReportAt = formatDate(reporter.latestReportAt, locale);
+
+          return (
+            <Link
+              className={`group grid grid-cols-[2.65rem_minmax(0,1fr)] gap-3 border border-black/10 p-3 transition hover:border-[#19b84b] ${
+                isSelected ? "bg-[#ecfff0]" : "bg-white hover:bg-[#f7fbf5]"
+              }`}
+              href={getReporterNewsHref(
+                locale,
+                reporter.referralCode,
+                referralCode,
+              )}
+              key={reporter.referralCode}
+            >
+              <span className="relative flex size-10 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e]">
+                {reporter.avatarImageUrl ? (
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="object-cover"
+                    fill
+                    sizes="2.5rem"
+                    src={reporter.avatarImageUrl}
+                  />
+                ) : (
+                  reporter.name.trim().charAt(0).toUpperCase() ||
+                  reporter.referralCode.charAt(0)
+                )}
+                <span className="absolute bottom-0 right-0 flex size-4 items-center justify-center bg-[#44f26e] text-[0.56rem] font-black text-black">
+                  {index + 1}
+                </span>
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-black">{reporter.name}</p>
-                <p className="text-xs font-bold text-black/42">
-                  {reporter.referralCode}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black">
+                      {reporter.name}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs font-bold text-black/42">
+                      @{reporter.referralCode}
+                    </p>
+                  </div>
+                  <span className="shrink-0 bg-[#44f26e] px-2 py-1 text-[0.68rem] font-black text-black">
+                    {formatNumber(reporter.count, locale)}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.66rem] font-bold text-black/46">
+                  <span className="text-[#16702e] group-hover:underline">
+                    {copy.reporterNewsCta}
+                  </span>
+                  {latestReportAt ? <span>{latestReportAt}</span> : null}
+                </div>
               </div>
-            </div>
-            <span className="shrink-0 bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
-              {formatNumber(reporter.count, locale)}
-            </span>
-          </div>
-        ))}
+            </Link>
+          );
+        })}
       </div>
+    </section>
+  );
+}
+
+function ReporterFilterBanner({
+  copy,
+  locale,
+  newsHomeHref,
+  profile,
+  reporterReferralCode,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  newsHomeHref: string;
+  profile: FanletterNewsReporterProfile | null;
+  reporterReferralCode: string;
+}) {
+  const reporterName =
+    profile?.displayName ??
+    (locale === "ko"
+      ? `${reporterReferralCode} 팬 기자`
+      : `Fan reporter ${reporterReferralCode}`);
+  const reportCount = formatNumber(profile?.reportCount ?? 0, locale);
+
+  return (
+    <section className="grid gap-4 border border-black/12 bg-white p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
+      <div className="relative flex size-16 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-lg font-black text-[#44f26e]">
+        {profile?.avatarImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover"
+            fill
+            sizes="4rem"
+            src={profile.avatarImageUrl}
+          />
+        ) : (
+          reporterName.trim().charAt(0).toUpperCase() ||
+          reporterReferralCode.charAt(0)
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[0.7rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+          {copy.reporterFilter.eyebrow}
+        </p>
+        <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all]">
+          {copy.reporterFilter.title(reporterName)}
+        </h2>
+        <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
+          {copy.reporterFilter.body(reportCount)}
+        </p>
+      </div>
+      <Link
+        className="inline-flex h-11 items-center justify-center border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+        href={newsHomeHref}
+      >
+        {copy.reporterFilter.allNews}
+      </Link>
     </section>
   );
 }
@@ -738,6 +904,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const activeReporterReferralCode = readFanletterReferralCode(query.reporter);
   const cookieStore = await cookies();
   const nsfwOptInEnabled = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
@@ -746,7 +913,21 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
-  const reports = await getLatestFanletterNewsReports({ limit: 28, locale });
+  const [allReports, reports, activeReporterProfile] = await Promise.all([
+    getLatestFanletterNewsReports({ limit: 28, locale }),
+    activeReporterReferralCode
+      ? getLatestFanletterNewsReports({
+          limit: 28,
+          locale,
+          reporterReferralCode: activeReporterReferralCode,
+        })
+      : getLatestFanletterNewsReports({ limit: 28, locale }),
+    activeReporterReferralCode
+      ? getFanletterNewsReporterProfile({
+          reporterReferralCode: activeReporterReferralCode,
+        })
+      : Promise.resolve(null),
+  ]);
   const nsfwReportCount = reports.filter(isNsfwReport).length;
   const leadReport =
     reports.find((report) => !shouldBlurReport(report, nsfwOptInEnabled)) ??
@@ -758,7 +939,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const topStories = restReports.slice(2, 7);
   const featureReports = restReports.slice(7, 16);
   const latestReports = restReports.slice(16);
-  const reporterStats = getReporterStats(reports);
+  const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
 
   return (
@@ -781,6 +962,16 @@ export default async function LocalizedFanletterNewsHomePage({
                   {copy.dek}
                 </p>
               </div>
+
+              {activeReporterReferralCode ? (
+                <ReporterFilterBanner
+                  copy={copy}
+                  locale={locale}
+                  newsHomeHref={newsHomeHref}
+                  profile={activeReporterProfile}
+                  reporterReferralCode={activeReporterReferralCode}
+                />
+              ) : null}
 
               <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
                 <LeadStory
@@ -875,7 +1066,9 @@ export default async function LocalizedFanletterNewsHomePage({
               <ReporterRank
                 copy={copy}
                 locale={locale}
+                referralCode={referralCode}
                 reporters={reporterStats}
+                selectedReporterReferralCode={activeReporterReferralCode}
               />
 
               <section className="border border-black/12 bg-white p-4">

@@ -252,7 +252,17 @@ function getCreatorName(
   );
 }
 
-function getReporterName(reporterReferralCode: string, locale: Locale) {
+function getReporterName(
+  member: Pick<MemberDocument, "landingBranding"> | null,
+  reporterReferralCode: string,
+  locale: Locale,
+) {
+  const memberDisplayName = trimToLength(member?.landingBranding?.brandName, 64);
+
+  if (memberDisplayName) {
+    return memberDisplayName;
+  }
+
   return locale === "ko"
     ? `${reporterReferralCode} 팬 기자`
     : `Fan reporter ${reporterReferralCode}`;
@@ -266,9 +276,9 @@ function getReporterAvatarImageUrl(
   member: Pick<MemberDocument, "landingBranding"> | null,
 ) {
   return (
+    member?.landingBranding?.heroImageUrl ??
     profile?.avatarImageSet?.[0]?.url ??
     profile?.avatarImageUrl ??
-    member?.landingBranding?.heroImageUrl ??
     null
   );
 }
@@ -304,7 +314,7 @@ function createReporterIdentity({
   return {
     reporterAvatarImageUrl: getReporterAvatarImageUrl(profile, member),
     reporterCharacterName,
-    reporterName: getReporterName(reporterReferralCode, locale),
+    reporterName: getReporterName(member, reporterReferralCode, locale),
   };
 }
 
@@ -1078,15 +1088,22 @@ export const getLatestFanletterNewsReports = cache(
   async ({
     limit = 24,
     locale,
+    reporterReferralCode,
   }: {
     limit?: number;
     locale: Locale;
+    reporterReferralCode?: string | null;
   }) => {
     const reportsCollection = await getFanletterNewsReportsCollection();
+    const normalizedReporterReferralCode =
+      normalizeReferralCode(reporterReferralCode);
 
     const reports = await reportsCollection
       .find({
         locale,
+        ...(normalizedReporterReferralCode
+          ? { reporterReferralCode: normalizedReporterReferralCode }
+          : {}),
         status: "published",
       })
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
