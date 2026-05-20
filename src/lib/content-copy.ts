@@ -238,7 +238,8 @@ const englishCopy: ContentCopy = {
     body: "Write the main text your network members will read. You can add images or video below for the feed and detail pages.",
     contentImages:
       "Optional gallery shown in the content detail page. Upload up to 10 PNG, JPG, or WEBP images, and add one video in the video section.",
-    coverImage: "Optional thumbnail for the feed card and detail header. PNG, JPG, or WEBP up to 4MB.",
+    coverImage:
+      "Thumbnail for the feed card and detail header. Uploaded videos can save multiple frame candidates so you can choose the strongest cover.",
     displayName: "This name appears across the network feed and content detail pages.",
     heroImage: "PNG, JPG, or WEBP up to 4MB. It appears in your creator profile area.",
     intro: "Explain what people in your network should expect from your channel.",
@@ -418,7 +419,8 @@ const koreanCopy: ContentCopy = {
     body: "네트워크 회원이 읽게 될 본문을 작성하세요. 이미지나 동영상은 아래에서 함께 올릴 수 있습니다.",
     contentImages:
       "상세 페이지에서 스와이프로 보여줄 이미지입니다. PNG, JPG, WEBP 형식 최대 10장까지 업로드할 수 있고, 동영상 섹션에서 동영상 1개를 추가할 수 있습니다.",
-    coverImage: "피드 카드와 상세 상단에 노출될 썸네일입니다. PNG, JPG, WEBP 형식 4MB 이하를 업로드할 수 있습니다.",
+    coverImage:
+      "피드 카드와 상세 상단에 노출될 썸네일입니다. 동영상 업로드 시 여러 프레임 후보를 저장해 가장 좋은 커버를 선택할 수 있습니다.",
     displayName: "이 이름은 네트워크 피드와 콘텐츠 상세에 작성자 이름으로 표시됩니다.",
     heroImage: "PNG, JPG, WEBP 형식 4MB 이하 이미지를 업로드할 수 있습니다.",
     intro: "내 하위 네트워크가 이 채널에서 무엇을 기대하면 되는지 적어주세요.",

@@ -65,6 +65,7 @@ import type {
   CreatorCharacterPersonaGenerateResponse,
   CreatorCharacterTimelineEvent,
   CreatorCharacterWorldLocation,
+  ContentCoverImageCandidate,
   CreatorProfileAvatarCandidate,
   CreatorProfileAvatarGenerateResponse,
   CreatorProfileRecord,
@@ -112,8 +113,10 @@ import {
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { cn } from "@/lib/utils";
 import {
-  captureVideoCoverFrame,
   captureVideoCoverFrameFromUrl,
+  captureVideoCoverFrames,
+  captureVideoCoverFramesFromUrl,
+  type CapturedVideoCoverFrame,
 } from "@/lib/video-frame-cover-client";
 
 type StudioState = {
@@ -294,6 +297,7 @@ const EMPTY_POST_FORM = {
   body: "",
   contentImageUrls: [] as string[],
   contentVideoUrls: [] as string[],
+  coverImageCandidates: [] as ContentCoverImageCandidate[],
   coverImageUrl: "",
   contentMaturityRating: "general" as ContentMaturityRating,
   generatedContentImageUrls: [] as string[],
@@ -303,6 +307,72 @@ const EMPTY_POST_FORM = {
   summary: "",
   title: "",
 };
+
+const COVER_IMAGE_CANDIDATE_LIMIT = 8;
+const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 4;
+
+function createCoverImageCandidateId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `cover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createCoverImageCandidate({
+  contentType,
+  height = null,
+  pathname,
+  source,
+  timestampSec = null,
+  url,
+  width = null,
+}: {
+  contentType: string | null;
+  height?: number | null;
+  pathname: string | null;
+  source: ContentCoverImageCandidate["source"];
+  timestampSec?: number | null;
+  url: string;
+  width?: number | null;
+}): ContentCoverImageCandidate {
+  return {
+    candidateId: createCoverImageCandidateId(),
+    contentType,
+    createdAt: new Date().toISOString(),
+    height,
+    pathname,
+    source,
+    timestampSec,
+    url,
+    width,
+  };
+}
+
+function appendCoverImageCandidate(
+  candidates: ContentCoverImageCandidate[],
+  candidate: ContentCoverImageCandidate,
+) {
+  return [
+    candidate,
+    ...candidates.filter((item) => item.url !== candidate.url),
+  ].slice(0, COVER_IMAGE_CANDIDATE_LIMIT);
+}
+
+function getCoverImageCandidateLabel(
+  source: ContentCoverImageCandidate["source"],
+  locale: Locale,
+) {
+  if (source === "ai") {
+    return locale === "ko" ? "AI 커버" : "AI cover";
+  }
+
+  if (source === "frame") {
+    return locale === "ko" ? "동영상 프레임" : "Video frame";
+  }
+
+  return locale === "ko" ? "직접 업로드" : "Manual upload";
+}
 
 function createInitialPostForm(
   initialPostPlan: FanletterCreateInitialPlan | null | undefined,
@@ -3545,6 +3615,7 @@ export function CreatorContentStudioPage({
           ? postForm.contentMaturityRating
           : "general";
       let coverImageUrlToSave = postForm.coverImageUrl || null;
+      let coverImageCandidatesToSave = postForm.coverImageCandidates;
 
       if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
         await createSellerWallet(email);
@@ -3577,13 +3648,31 @@ export function CreatorContentStudioPage({
           });
 
           coverImageUrlToSave = generatedCover?.url ?? null;
+          if (generatedCover) {
+            coverImageCandidatesToSave = appendCoverImageCandidate(
+              coverImageCandidatesToSave,
+              createCoverImageCandidate({
+                contentType: generatedCover.contentType,
+                pathname: generatedCover.pathname,
+                source: "ai",
+                url: generatedCover.url,
+              }),
+            );
+          }
         } else {
           try {
-            coverImageUrlToSave =
+            const frameCoverResult =
               await generatePaidVideoFrameCoverFromUploadedVideo({
                 successNotice: paidUploadComposerCopy.frameCoverReady,
                 throwOnError: true,
               });
+            coverImageUrlToSave = frameCoverResult?.url ?? null;
+            for (const candidate of frameCoverResult?.candidates ?? []) {
+              coverImageCandidatesToSave = appendCoverImageCandidate(
+                coverImageCandidatesToSave,
+                candidate,
+              );
+            }
           } catch {
             setIsCoverGenerationDialogOpen(true);
             setState((current) => ({
@@ -3599,6 +3688,17 @@ export function CreatorContentStudioPage({
             });
 
             coverImageUrlToSave = generatedCover?.url ?? null;
+            if (generatedCover) {
+              coverImageCandidatesToSave = appendCoverImageCandidate(
+                coverImageCandidatesToSave,
+                createCoverImageCandidate({
+                  contentType: generatedCover.contentType,
+                  pathname: generatedCover.pathname,
+                  source: "ai",
+                  url: generatedCover.url,
+                }),
+              );
+            }
           }
         }
 
@@ -3631,6 +3731,7 @@ export function CreatorContentStudioPage({
             postForm.title.trim() || fallbackTitle || "ai-content-video",
           );
           const uploadedCover = await uploadPostCoverImage(frameCoverFile, {
+            candidateSource: "frame",
             successNotice:
               locale === "ko"
                 ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
@@ -3639,6 +3740,12 @@ export function CreatorContentStudioPage({
           });
 
           coverImageUrlToSave = uploadedCover?.url ?? null;
+          if (uploadedCover?.coverImageCandidate) {
+            coverImageCandidatesToSave = appendCoverImageCandidate(
+              coverImageCandidatesToSave,
+              uploadedCover.coverImageCandidate,
+            );
+          }
         } catch {
           coverImageUrlToSave = null;
         }
@@ -3650,6 +3757,7 @@ export function CreatorContentStudioPage({
           contentImageUrls: postForm.contentImageUrls,
           contentMaturityRating: contentMaturityRatingToSave,
           contentVideoUrls: postForm.contentVideoUrls,
+          coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
           email,
           fanRequestId: priceTypeToSave === "paid" ? initialFanRequestId : null,
@@ -3809,6 +3917,13 @@ export function CreatorContentStudioPage({
   async function uploadPostCoverImage(
     file: File,
     options: {
+      candidateFrame?: Pick<
+        CapturedVideoCoverFrame,
+        "height" | "timestampSec" | "width"
+      >;
+      candidateSource?: ContentCoverImageCandidate["source"];
+      setAsPrimary?: boolean;
+      skipNotice?: boolean;
       successNotice?: string;
       throwOnError?: boolean;
     } = {},
@@ -3837,16 +3952,38 @@ export function CreatorContentStudioPage({
         );
       }
 
+      const candidate = createCoverImageCandidate({
+        contentType: data.contentType,
+        height: options.candidateFrame?.height ?? null,
+        pathname: data.pathname,
+        source: options.candidateSource ?? "manual",
+        timestampSec: options.candidateFrame?.timestampSec ?? null,
+        url: data.url,
+        width: options.candidateFrame?.width ?? null,
+      });
+
       setPostForm((current) => ({
         ...current,
-        coverImageUrl: data.url,
+        coverImageCandidates: appendCoverImageCandidate(
+          current.coverImageCandidates,
+          candidate,
+        ),
+        coverImageUrl:
+          options.setAsPrimary === false && current.coverImageUrl
+            ? current.coverImageUrl
+            : data.url,
       }));
-      setState((current) => ({
-        ...current,
-        error: null,
-        notice: options.successNotice ?? contentCopy.messages.uploadSuccess,
-      }));
-      return data;
+      if (!options.skipNotice) {
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: options.successNotice ?? contentCopy.messages.uploadSuccess,
+        }));
+      }
+      return {
+        ...data,
+        coverImageCandidate: candidate,
+      };
     } catch (error) {
       if (options.throwOnError) {
         throw error;
@@ -3864,6 +4001,65 @@ export function CreatorContentStudioPage({
     } finally {
       setIsUploadingPostImage(false);
     }
+  }
+
+  async function uploadVideoFrameCoverCandidates(
+    frames: CapturedVideoCoverFrame[],
+    options: {
+      failureNotice?: string;
+      primaryFallbackUrl?: string | null;
+      successNotice?: string;
+      throwOnPrimaryError?: boolean;
+    } = {},
+  ) {
+    let primaryCoverUrl = options.primaryFallbackUrl ?? null;
+    let uploadedCount = 0;
+    const coverImageCandidates: ContentCoverImageCandidate[] = [];
+
+    for (const [index, frame] of frames.entries()) {
+      try {
+        const uploadedCover = await uploadPostCoverImage(frame.file, {
+          candidateFrame: frame,
+          candidateSource: "frame",
+          setAsPrimary: !primaryCoverUrl && uploadedCount === 0,
+          skipNotice: true,
+          throwOnError: index === 0 && options.throwOnPrimaryError,
+        });
+
+        if (uploadedCover?.url) {
+          uploadedCount += 1;
+          primaryCoverUrl ??= uploadedCover.url;
+          coverImageCandidates.push(uploadedCover.coverImageCandidate);
+        }
+      } catch (error) {
+        if (index === 0 && options.throwOnPrimaryError) {
+          throw error;
+        }
+      }
+    }
+
+    if (!primaryCoverUrl) {
+      throw new Error(
+        options.failureNotice ?? paidUploadComposerCopy.frameCoverRetryFailed,
+      );
+    }
+
+    if (uploadedCount > 0) {
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice:
+          options.successNotice ??
+          (locale === "ko"
+            ? `동영상 커버 후보 ${uploadedCount}장을 저장했습니다.`
+            : `${uploadedCount} video cover candidates were saved.`),
+      }));
+    }
+
+    return {
+      candidates: coverImageCandidates,
+      url: primaryCoverUrl,
+    };
   }
 
   async function generatePaidVideoFrameCoverFromUploadedVideo(
@@ -3891,23 +4087,18 @@ export function CreatorContentStudioPage({
         notice: paidUploadComposerCopy.frameCoverGenerating,
       }));
 
-      const frameCoverFile = await captureVideoCoverFrameFromUrl(
+      const frameCoverCandidates = await captureVideoCoverFramesFromUrl(
         videoUrl,
         postForm.title.trim() || "paid-video",
+        { count: VIDEO_FRAME_COVER_CANDIDATE_COUNT },
       );
-      const uploadedCover = await uploadPostCoverImage(frameCoverFile, {
+
+      return await uploadVideoFrameCoverCandidates(frameCoverCandidates, {
+        failureNotice: options.failureNotice,
         successNotice:
           options.successNotice ?? paidUploadComposerCopy.frameCoverReady,
-        throwOnError: true,
+        throwOnPrimaryError: true,
       });
-
-      if (!uploadedCover?.url) {
-        throw new Error(
-          options.failureNotice ?? paidUploadComposerCopy.frameCoverRetryFailed,
-        );
-      }
-
-      return uploadedCover.url;
     } catch (error) {
       if (options.throwOnError) {
         throw error;
@@ -4086,11 +4277,13 @@ export function CreatorContentStudioPage({
         }));
 
         try {
-          const frameCoverFile = await captureVideoCoverFrame(file);
+          const frameCoverCandidates = await captureVideoCoverFrames(file, {
+            count: VIDEO_FRAME_COVER_CANDIDATE_COUNT,
+          });
 
-          await uploadPostCoverImage(frameCoverFile, {
+          await uploadVideoFrameCoverCandidates(frameCoverCandidates, {
             successNotice: paidUploadComposerCopy.frameCoverReady,
-            throwOnError: true,
+            throwOnPrimaryError: true,
           });
         } catch {
           setIsCoverGenerationDialogOpen(true);
@@ -4329,9 +4522,19 @@ export function CreatorContentStudioPage({
       }
 
       const generatedCover = data;
+      const candidate = createCoverImageCandidate({
+        contentType: generatedCover.contentType,
+        pathname: generatedCover.pathname,
+        source: "ai",
+        url: generatedCover.url,
+      });
 
       setPostForm((current) => ({
         ...current,
+        coverImageCandidates: appendCoverImageCandidate(
+          current.coverImageCandidates,
+          candidate,
+        ),
         coverImageUrl: generatedCover.url,
       }));
       setState((current) => ({
@@ -4677,6 +4880,7 @@ export function CreatorContentStudioPage({
           );
 
           await uploadPostCoverImage(frameCoverFile, {
+            candidateSource: "frame",
             successNotice:
               locale === "ko"
                 ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
@@ -8779,7 +8983,7 @@ export function CreatorContentStudioPage({
                   </p>
                 </div>
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
-                  {locale === "ko" ? "대표 1장" : "One hero image"}
+                  {locale === "ko" ? "대표 + 후보" : "Hero + candidates"}
                 </span>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -8918,6 +9122,67 @@ export function CreatorContentStudioPage({
                       backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.24)), url(${postForm.coverImageUrl})`,
                     }}
                   />
+                </div>
+              ) : null}
+              {postForm.coverImageCandidates.length > 0 ? (
+                <div className="mt-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold text-slate-700">
+                      {locale === "ko" ? "저장된 커버 후보" : "Saved cover candidates"}
+                    </p>
+                    <span className="text-[0.68rem] font-medium text-slate-500">
+                      {postForm.coverImageCandidates.length}/
+                      {COVER_IMAGE_CANDIDATE_LIMIT}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {postForm.coverImageCandidates.map((candidate) => {
+                      const selected =
+                        postForm.coverImageUrl &&
+                        postForm.coverImageUrl === candidate.url;
+
+                      return (
+                        <button
+                          className={cn(
+                            "group overflow-hidden rounded-lg border bg-white text-left transition",
+                            selected
+                              ? "border-emerald-400 shadow-[0_0_0_2px_rgba(52,211,153,0.22)]"
+                              : "border-slate-200 hover:border-slate-300",
+                          )}
+                          key={candidate.candidateId}
+                          onClick={() => {
+                            setPostForm((current) => ({
+                              ...current,
+                              coverImageUrl: candidate.url,
+                            }));
+                          }}
+                          type="button"
+                        >
+                          <span
+                            className="block aspect-[16/10] bg-slate-900 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${candidate.url})` }}
+                          />
+                          <span className="block px-2 py-2">
+                            <span className="block truncate text-[0.68rem] font-semibold text-slate-700">
+                              {getCoverImageCandidateLabel(
+                                candidate.source,
+                                locale,
+                              )}
+                            </span>
+                            <span className="mt-0.5 block text-[0.62rem] font-medium text-slate-500">
+                              {selected
+                                ? locale === "ko"
+                                  ? "대표 선택됨"
+                                  : "Selected"
+                                : locale === "ko"
+                                  ? "대표로 선택"
+                                  : "Use as cover"}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : null}
             </div>

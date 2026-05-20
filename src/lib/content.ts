@@ -496,6 +496,20 @@ export type ContentAssetDocument = {
   uploaderEmail: string;
 };
 
+export type ContentCoverImageCandidateSource = "ai" | "frame" | "manual";
+
+export type ContentCoverImageCandidate = {
+  candidateId: string;
+  contentType: string | null;
+  createdAt: string;
+  height: number | null;
+  pathname: string | null;
+  source: ContentCoverImageCandidateSource;
+  timestampSec: number | null;
+  url: string;
+  width: number | null;
+};
+
 export type ContentPostDocument = {
   authorEmail: string;
   authorReferralCode: string;
@@ -504,6 +518,7 @@ export type ContentPostDocument = {
   contentImageUrls?: string[];
   contentMaturityRating?: ContentMaturityRating | null;
   contentVideoUrls?: string[];
+  coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   createdAt: Date;
   fanRequestId?: string | null;
@@ -596,6 +611,7 @@ export type ContentPostRecord = {
   contentMaturityRating: ContentMaturityRating;
   contentVideoCount: number;
   contentVideoUrls: string[];
+  coverImageCandidates: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   createdAt: string;
   fanRequestId: string | null;
@@ -1038,6 +1054,7 @@ export type ContentPostCreateRequest = {
   contentImageUrls?: string[];
   contentMaturityRating?: ContentMaturityRating | null;
   contentVideoUrls?: string[];
+  coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl?: string | null;
   email: string;
   locale?: Locale | null;
@@ -1211,6 +1228,7 @@ export function serializeContentPost(
       content.contentMaturityRating === "nsfw" ? "nsfw" : "general",
     contentVideoCount: content.contentVideoUrls?.length ?? 0,
     contentVideoUrls: content.contentVideoUrls ?? [],
+    coverImageCandidates: content.coverImageCandidates ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
     fanRequestId: content.fanRequestId ?? null,

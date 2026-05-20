@@ -29,6 +29,8 @@ import {
   type ContentCommentDocument,
   type ContentCommentRecord,
   type ContentCommentsResponse,
+  type ContentCoverImageCandidate,
+  type ContentCoverImageCandidateSource,
   type ContentDetailResponse,
   type ContentEntitlementDocument,
   type ContentFeedItemRecord,
@@ -151,6 +153,7 @@ const CONTENT_SUMMARY_LIMIT = 180;
 const CONTENT_BODY_LIMIT = 12_000;
 const CONTENT_TAG_LIMIT = 6;
 const CONTENT_TAG_LENGTH_LIMIT = 24;
+const CONTENT_COVER_IMAGE_CANDIDATE_LIMIT = 8;
 const CONTENT_IMAGE_LIMIT = 10;
 const CREATOR_STUDIO_DEFAULT_PAGE_SIZE = 24;
 const CREATOR_STUDIO_MAX_PAGE_SIZE = 60;
@@ -475,6 +478,64 @@ function normalizeTags(tags?: string[]) {
     .map((tag) => trimToLength(tag, CONTENT_TAG_LENGTH_LIMIT).toLowerCase())
     .filter(Boolean)
     .slice(0, CONTENT_TAG_LIMIT);
+}
+
+function normalizeCoverImageCandidateSource(
+  value: string | null | undefined,
+): ContentCoverImageCandidateSource {
+  if (value === "ai" || value === "frame" || value === "manual") {
+    return value;
+  }
+
+  return "manual";
+}
+
+function normalizeNullablePositiveNumber(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  return Number(value.toFixed(2));
+}
+
+function normalizeCoverImageCandidates(
+  values: ContentCoverImageCandidate[] | null | undefined,
+) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  const seenUrls = new Set<string>();
+
+  return values
+    .map((item) => {
+      const url = normalizeOptionalText(item?.url, 500);
+
+      if (!url || seenUrls.has(url)) {
+        return null;
+      }
+
+      seenUrls.add(url);
+
+      const candidateId =
+        trimToLength(item?.candidateId, 120) ||
+        `cover-${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+      const createdAt = normalizeDateLike(item?.createdAt).toISOString();
+
+      return {
+        candidateId,
+        contentType: normalizeOptionalText(item?.contentType, 80),
+        createdAt,
+        height: normalizeNullablePositiveNumber(item?.height),
+        pathname: normalizeOptionalText(item?.pathname, 500),
+        source: normalizeCoverImageCandidateSource(item?.source),
+        timestampSec: normalizeNullablePositiveNumber(item?.timestampSec),
+        url,
+        width: normalizeNullablePositiveNumber(item?.width),
+      } satisfies ContentCoverImageCandidate;
+    })
+    .filter((item): item is ContentCoverImageCandidate => Boolean(item))
+    .slice(0, CONTENT_COVER_IMAGE_CANDIDATE_LIMIT);
 }
 
 function normalizeContentImageUrls(urls?: string[]) {
@@ -2523,6 +2584,9 @@ export async function createContentPostForMember(
   const contentImageUrls = normalizeContentImageUrls(input.contentImageUrls);
   const contentVideoUrls = normalizeContentVideoUrls(input.contentVideoUrls);
   const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
+  const coverImageCandidates = normalizeCoverImageCandidates(
+    input.coverImageCandidates,
+  );
 
   if (
     status === "published" &&
@@ -2561,6 +2625,7 @@ export async function createContentPostForMember(
     contentImageUrls,
     contentMaturityRating,
     contentVideoUrls,
+    coverImageCandidates,
     coverImageUrl,
     createdAt: now,
     fanRequestId: fanRequest?.requestId ?? null,
@@ -2655,6 +2720,10 @@ export async function updateContentPostForMember(
     input.coverImageUrl !== undefined
       ? normalizeOptionalText(input.coverImageUrl, 500)
       : post.coverImageUrl ?? null;
+  const nextCoverImageCandidates =
+    input.coverImageCandidates !== undefined
+      ? normalizeCoverImageCandidates(input.coverImageCandidates)
+      : normalizeCoverImageCandidates(post.coverImageCandidates);
   const isMaturityOnlyUpdate = isContentMaturityOnlyUpdate(input);
 
   if (
@@ -2725,6 +2794,7 @@ export async function updateContentPostForMember(
           contentMaturityRating:
             nextStatus === "archived" ? "general" : nextContentMaturityRating,
           contentVideoUrls: nextContentVideoUrls,
+          coverImageCandidates: nextCoverImageCandidates,
           coverImageUrl: nextCoverImageUrl,
           fanRequestId: nextFanRequestId,
           locale:
