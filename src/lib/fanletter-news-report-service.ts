@@ -1093,19 +1093,24 @@ export const getLatestFanletterNewsReports = cache(
   async ({
     limit = 24,
     locale,
+    priceType,
     reporterReferralCode,
   }: {
     limit?: number;
     locale: Locale;
+    priceType?: ContentPriceType | null;
     reporterReferralCode?: string | null;
   }) => {
     const reportsCollection = await getFanletterNewsReportsCollection();
     const normalizedReporterReferralCode =
       normalizeReferralCode(reporterReferralCode);
+    const normalizedPriceType =
+      priceType === "free" || priceType === "paid" ? priceType : null;
 
     const reports = await reportsCollection
       .find({
         locale,
+        ...(normalizedPriceType ? { priceType: normalizedPriceType } : {}),
         ...(normalizedReporterReferralCode
           ? { reporterReferralCode: normalizedReporterReferralCode }
           : {}),

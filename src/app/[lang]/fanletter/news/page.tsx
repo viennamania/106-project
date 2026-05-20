@@ -281,6 +281,68 @@ function isPreferredLeadReport(report: FanletterNewsReportDocument) {
   );
 }
 
+function buildMixedNewsHomeReports({
+  latestReports,
+  limit,
+  publicReports,
+}: {
+  latestReports: FanletterNewsReportDocument[];
+  limit: number;
+  publicReports: FanletterNewsReportDocument[];
+}) {
+  const seen = new Set<string>();
+  const mixedReports: FanletterNewsReportDocument[] = [];
+  const leadCandidate =
+    latestReports.find(isPreferredLeadReport) ?? latestReports[0];
+  const orderedLatestReports = leadCandidate
+    ? [
+        leadCandidate,
+        ...latestReports.filter(
+          (report) => report.reportId !== leadCandidate.reportId,
+        ),
+      ]
+    : latestReports;
+  const publicQueue = publicReports.filter(
+    (report) => report.priceType !== "paid",
+  );
+  const publicInsertIndexes = new Set([0, 3, 7, 12, 17]);
+  let publicIndex = 0;
+
+  const addReport = (report: FanletterNewsReportDocument | undefined) => {
+    if (!report || seen.has(report.reportId) || mixedReports.length >= limit) {
+      return;
+    }
+
+    seen.add(report.reportId);
+    mixedReports.push(report);
+  };
+  const addNextPublicReport = () => {
+    while (publicIndex < publicQueue.length) {
+      const report = publicQueue[publicIndex];
+      publicIndex += 1;
+
+      if (report && !seen.has(report.reportId)) {
+        addReport(report);
+        return;
+      }
+    }
+  };
+
+  orderedLatestReports.forEach((report, index) => {
+    addReport(report);
+
+    if (publicInsertIndexes.has(index)) {
+      addNextPublicReport();
+    }
+  });
+
+  while (mixedReports.length < limit && publicIndex < publicQueue.length) {
+    addNextPublicReport();
+  }
+
+  return mixedReports;
+}
+
 function getReporterStats(reports: FanletterNewsReportDocument[]) {
   const map = new Map<string, ReporterStat>();
 
@@ -1260,21 +1322,38 @@ export default async function LocalizedFanletterNewsHomePage({
   const currentNewsHref = activeReporterReferralCode
     ? getReporterNewsHref(locale, activeReporterReferralCode, referralCode)
     : newsHomeHref;
-  const [allReports, reports, activeReporterProfile] = await Promise.all([
-    getLatestFanletterNewsReports({ limit: 48, locale }),
-    activeReporterReferralCode
-      ? getLatestFanletterNewsReports({
-          limit: 28,
-          locale,
-          reporterReferralCode: activeReporterReferralCode,
-        })
-      : getLatestFanletterNewsReports({ limit: 28, locale }),
-    activeReporterReferralCode
-      ? getFanletterNewsReporterProfile({
-          reporterReferralCode: activeReporterReferralCode,
-        })
-      : Promise.resolve(null),
-  ]);
+  const [
+    allReports,
+    latestNewsReports,
+    publicReports,
+    activeReporterProfile,
+  ] =
+    await Promise.all([
+      getLatestFanletterNewsReports({ limit: 48, locale }),
+      activeReporterReferralCode
+        ? getLatestFanletterNewsReports({
+            limit: 28,
+            locale,
+            reporterReferralCode: activeReporterReferralCode,
+          })
+        : getLatestFanletterNewsReports({ limit: 28, locale }),
+      getLatestFanletterNewsReports({
+        limit: 12,
+        locale,
+        priceType: "free",
+        reporterReferralCode: activeReporterReferralCode,
+      }),
+      activeReporterReferralCode
+        ? getFanletterNewsReporterProfile({
+            reporterReferralCode: activeReporterReferralCode,
+          })
+        : Promise.resolve(null),
+    ]);
+  const reports = buildMixedNewsHomeReports({
+    latestReports: latestNewsReports,
+    limit: 28,
+    publicReports,
+  });
   const nsfwReportCount = reports.filter(isNsfwReport).length;
   const visibleReports = reports.filter(
     (report) => !shouldBlurReport(report, nsfwOptInEnabled),
@@ -1292,7 +1371,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const topStories = restReports.slice(2, 7);
   const photoDeskReports = restReports.slice(7, 11);
   const featureReports = restReports.slice(11, 20);
-  const latestReports = restReports.slice(20);
+  const latestSectionReports = restReports.slice(20);
   const reporterStats = await hydrateReporterStats(getReporterStats(allReports));
   const characterNewsStats = getFanletterNewsCharacterStats(allReports, 8);
   const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
@@ -1440,14 +1519,14 @@ export default async function LocalizedFanletterNewsHomePage({
                 </section>
               ) : null}
 
-              {latestReports.length > 0 ? (
+              {latestSectionReports.length > 0 ? (
                 <section id="latest-news">
                   <SectionHeader
                     icon={<FileText className="size-5" />}
                     title={copy.latest}
                   />
                   <div className="grid gap-4 border border-black/10 bg-white p-3 sm:grid-cols-2 sm:p-4">
-                    {latestReports.map((report) => (
+                    {latestSectionReports.map((report) => (
                       <CompactStory
                         copy={copy}
                         key={report.reportId}
