@@ -6,16 +6,10 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
-  ArrowRight,
-  BadgeCheck,
   Clock3,
   FileText,
-  Flame,
-  Megaphone,
   Newspaper,
   PenLine,
-  Radio,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -63,6 +57,7 @@ function getCopy(locale: Locale) {
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
+        newsroomStats: "뉴스룸 현황",
         nsfwControl: {
           disabledBody:
             "NSFW 뉴스는 목록에 유지하되 성인 팬 전용 커버와 기사 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
@@ -78,7 +73,7 @@ function getCopy(locale: Locale) {
         reporterRank: "활동 기자",
         siteName: "FanLetter News",
         ticker: "뉴스 브리핑",
-        topStories: "톱스토리",
+        topStories: "많이 본 뉴스",
       }
     : {
         access: {
@@ -100,6 +95,7 @@ function getCopy(locale: Locale) {
         lead: "Lead Story",
         leadKicker: "FanLetter exclusive",
         navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
+        newsroomStats: "Newsroom Status",
         nsfwControl: {
           disabledBody:
             "NSFW stories remain listed, with adult fan-only covers and story previews blurred until opt-in.",
@@ -114,7 +110,7 @@ function getCopy(locale: Locale) {
         reporterRank: "Active reporters",
         siteName: "FanLetter News",
         ticker: "News Briefing",
-        topStories: "Top Stories",
+        topStories: "Most Read",
       };
 }
 
@@ -130,6 +126,10 @@ function formatDate(value: Date | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function getArticleDisplayTitle(title: string) {
+  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getReportHref(
@@ -244,36 +244,32 @@ function NewsMasthead({
   }).format(new Date());
 
   return (
-    <header className="border-b border-black/12 bg-[#fbfbf6] text-[#111510]">
-      <div className="border-b border-black/10 bg-[#111510] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[0.66rem] font-bold uppercase tracking-[0.18em] sm:px-6 lg:px-8">
-          <span>{copy.heroEyebrow}</span>
-          <span className="hidden text-white/58 sm:inline">{copy.edition}</span>
+    <header className="border-b border-black/16 bg-white text-[#111510]">
+      <div className="border-b border-black/10 bg-[#f3f4ef]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-black/50 sm:px-6 lg:px-8">
+          <span>{today}</span>
+          <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 border-b-4 border-[#111510] pb-4 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
           <Link
-            className="inline-flex items-center gap-3 text-[2.45rem] font-black leading-none !text-[#111510] sm:text-[4.9rem]"
+            className="inline-flex items-center text-[2.25rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.5rem]"
             href={newsHomeHref}
           >
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[#44f26e] text-black sm:size-16">
-              <Newspaper className="size-6 sm:size-8" />
-            </span>
             {copy.siteName}
           </Link>
-          <div className="max-w-xs border-l border-black/12 pl-4 text-left text-xs font-bold leading-5 text-black/52 sm:text-right">
-            <p>{today}</p>
-            <p className="mt-1 text-[#16702e]">{copy.edition}</p>
-          </div>
+          <span className="hidden shrink-0 border border-black/16 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
+            {copy.heroEyebrow}
+          </span>
         </div>
         <nav
           aria-label={copy.siteName}
-          className="mt-3 flex gap-2 overflow-x-auto"
+          className="flex gap-5 overflow-x-auto border-b border-black/10 py-3"
         >
           {copy.navItems.map((item) => (
             <span
-              className="shrink-0 border border-black/12 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-black/62"
+              className="shrink-0 text-[0.76rem] font-black uppercase tracking-[0.12em] text-black/58"
               key={item}
             >
               {item}
@@ -297,10 +293,9 @@ function NewsTicker({
   }
 
   return (
-    <section className="border-y border-black/12 bg-white text-[#111510]">
-      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
-        <div className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-          <Megaphone className="size-4" />
+    <section className="border-b border-black/12 bg-white text-[#111510]">
+      <div className="mx-auto grid max-w-6xl gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
+        <div className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
           {copy.ticker}
         </div>
         <div className="flex min-w-0 gap-2 overflow-x-auto text-sm font-bold text-black/68">
@@ -309,7 +304,7 @@ function NewsTicker({
               className="shrink-0 border-l border-black/12 pl-3"
               key={report.reportId}
             >
-              {report.title}
+              {getArticleDisplayTitle(report.title)}
             </span>
           ))}
         </div>
@@ -328,14 +323,14 @@ function SectionHeader({
   title: string;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-3 border-b-4 border-[#111510] pb-3">
+    <div className="mb-4 flex items-end justify-between gap-3 border-b-2 border-[#111510] pb-3">
       <div>
         {eyebrow ? (
           <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-1 text-2xl font-black tracking-normal">{title}</h2>
+        <h2 className="mt-1 text-xl font-black tracking-normal">{title}</h2>
       </div>
       <span className="text-[#16702e]">{icon}</span>
     </div>
@@ -356,62 +351,60 @@ function LeadStory({
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
   const nsfwCopy = getFanletterNsfwCopy(report.locale);
   const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+  const title = getArticleDisplayTitle(report.title);
 
   return (
     <Link
-      className="group grid overflow-hidden rounded-lg border border-black bg-[#111510] text-white shadow-[0_24px_80px_rgba(0,0,0,0.16)] lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]"
+      className="group grid gap-5 border-b border-black/16 bg-white pb-6 lg:grid-cols-[minmax(0,1fr)_18.5rem] lg:items-start"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[16/11] lg:order-2 lg:h-full lg:aspect-auto"
+        className="order-2 aspect-[16/10] border border-black/10"
         nsfwLabel={nsfwCopy.badge}
         priority
         report={report}
-        sizes="(max-width: 1024px) 100vw, 58rem"
+        sizes="(max-width: 1024px) 100vw, 20rem"
       />
-      <div className="flex flex-col justify-between p-5 sm:p-7 lg:min-h-[31rem] lg:p-8">
+      <div className="min-w-0">
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-black text-black">
-            <Flame className="size-3.5" />
+          <span className="inline-flex items-center border border-[#16702e]/30 bg-[#ecfff0] px-2.5 py-1 text-xs font-black text-[#16702e]">
             {copy.lead}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-bold text-white/70">
-            <BadgeCheck className="size-3.5 text-[#44f26e]" />
+          <span className="inline-flex items-center border border-black/12 px-2.5 py-1 text-xs font-bold text-black/58">
             {getAccessLabel(report, copy)}
           </span>
         </div>
-        <p className="mt-6 text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+        <p className="mt-4 text-[0.66rem] font-black uppercase tracking-[0.18em] text-black/38">
           {copy.leadKicker}
         </p>
         <h1
-          className={`mt-3 break-words text-[2.65rem] font-black leading-[0.98] [word-break:keep-all] sm:text-[4.45rem] ${
+          className={`mt-2 break-words text-[2.1rem] font-black leading-[1.12] tracking-normal [word-break:keep-all] sm:text-[3.05rem] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
-          {report.title}
+          {title}
         </h1>
         <p
-          className={`mt-4 max-w-3xl text-base font-semibold leading-7 text-white/68 sm:text-lg sm:leading-8 ${
+          className={`mt-3 max-w-3xl text-base font-semibold leading-7 text-black/62 ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
           {report.dek}
         </p>
-        <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-white/50">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold text-black/44">
           <span className="inline-flex items-center gap-1.5">
-            <PenLine className="size-3.5 text-[#44f26e]" />
+            <PenLine className="size-3.5 text-[#16702e]" />
             {report.reporterName}
           </span>
           {publishedAt ? (
             <span className="inline-flex items-center gap-1.5">
-              <Clock3 className="size-3.5 text-[#44f26e]" />
+              <Clock3 className="size-3.5 text-[#16702e]" />
               {publishedAt}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1.5 text-[#b9ffc8] transition group-hover:translate-x-1">
+          <span className="font-black text-[#16702e] group-hover:underline">
             {copy.read}
-            <ArrowRight className="size-3.5" />
           </span>
         </div>
       </div>
@@ -433,18 +426,19 @@ function CompactStory({
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
   const nsfwCopy = getFanletterNsfwCopy(report.locale);
   const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+  const title = getArticleDisplayTitle(report.title);
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4"
+      className="group grid min-w-0 grid-cols-[5.4rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 last:border-b-0 last:pb-0"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[4/5] rounded-lg"
+        className="aspect-[4/5] border border-black/10"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="6rem"
+        sizes="5.5rem"
       />
       <div className="min-w-0">
         <p className="text-[0.68rem] font-black text-[#16702e]">
@@ -455,7 +449,7 @@ function CompactStory({
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
-          {report.title}
+          {title}
         </h2>
         <p
           className={`mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/58 ${
@@ -487,15 +481,16 @@ function FeatureCard({
   const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
   const nsfwCopy = getFanletterNsfwCopy(report.locale);
   const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+  const title = getArticleDisplayTitle(report.title);
 
   return (
     <Link
-      className="group block overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_16px_46px_rgba(0,0,0,0.07)]"
+      className="group block border-t border-black/14 bg-white pt-4"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[16/10]"
+        className="aspect-[16/10] border border-black/10"
         nsfwLabel={nsfwCopy.badge}
         report={report}
         sizes="(max-width: 768px) 100vw, 22rem"
@@ -510,7 +505,7 @@ function FeatureCard({
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
-          {report.title}
+          {title}
         </h2>
         <p
           className={`mt-2 line-clamp-3 text-sm font-medium leading-6 text-black/58 ${
@@ -542,19 +537,19 @@ function ReporterRank({
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_14px_44px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center gap-2 bg-[#111510] px-4 py-3 text-white">
-        <Radio className="size-4 text-[#44f26e]" />
-        <h2 className="text-lg font-black">{copy.reporterRank}</h2>
-      </div>
-      <div className="space-y-3 p-4">
+    <section className="border border-black/12 bg-white p-4">
+      <SectionHeader
+        icon={<PenLine className="size-5" />}
+        title={copy.reporterRank}
+      />
+      <div className="space-y-3">
         {reporters.map((reporter, index) => (
           <div
             className="flex items-center justify-between gap-3"
             key={reporter.referralCode}
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#111510] text-xs font-black text-[#44f26e]">
+              <span className="flex size-7 shrink-0 items-center justify-center border border-black/14 bg-[#f5f6f2] text-xs font-black text-[#16702e]">
                 {index + 1}
               </span>
               <div className="min-w-0">
@@ -564,11 +559,68 @@ function ReporterRank({
                 </p>
               </div>
             </div>
-            <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+            <span className="shrink-0 bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
               {formatNumber(reporter.count, locale)}
             </span>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function RankedStoryList({
+  copy,
+  nsfwOptInEnabled,
+  referralCode,
+  reports,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border border-black/12 bg-white p-4">
+      <SectionHeader
+        icon={<Newspaper className="size-5" />}
+        title={copy.topStories}
+      />
+      <div className="divide-y divide-black/10">
+        {reports.map((report, index) => {
+          const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+          const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+          const title = getArticleDisplayTitle(report.title);
+
+          return (
+            <Link
+              className="group grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
+              href={getReportHref(report, referralCode)}
+              key={report.reportId}
+            >
+              <span className="pt-0.5 text-xl font-black leading-none text-[#16702e]">
+                {index + 1}
+              </span>
+              <div className="min-w-0">
+                <h2
+                  className={`line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
+                    shouldBlur ? "select-none blur-[2px]" : ""
+                  }`}
+                >
+                  {title}
+                </h2>
+                <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-bold text-black/42">
+                  <span>{getAccessLabel(report, copy)}</span>
+                  {publishedAt ? <span>{publishedAt}</span> : null}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -628,54 +680,9 @@ export default async function LocalizedFanletterNewsHomePage({
       <NewsMasthead copy={copy} locale={locale} newsHomeHref={newsHomeHref} />
       <NewsTicker copy={copy} reports={reports.slice(0, 5)} />
 
-      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
-        <div className="grid gap-5 border-y border-black/14 bg-white px-4 py-5 sm:px-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#16702e]">
-              {copy.heroEyebrow}
-            </p>
-            <h1 className="mt-2 max-w-5xl text-[2.65rem] font-black leading-[0.98] [word-break:keep-all] sm:text-[5rem]">
-              {copy.allNews}
-            </h1>
-            <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-xl sm:leading-8">
-              {copy.dek}
-            </p>
-          </div>
-          <div className="border-t border-black/12 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-            <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-black/42">
-              {copy.issueLabel}
-            </p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="border border-black/10 bg-[#f5f6f2] p-3">
-                <p className="text-xl font-black">
-                  {formatNumber(reports.length, locale)}
-                </p>
-                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                  News
-                </p>
-              </div>
-              <div className="border border-black/10 bg-[#f5f6f2] p-3">
-                <p className="text-xl font-black">
-                  {formatNumber(reporterStats.length, locale)}
-                </p>
-                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                  Desk
-                </p>
-              </div>
-              <div className="border border-black/10 bg-[#f5f6f2] p-3">
-                <p className="text-xl font-black">
-                  {formatNumber(nsfwReportCount, locale)}
-                </p>
-                <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
-                  NSFW
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <section className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         {shouldShowNsfwControl ? (
-          <div className="mt-5">
+          <div className="mb-5">
             <FanletterNsfwOptInControl
               disabledBody={copy.nsfwControl.disabledBody}
               disabledTitle={copy.nsfwControl.disabledTitle}
@@ -693,80 +700,144 @@ export default async function LocalizedFanletterNewsHomePage({
         ) : null}
 
         {leadReport ? (
-          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-            <LeadStory
-              copy={copy}
-              nsfwOptInEnabled={nsfwOptInEnabled}
-              referralCode={referralCode}
-              report={leadReport}
-            />
-
-            <aside className="space-y-5">
-              <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_14px_44px_rgba(0,0,0,0.06)]">
-                <SectionHeader
-                  icon={<Flame className="size-5 text-[#e5484d]" />}
-                  title={copy.topStories}
-                />
-                <div className="mt-4 space-y-4">
-                  {topStories.map((report) => (
-                    <CompactStory
-                      copy={copy}
-                      key={report.reportId}
-                      nsfwOptInEnabled={nsfwOptInEnabled}
-                      referralCode={referralCode}
-                      report={report}
-                    />
-                  ))}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            <div className="min-w-0 space-y-8">
+              <div className="grid gap-4 border-b border-black/12 pb-4 sm:grid-cols-[minmax(0,1fr)_18rem] sm:items-end">
+                <div>
+                  <p className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                    {copy.issueLabel}
+                  </p>
+                  <h1 className="mt-2 break-words text-[2rem] font-black leading-[1.12] [word-break:keep-all] sm:text-[2.8rem]">
+                    {copy.allNews}
+                  </h1>
+                  <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+                    {copy.dek}
+                  </p>
                 </div>
-              </section>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="border border-black/10 bg-white p-3">
+                    <p className="text-xl font-black">
+                      {formatNumber(reports.length, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      News
+                    </p>
+                  </div>
+                  <div className="border border-black/10 bg-white p-3">
+                    <p className="text-xl font-black">
+                      {formatNumber(reporterStats.length, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      Desk
+                    </p>
+                  </div>
+                  <div className="border border-black/10 bg-white p-3">
+                    <p className="text-xl font-black">
+                      {formatNumber(nsfwReportCount, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      NSFW
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <LeadStory
+                copy={copy}
+                nsfwOptInEnabled={nsfwOptInEnabled}
+                referralCode={referralCode}
+                report={leadReport}
+              />
+
+              {featureReports.length > 0 ? (
+                <section>
+                  <SectionHeader
+                    eyebrow={copy.heroEyebrow}
+                    icon={<Newspaper className="size-5" />}
+                    title={copy.characterWire}
+                  />
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {featureReports.map((report) => (
+                      <FeatureCard
+                        copy={copy}
+                        key={report.reportId}
+                        nsfwOptInEnabled={nsfwOptInEnabled}
+                        referralCode={referralCode}
+                        report={report}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {latestReports.length > 0 ? (
+                <section>
+                  <SectionHeader
+                    icon={<FileText className="size-5" />}
+                    title={copy.latest}
+                  />
+                  <div className="grid gap-4 border border-black/10 bg-white p-4 sm:grid-cols-2">
+                    {latestReports.map((report) => (
+                      <CompactStory
+                        copy={copy}
+                        key={report.reportId}
+                        nsfwOptInEnabled={nsfwOptInEnabled}
+                        referralCode={referralCode}
+                        report={report}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </div>
+
+            <aside className="space-y-5 lg:sticky lg:top-4">
+              <RankedStoryList
+                copy={copy}
+                nsfwOptInEnabled={nsfwOptInEnabled}
+                referralCode={referralCode}
+                reports={topStories}
+              />
 
               <ReporterRank
                 copy={copy}
                 locale={locale}
                 reporters={reporterStats}
               />
+
+              <section className="border border-black/12 bg-white p-4">
+                <SectionHeader
+                  icon={<FileText className="size-5" />}
+                  title={copy.newsroomStats}
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-[#f5f6f2] p-3">
+                    <p className="text-lg font-black">
+                      {formatNumber(reports.length, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      News
+                    </p>
+                  </div>
+                  <div className="bg-[#f5f6f2] p-3">
+                    <p className="text-lg font-black">
+                      {formatNumber(reporterStats.length, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      Desk
+                    </p>
+                  </div>
+                  <div className="bg-[#f5f6f2] p-3">
+                    <p className="text-lg font-black">
+                      {formatNumber(nsfwReportCount, locale)}
+                    </p>
+                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                      NSFW
+                    </p>
+                  </div>
+                </div>
+              </section>
             </aside>
-
-            {featureReports.length > 0 ? (
-              <section className="lg:col-span-2">
-                <SectionHeader
-                  eyebrow={copy.heroEyebrow}
-                  icon={<Sparkles className="size-6" />}
-                  title={copy.characterWire}
-                />
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {featureReports.map((report) => (
-                    <FeatureCard
-                      copy={copy}
-                      key={report.reportId}
-                      nsfwOptInEnabled={nsfwOptInEnabled}
-                      referralCode={referralCode}
-                      report={report}
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            {latestReports.length > 0 ? (
-              <section className="lg:col-span-2">
-                <SectionHeader
-                  icon={<FileText className="size-6" />}
-                  title={copy.latest}
-                />
-                <div className="grid gap-4 border border-black/10 bg-white p-4 shadow-[0_14px_44px_rgba(0,0,0,0.05)] sm:grid-cols-2 lg:grid-cols-3">
-                  {latestReports.map((report) => (
-                    <CompactStory
-                      copy={copy}
-                      key={report.reportId}
-                      nsfwOptInEnabled={nsfwOptInEnabled}
-                      referralCode={referralCode}
-                      report={report}
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </div>
         ) : (
           <section className="mt-6 rounded-lg border border-black/10 bg-white p-8 text-center">
