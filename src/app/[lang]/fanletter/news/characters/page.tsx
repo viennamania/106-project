@@ -21,6 +21,7 @@ import {
   getFanletterNewsCharacterStats,
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getLatestFanletterNewsReports } from "@/lib/fanletter-news-report-service";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
@@ -246,6 +247,9 @@ function NewsCharacterImage({
           fill
           sizes={sizes}
           src={report.coverImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(
+            report.coverImageUrl,
+          )}
         />
       ) : (
         <div className="flex h-full min-h-[13rem] w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_52%,#24372a)] text-[#44f26e]">

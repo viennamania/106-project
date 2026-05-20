@@ -30,6 +30,7 @@ import {
   getRelatedFanletterNewsReports,
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
@@ -369,6 +370,9 @@ function ReporterByline({
               fill
               sizes="2.75rem"
               src={reporterAvatarImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                reporterAvatarImageUrl,
+              )}
             />
           ) : (
             reporterInitial
@@ -438,6 +442,7 @@ function ArticleVisualLead({
             priority
             sizes="(max-width: 1024px) 100vw, 760px"
             src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_50%,#24372a)]">
@@ -571,6 +576,9 @@ function CharacterInfoCard({
               loading="eager"
               sizes="5rem"
               src={avatarImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                avatarImageUrl,
+              )}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#18251e)]">
@@ -684,6 +692,9 @@ function RelatedNewsList({
                       fill
                       sizes="6rem"
                       src={report.coverImageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        report.coverImageUrl,
+                      )}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-white/68">

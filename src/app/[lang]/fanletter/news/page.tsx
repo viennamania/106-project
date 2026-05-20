@@ -22,6 +22,7 @@ import {
   getLatestFanletterNewsReports,
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   getFanletterNewsCharacterStats,
   type FanletterNewsCharacterStat,
@@ -424,6 +425,9 @@ function NewsImage({
           priority={priority}
           sizes={sizes}
           src={report.coverImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(
+            report.coverImageUrl,
+          )}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_52%,#24372a)] text-[#44f26e]">
@@ -1112,6 +1116,9 @@ function ReporterRank({
                     fill
                     sizes="2.5rem"
                     src={reporter.avatarImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      reporter.avatarImageUrl,
+                    )}
                   />
                 ) : (
                   reporter.name.trim().charAt(0).toUpperCase() ||
@@ -1184,6 +1191,9 @@ function ReporterFilterBanner({
             fill
             sizes="4rem"
             src={profile.avatarImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              profile.avatarImageUrl,
+            )}
           />
         ) : (
           reporterName.trim().charAt(0).toUpperCase() ||

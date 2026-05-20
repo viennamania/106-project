@@ -196,16 +196,11 @@ function getCoverImageUrl(post: ContentPostDocument) {
 async function hydrateFanletterNewsReportCoverImageUrls<
   T extends FanletterNewsReportDocument,
 >(reports: T[]) {
-  const missingCoverContentIds = [
-    ...new Set(
-      reports
-        .filter((report) => !report.coverImageUrl)
-        .map((report) => report.contentId)
-        .filter(Boolean),
-    ),
+  const contentIds = [
+    ...new Set(reports.map((report) => report.contentId).filter(Boolean)),
   ];
 
-  if (missingCoverContentIds.length === 0) {
+  if (contentIds.length === 0) {
     return reports;
   }
 
@@ -213,7 +208,7 @@ async function hydrateFanletterNewsReportCoverImageUrls<
   const posts = await postsCollection
     .find(
       {
-        contentId: { $in: missingCoverContentIds },
+        contentId: { $in: contentIds },
       },
       {
         projection: {
@@ -234,7 +229,7 @@ async function hydrateFanletterNewsReportCoverImageUrls<
   return reports.map((report) => {
     const coverImageUrl = coverImageUrlByContentId.get(report.contentId);
 
-    if (!coverImageUrl) {
+    if (!coverImageUrl || coverImageUrl === report.coverImageUrl) {
       return report;
     }
 

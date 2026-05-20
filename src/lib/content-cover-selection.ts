@@ -24,6 +24,36 @@ function findCandidateForPlacement(
   );
 }
 
+function getFrameCandidateScore(candidate: ContentCoverImageCandidate) {
+  if (!normalizeUrl(candidate.url)) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  const timestampSec = candidate.timestampSec ?? 0;
+  const hasKnownDimensions = Boolean(candidate.width && candidate.height);
+  const timingScore =
+    timestampSec >= 4
+      ? timestampSec >= 7
+        ? 3
+        : 2
+      : timestampSec >= 2.8
+        ? 1
+        : 0;
+
+  return timingScore + (hasKnownDimensions ? 0.25 : 0);
+}
+
+function findBestFrameCandidate(
+  candidates: readonly ContentCoverImageCandidate[],
+) {
+  return [...candidates]
+    .filter((candidate) => candidate.source === "frame")
+    .sort(
+      (left, right) =>
+        getFrameCandidateScore(right) - getFrameCandidateScore(left),
+    )[0];
+}
+
 export function resolveContentCoverImageUrl(
   source: ContentCoverSource,
   options: {
@@ -46,6 +76,12 @@ export function resolveContentCoverImageUrl(
     if (candidateUrl) {
       return candidateUrl;
     }
+  }
+
+  const bestFrameCandidateUrl = normalizeUrl(findBestFrameCandidate(candidates)?.url);
+
+  if (bestFrameCandidateUrl) {
+    return bestFrameCandidateUrl;
   }
 
   return (

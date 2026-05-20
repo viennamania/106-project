@@ -16,6 +16,7 @@ import {
   type FanletterVideoMetadata,
 } from "@/components/fanletter-autoplay-video";
 import type { FanletterPublicContentItem } from "@/lib/fanletter-content-service";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { cn } from "@/lib/utils";
 
 type FanletterResponsiveMediaFrameProps = {
@@ -203,6 +204,7 @@ export function FanletterResponsiveMediaFrame({
             onLoad={handleImageLoad}
             sizes="(max-width: 768px) 100vw, 50vw"
             src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
           {blurred ? (
             <div className="pointer-events-none absolute inset-0 bg-black/10" />
