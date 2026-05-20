@@ -14,6 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import type { FanletterNewsReportDocument } from "@/lib/content";
@@ -95,6 +96,12 @@ function getCopy(locale: Locale) {
         visualCaption:
           "FanLetter News 대표 이미지. 원본 브이로그와 AI 캐릭터 리포트의 공개 정보를 바탕으로 표시됩니다.",
         visualLead: "기사 대표 이미지",
+        walletConnect: {
+          body:
+            "팬 기자 활동, 팬 전용 브이로그 결제, 지갑 내역 확인을 보던 기사에서 바로 이어갈 수 있습니다.",
+          eyebrow: "FanLetter Wallet",
+          title: "기사에서 바로 지갑 연결",
+        },
         sixW: {
           how: "어떻게",
           what: "무엇을",
@@ -151,6 +158,12 @@ function getCopy(locale: Locale) {
         visualCaption:
           "FanLetter News lead image, shown from the source vlog and AI character report context.",
         visualLead: "Lead image",
+        walletConnect: {
+          body:
+            "Connect from this story to continue fan reporter actions, fan-only vlog payments, and wallet activity.",
+          eyebrow: "FanLetter Wallet",
+          title: "Connect your wallet from the story",
+        },
         sixW: {
           how: "How",
           what: "What",
@@ -230,10 +243,14 @@ function NewsSiteHeader({
   copy,
   homeHref,
   locale,
+  referralCode,
+  walletHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   homeHref: string;
   locale: Locale;
+  referralCode: string | null;
+  walletHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
@@ -255,9 +272,17 @@ function NewsSiteHeader({
           >
             {copy.siteName}
           </Link>
-          <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
-            {copy.articleEyebrow}
-          </span>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
+              {copy.articleEyebrow}
+            </span>
+            <FanletterNewsWalletConnect
+              className="max-w-[7.75rem] sm:max-w-[12rem]"
+              locale={locale}
+              referralCode={referralCode}
+              walletHref={walletHref}
+            />
+          </div>
         </div>
         <nav
           aria-label={copy.siteName}
@@ -274,6 +299,38 @@ function NewsSiteHeader({
         </nav>
       </div>
     </header>
+  );
+}
+
+function NewsWalletConnectCard({
+  copy,
+  locale,
+  referralCode,
+  walletHref,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+  walletHref: string;
+}) {
+  return (
+    <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_18px_44px_rgba(12,18,14,0.16)]">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-[#44f26e]">
+        {copy.walletConnect.eyebrow}
+      </p>
+      <h2 className="mt-2 break-words text-xl font-black leading-tight [word-break:keep-all]">
+        {copy.walletConnect.title}
+      </h2>
+      <p className="mt-2 text-sm font-semibold leading-6 text-white/62">
+        {copy.walletConnect.body}
+      </p>
+      <FanletterNewsWalletConnect
+        className="mt-4 w-full max-w-none"
+        locale={locale}
+        referralCode={referralCode}
+        walletHref={walletHref}
+      />
+    </section>
   );
 }
 
@@ -791,6 +848,10 @@ export default async function LocalizedFanletterNewsReportPage({
     `/${locale}/fanletter`,
     referralCode,
   );
+  const walletHref = buildPathWithReferral(
+    `/${locale}/fanletter/wallet`,
+    referralCode,
+  );
   const creatorHref = report.creatorReferralCode
     ? buildPathWithReferral(
         `/${locale}/fanletter/creator/${report.creatorReferralCode}`,
@@ -819,7 +880,13 @@ export default async function LocalizedFanletterNewsReportPage({
 
   return (
     <main className="min-h-screen bg-white text-[#111510]">
-      <NewsSiteHeader copy={copy} homeHref={newsHomeHref} locale={locale} />
+      <NewsSiteHeader
+        copy={copy}
+        homeHref={newsHomeHref}
+        locale={locale}
+        referralCode={referralCode}
+        walletHref={walletHref}
+      />
 
       <article className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_300px] lg:items-start">
@@ -928,6 +995,13 @@ export default async function LocalizedFanletterNewsReportPage({
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-5">
+            <NewsWalletConnectCard
+              copy={copy}
+              locale={locale}
+              referralCode={referralCode}
+              walletHref={walletHref}
+            />
+
             <RelatedNewsList
               copy={copy}
               nsfwOptInEnabled={includeNsfw}
