@@ -452,6 +452,7 @@ export type FanletterNewsReportDocument = {
   body: string;
   contentId: string;
   contentMaturityRating: ContentMaturityRating;
+  coverImageSource?: "auto" | "reporter_selected";
   coverImageUrl: string | null;
   createdAt: Date;
   creatorName: string;
@@ -464,6 +465,7 @@ export type FanletterNewsReportDocument = {
   priceType: ContentPriceType;
   reporterAvatarImageUrl?: string | null;
   reporterCharacterName?: string | null;
+  reporterComment?: string | null;
   reporterName: string;
   reporterReferralCode: string;
   reportId: string;

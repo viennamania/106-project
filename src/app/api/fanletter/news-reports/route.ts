@@ -12,6 +12,8 @@ type FanletterNewsReportCreateRequest = {
   contentId?: string | null;
   email?: string | null;
   locale?: string | null;
+  reporterComment?: string | null;
+  selectedCoverImageUrl?: string | null;
   walletAddress?: string | null;
 };
 
@@ -157,7 +159,9 @@ export async function POST(request: Request) {
       contentId: body?.contentId,
       locale: body?.locale,
       reporterEmail: reporter.credentials.email,
+      reporterComment: body?.reporterComment,
       reporterReferralCode: reporter.reporterReferralCode,
+      selectedCoverImageUrl: body?.selectedCoverImageUrl,
     });
 
     return Response.json({

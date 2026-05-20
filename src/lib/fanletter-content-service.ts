@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Filter } from "mongodb";
 
 import {
+  type ContentCoverImageCandidate,
   type ContentMaturityRating,
   type CreatorCharacterPersona,
   type ContentPostDocument,
@@ -143,6 +144,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   body: string;
   canPubliclyAccess: boolean;
   canViewerAccess: boolean;
+  coverImageCandidates: ContentCoverImageCandidate[];
   contentImageUrls: string[];
   contentVideoUrls: string[];
   fanRequestSource: FanletterPublicFanRequestSource | null;
@@ -2249,6 +2251,7 @@ export const getFanletterPublicContentDetail = cache(
       canViewerAccess,
       contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
       contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
+      coverImageCandidates: post.coverImageCandidates ?? [],
       fanRequestSource,
       hiddenNsfwCount,
       nsfwOptInEnabled: includeNsfw,

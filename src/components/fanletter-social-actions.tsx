@@ -10,8 +10,9 @@ import {
   RefreshCw,
   Send,
   Share2,
+  X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useActiveAccount,
   useActiveWalletConnectionStatus,
@@ -22,6 +23,7 @@ import type {
   ContentCommentCreateResponse,
   ContentCommentRecord,
   ContentCommentsResponse,
+  ContentCoverImageCandidate,
   ContentSocialResponse,
   ContentSocialSummaryRecord,
 } from "@/lib/content";
@@ -37,6 +39,8 @@ type FanletterSocialActionsVariant = "compact" | "panel";
 type CommentsStatus = "error" | "idle" | "loading" | "ready" | "submitting";
 
 const COMMENTS_PAGE_SIZE = 5;
+const REPORTER_COMMENT_MAX_LENGTH = 220;
+const EMPTY_REPORT_COVER_CANDIDATES: ContentCoverImageCandidate[] = [];
 
 type FanletterSocialActionsProps = {
   className?: string;
@@ -45,6 +49,8 @@ type FanletterSocialActionsProps = {
   initialSocial: ContentSocialSummaryRecord;
   isOwnContent?: boolean;
   locale: Locale;
+  reportCoverImageCandidates?: ContentCoverImageCandidate[];
+  reportCoverImageUrl?: string | null;
   shareHref: string;
   summary?: string;
   title: string;
@@ -71,6 +77,13 @@ type FanletterNewsReportLookupResponse = {
   report: FanletterNewsReportSummary | null;
 };
 
+type FanletterNewsReportCoverOption = {
+  id: string;
+  label: string;
+  meta: string | null;
+  url: string;
+};
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -94,7 +107,17 @@ function getCopy(locale: Locale) {
           "이 브이로그는 내 콘텐츠입니다. 공유와 댓글 확인은 가능하고 좋아요/저장은 팬 반응만 집계합니다.",
         ownerCommentPlaceholder: "내 브이로그에 고정할 답글이나 공지를 남기기...",
         post: "게시",
+        reportCancel: "취소",
+        reportCommentHelper:
+          "선택 입력입니다. 공개 가능한 팬 기자 관점만 기사 생성에 반영됩니다.",
+        reportCommentLabel: "팬 기자 코멘트",
+        reportCommentPlaceholder:
+          "예: 이 장면에서 팬들이 주목하면 좋을 포인트를 적어주세요.",
         reportCopied: "AI 팬 리포트 링크를 복사했습니다.",
+        reportCoverDefault: "기본 커버",
+        reportCoverLabel: "기사 대표 이미지",
+        reportCoverMeta: (index: number) => `커버 ${index.toLocaleString("ko")}`,
+        reportCoverSelected: "선택됨",
         reportFailed: "AI 팬 리포트를 만들지 못했습니다.",
         reportReady: "AI 팬 리포트가 준비되었습니다.",
         reportExisting: "내 AI 리포트 보기",
@@ -102,6 +125,10 @@ function getCopy(locale: Locale) {
           "이미 이 브이로그로 만든 AI 리포트가 있습니다. 회원당 한 번만 생성되며 이 버튼으로 다시 열 수 있습니다.",
         reportOnceHelper:
           "AI 리포트는 로그인한 회원별로 브이로그당 한 번만 생성됩니다.",
+        reportModalBody:
+          "대표 이미지와 짧은 코멘트를 정하면 AI가 팬 기자 관점의 뉴스 포맷으로 정리합니다.",
+        reportModalTitle: "AI 리포트 만들기",
+        reportSubmit: "AI 리포트 생성하기",
         reportShare: "AI 리포트",
         reportView: "리포트 보기",
         refresh: "새로고침",
@@ -137,7 +164,17 @@ function getCopy(locale: Locale) {
           "This is your content. Sharing and comments remain available, while likes and saves count fan reactions only.",
         ownerCommentPlaceholder: "Add a reply or note to your vlog...",
         post: "Post",
+        reportCancel: "Cancel",
+        reportCommentHelper:
+          "Optional. Only public fan reporter context is used for the generated article.",
+        reportCommentLabel: "Fan reporter note",
+        reportCommentPlaceholder:
+          "Example: Add the point fans should notice in this scene.",
         reportCopied: "AI fan report link copied.",
+        reportCoverDefault: "Default cover",
+        reportCoverLabel: "Article lead image",
+        reportCoverMeta: (index: number) => `Cover ${index.toLocaleString("en")}`,
+        reportCoverSelected: "Selected",
         reportFailed: "Could not create the AI fan report.",
         reportReady: "AI fan report is ready.",
         reportExisting: "View my AI report",
@@ -145,6 +182,10 @@ function getCopy(locale: Locale) {
           "You already created an AI report for this vlog. Each connected member can create one report per vlog.",
         reportOnceHelper:
           "AI reports can be created once per vlog for each connected member.",
+        reportModalBody:
+          "Pick a lead image and add a short note so AI can frame the story from your fan reporter angle.",
+        reportModalTitle: "Create AI report",
+        reportSubmit: "Create AI report",
         reportShare: "AI report",
         reportView: "View report",
         refresh: "Refresh",
@@ -170,6 +211,78 @@ function formatCommentDate(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getReportCoverOptions({
+  candidates,
+  defaultCoverImageUrl,
+  locale,
+}: {
+  candidates: ContentCoverImageCandidate[];
+  defaultCoverImageUrl?: string | null;
+  locale: Locale;
+}): FanletterNewsReportCoverOption[] {
+  const options: FanletterNewsReportCoverOption[] = [];
+  const seenUrls = new Set<string>();
+
+  const appendOption = ({
+    id,
+    label,
+    meta,
+    url,
+  }: FanletterNewsReportCoverOption) => {
+    const normalizedUrl = url.trim();
+
+    if (!normalizedUrl || seenUrls.has(normalizedUrl)) {
+      return;
+    }
+
+    seenUrls.add(normalizedUrl);
+    options.push({
+      id,
+      label,
+      meta,
+      url: normalizedUrl,
+    });
+  };
+
+  if (defaultCoverImageUrl) {
+    appendOption({
+      id: "default",
+      label: locale === "ko" ? "기본 커버" : "Default cover",
+      meta: null,
+      url: defaultCoverImageUrl,
+    });
+  }
+
+  candidates.forEach((candidate, index) => {
+    const sourceLabel =
+      candidate.source === "manual"
+        ? locale === "ko"
+          ? "업로드"
+          : "Uploaded"
+        : candidate.source === "ai"
+          ? "AI"
+          : locale === "ko"
+            ? "프레임"
+            : "Frame";
+    const timestampLabel =
+      typeof candidate.timestampSec === "number" && candidate.timestampSec >= 0
+        ? `${Math.round(candidate.timestampSec)}s`
+        : null;
+
+    appendOption({
+      id: candidate.candidateId || `candidate-${index}`,
+      label:
+        locale === "ko"
+          ? `커버 ${(index + 1).toLocaleString("ko")}`
+          : `Cover ${(index + 1).toLocaleString("en")}`,
+      meta: [sourceLabel, timestampLabel].filter(Boolean).join(" · ") || null,
+      url: candidate.url,
+    });
+  });
+
+  return options;
 }
 
 async function copyToClipboard(value: string) {
@@ -239,6 +352,8 @@ export function FanletterSocialActions({
   initialSocial,
   isOwnContent = false,
   locale,
+  reportCoverImageCandidates = EMPTY_REPORT_COVER_CANDIDATES,
+  reportCoverImageUrl = null,
   shareHref,
   summary,
   title,
@@ -266,6 +381,10 @@ export function FanletterSocialActions({
     useState<FanletterNewsReportSummary | null>(null);
   const [newsReportStatus, setNewsReportStatus] =
     useState<FanletterNewsReportStatus>("idle");
+  const [isReportComposerOpen, setIsReportComposerOpen] = useState(false);
+  const [selectedReportCoverUrl, setSelectedReportCoverUrl] =
+    useState<string | null>(null);
+  const [reporterComment, setReporterComment] = useState("");
   const [comments, setComments] = useState<ContentCommentRecord[]>([]);
   const [commentsPageInfo, setCommentsPageInfo] =
     useState<ContentCommentsResponse["pageInfo"] | null>(null);
@@ -275,6 +394,15 @@ export function FanletterSocialActions({
   const [commentBody, setCommentBody] = useState("");
   const isPanel = variant === "panel";
   const isOwnerPanel = isPanel && isOwnContent;
+  const reportCoverOptions = useMemo(
+    () =>
+      getReportCoverOptions({
+        candidates: reportCoverImageCandidates,
+        defaultCoverImageUrl: reportCoverImageUrl,
+        locale,
+      }),
+    [locale, reportCoverImageCandidates, reportCoverImageUrl],
+  );
 
   useEffect(() => {
     setSocial(initialSocial);
@@ -285,6 +413,19 @@ export function FanletterSocialActions({
       setEmail(memberSession.email);
     }
   }, [memberSession.email]);
+
+  useEffect(() => {
+    setSelectedReportCoverUrl((current) => {
+      if (
+        current &&
+        reportCoverOptions.some((option) => option.url === current)
+      ) {
+        return current;
+      }
+
+      return reportCoverOptions[0]?.url ?? null;
+    });
+  }, [reportCoverOptions]);
 
   const resolveEmail = useCallback(async () => {
     if (email) {
@@ -670,7 +811,13 @@ export function FanletterSocialActions({
     }
   }, [copy.copied, copy.copyFailed, shareHref, summary, title]);
 
-  const createNewsReport = useCallback(async () => {
+  const createNewsReport = useCallback(async ({
+    selectedCoverImageUrl,
+    reporterComment,
+  }: {
+    selectedCoverImageUrl?: string | null;
+    reporterComment?: string | null;
+  } = {}) => {
     setToast(null);
     setNewsReportHref(null);
     setBusyAction("report");
@@ -692,6 +839,8 @@ export function FanletterSocialActions({
           contentId,
           email: resolvedEmail,
           locale,
+          reporterComment,
+          selectedCoverImageUrl,
           walletAddress: accountAddress,
         }),
         headers: {
@@ -720,6 +869,8 @@ export function FanletterSocialActions({
       setNewsReport(data.report);
       setNewsReportHref(data.report.shareHref);
       setNewsReportStatus("ready");
+      setIsReportComposerOpen(false);
+      setReporterComment("");
 
       if (navigator.share) {
         try {
@@ -762,6 +913,40 @@ export function FanletterSocialActions({
     copy.signInRequired,
     locale,
     resolveEmail,
+  ]);
+
+  const openReportComposer = useCallback(() => {
+    setToast(null);
+
+    if (!connection.isConnected || !accountAddress) {
+      setToast(connection.isResolving ? copy.loading : copy.signInRequired);
+      return;
+    }
+
+    setSelectedReportCoverUrl((current) => current ?? reportCoverOptions[0]?.url ?? null);
+    setIsReportComposerOpen(true);
+  }, [
+    accountAddress,
+    connection.isConnected,
+    connection.isResolving,
+    copy.loading,
+    copy.signInRequired,
+    reportCoverOptions,
+  ]);
+
+  const submitNewsReportComposer = useCallback(() => {
+    const trimmedComment = reporterComment.trim();
+
+    void createNewsReport({
+      reporterComment: trimmedComment || null,
+      selectedCoverImageUrl:
+        reportCoverOptions.length > 1 ? selectedReportCoverUrl : null,
+    });
+  }, [
+    createNewsReport,
+    reporterComment,
+    reportCoverOptions.length,
+    selectedReportCoverUrl,
   ]);
 
   const compactButtonClassName =
@@ -877,6 +1062,7 @@ export function FanletterSocialActions({
   }
 
   return (
+    <>
     <section
       className={cn(
         "mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)]",
@@ -1010,7 +1196,7 @@ export function FanletterSocialActions({
               busyAction === "report" || newsReportStatus === "checking"
             }
             onClick={() => {
-              void createNewsReport();
+              openReportComposer();
             }}
             type="button"
           >
@@ -1164,5 +1350,139 @@ export function FanletterSocialActions({
         </div>
       </div>
     </section>
+
+    {isReportComposerOpen ? (
+      <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
+        <div
+          aria-modal="true"
+          className="max-h-[min(44rem,calc(100vh-2rem))] w-full max-w-2xl overflow-y-auto rounded-lg border border-[#44f26e]/24 bg-[#07100b] p-4 text-white shadow-[0_28px_90px_rgba(0,0,0,0.45)] sm:p-5"
+          role="dialog"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                {copy.reportShare}
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold leading-tight tracking-normal">
+                {copy.reportModalTitle}
+              </h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+                {copy.reportModalBody}
+              </p>
+            </div>
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[0.055] text-white/72 transition hover:border-white/28 hover:bg-white/[0.09] hover:text-white"
+              onClick={() => {
+                setIsReportComposerOpen(false);
+              }}
+              type="button"
+            >
+              <X className="size-4" />
+              <span className="sr-only">{copy.reportCancel}</span>
+            </button>
+          </div>
+
+          {reportCoverOptions.length > 1 ? (
+            <div className="mt-5">
+              <p className="text-sm font-semibold text-white">
+                {copy.reportCoverLabel}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {reportCoverOptions.map((option) => {
+                  const isSelected = option.url === selectedReportCoverUrl;
+
+                  return (
+                    <button
+                      className={cn(
+                        "group min-w-0 overflow-hidden rounded-lg border bg-black/28 p-1 text-left transition",
+                        isSelected
+                          ? "border-[#44f26e] shadow-[0_0_0_1px_rgba(68,242,110,0.42)]"
+                          : "border-white/10 hover:border-[#44f26e]/45",
+                      )}
+                      key={option.id}
+                      onClick={() => {
+                        setSelectedReportCoverUrl(option.url);
+                      }}
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="block aspect-[4/5] rounded-md bg-white/[0.06] bg-cover bg-center"
+                        style={{ backgroundImage: `url(${option.url})` }}
+                      />
+                      <span className="mt-2 flex items-center justify-between gap-2 px-1 pb-1">
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-white/82">
+                            {option.label}
+                          </span>
+                          {option.meta ? (
+                            <span className="block truncate text-[0.68rem] font-medium text-white/42">
+                              {option.meta}
+                            </span>
+                          ) : null}
+                        </span>
+                        {isSelected ? (
+                          <span className="shrink-0 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-semibold text-black">
+                            {copy.reportCoverSelected}
+                          </span>
+                        ) : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          <label className="mt-5 block">
+            <span className="text-sm font-semibold text-white">
+              {copy.reportCommentLabel}
+            </span>
+            <textarea
+              className="mt-2 min-h-24 w-full resize-y rounded-lg border border-white/12 bg-white/[0.055] px-3 py-3 text-sm font-medium leading-6 text-white outline-none transition placeholder:text-white/32 focus:border-[#44f26e]/60 focus:bg-white/[0.08]"
+              maxLength={REPORTER_COMMENT_MAX_LENGTH}
+              onChange={(event) => {
+                setReporterComment(event.target.value);
+              }}
+              placeholder={copy.reportCommentPlaceholder}
+              value={reporterComment}
+            />
+          </label>
+          <div className="mt-2 flex items-center justify-between gap-3 text-xs font-medium text-white/42">
+            <p>{copy.reportCommentHelper}</p>
+            <p>
+              {reporterComment.length.toLocaleString(locale)}/
+              {REPORTER_COMMENT_MAX_LENGTH.toLocaleString(locale)}
+            </p>
+          </div>
+
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-white/12 px-4 text-sm font-semibold text-white/68 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+              onClick={() => {
+                setIsReportComposerOpen(false);
+              }}
+              type="button"
+            >
+              {copy.reportCancel}
+            </button>
+            <button
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={busyAction === "report"}
+              onClick={submitNewsReportComposer}
+              type="button"
+            >
+              {busyAction === "report" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Newspaper className="size-4" />
+              )}
+              {copy.reportSubmit}
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
   );
 }

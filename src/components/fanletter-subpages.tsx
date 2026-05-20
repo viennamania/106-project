@@ -9871,6 +9871,8 @@ export function FanletterContentDetailPage({
                 initialSocial={content.social}
                 isOwnContent={isOwnContent}
                 locale={locale}
+                reportCoverImageCandidates={content.coverImageCandidates}
+                reportCoverImageUrl={content.coverImageUrl}
                 shareHref={currentHref}
                 summary={content.summary}
                 title={content.title}
