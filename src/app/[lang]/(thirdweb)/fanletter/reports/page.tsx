@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
-  Clapperboard,
   ImageIcon,
   Newspaper,
   WalletCards,
 } from "lucide-react";
 
+import {
+  FanletterReportsCoverManager,
+  type FanletterReportsPageReport,
+} from "@/components/fanletter-reports-cover-manager";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
-import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -94,16 +95,6 @@ function getCopy(locale: Locale) {
         title: "My AI fan reports",
         updateCover: "Change cover",
       };
-}
-
-function formatDate(value: Date | null, locale: Locale) {
-  if (!value) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-  }).format(value);
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -211,6 +202,28 @@ export default async function LocalizedFanletterReportsPage({
       ].filter((page) => page >= 1 && page <= totalPages),
     ),
   );
+  const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
+    const reportHref = buildPathWithReferral(
+      `/${locale}/fanletter/news/${report.reportId}`,
+      effectiveReferralCode,
+    );
+    const sourceHref = buildPathWithReferral(
+      `/${locale}/fanletter/content/${report.contentId}`,
+      effectiveReferralCode,
+    );
+
+    return {
+      coverImageSource: report.coverImageSource ?? "auto",
+      coverImageUrl: report.coverImageUrl,
+      dek: report.dek,
+      priceType: report.priceType,
+      reportHref,
+      reportId: report.reportId,
+      sourceHref,
+      sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
+      title: report.title,
+    };
+  });
 
   if (data.member && data.reportCount > 0 && currentPage > totalPages) {
     redirect(
@@ -301,115 +314,10 @@ export default async function LocalizedFanletterReportsPage({
           </section>
         ) : (
           <>
-            <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.reports.map((report, index) => {
-              const reportHref = buildPathWithReferral(
-                `/${locale}/fanletter/news/${report.reportId}`,
-                effectiveReferralCode,
-              );
-              const sourceHref = buildPathWithReferral(
-                `/${locale}/fanletter/content/${report.contentId}`,
-                effectiveReferralCode,
-              );
-              let coverSource = copy.coverSource.auto;
-
-              if (report.coverImageSource === "reporter_cropped") {
-                coverSource = copy.coverSource.reporter_cropped;
-              } else if (report.coverImageSource === "reporter_selected") {
-                coverSource = copy.coverSource.reporter_selected;
-              }
-
-              const publishedAt = formatDate(report.sourcePublishedAt, locale);
-              const shouldBypassCoverImageOptimization = report.coverImageUrl
-                ? shouldBypassFanletterImageOptimization(report.coverImageUrl)
-                : false;
-
-              return (
-                <article
-                  className="overflow-hidden border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)]"
-                  key={report.reportId}
-                >
-                  <Link
-                    className="group block"
-                    href={reportHref}
-                  >
-                    <div className="relative aspect-[4/5] overflow-hidden bg-[#111510] sm:aspect-[5/6]">
-                      {report.coverImageUrl ? (
-                        <>
-                          <Image
-                            alt=""
-                            aria-hidden="true"
-                            className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
-                            fill
-                            loading={index === 0 ? "eager" : "lazy"}
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            src={report.coverImageUrl}
-                            unoptimized={shouldBypassCoverImageOptimization}
-                          />
-                          <Image
-                            alt=""
-                            aria-hidden="true"
-                            className="object-contain transition duration-300 group-hover:scale-[1.02]"
-                            fill
-                            loading={index === 0 ? "eager" : "lazy"}
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            src={report.coverImageUrl}
-                            unoptimized={shouldBypassCoverImageOptimization}
-                          />
-                        </>
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <Newspaper className="size-10 text-[#44f26e]" />
-                        </div>
-                      )}
-                      <div className="absolute left-3 top-3 inline-flex border border-white/18 bg-black/44 px-2.5 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
-                        {coverSource}
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="p-4">
-                    <div className="flex flex-wrap gap-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      {publishedAt ? <span>{publishedAt}</span> : null}
-                      <span>
-                        {report.priceType === "paid"
-                          ? copy.priceType.paid
-                          : copy.priceType.public}
-                      </span>
-                    </div>
-                    <h2 className="mt-2 line-clamp-2 break-words text-xl font-black leading-tight [word-break:keep-all]">
-                      {report.title}
-                    </h2>
-                    <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
-                      {report.dek}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Link
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black"
-                        href={reportHref}
-                      >
-                        {copy.openReport}
-                        <ArrowRight className="size-4 text-[#44f26e]" />
-                      </Link>
-                      <Link
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-                        href={`${reportHref}#fanletter-news-cover-picker`}
-                      >
-                        <ImageIcon className="size-4 text-[#16702e]" />
-                        {copy.updateCover}
-                      </Link>
-                    </div>
-                    <Link
-                      className="mt-3 inline-flex min-w-0 items-center gap-2 text-xs font-bold !text-black/48 transition hover:!text-[#16702e]"
-                      href={sourceHref}
-                    >
-                      <Clapperboard className="size-3.5 shrink-0" />
-                      <span className="truncate">{copy.source}</span>
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-            </section>
+            <FanletterReportsCoverManager
+              locale={locale}
+              reports={reportItems}
+            />
 
             {totalPages > 1 ? (
               <nav

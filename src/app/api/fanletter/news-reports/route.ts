@@ -1,8 +1,13 @@
+import { revalidatePath } from "next/cache";
+
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportForReporter,
+  getFanletterNewsReportCoverOptions,
   getFanletterNewsReportsForContent,
   getOrCreateFanletterNewsReport,
+  updateFanletterNewsReportCoverImage,
+  type FanletterNewsReportCoverOption,
 } from "@/lib/fanletter-news-report-service";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
@@ -31,17 +36,29 @@ type FanletterNewsReportCreateRequest = {
   walletAddress?: string | null;
 };
 
+type FanletterNewsReportCoverUpdateRequest = {
+  email?: string | null;
+  locale?: string | null;
+  reportId?: string | null;
+  selectedCoverImageUrl?: string | null;
+  walletAddress?: string | null;
+};
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
 function getErrorStatus(message: string) {
-  if (message === "contentId is required.") {
+  if (message === "contentId is required." || message === "reportId is required.") {
     return 400;
   }
 
-  if (message === "Content not found.") {
+  if (message === "Content not found." || message === "Report not found.") {
     return 404;
+  }
+
+  if (message.includes("not authorized") || message.includes("authorization")) {
+    return 403;
   }
 
   return 500;
@@ -83,6 +100,20 @@ function serializeContentNewsReport({
     reporterName: report.reporterName,
     reportId: report.reportId,
     title: report.title,
+  };
+}
+
+function serializeCoverOption(option: FanletterNewsReportCoverOption) {
+  return {
+    candidateId: option.candidateId,
+    contentType: option.contentType,
+    imageUrl: option.imageUrl,
+    inputValue: option.inputValue,
+    isAuto: option.isAuto,
+    isSelected: option.isSelected,
+    placements: option.placements,
+    source: option.source,
+    timestampSec: option.timestampSec,
   };
 }
 
@@ -211,6 +242,26 @@ export async function GET(request: Request) {
       });
     }
 
+    if (searchParams.get("scope") === "cover-options") {
+      const reporter = await resolveReporterCredentials({
+        email: searchParams.get("email"),
+        walletAddress: searchParams.get("walletAddress"),
+      });
+
+      if (reporter.error) {
+        return reporter.error;
+      }
+
+      const options = await getFanletterNewsReportCoverOptions({
+        reportId: searchParams.get("reportId"),
+        reporterReferralCode: reporter.reporterReferralCode,
+      });
+
+      return Response.json({
+        options: options.map(serializeCoverOption),
+      });
+    }
+
     const reporter = await resolveReporterCredentials({
       email: searchParams.get("email"),
       walletAddress: searchParams.get("walletAddress"),
@@ -278,6 +329,54 @@ export async function POST(request: Request) {
       error instanceof Error
         ? error.message
         : "Failed to create FanLetter news report.";
+
+    return jsonError(message, getErrorStatus(message));
+  }
+}
+
+export async function PATCH(request: Request) {
+  let body: FanletterNewsReportCoverUpdateRequest | null = null;
+
+  try {
+    body = (await request.json()) as FanletterNewsReportCoverUpdateRequest;
+  } catch {
+    return jsonError("Invalid JSON body.", 400);
+  }
+
+  try {
+    const reporter = await resolveReporterCredentials({
+      email: body?.email,
+      walletAddress: body?.walletAddress,
+    });
+
+    if (reporter.error) {
+      return reporter.error;
+    }
+
+    const report = await updateFanletterNewsReportCoverImage({
+      reportId: body?.reportId,
+      reporterReferralCode: reporter.reporterReferralCode,
+      selectedCoverImageUrl: body?.selectedCoverImageUrl,
+    });
+    const locale: Locale =
+      body?.locale && hasLocale(body.locale) ? body.locale : report.locale;
+
+    revalidatePath(`/${locale}/fanletter/news/${report.reportId}`);
+    revalidatePath(`/${locale}/fanletter/news`);
+    revalidatePath(`/${locale}/fanletter/reports`);
+
+    return Response.json({
+      report: {
+        coverImageSource: report.coverImageSource ?? "auto",
+        coverImageUrl: report.coverImageUrl,
+        reportId: report.reportId,
+      },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update FanLetter news report cover.";
 
     return jsonError(message, getErrorStatus(message));
   }

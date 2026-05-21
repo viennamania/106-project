@@ -1544,10 +1544,14 @@ export async function getFanletterNewsReportsForMember({
 
 export async function getFanletterNewsReportCoverOptions({
   reportId,
+  reporterReferralCode,
 }: {
   reportId?: string | null;
+  reporterReferralCode?: string | null;
 }) {
   const normalizedReportId = reportId?.trim() ?? "";
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reporterReferralCode);
 
   if (!normalizedReportId) {
     return [];
@@ -1557,6 +1561,9 @@ export async function getFanletterNewsReportCoverOptions({
   const report = await reportsCollection.findOne(
     {
       reportId: normalizedReportId,
+      ...(normalizedReporterReferralCode
+        ? { reporterReferralCode: normalizedReporterReferralCode }
+        : {}),
       status: "published",
     },
     {
