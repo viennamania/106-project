@@ -78,10 +78,26 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
+  relatedLimit?: string | string[];
 };
 
 const RELATED_NEWS_PAGE_SIZE = 4;
-const RELATED_NEWS_FETCH_LIMIT = RELATED_NEWS_PAGE_SIZE + 1;
+const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
+const RELATED_NEWS_MAX_VISIBLE_COUNT = 24;
+
+function readRelatedNewsVisibleCount(value?: string | string[]) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const parsed = Number.parseInt(rawValue ?? "", 10);
+
+  if (!Number.isFinite(parsed)) {
+    return RELATED_NEWS_PAGE_SIZE;
+  }
+
+  return Math.max(
+    RELATED_NEWS_PAGE_SIZE,
+    Math.min(RELATED_NEWS_MAX_VISIBLE_COUNT, Math.floor(parsed)),
+  );
+}
 
 function getFormString(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
@@ -1355,6 +1371,9 @@ export default async function LocalizedFanletterNewsReportPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
+  const relatedNewsVisibleCount = readRelatedNewsVisibleCount(
+    query.relatedLimit,
+  );
   const memberServerSession = await readMemberServerSession();
   const [
     sourceContent,
@@ -1375,7 +1394,7 @@ export default async function LocalizedFanletterNewsReportPage({
       creatorReferralCode: report.creatorReferralCode,
       excludeContentId: report.contentId,
       excludeReportId: report.reportId,
-      limit: RELATED_NEWS_FETCH_LIMIT,
+      limit: relatedNewsVisibleCount + 1,
       locale,
     }),
     getFanletterNewsReporterProfile({
@@ -1424,7 +1443,7 @@ export default async function LocalizedFanletterNewsReportPage({
         referralCode,
       )
     : fanletterHomeHref;
-  const visibleRelatedReports = relatedReports.slice(0, RELATED_NEWS_PAGE_SIZE);
+  const visibleRelatedReports = relatedReports.slice(0, relatedNewsVisibleCount);
   const relatedNewsItems = visibleRelatedReports.map((relatedReport) =>
     serializeFanletterRelatedNewsItem({
       nsfwOptInEnabled: includeNsfw,
@@ -1441,7 +1460,7 @@ export default async function LocalizedFanletterNewsReportPage({
       reportId: report.reportId,
     },
   );
-  const relatedNewsHasMore = relatedReports.length > RELATED_NEWS_PAGE_SIZE;
+  const relatedNewsHasMore = relatedReports.length > relatedNewsVisibleCount;
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body);
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
@@ -1709,6 +1728,7 @@ export default async function LocalizedFanletterNewsReportPage({
               key={relatedNewsApiHref}
               pageSize={RELATED_NEWS_PAGE_SIZE}
               relatedApiHref={relatedNewsApiHref}
+              relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
             />
           </aside>
         </div>

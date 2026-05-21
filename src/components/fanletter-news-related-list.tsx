@@ -31,6 +31,52 @@ function buildPageHref(baseHref: string, offset: number, limit: number) {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+function buildRelatedStateHref({
+  baseHref,
+  itemCount,
+  pageSize,
+  stateParamName,
+}: {
+  baseHref: string;
+  itemCount: number;
+  pageSize: number;
+  stateParamName: string;
+}) {
+  const url = new URL(baseHref, "https://fanletter.local");
+
+  if (itemCount > pageSize) {
+    url.searchParams.set(stateParamName, String(itemCount));
+  } else {
+    url.searchParams.delete(stateParamName);
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function replaceCurrentRelatedState({
+  itemCount,
+  pageSize,
+  stateParamName,
+}: {
+  itemCount: number;
+  pageSize: number;
+  stateParamName: string;
+}) {
+  const url = new URL(window.location.href);
+
+  if (itemCount > pageSize) {
+    url.searchParams.set(stateParamName, String(itemCount));
+  } else {
+    url.searchParams.delete(stateParamName);
+  }
+
+  window.history.replaceState(
+    window.history.state,
+    "",
+    `${url.pathname}${url.search}${url.hash}`,
+  );
+}
+
 function isRelatedListResponse(
   value: unknown,
 ): value is FanletterNewsRelatedListResponse {
@@ -43,11 +89,17 @@ function isRelatedListResponse(
   return Array.isArray(response.items) && typeof response.hasMore === "boolean";
 }
 
-function RelatedNewsCard({ item }: { item: FanletterRelatedNewsItem }) {
+function RelatedNewsCard({
+  href,
+  item,
+}: {
+  href: string;
+  item: FanletterRelatedNewsItem;
+}) {
   return (
     <Link
       className="group grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b]"
-      href={item.href}
+      href={href}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[#111510]">
         {item.coverImageUrl ? (
@@ -118,12 +170,14 @@ export function FanletterNewsRelatedList({
   initialItems,
   pageSize,
   relatedApiHref,
+  relatedStateParamName,
 }: {
   copy: FanletterNewsRelatedListCopy;
   initialHasMore: boolean;
   initialItems: FanletterRelatedNewsItem[];
   pageSize: number;
   relatedApiHref: string;
+  relatedStateParamName: string;
 }) {
   const [items, setItems] = useState(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -158,14 +212,29 @@ export function FanletterNewsRelatedList({
         throw new Error("Invalid related news response.");
       }
 
-      setItems((currentItems) => [...currentItems, ...data.items]);
+      const nextItems = [...items, ...data.items];
+
+      setItems(nextItems);
       setHasMore(data.hasMore);
+      replaceCurrentRelatedState({
+        itemCount: nextItems.length,
+        pageSize,
+        stateParamName: relatedStateParamName,
+      });
     } catch {
       setError(copy.error);
     } finally {
       setIsLoading(false);
     }
-  }, [copy.error, hasMore, isLoading, items.length, pageSize, relatedApiHref]);
+  }, [
+    copy.error,
+    hasMore,
+    isLoading,
+    items,
+    pageSize,
+    relatedApiHref,
+    relatedStateParamName,
+  ]);
 
   return (
     <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
@@ -180,9 +249,16 @@ export function FanletterNewsRelatedList({
 
       {items.length > 0 ? (
         <div className="mt-4 grid gap-4">
-          {items.map((item) => (
-            <RelatedNewsCard item={item} key={item.reportId} />
-          ))}
+          {items.map((item) => {
+            const href = buildRelatedStateHref({
+              baseHref: item.href,
+              itemCount: items.length,
+              pageSize,
+              stateParamName: relatedStateParamName,
+            });
+
+            return <RelatedNewsCard href={href} item={item} key={item.reportId} />;
+          })}
         </div>
       ) : (
         <p className="mt-4 border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
