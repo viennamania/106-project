@@ -403,6 +403,8 @@ export function FanletterSocialActions({
       }),
     [locale, reportCoverImageCandidates, reportCoverImageUrl],
   );
+  const hasReportCoverPreview = reportCoverOptions.length > 0;
+  const hasSelectableReportCovers = reportCoverOptions.length > 1;
 
   useEffect(() => {
     setSocial(initialSocial);
@@ -940,12 +942,12 @@ export function FanletterSocialActions({
     void createNewsReport({
       reporterComment: trimmedComment || null,
       selectedCoverImageUrl:
-        reportCoverOptions.length > 1 ? selectedReportCoverUrl : null,
+        hasSelectableReportCovers ? selectedReportCoverUrl : null,
     });
   }, [
     createNewsReport,
+    hasSelectableReportCovers,
     reporterComment,
-    reportCoverOptions.length,
     selectedReportCoverUrl,
   ]);
 
@@ -1382,7 +1384,7 @@ export function FanletterSocialActions({
             </button>
           </div>
 
-          {reportCoverOptions.length > 1 ? (
+          {hasReportCoverPreview ? (
             <div className="mt-5">
               <p className="text-sm font-semibold text-white">
                 {copy.reportCoverLabel}
@@ -1390,21 +1392,8 @@ export function FanletterSocialActions({
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {reportCoverOptions.map((option) => {
                   const isSelected = option.url === selectedReportCoverUrl;
-
-                  return (
-                    <button
-                      className={cn(
-                        "group min-w-0 overflow-hidden rounded-lg border bg-black/28 p-1 text-left transition",
-                        isSelected
-                          ? "border-[#44f26e] shadow-[0_0_0_1px_rgba(68,242,110,0.42)]"
-                          : "border-white/10 hover:border-[#44f26e]/45",
-                      )}
-                      key={option.id}
-                      onClick={() => {
-                        setSelectedReportCoverUrl(option.url);
-                      }}
-                      type="button"
-                    >
+                  const coverOptionContent = (
+                    <>
                       <span
                         aria-hidden="true"
                         className="block aspect-[4/5] rounded-md bg-white/[0.06] bg-cover bg-center"
@@ -1427,7 +1416,32 @@ export function FanletterSocialActions({
                           </span>
                         ) : null}
                       </span>
+                    </>
+                  );
+
+                  return hasSelectableReportCovers ? (
+                    <button
+                      className={cn(
+                        "group min-w-0 overflow-hidden rounded-lg border bg-black/28 p-1 text-left transition",
+                        isSelected
+                          ? "border-[#44f26e] shadow-[0_0_0_1px_rgba(68,242,110,0.42)]"
+                          : "border-white/10 hover:border-[#44f26e]/45",
+                      )}
+                      key={option.id}
+                      onClick={() => {
+                        setSelectedReportCoverUrl(option.url);
+                      }}
+                      type="button"
+                    >
+                      {coverOptionContent}
                     </button>
+                  ) : (
+                    <div
+                      className="min-w-0 overflow-hidden rounded-lg border border-[#44f26e] bg-black/28 p-1 text-left shadow-[0_0_0_1px_rgba(68,242,110,0.42)]"
+                      key={option.id}
+                    >
+                      {coverOptionContent}
+                    </div>
                   );
                 })}
               </div>
