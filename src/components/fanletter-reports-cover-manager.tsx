@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight,
+  CalendarDays,
   CheckCircle2,
   Clapperboard,
+  Edit3,
+  ExternalLink,
   ImageIcon,
   Loader2,
   Newspaper,
@@ -27,15 +29,19 @@ import type { Locale } from "@/lib/i18n";
 
 export type FanletterReportsPageReport = {
   contentId: string;
+  creatorName: string;
   coverImageSource: FanletterNewsReportCoverImageSource;
   coverImageUrl: string | null;
   dek: string;
+  editHref: string;
   priceType: "free" | "paid";
   reportHref: string;
   reportId: string;
   sourceHref: string;
   sourcePublishedAt: string | null;
+  sourceTitle: string;
   title: string;
+  updatedAt: string;
 };
 
 type FanletterReportCoverOption = {
@@ -370,13 +376,32 @@ async function createCroppedReportCoverBlob({
 }
 
 export function FanletterReportsCoverManager({
+  copy: pageCopy,
   locale,
   reports: initialReports,
 }: {
+  copy?: {
+    coverImage: string;
+    editReport: string;
+    openReport: string;
+    reportTitle: string;
+    source: string;
+    updateCover: string;
+    updatedAt: string;
+  };
   locale: Locale;
   reports: FanletterReportsPageReport[];
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
+  const listCopy = {
+    coverImage: pageCopy?.coverImage ?? (locale === "ko" ? "커버" : "Cover"),
+    editReport: pageCopy?.editReport ?? (locale === "ko" ? "내용 수정" : "Edit"),
+    openReport: pageCopy?.openReport ?? copy.openReport,
+    reportTitle: pageCopy?.reportTitle ?? (locale === "ko" ? "리포트" : "Report"),
+    source: pageCopy?.source ?? copy.source,
+    updateCover: pageCopy?.updateCover ?? copy.updateCover,
+    updatedAt: pageCopy?.updatedAt ?? (locale === "ko" ? "최근 수정" : "Updated"),
+  };
   const [reports, setReports] = useState(initialReports);
   const [activeReportId, setActiveReportId] = useState<string | null>(null);
   const [coverOptions, setCoverOptions] = useState<FanletterReportCoverOption[]>(
@@ -794,95 +819,207 @@ export function FanletterReportsCoverManager({
 
   return (
     <>
-      <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {reports.map((report, index) => {
-          const publishedAt = formatDate(report.sourcePublishedAt, locale);
-          const shouldBypassCoverImageOptimization =
-            shouldBypassFanletterImageOptimization(report.coverImageUrl);
+      <section className="mt-6">
+        <div className="hidden overflow-x-auto border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] md:block">
+          <table className="w-full min-w-[58rem] border-collapse text-left">
+            <thead className="border-b border-black/12 bg-[#f6f8f4] text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/46">
+              <tr>
+                <th className="w-28 px-4 py-3">{listCopy.coverImage}</th>
+                <th className="px-4 py-3">{listCopy.reportTitle}</th>
+                <th className="w-56 px-4 py-3">{listCopy.source}</th>
+                <th className="w-36 px-4 py-3">{listCopy.updatedAt}</th>
+                <th className="w-56 px-4 py-3 text-right">{copy.modalEyebrow}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/10">
+              {reports.map((report, index) => {
+                const updatedAt = formatDate(report.updatedAt, locale);
+                const shouldBypassCoverImageOptimization =
+                  shouldBypassFanletterImageOptimization(report.coverImageUrl);
 
-          return (
-            <article
-              className="overflow-hidden border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)]"
-              key={report.reportId}
-            >
-              <Link className="group block" href={report.reportHref}>
-                <div className="relative aspect-[4/5] overflow-hidden bg-[#111510] sm:aspect-[5/6]">
-                  {report.coverImageUrl ? (
-                    <>
+                return (
+                  <tr
+                    className="align-middle transition hover:bg-[#fbfcf8]"
+                    key={report.reportId}
+                  >
+                    <td className="px-4 py-4">
+                      <Link
+                        className="group relative block aspect-[16/10] w-24 overflow-hidden rounded-lg bg-[#111510]"
+                        href={report.reportHref}
+                      >
+                        {report.coverImageUrl ? (
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                            fill
+                            loading={index === 0 ? "eager" : "lazy"}
+                            sizes="96px"
+                            src={report.coverImageUrl}
+                            unoptimized={shouldBypassCoverImageOptimization}
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <Newspaper className="size-6 text-[#44f26e]" />
+                          </div>
+                        )}
+                      </Link>
+                    </td>
+                    <td className="max-w-[28rem] px-4 py-4">
+                      <div className="flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black/42">
+                        <span>
+                          {report.priceType === "paid"
+                            ? copy.priceType.paid
+                            : copy.priceType.public}
+                        </span>
+                        <span>{copy.coverSource[report.coverImageSource]}</span>
+                      </div>
+                      <Link
+                        className="mt-1 line-clamp-2 break-words text-base font-black leading-6 !text-[#111510] transition hover:!text-[#16702e] [word-break:keep-all]"
+                        href={report.editHref}
+                      >
+                        {report.title}
+                      </Link>
+                      <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-black/56">
+                        {report.dek}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <Link
+                        className="inline-flex min-w-0 max-w-[13rem] items-start gap-2 text-sm font-bold leading-5 !text-black/58 transition hover:!text-[#16702e]"
+                        href={report.sourceHref}
+                      >
+                        <Clapperboard className="mt-0.5 size-4 shrink-0 text-[#16702e]" />
+                        <span className="line-clamp-2">{report.sourceTitle}</span>
+                      </Link>
+                      <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.1em] text-black/36">
+                        {report.creatorName}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4 text-sm font-black text-black/58">
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="size-4 text-[#16702e]" />
+                        {updatedAt}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          className="inline-flex size-10 items-center justify-center rounded-full border border-black/12 bg-white text-black/58 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510]"
+                          href={report.reportHref}
+                          title={listCopy.openReport}
+                        >
+                          <ExternalLink className="size-4" />
+                        </Link>
+                        <Link
+                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black"
+                          href={report.editHref}
+                        >
+                          <Edit3 className="size-4 text-[#44f26e]" />
+                          {listCopy.editReport}
+                        </Link>
+                        <button
+                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                          onClick={() => openCoverModal(report)}
+                          type="button"
+                        >
+                          <ImageIcon className="size-4 text-[#16702e]" />
+                          {listCopy.updateCover}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="grid gap-3 md:hidden">
+          {reports.map((report, index) => {
+            const updatedAt = formatDate(report.updatedAt, locale);
+            const shouldBypassCoverImageOptimization =
+              shouldBypassFanletterImageOptimization(report.coverImageUrl);
+
+            return (
+              <article
+                className="overflow-hidden border border-black/12 bg-white shadow-[0_14px_34px_rgba(17,21,16,0.06)]"
+                key={report.reportId}
+              >
+                <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 p-3">
+                  <Link
+                    className="group relative aspect-[4/5] overflow-hidden rounded-lg bg-[#111510]"
+                    href={report.editHref}
+                  >
+                    {report.coverImageUrl ? (
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
+                        className="object-cover transition duration-300 group-hover:scale-[1.04]"
                         fill
                         loading={index === 0 ? "eager" : "lazy"}
-                        sizes="(max-width: 768px) 100vw, 33vw"
+                        sizes="96px"
                         src={report.coverImageUrl}
                         unoptimized={shouldBypassCoverImageOptimization}
                       />
-                      <Image
-                        alt=""
-                        aria-hidden="true"
-                        className="object-contain transition duration-300 group-hover:scale-[1.02]"
-                        fill
-                        loading={index === 0 ? "eager" : "lazy"}
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        src={report.coverImageUrl}
-                        unoptimized={shouldBypassCoverImageOptimization}
-                      />
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Newspaper className="size-10 text-[#44f26e]" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <Newspaper className="size-7 text-[#44f26e]" />
+                      </div>
+                    )}
+                  </Link>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.08em] text-black/40">
+                      <span>
+                        {report.priceType === "paid"
+                          ? copy.priceType.paid
+                          : copy.priceType.public}
+                      </span>
+                      <span>{copy.coverSource[report.coverImageSource]}</span>
                     </div>
-                  )}
-                  <div className="absolute left-3 top-3 inline-flex border border-white/18 bg-black/44 px-2.5 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
-                    {copy.coverSource[report.coverImageSource]}
+                    <Link
+                      className="mt-1 line-clamp-2 break-words text-base font-black leading-5 !text-[#111510] [word-break:keep-all]"
+                      href={report.editHref}
+                    >
+                      {report.title}
+                    </Link>
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/56">
+                      {report.dek}
+                    </p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black/36">
+                      <CalendarDays className="size-3.5 text-[#16702e]" />
+                      {updatedAt}
+                    </p>
                   </div>
                 </div>
-              </Link>
-              <div className="p-4">
-                <div className="flex flex-wrap gap-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black/42">
-                  {publishedAt ? <span>{publishedAt}</span> : null}
-                  <span>
-                    {report.priceType === "paid"
-                      ? copy.priceType.paid
-                      : copy.priceType.public}
-                  </span>
-                </div>
-                <h2 className="mt-2 line-clamp-2 break-words text-xl font-black leading-tight [word-break:keep-all]">
-                  {report.title}
-                </h2>
-                <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
-                  {report.dek}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="grid grid-cols-3 border-t border-black/10">
                   <Link
-                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black"
+                    className="inline-flex h-11 items-center justify-center gap-1.5 border-r border-black/10 text-xs font-black !text-[#111510]"
                     href={report.reportHref}
                   >
-                    {copy.openReport}
-                    <ArrowRight className="size-4 text-[#44f26e]" />
+                    <ExternalLink className="size-3.5 text-[#16702e]" />
+                    {listCopy.openReport}
+                  </Link>
+                  <Link
+                    className="inline-flex h-11 items-center justify-center gap-1.5 border-r border-black/10 text-xs font-black !text-[#111510]"
+                    href={report.editHref}
+                  >
+                    <Edit3 className="size-3.5 text-[#16702e]" />
+                    {listCopy.editReport}
                   </Link>
                   <button
-                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                    className="inline-flex h-11 items-center justify-center gap-1.5 text-xs font-black text-[#111510]"
                     onClick={() => openCoverModal(report)}
                     type="button"
                   >
-                    <ImageIcon className="size-4 text-[#16702e]" />
-                    {copy.updateCover}
+                    <ImageIcon className="size-3.5 text-[#16702e]" />
+                    {listCopy.updateCover}
                   </button>
                 </div>
-                <Link
-                  className="mt-3 inline-flex min-w-0 items-center gap-2 text-xs font-bold !text-black/48 transition hover:!text-[#16702e]"
-                  href={report.sourceHref}
-                >
-                  <Clapperboard className="size-3.5 shrink-0" />
-                  <span className="truncate">{copy.source}</span>
-                </Link>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       {activeReport ? (

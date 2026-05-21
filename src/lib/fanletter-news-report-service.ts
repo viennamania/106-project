@@ -33,6 +33,10 @@ import {
 const DEFAULT_MODEL = "gpt-5.4";
 const DEFAULT_TIMEOUT_MS = 45_000;
 const FALLBACK_REPORTER_REFERRAL_CODE = "FAN";
+const REPORT_BODY_LIMIT = 12_000;
+const REPORT_DEK_LIMIT = 320;
+const REPORT_SIX_W_LIMIT = 500;
+const REPORT_TITLE_LIMIT = 180;
 const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
 
@@ -201,6 +205,26 @@ export type FanletterNewsReportsForMemberResult = {
   member: FanletterNewsReporterMember | null;
   reportCount: number;
   reports: FanletterNewsReportDocument[];
+};
+
+export type FanletterNewsReportForMemberResult = {
+  member: FanletterNewsReporterMember | null;
+  report: FanletterNewsReportDocument | null;
+};
+
+export type UpdateFanletterNewsReportContentInput = {
+  body?: string | null;
+  dek?: string | null;
+  how?: string | null;
+  reportId?: string | null;
+  reporterComment?: string | null;
+  reporterReferralCode?: string | null;
+  title?: string | null;
+  what?: string | null;
+  when?: string | null;
+  where?: string | null;
+  who?: string | null;
+  why?: string | null;
 };
 
 const DEFAULT_REPORTER_BACKFILL_LIMIT = 100;
@@ -1539,6 +1563,147 @@ export async function getFanletterNewsReportsForMember({
     member,
     reportCount,
     reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+  };
+}
+
+export async function getFanletterNewsReportForMemberById({
+  email,
+  locale,
+  reportId,
+}: {
+  email?: string | null;
+  locale?: Locale | null;
+  reportId?: string | null;
+}): Promise<FanletterNewsReportForMemberResult> {
+  const member = await getFanletterNewsReporterMemberByEmail(
+    email,
+    locale ?? defaultLocale,
+  );
+  const normalizedReportId = reportId?.trim() ?? "";
+
+  if (!member) {
+    return {
+      member: null,
+      report: null,
+    };
+  }
+
+  if (!normalizedReportId) {
+    return {
+      member,
+      report: null,
+    };
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const report = await reportsCollection.findOne({
+    reportId: normalizedReportId,
+    reporterReferralCode: member.referralCode,
+    status: "published",
+    ...(locale ? { locale } : {}),
+  });
+
+  return {
+    member,
+    report: report
+      ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
+      : null,
+  };
+}
+
+export async function updateFanletterNewsReportContent({
+  body,
+  dek,
+  how,
+  reportId,
+  reporterComment,
+  reporterReferralCode,
+  title,
+  what,
+  when,
+  where,
+  who,
+  why,
+}: UpdateFanletterNewsReportContentInput) {
+  const normalizedReportId = reportId?.trim() ?? "";
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reporterReferralCode);
+
+  if (!normalizedReportId) {
+    throw new Error("reportId is required.");
+  }
+
+  if (!normalizedReporterReferralCode) {
+    throw new Error("Reporter authorization is required.");
+  }
+
+  const nextTitle = trimToLength(title, REPORT_TITLE_LIMIT);
+  const nextDek = trimToLength(dek, REPORT_DEK_LIMIT);
+  const nextBody = trimMultilineToLength(body, REPORT_BODY_LIMIT);
+  const nextWho = trimToLength(who, REPORT_SIX_W_LIMIT);
+  const nextWhen = trimToLength(when, REPORT_SIX_W_LIMIT);
+  const nextWhere = trimToLength(where, REPORT_SIX_W_LIMIT);
+  const nextWhat = trimToLength(what, REPORT_SIX_W_LIMIT);
+  const nextWhy = trimToLength(why, REPORT_SIX_W_LIMIT);
+  const nextHow = trimToLength(how, REPORT_SIX_W_LIMIT);
+  const nextReporterComment = normalizeReporterComment(reporterComment);
+
+  if (!nextTitle || !nextDek || !nextBody) {
+    throw new Error("Report title, summary, and body are required.");
+  }
+
+  if (!nextWho || !nextWhen || !nextWhere || !nextWhat || !nextWhy || !nextHow) {
+    throw new Error("Report summary facts are required.");
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const report = await reportsCollection.findOne({
+    reportId: normalizedReportId,
+    status: "published",
+  });
+
+  if (!report) {
+    throw new Error("Report not found.");
+  }
+
+  if (report.reporterReferralCode !== normalizedReporterReferralCode) {
+    throw new Error("This reporter is not authorized to update this report.");
+  }
+
+  const updatedAt = new Date();
+
+  await reportsCollection.updateOne(
+    { reportId: report.reportId },
+    {
+      $set: {
+        body: nextBody,
+        dek: nextDek,
+        how: nextHow,
+        reporterComment: nextReporterComment || null,
+        title: nextTitle,
+        updatedAt,
+        what: nextWhat,
+        when: nextWhen,
+        where: nextWhere,
+        who: nextWho,
+        why: nextWhy,
+      },
+    },
+  );
+
+  return {
+    ...report,
+    body: nextBody,
+    dek: nextDek,
+    how: nextHow,
+    reporterComment: nextReporterComment || null,
+    title: nextTitle,
+    updatedAt,
+    what: nextWhat,
+    when: nextWhen,
+    where: nextWhere,
+    who: nextWho,
+    why: nextWhy,
   };
 }
 

@@ -48,10 +48,12 @@ function getCopy(locale: Locale) {
         },
         coverDesk: "커버 관리",
         coverDeskValue: "변경 가능",
+        coverImage: "커버",
         deskBody:
           "공개 브이로그 상세에서 AI 리포트를 만들고, 이 페이지에서 작성 리포트와 커버 편집을 이어갑니다.",
         deskLabel: "리포터 회원 서비스",
         deskTitle: "FanLetter 리포터 활동 관리",
+        editReport: "내용 수정",
         emptyBody:
           "아직 작성한 AI 팬 리포트가 없습니다. 공개 브이로그 상세에서 AI 리포트를 만들면 리포터 데스크에 모입니다.",
         emptyCta: "브이로그 보러가기",
@@ -72,12 +74,14 @@ function getCopy(locale: Locale) {
           public: "공개",
         },
         reportCount: (count: string) => `작성 리포트 ${count}개`,
+        reportTitle: "리포트",
         reporterId: "리포터 ID",
         reporterStatus: "활동 상태",
         source: "원본 브이로그",
         statusCompleted: "활동 중",
         statusPending: "계정 준비 중",
         studio: "스튜디오",
+        updatedAt: "최근 수정",
         title: "내 AI 팬 리포트 관리",
         updateCover: "커버 변경",
       }
@@ -96,10 +100,12 @@ function getCopy(locale: Locale) {
         },
         coverDesk: "Cover desk",
         coverDeskValue: "Editable",
+        coverImage: "Cover",
         deskBody:
           "Create AI reports from public vlog detail pages, then manage the report list and cover edits here.",
         deskLabel: "Reporter member service",
         deskTitle: "FanLetter reporter operations",
+        editReport: "Edit report",
         emptyBody:
           "You have not created any AI fan reports yet. Reports created from public vlog detail pages will appear in this reporter desk.",
         emptyCta: "Browse vlogs",
@@ -120,12 +126,14 @@ function getCopy(locale: Locale) {
           public: "Public",
         },
         reportCount: (count: string) => `${count} reports`,
+        reportTitle: "Report",
         reporterId: "Reporter ID",
         reporterStatus: "Status",
         source: "Source vlog",
         statusCompleted: "Active",
         statusPending: "Account pending",
         studio: "Studio",
+        updatedAt: "Updated",
         title: "My AI fan report desk",
         updateCover: "Change cover",
       };
@@ -287,6 +295,10 @@ export default async function LocalizedFanletterReportsPage({
       `/${locale}/fanletter/news/${report.reportId}`,
       effectiveReferralCode,
     );
+    const editHref = buildPathWithReferral(
+      `/${locale}/fanletter/reports/${report.reportId}`,
+      effectiveReferralCode,
+    );
     const sourceHref = buildPathWithReferral(
       `/${locale}/fanletter/content/${report.contentId}`,
       effectiveReferralCode,
@@ -294,15 +306,19 @@ export default async function LocalizedFanletterReportsPage({
 
     return {
       contentId: report.contentId,
+      creatorName: report.creatorName,
       coverImageSource: report.coverImageSource ?? "auto",
       coverImageUrl: report.coverImageUrl,
       dek: report.dek,
+      editHref,
       priceType: report.priceType,
       reportHref,
       reportId: report.reportId,
       sourceHref,
+      sourceTitle: report.sourceTitle,
       sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
       title: report.title,
+      updatedAt: report.updatedAt.toISOString(),
     };
   });
 
@@ -462,6 +478,15 @@ export default async function LocalizedFanletterReportsPage({
         ) : (
           <>
             <FanletterReportsCoverManager
+              copy={{
+                coverImage: copy.coverImage,
+                editReport: copy.editReport,
+                openReport: copy.openReport,
+                reportTitle: copy.reportTitle,
+                source: copy.source,
+                updateCover: copy.updateCover,
+                updatedAt: copy.updatedAt,
+              }}
               locale={locale}
               reports={reportItems}
             />
