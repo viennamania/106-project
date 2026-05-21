@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   AlertTriangle,
+  BadgeCheck,
   Clapperboard,
   Coins,
   FileText,
@@ -69,6 +70,13 @@ function getCopy(locale: Locale) {
           "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 기사로 표시하지 않습니다.",
         articleSection: "연예",
         byline: "팬 기자",
+        characterIdentity: {
+          channelCta: "캐릭터 채널 보기",
+          galleryLabel: "아바타 무드",
+          latestLabel: "최근 브이로그",
+          title: "AI 캐릭터 아이덴티티",
+          traitLabel: "고정 특징",
+        },
         characterStats: {
           level: "성장 단계",
           reactions: "팬 반응",
@@ -135,6 +143,13 @@ function getCopy(locale: Locale) {
           "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
         articleSection: "Entertainment",
         byline: "Fan reporter",
+        characterIdentity: {
+          channelCta: "Open character channel",
+          galleryLabel: "Avatar mood",
+          latestLabel: "Latest vlog",
+          title: "AI character identity",
+          traitLabel: "Fixed traits",
+        },
         characterStats: {
           level: "Growth level",
           reactions: "Fan reactions",
@@ -247,6 +262,16 @@ function getContentAccessLabel(
     : copy.contentBadge.public;
 }
 
+function getUniqueImageUrls(urls: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(
+      urls
+        .map((url) => url?.trim() ?? "")
+        .filter((url): url is string => Boolean(url)),
+    ),
+  );
+}
+
 function isNsfwReport(report: FanletterNewsReportDocument) {
   return report.contentMaturityRating === "nsfw";
 }
@@ -349,6 +374,189 @@ function NewsWalletConnectCard({
         referralCode={referralCode}
         walletHref={walletHref}
       />
+    </section>
+  );
+}
+
+function CharacterIdentityFeature({
+  copy,
+  creatorHref,
+  locale,
+  sourceContent,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  locale: Locale;
+  sourceContent: FanletterPublicContentDetail | null;
+}) {
+  const character = sourceContent?.authorCharacter;
+  const characterName = character?.name ?? sourceContent?.authorName ?? null;
+
+  if (!characterName) {
+    return null;
+  }
+
+  const avatarImages = getUniqueImageUrls([
+    ...(character?.avatarImageSet ?? []).map((avatar) => avatar.url),
+    sourceContent?.authorAvatarImageUrl,
+  ]).slice(0, 4);
+  const primaryAvatarImageUrl = avatarImages[0] ?? null;
+  const traits = (character?.traits ?? []).slice(0, 5);
+  const reactionCount =
+    (sourceContent?.social.likeCount ?? 0) +
+    (sourceContent?.social.commentCount ?? 0) +
+    (sourceContent?.social.saveCount ?? 0);
+  const stats = [
+    {
+      label: copy.characterStats.level,
+      value: character ? `Lv.${character.growth.level}` : "-",
+    },
+    {
+      label: copy.characterStats.vlogs,
+      value: sourceContent
+        ? formatNumber(sourceContent.authorPublicContentCount, locale)
+        : "-",
+    },
+    {
+      label: copy.characterStats.reactions,
+      value: sourceContent ? formatNumber(reactionCount, locale) : "-",
+    },
+  ];
+  const latestTitle = character?.latestTitle ?? sourceContent?.title ?? null;
+
+  return (
+    <section className="mt-6 overflow-hidden border-y border-black/12 bg-[#f4f6f1] text-[#111510]">
+      <div className="grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+        <div className="relative min-h-[22rem] overflow-hidden border-b border-black/12 bg-[#121610] lg:border-b-0 lg:border-r">
+          {primaryAvatarImageUrl ? (
+            <>
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="scale-110 object-cover object-top blur-2xl brightness-[0.48] saturate-[0.9]"
+                fill
+                sizes="(max-width: 1024px) 100vw, 320px"
+                src={primaryAvatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  primaryAvatarImageUrl,
+                )}
+              />
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover object-top"
+                fill
+                sizes="(max-width: 1024px) 100vw, 320px"
+                src={primaryAvatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  primaryAvatarImageUrl,
+                )}
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#121610]">
+              <UserRound className="size-16 text-[#44f26e]" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/8 to-black/22" />
+          <div className="absolute bottom-4 left-4 right-4">
+            <p className="mb-3 inline-flex border border-white/18 bg-black/38 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/74 backdrop-blur">
+              {copy.characterIdentity.galleryLabel}
+            </p>
+            {avatarImages.length > 1 ? (
+              <div className="grid grid-cols-4 gap-2">
+                {avatarImages.map((imageUrl, index) => (
+                  <div
+                    className="relative aspect-square overflow-hidden border border-white/20 bg-white/10"
+                    key={`${imageUrl}-${index}`}
+                  >
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className="object-cover object-top"
+                      fill
+                      sizes="4rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        imageUrl,
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-white px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+              <BadgeCheck className="size-3.5" />
+              {copy.characterIdentity.title}
+            </span>
+            <span className="inline-flex border border-black/10 bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/78">
+              {copy.generated}
+            </span>
+          </div>
+
+          <h2 className="mt-4 break-words text-3xl font-black leading-tight [word-break:keep-all] sm:text-[2.45rem]">
+            {characterName}
+          </h2>
+          <p className="mt-3 max-w-xl text-base font-medium leading-7 text-black/66 sm:text-lg sm:leading-8">
+            {character?.summary ?? sourceContent?.summary}
+          </p>
+
+          <div className="mt-5 grid grid-cols-3 border-y border-black/10 py-4">
+            {stats.map((stat) => (
+              <div className="min-w-0 px-2 first:pl-0 last:pr-0" key={stat.label}>
+                <p className="truncate text-xl font-black text-[#111510]">
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {traits.length > 0 ? (
+            <div className="mt-5">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+                {copy.characterIdentity.traitLabel}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {traits.map((trait) => (
+                  <span
+                    className="border border-black/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-black/68"
+                    key={trait}
+                  >
+                    {trait}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {latestTitle ? (
+            <div className="mt-5 border-l-4 border-[#44f26e] bg-white px-4 py-3">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
+                {copy.characterIdentity.latestLabel}
+              </p>
+              <p className="mt-1 break-words text-sm font-bold leading-6 text-black/72 [word-break:keep-all]">
+                {latestTitle}
+              </p>
+            </div>
+          ) : null}
+
+          <Link
+            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#111510] px-4 py-3 text-sm font-black !text-white transition hover:bg-black sm:w-auto"
+            href={creatorHref}
+          >
+            <MessageCircleHeart className="size-4 text-[#44f26e]" />
+            {copy.characterIdentity.channelCta}
+          </Link>
+        </div>
+      </div>
     </section>
   );
 }
@@ -1044,6 +1252,13 @@ export default async function LocalizedFanletterNewsReportPage({
                 />
               </div>
             ) : null}
+
+            <CharacterIdentityFeature
+              copy={copy}
+              creatorHref={creatorHref}
+              locale={locale}
+              sourceContent={sourceContent}
+            />
 
             <SourceVlogEmbed
               accessLabel={accessLabel}
