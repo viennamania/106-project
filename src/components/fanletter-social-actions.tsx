@@ -163,6 +163,7 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         commentPlaceholder: "이 브이로그에 댓글 남기기...",
+        commentComposerTitle: "브이로그에 댓글 남기기",
         comments: "댓글",
         commentsEyebrow: "팬 반응",
         commentsHelper:
@@ -172,6 +173,7 @@ function getCopy(locale: Locale) {
         copyFailed: "링크를 복사하지 못했습니다.",
         like: "좋아요",
         liked: "좋아요 완료",
+        latestComments: "최신 댓글",
         loadCommentsFailed: "댓글을 불러오지 못했습니다.",
         loadMoreComments: "댓글 더 보기",
         loading: "확인 중",
@@ -236,6 +238,7 @@ function getCopy(locale: Locale) {
       }
     : {
         commentPlaceholder: "Add a comment to this vlog...",
+        commentComposerTitle: "Add a comment to this vlog",
         comments: "Comments",
         commentsEyebrow: "Fan reaction",
         commentsHelper:
@@ -245,6 +248,7 @@ function getCopy(locale: Locale) {
         copyFailed: "Could not copy the link.",
         like: "Like",
         liked: "Liked",
+        latestComments: "Recent comments",
         loadCommentsFailed: "Failed to load comments.",
         loadMoreComments: "Load more comments",
         loading: "Checking",
@@ -1818,24 +1822,62 @@ export function FanletterSocialActions({
         </div>
       ) : null}
 
+      <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.055] p-2">
+        <p className="px-2 pb-2 text-xs font-semibold text-white/52">
+          {copy.commentComposerTitle}
+        </p>
+        <div className="flex items-end gap-2">
+          <textarea
+            className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm font-medium leading-5 text-white outline-none placeholder:text-white/32"
+            maxLength={500}
+            onChange={(event) => {
+              setCommentBody(event.target.value);
+            }}
+            placeholder={commentPlaceholder}
+            rows={1}
+            value={commentBody}
+          />
+          <button
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!commentBody.trim() || commentsStatus === "submitting"}
+            onClick={() => {
+              void submitComment();
+            }}
+            type="button"
+          >
+            {commentsStatus === "submitting" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            <span className="sr-only">
+              {commentsStatus === "submitting" ? copy.submitting : copy.post}
+            </span>
+          </button>
+        </div>
+      </div>
+
       <div
         className={cn(
           "rounded-lg border border-white/10 bg-black/22 p-3 sm:p-4",
           isOwnerPanel ? "mt-4" : "mt-5",
         )}
       >
-        {social.commentCount > 0 ? (
-          <div className="mb-3 flex flex-col gap-1 text-xs font-semibold text-white/42 sm:flex-row sm:items-center sm:justify-between">
-            <p>{copy.showingComments(comments.length, social.commentCount)}</p>
-            {commentsPageInfo?.hasMore ? (
-              <p>
-                {copy.remainingComments(
-                  Math.max(social.commentCount - comments.length, 0),
-                )}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="mb-3 flex flex-col gap-1 text-xs font-semibold text-white/42 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-white/72">{copy.latestComments}</p>
+          {social.commentCount > 0 ? (
+            <div className="flex flex-col gap-1 sm:items-end">
+              <p>{copy.showingComments(comments.length, social.commentCount)}</p>
+              {commentsPageInfo?.hasMore ? (
+                <p>
+                  {copy.remainingComments(
+                    Math.max(social.commentCount - comments.length, 0),
+                  )}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
         {commentsStatus === "loading" && comments.length === 0 ? (
           <div className="flex items-center justify-center gap-2 py-9 text-sm font-semibold text-white/52">
             <Loader2 className="size-4 animate-spin" />
@@ -1903,38 +1945,6 @@ export function FanletterSocialActions({
             {commentsError}
           </p>
         ) : null}
-      </div>
-
-      <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.055] p-2">
-        <div className="flex items-end gap-2">
-          <textarea
-            className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm font-medium leading-5 text-white outline-none placeholder:text-white/32"
-            maxLength={500}
-            onChange={(event) => {
-              setCommentBody(event.target.value);
-            }}
-            placeholder={commentPlaceholder}
-            rows={1}
-            value={commentBody}
-          />
-          <button
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black transition hover:bg-[#64ff84] disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!commentBody.trim() || commentsStatus === "submitting"}
-            onClick={() => {
-              void submitComment();
-            }}
-            type="button"
-          >
-            {commentsStatus === "submitting" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Send className="size-4" />
-            )}
-            <span className="sr-only">
-              {commentsStatus === "submitting" ? copy.submitting : copy.post}
-            </span>
-          </button>
-        </div>
       </div>
     </section>
 
