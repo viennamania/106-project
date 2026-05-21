@@ -664,6 +664,11 @@ export type ContentSocialSummaryRecord = {
   savedByViewer: boolean;
 };
 
+export type CreatorStudioPostRecord = ContentPostRecord & {
+  newsReportCount: number;
+  social: ContentSocialSummaryRecord;
+};
+
 export type ContentCommentRecord = {
   authorAvatarImageUrl: string | null;
   authorDisplayName: string;
@@ -1015,7 +1020,7 @@ export type CreatorStudioPostsResponse = {
     totalCount: number;
     totalPages: number;
   };
-  posts: ContentPostRecord[];
+  posts: CreatorStudioPostRecord[];
   profile: CreatorProfileRecord;
   profileConfigured: boolean;
   summary: {
@@ -1042,7 +1047,7 @@ export type CreatorStudioPostsResponse = {
 export type CreatorStudioPostsLoadResponse = {
   member: MemberRecord | null;
   pageInfo: CreatorStudioPostsResponse["pageInfo"] | null;
-  posts: ContentPostRecord[];
+  posts: CreatorStudioPostRecord[];
   profile: CreatorProfileRecord | null;
   profileConfigured: boolean;
   summary: CreatorStudioPostsResponse["summary"];

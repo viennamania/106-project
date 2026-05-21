@@ -11,6 +11,7 @@ import {
   createContentPostForMember,
   getCreatorStudioPostsForMember,
 } from "@/lib/content-service";
+import { hasLocale } from "@/lib/i18n";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
   const rawMedia = url.searchParams.get("media");
   const rawPrice = url.searchParams.get("price");
   const rawMaturity = url.searchParams.get("maturity");
+  const rawLocale = url.searchParams.get("locale");
 
   try {
     const authorization = await validateMemberWalletOwner({
@@ -46,7 +48,8 @@ export async function GET(request: Request) {
         rawStatus ||
         rawMedia ||
         rawPrice ||
-        rawMaturity
+        rawMaturity ||
+        rawLocale
         ? {
             maturity:
               rawMaturity === "all" ||
@@ -54,6 +57,7 @@ export async function GET(request: Request) {
               rawMaturity === "nsfw"
                 ? rawMaturity
                 : null,
+            locale: rawLocale && hasLocale(rawLocale) ? rawLocale : null,
             media: rawMedia === "video" ? "video" : null,
             page: rawPage ? Number(rawPage) : undefined,
             pageSize: rawPageSize ? Number(rawPageSize) : undefined,

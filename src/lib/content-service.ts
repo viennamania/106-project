@@ -65,6 +65,7 @@ import {
   type CreatorCharacterTimelineDocument,
   type CreatorCharacterTimelineEvent,
   type CreatorStudioPostsResponse,
+  type FanletterNewsReportDocument,
 } from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import {
@@ -81,6 +82,7 @@ import {
   getContentSocialActionsCollection,
   getCreatorProfilesCollection,
   getFanletterFanRequestsCollection,
+  getFanletterNewsReportsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
 import { updateFanletterFanRequestStatusForCreator } from "@/lib/fanletter-fan-request-service";
@@ -255,6 +257,7 @@ function decodeContentFeedActivityCursor(cursor?: string | null) {
 }
 
 type CreatorStudioPostsQueryOptions = {
+  locale?: Locale | null;
   maturity?: "all" | "general" | "nsfw" | null;
   media?: "all" | "video" | null;
   page?: number;
@@ -1952,6 +1955,54 @@ export async function getContentSocialSummaryForViewer(
   return summaries.get(contentId) ?? createEmptyContentSocialSummary();
 }
 
+async function getFanletterNewsReportCountsByContentId(
+  contentIds: string[],
+  locale?: Locale | null,
+) {
+  const uniqueContentIds = [
+    ...new Set(contentIds.map((id) => id.trim()).filter(Boolean)),
+  ];
+  const counts = new Map<string, number>();
+
+  for (const contentId of uniqueContentIds) {
+    counts.set(contentId, 0);
+  }
+
+  if (uniqueContentIds.length === 0) {
+    return counts;
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const match: Filter<FanletterNewsReportDocument> = {
+    contentId: { $in: uniqueContentIds },
+    status: "published",
+  };
+
+  if (locale) {
+    match.locale = locale;
+  }
+
+  const rows = await reportsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: match,
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+
+  for (const row of rows) {
+    counts.set(row._id, row.count);
+  }
+
+  return counts;
+}
+
 export async function updateContentSocialActionForMember({
   action,
   contentId,
@@ -2554,7 +2605,13 @@ export async function getCreatorStudioPostsForMember(
     .limit(usingPagination ? pageSize : Math.max(summary.all, 1))
     .toArray();
   const totalPages = usingPagination ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
-  const profileSnapshot = await getCreatorProfileSnapshotForMember(member.email);
+  const contentIds = posts.map((post) => post.contentId);
+  const [profileSnapshot, socialByContentId, newsReportCountByContentId] =
+    await Promise.all([
+      getCreatorProfileSnapshotForMember(member.email),
+      getContentSocialSummaries(contentIds, member.email),
+      getFanletterNewsReportCountsByContentId(contentIds, options?.locale),
+    ]);
 
   return {
     member: serializeMember(member),
@@ -2566,7 +2623,12 @@ export async function getCreatorStudioPostsForMember(
       totalCount,
       totalPages,
     },
-    posts: posts.map((post) => serializeContentPost(post)),
+    posts: posts.map((post) => ({
+      ...serializeContentPost(post),
+      newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
+      social:
+        socialByContentId.get(post.contentId) ?? createEmptyContentSocialSummary(),
+    })),
     profile: profileSnapshot.profile,
     profileConfigured: profileSnapshot.profileConfigured,
     summary,

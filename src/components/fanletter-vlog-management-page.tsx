@@ -6,13 +6,17 @@ import {
   Archive,
   ArrowLeft,
   ArrowRight,
+  Bookmark,
   Check,
   Clapperboard,
   Coins,
   Eye,
+  Heart,
   LockKeyhole,
   Loader2,
+  MessageCircle,
   MessageCircleHeart,
+  Newspaper,
   Plus,
   RefreshCw,
   Search,
@@ -37,9 +41,9 @@ import {
   getContentVideoAssetSource,
   type ContentMaturityRating,
   type ContentPostMutationResponse,
-  type ContentPostRecord,
   type ContentPostStatus,
   type CreatorProfileRecord,
+  type CreatorStudioPostRecord,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
@@ -64,7 +68,7 @@ type VlogManagementState = {
   member: MemberRecord | null;
   notice: string | null;
   pageInfo: CreatorStudioPostsResponse["pageInfo"] | null;
-  posts: ContentPostRecord[];
+  posts: CreatorStudioPostRecord[];
   profile: CreatorProfileRecord | null;
   status: "idle" | "loading" | "ready" | "error";
   summary: CreatorStudioPostsResponse["summary"];
@@ -132,17 +136,22 @@ function getCopy(locale: Locale) {
           all: "전체",
           archived: "보관",
           author: "크리에이터",
+          comments: "댓글",
           draft: "임시저장",
           free: "무료",
           freePublic: "무료 공개",
           generalContent: "일반",
+          likes: "좋아요",
           maturity: "수위",
           nsfw: "NSFW",
           page: "페이지",
           paid: "유료",
           paidFanOnly: "유료 팬 전용",
           published: "공개",
+          reports: "리포트",
           results: "브이로그",
+          saves: "저장",
+          signals: "반응 신호",
           status: "상태",
           updated: "수정일",
         },
@@ -203,17 +212,22 @@ function getCopy(locale: Locale) {
           all: "All",
           archived: "Archived",
           author: "Creator",
+          comments: "Comments",
           draft: "Drafts",
           free: "Free",
           freePublic: "Free public",
           generalContent: "General",
+          likes: "Likes",
           maturity: "Maturity",
           nsfw: "NSFW",
           page: "Page",
           paid: "Paid",
           paidFanOnly: "Paid fan-only",
           published: "Published",
+          reports: "Reports",
           results: "Vlogs",
+          saves: "Saves",
+          signals: "Fan signals",
           status: "Status",
           updated: "Updated",
         },
@@ -284,7 +298,7 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function getPostVideoUrl(post: Pick<ContentPostRecord, "contentVideoUrls">) {
+function getPostVideoUrl(post: Pick<CreatorStudioPostRecord, "contentVideoUrls">) {
   return post.contentVideoUrls[0] ?? null;
 }
 
@@ -324,7 +338,10 @@ function getStatusLabel(
   return copy.labels.all;
 }
 
-function getPostPriceLabel(copy: ReturnType<typeof getCopy>, post: ContentPostRecord) {
+function getPostPriceLabel(
+  copy: ReturnType<typeof getCopy>,
+  post: CreatorStudioPostRecord,
+) {
   if (post.priceType === "paid") {
     return `${copy.labels.paid} · ${post.priceUsdt ?? "1"} USDT`;
   }
@@ -533,6 +550,7 @@ export function FanletterVlogManagementPage({
       const resolvedEmail = await resolveEmail();
       const params = new URLSearchParams({
         email: resolvedEmail,
+        locale,
         maturity: appliedMaturity,
         media: "video",
         page: String(appliedPage),
@@ -678,7 +696,7 @@ export function FanletterVlogManagementPage({
   }
 
   async function updatePostStatus(
-    post: ContentPostRecord,
+    post: CreatorStudioPostRecord,
     nextStatus: "archived" | "published",
   ) {
     if (!accountAddress) {
@@ -727,7 +745,7 @@ export function FanletterVlogManagementPage({
   }
 
   async function updatePostMaturity(
-    post: ContentPostRecord,
+    post: CreatorStudioPostRecord,
     nextContentMaturityRating: ContentMaturityRating,
   ) {
     if (!accountAddress) {
@@ -1487,7 +1505,7 @@ function VlogManagerCard({
   onArchive: () => void;
   onPublish: () => void;
   onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
-  post: ContentPostRecord;
+  post: CreatorStudioPostRecord;
   referralCode: string | null;
 }) {
   const videoUrl = getPostVideoUrl(post);
@@ -1506,6 +1524,28 @@ function VlogManagerCard({
       returnTo: currentManagerHref,
     },
   );
+  const signalMetrics = [
+    {
+      Icon: Heart,
+      label: copy.labels.likes,
+      value: post.social.likeCount,
+    },
+    {
+      Icon: MessageCircle,
+      label: copy.labels.comments,
+      value: post.social.commentCount,
+    },
+    {
+      Icon: Bookmark,
+      label: copy.labels.saves,
+      value: post.social.saveCount,
+    },
+    {
+      Icon: Newspaper,
+      label: copy.labels.reports,
+      value: post.newsReportCount,
+    },
+  ];
 
   return (
     <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] md:grid-cols-[12rem_minmax(0,1fr)]">
@@ -1517,6 +1557,7 @@ function VlogManagerCard({
             loop
             muted
             playsInline
+            poster={post.coverImageUrl ?? undefined}
             preload="metadata"
             src={videoUrl}
           />
@@ -1541,7 +1582,7 @@ function VlogManagerCard({
             {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
           </StatusPill>
         </div>
-        <h3 className="mt-3 text-xl font-semibold tracking-normal text-black">
+        <h3 className="mt-3 break-words text-xl font-semibold tracking-normal text-black [overflow-wrap:anywhere]">
           {post.title}
         </h3>
         <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
@@ -1557,6 +1598,30 @@ function VlogManagerCard({
               ? `${copy.labels.published} · ${formatDateLabel(locale, post.publishedAt)}`
               : getStatusLabel(copy, post.status)}
           </span>
+        </div>
+        <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3">
+          <p className="text-xs font-semibold text-black/46">
+            {copy.labels.signals}
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {signalMetrics.map(({ Icon, label, value }) => (
+              <div
+                aria-label={`${label} ${formatNumber(value, locale)}`}
+                className="flex min-h-16 min-w-0 flex-col justify-between rounded-lg border border-black/10 bg-white px-3 py-2"
+                key={label}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <Icon className="size-4 shrink-0 text-[#16702e]" />
+                  <span className="truncate text-lg font-semibold leading-none text-black">
+                    {formatNumber(value, locale)}
+                  </span>
+                </div>
+                <span className="mt-2 truncate text-[0.72rem] font-semibold text-black/48">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
         {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
           <p className="mt-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
