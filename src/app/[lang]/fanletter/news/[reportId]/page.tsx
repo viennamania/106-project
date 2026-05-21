@@ -118,6 +118,12 @@ async function updateFanletterNewsReportCoverImageAction(formData: FormData) {
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
+        articleActions: {
+          character: "캐릭터 채널",
+          label: "기사 이동",
+          newsHome: "뉴스 홈",
+          sourceVlog: "원본 브이로그",
+        },
         aiReport: "AI 팬 리포트",
         articleEyebrow: "AI Character News",
         articleNotice:
@@ -213,6 +219,12 @@ function getCopy(locale: Locale) {
         siteName: "FanLetter News",
       }
     : {
+        articleActions: {
+          character: "Character channel",
+          label: "Story navigation",
+          newsHome: "News home",
+          sourceVlog: "Source vlog",
+        },
         aiReport: "AI fan report",
         articleEyebrow: "AI Character News",
         articleNotice:
@@ -385,12 +397,14 @@ function NewsSiteHeader({
   copy,
   homeHref,
   locale,
+  navLinks,
   referralCode,
   walletHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   homeHref: string;
   locale: Locale;
+  navLinks: Array<{ href: string; label: string }>;
   referralCode: string | null;
   walletHref: string;
 }) {
@@ -399,17 +413,17 @@ function NewsSiteHeader({
   }).format(new Date());
 
   return (
-    <header className="border-b border-black/14 bg-[#fbfaf7] text-[#111510]">
-      <div className="border-b border-black/10 bg-[#f2f3ec]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.72rem] font-semibold text-black/52 sm:px-6 lg:px-8">
+    <header className="border-b border-black/14 bg-white text-[#111510] shadow-[0_8px_28px_rgba(17,21,16,0.05)]">
+      <div className="border-b border-black/10 bg-[#eef1ec]">
+        <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.68rem] font-bold text-black/52 sm:px-6 sm:py-2 lg:px-8">
           <span>{today}</span>
           <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto flex max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
+      <div className="mx-auto flex max-w-[92rem] flex-col px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
+        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
           <Link
-            className="inline-flex items-center gap-3 text-[2rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[3.3rem]"
+            className="inline-flex min-w-0 items-center gap-3 break-words text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
             href={homeHref}
           >
             {copy.siteName}
@@ -428,19 +442,71 @@ function NewsSiteHeader({
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62"
+          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {copy.navItems.map((item) => (
-            <span
-              className="shrink-0 border border-black/10 bg-white px-3 py-1.5"
-              key={item}
+          {navLinks.map((item) => (
+            <Link
+              className="shrink-0 border border-black/10 bg-white px-3 py-1.5 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
+              href={item.href}
+              key={item.label}
             >
-              {item}
-            </span>
+              {item.label}
+            </Link>
           ))}
         </nav>
       </div>
     </header>
+  );
+}
+
+function ArticleActionLinks({
+  copy,
+  creatorHref,
+  newsHomeHref,
+  sourceVlogHref,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  newsHomeHref: string;
+  sourceVlogHref: string;
+}) {
+  const actions = [
+    {
+      href: newsHomeHref,
+      icon: <Newspaper className="size-4 text-[#16702e]" />,
+      label: copy.articleActions.newsHome,
+    },
+    {
+      href: sourceVlogHref,
+      icon: <Clapperboard className="size-4 text-[#16702e]" />,
+      label: copy.articleActions.sourceVlog,
+    },
+    {
+      href: creatorHref,
+      icon: <MessageCircleHeart className="size-4 text-[#16702e]" />,
+      label: copy.articleActions.character,
+    },
+  ];
+
+  return (
+    <nav
+      aria-label={copy.articleActions.label}
+      className="mt-5 grid gap-2 sm:grid-cols-3"
+    >
+      {actions.map((action) => (
+        <Link
+          className="inline-flex min-h-12 items-center justify-between gap-3 border border-black/12 bg-[#f5f7f1] px-3 py-2 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          href={action.href}
+          key={action.label}
+        >
+          <span className="inline-flex min-w-0 items-center gap-2">
+            {action.icon}
+            <span className="truncate">{action.label}</span>
+          </span>
+          <ArrowUpRight className="size-4 shrink-0 text-black/42" />
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -710,35 +776,41 @@ function ArticleVisualLead({
     sourceContent?.coverImageUrl ??
     sourceContent?.authorAvatarImageUrl ??
     null;
+  const shouldBypassImageOptimization = imageUrl
+    ? shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
 
   return (
-    <figure className="mt-6 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_54px_rgba(12,18,14,0.16)]">
+    <figure className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_24px_64px_rgba(12,18,14,0.18)] sm:mt-6">
       <div
-        className={`relative flex items-center justify-center overflow-hidden bg-[#111510] ${
-          imageUrl ? "" : "min-h-[12rem]"
+        className={`relative aspect-[16/10] overflow-hidden bg-[#111510] sm:aspect-[16/9] ${
+          imageUrl ? "" : "min-h-[14rem]"
         }`}
       >
         {imageUrl ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               alt=""
               aria-hidden="true"
               className="absolute inset-0 h-full w-full scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
-              decoding="async"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 64rem"
               src={imageUrl}
+              unoptimized={shouldBypassImageOptimization}
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               alt={report.title}
               className={
                 blurred
-                  ? "relative z-10 block h-auto max-h-[82svh] max-w-full object-contain blur-md brightness-[0.68] saturate-[0.86] sm:max-h-[78vh]"
-                  : "relative z-10 block h-auto max-h-[82svh] max-w-full object-contain sm:max-h-[78vh]"
+                  ? "relative z-10 object-contain blur-md brightness-[0.68] saturate-[0.86]"
+                  : "relative z-10 object-contain"
               }
-              decoding="async"
-              fetchPriority="high"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 64rem"
               src={imageUrl}
+              unoptimized={shouldBypassImageOptimization}
             />
           </>
         ) : (
@@ -1401,6 +1473,14 @@ export default async function LocalizedFanletterNewsReportPage({
   const paidUnlockHref = shouldShowPaidUnlockPanel
     ? `${articleHref}#${paidUnlockSectionId}`
     : null;
+  const navLinks = [
+    {
+      href: creatorHref,
+      label: copy.navItems[0] ?? copy.articleActions.character,
+    },
+    { href: reporterNewsHref, label: copy.navItems[1] ?? copy.byline },
+    { href: sourceVlogHref, label: copy.navItems[2] ?? copy.sourceTitle },
+  ];
   const facts = [
     { label: copy.sixW.who, value: report.who },
     { label: copy.sixW.when, value: report.when },
@@ -1411,45 +1491,56 @@ export default async function LocalizedFanletterNewsReportPage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#f8f7f2] text-[#111510]">
+    <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
       <NewsSiteHeader
         copy={copy}
         homeHref={newsHomeHref}
         locale={locale}
+        navLinks={navLinks}
         referralCode={referralCode}
         walletHref={walletHref}
       />
 
-      <article className="mx-auto max-w-6xl px-4 pb-14 pt-7 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,780px)_310px] lg:items-start">
+      <article className="mx-auto max-w-[92rem] px-4 pb-16 pt-5 sm:px-6 sm:pt-8 lg:px-8">
+        <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
-            <header className="border-b border-black/14 pb-6">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-bold text-black/54">
-                <span className="text-[#16702e]">{copy.articleSection}</span>
-                <span className="h-3 w-px bg-black/18" aria-hidden="true" />
-                <span>{accessLabel}</span>
-                <span className="h-3 w-px bg-black/18" aria-hidden="true" />
-                <span>{copy.aiReport}</span>
+            <header className="overflow-hidden border border-black/12 bg-white shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
+              <div className="border-b-2 border-[#111510] bg-[#111510] px-4 py-3 sm:px-6">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/58">
+                  <span className="text-[#44f26e]">{copy.articleSection}</span>
+                  <span className="h-3 w-px bg-white/18" aria-hidden="true" />
+                  <span>{accessLabel}</span>
+                  <span className="h-3 w-px bg-white/18" aria-hidden="true" />
+                  <span>{copy.aiReport}</span>
+                </div>
               </div>
+              <div className="p-4 sm:p-6 lg:p-7">
+                <h1
+                  className={`max-w-5xl break-words text-[1.88rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                >
+                  {articleTitle}
+                </h1>
+                <p
+                  className={`mt-4 max-w-3xl text-[1.02rem] font-medium leading-8 text-black/62 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                >
+                  {report.dek}
+                </p>
 
-              <h1
-                className={`mt-4 max-w-4xl break-words text-[2.05rem] font-black leading-[1.16] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[2.9rem] sm:leading-[1.12] ${nsfwTextBlurClass}`}
-              >
-                {articleTitle}
-              </h1>
-              <p
-                className={`mt-4 max-w-3xl text-[1.05rem] font-medium leading-8 text-black/62 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
-              >
-                {report.dek}
-              </p>
+                <ReporterByline
+                  copy={copy}
+                  publishedAt={publishedAt}
+                  report={report}
+                  reporterProfile={reporterProfile}
+                  reporterNewsHref={reporterNewsHref}
+                />
 
-              <ReporterByline
-                copy={copy}
-                publishedAt={publishedAt}
-                report={report}
-                reporterProfile={reporterProfile}
-                reporterNewsHref={reporterNewsHref}
-              />
+                <ArticleActionLinks
+                  copy={copy}
+                  creatorHref={creatorHref}
+                  newsHomeHref={newsHomeHref}
+                  sourceVlogHref={sourceVlogHref}
+                />
+              </div>
             </header>
 
             <ArticleVisualLead
@@ -1545,14 +1636,17 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <section className="mt-7 border border-black/12 bg-white px-4 py-5 shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
-              <div className="mb-4 flex items-center gap-2 text-sm font-black text-[#111510]">
+            <section className="mt-7 overflow-hidden border border-black/12 bg-white shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
+              <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-4 py-3 text-sm font-black text-[#111510] sm:px-5">
                 <FileText className="size-4 text-[#16702e]" />
                 {copy.summaryTitle}
               </div>
-              <dl className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+              <dl className="grid gap-x-5 gap-y-4 p-4 sm:grid-cols-2 sm:p-5">
                 {facts.map((fact) => (
-                  <div className="min-w-0" key={fact.label}>
+                  <div
+                    className="min-w-0 border-l-2 border-[#19b84b]/34 pl-3"
+                    key={fact.label}
+                  >
                     <dt className="text-xs font-bold text-[#16702e]">
                       {fact.label}
                     </dt>
@@ -1568,7 +1662,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
             <section className="mt-8">
               <div
-                className={`max-w-[42rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
+                className={`max-w-[44rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
                   nsfwTextBlurClass
                 }`}
               >
@@ -1585,7 +1679,7 @@ export default async function LocalizedFanletterNewsReportPage({
             </p>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-5">
+          <aside className="space-y-4 xl:sticky xl:top-5">
             <NewsWalletConnectCard
               copy={copy}
               locale={locale}
