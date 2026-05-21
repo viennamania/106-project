@@ -880,7 +880,7 @@ function ReportCoverImagePicker({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {options.map((option) => {
+        {options.map((option, index) => {
           const sourceLabel = getCoverOptionSourceLabel(option, copy);
           const timestamp = formatCoverOptionTimestamp(
             option.timestampSec,
@@ -889,6 +889,8 @@ function ReportCoverImagePicker({
           const label = option.isSelected
             ? copy.coverPicker.currentLabel
             : copy.coverPicker.chooseLabel;
+          const shouldBypassCoverOptionImageOptimization =
+            shouldBypassFanletterImageOptimization(option.imageUrl);
 
           return (
             <form
@@ -911,21 +913,30 @@ function ReportCoverImagePicker({
                 disabled={option.isSelected}
                 type="submit"
               >
-                <span className="relative block aspect-[16/10] w-full overflow-hidden bg-[#111510]">
+                <span className="relative block aspect-[4/5] w-full overflow-hidden bg-[#111510] sm:aspect-[5/6]">
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
+                    fill
+                    loading={index === 0 ? "eager" : "lazy"}
+                    sizes="(max-width: 640px) 100vw, 260px"
+                    src={option.imageUrl}
+                    unoptimized={shouldBypassCoverOptionImageOptimization}
+                  />
                   <Image
                     alt=""
                     aria-hidden="true"
                     className={
                       blurred
-                        ? "object-cover blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.03]"
-                        : "object-cover transition duration-300 group-hover:scale-[1.03]"
+                        ? "object-contain blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.02]"
+                        : "object-contain transition duration-300 group-hover:scale-[1.02]"
                     }
                     fill
+                    loading={index === 0 ? "eager" : "lazy"}
                     sizes="(max-width: 640px) 100vw, 260px"
                     src={option.imageUrl}
-                    unoptimized={shouldBypassFanletterImageOptimization(
-                      option.imageUrl,
-                    )}
+                    unoptimized={shouldBypassCoverOptionImageOptimization}
                   />
                   <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 border border-white/18 bg-black/46 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/78 backdrop-blur">
                     {option.isSelected ? (
