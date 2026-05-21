@@ -1394,6 +1394,37 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
     : null;
 });
 
+export const getFanletterNewsReportsForContent = cache(
+  async ({
+    contentId,
+    limit = 4,
+    locale,
+  }: {
+    contentId: string;
+    limit?: number;
+    locale: Locale;
+  }) => {
+    const normalizedContentId = contentId.trim();
+
+    if (!normalizedContentId) {
+      return [];
+    }
+
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const reports = await reportsCollection
+      .find({
+        contentId: normalizedContentId,
+        locale,
+        status: "published",
+      })
+      .sort({ createdAt: -1, sourcePublishedAt: -1 })
+      .limit(Math.max(1, Math.min(limit, 12)))
+      .toArray();
+
+    return hydrateFanletterNewsReportCoverImageUrls(reports);
+  },
+);
+
 export async function getFanletterNewsReporterMemberByEmail(
   email?: string | null,
   locale: Locale = defaultLocale,

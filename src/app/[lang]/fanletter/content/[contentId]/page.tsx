@@ -7,6 +7,10 @@ import { getFanletterPublicContentDetail } from "@/lib/fanletter-content-service
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
 import { FANLETTER_OG_IMAGE_SIZE } from "@/lib/fanletter-og";
 import {
+  createFanletterNewsReportShareHref,
+  getFanletterNewsReportsForContent,
+} from "@/lib/fanletter-news-report-service";
+import {
   normalizeFanletterReturnToPath,
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
@@ -94,12 +98,19 @@ export default async function LocalizedFanletterContentDetailPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const content = await getFanletterPublicContentDetail(
-    contentId,
-    locale,
-    memberSession?.email ?? null,
-    { includeNsfw },
-  );
+  const [content, newsReports] = await Promise.all([
+    getFanletterPublicContentDetail(
+      contentId,
+      locale,
+      memberSession?.email ?? null,
+      { includeNsfw },
+    ),
+    getFanletterNewsReportsForContent({
+      contentId,
+      limit: 4,
+      locale,
+    }),
+  ]);
 
   if (!content) {
     notFound();
@@ -109,6 +120,15 @@ export default async function LocalizedFanletterContentDetailPage({
     <FanletterContentDetailPage
       content={content}
       locale={locale}
+      newsReports={newsReports.map((report) => ({
+        coverImageUrl: report.coverImageUrl,
+        createdAt: report.createdAt.toISOString(),
+        dek: report.dek,
+        href: createFanletterNewsReportShareHref(report),
+        reporterName: report.reporterName,
+        reportId: report.reportId,
+        title: report.title,
+      }))}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
     />

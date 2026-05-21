@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
+  Newspaper,
   PenLine,
   PlayCircle,
   Rocket,
@@ -81,6 +82,16 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
+
+type FanletterContentNewsReportItem = {
+  coverImageUrl: string | null;
+  createdAt: string;
+  dek: string;
+  href: string;
+  reporterName: string;
+  reportId: string;
+  title: string;
+};
 
 type FanletterSubpageCopy = {
   actions: {
@@ -9303,14 +9314,107 @@ function FanletterNsfwContentGate({
   );
 }
 
+function FanletterContentNewsReports({
+  locale,
+  reports,
+}: {
+  locale: Locale;
+  reports: FanletterContentNewsReportItem[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  const labels =
+    locale === "ko"
+      ? {
+          body: "이 브이로그로 생성된 팬 기자 AI 리포트를 바로 이어서 볼 수 있습니다.",
+          dateFallback: "FanLetter News",
+          reporter: "팬 기자",
+          title: "생성된 AI 리포트",
+        }
+      : {
+          body: "Open fan-reporter AI reports generated from this vlog.",
+          dateFallback: "FanLetter News",
+          reporter: "Fan reporter",
+          title: "Generated AI reports",
+        };
+
+  return (
+    <section className="mt-6 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-white sm:p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <Newspaper className="size-4" />
+            </span>
+            <h2 className="text-base font-semibold tracking-normal">
+              {labels.title}
+            </h2>
+          </div>
+          <p className="mt-2 text-sm font-medium leading-6 text-white/58">
+            {labels.body}
+          </p>
+        </div>
+        <span className="inline-flex w-fit rounded-full border border-white/12 bg-black/24 px-3 py-1 text-xs font-semibold text-white/60">
+          {formatNumber(reports.length, locale)}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {reports.map((report) => (
+          <Link
+            className="group grid min-w-0 grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-black/20 p-2.5 transition hover:border-[#44f26e]/42 hover:bg-black/30"
+            href={report.href}
+            key={report.reportId}
+          >
+            <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#111510]">
+              {report.coverImageUrl ? (
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                  fill
+                  sizes="92px"
+                  src={report.coverImageUrl}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[#44f26e]">
+                  <Newspaper className="size-6" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 py-0.5">
+              <p className="line-clamp-2 break-words text-sm font-semibold leading-5 [word-break:keep-all]">
+                {report.title}
+              </p>
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/50">
+                {report.dek}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-white/38">
+                <span>
+                  {formatDate(report.createdAt, locale) ?? labels.dateFallback}
+                </span>
+                <span>{report.reporterName || labels.reporter}</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterContentDetailPage({
   content,
   locale,
+  newsReports = [],
   referralCode,
   returnToHref,
 }: {
   content: FanletterPublicContentDetail;
   locale: Locale;
+  newsReports?: FanletterContentNewsReportItem[];
   referralCode: string | null;
   returnToHref: string | null;
 }) {
@@ -9876,6 +9980,11 @@ export function FanletterContentDetailPage({
                 shareHref={currentHref}
                 summary={content.summary}
                 title={content.title}
+              />
+
+              <FanletterContentNewsReports
+                locale={locale}
+                reports={newsReports}
               />
 
               {content.fanRequestSource ? (
