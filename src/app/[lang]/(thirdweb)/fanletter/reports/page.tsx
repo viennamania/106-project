@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
@@ -22,8 +22,11 @@ import {
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterReportsSearchParams = {
+  page?: string | string[];
   ref?: string | string[];
 };
+
+const REPORTS_PAGE_SIZE = 12;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -42,6 +45,13 @@ function getCopy(locale: Locale) {
         emptyCta: "브이로그 보러가기",
         emptyTitle: "작성한 리포트가 없습니다.",
         openReport: "리포트 보기",
+        pagination: {
+          label: "리포트 페이지",
+          next: "다음",
+          pageStatus: (current: string, total: string) =>
+            `${current} / ${total} 페이지`,
+          previous: "이전",
+        },
         priceType: {
           paid: "유료",
           public: "공개",
@@ -66,6 +76,13 @@ function getCopy(locale: Locale) {
         emptyCta: "Browse vlogs",
         emptyTitle: "No reports yet.",
         openReport: "Open report",
+        pagination: {
+          label: "Report pages",
+          next: "Next",
+          pageStatus: (current: string, total: string) =>
+            `Page ${current} of ${total}`,
+          previous: "Previous",
+        },
         priceType: {
           paid: "Paid",
           public: "Public",
@@ -89,6 +106,32 @@ function formatDate(value: Date | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function readPageNumber(value?: string | string[]) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const parsed = Number.parseInt(rawValue ?? "", 10);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function getReportPageHref({
+  locale,
+  page,
+  referralCode,
+}: {
+  locale: Locale;
+  page: number;
+  referralCode: string | null;
+}) {
+  const baseHref = buildPathWithReferral(
+    `/${locale}/fanletter/reports`,
+    referralCode,
+  );
+
+  return setPathSearchParams(baseHref, {
+    page: page > 1 ? String(page) : null,
+  });
 }
 
 export async function generateMetadata({
@@ -123,6 +166,8 @@ export default async function LocalizedFanletterReportsPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const currentPage = readPageNumber(query.page);
+  const reportOffset = (currentPage - 1) * REPORTS_PAGE_SIZE;
   const session = await readMemberServerSession();
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/reports`,
@@ -135,8 +180,9 @@ export default async function LocalizedFanletterReportsPage({
   const data = session
     ? await getFanletterNewsReportsForMember({
         email: session.email,
-        limit: 80,
+        limit: REPORTS_PAGE_SIZE,
         locale,
+        offset: reportOffset,
       })
     : {
         member: null,
@@ -148,6 +194,31 @@ export default async function LocalizedFanletterReportsPage({
     `/${locale}/fanletter/feed`,
     effectiveReferralCode,
   );
+  const totalPages = Math.max(
+    1,
+    Math.ceil(data.reportCount / REPORTS_PAGE_SIZE),
+  );
+  const pageNumbers = Array.from(
+    new Set(
+      [
+        1,
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        totalPages,
+      ].filter((page) => page >= 1 && page <= totalPages),
+    ),
+  );
+
+  if (data.member && data.reportCount > 0 && currentPage > totalPages) {
+    redirect(
+      getReportPageHref({
+        locale,
+        page: totalPages,
+        referralCode: effectiveReferralCode,
+      }),
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f5f6f1] px-4 pb-12 pt-5 text-[#111510] sm:px-6 lg:px-8">
@@ -209,7 +280,7 @@ export default async function LocalizedFanletterReportsPage({
               </Link>
             </div>
           </section>
-        ) : data.reports.length === 0 ? (
+        ) : data.reportCount === 0 ? (
           <section className="mt-6 border border-dashed border-black/16 bg-white p-6 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
             <ImageIcon className="mx-auto size-9 text-[#16702e]" />
             <h2 className="mt-4 text-2xl font-black tracking-normal">
@@ -227,7 +298,8 @@ export default async function LocalizedFanletterReportsPage({
             </Link>
           </section>
         ) : (
-          <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <>
+            <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {data.reports.map((report) => {
               const reportHref = buildPathWithReferral(
                 `/${locale}/fanletter/news/${report.reportId}`,
@@ -317,7 +389,72 @@ export default async function LocalizedFanletterReportsPage({
                 </article>
               );
             })}
-          </section>
+            </section>
+
+            {totalPages > 1 ? (
+              <nav
+                aria-label={copy.pagination.label}
+                className="mt-7 flex flex-col gap-3 border-t border-black/12 pt-5 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <p className="text-sm font-black text-black/48">
+                  {copy.pagination.pageStatus(
+                    formatNumber(currentPage, locale),
+                    formatNumber(totalPages, locale),
+                  )}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    aria-disabled={currentPage <= 1}
+                    className={`inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-black transition ${
+                      currentPage <= 1
+                        ? "pointer-events-none border-black/8 bg-white text-black/24"
+                        : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                    }`}
+                    href={getReportPageHref({
+                      locale,
+                      page: Math.max(1, currentPage - 1),
+                      referralCode: effectiveReferralCode,
+                    })}
+                  >
+                    {copy.pagination.previous}
+                  </Link>
+                  {pageNumbers.map((page) => (
+                    <Link
+                      aria-current={page === currentPage ? "page" : undefined}
+                      className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
+                        page === currentPage
+                          ? "border-[#111510] bg-[#111510] !text-white"
+                          : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                      }`}
+                      href={getReportPageHref({
+                        locale,
+                        page,
+                        referralCode: effectiveReferralCode,
+                      })}
+                      key={page}
+                    >
+                      {formatNumber(page, locale)}
+                    </Link>
+                  ))}
+                  <Link
+                    aria-disabled={currentPage >= totalPages}
+                    className={`inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-black transition ${
+                      currentPage >= totalPages
+                        ? "pointer-events-none border-black/8 bg-white text-black/24"
+                        : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                    }`}
+                    href={getReportPageHref({
+                      locale,
+                      page: Math.min(totalPages, currentPage + 1),
+                      referralCode: effectiveReferralCode,
+                    })}
+                  >
+                    {copy.pagination.next}
+                  </Link>
+                </div>
+              </nav>
+            ) : null}
+          </>
         )}
       </section>
     </main>

@@ -1244,10 +1244,12 @@ export async function getFanletterNewsReportsForMember({
   email,
   limit = 60,
   locale,
+  offset = 0,
 }: {
   email?: string | null;
   limit?: number;
   locale?: Locale | null;
+  offset?: number;
 }): Promise<FanletterNewsReportsForMemberResult> {
   const member = await getFanletterNewsReporterMemberByEmail(
     email,
@@ -1268,11 +1270,17 @@ export async function getFanletterNewsReportsForMember({
     status: "published" as const,
     ...(locale ? { locale } : {}),
   };
-  const normalizedLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+  const normalizedLimit = Number.isFinite(limit)
+    ? Math.max(1, Math.min(Math.floor(limit), 100))
+    : 60;
+  const normalizedOffset = Number.isFinite(offset)
+    ? Math.max(0, Math.floor(offset))
+    : 0;
   const [reports, reportCount] = await Promise.all([
     reportsCollection
       .find(query)
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .skip(normalizedOffset)
       .limit(normalizedLimit)
       .toArray(),
     reportsCollection.countDocuments(query),
