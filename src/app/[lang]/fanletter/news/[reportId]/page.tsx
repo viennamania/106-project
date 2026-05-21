@@ -157,6 +157,7 @@ function getCopy(locale: Locale) {
             frame: "영상 프레임",
             manual: "직접 업로드",
             primary: "원본 대표",
+            reporter_cropped: "와이드 크롭",
           },
           title: "리포트 커버 이미지",
         },
@@ -247,6 +248,7 @@ function getCopy(locale: Locale) {
             frame: "Video frame",
             manual: "Manual upload",
             primary: "Source cover",
+            reporter_cropped: "Wide crop",
           },
           title: "Report cover image",
         },
@@ -992,7 +994,8 @@ function SourceVlogEmbed({
   const sourceVideoUrl =
     sourceContent?.canViewerAccess ? sourceContent.contentVideoUrls[0] ?? null : null;
   const shouldUseReportCoverImage =
-    reportCoverImageSource === "reporter_selected";
+    reportCoverImageSource === "reporter_selected" ||
+    reportCoverImageSource === "reporter_cropped";
   const sourceImageUrl =
     shouldUseReportCoverImage
       ? reportCoverImageUrl ??

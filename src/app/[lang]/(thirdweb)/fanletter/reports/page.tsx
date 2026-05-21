@@ -38,6 +38,7 @@ function getCopy(locale: Locale) {
         connectTitle: "계정 연결 후 리포트 목록을 볼 수 있습니다.",
         coverSource: {
           auto: "자동 커버",
+          reporter_cropped: "와이드 크롭",
           reporter_selected: "직접 선택",
         },
         emptyBody:
@@ -69,6 +70,7 @@ function getCopy(locale: Locale) {
         connectTitle: "Connect your account to view your reports.",
         coverSource: {
           auto: "Auto cover",
+          reporter_cropped: "Wide crop",
           reporter_selected: "Manually selected",
         },
         emptyBody:
@@ -309,10 +311,14 @@ export default async function LocalizedFanletterReportsPage({
                 `/${locale}/fanletter/content/${report.contentId}`,
                 effectiveReferralCode,
               );
-              const coverSource =
-                report.coverImageSource === "reporter_selected"
-                  ? copy.coverSource.reporter_selected
-                  : copy.coverSource.auto;
+              let coverSource = copy.coverSource.auto;
+
+              if (report.coverImageSource === "reporter_cropped") {
+                coverSource = copy.coverSource.reporter_cropped;
+              } else if (report.coverImageSource === "reporter_selected") {
+                coverSource = copy.coverSource.reporter_selected;
+              }
+
               const publishedAt = formatDate(report.sourcePublishedAt, locale);
               const shouldBypassCoverImageOptimization = report.coverImageUrl
                 ? shouldBypassFanletterImageOptimization(report.coverImageUrl)

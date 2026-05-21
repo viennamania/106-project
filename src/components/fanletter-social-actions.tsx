@@ -12,7 +12,14 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import {
   useActiveAccount,
   useActiveWalletConnectionStatus,
@@ -40,6 +47,10 @@ type CommentsStatus = "error" | "idle" | "loading" | "ready" | "submitting";
 
 const COMMENTS_PAGE_SIZE = 5;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
+const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
+const REPORT_COVER_CROP_MAX_ZOOM = 3;
+const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
+const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
 const EMPTY_REPORT_COVER_CANDIDATES: ContentCoverImageCandidate[] = [];
 
 type FanletterSocialActionsProps = {
@@ -84,6 +95,48 @@ type FanletterNewsReportCoverOption = {
   url: string;
 };
 
+type ReportCoverCropState = {
+  centerX: number;
+  centerY: number;
+  zoom: number;
+};
+
+type ReportCoverNaturalSize = {
+  height: number;
+  width: number;
+};
+
+type ReportCoverCropRect = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+type FanletterCroppedCoverUploadResponse = {
+  contentType: string;
+  pathname: string;
+  sourceImageUrl: string;
+  url: string;
+};
+
+type ReportCoverCropPayload = {
+  aspectRatio: number;
+  height: number;
+  outputHeight: number;
+  outputWidth: number;
+  sourceImageUrl: string;
+  width: number;
+  x: number;
+  y: number;
+};
+
+const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
+  centerX: 0.5,
+  centerY: 0.5,
+  zoom: 1,
+};
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -118,6 +171,15 @@ function getCopy(locale: Locale) {
         reportCoverLabel: "기사 대표 이미지",
         reportCoverMeta: (index: number) => `커버 ${index.toLocaleString("ko")}`,
         reportCoverSelected: "선택됨",
+        reportCropFailed:
+          "와이드 커버를 저장하지 못했습니다. 다른 커버를 선택하거나 원본 이미지 사용으로 전환해 주세요.",
+        reportCropHelper:
+          "뉴스 홈, 포토 뉴스, 캐릭터 와이어에 맞춘 16:9 파생 커버입니다.",
+        reportCropLabel: "와이드 뉴스 커버",
+        reportCropOriginal: "원본 이미지 사용",
+        reportCropToggle: "와이드 커버 저장",
+        reportCropUploading: "와이드 커버 저장 중",
+        reportCropZoom: "확대",
         reportFailed: "AI 팬 리포트를 만들지 못했습니다.",
         reportReady: "AI 팬 리포트가 준비되었습니다.",
         reportExisting: "내 AI 리포트 보기",
@@ -175,6 +237,15 @@ function getCopy(locale: Locale) {
         reportCoverLabel: "Article lead image",
         reportCoverMeta: (index: number) => `Cover ${index.toLocaleString("en")}`,
         reportCoverSelected: "Selected",
+        reportCropFailed:
+          "Could not save the wide cover. Choose another cover or switch back to the original image.",
+        reportCropHelper:
+          "A 16:9 derivative cover for News home, photo news, and character wire placements.",
+        reportCropLabel: "Wide news cover",
+        reportCropOriginal: "Use original image",
+        reportCropToggle: "Save wide cover",
+        reportCropUploading: "Saving wide cover",
+        reportCropZoom: "Zoom",
         reportFailed: "Could not create the AI fan report.",
         reportReady: "AI fan report is ready.",
         reportExisting: "View my AI report",
@@ -285,6 +356,127 @@ function getReportCoverOptions({
   return options;
 }
 
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getReportCoverCropRect({
+  crop,
+  naturalSize,
+}: {
+  crop: ReportCoverCropState;
+  naturalSize: ReportCoverNaturalSize | null;
+}): ReportCoverCropRect | null {
+  if (!naturalSize || naturalSize.width <= 0 || naturalSize.height <= 0) {
+    return null;
+  }
+
+  const sourceAspectRatio = naturalSize.width / naturalSize.height;
+  const baseWidth =
+    sourceAspectRatio >= REPORT_COVER_CROP_ASPECT_RATIO
+      ? naturalSize.height * REPORT_COVER_CROP_ASPECT_RATIO
+      : naturalSize.width;
+  const baseHeight = baseWidth / REPORT_COVER_CROP_ASPECT_RATIO;
+  const zoom = clampNumber(crop.zoom, 1, REPORT_COVER_CROP_MAX_ZOOM);
+  const width = baseWidth / zoom;
+  const height = baseHeight / zoom;
+  const minCenterX = width / (2 * naturalSize.width);
+  const maxCenterX = 1 - minCenterX;
+  const minCenterY = height / (2 * naturalSize.height);
+  const maxCenterY = 1 - minCenterY;
+  const centerX = clampNumber(crop.centerX, minCenterX, maxCenterX);
+  const centerY = clampNumber(crop.centerY, minCenterY, maxCenterY);
+
+  return {
+    height,
+    width,
+    x: centerX * naturalSize.width - width / 2,
+    y: centerY * naturalSize.height - height / 2,
+  };
+}
+
+function getReportCoverPreviewImageStyle({
+  cropRect,
+  naturalSize,
+}: {
+  cropRect: ReportCoverCropRect;
+  naturalSize: ReportCoverNaturalSize;
+}) {
+  return {
+    height: `${(naturalSize.height / cropRect.height) * 100}%`,
+    left: `${-(cropRect.x / cropRect.width) * 100}%`,
+    top: `${-(cropRect.y / cropRect.height) * 100}%`,
+    width: `${(naturalSize.width / cropRect.width) * 100}%`,
+  };
+}
+
+function loadImageForCrop(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      resolve(image);
+    };
+    image.onerror = () => {
+      reject(new Error("Could not load the selected cover image."));
+    };
+    image.src = src;
+  });
+}
+
+async function createCroppedReportCoverBlob({
+  crop,
+  sourceImageUrl,
+}: {
+  crop: ReportCoverCropState;
+  sourceImageUrl: string;
+}) {
+  const image = await loadImageForCrop(sourceImageUrl);
+  const naturalSize = {
+    height: image.naturalHeight,
+    width: image.naturalWidth,
+  };
+  const cropRect = getReportCoverCropRect({ crop, naturalSize });
+
+  if (!cropRect) {
+    throw new Error("Could not read the selected cover image size.");
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.height = REPORT_COVER_CROP_OUTPUT_HEIGHT;
+  canvas.width = REPORT_COVER_CROP_OUTPUT_WIDTH;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Could not prepare the cover crop.");
+  }
+
+  context.drawImage(
+    image,
+    cropRect.x,
+    cropRect.y,
+    cropRect.width,
+    cropRect.height,
+    0,
+    0,
+    REPORT_COVER_CROP_OUTPUT_WIDTH,
+    REPORT_COVER_CROP_OUTPUT_HEIGHT,
+  );
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.9);
+  });
+
+  if (!blob) {
+    throw new Error("Could not encode the wide cover image.");
+  }
+
+  return {
+    blob,
+    cropRect,
+  };
+}
+
 async function copyToClipboard(value: string) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(value);
@@ -384,7 +576,22 @@ export function FanletterSocialActions({
   const [isReportComposerOpen, setIsReportComposerOpen] = useState(false);
   const [selectedReportCoverUrl, setSelectedReportCoverUrl] =
     useState<string | null>(null);
+  const [isWideReportCoverEnabled, setIsWideReportCoverEnabled] =
+    useState(true);
+  const [reportCoverCrop, setReportCoverCrop] =
+    useState<ReportCoverCropState>(DEFAULT_REPORT_COVER_CROP);
+  const [reportCoverCropError, setReportCoverCropError] =
+    useState<string | null>(null);
+  const [reportCoverNaturalSize, setReportCoverNaturalSize] =
+    useState<ReportCoverNaturalSize | null>(null);
   const [reporterComment, setReporterComment] = useState("");
+  const reportCoverCropFrameRef = useRef<HTMLDivElement | null>(null);
+  const reportCoverCropDragRef = useRef<{
+    initialCrop: ReportCoverCropState;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
   const [comments, setComments] = useState<ContentCommentRecord[]>([]);
   const [commentsPageInfo, setCommentsPageInfo] =
     useState<ContentCommentsResponse["pageInfo"] | null>(null);
@@ -405,6 +612,23 @@ export function FanletterSocialActions({
   );
   const hasReportCoverPreview = reportCoverOptions.length > 0;
   const hasSelectableReportCovers = reportCoverOptions.length > 1;
+  const reportCoverCropRect = useMemo(
+    () =>
+      getReportCoverCropRect({
+        crop: reportCoverCrop,
+        naturalSize: reportCoverNaturalSize,
+      }),
+    [reportCoverCrop, reportCoverNaturalSize],
+  );
+  const reportCoverPreviewImageStyle =
+    reportCoverCropRect && reportCoverNaturalSize
+      ? getReportCoverPreviewImageStyle({
+          cropRect: reportCoverCropRect,
+          naturalSize: reportCoverNaturalSize,
+        })
+      : null;
+  const shouldShowReportCoverCropEditor =
+    hasReportCoverPreview && Boolean(selectedReportCoverUrl);
 
   useEffect(() => {
     setSocial(initialSocial);
@@ -428,6 +652,12 @@ export function FanletterSocialActions({
       return reportCoverOptions[0]?.url ?? null;
     });
   }, [reportCoverOptions]);
+
+  useEffect(() => {
+    setReportCoverCrop(DEFAULT_REPORT_COVER_CROP);
+    setReportCoverCropError(null);
+    setReportCoverNaturalSize(null);
+  }, [selectedReportCoverUrl]);
 
   const resolveEmail = useCallback(async () => {
     if (email) {
@@ -814,9 +1044,15 @@ export function FanletterSocialActions({
   }, [copy.copied, copy.copyFailed, shareHref, summary, title]);
 
   const createNewsReport = useCallback(async ({
+    croppedCoverCrop,
+    croppedCoverImageUrl,
+    croppedCoverSourceImageUrl,
     selectedCoverImageUrl,
     reporterComment,
   }: {
+    croppedCoverCrop?: ReportCoverCropPayload | null;
+    croppedCoverImageUrl?: string | null;
+    croppedCoverSourceImageUrl?: string | null;
     selectedCoverImageUrl?: string | null;
     reporterComment?: string | null;
   } = {}) => {
@@ -839,6 +1075,9 @@ export function FanletterSocialActions({
       const response = await fetch("/api/fanletter/news-reports", {
         body: JSON.stringify({
           contentId,
+          croppedCoverCrop,
+          croppedCoverImageUrl,
+          croppedCoverSourceImageUrl,
           email: resolvedEmail,
           locale,
           reporterComment,
@@ -919,6 +1158,7 @@ export function FanletterSocialActions({
 
   const openReportComposer = useCallback(() => {
     setToast(null);
+    setReportCoverCropError(null);
 
     if (!connection.isConnected || !accountAddress) {
       setToast(connection.isResolving ? copy.loading : copy.signInRequired);
@@ -926,6 +1166,7 @@ export function FanletterSocialActions({
     }
 
     setSelectedReportCoverUrl((current) => current ?? reportCoverOptions[0]?.url ?? null);
+    setIsWideReportCoverEnabled(true);
     setIsReportComposerOpen(true);
   }, [
     accountAddress,
@@ -936,19 +1177,195 @@ export function FanletterSocialActions({
     reportCoverOptions,
   ]);
 
-  const submitNewsReportComposer = useCallback(() => {
-    const trimmedComment = reporterComment.trim();
+  const uploadCroppedReportCover = useCallback(async ({
+    sourceImageUrl,
+  }: {
+    sourceImageUrl: string;
+  }) => {
+    if (!accountAddress) {
+      throw new Error(copy.signInRequired);
+    }
 
-    void createNewsReport({
+    const resolvedEmail = await resolveEmail();
+
+    if (!resolvedEmail) {
+      throw new Error(copy.signInRequired);
+    }
+
+    const { blob, cropRect } = await createCroppedReportCoverBlob({
+      crop: reportCoverCrop,
+      sourceImageUrl,
+    });
+    const file = new File(
+      [blob],
+      `fanletter-news-cover-${contentId}.jpg`,
+      { type: "image/jpeg" },
+    );
+    const formData = new FormData();
+
+    formData.set("contentId", contentId);
+    formData.set("email", resolvedEmail);
+    formData.set("file", file);
+    formData.set("sourceImageUrl", sourceImageUrl);
+    formData.set("walletAddress", accountAddress);
+
+    const response = await fetch("/api/fanletter/news-reports/cropped-cover", {
+      body: formData,
+      method: "POST",
+    });
+    const data = (await response.json().catch(() => null)) as
+      | FanletterCroppedCoverUploadResponse
+      | { error?: string }
+      | null;
+
+    if (!response.ok || !data || !("url" in data)) {
+      throw new Error(
+        data && "error" in data && data.error
+          ? data.error
+          : copy.reportCropFailed,
+      );
+    }
+
+    return {
+      crop: {
+        aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
+        height: cropRect.height,
+        outputHeight: REPORT_COVER_CROP_OUTPUT_HEIGHT,
+        outputWidth: REPORT_COVER_CROP_OUTPUT_WIDTH,
+        sourceImageUrl,
+        width: cropRect.width,
+        x: cropRect.x,
+        y: cropRect.y,
+      },
+      url: data.url,
+    };
+  }, [
+    accountAddress,
+    contentId,
+    copy.reportCropFailed,
+    copy.signInRequired,
+    reportCoverCrop,
+    resolveEmail,
+  ]);
+
+  const handleReportCoverCropPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (!reportCoverCropRect || !reportCoverNaturalSize) {
+        return;
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      reportCoverCropDragRef.current = {
+        initialCrop: reportCoverCrop,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+      };
+    },
+    [reportCoverCrop, reportCoverCropRect, reportCoverNaturalSize],
+  );
+
+  const handleReportCoverCropPointerMove = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const drag = reportCoverCropDragRef.current;
+      const frame = reportCoverCropFrameRef.current;
+
+      if (
+        !drag ||
+        drag.pointerId !== event.pointerId ||
+        !frame ||
+        !reportCoverCropRect ||
+        !reportCoverNaturalSize
+      ) {
+        return;
+      }
+
+      const frameRect = frame.getBoundingClientRect();
+
+      if (frameRect.width <= 0 || frameRect.height <= 0) {
+        return;
+      }
+
+      const deltaX = event.clientX - drag.startX;
+      const deltaY = event.clientY - drag.startY;
+      const cropDeltaX =
+        (deltaX / frameRect.width) *
+        (reportCoverCropRect.width / reportCoverNaturalSize.width);
+      const cropDeltaY =
+        (deltaY / frameRect.height) *
+        (reportCoverCropRect.height / reportCoverNaturalSize.height);
+
+      setReportCoverCrop((current) => ({
+        ...current,
+        centerX: drag.initialCrop.centerX - cropDeltaX,
+        centerY: drag.initialCrop.centerY - cropDeltaY,
+      }));
+    },
+    [reportCoverCropRect, reportCoverNaturalSize],
+  );
+
+  const handleReportCoverCropPointerEnd = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (reportCoverCropDragRef.current?.pointerId === event.pointerId) {
+        reportCoverCropDragRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const submitNewsReportComposer = useCallback(async () => {
+    const trimmedComment = reporterComment.trim();
+    let croppedCoverImageUrl: string | null = null;
+    let croppedCoverCrop: ReportCoverCropPayload | null = null;
+    const shouldUploadWideCover =
+      isWideReportCoverEnabled &&
+      hasReportCoverPreview &&
+      Boolean(selectedReportCoverUrl);
+
+    setReportCoverCropError(null);
+
+    if (shouldUploadWideCover && selectedReportCoverUrl) {
+      setBusyAction("report");
+      setToast(copy.reportCropUploading);
+
+      try {
+        const croppedCover = await uploadCroppedReportCover({
+          sourceImageUrl: selectedReportCoverUrl,
+        });
+
+        croppedCoverImageUrl = croppedCover.url;
+        croppedCoverCrop = croppedCover.crop;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : copy.reportCropFailed;
+
+        setReportCoverCropError(message);
+        setToast(message);
+        setBusyAction(null);
+        return;
+      }
+    }
+
+    await createNewsReport({
+      croppedCoverCrop,
+      croppedCoverImageUrl,
+      croppedCoverSourceImageUrl:
+        croppedCoverImageUrl && selectedReportCoverUrl
+          ? selectedReportCoverUrl
+          : null,
       reporterComment: trimmedComment || null,
       selectedCoverImageUrl:
-        hasSelectableReportCovers ? selectedReportCoverUrl : null,
+        hasReportCoverPreview ? selectedReportCoverUrl : null,
     });
   }, [
+    copy.reportCropFailed,
+    copy.reportCropUploading,
     createNewsReport,
-    hasSelectableReportCovers,
+    hasReportCoverPreview,
+    isWideReportCoverEnabled,
     reporterComment,
     selectedReportCoverUrl,
+    uploadCroppedReportCover,
   ]);
 
   const compactButtonClassName =
@@ -1357,7 +1774,7 @@ export function FanletterSocialActions({
       <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
         <div
           aria-modal="true"
-          className="max-h-[min(44rem,calc(100vh-2rem))] w-full max-w-2xl overflow-y-auto rounded-lg border border-[#44f26e]/24 bg-[#07100b] p-4 text-white shadow-[0_28px_90px_rgba(0,0,0,0.45)] sm:p-5"
+          className="max-h-[min(48rem,calc(100vh-2rem))] w-full max-w-5xl overflow-y-auto rounded-lg border border-[#44f26e]/24 bg-[#07100b] p-4 text-white shadow-[0_28px_90px_rgba(0,0,0,0.45)] sm:p-5"
           role="dialog"
         >
           <div className="flex items-start justify-between gap-4">
@@ -1445,6 +1862,125 @@ export function FanletterSocialActions({
                   );
                 })}
               </div>
+            </div>
+          ) : null}
+
+          {shouldShowReportCoverCropEditor ? (
+            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.045] p-3 sm:p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">
+                    {copy.reportCropLabel}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-white/44">
+                    {copy.reportCropHelper}
+                  </p>
+                </div>
+                <label className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-white/12 bg-black/24 px-3 text-xs font-semibold text-white/68">
+                  <input
+                    checked={isWideReportCoverEnabled}
+                    className="size-4 accent-[#44f26e]"
+                    onChange={(event) => {
+                      setIsWideReportCoverEnabled(event.target.checked);
+                      setReportCoverCropError(null);
+                    }}
+                    type="checkbox"
+                  />
+                  {copy.reportCropToggle}
+                </label>
+              </div>
+
+              {isWideReportCoverEnabled && selectedReportCoverUrl ? (
+                <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem]">
+                  <div
+                    className="relative aspect-video min-h-[12rem] cursor-grab touch-none overflow-hidden rounded-lg border border-white/12 bg-black/40 active:cursor-grabbing"
+                    onPointerCancel={handleReportCoverCropPointerEnd}
+                    onPointerDown={handleReportCoverCropPointerDown}
+                    onPointerMove={handleReportCoverCropPointerMove}
+                    onPointerUp={handleReportCoverCropPointerEnd}
+                    ref={reportCoverCropFrameRef}
+                  >
+                    {/* The crop editor needs the raw image element so canvas export uses the selected source URL. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute max-w-none select-none object-cover"
+                      crossOrigin="anonymous"
+                      draggable={false}
+                      onLoad={(event) => {
+                        const image = event.currentTarget;
+
+                        if (image.naturalWidth && image.naturalHeight) {
+                          setReportCoverNaturalSize({
+                            height: image.naturalHeight,
+                            width: image.naturalWidth,
+                          });
+                        }
+                      }}
+                      src={selectedReportCoverUrl}
+                      style={
+                        reportCoverPreviewImageStyle ?? {
+                          height: "100%",
+                          left: 0,
+                          top: 0,
+                          width: "100%",
+                        }
+                      }
+                    />
+                    <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+                    <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+                    <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+                    <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+                    <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-semibold text-white/62">
+                        {copy.reportCropZoom}
+                      </span>
+                      <span className="text-xs font-semibold text-[#44f26e]">
+                        {reportCoverCrop.zoom.toFixed(2)}x
+                      </span>
+                    </div>
+                    <input
+                      aria-label={copy.reportCropZoom}
+                      className="mt-3 w-full accent-[#44f26e]"
+                      max={REPORT_COVER_CROP_MAX_ZOOM}
+                      min={1}
+                      onChange={(event) => {
+                        setReportCoverCrop((current) => ({
+                          ...current,
+                          zoom: Number(event.target.value),
+                        }));
+                      }}
+                      step={0.01}
+                      type="range"
+                      value={reportCoverCrop.zoom}
+                    />
+                    <button
+                      className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-lg border border-white/12 text-xs font-semibold text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+                      onClick={() => {
+                        setReportCoverCrop(DEFAULT_REPORT_COVER_CROP);
+                      }}
+                      type="button"
+                    >
+                      <RefreshCw className="mr-1.5 size-3.5" />
+                      {copy.refresh}
+                    </button>
+                    {reportCoverCropError ? (
+                      <p className="mt-3 text-xs font-medium leading-5 text-rose-200">
+                        {reportCoverCropError}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-medium text-white/48">
+                  {copy.reportCropOriginal}
+                </p>
+              )}
             </div>
           ) : null}
 

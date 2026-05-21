@@ -10,6 +10,18 @@ import type { FanletterNewsReportDocument } from "@/lib/content";
 
 type FanletterNewsReportCreateRequest = {
   contentId?: string | null;
+  croppedCoverCrop?: {
+    aspectRatio?: number | null;
+    height?: number | null;
+    outputHeight?: number | null;
+    outputWidth?: number | null;
+    sourceImageUrl?: string | null;
+    width?: number | null;
+    x?: number | null;
+    y?: number | null;
+  } | null;
+  croppedCoverImageUrl?: string | null;
+  croppedCoverSourceImageUrl?: string | null;
   email?: string | null;
   locale?: string | null;
   reporterComment?: string | null;
@@ -157,6 +169,9 @@ export async function POST(request: Request) {
 
     const report = await getOrCreateFanletterNewsReport({
       contentId: body?.contentId,
+      croppedCoverCrop: body?.croppedCoverCrop,
+      croppedCoverImageUrl: body?.croppedCoverImageUrl,
+      croppedCoverSourceImageUrl: body?.croppedCoverSourceImageUrl,
       locale: body?.locale,
       reporterEmail: reporter.credentials.email,
       reporterComment: body?.reporterComment,

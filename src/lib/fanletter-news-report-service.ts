@@ -10,6 +10,7 @@ import type {
   ContentPostDocument,
   ContentPriceType,
   CreatorProfileDocument,
+  FanletterNewsReportCoverCropDocument,
   FanletterNewsReportDocument,
 } from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
@@ -78,11 +79,25 @@ type FanletterNewsReportGenerationInput = {
 
 export type CreateFanletterNewsReportInput = {
   contentId?: string | null;
+  croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
+  croppedCoverImageUrl?: string | null;
+  croppedCoverSourceImageUrl?: string | null;
   locale?: string | null;
   reporterEmail?: string | null;
   reporterComment?: string | null;
   reporterReferralCode?: string | null;
   selectedCoverImageUrl?: string | null;
+};
+
+export type FanletterNewsReportCoverCropInput = {
+  aspectRatio?: number | null;
+  height?: number | null;
+  outputHeight?: number | null;
+  outputWidth?: number | null;
+  sourceImageUrl?: string | null;
+  width?: number | null;
+  x?: number | null;
+  y?: number | null;
 };
 
 export type GetFanletterNewsReportForReporterInput = {
@@ -159,7 +174,8 @@ export type FanletterNewsReportCoverOption = {
     | ContentCoverImageCandidate["source"]
     | "auto"
     | "content_image"
-    | "primary";
+    | "primary"
+    | "reporter_cropped";
   timestampSec: number | null;
 };
 
@@ -253,26 +269,15 @@ function getCoverImageUrl(
   });
 }
 
-function getReportCoverImageSelection({
-  post,
-  selectedCoverImageUrl,
-}: {
-  post: ContentPostDocument;
-  selectedCoverImageUrl?: string | null;
-}) {
-  const normalizedSelectedCoverImageUrl = selectedCoverImageUrl?.trim() ?? "";
-  const autoCoverImageUrl = getCoverImageUrl(post);
-
-  if (!normalizedSelectedCoverImageUrl) {
-    return {
-      coverImageSource: "auto" as const,
-      coverImageUrl: autoCoverImageUrl,
-    };
-  }
-
-  const allowedCoverImageUrls = new Set(
+function getAllowedReportCoverImageUrls(
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >,
+) {
+  return new Set(
     [
-      autoCoverImageUrl,
+      getCoverImageUrl(post),
       post.coverImageUrl,
       ...(post.coverImageCandidates ?? []).map((candidate) => candidate.url),
       ...(post.contentImageUrls ?? []),
@@ -280,15 +285,173 @@ function getReportCoverImageSelection({
       .map((url) => url?.trim() ?? "")
       .filter(Boolean),
   );
+}
+
+export function isAllowedFanletterNewsReportCoverSource({
+  imageUrl,
+  post,
+}: {
+  imageUrl?: string | null;
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >;
+}) {
+  const normalizedImageUrl = imageUrl?.trim() ?? "";
+
+  return (
+    Boolean(normalizedImageUrl) &&
+    getAllowedReportCoverImageUrls(post).has(normalizedImageUrl)
+  );
+}
+
+function isAllowedReporterCroppedCoverUrl({
+  imageUrl,
+  reporterReferralCode,
+}: {
+  imageUrl?: string | null;
+  reporterReferralCode?: string | null;
+}) {
+  const normalizedReporterReferralCode = normalizeReferralCode(reporterReferralCode);
+  const normalizedImageUrl = imageUrl?.trim() ?? "";
+
+  if (!normalizedReporterReferralCode || !normalizedImageUrl) {
+    return false;
+  }
+
+  try {
+    const url = new URL(normalizedImageUrl);
+
+    return (
+      url.hostname.endsWith(".public.blob.vercel-storage.com") &&
+      url.pathname.includes(
+        `/fanletter-news-reports/${normalizedReporterReferralCode}/wide-covers/`,
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
+function readFiniteNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeReportCoverCrop({
+  crop,
+  sourceImageUrl,
+}: {
+  crop?: FanletterNewsReportCoverCropInput | null;
+  sourceImageUrl: string;
+}): FanletterNewsReportCoverCropDocument | null {
+  if (!crop) {
+    return null;
+  }
+
+  const aspectRatio = readFiniteNumber(crop.aspectRatio);
+  const height = readFiniteNumber(crop.height);
+  const outputHeight = readFiniteNumber(crop.outputHeight);
+  const outputWidth = readFiniteNumber(crop.outputWidth);
+  const width = readFiniteNumber(crop.width);
+  const x = readFiniteNumber(crop.x);
+  const y = readFiniteNumber(crop.y);
+
+  if (
+    aspectRatio === null ||
+    height === null ||
+    outputHeight === null ||
+    outputWidth === null ||
+    width === null ||
+    x === null ||
+    y === null ||
+    aspectRatio <= 0 ||
+    height <= 0 ||
+    outputHeight <= 0 ||
+    outputWidth <= 0 ||
+    width <= 0 ||
+    x < 0 ||
+    y < 0
+  ) {
+    return null;
+  }
+
+  return {
+    aspectRatio,
+    height,
+    outputHeight: Math.round(outputHeight),
+    outputWidth: Math.round(outputWidth),
+    sourceImageUrl,
+    width,
+    x,
+    y,
+  };
+}
+
+function getReportCoverImageSelection({
+  croppedCoverCrop,
+  croppedCoverImageUrl,
+  croppedCoverSourceImageUrl,
+  post,
+  reporterReferralCode,
+  selectedCoverImageUrl,
+}: {
+  croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
+  croppedCoverImageUrl?: string | null;
+  croppedCoverSourceImageUrl?: string | null;
+  post: ContentPostDocument;
+  reporterReferralCode?: string | null;
+  selectedCoverImageUrl?: string | null;
+}) {
+  const normalizedSelectedCoverImageUrl = selectedCoverImageUrl?.trim() ?? "";
+  const normalizedCroppedCoverImageUrl = croppedCoverImageUrl?.trim() ?? "";
+  const normalizedCroppedCoverSourceImageUrl =
+    croppedCoverSourceImageUrl?.trim() ?? "";
+  const autoCoverImageUrl = getCoverImageUrl(post);
+  const allowedCoverImageUrls = getAllowedReportCoverImageUrls(post);
+  const normalizedCrop = normalizeReportCoverCrop({
+    crop: croppedCoverCrop,
+    sourceImageUrl: normalizedCroppedCoverSourceImageUrl,
+  });
+
+  if (
+    normalizedCroppedCoverImageUrl &&
+    normalizedCroppedCoverSourceImageUrl &&
+    normalizedCrop &&
+    allowedCoverImageUrls.has(normalizedCroppedCoverSourceImageUrl) &&
+    isAllowedReporterCroppedCoverUrl({
+      imageUrl: normalizedCroppedCoverImageUrl,
+      reporterReferralCode,
+    })
+  ) {
+    return {
+      coverImageCrop: normalizedCrop,
+      coverImageOriginalUrl: normalizedCroppedCoverSourceImageUrl,
+      coverImageSource: "reporter_cropped" as const,
+      coverImageUrl: normalizedCroppedCoverImageUrl,
+    };
+  }
+
+  if (!normalizedSelectedCoverImageUrl) {
+    return {
+      coverImageCrop: null,
+      coverImageOriginalUrl: null,
+      coverImageSource: "auto" as const,
+      coverImageUrl: autoCoverImageUrl,
+    };
+  }
 
   if (!allowedCoverImageUrls.has(normalizedSelectedCoverImageUrl)) {
     return {
+      coverImageCrop: null,
+      coverImageOriginalUrl: null,
       coverImageSource: "auto" as const,
       coverImageUrl: autoCoverImageUrl,
     };
   }
 
   return {
+    coverImageCrop: null,
+    coverImageOriginalUrl: null,
     coverImageSource: "reporter_selected" as const,
     coverImageUrl: normalizedSelectedCoverImageUrl,
   };
@@ -304,7 +467,14 @@ function isSelectedReportCoverOption({
   report: Pick<FanletterNewsReportDocument, "coverImageSource" | "coverImageUrl">;
 }) {
   if (isAuto) {
-    return report.coverImageSource !== "reporter_selected";
+    return (
+      report.coverImageSource !== "reporter_selected" &&
+      report.coverImageSource !== "reporter_cropped"
+    );
+  }
+
+  if (report.coverImageSource === "reporter_cropped") {
+    return report.coverImageUrl === imageUrl;
   }
 
   return (
@@ -420,15 +590,23 @@ function getFanletterNewsReportCoverOptionsFromPost({
   }
 
   if (
-    report.coverImageSource === "reporter_selected" &&
+    (report.coverImageSource === "reporter_selected" ||
+      report.coverImageSource === "reporter_cropped") &&
     report.coverImageUrl &&
     !seen.has(report.coverImageUrl)
   ) {
     appendOption({
-      candidateId: "current-report-cover",
+      candidateId:
+        report.coverImageSource === "reporter_cropped"
+          ? "current-cropped-report-cover"
+          : "current-report-cover",
       imageUrl: report.coverImageUrl,
-      inputValue: report.coverImageUrl,
-      source: "primary",
+      inputValue:
+        report.coverImageSource === "reporter_cropped" ? "" : report.coverImageUrl,
+      source:
+        report.coverImageSource === "reporter_cropped"
+          ? "reporter_cropped"
+          : "primary",
     });
   }
 
@@ -469,7 +647,10 @@ async function hydrateFanletterNewsReportCoverImageUrls<
   );
 
   return reports.map((report) => {
-    if (report.coverImageSource === "reporter_selected") {
+    if (
+      report.coverImageSource === "reporter_selected" ||
+      report.coverImageSource === "reporter_cropped"
+    ) {
       return report;
     }
 
@@ -998,6 +1179,9 @@ export function createFanletterNewsReportShareHref(
 
 export async function getOrCreateFanletterNewsReport({
   contentId,
+  croppedCoverCrop,
+  croppedCoverImageUrl,
+  croppedCoverSourceImageUrl,
   locale,
   reporterEmail,
   reporterComment,
@@ -1074,7 +1258,11 @@ export async function getOrCreateFanletterNewsReport({
   const contentBodyContext = getSourceBodyContext(post, contentMaturityRating);
   const normalizedReporterComment = normalizeReporterComment(reporterComment);
   const coverImageSelection = getReportCoverImageSelection({
+    croppedCoverCrop,
+    croppedCoverImageUrl,
+    croppedCoverSourceImageUrl,
     post,
+    reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl,
   });
   const { generatedBy, payload } = await generateNewsReportPayload({
@@ -1096,6 +1284,8 @@ export async function getOrCreateFanletterNewsReport({
     body: payload.body,
     contentId: post.contentId,
     contentMaturityRating,
+    coverImageCrop: coverImageSelection.coverImageCrop,
+    coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
     coverImageSource: coverImageSelection.coverImageSource,
     coverImageUrl: coverImageSelection.coverImageUrl,
     createdAt: now,
@@ -1392,6 +1582,7 @@ export async function updateFanletterNewsReportCoverImage({
 
   const coverImageSelection = getReportCoverImageSelection({
     post,
+    reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl,
   });
   const updatedAt = new Date();
@@ -1400,6 +1591,8 @@ export async function updateFanletterNewsReportCoverImage({
     { reportId: report.reportId },
     {
       $set: {
+        coverImageCrop: coverImageSelection.coverImageCrop,
+        coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
         coverImageSource: coverImageSelection.coverImageSource,
         coverImageUrl: coverImageSelection.coverImageUrl,
         updatedAt,
@@ -1409,6 +1602,8 @@ export async function updateFanletterNewsReportCoverImage({
 
   return {
     ...report,
+    coverImageCrop: coverImageSelection.coverImageCrop,
+    coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
     coverImageSource: coverImageSelection.coverImageSource,
     coverImageUrl: coverImageSelection.coverImageUrl,
     updatedAt,

@@ -448,11 +448,29 @@ export type FanletterCharacterFollowDocument = {
   updatedAt: Date;
 };
 
+export type FanletterNewsReportCoverImageSource =
+  | "auto"
+  | "reporter_cropped"
+  | "reporter_selected";
+
+export type FanletterNewsReportCoverCropDocument = {
+  aspectRatio: number;
+  height: number;
+  outputHeight: number;
+  outputWidth: number;
+  sourceImageUrl: string;
+  width: number;
+  x: number;
+  y: number;
+};
+
 export type FanletterNewsReportDocument = {
   body: string;
   contentId: string;
   contentMaturityRating: ContentMaturityRating;
-  coverImageSource?: "auto" | "reporter_selected";
+  coverImageCrop?: FanletterNewsReportCoverCropDocument | null;
+  coverImageOriginalUrl?: string | null;
+  coverImageSource?: FanletterNewsReportCoverImageSource;
   coverImageUrl: string | null;
   createdAt: Date;
   creatorName: string;
