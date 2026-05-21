@@ -86,6 +86,8 @@ export type FanletterContentNewsReportItem = {
   title: string;
 };
 
+const EMPTY_NEWS_REPORTS: FanletterContentNewsReportItem[] = [];
+
 type FanletterNewsReportSummary = {
   coverImageUrl: string | null;
   createdAt: string;
@@ -680,7 +682,7 @@ export function FanletterSocialActions({
   commentsHref,
   contentId,
   hasViewerNewsReport = false,
-  initialNewsReports = [],
+  initialNewsReports = EMPTY_NEWS_REPORTS,
   initialSocial,
   isOwnContent = false,
   locale,

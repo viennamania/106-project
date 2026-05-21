@@ -34,19 +34,31 @@ export function FanletterChannelSectionTabs({
         .join("|"),
     [items],
   );
-  const sectionTabs = useMemo(
+  const sectionEntries = useMemo(
     () =>
-      items
-        .map((item) => ({
-          ...item,
-          sectionId: item.sectionId === null ? null : item.sectionId ?? item.id,
-        }))
-        .filter(
-          (item): item is FanletterChannelSectionTabItem & { sectionId: string } =>
-            Boolean(item.sectionId),
+      sectionKey
+        .split("|")
+        .map((entry) => {
+          const separatorIndex = entry.indexOf(":");
+
+          if (separatorIndex < 0) {
+            return null;
+          }
+
+          const tabId = entry.slice(0, separatorIndex);
+          const sectionId = entry.slice(separatorIndex + 1);
+
+          return sectionId ? { id: sectionId, tabId } : null;
+        })
+        .filter((entry): entry is { id: string; tabId: string } =>
+          Boolean(entry),
         ),
-    [items],
+    [sectionKey],
   );
+
+  const setActiveTabId = useCallback((nextId: string) => {
+    setActiveId((current) => (current === nextId ? current : nextId));
+  }, []);
 
   const scrollToTarget = useCallback((targetElement: HTMLElement) => {
     const prefersReducedMotion = window.matchMedia(
@@ -65,10 +77,6 @@ export function FanletterChannelSectionTabs({
   }, []);
 
   useEffect(() => {
-    const sectionEntries = sectionTabs.map((tab) => ({
-      id: tab.sectionId,
-      tabId: tab.id,
-    }));
     const sectionIds = sectionEntries.map((entry) => entry.id);
 
     if (sectionIds.length === 0) {
@@ -80,7 +88,7 @@ export function FanletterChannelSectionTabs({
       const matched = sectionEntries.find((entry) => entry.id === hashId);
 
       if (matched) {
-        setActiveId(matched.tabId);
+        setActiveTabId(matched.tabId);
       }
     }
 
@@ -109,7 +117,7 @@ export function FanletterChannelSectionTabs({
         const matched = sectionEntries.find((entry) => entry.id === nextId);
 
         if (matched) {
-          setActiveId(matched.tabId);
+          setActiveTabId(matched.tabId);
         }
       },
       {
@@ -131,7 +139,7 @@ export function FanletterChannelSectionTabs({
       window.removeEventListener("hashchange", updateFromHash);
       window.removeEventListener("popstate", updateFromHash);
     };
-  }, [sectionKey, sectionTabs]);
+  }, [sectionEntries, setActiveTabId]);
 
   useEffect(() => {
     const nav = navRef.current;
@@ -276,9 +284,9 @@ export function FanletterChannelSectionTabs({
     }
 
     event.preventDefault();
-    setActiveId(tab.id);
+    setActiveTabId(tab.id);
     window.history.pushState(
-      null,
+      window.history.state,
       "",
       `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`,
     );
@@ -303,6 +311,7 @@ export function FanletterChannelSectionTabs({
             : "relative z-20 -mx-4 mb-5 border-y border-[#44f26e]/14 bg-[#07100b]/94 px-3 py-2 text-white backdrop-blur",
           "sm:sticky sm:top-0 sm:z-20 sm:-mx-6 sm:mb-8 sm:border-b sm:border-black/10 sm:bg-[#f6f8f4]/94 sm:px-6 sm:py-3 sm:shadow-none lg:-mx-8 lg:px-8",
         )}
+        data-fanletter-section-tabs="true"
         ref={navRef}
       >
         <div className="mx-auto flex max-w-[92rem] touch-auto gap-2 overflow-x-auto overscroll-x-contain rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-[0_12px_30px_rgba(8,18,12,0.08)] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
