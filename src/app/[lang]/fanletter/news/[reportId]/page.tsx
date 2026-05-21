@@ -1072,77 +1072,48 @@ function SourceContextCard({
   copy,
   report,
   sourceVlogHref,
-  sourceContent,
 }: {
   accessLabel: string;
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   report: FanletterNewsReportDocument;
   sourceVlogHref: string;
-  sourceContent: FanletterPublicContentDetail | null;
 }) {
-  const sourceImageUrl =
-    sourceContent?.coverImageUrl ??
-    sourceContent?.contentImageUrls[0] ??
-    report.coverImageUrl ??
-    null;
   const textBlurClass = blurred ? "select-none blur-[2px]" : "";
 
   return (
-    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
-      <div className="relative aspect-[16/10] overflow-hidden bg-[#111510]">
-        {sourceImageUrl ? (
-          <>
-            <Image
-              alt=""
-              aria-hidden="true"
-              className={
-                blurred
-                  ? "scale-[1.04] object-cover blur-md brightness-[0.68] saturate-[0.86]"
-                  : "object-cover"
-              }
-              fill
-              sizes="300px"
-              src={sourceImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(sourceImageUrl)}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/68 via-black/4 to-black/12" />
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#111510]">
-            <Clapperboard className="size-9 text-[#44f26e]" />
+    <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+      <div className="border-b border-black/12 pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+              {copy.sourceContext}
+            </p>
+            <h2
+              className={`mt-2 break-words text-xl font-black leading-tight [word-break:keep-all] ${textBlurClass}`}
+            >
+              {report.sourceTitle}
+            </h2>
           </div>
-        )}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 border border-white/18 bg-black/46 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
-            <PlayCircle className="size-3.5 text-[#44f26e]" />
+          <span className="inline-flex shrink-0 items-center gap-1.5 border border-black/12 bg-[#f5f7f1] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-black/58">
+            <PlayCircle className="size-3.5 text-[#16702e]" />
             {accessLabel}
           </span>
         </div>
       </div>
-      <div className="p-4">
-        <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
-          {copy.sourceContext}
-        </p>
-        <h2
-          className={`mt-2 break-words text-xl font-black leading-tight [word-break:keep-all] ${textBlurClass}`}
-        >
-          {report.sourceTitle}
-        </h2>
-        <p
-          className={`mt-2 line-clamp-4 text-sm font-medium leading-6 text-black/58 ${textBlurClass}`}
-        >
-          {report.sourceSummary}
-        </p>
-        <Link
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-          href={sourceVlogHref}
-        >
-          <Clapperboard className="size-4 text-[#16702e]" />
-          {copy.sourceTitle}
-          <ArrowUpRight className="size-4 text-black/42" />
-        </Link>
-      </div>
+      <p
+        className={`mt-3 line-clamp-5 text-sm font-medium leading-6 text-black/58 ${textBlurClass}`}
+      >
+        {report.sourceSummary}
+      </p>
+      <Link
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+        href={sourceVlogHref}
+      >
+        <Clapperboard className="size-4 text-[#16702e]" />
+        {copy.sourceTitle}
+        <ArrowUpRight className="size-4 text-black/42" />
+      </Link>
     </section>
   );
 }
@@ -1628,7 +1599,6 @@ export default async function LocalizedFanletterNewsReportPage({
               copy={copy}
               report={report}
               sourceVlogHref={sourceVlogHref}
-              sourceContent={sourceContent}
             />
 
             <RelatedNewsList
