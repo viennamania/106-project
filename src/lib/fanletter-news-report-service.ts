@@ -1602,10 +1602,16 @@ export async function getFanletterNewsReportCoverOptions({
 }
 
 export async function updateFanletterNewsReportCoverImage({
+  croppedCoverCrop,
+  croppedCoverImageUrl,
+  croppedCoverSourceImageUrl,
   reporterReferralCode,
   reportId,
   selectedCoverImageUrl,
 }: {
+  croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
+  croppedCoverImageUrl?: string | null;
+  croppedCoverSourceImageUrl?: string | null;
   reporterReferralCode?: string | null;
   reportId?: string | null;
   selectedCoverImageUrl?: string | null;
@@ -1647,6 +1653,9 @@ export async function updateFanletterNewsReportCoverImage({
   }
 
   const coverImageSelection = getReportCoverImageSelection({
+    croppedCoverCrop,
+    croppedCoverImageUrl,
+    croppedCoverSourceImageUrl,
     post,
     reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl,

@@ -37,6 +37,18 @@ type FanletterNewsReportCreateRequest = {
 };
 
 type FanletterNewsReportCoverUpdateRequest = {
+  croppedCoverCrop?: {
+    aspectRatio?: number | null;
+    height?: number | null;
+    outputHeight?: number | null;
+    outputWidth?: number | null;
+    sourceImageUrl?: string | null;
+    width?: number | null;
+    x?: number | null;
+    y?: number | null;
+  } | null;
+  croppedCoverImageUrl?: string | null;
+  croppedCoverSourceImageUrl?: string | null;
   email?: string | null;
   locale?: string | null;
   reportId?: string | null;
@@ -354,6 +366,9 @@ export async function PATCH(request: Request) {
     }
 
     const report = await updateFanletterNewsReportCoverImage({
+      croppedCoverCrop: body?.croppedCoverCrop,
+      croppedCoverImageUrl: body?.croppedCoverImageUrl,
+      croppedCoverSourceImageUrl: body?.croppedCoverSourceImageUrl,
       reportId: body?.reportId,
       reporterReferralCode: reporter.reporterReferralCode,
       selectedCoverImageUrl: body?.selectedCoverImageUrl,

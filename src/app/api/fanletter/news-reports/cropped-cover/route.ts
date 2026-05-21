@@ -3,6 +3,7 @@ import { put } from "@vercel/blob";
 import { isAllowedFanletterNewsReportCoverSource } from "@/lib/fanletter-news-report-service";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import { getContentPostsCollection } from "@/lib/mongodb";
 
 export const runtime = "nodejs";
@@ -51,10 +52,20 @@ export async function POST(request: Request) {
   }
 
   const contentId = String(formData.get("contentId") ?? "").trim();
-  const email = normalizeEmail(String(formData.get("email") ?? ""));
   const file = formData.get("file");
+  const requestEmail = normalizeEmail(String(formData.get("email") ?? ""));
   const sourceImageUrl = String(formData.get("sourceImageUrl") ?? "").trim();
-  const walletAddress = String(formData.get("walletAddress") ?? "").trim();
+  const requestWalletAddress = String(
+    formData.get("walletAddress") ?? "",
+  ).trim();
+  const session =
+    requestEmail && requestWalletAddress
+      ? null
+      : await readMemberServerSession();
+  const email =
+    requestEmail || (session ? normalizeEmail(session.email) : "");
+  const walletAddress =
+    requestWalletAddress || (session?.walletAddress?.trim() ?? "");
 
   if (!contentId) {
     return jsonError("contentId is required.", 400);

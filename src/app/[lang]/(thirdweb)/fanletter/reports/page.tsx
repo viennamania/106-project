@@ -213,6 +213,7 @@ export default async function LocalizedFanletterReportsPage({
     );
 
     return {
+      contentId: report.contentId,
       coverImageSource: report.coverImageSource ?? "auto",
       coverImageUrl: report.coverImageUrl,
       dek: report.dek,
