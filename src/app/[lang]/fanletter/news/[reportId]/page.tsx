@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowUpRight,
   BadgeCheck,
   Clapperboard,
   Coins,
@@ -74,6 +75,7 @@ function getCopy(locale: Locale) {
           channelCta: "캐릭터 채널 보기",
           galleryLabel: "아바타 무드",
           latestLabel: "최근 브이로그",
+          profileLabel: "캐릭터 프로필",
           title: "AI 캐릭터 아이덴티티",
           traitLabel: "고정 특징",
         },
@@ -82,7 +84,6 @@ function getCopy(locale: Locale) {
           reactions: "팬 반응",
           vlogs: "브이로그",
         },
-        characterTitle: "이 뉴스의 AI 캐릭터",
         contentBadge: {
           nsfw: "성인 팬 전용 표시",
           paid: "팬 전용 유료 브이로그",
@@ -110,7 +111,6 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
-        openCreator: "캐릭터 채널",
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         reporterNewsCta: "이 기자 뉴스 보기",
@@ -147,6 +147,7 @@ function getCopy(locale: Locale) {
           channelCta: "Open character channel",
           galleryLabel: "Avatar mood",
           latestLabel: "Latest vlog",
+          profileLabel: "Character profile",
           title: "AI character identity",
           traitLabel: "Fixed traits",
         },
@@ -155,7 +156,6 @@ function getCopy(locale: Locale) {
           reactions: "Fan reactions",
           vlogs: "Vlogs",
         },
-        characterTitle: "AI character in this story",
         contentBadge: {
           nsfw: "Adult fan-only marker",
           paid: "Fan-only paid vlog",
@@ -182,7 +182,6 @@ function getCopy(locale: Locale) {
           enabledTitle: "NSFW news visible",
           hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
         },
-        openCreator: "Character channel",
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
         reporterNewsCta: "View reporter news",
@@ -301,8 +300,8 @@ function NewsSiteHeader({
   }).format(new Date());
 
   return (
-    <header className="border-b border-black/14 bg-white text-[#111510]">
-      <div className="border-b border-black/10 bg-[#f7f7f4]">
+    <header className="border-b border-black/14 bg-[#fbfaf7] text-[#111510]">
+      <div className="border-b border-black/10 bg-[#f2f3ec]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.72rem] font-semibold text-black/52 sm:px-6 lg:px-8">
           <span>{today}</span>
           <span className="hidden sm:inline">{copy.edition}</span>
@@ -330,11 +329,11 @@ function NewsSiteHeader({
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-5 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62"
+          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62"
         >
           {copy.navItems.map((item) => (
             <span
-              className="shrink-0"
+              className="shrink-0 border border-black/10 bg-white px-3 py-1.5"
               key={item}
             >
               {item}
@@ -425,17 +424,18 @@ function CharacterIdentityFeature({
   const latestTitle = character?.latestTitle ?? sourceContent?.title ?? null;
 
   return (
-    <section className="mt-6 overflow-hidden border-y border-black/12 bg-[#f4f6f1] text-[#111510]">
-      <div className="grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
-        <div className="relative min-h-[22rem] overflow-hidden border-b border-black/12 bg-[#121610] lg:border-b-0 lg:border-r">
+    <section className="mt-6 overflow-hidden border border-black/12 bg-[#f6f8f2] text-[#111510] shadow-[0_22px_60px_rgba(17,21,16,0.08)]">
+      <div className="grid lg:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+        <div className="relative min-h-[24rem] overflow-hidden bg-[#0d130e] lg:min-h-[32rem]">
           {primaryAvatarImageUrl ? (
             <>
               <Image
                 alt=""
                 aria-hidden="true"
-                className="scale-110 object-cover object-top blur-2xl brightness-[0.48] saturate-[0.9]"
+                className="scale-110 object-cover object-top blur-2xl brightness-[0.38] saturate-[0.88]"
                 fill
-                sizes="(max-width: 1024px) 100vw, 320px"
+                loading="eager"
+                sizes="(max-width: 1024px) 100vw, 380px"
                 src={primaryAvatarImageUrl}
                 unoptimized={shouldBypassFanletterImageOptimization(
                   primaryAvatarImageUrl,
@@ -446,7 +446,8 @@ function CharacterIdentityFeature({
                 aria-hidden="true"
                 className="object-cover object-top"
                 fill
-                sizes="(max-width: 1024px) 100vw, 320px"
+                loading="eager"
+                sizes="(max-width: 1024px) 100vw, 380px"
                 src={primaryAvatarImageUrl}
                 unoptimized={shouldBypassFanletterImageOptimization(
                   primaryAvatarImageUrl,
@@ -454,20 +455,24 @@ function CharacterIdentityFeature({
               />
             </>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-[#121610]">
+            <div className="absolute inset-0 flex items-center justify-center bg-[#0d130e]">
               <UserRound className="size-16 text-[#44f26e]" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/8 to-black/22" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-black/24" />
+          <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 border border-white/16 bg-black/36 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
+            <BadgeCheck className="size-3.5 text-[#44f26e]" />
+            {copy.generated}
+          </div>
           <div className="absolute bottom-4 left-4 right-4">
-            <p className="mb-3 inline-flex border border-white/18 bg-black/38 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/74 backdrop-blur">
+            <p className="mb-3 inline-flex border border-white/18 bg-black/42 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/76 backdrop-blur">
               {copy.characterIdentity.galleryLabel}
             </p>
             {avatarImages.length > 1 ? (
               <div className="grid grid-cols-4 gap-2">
                 {avatarImages.map((imageUrl, index) => (
                   <div
-                    className="relative aspect-square overflow-hidden border border-white/20 bg-white/10"
+                    className="relative aspect-square overflow-hidden border border-white/18 bg-white/10 shadow-[0_10px_28px_rgba(0,0,0,0.22)]"
                     key={`${imageUrl}-${index}`}
                   >
                     <Image
@@ -488,28 +493,31 @@ function CharacterIdentityFeature({
           </div>
         </div>
 
-        <div className="p-5 sm:p-6">
+        <div className="flex min-h-full flex-col p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-white px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/24 bg-white px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e] shadow-[0_8px_22px_rgba(17,21,16,0.06)]">
               <BadgeCheck className="size-3.5" />
               {copy.characterIdentity.title}
             </span>
             <span className="inline-flex border border-black/10 bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/78">
-              {copy.generated}
+              {copy.characterIdentity.profileLabel}
             </span>
           </div>
 
-          <h2 className="mt-4 break-words text-3xl font-black leading-tight [word-break:keep-all] sm:text-[2.45rem]">
+          <h2 className="mt-4 break-words text-4xl font-black leading-tight [word-break:keep-all] sm:text-[3rem]">
             {characterName}
           </h2>
-          <p className="mt-3 max-w-xl text-base font-medium leading-7 text-black/66 sm:text-lg sm:leading-8">
+          <p className="mt-3 max-w-xl text-[1.02rem] font-medium leading-8 text-black/66 sm:text-lg sm:leading-8">
             {character?.summary ?? sourceContent?.summary}
           </p>
 
-          <div className="mt-5 grid grid-cols-3 border-y border-black/10 py-4">
+          <div className="mt-5 grid grid-cols-3 gap-2 border-y border-black/10 py-4">
             {stats.map((stat) => (
-              <div className="min-w-0 px-2 first:pl-0 last:pr-0" key={stat.label}>
-                <p className="truncate text-xl font-black text-[#111510]">
+              <div
+                className="min-w-0 border-r border-black/10 px-2 first:pl-0 last:border-r-0 last:pr-0"
+                key={stat.label}
+              >
+                <p className="truncate text-2xl font-black text-[#111510]">
                   {stat.value}
                 </p>
                 <p className="mt-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42">
@@ -527,7 +535,7 @@ function CharacterIdentityFeature({
               <div className="mt-3 flex flex-wrap gap-2">
                 {traits.map((trait) => (
                   <span
-                    className="border border-black/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-black/68"
+                    className="border border-black/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-black/68 shadow-[0_8px_18px_rgba(17,21,16,0.04)]"
                     key={trait}
                   >
                     {trait}
@@ -538,7 +546,7 @@ function CharacterIdentityFeature({
           ) : null}
 
           {latestTitle ? (
-            <div className="mt-5 border-l-4 border-[#44f26e] bg-white px-4 py-3">
+            <div className="mt-5 border-l-4 border-[#44f26e] bg-white px-4 py-3 shadow-[0_10px_28px_rgba(17,21,16,0.05)]">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
                 {copy.characterIdentity.latestLabel}
               </p>
@@ -548,13 +556,16 @@ function CharacterIdentityFeature({
             </div>
           ) : null}
 
-          <Link
-            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#111510] px-4 py-3 text-sm font-black !text-white transition hover:bg-black sm:w-auto"
-            href={creatorHref}
-          >
-            <MessageCircleHeart className="size-4 text-[#44f26e]" />
-            {copy.characterIdentity.channelCta}
-          </Link>
+          <div className="mt-auto pt-5">
+            <Link
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 py-3 text-sm font-black !text-white shadow-[0_18px_34px_rgba(17,21,16,0.18)] transition hover:bg-black sm:w-auto"
+              href={creatorHref}
+            >
+              <MessageCircleHeart className="size-4 text-[#44f26e]" />
+              {copy.characterIdentity.channelCta}
+              <ArrowUpRight className="size-4 text-white/62" />
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -759,7 +770,7 @@ function SourceVlogEmbed({
       : copy.embeddedLocked;
 
   return (
-    <section className="mt-7 border-y border-black/12 py-5">
+    <section className="mt-7 border border-black/12 bg-white p-4 shadow-[0_14px_42px_rgba(17,21,16,0.06)]">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-sm font-bold text-[#111510]">
           <Clapperboard className="size-4 text-[#16702e]" />
@@ -770,7 +781,7 @@ function SourceVlogEmbed({
           {accessLabel}
         </span>
       </div>
-      <div className="overflow-hidden border border-black/10 bg-black">
+      <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
         <FanletterResponsiveMediaFrame
           alt={sourceContent?.title ?? copy.embeddedTitle}
           blurred={blurred}
@@ -814,96 +825,81 @@ function SourceVlogEmbed({
   );
 }
 
-function CharacterInfoCard({
+function SourceContextCard({
+  accessLabel,
+  blurred,
   copy,
-  creatorHref,
-  locale,
+  report,
+  sourceVlogHref,
   sourceContent,
 }: {
+  accessLabel: string;
+  blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  creatorHref: string;
-  locale: Locale;
+  report: FanletterNewsReportDocument;
+  sourceVlogHref: string;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
-  const character = sourceContent?.authorCharacter;
-  const characterName = character?.name ?? sourceContent?.authorName ?? "FanLetter";
-  const avatarImageUrl =
-    character?.avatarImageSet[0]?.url ?? sourceContent?.authorAvatarImageUrl ?? null;
-  const reactionCount =
-    (sourceContent?.social.likeCount ?? 0) +
-    (sourceContent?.social.commentCount ?? 0) +
-    (sourceContent?.social.saveCount ?? 0);
+  const sourceImageUrl =
+    sourceContent?.coverImageUrl ??
+    sourceContent?.contentImageUrls[0] ??
+    report.coverImageUrl ??
+    null;
+  const textBlurClass = blurred ? "select-none blur-[2px]" : "";
 
   return (
-    <section className="border border-black/12 bg-white p-4 text-[#111510]">
-      <div className="flex gap-3">
-        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#111510]">
-          {avatarImageUrl ? (
+    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+      <div className="relative aspect-[16/10] overflow-hidden bg-[#111510]">
+        {sourceImageUrl ? (
+          <>
             <Image
               alt=""
               aria-hidden="true"
-              className="object-cover object-top"
+              className={
+                blurred
+                  ? "scale-[1.04] object-cover blur-md brightness-[0.68] saturate-[0.86]"
+                  : "object-cover"
+              }
               fill
-              loading="eager"
-              sizes="5rem"
-              src={avatarImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(
-                avatarImageUrl,
-              )}
+              sizes="300px"
+              src={sourceImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(sourceImageUrl)}
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#18251e)]">
-              <UserRound className="size-8 text-[#44f26e]" />
-            </div>
-          )}
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-[#16702e]">
-            {copy.characterTitle}
-          </p>
-          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all]">
-            {characterName}
-          </h2>
-          <p className="mt-2 line-clamp-3 text-sm font-medium leading-5 text-black/58">
-            {character?.summary ?? sourceContent?.summary}
-          </p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/68 via-black/4 to-black/12" />
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#111510]">
+            <Clapperboard className="size-9 text-[#44f26e]" />
+          </div>
+        )}
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 border border-white/18 bg-black/46 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
+            <PlayCircle className="size-3.5 text-[#44f26e]" />
+            {accessLabel}
+          </span>
         </div>
       </div>
-      <div className="mt-4">
-        <div className="grid grid-cols-3 gap-2 border-y border-black/10 py-3">
-          <div>
-            <p className="text-lg font-bold">
-              {character ? `Lv.${character.growth.level}` : "-"}
-            </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
-              {copy.characterStats.level}
-            </p>
-          </div>
-          <div>
-            <p className="text-lg font-bold">
-              {sourceContent
-                ? formatNumber(sourceContent.authorPublicContentCount, locale)
-                : "-"}
-            </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
-              {copy.characterStats.vlogs}
-            </p>
-          </div>
-          <div>
-            <p className="text-lg font-bold">
-              {sourceContent ? formatNumber(reactionCount, locale) : "-"}
-            </p>
-            <p className="mt-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/42">
-              {copy.characterStats.reactions}
-            </p>
-          </div>
-        </div>
-        <Link
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/14 bg-[#111510] px-4 text-sm font-bold !text-white transition hover:bg-black"
-          href={creatorHref}
+      <div className="p-4">
+        <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+          {copy.sourceContext}
+        </p>
+        <h2
+          className={`mt-2 break-words text-xl font-black leading-tight [word-break:keep-all] ${textBlurClass}`}
         >
-          <MessageCircleHeart className="size-4 text-[#44f26e]" />
-          {copy.openCreator}
+          {report.sourceTitle}
+        </h2>
+        <p
+          className={`mt-2 line-clamp-4 text-sm font-medium leading-6 text-black/58 ${textBlurClass}`}
+        >
+          {report.sourceSummary}
+        </p>
+        <Link
+          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          href={sourceVlogHref}
+        >
+          <Clapperboard className="size-4 text-[#16702e]" />
+          {copy.sourceTitle}
+          <ArrowUpRight className="size-4 text-black/42" />
         </Link>
       </div>
     </section>
@@ -922,7 +918,7 @@ function RelatedNewsList({
   reports: FanletterNewsReportDocument[];
 }) {
   return (
-    <section className="border border-black/12 bg-white p-4 text-[#111510]">
+    <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
       <div className="border-b border-black/12 pb-3">
         <div>
           <p className="text-xs font-bold text-[#16702e]">FanLetter News</p>
@@ -1170,6 +1166,8 @@ export default async function LocalizedFanletterNewsReportPage({
   const shouldShowPaidUnlockPanel =
     isPaidSourceContent && sourceContent?.canViewerAccess !== true;
   const paidUnlockSectionId = "fanletter-news-paid-unlock";
+  const sourceVlogSectionId = "fanletter-news-source-vlog";
+  const sourceVlogHref = `${articleHref}#${sourceVlogSectionId}`;
   const paidUnlockAmount =
     sourceContent?.priceUsdt ??
     (shouldShowPaidUnlockPanel ? CONTENT_PAID_USDT_AMOUNT : null);
@@ -1186,7 +1184,7 @@ export default async function LocalizedFanletterNewsReportPage({
   ];
 
   return (
-    <main className="min-h-screen bg-white text-[#111510]">
+    <main className="min-h-screen bg-[#f8f7f2] text-[#111510]">
       <NewsSiteHeader
         copy={copy}
         homeHref={newsHomeHref}
@@ -1195,8 +1193,8 @@ export default async function LocalizedFanletterNewsReportPage({
         walletHref={walletHref}
       />
 
-      <article className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_300px] lg:items-start">
+      <article className="mx-auto max-w-6xl px-4 pb-14 pt-7 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,780px)_310px] lg:items-start">
           <div className="min-w-0">
             <header className="border-b border-black/14 pb-6">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-bold text-black/54">
@@ -1260,17 +1258,19 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
-            <SourceVlogEmbed
-              accessLabel={accessLabel}
-              blurred={shouldBlurCurrentReport}
-              copy={copy}
-              isPaidContent={isPaidSourceContent}
-              paidUnlockHref={paidUnlockHref}
-              priceUsdt={paidUnlockAmount}
-              reportCoverImageSource={report.coverImageSource}
-              reportCoverImageUrl={report.coverImageUrl}
-              sourceContent={sourceContent}
-            />
+            <div className="scroll-mt-6" id={sourceVlogSectionId}>
+              <SourceVlogEmbed
+                accessLabel={accessLabel}
+                blurred={shouldBlurCurrentReport}
+                copy={copy}
+                isPaidContent={isPaidSourceContent}
+                paidUnlockHref={paidUnlockHref}
+                priceUsdt={paidUnlockAmount}
+                reportCoverImageSource={report.coverImageSource}
+                reportCoverImageUrl={report.coverImageUrl}
+                sourceContent={sourceContent}
+              />
+            </div>
 
             {shouldShowPaidUnlockPanel ? (
               <div className="scroll-mt-6" id={paidUnlockSectionId}>
@@ -1310,7 +1310,7 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <section className="mt-7 border-y border-black/12 bg-[#f7f7f4] px-4 py-5">
+            <section className="mt-7 border border-black/12 bg-white px-4 py-5 shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
               <div className="mb-4 flex items-center gap-2 text-sm font-black text-[#111510]">
                 <FileText className="size-4 text-[#16702e]" />
                 {copy.summaryTitle}
@@ -1358,39 +1358,21 @@ export default async function LocalizedFanletterNewsReportPage({
               walletHref={walletHref}
             />
 
+            <SourceContextCard
+              accessLabel={accessLabel}
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              report={report}
+              sourceVlogHref={sourceVlogHref}
+              sourceContent={sourceContent}
+            />
+
             <RelatedNewsList
               copy={copy}
               nsfwOptInEnabled={includeNsfw}
               referralCode={referralCode}
               reports={relatedReports}
             />
-
-            <CharacterInfoCard
-              copy={copy}
-              creatorHref={creatorHref}
-              locale={locale}
-              sourceContent={sourceContent}
-            />
-
-            <section className="border border-black/12 bg-white p-4 text-[#111510]">
-              <p className="text-xs font-bold text-[#16702e]">
-                {copy.sourceContext}
-              </p>
-              <h2
-                className={`mt-3 break-words text-lg font-black leading-tight [word-break:keep-all] ${nsfwTextBlurClass}`}
-              >
-                {report.sourceTitle}
-              </h2>
-              <p
-                className={`mt-2 text-sm font-medium leading-6 text-black/58 ${nsfwTextBlurClass}`}
-              >
-                {report.sourceSummary}
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/58">
-                <Clapperboard className="size-3.5 text-[#16702e]" />
-                {copy.sourceTitle}
-              </span>
-            </section>
           </aside>
         </div>
       </article>
