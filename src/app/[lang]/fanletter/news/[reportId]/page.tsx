@@ -764,31 +764,32 @@ function ArticleVisualLead({
 
   return (
     <figure className="mt-6 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_54px_rgba(12,18,14,0.16)]">
-      <div className="relative aspect-[4/5] min-h-[24rem] overflow-hidden sm:aspect-[16/10] sm:min-h-[28rem]">
+      <div
+        className={`relative flex items-center justify-center overflow-hidden bg-[#111510] ${
+          imageUrl ? "" : "min-h-[12rem]"
+        }`}
+      >
         {imageUrl ? (
           <>
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               alt=""
               aria-hidden="true"
-              className="scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
-              fill
-              sizes="(max-width: 1024px) 100vw, 760px"
+              className="absolute inset-0 h-full w-full scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
+              decoding="async"
               src={imageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
             />
-            <Image
-              alt=""
-              aria-hidden="true"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt={report.title}
               className={
                 blurred
-                  ? "object-contain blur-md brightness-[0.68] saturate-[0.86]"
-                  : "object-contain"
+                  ? "relative z-10 block h-auto max-h-[82svh] max-w-full object-contain blur-md brightness-[0.68] saturate-[0.86] sm:max-h-[78vh]"
+                  : "relative z-10 block h-auto max-h-[82svh] max-w-full object-contain sm:max-h-[78vh]"
               }
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 760px"
+              decoding="async"
+              fetchPriority="high"
               src={imageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
             />
           </>
         ) : (
