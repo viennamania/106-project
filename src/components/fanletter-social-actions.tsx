@@ -10,7 +10,6 @@ import {
   Newspaper,
   RefreshCw,
   Send,
-  Share2,
   X,
 } from "lucide-react";
 import {
@@ -67,8 +66,6 @@ type FanletterSocialActionsProps = {
   reportCoverImageCandidates?: ContentCoverImageCandidate[];
   reportCoverImageUrl?: string | null;
   shareHref: string;
-  summary?: string;
-  title: string;
   variant?: FanletterSocialActionsVariant;
 };
 
@@ -690,8 +687,6 @@ export function FanletterSocialActions({
   reportCoverImageCandidates = EMPTY_REPORT_COVER_CANDIDATES,
   reportCoverImageUrl = null,
   shareHref,
-  summary,
-  title,
   variant = "panel",
 }: FanletterSocialActionsProps) {
   const copy = getCopy(locale);
@@ -713,7 +708,7 @@ export function FanletterSocialActions({
     "reaction",
   );
   const [busyAction, setBusyAction] =
-    useState<"like" | "report" | "save" | "share" | null>(null);
+    useState<"like" | "report" | "save" | null>(null);
   const [newsReportHref, setNewsReportHref] = useState<string | null>(null);
   const [newsReport, setNewsReport] =
     useState<FanletterNewsReportSummary | null>(null);
@@ -1246,45 +1241,6 @@ export function FanletterSocialActions({
     resolveEmail,
   ]);
 
-  const shareContent = useCallback(async () => {
-    setToastScope("reaction");
-    setToast(null);
-    setBusyAction("share");
-
-    try {
-      const shareUrl = new URL(shareHref, window.location.origin).toString();
-
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            text: summary ?? "",
-            title,
-            url: shareUrl,
-          });
-          setBusyAction(null);
-          return;
-        } catch (error) {
-          if (
-            typeof error === "object" &&
-            error !== null &&
-            "name" in error &&
-            error.name === "AbortError"
-          ) {
-            setBusyAction(null);
-            return;
-          }
-        }
-      }
-
-      await copyToClipboard(shareUrl);
-      setToast(copy.copied);
-    } catch {
-      setToast(copy.copyFailed);
-    } finally {
-      setBusyAction(null);
-    }
-  }, [copy.copied, copy.copyFailed, shareHref, summary, title]);
-
   const createNewsReport = useCallback(async ({
     croppedCoverCrop,
     croppedCoverImageUrl,
@@ -1725,22 +1681,14 @@ export function FanletterSocialActions({
             )}
             <span>{formatCount(social.saveCount, locale)}</span>
           </button>
-          <button
-            aria-label={copy.share}
+          <Link
+            aria-label={`${copy.reportsCount} ${formatCount(displayedNewsReportCount, locale)}`}
             className={actionButtonClassName}
-            disabled={busyAction === "share"}
-            onClick={() => {
-              void shareContent();
-            }}
-            type="button"
+            href={`${shareHref}#fanletter-reports`}
           >
-            {busyAction === "share" ? (
-              <Loader2 className={`${actionIconClassName} animate-spin`} />
-            ) : (
-              <Share2 className={actionIconClassName} />
-            )}
-            <span className="sr-only">{copy.share}</span>
-          </button>
+            <Newspaper className={actionIconClassName} />
+            <span>{formatCount(displayedNewsReportCount, locale)}</span>
+          </Link>
         </div>
         {toast ? (
           <p

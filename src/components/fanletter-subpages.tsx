@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
+  Newspaper,
   PenLine,
   PlayCircle,
   Rocket,
@@ -139,6 +140,7 @@ type FanletterSubpageCopy = {
   metrics: {
     comments: string;
     likes: string;
+    reports: string;
     saves: string;
   };
   start: {
@@ -218,6 +220,7 @@ const koCopy: FanletterSubpageCopy = {
   metrics: {
     comments: "댓글",
     likes: "좋아요",
+    reports: "리포트",
     saves: "저장",
   },
   start: {
@@ -297,6 +300,7 @@ const enCopy: FanletterSubpageCopy = {
   metrics: {
     comments: "comments",
     likes: "likes",
+    reports: "reports",
     saves: "saves",
   },
   start: {
@@ -1377,6 +1381,11 @@ function ContentCard({
               value: item.social.commentCount,
             },
             { icon: Bookmark, label: copy.metrics.saves, value: item.social.saveCount },
+            {
+              icon: Newspaper,
+              label: copy.metrics.reports,
+              value: item.newsReportCount,
+            },
           ].map((metric) => {
             const MetricIcon = metric.icon;
 
@@ -1402,9 +1411,8 @@ function ContentCard({
             contentId={item.contentId}
             initialSocial={item.social}
             locale={locale}
+            newsReportCount={item.newsReportCount}
             shareHref={href}
-            summary={displaySummary}
-            title={displayTitle}
             variant="compact"
           />
         </div>
@@ -9885,8 +9893,6 @@ export function FanletterContentDetailPage({
                 reportCoverImageCandidates={content.coverImageCandidates}
                 reportCoverImageUrl={content.coverImageUrl}
                 shareHref={currentHref}
-                summary={content.summary}
-                title={content.title}
               />
 
               {content.fanRequestSource ? (

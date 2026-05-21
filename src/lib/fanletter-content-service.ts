@@ -34,6 +34,7 @@ import {
   getCreatorProfilesCollection,
   getFanletterCharacterFollowsCollection,
   getFanletterFanRequestsCollection,
+  getFanletterNewsReportsCollection,
 } from "@/lib/mongodb";
 
 const FANLETTER_PUBLIC_CONTENT_LIMIT = 24;
@@ -107,6 +108,7 @@ export type FanletterPublicContentItem = {
   primaryVideoUrl: string | null;
   publishedAt: string | null;
   canViewerAccess: boolean;
+  newsReportCount: number;
   social: ContentSocialSummaryRecord;
   summary: string;
   title: string;
@@ -818,6 +820,40 @@ async function getSocialByContentId(posts: ContentPostDocument[]) {
   return new Map(pairs);
 }
 
+async function getNewsReportCountByContentId(
+  posts: ContentPostDocument[],
+  locale: Locale,
+) {
+  const contentIds = [
+    ...new Set(posts.map((post) => post.contentId.trim()).filter(Boolean)),
+  ];
+
+  if (contentIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const rows = await reportsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: {
+          contentId: { $in: contentIds },
+          locale,
+          status: "published",
+        },
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+
+  return new Map(rows.map((row) => [row._id, row.count]));
+}
+
 async function getCreatorCommunityStats({
   creatorEmail,
   referralCode,
@@ -860,12 +896,14 @@ async function getCreatorCommunityStats({
 function toPublicContentItem({
   canViewerAccess,
   coverPlacement = "feed",
+  newsReportCount = 0,
   post,
   profile,
   social,
 }: {
   canViewerAccess?: boolean;
   coverPlacement?: "detail" | "feed";
+  newsReportCount?: number;
   post: ContentPostDocument;
   profile: CreatorProfileDocument | null | undefined;
   social?: ContentSocialSummaryRecord;
@@ -891,6 +929,7 @@ function toPublicContentItem({
     primaryVideoUrl: resolvedCanViewerAccess ? getPrimaryVideoUrl(post) : null,
     publishedAt: post.publishedAt?.toISOString() ?? null,
     canViewerAccess: resolvedCanViewerAccess,
+    newsReportCount: Math.max(0, Math.floor(newsReportCount)),
     social: social ?? createEmptyContentSocialSummary(),
     summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
     title: compactText(post.title, TITLE_LIMIT),
@@ -1832,13 +1871,16 @@ export const getFanletterFeedPageData = cache(
           .skip(offset)
           .limit(pageSize)
           .toArray();
-        const [profileByEmail, socialByContentId] = await Promise.all([
-          getProfilesByAuthorEmail(posts),
-          getSocialByContentId(posts),
-        ]);
+        const [profileByEmail, socialByContentId, newsReportCountByContentId] =
+          await Promise.all([
+            getProfilesByAuthorEmail(posts),
+            getSocialByContentId(posts),
+            getNewsReportCountByContentId(posts, locale),
+          ]);
 
         items = posts.map((post) =>
           toPublicContentItem({
+            newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
             post,
             profile: profileByEmail.get(post.authorEmail),
             social: socialByContentId.get(post.contentId),
@@ -1854,13 +1896,16 @@ export const getFanletterFeedPageData = cache(
           })
           .limit(FANLETTER_FEED_MAX_SORT_CANDIDATES)
           .toArray();
-        const [profileByEmail, socialByContentId] = await Promise.all([
-          getProfilesByAuthorEmail(posts),
-          getSocialByContentId(posts),
-        ]);
+        const [profileByEmail, socialByContentId, newsReportCountByContentId] =
+          await Promise.all([
+            getProfilesByAuthorEmail(posts),
+            getSocialByContentId(posts),
+            getNewsReportCountByContentId(posts, locale),
+          ]);
         const sortedItems = sortFeedItems(
           posts.map((post) =>
             toPublicContentItem({
+              newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
               post,
               profile: profileByEmail.get(post.authorEmail),
               social: socialByContentId.get(post.contentId),
@@ -1908,13 +1953,16 @@ export const getFanletterFeedPageData = cache(
       });
 
       if (previewPosts.length > 0) {
-        const [profileByEmail, socialByContentId] = await Promise.all([
-          getProfilesByAuthorEmail(previewPosts),
-          getSocialByContentId(previewPosts),
-        ]);
+        const [profileByEmail, socialByContentId, newsReportCountByContentId] =
+          await Promise.all([
+            getProfilesByAuthorEmail(previewPosts),
+            getSocialByContentId(previewPosts),
+            getNewsReportCountByContentId(previewPosts, locale),
+          ]);
 
         fanOnlyPreviewItems = previewPosts.map((post) =>
           toPublicContentItem({
+            newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
             post,
             profile: profileByEmail.get(post.authorEmail),
             social: socialByContentId.get(post.contentId),
