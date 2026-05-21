@@ -2070,10 +2070,12 @@ export const getFanletterCreatorVlogsPageData = cache(
               })
               .limit(FANLETTER_FEED_MAX_SORT_CANDIDATES)
               .toArray();
-      const [profileByEmail, socialByContentId] = await Promise.all([
-        getProfilesByAuthorEmail(posts),
-        getSocialByContentId(posts),
-      ]);
+      const [profileByEmail, socialByContentId, newsReportCountByContentId] =
+        await Promise.all([
+          getProfilesByAuthorEmail(posts),
+          getSocialByContentId(posts),
+          getNewsReportCountByContentId(posts, locale),
+        ]);
 
       profile = profile ?? profileByEmail.get(posts[0]?.authorEmail ?? "") ?? null;
       characterPosts = posts.slice(0, FANLETTER_PUBLIC_CONTENT_LIMIT);
@@ -2081,6 +2083,7 @@ export const getFanletterCreatorVlogsPageData = cache(
 
       const candidateItems = posts.map((post) =>
         toPublicContentItem({
+          newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,
           social: socialByContentId.get(post.contentId),
