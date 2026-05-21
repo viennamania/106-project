@@ -115,7 +115,6 @@ import {
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { cn } from "@/lib/utils";
 import {
-  captureVideoCoverFrameFromUrl,
   captureVideoCoverFrames,
   captureVideoCoverFramesFromUrl,
   type CapturedVideoCoverFrame,
@@ -311,7 +310,7 @@ const EMPTY_POST_FORM = {
 };
 
 const COVER_IMAGE_CANDIDATE_LIMIT = 8;
-const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 4;
+const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 6;
 
 function createCoverImageCandidateId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -3752,24 +3751,28 @@ export function CreatorContentStudioPage({
             postForm.contentVideoUrls[0] ??
             postForm.generatedContentVideoUrls[0] ??
             "";
-          const frameCoverFile = await captureVideoCoverFrameFromUrl(
+          const frameCoverCandidates = await captureVideoCoverFramesFromUrl(
             generatedVideoUrlForCover,
             postForm.title.trim() || fallbackTitle || "ai-content-video",
+            { count: VIDEO_FRAME_COVER_CANDIDATE_COUNT },
           );
-          const uploadedCover = await uploadPostCoverImage(frameCoverFile, {
-            candidateSource: "frame",
-            successNotice:
-              locale === "ko"
-                ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
-                : "The AI video teaser image has been applied automatically.",
-            throwOnError: true,
-          });
 
-          coverImageUrlToSave = uploadedCover?.url ?? null;
-          if (uploadedCover?.coverImageCandidate) {
+          const frameCoverResult = await uploadVideoFrameCoverCandidates(
+            frameCoverCandidates,
+            {
+              successNotice:
+                locale === "ko"
+                  ? "AI 동영상 티저 이미지 후보를 자동 저장했습니다."
+                  : "AI video teaser image candidates were saved automatically.",
+              throwOnPrimaryError: true,
+            },
+          );
+
+          coverImageUrlToSave = frameCoverResult.url;
+          for (const candidate of frameCoverResult.candidates) {
             coverImageCandidatesToSave = appendCoverImageCandidate(
               coverImageCandidatesToSave,
-              uploadedCover.coverImageCandidate,
+              candidate,
             );
           }
         } catch {
@@ -4244,8 +4247,8 @@ export function CreatorContentStudioPage({
 
       const email = await resolveMemberEmail();
       const uploadReferralCode = state.member?.referralCode;
-      const shouldCreatePaidVideoCover =
-        isPaidUploadComposer && !postForm.coverImageUrl.trim();
+      const primaryCoverBeforeVideoUpload = postForm.coverImageUrl.trim() || null;
+      const shouldCreatePaidVideoCover = isPaidUploadComposer;
 
       if (!uploadReferralCode) {
         throw new Error(
@@ -4308,6 +4311,7 @@ export function CreatorContentStudioPage({
           });
 
           await uploadVideoFrameCoverCandidates(frameCoverCandidates, {
+            primaryFallbackUrl: primaryCoverBeforeVideoUpload,
             successNotice: paidUploadComposerCopy.frameCoverReady,
             throwOnPrimaryError: true,
           });
@@ -4900,18 +4904,18 @@ export function CreatorContentStudioPage({
                 : "Preparing a public teaser image from the AI video.",
             progress: Math.max(current.progress, 96),
           }));
-          const frameCoverFile = await captureVideoCoverFrameFromUrl(
+          const frameCoverCandidates = await captureVideoCoverFramesFromUrl(
             generatedVideo.url,
             postForm.title.trim() || "ai-content-video",
+            { count: VIDEO_FRAME_COVER_CANDIDATE_COUNT },
           );
 
-          await uploadPostCoverImage(frameCoverFile, {
-            candidateSource: "frame",
+          await uploadVideoFrameCoverCandidates(frameCoverCandidates, {
             successNotice:
               locale === "ko"
-                ? "AI 동영상 티저 이미지가 자동 적용되었습니다."
-                : "The AI video teaser image has been applied automatically.",
-            throwOnError: true,
+                ? "AI 동영상 티저 이미지 후보를 자동 저장했습니다."
+                : "AI video teaser image candidates were saved automatically.",
+            throwOnPrimaryError: true,
           });
           generatedVideoCoverReady = true;
         } catch {

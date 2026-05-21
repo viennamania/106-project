@@ -2,7 +2,7 @@ const VIDEO_FRAME_COVER_MAX_WIDTH = 1280;
 const VIDEO_FRAME_COVER_MIME_TYPE = "image/jpeg";
 const VIDEO_FRAME_COVER_QUALITY = 0.84;
 const VIDEO_FRAME_COVER_TIMEOUT_MS = 12000;
-const VIDEO_FRAME_COVER_DEFAULT_COUNT = 4;
+const VIDEO_FRAME_COVER_DEFAULT_COUNT = 6;
 
 export type CapturedVideoCoverFrame = {
   file: File;

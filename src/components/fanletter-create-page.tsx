@@ -23,6 +23,8 @@ import {
 import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
+  type ContentCoverImageCandidate,
+  type ContentPostGenerateCoverResponse,
   type ContentPostMutationResponse,
   type ContentPostRecord,
   type ContentPostUploadResponse,
@@ -47,7 +49,10 @@ import {
   getThirdwebUserEmail,
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
-import { captureVideoCoverFrameFromUrl } from "@/lib/video-frame-cover-client";
+import {
+  captureVideoCoverFramesFromUrl,
+  type CapturedVideoCoverFrame,
+} from "@/lib/video-frame-cover-client";
 
 type CreateMode = "video";
 type CreateSourceMode = "ai" | "upload";
@@ -58,6 +63,7 @@ type LocalDraftStatus = "cleared" | "idle" | "restored" | "saved";
 
 type GeneratedMedia = {
   contentType: string;
+  coverImageCandidates: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   fileName: string | null;
   revisedPrompt: string | null;
@@ -90,6 +96,8 @@ const CHARACTER_PLAYBOOK_PLAN_IDS = new Set([
 const FANLETTER_CREATE_DISCONNECTED_GRACE_MS = 4500;
 const FANLETTER_CREATE_LOCAL_DRAFT_VERSION = 1;
 const FANLETTER_CREATE_LOCAL_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const COVER_IMAGE_CANDIDATE_LIMIT = 8;
+const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 6;
 
 type FanletterCreateLocalDraft = {
   form: CreateForm;
@@ -207,9 +215,9 @@ function getCopy(locale: Locale) {
         loading: "브이로그 준비 상태를 확인하고 있습니다.",
         missingMedia: "공개하려면 먼저 브이로그 동영상을 생성하세요.",
         teaserFailed:
-          "동영상은 준비됐지만 티저 이미지는 자동 적용하지 못했습니다. 게시 전 다시 시도합니다.",
-        teaserGenerating: "AI 동영상에서 공개 티저 이미지를 준비하고 있습니다.",
-        teaserReady: "AI 동영상 티저 이미지가 자동 적용되었습니다.",
+          "동영상은 준비됐지만 티저 이미지 후보는 자동 저장하지 못했습니다. 게시 전 다시 시도합니다.",
+        teaserGenerating: "AI 동영상에서 공개 티저 이미지 후보를 준비하고 있습니다.",
+        teaserReady: "AI 동영상 티저 이미지 후보가 자동 저장되었습니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "시작 준비 확인하기",
@@ -253,9 +261,9 @@ function getCopy(locale: Locale) {
           tabAi: "AI로 만들기",
           tabUpload: "동영상 업로드",
           teaserFailed:
-            "동영상은 업로드됐지만 티저 이미지는 자동 적용하지 못했습니다. 게시 전 다시 시도합니다.",
-          teaserGenerating: "업로드 동영상에서 공개 티저 이미지를 준비하고 있습니다.",
-          teaserReady: "업로드 동영상 티저 이미지가 자동 적용되었습니다.",
+            "동영상은 업로드됐지만 티저 이미지 후보는 자동 저장하지 못했습니다. 게시 전 다시 시도합니다.",
+          teaserGenerating: "업로드 동영상에서 공개 티저 이미지 후보를 준비하고 있습니다.",
+          teaserReady: "업로드 동영상 티저 이미지 후보가 자동 저장되었습니다.",
           title: "무료 공개 동영상 업로드",
           unsupported: "MP4, MOV, WEBM 동영상만 업로드할 수 있습니다.",
           uploadCta: "무료 동영상 업로드",
@@ -377,9 +385,9 @@ function getCopy(locale: Locale) {
         loading: "Checking vlog setup.",
         missingMedia: "Generate a vlog video before publishing.",
         teaserFailed:
-          "The video is ready, but the teaser image could not be applied automatically. FanLetter will retry before publishing.",
-        teaserGenerating: "Preparing a public teaser image from the AI video.",
-        teaserReady: "The AI video teaser image has been applied automatically.",
+          "The video is ready, but teaser image candidates could not be saved automatically. FanLetter will retry before publishing.",
+        teaserGenerating: "Preparing public teaser image candidates from the AI video.",
+        teaserReady: "AI video teaser image candidates were saved automatically.",
         paymentRequired:
           "Confirm FanLetter readiness to create your first AI character vlog.",
         paymentRequiredCta: "Confirm readiness",
@@ -424,9 +432,9 @@ function getCopy(locale: Locale) {
           tabAi: "Create with AI",
           tabUpload: "Upload video",
           teaserFailed:
-            "The video was uploaded, but the teaser image could not be applied automatically. FanLetter will retry before publishing.",
-          teaserGenerating: "Preparing a public teaser image from the uploaded video.",
-          teaserReady: "The uploaded video teaser image has been applied automatically.",
+            "The video was uploaded, but teaser image candidates could not be saved automatically. FanLetter will retry before publishing.",
+          teaserGenerating: "Preparing public teaser image candidates from the uploaded video.",
+          teaserReady: "Uploaded video teaser image candidates were saved automatically.",
           title: "Upload a free public video",
           unsupported: "Only MP4, MOV, and WEBM videos are supported.",
           uploadCta: "Upload free video",
@@ -457,6 +465,129 @@ async function readApiJson<T>(response: Response, fallbackMessage: string) {
   } catch {
     return { error: fallbackMessage };
   }
+}
+
+function createCoverImageCandidateId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `cover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeNullablePositiveNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : null;
+}
+
+function normalizeCoverImageCandidateSource(
+  value: unknown,
+): ContentCoverImageCandidate["source"] {
+  return value === "ai" || value === "manual" ? value : "frame";
+}
+
+function normalizeCoverImageCandidates(
+  value: unknown,
+): ContentCoverImageCandidate[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seenUrls = new Set<string>();
+  const candidates: ContentCoverImageCandidate[] = [];
+
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const candidate = item as Partial<ContentCoverImageCandidate>;
+    const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
+
+    if (!url || seenUrls.has(url)) {
+      continue;
+    }
+
+    seenUrls.add(url);
+    candidates.push({
+      candidateId:
+        typeof candidate.candidateId === "string" &&
+        candidate.candidateId.trim()
+          ? candidate.candidateId
+          : createCoverImageCandidateId(),
+      contentType:
+        typeof candidate.contentType === "string" && candidate.contentType.trim()
+          ? candidate.contentType
+          : null,
+      createdAt:
+        typeof candidate.createdAt === "string" && candidate.createdAt.trim()
+          ? candidate.createdAt
+          : new Date().toISOString(),
+      height: normalizeNullablePositiveNumber(candidate.height),
+      pathname:
+        typeof candidate.pathname === "string" && candidate.pathname.trim()
+          ? candidate.pathname
+          : null,
+      placements: Array.isArray(candidate.placements)
+        ? candidate.placements.filter(
+            (placement): placement is NonNullable<
+              ContentCoverImageCandidate["placements"]
+            >[number] =>
+              placement === "detail" ||
+              placement === "feed" ||
+              placement === "news" ||
+              placement === "share",
+          )
+        : [],
+      source: normalizeCoverImageCandidateSource(candidate.source),
+      timestampSec: normalizeNullablePositiveNumber(candidate.timestampSec),
+      url,
+      width: normalizeNullablePositiveNumber(candidate.width),
+    });
+  }
+
+  return candidates.slice(0, COVER_IMAGE_CANDIDATE_LIMIT);
+}
+
+function createFrameCoverImageCandidate({
+  frame,
+  upload,
+}: {
+  frame: Pick<CapturedVideoCoverFrame, "height" | "timestampSec" | "width">;
+  upload: ContentPostUploadResponse;
+}): ContentCoverImageCandidate {
+  return {
+    candidateId: createCoverImageCandidateId(),
+    contentType: upload.contentType,
+    createdAt: new Date().toISOString(),
+    height: frame.height,
+    pathname: upload.pathname,
+    placements: [],
+    source: "frame",
+    timestampSec: frame.timestampSec,
+    url: upload.url,
+    width: frame.width,
+  };
+}
+
+function mergeCoverImageCandidates(
+  current: ContentCoverImageCandidate[],
+  additions: ContentCoverImageCandidate[],
+) {
+  const seenUrls = new Set<string>();
+  const merged: ContentCoverImageCandidate[] = [];
+
+  for (const candidate of [...current, ...additions]) {
+    if (!candidate.url || seenUrls.has(candidate.url)) {
+      continue;
+    }
+
+    seenUrls.add(candidate.url);
+    merged.push(candidate);
+  }
+
+  return merged.slice(0, COVER_IMAGE_CANDIDATE_LIMIT);
 }
 
 function getInitialCreateForm(
@@ -500,6 +631,9 @@ function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
 
   return {
     contentType: media.contentType,
+    coverImageCandidates: normalizeCoverImageCandidates(
+      media.coverImageCandidates,
+    ),
     coverImageUrl:
       typeof media.coverImageUrl === "string" && media.coverImageUrl.trim()
         ? media.coverImageUrl
@@ -1073,7 +1207,7 @@ export function FanletterCreatePage({
     return resolved;
   }, [copy.accountRequiredBody, email, memberSession.email]);
 
-  const createGeneratedVideoTeaserCover = useCallback(
+  const createGeneratedVideoTeaserCovers = useCallback(
     async ({
       email: ownerEmail,
       title,
@@ -1083,31 +1217,62 @@ export function FanletterCreatePage({
       title: string;
       videoUrl: string;
     }) => {
-      const frameCoverFile = await captureVideoCoverFrameFromUrl(
+      const frameCoverFiles = await captureVideoCoverFramesFromUrl(
         videoUrl,
         title || "ai-character-vlog",
+        { count: VIDEO_FRAME_COVER_CANDIDATE_COUNT },
       );
-      const formData = new FormData();
+      const coverImageCandidates: ContentCoverImageCandidate[] = [];
+      let coverImageUrl: string | null = null;
+      let lastUploadError: unknown = null;
 
-      formData.set("email", ownerEmail);
-      formData.set("file", frameCoverFile);
-      formData.set("walletAddress", accountAddress ?? "");
+      for (const frame of frameCoverFiles) {
+        try {
+          const formData = new FormData();
 
-      const response = await fetch("/api/content/posts/upload", {
-        body: formData,
-        method: "POST",
-      });
-      const data = (await response.json()) as ContentPostUploadResponse | {
-        error?: string;
-      };
+          formData.set("email", ownerEmail);
+          formData.set("file", frame.file);
+          formData.set("walletAddress", accountAddress ?? "");
 
-      if (!response.ok || !("url" in data)) {
-        throw new Error(
-          "error" in data && data.error ? data.error : copy.errorFallback,
-        );
+          const response = await fetch("/api/content/posts/upload", {
+            body: formData,
+            method: "POST",
+          });
+          const data = (await response.json()) as ContentPostUploadResponse | {
+            error?: string;
+          };
+
+          if (!response.ok || !("url" in data)) {
+            throw new Error(
+              "error" in data && data.error ? data.error : copy.errorFallback,
+            );
+          }
+
+          coverImageUrl ??= data.url;
+          coverImageCandidates.push(
+            createFrameCoverImageCandidate({
+              frame,
+              upload: data,
+            }),
+          );
+        } catch (error) {
+          lastUploadError = error;
+        }
       }
 
-      return data.url;
+      if (!coverImageUrl) {
+        throw lastUploadError instanceof Error
+          ? lastUploadError
+          : new Error(copy.errorFallback);
+      }
+
+      return {
+        coverImageCandidates: coverImageCandidates.slice(
+          0,
+          COVER_IMAGE_CANDIDATE_LIMIT,
+        ),
+        coverImageUrl,
+      };
     },
     [accountAddress, copy.errorFallback],
   );
@@ -1326,7 +1491,10 @@ export function FanletterCreatePage({
         },
         method: "POST",
       });
-      const data = await readApiJson<GeneratedMedia>(response, copy.errorFallback);
+      const data = await readApiJson<ContentPostGenerateCoverResponse>(
+        response,
+        copy.errorFallback,
+      );
 
       if (!response.ok || !("url" in data)) {
         throw new Error(
@@ -1336,29 +1504,35 @@ export function FanletterCreatePage({
 
       const generatedVideo = {
         contentType: data.contentType,
+        coverImageCandidates: [],
         coverImageUrl: null,
         fileName: null,
         revisedPrompt: data.revisedPrompt,
         source: "ai" as const,
         url: data.url,
       };
+      let coverImageCandidates: ContentCoverImageCandidate[] = [];
       let coverImageUrl: string | null = null;
 
       setGeneratedMedia(generatedVideo);
       setGenerationMessage(copy.teaserGenerating);
 
       try {
-        coverImageUrl = await createGeneratedVideoTeaserCover({
+        const teaserCovers = await createGeneratedVideoTeaserCovers({
           email: resolvedEmail,
           title: inferTitle(form, generateCta),
           videoUrl: data.url,
         });
+        coverImageCandidates = teaserCovers.coverImageCandidates;
+        coverImageUrl = teaserCovers.coverImageUrl;
       } catch {
+        coverImageCandidates = [];
         coverImageUrl = null;
       }
 
       setGeneratedMedia({
         ...generatedVideo,
+        coverImageCandidates,
         coverImageUrl,
       });
       setGenerationMessage(copy.contentReady);
@@ -1429,29 +1603,35 @@ export function FanletterCreatePage({
       });
       const uploadedVideo: GeneratedMedia = {
         contentType: file.type,
+        coverImageCandidates: [],
         coverImageUrl: null,
         fileName: file.name,
         revisedPrompt: null,
         source: "upload",
         url: uploaded.url,
       };
+      let coverImageCandidates: ContentCoverImageCandidate[] = [];
       let coverImageUrl: string | null = null;
 
       setGeneratedMedia(uploadedVideo);
       setGenerationMessage(copy.upload.teaserGenerating);
 
       try {
-        coverImageUrl = await createGeneratedVideoTeaserCover({
+        const teaserCovers = await createGeneratedVideoTeaserCovers({
           email: resolvedEmail,
           title: inferTitle(form, copy.upload.fallbackTitle),
           videoUrl: uploaded.url,
         });
+        coverImageCandidates = teaserCovers.coverImageCandidates;
+        coverImageUrl = teaserCovers.coverImageUrl;
       } catch {
+        coverImageCandidates = [];
         coverImageUrl = null;
       }
 
       setGeneratedMedia({
         ...uploadedVideo,
+        coverImageCandidates,
         coverImageUrl,
       });
       setGenerationMessage(copy.upload.ready);
@@ -1508,29 +1688,42 @@ export function FanletterCreatePage({
       setNotice(null);
       const resolvedEmail = await resolveEmail();
       let coverImageUrlToSave = generatedMedia?.coverImageUrl ?? null;
+      let coverImageCandidatesToSave =
+        generatedMedia?.coverImageCandidates ?? [];
 
-      if (generatedVideoUrl && !coverImageUrlToSave) {
+      if (
+        generatedVideoUrl &&
+        (!coverImageUrlToSave || coverImageCandidatesToSave.length === 0)
+      ) {
         try {
           setGenerationMessage(
             generatedMedia?.source === "upload"
               ? copy.upload.teaserGenerating
               : copy.teaserGenerating,
           );
-          coverImageUrlToSave = await createGeneratedVideoTeaserCover({
+          const teaserCovers = await createGeneratedVideoTeaserCovers({
             email: resolvedEmail,
             title,
             videoUrl: generatedVideoUrl,
           });
+          coverImageUrlToSave ??= teaserCovers.coverImageUrl;
+          coverImageCandidatesToSave = mergeCoverImageCandidates(
+            coverImageCandidatesToSave,
+            teaserCovers.coverImageCandidates,
+          );
           setGeneratedMedia((current) =>
             current?.url === generatedVideoUrl
               ? {
                   ...current,
+                  coverImageCandidates: coverImageCandidatesToSave,
                   coverImageUrl: coverImageUrlToSave,
                 }
               : current,
           );
         } catch {
-          coverImageUrlToSave = null;
+          coverImageUrlToSave = generatedMedia?.coverImageUrl ?? null;
+          coverImageCandidatesToSave =
+            generatedMedia?.coverImageCandidates ?? [];
         }
       }
 
@@ -1539,6 +1732,7 @@ export function FanletterCreatePage({
           body,
           contentImageUrls: [],
           contentVideoUrls: generatedVideoUrl ? [generatedVideoUrl] : [],
+          coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
           email: resolvedEmail,
           locale,
