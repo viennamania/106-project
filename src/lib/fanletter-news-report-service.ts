@@ -1399,10 +1399,12 @@ export const getFanletterNewsReportsForContent = cache(
     contentId,
     limit = 4,
     locale,
+    viewerReporterReferralCode,
   }: {
     contentId: string;
     limit?: number;
     locale: Locale;
+    viewerReporterReferralCode?: string | null;
   }) => {
     const normalizedContentId = contentId.trim();
 
@@ -1414,23 +1416,39 @@ export const getFanletterNewsReportsForContent = cache(
     }
 
     const reportsCollection = await getFanletterNewsReportsCollection();
+    const normalizedLimit = Math.max(1, Math.min(limit, 12));
+    const normalizedViewerReporterReferralCode = normalizeReferralCode(
+      viewerReporterReferralCode,
+    );
     const query = {
       contentId: normalizedContentId,
       locale,
       status: "published",
     } as const;
-    const [reports, reportCount] = await Promise.all([
+    const [reports, reportCount, viewerReport] = await Promise.all([
       reportsCollection
         .find(query)
         .sort({ createdAt: -1, sourcePublishedAt: -1 })
-        .limit(Math.max(1, Math.min(limit, 12)))
+        .limit(normalizedLimit)
         .toArray(),
       reportsCollection.countDocuments(query),
+      normalizedViewerReporterReferralCode
+        ? reportsCollection.findOne({
+            ...query,
+            reporterReferralCode: normalizedViewerReporterReferralCode,
+          })
+        : Promise.resolve(null),
     ]);
+    const prioritizedReports = viewerReport
+      ? [
+          viewerReport,
+          ...reports.filter((report) => report.reportId !== viewerReport.reportId),
+        ].slice(0, normalizedLimit)
+      : reports;
 
     return {
       reportCount,
-      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+      reports: await hydrateFanletterNewsReportCoverImageUrls(prioritizedReports),
     };
   },
 );

@@ -88,6 +88,7 @@ type FanletterContentNewsReportItem = {
   createdAt: string;
   dek: string;
   href: string;
+  isViewerReport: boolean;
   reporterName: string;
   reportId: string;
   title: string;
@@ -9327,12 +9328,14 @@ function FanletterContentNewsReports({
           dateFallback: "FanLetter News",
           empty:
             "아직 이 브이로그로 생성된 리포트가 없습니다. 첫 리포트를 만들면 목록에 표시됩니다.",
+          viewerReport: "내 리포트",
           reporter: "팬 기자",
         }
       : {
           dateFallback: "FanLetter News",
           empty:
             "No reports have been generated from this vlog yet. Create the first report to show it here.",
+          viewerReport: "My report",
           reporter: "Fan reporter",
         };
 
@@ -9353,7 +9356,12 @@ function FanletterContentNewsReports({
     <div className="grid gap-3 sm:grid-cols-2">
       {reports.map((report) => (
         <Link
-          className="group grid min-w-0 grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-black/20 p-2.5 transition hover:border-[#44f26e]/42 hover:bg-black/30"
+          className={cn(
+            "group grid min-w-0 grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-lg border bg-black/20 p-2.5 transition hover:border-[#44f26e]/42 hover:bg-black/30",
+            report.isViewerReport
+              ? "border-[#44f26e]/64 bg-[#44f26e]/10"
+              : "border-white/10",
+          )}
           href={report.href}
           key={report.reportId}
         >
@@ -9374,6 +9382,11 @@ function FanletterContentNewsReports({
             )}
           </div>
           <div className="min-w-0 py-0.5">
+            {report.isViewerReport ? (
+              <span className="mb-1.5 inline-flex w-fit rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-semibold text-black">
+                {labels.viewerReport}
+              </span>
+            ) : null}
             <p className="line-clamp-2 break-words text-sm font-semibold leading-5 [word-break:keep-all]">
               {report.title}
             </p>
@@ -9410,6 +9423,7 @@ export function FanletterContentDetailPage({
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? content.authorReferralCode;
+  const hasViewerNewsReport = newsReports.some((report) => report.isViewerReport);
   const isOwnContent = content.viewerRelation === "owner";
   const canViewerAccess = content.canViewerAccess || isOwnContent;
   const ownerReferralCode = content.authorReferralCode ?? effectiveReferralCode;
@@ -9963,6 +9977,7 @@ export function FanletterContentDetailPage({
               <FanletterSocialActions
                 contentId={content.contentId}
                 initialSocial={content.social}
+                hasViewerNewsReport={hasViewerNewsReport}
                 isOwnContent={isOwnContent}
                 locale={locale}
                 newsReportCount={newsReportCount}

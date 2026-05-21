@@ -9,6 +9,7 @@ import { FANLETTER_OG_IMAGE_SIZE } from "@/lib/fanletter-og";
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportsForContent,
+  getFanletterNewsReporterMemberByEmail,
 } from "@/lib/fanletter-news-report-service";
 import {
   normalizeFanletterReturnToPath,
@@ -98,23 +99,27 @@ export default async function LocalizedFanletterContentDetailPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const [content, newsReportResult] = await Promise.all([
+  const [content, viewerReporterMember] = await Promise.all([
     getFanletterPublicContentDetail(
       contentId,
       locale,
       memberSession?.email ?? null,
       { includeNsfw },
     ),
-    getFanletterNewsReportsForContent({
-      contentId,
-      limit: 4,
-      locale,
-    }),
+    getFanletterNewsReporterMemberByEmail(memberSession?.email ?? null, locale),
   ]);
+  const newsReportResult = await getFanletterNewsReportsForContent({
+    contentId,
+    limit: 4,
+    locale,
+    viewerReporterReferralCode: viewerReporterMember?.referralCode ?? null,
+  });
 
   if (!content) {
     notFound();
   }
+
+  const viewerReporterReferralCode = viewerReporterMember?.referralCode ?? null;
 
   return (
     <FanletterContentDetailPage
@@ -126,6 +131,9 @@ export default async function LocalizedFanletterContentDetailPage({
         createdAt: report.createdAt.toISOString(),
         dek: report.dek,
         href: createFanletterNewsReportShareHref(report),
+        isViewerReport:
+          Boolean(viewerReporterReferralCode) &&
+          report.reporterReferralCode === viewerReporterReferralCode,
         reporterName: report.reporterName,
         reportId: report.reportId,
         title: report.title,

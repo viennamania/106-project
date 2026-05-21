@@ -59,6 +59,7 @@ type FanletterSocialActionsProps = {
   className?: string;
   commentsHref?: string;
   contentId: string;
+  hasViewerNewsReport?: boolean;
   initialSocial: ContentSocialSummaryRecord;
   isOwnContent?: boolean;
   locale: Locale;
@@ -185,11 +186,10 @@ function getCopy(locale: Locale) {
         reportCropZoom: "확대",
         reportFailed: "AI 팬 리포트를 만들지 못했습니다.",
         reportReady: "AI 팬 리포트가 준비되었습니다.",
-        reportExisting: "내 AI 리포트 보기",
         reportExistingHelper:
-          "이미 이 브이로그로 만든 AI 리포트가 있습니다. 회원당 한 번만 생성되며 이 버튼으로 다시 열 수 있습니다.",
+          "이미 이 브이로그로 만든 AI 리포트가 있습니다. 목록에서 내 리포트 표시로 확인할 수 있습니다.",
         reportOnceHelper:
-          "AI 리포트는 로그인한 회원별로 브이로그당 한 번만 생성됩니다.",
+          "아직 만든 리포트가 없다면 지금 생성할 수 있습니다. 회원당 브이로그마다 한 번만 생성됩니다.",
         reportModalBody:
           "대표 이미지와 짧은 코멘트를 정하면 AI가 팬 기자 관점의 뉴스 포맷으로 정리합니다.",
         reportModalTitle: "AI 리포트 만들기",
@@ -256,11 +256,10 @@ function getCopy(locale: Locale) {
         reportCropZoom: "Zoom",
         reportFailed: "Could not create the AI fan report.",
         reportReady: "AI fan report is ready.",
-        reportExisting: "View my AI report",
         reportExistingHelper:
-          "You already created an AI report for this vlog. Each connected member can create one report per vlog.",
+          "You already created an AI report for this vlog. Find it in the list by the My report badge.",
         reportOnceHelper:
-          "AI reports can be created once per vlog for each connected member.",
+          "Create one if you do not have a report yet. Each connected member can create one report per vlog.",
         reportModalBody:
           "Pick a lead image and add a short note so AI can frame the story from your fan reporter angle.",
         reportModalTitle: "Create AI report",
@@ -555,6 +554,7 @@ export function FanletterSocialActions({
   className,
   commentsHref,
   contentId,
+  hasViewerNewsReport = false,
   initialSocial,
   isOwnContent = false,
   locale,
@@ -1406,11 +1406,11 @@ export function FanletterSocialActions({
   const actionIconClassName = isPanel ? "size-4" : "size-3.5";
   const likeLabel = social.likedByViewer ? copy.liked : copy.like;
   const saveLabel = social.savedByViewer ? copy.saved : copy.save;
-  const reportLabel = newsReport ? copy.reportExisting : copy.reportShare;
-  const reportHelper = newsReport
+  const hasCurrentViewerNewsReport = hasViewerNewsReport || Boolean(newsReport);
+  const reportHelper = hasCurrentViewerNewsReport
     ? copy.reportExistingHelper
     : copy.reportOnceHelper;
-  const displayedNewsReportCount = newsReport
+  const displayedNewsReportCount = hasCurrentViewerNewsReport
     ? Math.max(newsReportCount, 1)
     : newsReportCount;
   const commentsHelper = isOwnContent
@@ -1562,7 +1562,7 @@ export function FanletterSocialActions({
         className={cn(
           isOwnerPanel
             ? "mt-4 grid grid-cols-2 gap-2"
-            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4",
+            : "mt-5 grid grid-cols-3 gap-2 sm:mt-6",
         )}
       >
         <button
@@ -1611,21 +1611,6 @@ export function FanletterSocialActions({
           )}
           <span>{saveLabel}</span>
           <span className="text-current/56">{formatCount(social.saveCount, locale)}</span>
-        </button>
-        <button
-          className={actionButtonClassName}
-          disabled={busyAction === "share"}
-          onClick={() => {
-            void shareContent();
-          }}
-          type="button"
-        >
-          {busyAction === "share" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Share2 className="size-4" />
-          )}
-          <span>{copy.share}</span>
         </button>
       </div>
 
@@ -1790,18 +1775,7 @@ export function FanletterSocialActions({
         <p className="text-xs font-medium leading-5 text-white/45">
           {reportHelper}
         </p>
-        {newsReport ? (
-          <Link
-            className={cn(
-              "inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition",
-              activeClassName,
-            )}
-            href={newsReport.shareHref}
-          >
-            <Newspaper className="size-4" />
-            <span>{reportLabel}</span>
-          </Link>
-        ) : (
+        {!hasCurrentViewerNewsReport ? (
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-4 text-sm font-semibold text-white/72 transition hover:border-[#44f26e]/46 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             disabled={busyAction === "report" || newsReportStatus === "checking"}
@@ -1815,9 +1789,9 @@ export function FanletterSocialActions({
             ) : (
               <Newspaper className="size-4" />
             )}
-            <span>{reportLabel}</span>
+            <span>{copy.reportShare}</span>
           </button>
-        )}
+        ) : null}
       </div>
 
       {toast && toastScope === "report" ? (
