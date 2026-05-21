@@ -52,6 +52,9 @@ type ReporterStat = {
   referralCode: string;
 };
 
+const CHARACTER_WIRE_REPORT_LIMIT = 9;
+const PHOTO_DESK_REPORT_LIMIT = 4;
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -295,6 +298,76 @@ function isPreferredLeadReport(report: FanletterNewsReportDocument) {
     !title.toLowerCase().includes("fanletter ai 팬 리포트") &&
     !title.toLowerCase().includes("fanletter ai fan report")
   );
+}
+
+function getReportCreatorKey(report: FanletterNewsReportDocument) {
+  return (
+    report.creatorReferralCode?.trim() ||
+    report.creatorName.trim() ||
+    report.reportId
+  );
+}
+
+function getPhotoDeskReports(
+  reports: FanletterNewsReportDocument[],
+  limit: number,
+) {
+  return reports
+    .filter((report) => Boolean(report.coverImageUrl))
+    .slice(0, limit);
+}
+
+function getBalancedCharacterWireReports(
+  reports: FanletterNewsReportDocument[],
+  limit: number,
+) {
+  const reportsByCreator = new Map<string, FanletterNewsReportDocument[]>();
+
+  for (const report of reports) {
+    const creatorKey = getReportCreatorKey(report);
+    const creatorReports = reportsByCreator.get(creatorKey) ?? [];
+
+    creatorReports.push(report);
+    reportsByCreator.set(creatorKey, creatorReports);
+  }
+
+  const selectedReports: FanletterNewsReportDocument[] = [];
+
+  while (selectedReports.length < limit) {
+    let addedReport = false;
+
+    for (const creatorReports of reportsByCreator.values()) {
+      const report = creatorReports.shift();
+
+      if (!report) {
+        continue;
+      }
+
+      selectedReports.push(report);
+      addedReport = true;
+
+      if (selectedReports.length >= limit) {
+        return selectedReports;
+      }
+    }
+
+    if (!addedReport) {
+      break;
+    }
+  }
+
+  return selectedReports;
+}
+
+function excludeReports(
+  reports: FanletterNewsReportDocument[],
+  excludedReports: FanletterNewsReportDocument[],
+) {
+  const excludedReportIds = new Set(
+    excludedReports.map((report) => report.reportId),
+  );
+
+  return reports.filter((report) => !excludedReportIds.has(report.reportId));
 }
 
 function buildMixedNewsHomeReports({
@@ -1651,9 +1724,23 @@ export default async function LocalizedFanletterNewsHomePage({
     : [];
   const heroSideReports = restReports.slice(0, 2);
   const topStories = restReports.slice(2, 7);
-  const photoDeskReports = restReports.slice(7, 11);
-  const featureReports = restReports.slice(11, 20);
-  const latestSectionReports = restReports.slice(20);
+  const sectionCandidateReports = restReports.slice(7);
+  const photoDeskReports = getPhotoDeskReports(
+    sectionCandidateReports,
+    PHOTO_DESK_REPORT_LIMIT,
+  );
+  const reportsAfterPhotoDesk = excludeReports(
+    sectionCandidateReports,
+    photoDeskReports,
+  );
+  const featureReports = getBalancedCharacterWireReports(
+    reportsAfterPhotoDesk,
+    CHARACTER_WIRE_REPORT_LIMIT,
+  );
+  const latestSectionReports = excludeReports(
+    reportsAfterPhotoDesk,
+    featureReports,
+  );
   const [reporterStats, characterNewsStats] = await Promise.all([
     hydrateReporterStats(getReporterStats(allReports)),
     hydrateFanletterNewsCharacterStats(
