@@ -6,8 +6,8 @@ import {
   Clapperboard,
   House,
   LayoutDashboard,
+  Newspaper,
   Plus,
-  UserRound,
 } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
 
@@ -20,7 +20,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "feed" | "create" | "studio" | "profile";
+  key: "home" | "feed" | "create" | "reports" | "studio";
   label: string;
   primary?: boolean;
 };
@@ -108,7 +108,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
           feed: "피드",
           home: "홈",
           label: "FanLetter 주요 메뉴",
-          profile: "프로필",
+          reports: "리포트",
           studio: "스튜디오",
         }
       : {
@@ -116,7 +116,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
           feed: "Feed",
           home: "Home",
           label: "FanLetter navigation",
-          profile: "Profile",
+          reports: "Reports",
           studio: "Studio",
         };
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
@@ -152,25 +152,18 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       primary: true,
     },
     {
+      activePaths: [`${basePath}/reports`],
+      href: buildHref(`${basePath}/reports`),
+      icon: Newspaper,
+      key: "reports",
+      label: copy.reports,
+    },
+    {
       activePaths: [`${basePath}/studio`, `${basePath}/channels`],
       href: buildHref(`${basePath}/studio`),
       icon: LayoutDashboard,
       key: "studio",
       label: copy.studio,
-    },
-    {
-      activePaths: [
-        `${basePath}/profile`,
-        `${basePath}/connect`,
-        `${basePath}/onboarding`,
-        `${basePath}/reports`,
-        `${basePath}/start`,
-        `${basePath}/wallet`,
-      ],
-      href: buildHref(`${basePath}/profile`),
-      icon: UserRound,
-      key: "profile",
-      label: copy.profile,
     },
   ];
 

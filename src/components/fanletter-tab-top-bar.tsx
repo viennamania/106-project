@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MessageCircleHeart } from "lucide-react";
+import { ArrowLeft, MessageCircleHeart, Newspaper } from "lucide-react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -13,10 +13,12 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         back: "이전 화면",
+        reports: "리포트",
         home: "FanLetter 홈",
       }
     : {
         back: "Previous screen",
+        reports: "Reports",
         home: "FanLetter home",
       };
 }
@@ -41,6 +43,10 @@ export function FanletterTabTopBar({
   const copy = getCopy(locale);
   const resolvedHomeHref =
     homeHref ?? buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const reportsHref = buildPathWithReferral(
+    `/${locale}/fanletter/reports`,
+    referralCode,
+  );
 
   return (
     <header className={cn("flex items-center justify-between gap-3", className)}>
@@ -69,6 +75,13 @@ export function FanletterTabTopBar({
       </div>
 
       <div className="flex min-w-0 shrink-0 items-center gap-2">
+        <Link
+          className="hidden h-10 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.045] px-3 text-xs font-semibold !text-white/78 transition hover:border-[#44f26e]/36 hover:bg-white/[0.075] hover:!text-white lg:inline-flex"
+          href={reportsHref}
+        >
+          <Newspaper className="size-4 text-[#44f26e]" />
+          {copy.reports}
+        </Link>
         <FanletterGlobalLanguageSwitcher
           className="inline-flex sm:hidden"
           compact
