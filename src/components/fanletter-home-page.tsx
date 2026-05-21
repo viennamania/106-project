@@ -7,6 +7,7 @@ import {
   ChartNoAxesCombined,
   Clapperboard,
   Crown,
+  FileText,
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
@@ -111,6 +112,7 @@ type FanletterCopy = {
     faq: string;
     features: string;
     paid: string;
+    reports: string;
     studio: string;
   };
   paidSpotlight: {
@@ -297,6 +299,7 @@ const koCopy: FanletterCopy = {
     faq: "FAQ",
     features: "기능",
     paid: "팬 전용",
+    reports: "내 리포트",
     studio: "스튜디오",
   },
   paidSpotlight: {
@@ -493,6 +496,7 @@ const enCopy: FanletterCopy = {
     faq: "FAQ",
     features: "Features",
     paid: "Fan-only",
+    reports: "My reports",
     studio: "Studio",
   },
   paidSpotlight: {
@@ -1361,6 +1365,10 @@ export function FanletterHomePage({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const reportsHref = buildPathWithReferral(
+    `/${locale}/fanletter/reports`,
+    referralCode,
+  );
   const onboardingHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
@@ -1467,6 +1475,7 @@ export function FanletterHomePage({
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
+          reports: "내 리포트",
           studio: "브이로그 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
@@ -1479,6 +1488,7 @@ export function FanletterHomePage({
           help: "Help",
           mobileFirst: "Mobile first",
           network: "Network",
+          reports: "My reports",
           studio: "Vlog studio",
           trust: "Trust",
           usdtReady: "USDT ready",
@@ -1488,11 +1498,13 @@ export function FanletterHomePage({
       ? {
           activate: "계정",
           feed: "피드",
+          reports: "리포트",
           studio: "스튜디오",
         }
       : {
           activate: "Account",
           feed: "Feed",
+          reports: "Reports",
           studio: "Studio",
         };
   const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
@@ -1517,6 +1529,12 @@ export function FanletterHomePage({
             Icon: WalletCards,
             label: "구매함",
           },
+          {
+            body: "작성 리포트",
+            href: reportsHref,
+            Icon: FileText,
+            label: "리포트",
+          },
         ]
       : [
           {
@@ -1536,6 +1554,12 @@ export function FanletterHomePage({
             href: purchasesHref,
             Icon: WalletCards,
             label: "Library",
+          },
+          {
+            body: "Created reports",
+            href: reportsHref,
+            Icon: FileText,
+            label: "Reports",
           },
         ];
   const heroSetupSteps =
@@ -1659,10 +1683,11 @@ export function FanletterHomePage({
               <span className="text-xl font-semibold tracking-tight">FanLetter</span>
             </Link>
 
-            <nav className="hidden items-center gap-8 text-sm font-semibold text-white/82 md:flex">
+            <nav className="hidden items-center gap-4 text-xs font-semibold text-white/82 md:flex lg:gap-6 lg:text-sm">
               <a href="#features">{copy.nav.features}</a>
               <a href="#fan-only-paid">{copy.nav.paid}</a>
               <a href="#creators">{copy.nav.creators}</a>
+              <Link href={reportsHref}>{copy.nav.reports}</Link>
               <Link href={studioHref}>{copy.nav.studio}</Link>
               <a href="#faq">{copy.nav.faq}</a>
             </nav>
@@ -1902,27 +1927,27 @@ export function FanletterHomePage({
       </section>
 
       <section className="border-b border-white/8 bg-[#030504] px-4 py-3 sm:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
           {mobileQuickLinks.map((item) => {
             const Icon = item.Icon;
 
             return (
               <Link
-                className="flex min-h-20 flex-col justify-between rounded-lg border border-white/10 bg-white/[0.06] p-3 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
+                className="flex min-h-[5.35rem] flex-col justify-between rounded-lg border border-white/10 bg-white/[0.06] p-2 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
                 href={item.href}
                 key={item.label}
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                    <Icon className="size-4" />
+                <span className="flex items-center justify-between gap-1">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                    <Icon className="size-3.5" />
                   </span>
-                  <ArrowRight className="size-4 text-white/42" />
+                  <ArrowRight className="size-3.5 text-white/42" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold">
+                  <span className="block text-[0.76rem] font-semibold leading-tight [word-break:keep-all]">
                     {item.label}
                   </span>
-                  <span className="mt-1 block truncate text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-white/48">
+                  <span className="mt-1 block text-[0.58rem] font-semibold uppercase leading-tight tracking-[0.04em] text-white/48 [overflow-wrap:anywhere]">
                     {item.body}
                   </span>
                 </span>
@@ -2583,7 +2608,7 @@ export function FanletterHomePage({
             </div>
           </div>
           <div className="sm:hidden">
-            <div className="grid grid-cols-3 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
+            <div className="grid grid-cols-4 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
                 href={studioHref}
@@ -2595,6 +2620,12 @@ export function FanletterHomePage({
                 href={feedHref}
               >
                 {mobileFooterLabels.feed}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={reportsHref}
+              >
+                {mobileFooterLabels.reports}
               </Link>
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
@@ -2627,6 +2658,9 @@ export function FanletterHomePage({
                 </Link>
                 <Link className="block" href={feedHref}>
                   {footerLabels.feed}
+                </Link>
+                <Link className="block" href={reportsHref}>
+                  {footerLabels.reports}
                 </Link>
                 <Link className="block" href={connectHref}>
                   {footerLabels.activate}
