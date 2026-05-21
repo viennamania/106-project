@@ -23,6 +23,7 @@ import {
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
 import {
   FanletterPaidUnlockPanel,
   FanletterPaidUnlockTrigger,
@@ -464,12 +465,22 @@ function NewsSiteHeader({
 function ArticleActionLinks({
   copy,
   creatorHref,
+  locale,
   newsHomeHref,
+  referralCode,
+  shareHref,
+  shareSummary,
+  shareTitle,
   sourceVlogHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   creatorHref: string;
+  locale: Locale;
   newsHomeHref: string;
+  referralCode: string | null;
+  shareHref: string;
+  shareSummary: string;
+  shareTitle: string;
   sourceVlogHref: string;
 }) {
   const actions = [
@@ -493,7 +504,7 @@ function ArticleActionLinks({
   return (
     <nav
       aria-label={copy.articleActions.label}
-      className="mt-5 grid gap-2 sm:grid-cols-3"
+      className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
     >
       {actions.map((action) => (
         <Link
@@ -508,6 +519,16 @@ function ArticleActionLinks({
           <ArrowUpRight className="size-4 shrink-0 text-black/42" />
         </Link>
       ))}
+      <FanletterChannelShareButton
+        className="!h-auto min-h-12 !rounded-none !border-black/12 !bg-[#f5f7f1] px-3 py-2 text-sm font-black !text-[#111510] hover:!border-[#19b84b] hover:!bg-[#ecfff0]"
+        href={shareHref}
+        locale={locale}
+        referralCode={referralCode}
+        shareIdScope="newsreport"
+        summary={shareSummary}
+        title={shareTitle}
+        trackingSource="fanletter-news-detail"
+      />
     </nav>
   );
 }
@@ -515,13 +536,23 @@ function ArticleActionLinks({
 function MobileNewsBottomNav({
   copy,
   creatorHref,
+  locale,
   newsHomeHref,
+  referralCode,
+  shareHref,
+  shareSummary,
+  shareTitle,
   sourceVlogHref,
   walletHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   creatorHref: string;
+  locale: Locale;
   newsHomeHref: string;
+  referralCode: string | null;
+  shareHref: string;
+  shareSummary: string;
+  shareTitle: string;
   sourceVlogHref: string;
   walletHref: string;
 }) {
@@ -553,7 +584,7 @@ function MobileNewsBottomNav({
       aria-label={copy.articleActions.label}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-black/12 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-14px_38px_rgba(17,21,16,0.16)] backdrop-blur md:hidden"
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+      <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
         {items.map((item) => (
           <Link
             className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-1 text-center text-[0.64rem] font-black leading-none !text-black/56 transition hover:text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]"
@@ -564,6 +595,16 @@ function MobileNewsBottomNav({
             <span className="block max-w-full truncate">{item.label}</span>
           </Link>
         ))}
+        <FanletterChannelShareButton
+          className="!h-auto min-h-14 w-full min-w-0 flex-col gap-1 !rounded-none !border-0 !bg-transparent px-1 py-0 text-center text-[0.64rem] font-black leading-none !text-black/56 hover:!bg-transparent hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]"
+          href={shareHref}
+          locale={locale}
+          referralCode={referralCode}
+          shareIdScope="newsreport"
+          summary={shareSummary}
+          title={shareTitle}
+          trackingSource="fanletter-news-detail"
+        />
       </div>
     </nav>
   );
@@ -1596,7 +1637,12 @@ export default async function LocalizedFanletterNewsReportPage({
                 <ArticleActionLinks
                   copy={copy}
                   creatorHref={creatorHref}
+                  locale={locale}
                   newsHomeHref={newsHomeHref}
+                  referralCode={referralCode}
+                  shareHref={articleHref}
+                  shareSummary={report.dek}
+                  shareTitle={articleTitle}
                   sourceVlogHref={sourceVlogHref}
                 />
               </div>
@@ -1767,7 +1813,12 @@ export default async function LocalizedFanletterNewsReportPage({
       <MobileNewsBottomNav
         copy={copy}
         creatorHref={creatorHref}
+        locale={locale}
         newsHomeHref={newsHomeHref}
+        referralCode={referralCode}
+        shareHref={articleHref}
+        shareSummary={report.dek}
+        shareTitle={articleTitle}
         sourceVlogHref={sourceVlogHref}
         walletHref={paidUnlockHref ?? walletHref}
       />
