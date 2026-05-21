@@ -1804,13 +1804,16 @@ export async function getFanletterPublicContentItems({
     })
     .limit(limit)
     .toArray();
-  const [profileByEmail, socialByContentId] = await Promise.all([
-    getProfilesByAuthorEmail(posts),
-    getSocialByContentId(posts),
-  ]);
+  const [profileByEmail, socialByContentId, newsReportCountByContentId] =
+    await Promise.all([
+      getProfilesByAuthorEmail(posts),
+      getSocialByContentId(posts),
+      getNewsReportCountByContentId(posts, locale),
+    ]);
 
   return posts.map((post) =>
     toPublicContentItem({
+      newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
       post,
       profile: profileByEmail.get(post.authorEmail),
       social: socialByContentId.get(post.contentId),
@@ -2266,15 +2269,17 @@ export const getFanletterPublicContentDetail = cache(
       authorRelatedPosts,
       post.contentId,
     );
-    const authorSocialByContentId = await getSocialByContentId([
-      ...authorPosts,
-      ...authorRelatedPosts,
-    ]);
+    const [authorSocialByContentId, authorNewsReportCountByContentId] =
+      await Promise.all([
+        getSocialByContentId([...authorPosts, ...authorRelatedPosts]),
+        getNewsReportCountByContentId([post, ...authorRecentPosts], locale),
+      ]);
 
     return {
       ...toPublicContentItem({
         canViewerAccess,
         coverPlacement: "detail",
+        newsReportCount: authorNewsReportCountByContentId.get(post.contentId) ?? 0,
         post,
         profile,
         social,
@@ -2290,6 +2295,8 @@ export const getFanletterPublicContentDetail = cache(
       authorPublicContentCount,
       authorRecentContent: authorRecentPosts.map((authorPost) =>
         toPublicContentItem({
+          newsReportCount:
+            authorNewsReportCountByContentId.get(authorPost.contentId) ?? 0,
           post: authorPost,
           profile,
           social: authorSocialByContentId.get(authorPost.contentId),
@@ -2393,7 +2400,11 @@ export const getFanletterCreatorFanOnlyPageData = cache(
     );
     const viewerRelation =
       viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
-    const [socialByContentId, viewerEntitlementContentIds] = await Promise.all([
+    const [
+      socialByContentId,
+      viewerEntitlementContentIds,
+      newsReportCountByContentId,
+    ] = await Promise.all([
       getSocialByContentId(creatorPosts),
       viewerRelation === "audience"
         ? getViewerEntitlementContentIds({
@@ -2401,6 +2412,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
             viewerEmail,
           })
         : Promise.resolve(new Set<string>()),
+      getNewsReportCountByContentId(creatorPosts, locale),
     ]);
     const displayName =
       compactText(profile?.displayName, 48) ||
@@ -2414,6 +2426,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
           canViewerAccess:
             viewerRelation === "owner" ||
             viewerEntitlementContentIds.has(post.contentId),
+          newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,
           social: socialByContentId.get(post.contentId),
@@ -2423,6 +2436,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
       hiddenNsfwCount,
       items: publicPosts.map((post) =>
         toPublicContentItem({
+          newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,
           social: socialByContentId.get(post.contentId),
@@ -2532,20 +2546,25 @@ export const getFanletterCreatorPageData = cache(
     const creatorEmail = normalizeEmail(profile?.email ?? creatorPosts[0]?.authorEmail ?? "");
     const viewerRelation =
       viewerEmail && creatorEmail && viewerEmail === creatorEmail ? "owner" : "audience";
-    const [socialByContentId, viewerEntitlementContentIds, communityStats] =
-      await Promise.all([
-        getSocialByContentId(creatorPosts),
-        viewerRelation === "audience"
-          ? getViewerEntitlementContentIds({
-              contentIds: fanOnlyPosts.map((post) => post.contentId),
-              viewerEmail,
-            })
-          : Promise.resolve(new Set<string>()),
-        getCreatorCommunityStats({
-          creatorEmail,
-          referralCode,
-        }),
-      ]);
+    const [
+      socialByContentId,
+      viewerEntitlementContentIds,
+      communityStats,
+      newsReportCountByContentId,
+    ] = await Promise.all([
+      getSocialByContentId(creatorPosts),
+      viewerRelation === "audience"
+        ? getViewerEntitlementContentIds({
+            contentIds: fanOnlyPosts.map((post) => post.contentId),
+            viewerEmail,
+          })
+        : Promise.resolve(new Set<string>()),
+      getCreatorCommunityStats({
+        creatorEmail,
+        referralCode,
+      }),
+      getNewsReportCountByContentId(creatorPosts, locale),
+    ]);
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
@@ -2559,6 +2578,7 @@ export const getFanletterCreatorPageData = cache(
           canViewerAccess:
             viewerRelation === "owner" ||
             viewerEntitlementContentIds.has(post.contentId),
+          newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,
           social: socialByContentId.get(post.contentId),
@@ -2568,6 +2588,7 @@ export const getFanletterCreatorPageData = cache(
       hiddenNsfwCount,
       items: posts.map((post) =>
         toPublicContentItem({
+          newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,
           social: socialByContentId.get(post.contentId),
