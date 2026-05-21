@@ -21,7 +21,10 @@ import {
   getFanletterNewsReporterMemberByEmail,
   updateFanletterNewsReportContent,
 } from "@/lib/fanletter-news-report-service";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -32,6 +35,7 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 type FanletterReportEditSearchParams = {
   error?: string | string[];
   ref?: string | string[];
+  returnTo?: string | string[];
   saved?: string | string[];
 };
 
@@ -138,9 +142,13 @@ async function updateFanletterReportContentAction(formData: FormData) {
     getFormString(formData.get("ref")) || undefined,
   );
   const locale = hasLocale(localeValue) ? (localeValue as Locale) : defaultLocale;
-  const detailHref = buildPathWithReferral(
-    `/${locale}/fanletter/reports/${reportId}`,
-    referralCode,
+  const returnTo = normalizeFanletterReturnToPath(
+    getFormString(formData.get("returnTo")) || undefined,
+    locale,
+  );
+  const detailHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/reports/${reportId}`, referralCode),
+    { returnTo },
   );
   const session = await readMemberServerSession();
 
@@ -193,9 +201,12 @@ async function updateFanletterReportContentAction(formData: FormData) {
   } catch {
     redirect(
       setPathSearchParams(
-        buildPathWithReferral(
-          `/${locale}/fanletter/reports/${savedReportId}`,
-          referralCode,
+        setPathSearchParams(
+          buildPathWithReferral(
+            `/${locale}/fanletter/reports/${savedReportId}`,
+            referralCode,
+          ),
+          { returnTo },
         ),
         { error: "save" },
       ),
@@ -204,11 +215,14 @@ async function updateFanletterReportContentAction(formData: FormData) {
 
   redirect(
     setPathSearchParams(
-      buildPathWithReferral(
-        `/${locale}/fanletter/reports/${savedReportId}`,
-        referralCode,
+      setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/reports/${savedReportId}`,
+          referralCode,
+        ),
+        { returnTo },
       ),
-      { saved: "1" },
+      { error: null, saved: "1" },
     ),
   );
 }
@@ -327,14 +341,19 @@ export default async function LocalizedFanletterReportEditPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const rawReferralCode = readFanletterReferralCode(query.ref);
+  const returnTo = normalizeFanletterReturnToPath(query.returnTo, locale);
   const saved = readFirst(query.saved) === "1";
   const hasSaveError = readFirst(query.error) === "save";
   const session = await readMemberServerSession();
   const editPath = `/${locale}/fanletter/reports/${reportId}`;
+  const editHref = setPathSearchParams(
+    buildPathWithReferral(editPath, rawReferralCode),
+    { returnTo },
+  );
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, rawReferralCode),
     {
-      returnTo: buildPathWithReferral(editPath, rawReferralCode),
+      returnTo: editHref,
     },
   );
 
@@ -357,10 +376,8 @@ export default async function LocalizedFanletterReportEditPage({
   }
 
   const referralCode = rawReferralCode ?? member.referralCode;
-  const reportsHref = buildPathWithReferral(
-    `/${locale}/fanletter/reports`,
-    referralCode,
-  );
+  const reportsHref =
+    returnTo ?? buildPathWithReferral(`/${locale}/fanletter/reports`, referralCode);
   const newsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
@@ -428,6 +445,9 @@ export default async function LocalizedFanletterReportEditPage({
             <input name="locale" type="hidden" value={locale} />
             {referralCode ? (
               <input name="ref" type="hidden" value={referralCode} />
+            ) : null}
+            {returnTo ? (
+              <input name="returnTo" type="hidden" value={returnTo} />
             ) : null}
 
             <div className="grid gap-4">

@@ -324,14 +324,22 @@ export default async function LocalizedFanletterReportsPage({
     currentPage,
     totalPages,
   });
+  const currentReportsHref = getReportPageHref({
+    locale,
+    page: currentPage,
+    referralCode: effectiveReferralCode,
+  });
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
     const reportHref = buildPathWithReferral(
       `/${locale}/fanletter/news/${report.reportId}`,
       effectiveReferralCode,
     );
-    const editHref = buildPathWithReferral(
-      `/${locale}/fanletter/reports/${report.reportId}`,
-      effectiveReferralCode,
+    const editHref = setPathSearchParams(
+      buildPathWithReferral(
+        `/${locale}/fanletter/reports/${report.reportId}`,
+        effectiveReferralCode,
+      ),
+      { returnTo: currentReportsHref },
     );
     const sourceHref = buildPathWithReferral(
       `/${locale}/fanletter/content/${report.contentId}`,
