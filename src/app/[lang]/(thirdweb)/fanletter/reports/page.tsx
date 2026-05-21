@@ -300,7 +300,7 @@ export default async function LocalizedFanletterReportsPage({
         ) : (
           <>
             <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.reports.map((report) => {
+            {data.reports.map((report, index) => {
               const reportHref = buildPathWithReferral(
                 `/${locale}/fanletter/news/${report.reportId}`,
                 effectiveReferralCode,
@@ -314,6 +314,9 @@ export default async function LocalizedFanletterReportsPage({
                   ? copy.coverSource.reporter_selected
                   : copy.coverSource.auto;
               const publishedAt = formatDate(report.sourcePublishedAt, locale);
+              const shouldBypassCoverImageOptimization = report.coverImageUrl
+                ? shouldBypassFanletterImageOptimization(report.coverImageUrl)
+                : false;
 
               return (
                 <article
@@ -324,19 +327,30 @@ export default async function LocalizedFanletterReportsPage({
                     className="group block"
                     href={reportHref}
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden bg-[#111510]">
+                    <div className="relative aspect-[4/5] overflow-hidden bg-[#111510] sm:aspect-[5/6]">
                       {report.coverImageUrl ? (
-                        <Image
-                          alt=""
-                          aria-hidden="true"
-                          className="object-cover transition duration-300 group-hover:scale-[1.035]"
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          src={report.coverImageUrl}
-                          unoptimized={shouldBypassFanletterImageOptimization(
-                            report.coverImageUrl,
-                          )}
-                        />
+                        <>
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
+                            fill
+                            loading={index === 0 ? "eager" : "lazy"}
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            src={report.coverImageUrl}
+                            unoptimized={shouldBypassCoverImageOptimization}
+                          />
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-contain transition duration-300 group-hover:scale-[1.02]"
+                            fill
+                            loading={index === 0 ? "eager" : "lazy"}
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            src={report.coverImageUrl}
+                            unoptimized={shouldBypassCoverImageOptimization}
+                          />
+                        </>
                       ) : (
                         <div className="flex h-full items-center justify-center">
                           <Newspaper className="size-10 text-[#44f26e]" />
