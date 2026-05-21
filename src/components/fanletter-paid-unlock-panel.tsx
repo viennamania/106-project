@@ -559,6 +559,27 @@ export function FanletterPaidUnlockPanel({
             ? copy.balanceInsufficient
             : `${paidUnlockAmount} USDT ${copy.pay}`;
 
+  const clearPaymentHash = useCallback(() => {
+    if (
+      typeof window === "undefined" ||
+      !normalizedAutoOpenHash ||
+      window.location.hash !== normalizedAutoOpenHash
+    ) {
+      return;
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${window.location.search}`,
+    );
+  }, [normalizedAutoOpenHash]);
+
+  const closePayment = useCallback(() => {
+    setIsPaymentOpen(false);
+    clearPaymentHash();
+  }, [clearPaymentHash]);
+
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
       return;
@@ -791,7 +812,7 @@ export function FanletterPaidUnlockPanel({
     if (!response.ok || !("order" in data)) {
       if ("error" in data && data.error === "Content already unlocked.") {
         await loadDetail();
-        setIsPaymentOpen(false);
+        closePayment();
         setPaidUnlock({
           error: null,
           order: null,
@@ -830,6 +851,7 @@ export function FanletterPaidUnlockPanel({
     contentId,
     copy.connectTitle,
     copy.walletBalance,
+    closePayment,
     isInsufficientPaidUnlockBalance,
     isUsdtBalancePending,
     loadDetail,
@@ -947,7 +969,7 @@ export function FanletterPaidUnlockPanel({
             txHash,
           }));
           paidOrderRef.current = data.order;
-          setIsPaymentOpen(false);
+          closePayment();
           await loadDetail();
         } catch (error) {
           const message =
@@ -964,7 +986,7 @@ export function FanletterPaidUnlockPanel({
         }
       })();
     },
-    [accountAddress, loadDetail, locale, memberSessionEmail],
+    [accountAddress, closePayment, loadDetail, locale, memberSessionEmail],
   );
 
   const handlePaidUnlockConfirmed = useCallback(
@@ -1019,7 +1041,7 @@ export function FanletterPaidUnlockPanel({
     (error: Error) => {
       if (error.message === "Content already unlocked.") {
         void loadDetail();
-        setIsPaymentOpen(false);
+        closePayment();
         setPaidUnlock((current) => ({
           ...current,
           error: null,
@@ -1038,7 +1060,7 @@ export function FanletterPaidUnlockPanel({
         status: "error",
       }));
     },
-    [loadDetail, locale],
+    [closePayment, loadDetail, locale],
   );
 
   const openPayment = useCallback(() => {
@@ -1328,9 +1350,7 @@ export function FanletterPaidUnlockPanel({
                   paidUnlock.status === "sent" ||
                   paidUnlock.status === "verifying"
                 }
-                onClick={() => {
-                  setIsPaymentOpen(false);
-                }}
+                onClick={closePayment}
                 type="button"
               >
                 <X className="size-5" />
@@ -1396,9 +1416,7 @@ export function FanletterPaidUnlockPanel({
                   paidUnlock.status === "sent" ||
                   paidUnlock.status === "verifying"
                 }
-                onClick={() => {
-                  setIsPaymentOpen(false);
-                }}
+                onClick={closePayment}
                 type="button"
               >
                 {copy.cancel}

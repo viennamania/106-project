@@ -167,7 +167,11 @@ function getCopy(locale: Locale) {
         embeddedLockedPaid: (amount: string) =>
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
         embeddedTitle: "빌트인 원본 브이로그",
+        embeddedUnlockBody:
+          "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
         embeddedUnlockCta: "결제하고 원본 보기",
+        embeddedUnlockMeta: "전체 영상 · 본문 · 추가 미디어",
+        embeddedUnlockTitle: "팬 전용 브이로그 잠금 해제",
         generated: "AI 생성",
         publishedLabel: "기사입력",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스"],
@@ -258,7 +262,11 @@ function getCopy(locale: Locale) {
         embeddedLockedPaid: (amount: string) =>
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
         embeddedTitle: "Built-in source vlog",
+        embeddedUnlockBody:
+          "Unlock the full source video, story body, and extra media directly on this news page.",
         embeddedUnlockCta: "Pay and watch source",
+        embeddedUnlockMeta: "Full video · story · extra media",
+        embeddedUnlockTitle: "Unlock fan-only vlog",
         generated: "AI generated",
         publishedLabel: "Published",
         navItems: ["AI characters", "Fan reports", "Vlog news"],
@@ -1008,6 +1016,8 @@ function SourceVlogEmbed({
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
+  const shouldShowPaidUnlockPrompt =
+    isPaidContent && !sourceContent?.canViewerAccess && Boolean(paidUnlockHref);
   const shouldShowPaidUnlockCta =
     isPaidContent && !sourceContent?.canViewerAccess && !blurred;
   const noticeMessage = blurred
@@ -1065,6 +1075,40 @@ function SourceVlogEmbed({
           ) : null}
         </FanletterResponsiveMediaFrame>
       </div>
+      {shouldShowPaidUnlockPrompt && paidUnlockHref ? (
+        <div className="mt-3 grid gap-3 rounded-lg border border-[#1eb84a]/22 bg-[#f2fff5] p-3 shadow-[0_12px_30px_rgba(22,112,46,0.08)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="flex min-w-0 gap-3">
+            <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
+              <LockKeyhole className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-[#111510]">
+                {copy.embeddedUnlockTitle}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-6 text-black/58">
+                {copy.embeddedUnlockBody}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#1eb84a]/20 bg-white px-2.5 py-1 text-[0.68rem] font-black text-[#126c2c]">
+                  <Coins className="size-3.5" />
+                  {paidUnlockLabel}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[0.68rem] font-bold text-black/56">
+                  <CheckCircle2 className="size-3.5 text-[#16702e]" />
+                  {copy.embeddedUnlockMeta}
+                </span>
+              </div>
+            </div>
+          </div>
+          <FanletterPaidUnlockTrigger
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+            href={paidUnlockHref}
+          >
+            <Coins className="size-4 text-[#44f26e]" />
+            <span>{copy.embeddedUnlockCta}</span>
+          </FanletterPaidUnlockTrigger>
+        </div>
+      ) : null}
       <p className="mt-2 text-xs font-medium leading-5 text-black/46">
         {sourceContent?.title ?? copy.sourceTitle}
       </p>
