@@ -5,6 +5,7 @@ import { cache } from "react";
 import type { Filter } from "mongodb";
 
 import type {
+  ContentCoverImageCandidate,
   ContentMaturityRating,
   ContentPostDocument,
   ContentPriceType,
@@ -146,6 +147,46 @@ type FanletterNewsReporterIdentity = {
   reporterName: string;
 };
 
+export type FanletterNewsReportCoverOption = {
+  candidateId: string;
+  contentType: string | null;
+  imageUrl: string;
+  inputValue: string;
+  isAuto: boolean;
+  isSelected: boolean;
+  placements: string[];
+  source:
+    | ContentCoverImageCandidate["source"]
+    | "auto"
+    | "content_image"
+    | "primary";
+  timestampSec: number | null;
+};
+
+type FanletterNewsReportCoverOptionInput = Omit<
+  FanletterNewsReportCoverOption,
+  "contentType" | "isAuto" | "isSelected" | "placements" | "timestampSec"
+> &
+  Partial<
+    Pick<
+      FanletterNewsReportCoverOption,
+      "contentType" | "isAuto" | "placements" | "timestampSec"
+    >
+  >;
+
+export type FanletterNewsReporterMember = {
+  displayName: string;
+  email: string;
+  referralCode: string;
+  status: MemberStatus;
+};
+
+export type FanletterNewsReportsForMemberResult = {
+  member: FanletterNewsReporterMember | null;
+  reportCount: number;
+  reports: FanletterNewsReportDocument[];
+};
+
 const DEFAULT_REPORTER_BACKFILL_LIMIT = 100;
 const MAX_REPORTER_BACKFILL_LIMIT = 500;
 
@@ -200,7 +241,12 @@ function getContentMaturityRating(
   return post.contentMaturityRating === "nsfw" ? "nsfw" : "general";
 }
 
-function getCoverImageUrl(post: ContentPostDocument) {
+function getCoverImageUrl(
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >,
+) {
   return resolveContentCoverImageUrl(post, {
     fallbackPlacements: ["share", "feed", "detail"],
     placement: "news",
@@ -246,6 +292,147 @@ function getReportCoverImageSelection({
     coverImageSource: "reporter_selected" as const,
     coverImageUrl: normalizedSelectedCoverImageUrl,
   };
+}
+
+function isSelectedReportCoverOption({
+  imageUrl,
+  report,
+  isAuto,
+}: {
+  imageUrl: string;
+  isAuto: boolean;
+  report: Pick<FanletterNewsReportDocument, "coverImageSource" | "coverImageUrl">;
+}) {
+  if (isAuto) {
+    return report.coverImageSource !== "reporter_selected";
+  }
+
+  return (
+    report.coverImageSource === "reporter_selected" &&
+    report.coverImageUrl === imageUrl
+  );
+}
+
+function getFanletterNewsReportCoverOptionsFromPost({
+  post,
+  report,
+}: {
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >;
+  report: Pick<FanletterNewsReportDocument, "coverImageSource" | "coverImageUrl">;
+}) {
+  const options: FanletterNewsReportCoverOption[] = [];
+  const seen = new Set<string>();
+  const appendOption = ({
+    candidateId,
+    contentType = null,
+    imageUrl,
+    inputValue,
+    isAuto = false,
+    placements = [],
+    source,
+    timestampSec = null,
+  }: FanletterNewsReportCoverOptionInput) => {
+    const normalizedImageUrl = imageUrl.trim();
+
+    if (!normalizedImageUrl) {
+      return;
+    }
+
+    if (seen.has(normalizedImageUrl)) {
+      const existingOption = options.find(
+        (option) => option.imageUrl === normalizedImageUrl,
+      );
+
+      if (
+        existingOption &&
+        isSelectedReportCoverOption({
+          imageUrl: normalizedImageUrl,
+          isAuto,
+          report,
+        })
+      ) {
+        existingOption.isSelected = true;
+      }
+
+      return;
+    }
+
+    seen.add(normalizedImageUrl);
+    options.push({
+      candidateId,
+      contentType,
+      imageUrl: normalizedImageUrl,
+      inputValue,
+      isAuto,
+      isSelected: isSelectedReportCoverOption({
+        imageUrl: normalizedImageUrl,
+        isAuto,
+        report,
+      }),
+      placements,
+      source,
+      timestampSec,
+    });
+  };
+  const autoCoverImageUrl = getCoverImageUrl(post);
+
+  if (autoCoverImageUrl) {
+    appendOption({
+      candidateId: "auto",
+      imageUrl: autoCoverImageUrl,
+      inputValue: "",
+      isAuto: true,
+      source: "auto",
+    });
+  }
+
+  if (post.coverImageUrl) {
+    appendOption({
+      candidateId: "primary",
+      imageUrl: post.coverImageUrl,
+      inputValue: post.coverImageUrl,
+      source: "primary",
+    });
+  }
+
+  for (const [index, candidate] of (post.coverImageCandidates ?? []).entries()) {
+    appendOption({
+      candidateId: candidate.candidateId || `candidate-${index}`,
+      contentType: candidate.contentType,
+      imageUrl: candidate.url,
+      inputValue: candidate.url,
+      placements: candidate.placements ?? [],
+      source: candidate.source,
+      timestampSec: candidate.timestampSec,
+    });
+  }
+
+  for (const [index, imageUrl] of (post.contentImageUrls ?? []).entries()) {
+    appendOption({
+      candidateId: `content-image-${index}`,
+      imageUrl,
+      inputValue: imageUrl,
+      source: "content_image",
+    });
+  }
+
+  if (
+    report.coverImageSource === "reporter_selected" &&
+    report.coverImageUrl &&
+    !seen.has(report.coverImageUrl)
+  ) {
+    appendOption({
+      candidateId: "current-report-cover",
+      imageUrl: report.coverImageUrl,
+      inputValue: report.coverImageUrl,
+      source: "primary",
+    });
+  }
+
+  return options;
 }
 
 async function hydrateFanletterNewsReportCoverImageUrls<
@@ -1016,6 +1203,209 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
     ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
     : null;
 });
+
+export async function getFanletterNewsReporterMemberByEmail(
+  email?: string | null,
+  locale: Locale = defaultLocale,
+): Promise<FanletterNewsReporterMember | null> {
+  const normalizedEmail = normalizeEmail(email ?? "");
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne(
+    { email: normalizedEmail },
+    {
+      projection: {
+        email: 1,
+        landingBranding: 1,
+        referralCode: 1,
+        status: 1,
+      },
+    },
+  );
+  const referralCode = normalizeReferralCode(member?.referralCode);
+
+  if (!member || !referralCode) {
+    return null;
+  }
+
+  return {
+    displayName: getReporterName(member, referralCode, locale),
+    email: member.email,
+    referralCode,
+    status: member.status,
+  };
+}
+
+export async function getFanletterNewsReportsForMember({
+  email,
+  limit = 60,
+  locale,
+}: {
+  email?: string | null;
+  limit?: number;
+  locale?: Locale | null;
+}): Promise<FanletterNewsReportsForMemberResult> {
+  const member = await getFanletterNewsReporterMemberByEmail(
+    email,
+    locale ?? defaultLocale,
+  );
+
+  if (!member) {
+    return {
+      member: null,
+      reportCount: 0,
+      reports: [],
+    };
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const query = {
+    reporterReferralCode: member.referralCode,
+    status: "published" as const,
+    ...(locale ? { locale } : {}),
+  };
+  const normalizedLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+  const [reports, reportCount] = await Promise.all([
+    reportsCollection
+      .find(query)
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .limit(normalizedLimit)
+      .toArray(),
+    reportsCollection.countDocuments(query),
+  ]);
+
+  return {
+    member,
+    reportCount,
+    reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+  };
+}
+
+export async function getFanletterNewsReportCoverOptions({
+  reportId,
+}: {
+  reportId?: string | null;
+}) {
+  const normalizedReportId = reportId?.trim() ?? "";
+
+  if (!normalizedReportId) {
+    return [];
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const report = await reportsCollection.findOne(
+    {
+      reportId: normalizedReportId,
+      status: "published",
+    },
+    {
+      projection: {
+        contentId: 1,
+        coverImageSource: 1,
+        coverImageUrl: 1,
+      },
+    },
+  );
+
+  if (!report) {
+    return [];
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne(
+    {
+      contentId: report.contentId,
+      status: "published",
+    },
+    {
+      projection: {
+        contentImageUrls: 1,
+        coverImageCandidates: 1,
+        coverImageUrl: 1,
+      },
+    },
+  );
+
+  if (!post) {
+    return [];
+  }
+
+  return getFanletterNewsReportCoverOptionsFromPost({ post, report });
+}
+
+export async function updateFanletterNewsReportCoverImage({
+  reporterReferralCode,
+  reportId,
+  selectedCoverImageUrl,
+}: {
+  reporterReferralCode?: string | null;
+  reportId?: string | null;
+  selectedCoverImageUrl?: string | null;
+}) {
+  const normalizedReportId = reportId?.trim() ?? "";
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reporterReferralCode);
+
+  if (!normalizedReportId) {
+    throw new Error("reportId is required.");
+  }
+
+  if (!normalizedReporterReferralCode) {
+    throw new Error("Reporter authorization is required.");
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const report = await reportsCollection.findOne({
+    reportId: normalizedReportId,
+    status: "published",
+  });
+
+  if (!report) {
+    throw new Error("Report not found.");
+  }
+
+  if (report.reporterReferralCode !== normalizedReporterReferralCode) {
+    throw new Error("This reporter is not authorized to update this report.");
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId: report.contentId,
+    status: "published",
+  });
+
+  if (!post) {
+    throw new Error("Content not found.");
+  }
+
+  const coverImageSelection = getReportCoverImageSelection({
+    post,
+    selectedCoverImageUrl,
+  });
+  const updatedAt = new Date();
+
+  await reportsCollection.updateOne(
+    { reportId: report.reportId },
+    {
+      $set: {
+        coverImageSource: coverImageSelection.coverImageSource,
+        coverImageUrl: coverImageSelection.coverImageUrl,
+        updatedAt,
+      },
+    },
+  );
+
+  return {
+    ...report,
+    coverImageSource: coverImageSelection.coverImageSource,
+    coverImageUrl: coverImageSelection.coverImageUrl,
+    updatedAt,
+  };
+}
 
 function normalizeBackfillLimit(limit: number | undefined) {
   if (!Number.isFinite(limit) || !limit || limit <= 0) {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { revalidatePath } from "next/cache";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -7,13 +8,16 @@ import {
   AlertTriangle,
   ArrowUpRight,
   BadgeCheck,
+  CheckCircle2,
   Clapperboard,
   Coins,
   FileText,
+  ImageIcon,
   LockKeyhole,
   MessageCircleHeart,
   Newspaper,
   PlayCircle,
+  RotateCcw,
   UserRound,
 } from "lucide-react";
 
@@ -36,8 +40,12 @@ import {
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportById,
+  getFanletterNewsReportCoverOptions,
+  getFanletterNewsReporterMemberByEmail,
   getFanletterNewsReporterProfile,
   getRelatedFanletterNewsReports,
+  updateFanletterNewsReportCoverImage,
+  type FanletterNewsReportCoverOption,
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -56,11 +64,56 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { normalizeReferralCode } from "@/lib/member";
+import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
 };
+
+function getFormString(value: FormDataEntryValue | null) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function updateFanletterNewsReportCoverImageAction(formData: FormData) {
+  "use server";
+
+  const reportId = getFormString(formData.get("reportId"));
+  const localeValue = getFormString(formData.get("locale"));
+  const selectedCoverImageUrl = getFormString(
+    formData.get("selectedCoverImageUrl"),
+  );
+  const locale = hasLocale(localeValue) ? (localeValue as Locale) : defaultLocale;
+
+  if (!reportId) {
+    throw new Error("reportId is required.");
+  }
+
+  const session = await readMemberServerSession();
+  const authorization = await validateMemberWalletOwner({
+    allowedStatuses: ["completed", "pending_payment"],
+    email: session?.email,
+    walletAddress: session?.walletAddress,
+  });
+  const reporterReferralCode = normalizeReferralCode(
+    authorization.member?.referralCode,
+  );
+
+  if (authorization.error || !reporterReferralCode) {
+    throw new Error("Member session is required to update this report cover.");
+  }
+
+  await updateFanletterNewsReportCoverImage({
+    reportId,
+    reporterReferralCode,
+    selectedCoverImageUrl,
+  });
+
+  revalidatePath(`/${locale}/fanletter/news/${reportId}`);
+  revalidatePath(`/${locale}/fanletter/news`);
+  revalidatePath(`/${locale}/fanletter/reports`);
+}
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -88,6 +141,24 @@ function getCopy(locale: Locale) {
           nsfw: "성인 팬 전용 표시",
           paid: "팬 전용 유료 브이로그",
           public: "공개 브이로그",
+        },
+        coverPicker: {
+          autoSource: "자동 추천",
+          body:
+            "원본 브이로그에서 저장된 커버 후보 중 이 리포트에 사용할 대표 이미지를 선택합니다.",
+          chooseLabel: "이 이미지 사용",
+          currentLabel: "현재 사용 중",
+          noAlternatives:
+            "저장된 후보가 1개라 변경 가능한 다른 커버가 아직 없습니다.",
+          sourceLabels: {
+            ai: "AI 생성",
+            auto: "자동 추천",
+            content_image: "본문 이미지",
+            frame: "영상 프레임",
+            manual: "직접 업로드",
+            primary: "원본 대표",
+          },
+          title: "리포트 커버 이미지",
         },
         edition: "AI 캐릭터와 팬 참여를 다루는 FanLetter 온라인 뉴스",
         embeddedLocked:
@@ -160,6 +231,24 @@ function getCopy(locale: Locale) {
           nsfw: "Adult fan-only marker",
           paid: "Fan-only paid vlog",
           public: "Public vlog",
+        },
+        coverPicker: {
+          autoSource: "Auto recommendation",
+          body:
+            "Choose the lead image this report should use from saved source-vlog cover candidates.",
+          chooseLabel: "Use this image",
+          currentLabel: "Currently used",
+          noAlternatives:
+            "Only one saved candidate is available, so there is no alternate cover yet.",
+          sourceLabels: {
+            ai: "AI generated",
+            auto: "Auto recommendation",
+            content_image: "Body image",
+            frame: "Video frame",
+            manual: "Manual upload",
+            primary: "Source cover",
+          },
+          title: "Report cover image",
         },
         edition: "FanLetter online news for AI characters and fan participation",
         embeddedLocked:
@@ -724,6 +813,150 @@ function ArticleVisualLead({
   );
 }
 
+function formatCoverOptionTimestamp(
+  timestampSec: number | null,
+  locale: Locale,
+) {
+  if (timestampSec === null || !Number.isFinite(timestampSec)) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.floor(timestampSec));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return locale === "ko"
+    ? `${minutes}분 ${seconds.toString().padStart(2, "0")}초`
+    : `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function getCoverOptionSourceLabel(
+  option: FanletterNewsReportCoverOption,
+  copy: ReturnType<typeof getCopy>,
+) {
+  return copy.coverPicker.sourceLabels[option.source];
+}
+
+function ReportCoverImagePicker({
+  blurred,
+  copy,
+  locale,
+  options,
+  report,
+}: {
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  options: FanletterNewsReportCoverOption[];
+  report: Pick<FanletterNewsReportDocument, "reportId">;
+}) {
+  if (options.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="mt-5 scroll-mt-6 border border-black/12 bg-white p-4 shadow-[0_14px_42px_rgba(17,21,16,0.06)] sm:p-5"
+      id="fanletter-news-cover-picker"
+    >
+      <div className="flex flex-col gap-3 border-b border-black/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+            <ImageIcon className="size-4" />
+            {copy.coverPicker.autoSource}
+          </p>
+          <h2 className="mt-2 break-words text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
+            {copy.coverPicker.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/58">
+            {copy.coverPicker.body}
+          </p>
+        </div>
+        {options.length <= 1 ? (
+          <p className="border border-dashed border-black/14 bg-[#f5f6f2] px-3 py-2 text-xs font-bold leading-5 text-black/48">
+            {copy.coverPicker.noAlternatives}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {options.map((option) => {
+          const sourceLabel = getCoverOptionSourceLabel(option, copy);
+          const timestamp = formatCoverOptionTimestamp(
+            option.timestampSec,
+            locale,
+          );
+          const label = option.isSelected
+            ? copy.coverPicker.currentLabel
+            : copy.coverPicker.chooseLabel;
+
+          return (
+            <form
+              action={updateFanletterNewsReportCoverImageAction}
+              key={`${option.candidateId}-${option.imageUrl}`}
+            >
+              <input name="reportId" type="hidden" value={report.reportId} />
+              <input name="locale" type="hidden" value={locale} />
+              <input
+                name="selectedCoverImageUrl"
+                type="hidden"
+                value={option.inputValue}
+              />
+              <button
+                className={`group flex h-full w-full flex-col overflow-hidden border text-left transition ${
+                  option.isSelected
+                    ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_12px_30px_rgba(25,184,75,0.14)]"
+                    : "border-black/10 bg-[#f8f9f4] hover:border-[#19b84b] hover:bg-white"
+                }`}
+                disabled={option.isSelected}
+                type="submit"
+              >
+                <span className="relative block aspect-[16/10] w-full overflow-hidden bg-[#111510]">
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className={
+                      blurred
+                        ? "object-cover blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.03]"
+                        : "object-cover transition duration-300 group-hover:scale-[1.03]"
+                    }
+                    fill
+                    sizes="(max-width: 640px) 100vw, 260px"
+                    src={option.imageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      option.imageUrl,
+                    )}
+                  />
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 border border-white/18 bg-black/46 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/78 backdrop-blur">
+                    {option.isSelected ? (
+                      <CheckCircle2 className="size-3.5 text-[#44f26e]" />
+                    ) : (
+                      <RotateCcw className="size-3.5 text-[#44f26e]" />
+                    )}
+                    {sourceLabel}
+                  </span>
+                </span>
+                <span className="flex min-h-[5.4rem] w-full flex-col p-3">
+                  <span className="line-clamp-1 text-sm font-black text-[#111510]">
+                    {label}
+                  </span>
+                  <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-[0.68rem] font-bold text-black/46">
+                    {timestamp ? <span>{timestamp}</span> : null}
+                    {option.contentType ? <span>{option.contentType}</span> : null}
+                    {option.placements.length > 0 ? (
+                      <span>{option.placements.join(", ")}</span>
+                    ) : null}
+                  </span>
+                </span>
+              </button>
+            </form>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -1094,7 +1327,13 @@ export default async function LocalizedFanletterNewsReportPage({
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
   const memberServerSession = await readMemberServerSession();
-  const [sourceContent, relatedReports, reporterProfile] = await Promise.all([
+  const [
+    sourceContent,
+    relatedReports,
+    reporterProfile,
+    viewerReporterMember,
+    reportCoverOptions,
+  ] = await Promise.all([
     getFanletterPublicContentDetail(
       report.contentId,
       locale,
@@ -1113,6 +1352,12 @@ export default async function LocalizedFanletterNewsReportPage({
     getFanletterNewsReporterProfile({
       reporterReferralCode: report.reporterReferralCode,
     }),
+    memberServerSession
+      ? getFanletterNewsReporterMemberByEmail(memberServerSession.email, locale)
+      : Promise.resolve(null),
+    memberServerSession
+      ? getFanletterNewsReportCoverOptions({ reportId: report.reportId })
+      : Promise.resolve([]),
   ]);
   const copy = getCopy(locale);
   const articleTitle = getArticleDisplayTitle(report.title);
@@ -1158,6 +1403,9 @@ export default async function LocalizedFanletterNewsReportPage({
   const relatedNsfwReportCount = relatedReports.filter(isNsfwReport).length;
   const nsfwNewsCount = relatedNsfwReportCount + (isCurrentNsfwReport ? 1 : 0);
   const shouldShowNsfwControl = nsfwNewsCount > 0 || includeNsfw;
+  const canManageReportCover =
+    viewerReporterMember?.referralCode === report.reporterReferralCode;
+  const manageableCoverOptions = canManageReportCover ? reportCoverOptions : [];
   const nsfwTextBlurClass = shouldBlurCurrentReport
     ? "select-none blur-[2px]"
     : "";
@@ -1250,6 +1498,14 @@ export default async function LocalizedFanletterNewsReportPage({
                 />
               </div>
             ) : null}
+
+            <ReportCoverImagePicker
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              locale={locale}
+              options={manageableCoverOptions}
+              report={report}
+            />
 
             <CharacterIdentityFeature
               copy={copy}

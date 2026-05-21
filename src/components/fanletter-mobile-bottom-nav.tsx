@@ -163,6 +163,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/profile`,
         `${basePath}/connect`,
         `${basePath}/onboarding`,
+        `${basePath}/reports`,
         `${basePath}/start`,
         `${basePath}/wallet`,
       ],
