@@ -1407,21 +1407,31 @@ export const getFanletterNewsReportsForContent = cache(
     const normalizedContentId = contentId.trim();
 
     if (!normalizedContentId) {
-      return [];
+      return {
+        reportCount: 0,
+        reports: [],
+      };
     }
 
     const reportsCollection = await getFanletterNewsReportsCollection();
-    const reports = await reportsCollection
-      .find({
-        contentId: normalizedContentId,
-        locale,
-        status: "published",
-      })
-      .sort({ createdAt: -1, sourcePublishedAt: -1 })
-      .limit(Math.max(1, Math.min(limit, 12)))
-      .toArray();
+    const query = {
+      contentId: normalizedContentId,
+      locale,
+      status: "published",
+    } as const;
+    const [reports, reportCount] = await Promise.all([
+      reportsCollection
+        .find(query)
+        .sort({ createdAt: -1, sourcePublishedAt: -1 })
+        .limit(Math.max(1, Math.min(limit, 12)))
+        .toArray(),
+      reportsCollection.countDocuments(query),
+    ]);
 
-    return hydrateFanletterNewsReportCoverImageUrls(reports);
+    return {
+      reportCount,
+      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+    };
   },
 );
 

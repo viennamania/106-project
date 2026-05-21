@@ -98,7 +98,7 @@ export default async function LocalizedFanletterContentDetailPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const [content, newsReports] = await Promise.all([
+  const [content, newsReportResult] = await Promise.all([
     getFanletterPublicContentDetail(
       contentId,
       locale,
@@ -120,7 +120,8 @@ export default async function LocalizedFanletterContentDetailPage({
     <FanletterContentDetailPage
       content={content}
       locale={locale}
-      newsReports={newsReports.map((report) => ({
+      newsReportCount={newsReportResult.reportCount}
+      newsReports={newsReportResult.reports.map((report) => ({
         coverImageUrl: report.coverImageUrl,
         createdAt: report.createdAt.toISOString(),
         dek: report.dek,

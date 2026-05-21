@@ -19,6 +19,7 @@ import {
   useRef,
   useState,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import {
   useActiveAccount,
@@ -54,12 +55,14 @@ const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
 const EMPTY_REPORT_COVER_CANDIDATES: ContentCoverImageCandidate[] = [];
 
 type FanletterSocialActionsProps = {
+  children?: ReactNode;
   className?: string;
   commentsHref?: string;
   contentId: string;
   initialSocial: ContentSocialSummaryRecord;
   isOwnContent?: boolean;
   locale: Locale;
+  newsReportCount?: number;
   reportCoverImageCandidates?: ContentCoverImageCandidate[];
   reportCoverImageUrl?: string | null;
   shareHref: string;
@@ -193,6 +196,11 @@ function getCopy(locale: Locale) {
         reportSubmit: "AI 리포트 생성하기",
         reportShare: "AI 리포트",
         reportView: "리포트 보기",
+        reportsBody:
+          "팬 기자 관점의 AI 리포트를 만들고 이 브이로그에서 생성된 리포트를 모아봅니다.",
+        reportsCount: "리포트",
+        reportsEyebrow: "리포트",
+        reportsTitle: "AI 팬 리포트",
         refresh: "새로고침",
         save: "저장",
         saved: "저장됨",
@@ -259,6 +267,11 @@ function getCopy(locale: Locale) {
         reportSubmit: "Create AI report",
         reportShare: "AI report",
         reportView: "View report",
+        reportsBody:
+          "Create a fan-reporter AI report and browse reports generated from this vlog.",
+        reportsCount: "Reports",
+        reportsEyebrow: "Reports",
+        reportsTitle: "AI fan reports",
         refresh: "Refresh",
         save: "Save",
         saved: "Saved",
@@ -538,12 +551,14 @@ function CommentAvatar({ comment }: { comment: ContentCommentRecord }) {
 }
 
 export function FanletterSocialActions({
+  children,
   className,
   commentsHref,
   contentId,
   initialSocial,
   isOwnContent = false,
   locale,
+  newsReportCount = 0,
   reportCoverImageCandidates = EMPTY_REPORT_COVER_CANDIDATES,
   reportCoverImageUrl = null,
   shareHref,
@@ -566,6 +581,9 @@ export function FanletterSocialActions({
   const [social, setSocial] =
     useState<ContentSocialSummaryRecord>(initialSocial);
   const [toast, setToast] = useState<string | null>(null);
+  const [toastScope, setToastScope] = useState<"reaction" | "report">(
+    "reaction",
+  );
   const [busyAction, setBusyAction] =
     useState<"like" | "report" | "save" | "share" | null>(null);
   const [newsReportHref, setNewsReportHref] = useState<string | null>(null);
@@ -854,10 +872,12 @@ export function FanletterSocialActions({
       const previous = social;
 
       if (isOwnContent) {
+        setToastScope("reaction");
         setToast(copy.ownerActionBlocked);
         return;
       }
 
+      setToastScope("reaction");
       setToast(null);
       setBusyAction(action);
       setSocial(getNextSocial(previous, action, value));
@@ -1006,6 +1026,7 @@ export function FanletterSocialActions({
   ]);
 
   const shareContent = useCallback(async () => {
+    setToastScope("reaction");
     setToast(null);
     setBusyAction("share");
 
@@ -1056,6 +1077,7 @@ export function FanletterSocialActions({
     selectedCoverImageUrl?: string | null;
     reporterComment?: string | null;
   } = {}) => {
+    setToastScope("report");
     setToast(null);
     setNewsReportHref(null);
     setBusyAction("report");
@@ -1157,6 +1179,7 @@ export function FanletterSocialActions({
   ]);
 
   const openReportComposer = useCallback(() => {
+    setToastScope("report");
     setToast(null);
     setReportCoverCropError(null);
 
@@ -1325,6 +1348,7 @@ export function FanletterSocialActions({
     setReportCoverCropError(null);
 
     if (shouldUploadWideCover && selectedReportCoverUrl) {
+      setToastScope("report");
       setBusyAction("report");
       setToast(copy.reportCropUploading);
 
@@ -1386,6 +1410,9 @@ export function FanletterSocialActions({
   const reportHelper = newsReport
     ? copy.reportExistingHelper
     : copy.reportOnceHelper;
+  const displayedNewsReportCount = newsReport
+    ? Math.max(newsReportCount, 1)
+    : newsReportCount;
   const commentsHelper = isOwnContent
     ? copy.ownerCommentsHelper
     : copy.commentsHelper;
@@ -1535,7 +1562,7 @@ export function FanletterSocialActions({
         className={cn(
           isOwnerPanel
             ? "mt-4 grid grid-cols-2 gap-2"
-            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-5",
+            : "mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4",
         )}
       >
         <button
@@ -1600,53 +1627,14 @@ export function FanletterSocialActions({
           )}
           <span>{copy.share}</span>
         </button>
-        {newsReport ? (
-          <Link
-            className={cn(actionButtonClassName, activeClassName)}
-            href={newsReport.shareHref}
-          >
-            <Newspaper className="size-4" />
-            <span>{reportLabel}</span>
-          </Link>
-        ) : (
-          <button
-            className={actionButtonClassName}
-            disabled={
-              busyAction === "report" || newsReportStatus === "checking"
-            }
-            onClick={() => {
-              openReportComposer();
-            }}
-            type="button"
-          >
-            {busyAction === "report" || newsReportStatus === "checking" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Newspaper className="size-4" />
-            )}
-            <span>{reportLabel}</span>
-          </button>
-        )}
       </div>
 
-      <p className="mt-2 text-xs font-medium leading-5 text-white/45">
-        {reportHelper}
-      </p>
-
-      {toast ? (
+      {toast && toastScope === "reaction" ? (
         <div
           aria-live="polite"
           className="mt-3 flex flex-col gap-2 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-sm font-semibold text-[#b9ffc8] sm:flex-row sm:items-center sm:justify-between"
         >
           <span>{toast}</span>
-          {newsReportHref ? (
-            <Link
-              className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/32 px-3 text-xs font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
-              href={newsReportHref}
-            >
-              {copy.reportView}
-            </Link>
-          ) : null}
         </div>
       ) : null}
 
@@ -1768,6 +1756,88 @@ export function FanletterSocialActions({
           </button>
         </div>
       </div>
+    </section>
+
+    <section
+      className={cn(
+        "mt-6 rounded-lg border border-[#44f26e]/22 bg-[#07100b] p-5 text-white shadow-[0_24px_70px_rgba(8,18,12,0.18)] sm:p-6",
+        className,
+      )}
+      id="fanletter-reports"
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            {copy.reportsEyebrow}
+          </p>
+          <h2 className="mt-3 text-[1.65rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.45rem]">
+            {copy.reportsTitle}
+          </h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-white/62 sm:text-base sm:leading-7">
+            {copy.reportsBody}
+          </p>
+        </div>
+        <div className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 text-sm font-semibold text-white/72">
+          <Newspaper className="size-4 text-[#44f26e]" />
+          <span>{copy.reportsCount}</span>
+          <span className="text-[#b9ffc8]">
+            {formatCount(displayedNewsReportCount, locale)}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <p className="text-xs font-medium leading-5 text-white/45">
+          {reportHelper}
+        </p>
+        {newsReport ? (
+          <Link
+            className={cn(
+              "inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition",
+              activeClassName,
+            )}
+            href={newsReport.shareHref}
+          >
+            <Newspaper className="size-4" />
+            <span>{reportLabel}</span>
+          </Link>
+        ) : (
+          <button
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-4 text-sm font-semibold text-white/72 transition hover:border-[#44f26e]/46 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={busyAction === "report" || newsReportStatus === "checking"}
+            onClick={() => {
+              openReportComposer();
+            }}
+            type="button"
+          >
+            {busyAction === "report" || newsReportStatus === "checking" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Newspaper className="size-4" />
+            )}
+            <span>{reportLabel}</span>
+          </button>
+        )}
+      </div>
+
+      {toast && toastScope === "report" ? (
+        <div
+          aria-live="polite"
+          className="mt-3 flex flex-col gap-2 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-sm font-semibold text-[#b9ffc8] sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>{toast}</span>
+          {newsReportHref ? (
+            <Link
+              className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/32 px-3 text-xs font-semibold !text-[#b9ffc8] transition hover:bg-[#44f26e]/12"
+              href={newsReportHref}
+            >
+              {copy.reportView}
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
+      {children ? <div className="mt-4">{children}</div> : null}
     </section>
 
     {isReportComposerOpen ? (
