@@ -20,7 +20,6 @@ import {
   PlayCircle,
   Rocket,
   Search,
-  Share2,
   SlidersHorizontal,
   Sparkles,
   Trophy,
@@ -2385,9 +2384,11 @@ function FanletterCreatorRanking({
 function SocialMetrics({
   content,
   locale,
+  newsReportCount,
 }: {
   content: FanletterPublicContentItem;
   locale: Locale;
+  newsReportCount: number;
 }) {
   const copy = getCopy(locale);
   const metrics = [
@@ -2402,14 +2403,19 @@ function SocialMetrics({
       value: content.social.commentCount,
     },
     {
-      icon: Share2,
+      icon: Bookmark,
       label: copy.metrics.saves,
       value: content.social.saveCount,
+    },
+    {
+      icon: Newspaper,
+      label: copy.metrics.reports,
+      value: newsReportCount,
     },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
       {metrics.map((metric) => {
         const Icon = metric.icon;
 
@@ -9708,7 +9714,11 @@ export function FanletterContentDetailPage({
                 </div>
               </FanletterResponsiveMediaFrame>
               <div className="border-t border-white/8 p-3">
-                <SocialMetrics content={content} locale={locale} />
+                <SocialMetrics
+                  content={content}
+                  locale={locale}
+                  newsReportCount={newsReportCount}
+                />
               </div>
               {shouldShowPurchaseContext && returnToHref ? (
                 <div className="border-t border-white/8 p-3">
