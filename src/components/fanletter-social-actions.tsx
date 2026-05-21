@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   Bookmark,
@@ -19,7 +20,6 @@ import {
   useRef,
   useState,
   type PointerEvent,
-  type ReactNode,
 } from "react";
 import {
   useActiveAccount,
@@ -55,12 +55,12 @@ const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
 const EMPTY_REPORT_COVER_CANDIDATES: ContentCoverImageCandidate[] = [];
 
 type FanletterSocialActionsProps = {
-  children?: ReactNode;
   className?: string;
   commentsHref?: string;
   contentId: string;
   hasViewerNewsReport?: boolean;
   initialSocial: ContentSocialSummaryRecord;
+  initialNewsReports?: FanletterContentNewsReportItem[];
   isOwnContent?: boolean;
   locale: Locale;
   newsReportCount?: number;
@@ -73,8 +73,22 @@ type FanletterSocialActionsProps = {
 };
 
 type FanletterNewsReportStatus = "checking" | "idle" | "missing" | "ready";
+type NewsReportsStatus = "error" | "idle" | "loading" | "ready";
+
+export type FanletterContentNewsReportItem = {
+  coverImageUrl: string | null;
+  createdAt: string;
+  dek: string;
+  href: string;
+  isViewerReport: boolean;
+  reporterName: string;
+  reportId: string;
+  title: string;
+};
 
 type FanletterNewsReportSummary = {
+  coverImageUrl: string | null;
+  createdAt: string;
   dek: string;
   reporterAvatarImageUrl: string | null;
   reporterCharacterName: string | null;
@@ -90,6 +104,11 @@ type FanletterNewsReportCreateResponse = {
 
 type FanletterNewsReportLookupResponse = {
   report: FanletterNewsReportSummary | null;
+};
+
+type FanletterNewsReportsForContentResponse = {
+  reportCount: number;
+  reports: FanletterContentNewsReportItem[];
 };
 
 type FanletterNewsReportCoverOption = {
@@ -196,6 +215,9 @@ function getCopy(locale: Locale) {
         reportSubmit: "AI 리포트 생성하기",
         reportShare: "AI 리포트",
         reportView: "리포트 보기",
+        reportListFailed: "AI 팬 리포트 목록을 새로고침하지 못했습니다.",
+        reportListRefresh: "목록 새로고침",
+        reportListRefreshing: "목록 새로고침 중",
         reportsBody:
           "팬 기자 관점의 AI 리포트를 만들고 이 브이로그에서 생성된 리포트를 모아봅니다.",
         reportsCount: "리포트",
@@ -266,6 +288,9 @@ function getCopy(locale: Locale) {
         reportSubmit: "Create AI report",
         reportShare: "AI report",
         reportView: "View report",
+        reportListFailed: "Could not refresh the AI fan report list.",
+        reportListRefresh: "Refresh list",
+        reportListRefreshing: "Refreshing list",
         reportsBody:
           "Create a fan-reporter AI report and browse reports generated from this vlog.",
         reportsCount: "Reports",
@@ -294,6 +319,107 @@ function formatCommentDate(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatReportDate(value: string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+  }).format(new Date(value));
+}
+
+function FanletterNewsReportsList({
+  locale,
+  reports,
+}: {
+  locale: Locale;
+  reports: FanletterContentNewsReportItem[];
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          dateFallback: "FanLetter News",
+          empty:
+            "아직 이 브이로그로 생성된 리포트가 없습니다. 첫 리포트를 만들면 목록에 표시됩니다.",
+          reporter: "팬 기자",
+          viewerReport: "내 리포트",
+        }
+      : {
+          dateFallback: "FanLetter News",
+          empty:
+            "No reports have been generated from this vlog yet. Create the first report to show it here.",
+          reporter: "Fan reporter",
+          viewerReport: "My report",
+        };
+
+  if (reports.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-white/12 bg-black/18 px-4 py-7 text-center">
+        <span className="mx-auto flex size-11 items-center justify-center rounded-lg bg-white/[0.055] text-[#44f26e]">
+          <Newspaper className="size-5" />
+        </span>
+        <p className="mx-auto mt-3 max-w-sm text-sm font-medium leading-6 text-white/45">
+          {labels.empty}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {reports.map((report) => (
+        <Link
+          className={cn(
+            "group grid min-w-0 grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-lg border bg-black/20 p-2.5 transition hover:border-[#44f26e]/42 hover:bg-black/30",
+            report.isViewerReport
+              ? "border-[#44f26e]/64 bg-[#44f26e]/10"
+              : "border-white/10",
+          )}
+          href={report.href}
+          key={report.reportId}
+        >
+          <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#111510]">
+            {report.coverImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                fill
+                sizes="92px"
+                src={report.coverImageUrl}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[#44f26e]">
+                <Newspaper className="size-6" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 py-0.5">
+            {report.isViewerReport ? (
+              <span className="mb-1.5 inline-flex w-fit rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-semibold text-black">
+                {labels.viewerReport}
+              </span>
+            ) : null}
+            <p className="line-clamp-2 break-words text-sm font-semibold leading-5 [word-break:keep-all]">
+              {report.title}
+            </p>
+            <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/50">
+              {report.dek}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-white/38">
+              <span>
+                {formatReportDate(report.createdAt, locale) ?? labels.dateFallback}
+              </span>
+              <span>{report.reporterName || labels.reporter}</span>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
 }
 
 function getReportCoverOptions({
@@ -550,11 +676,11 @@ function CommentAvatar({ comment }: { comment: ContentCommentRecord }) {
 }
 
 export function FanletterSocialActions({
-  children,
   className,
   commentsHref,
   contentId,
   hasViewerNewsReport = false,
+  initialNewsReports = [],
   initialSocial,
   isOwnContent = false,
   locale,
@@ -591,6 +717,13 @@ export function FanletterSocialActions({
     useState<FanletterNewsReportSummary | null>(null);
   const [newsReportStatus, setNewsReportStatus] =
     useState<FanletterNewsReportStatus>("idle");
+  const [newsReports, setNewsReports] =
+    useState<FanletterContentNewsReportItem[]>(initialNewsReports);
+  const [newsReportsStatus, setNewsReportsStatus] =
+    useState<NewsReportsStatus>("idle");
+  const [newsReportsError, setNewsReportsError] = useState<string | null>(null);
+  const [newsReportsTotalCount, setNewsReportsTotalCount] =
+    useState(newsReportCount);
   const [isReportComposerOpen, setIsReportComposerOpen] = useState(false);
   const [selectedReportCoverUrl, setSelectedReportCoverUrl] =
     useState<string | null>(null);
@@ -651,6 +784,14 @@ export function FanletterSocialActions({
   useEffect(() => {
     setSocial(initialSocial);
   }, [initialSocial]);
+
+  useEffect(() => {
+    setNewsReports(initialNewsReports);
+  }, [initialNewsReports]);
+
+  useEffect(() => {
+    setNewsReportsTotalCount(newsReportCount);
+  }, [newsReportCount]);
 
   useEffect(() => {
     if (memberSession.email) {
@@ -774,6 +915,76 @@ export function FanletterSocialActions({
     resolveEmail,
   ]);
 
+  const refreshNewsReports = useCallback(async ({
+    silent = false,
+  }: {
+    silent?: boolean;
+  } = {}) => {
+    if (!isPanel) {
+      return;
+    }
+
+    if (!silent) {
+      setNewsReportsStatus("loading");
+      setNewsReportsError(null);
+    }
+
+    try {
+      const params = new URLSearchParams({
+        contentId,
+        limit: "4",
+        locale,
+        scope: "content",
+      });
+
+      if (connection.isConnected && accountAddress) {
+        const resolvedEmail = await resolveEmail();
+
+        if (resolvedEmail) {
+          params.set("email", resolvedEmail);
+          params.set("walletAddress", accountAddress);
+        }
+      }
+
+      const response = await fetch(
+        `/api/fanletter/news-reports?${params.toString()}`,
+        { cache: "no-store" },
+      );
+      const data = (await response.json().catch(() => null)) as
+        | FanletterNewsReportsForContentResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("reports" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : copy.reportListFailed,
+        );
+      }
+
+      setNewsReports(data.reports);
+      setNewsReportsTotalCount(data.reportCount);
+      setNewsReportsError(null);
+      setNewsReportsStatus("ready");
+    } catch (error) {
+      if (!silent) {
+        setNewsReportsError(
+          error instanceof Error ? error.message : copy.reportListFailed,
+        );
+        setNewsReportsStatus("error");
+      }
+    }
+  }, [
+    accountAddress,
+    connection.isConnected,
+    contentId,
+    copy.reportListFailed,
+    isPanel,
+    locale,
+    resolveEmail,
+  ]);
+
   const loadComments = useCallback(async ({
     append = false,
     offset = 0,
@@ -866,6 +1077,14 @@ export function FanletterSocialActions({
   useEffect(() => {
     void loadExistingNewsReport();
   }, [loadExistingNewsReport]);
+
+  useEffect(() => {
+    if (!connection.isConnected || !accountAddress) {
+      return;
+    }
+
+    void refreshNewsReports({ silent: true });
+  }, [accountAddress, connection.isConnected, refreshNewsReports]);
 
   const updateSocialAction = useCallback(
     async (action: "like" | "save", value: boolean) => {
@@ -1134,6 +1353,28 @@ export function FanletterSocialActions({
       setNewsReportStatus("ready");
       setIsReportComposerOpen(false);
       setReporterComment("");
+      const createdReportItem: FanletterContentNewsReportItem = {
+        coverImageUrl: data.report.coverImageUrl,
+        createdAt: data.report.createdAt,
+        dek: data.report.dek,
+        href: data.report.shareHref,
+        isViewerReport: true,
+        reporterName: data.report.reporterName,
+        reportId: data.report.reportId,
+        title: data.report.title,
+      };
+      const reportAlreadyInList = newsReports.some(
+        (report) => report.reportId === data.report.reportId,
+      );
+
+      setNewsReports((current) => [
+        createdReportItem,
+        ...current.filter((report) => report.reportId !== data.report.reportId),
+      ].slice(0, 4));
+      setNewsReportsTotalCount((current) =>
+        reportAlreadyInList ? current : Math.max(current + 1, 1),
+      );
+      void refreshNewsReports({ silent: true });
 
       if (navigator.share) {
         try {
@@ -1175,6 +1416,8 @@ export function FanletterSocialActions({
     copy.reportReady,
     copy.signInRequired,
     locale,
+    newsReports,
+    refreshNewsReports,
     resolveEmail,
   ]);
 
@@ -1406,13 +1649,15 @@ export function FanletterSocialActions({
   const actionIconClassName = isPanel ? "size-4" : "size-3.5";
   const likeLabel = social.likedByViewer ? copy.liked : copy.like;
   const saveLabel = social.savedByViewer ? copy.saved : copy.save;
-  const hasCurrentViewerNewsReport = hasViewerNewsReport || Boolean(newsReport);
+  const hasViewerReportInList = newsReports.some((report) => report.isViewerReport);
+  const hasCurrentViewerNewsReport =
+    hasViewerNewsReport || hasViewerReportInList || Boolean(newsReport);
   const reportHelper = hasCurrentViewerNewsReport
     ? copy.reportExistingHelper
     : copy.reportOnceHelper;
   const displayedNewsReportCount = hasCurrentViewerNewsReport
-    ? Math.max(newsReportCount, 1)
-    : newsReportCount;
+    ? Math.max(newsReportsTotalCount, 1)
+    : newsReportsTotalCount;
   const commentsHelper = isOwnContent
     ? copy.ownerCommentsHelper
     : copy.commentsHelper;
@@ -1762,12 +2007,29 @@ export function FanletterSocialActions({
             {copy.reportsBody}
           </p>
         </div>
-        <div className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 text-sm font-semibold text-white/72">
-          <Newspaper className="size-4 text-[#44f26e]" />
-          <span>{copy.reportsCount}</span>
-          <span className="text-[#b9ffc8]">
-            {formatCount(displayedNewsReportCount, locale)}
-          </span>
+        <div className="flex flex-wrap gap-2">
+          <div className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 text-sm font-semibold text-white/72">
+            <Newspaper className="size-4 text-[#44f26e]" />
+            <span>{copy.reportsCount}</span>
+            <span className="text-[#b9ffc8]">
+              {formatCount(displayedNewsReportCount, locale)}
+            </span>
+          </div>
+          <button
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-3 text-xs font-semibold text-white/68 transition hover:border-[#44f26e]/46 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={newsReportsStatus === "loading"}
+            onClick={() => {
+              void refreshNewsReports();
+            }}
+            type="button"
+          >
+            <RefreshCw
+              className={`size-4 ${newsReportsStatus === "loading" ? "animate-spin" : ""}`}
+            />
+            {newsReportsStatus === "loading"
+              ? copy.reportListRefreshing
+              : copy.reportListRefresh}
+          </button>
         </div>
       </div>
 
@@ -1811,7 +2073,15 @@ export function FanletterSocialActions({
         </div>
       ) : null}
 
-      {children ? <div className="mt-4">{children}</div> : null}
+      {newsReportsError ? (
+        <p className="mt-3 rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm leading-5 text-rose-100">
+          {newsReportsError}
+        </p>
+      ) : null}
+
+      <div className="mt-4">
+        <FanletterNewsReportsList locale={locale} reports={newsReports} />
+      </div>
     </section>
 
     {isReportComposerOpen ? (

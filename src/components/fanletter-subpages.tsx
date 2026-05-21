@@ -15,7 +15,6 @@ import {
   LockKeyhole,
   MessageCircle,
   MessageCircleHeart,
-  Newspaper,
   PenLine,
   PlayCircle,
   Rocket,
@@ -59,7 +58,10 @@ import {
   FanletterSetupStepNavLink,
   FanletterSetupStepText,
 } from "@/components/fanletter-setup-status-actions";
-import { FanletterSocialActions } from "@/components/fanletter-social-actions";
+import {
+  FanletterSocialActions,
+  type FanletterContentNewsReportItem,
+} from "@/components/fanletter-social-actions";
 import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
@@ -82,17 +84,6 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
-
-type FanletterContentNewsReportItem = {
-  coverImageUrl: string | null;
-  createdAt: string;
-  dek: string;
-  href: string;
-  isViewerReport: boolean;
-  reporterName: string;
-  reportId: string;
-  title: string;
-};
 
 type FanletterSubpageCopy = {
   actions: {
@@ -9315,97 +9306,6 @@ function FanletterNsfwContentGate({
   );
 }
 
-function FanletterContentNewsReports({
-  locale,
-  reports,
-}: {
-  locale: Locale;
-  reports: FanletterContentNewsReportItem[];
-}) {
-  const labels =
-    locale === "ko"
-      ? {
-          dateFallback: "FanLetter News",
-          empty:
-            "아직 이 브이로그로 생성된 리포트가 없습니다. 첫 리포트를 만들면 목록에 표시됩니다.",
-          viewerReport: "내 리포트",
-          reporter: "팬 기자",
-        }
-      : {
-          dateFallback: "FanLetter News",
-          empty:
-            "No reports have been generated from this vlog yet. Create the first report to show it here.",
-          viewerReport: "My report",
-          reporter: "Fan reporter",
-        };
-
-  if (reports.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed border-white/12 bg-black/18 px-4 py-7 text-center">
-        <span className="mx-auto flex size-11 items-center justify-center rounded-lg bg-white/[0.055] text-[#44f26e]">
-          <Newspaper className="size-5" />
-        </span>
-        <p className="mx-auto mt-3 max-w-sm text-sm font-medium leading-6 text-white/45">
-          {labels.empty}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {reports.map((report) => (
-        <Link
-          className={cn(
-            "group grid min-w-0 grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-lg border bg-black/20 p-2.5 transition hover:border-[#44f26e]/42 hover:bg-black/30",
-            report.isViewerReport
-              ? "border-[#44f26e]/64 bg-[#44f26e]/10"
-              : "border-white/10",
-          )}
-          href={report.href}
-          key={report.reportId}
-        >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#111510]">
-            {report.coverImageUrl ? (
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="object-cover transition duration-300 group-hover:scale-[1.04]"
-                fill
-                sizes="92px"
-                src={report.coverImageUrl}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-[#44f26e]">
-                <Newspaper className="size-6" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 py-0.5">
-            {report.isViewerReport ? (
-              <span className="mb-1.5 inline-flex w-fit rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-semibold text-black">
-                {labels.viewerReport}
-              </span>
-            ) : null}
-            <p className="line-clamp-2 break-words text-sm font-semibold leading-5 [word-break:keep-all]">
-              {report.title}
-            </p>
-            <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/50">
-              {report.dek}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-white/38">
-              <span>
-                {formatDate(report.createdAt, locale) ?? labels.dateFallback}
-              </span>
-              <span>{report.reporterName || labels.reporter}</span>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 export function FanletterContentDetailPage({
   content,
   locale,
@@ -9976,6 +9876,7 @@ export function FanletterContentDetailPage({
 
               <FanletterSocialActions
                 contentId={content.contentId}
+                initialNewsReports={newsReports}
                 initialSocial={content.social}
                 hasViewerNewsReport={hasViewerNewsReport}
                 isOwnContent={isOwnContent}
@@ -9986,12 +9887,7 @@ export function FanletterContentDetailPage({
                 shareHref={currentHref}
                 summary={content.summary}
                 title={content.title}
-              >
-                <FanletterContentNewsReports
-                  locale={locale}
-                  reports={newsReports}
-                />
-              </FanletterSocialActions>
+              />
 
               {content.fanRequestSource ? (
                 <FanletterFanRequestSourceCard

@@ -1,8 +1,10 @@
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportForReporter,
+  getFanletterNewsReportsForContent,
   getOrCreateFanletterNewsReport,
 } from "@/lib/fanletter-news-report-service";
+import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeReferralCode } from "@/lib/member";
@@ -47,12 +49,39 @@ function getErrorStatus(message: string) {
 
 function serializeNewsReport(report: FanletterNewsReportDocument) {
   return {
+    coverImageUrl: report.coverImageUrl,
+    createdAt: report.createdAt.toISOString(),
     dek: report.dek,
     reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
     reporterCharacterName: report.reporterCharacterName ?? null,
     reporterName: report.reporterName,
     reportId: report.reportId,
     shareHref: createFanletterNewsReportShareHref(report),
+    title: report.title,
+  };
+}
+
+function serializeContentNewsReport({
+  report,
+  viewerReporterReferralCode,
+}: {
+  report: FanletterNewsReportDocument;
+  viewerReporterReferralCode?: string | null;
+}) {
+  const normalizedViewerReporterReferralCode = normalizeReferralCode(
+    viewerReporterReferralCode,
+  );
+
+  return {
+    coverImageUrl: report.coverImageUrl,
+    createdAt: report.createdAt.toISOString(),
+    dek: report.dek,
+    href: createFanletterNewsReportShareHref(report),
+    isViewerReport:
+      Boolean(normalizedViewerReporterReferralCode) &&
+      report.reporterReferralCode === normalizedViewerReporterReferralCode,
+    reporterName: report.reporterName,
+    reportId: report.reportId,
     title: report.title,
   };
 }
@@ -116,10 +145,72 @@ async function resolveReporterCredentials({
   };
 }
 
+async function resolveOptionalReporterReferralCode({
+  email,
+  walletAddress,
+}: {
+  email?: string | null;
+  walletAddress?: string | null;
+}) {
+  const hasRequestCredentials = Boolean(email && walletAddress);
+  const session = hasRequestCredentials ? null : await readMemberServerSession();
+  const credentials = hasRequestCredentials
+    ? {
+        email,
+        walletAddress,
+      }
+    : session
+      ? {
+          email: session.email,
+          walletAddress: session.walletAddress,
+        }
+      : null;
+
+  if (!credentials?.email || !credentials.walletAddress) {
+    return null;
+  }
+
+  const authorization = await validateMemberWalletOwner({
+    allowedStatuses: ["completed", "pending_payment"],
+    email: credentials.email,
+    walletAddress: credentials.walletAddress,
+  });
+
+  if (authorization.error) {
+    return null;
+  }
+
+  return normalizeReferralCode(authorization.member?.referralCode);
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   try {
+    if (searchParams.get("scope") === "content") {
+      const localeParam = searchParams.get("locale");
+      const locale: Locale =
+        localeParam && hasLocale(localeParam) ? localeParam : defaultLocale;
+      const viewerReporterReferralCode = await resolveOptionalReporterReferralCode({
+        email: searchParams.get("email"),
+        walletAddress: searchParams.get("walletAddress"),
+      });
+      const limitParam = Number(searchParams.get("limit") ?? "4");
+      const result = await getFanletterNewsReportsForContent({
+        contentId: searchParams.get("contentId") ?? "",
+        limit: Number.isFinite(limitParam) ? limitParam : 4,
+        locale,
+        viewerReporterReferralCode,
+      });
+
+      return Response.json({
+        reportCount: result.reportCount,
+        reports: result.reports.map((report) =>
+          serializeContentNewsReport({ report, viewerReporterReferralCode }),
+        ),
+      });
+    }
+
     const reporter = await resolveReporterCredentials({
       email: searchParams.get("email"),
       walletAddress: searchParams.get("walletAddress"),
