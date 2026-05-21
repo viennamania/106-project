@@ -511,6 +511,7 @@ function SourceVlogEmbed({
   copy,
   isPaidContent,
   paidUnlockHref,
+  reportCoverImageSource,
   priceUsdt,
   reportCoverImageUrl,
   sourceContent,
@@ -520,16 +521,24 @@ function SourceVlogEmbed({
   copy: ReturnType<typeof getCopy>;
   isPaidContent: boolean;
   paidUnlockHref: string | null;
+  reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
   reportCoverImageUrl: string | null;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
   const sourceVideoUrl =
     sourceContent?.canViewerAccess ? sourceContent.contentVideoUrls[0] ?? null : null;
+  const shouldUseReportCoverImage =
+    reportCoverImageSource === "reporter_selected";
   const sourceImageUrl =
-    sourceContent?.coverImageUrl ??
-    sourceContent?.contentImageUrls[0] ??
-    reportCoverImageUrl;
+    shouldUseReportCoverImage
+      ? reportCoverImageUrl ??
+        sourceContent?.coverImageUrl ??
+        sourceContent?.contentImageUrls[0] ??
+        null
+      : sourceContent?.coverImageUrl ??
+        sourceContent?.contentImageUrls[0] ??
+        reportCoverImageUrl;
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
@@ -1043,6 +1052,7 @@ export default async function LocalizedFanletterNewsReportPage({
               isPaidContent={isPaidSourceContent}
               paidUnlockHref={paidUnlockHref}
               priceUsdt={paidUnlockAmount}
+              reportCoverImageSource={report.coverImageSource}
               reportCoverImageUrl={report.coverImageUrl}
               sourceContent={sourceContent}
             />
