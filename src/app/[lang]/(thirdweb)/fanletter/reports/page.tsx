@@ -169,6 +169,47 @@ function getReportPageHref({
   });
 }
 
+function getReportPaginationItems({
+  currentPage,
+  totalPages,
+}: {
+  currentPage: number;
+  totalPages: number;
+}) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const visiblePages = Array.from(
+    new Set(
+      [
+        1,
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        totalPages,
+      ].filter((page) => page >= 1 && page <= totalPages),
+    ),
+  ).sort((a, b) => a - b);
+  const items: Array<number | "ellipsis"> = [];
+  let previousPage: number | null = null;
+
+  visiblePages.forEach((page) => {
+    if (previousPage !== null && page - previousPage > 1) {
+      if (page - previousPage === 2) {
+        items.push(previousPage + 1);
+      } else {
+        items.push("ellipsis");
+      }
+    }
+
+    items.push(page);
+    previousPage = page;
+  });
+
+  return items;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -279,17 +320,10 @@ export default async function LocalizedFanletterReportsPage({
     1,
     Math.ceil(data.reportCount / REPORTS_PAGE_SIZE),
   );
-  const pageNumbers = Array.from(
-    new Set(
-      [
-        1,
-        currentPage - 1,
-        currentPage,
-        currentPage + 1,
-        totalPages,
-      ].filter((page) => page >= 1 && page <= totalPages),
-    ),
-  );
+  const paginationItems = getReportPaginationItems({
+    currentPage,
+    totalPages,
+  });
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
     const reportHref = buildPathWithReferral(
       `/${locale}/fanletter/news/${report.reportId}`,
@@ -518,24 +552,34 @@ export default async function LocalizedFanletterReportsPage({
                   >
                     {copy.pagination.previous}
                   </Link>
-                  {pageNumbers.map((page) => (
-                    <Link
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
-                        page === currentPage
-                          ? "border-[#111510] bg-[#111510] !text-white"
-                          : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
-                      }`}
-                      href={getReportPageHref({
-                        locale,
-                        page,
-                        referralCode: effectiveReferralCode,
-                      })}
-                      key={page}
-                    >
-                      {formatNumber(page, locale)}
-                    </Link>
-                  ))}
+                  {paginationItems.map((item, index) =>
+                    item === "ellipsis" ? (
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex size-10 items-center justify-center text-sm font-black text-black/34"
+                        key={`ellipsis-${index}`}
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <Link
+                        aria-current={item === currentPage ? "page" : undefined}
+                        className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
+                          item === currentPage
+                            ? "border-[#111510] bg-[#111510] !text-white"
+                            : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                        }`}
+                        href={getReportPageHref({
+                          locale,
+                          page: item,
+                          referralCode: effectiveReferralCode,
+                        })}
+                        key={item}
+                      >
+                        {formatNumber(item, locale)}
+                      </Link>
+                    ),
+                  )}
                   <Link
                     aria-disabled={currentPage >= totalPages}
                     className={`inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-black transition ${
