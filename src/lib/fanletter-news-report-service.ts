@@ -2016,17 +2016,23 @@ export const getRelatedFanletterNewsReports = cache(
     excludeReportId,
     limit = 4,
     locale,
+    offset = 0,
   }: {
     creatorReferralCode?: string | null;
     excludeContentId?: string | null;
     excludeReportId: string;
     limit?: number;
     locale: Locale;
+    offset?: number;
   }) => {
     const normalizedCreatorReferralCode =
       normalizeReferralCode(creatorReferralCode);
     const normalizedReportId = excludeReportId.trim();
     const normalizedContentId = excludeContentId?.trim();
+    const normalizedLimit = Math.max(1, Math.min(limit, 24));
+    const normalizedOffset = Number.isFinite(offset)
+      ? Math.max(0, Math.floor(offset))
+      : 0;
 
     if (!normalizedCreatorReferralCode || !normalizedReportId) {
       return [];
@@ -2046,7 +2052,8 @@ export const getRelatedFanletterNewsReports = cache(
     const reports = await reportsCollection
       .find(query)
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
-      .limit(Math.max(1, Math.min(limit, 8)))
+      .skip(normalizedOffset)
+      .limit(normalizedLimit)
       .toArray();
 
     return hydrateFanletterNewsReportCoverImageUrls(reports);

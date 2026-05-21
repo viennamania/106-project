@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
+import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
@@ -52,9 +53,15 @@ import {
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
-  getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
+import {
+  getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+  getFanletterNewsReporterDisplayName as getReporterDisplayName,
+  isFanletterNewsReportNsfw as isNsfwReport,
+  serializeFanletterRelatedNewsItem,
+  shouldBlurFanletterNewsReport as shouldBlurReport,
+} from "@/lib/fanletter-news-related";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import {
   defaultLocale,
@@ -72,6 +79,9 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
 };
+
+const RELATED_NEWS_PAGE_SIZE = 4;
+const RELATED_NEWS_FETCH_LIMIT = RELATED_NEWS_PAGE_SIZE + 1;
 
 function getFormString(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
@@ -197,6 +207,9 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "같은 캐릭터의 다른 뉴스",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
+        relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
+        relatedNewsLoadMore: "더 보기",
+        relatedNewsLoading: "불러오는 중",
         reporterNewsCta: "이 기자 뉴스 보기",
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
@@ -298,6 +311,9 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "More news from this character",
         relatedNewsEmpty: "No other news from this character yet.",
+        relatedNewsError: "Could not load more news. Please try again.",
+        relatedNewsLoadMore: "Load more",
+        relatedNewsLoading: "Loading",
         reporterNewsCta: "View reporter news",
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
@@ -340,24 +356,6 @@ function splitArticleBody(body: string) {
     .filter(Boolean);
 }
 
-function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
-}
-
-function getReporterDisplayName(report: FanletterNewsReportDocument) {
-  const reporterName = report.reporterName.trim();
-
-  if (reporterName) {
-    return reporterName;
-  }
-
-  const reporterId = report.reporterReferralCode.trim();
-
-  return report.locale === "ko"
-    ? `${reporterId} 팬 기자`
-    : `Fan reporter ${reporterId}`;
-}
-
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
@@ -383,17 +381,6 @@ function getUniqueImageUrls(urls: Array<string | null | undefined>) {
         .filter((url): url is string => Boolean(url)),
     ),
   );
-}
-
-function isNsfwReport(report: FanletterNewsReportDocument) {
-  return report.contentMaturityRating === "nsfw";
-}
-
-function shouldBlurReport(
-  report: FanletterNewsReportDocument,
-  nsfwOptInEnabled: boolean,
-) {
-  return isNsfwReport(report) && !nsfwOptInEnabled;
 }
 
 function NewsSiteHeader({
@@ -1290,115 +1277,6 @@ function SourceContextCard({
   );
 }
 
-function RelatedNewsList({
-  copy,
-  nsfwOptInEnabled,
-  referralCode,
-  reports,
-}: {
-  copy: ReturnType<typeof getCopy>;
-  nsfwOptInEnabled: boolean;
-  referralCode: string | null;
-  reports: FanletterNewsReportDocument[];
-}) {
-  return (
-    <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
-      <div className="border-b border-black/12 pb-3">
-        <div>
-          <p className="text-xs font-bold text-[#16702e]">FanLetter News</p>
-          <h2 className="mt-1 text-lg font-black tracking-normal">
-            {copy.relatedNews}
-          </h2>
-        </div>
-      </div>
-
-      {reports.length > 0 ? (
-        <div className="mt-4 grid gap-4">
-          {reports.map((report) => {
-            const href = buildPathWithReferral(
-              `/${report.locale}/fanletter/news/${report.reportId}`,
-              referralCode,
-            );
-            const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
-            const nsfwCopy = getFanletterNsfwCopy(report.locale);
-            const isNsfw = isNsfwReport(report);
-            const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
-
-            return (
-              <Link
-                className="group grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b]"
-                href={href}
-                key={report.reportId}
-              >
-                <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[#111510]">
-                  {report.coverImageUrl ? (
-                    <Image
-                      alt=""
-                      aria-hidden="true"
-                      className={
-                        shouldBlur
-                          ? "scale-[1.06] object-cover blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.08]"
-                          : "object-cover transition duration-300 group-hover:scale-[1.04]"
-                      }
-                      fill
-                      sizes="6rem"
-                      src={report.coverImageUrl}
-                      unoptimized={shouldBypassFanletterImageOptimization(
-                        report.coverImageUrl,
-                      )}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-white/68">
-                      <Newspaper className="size-7 text-[#44f26e]" />
-                    </div>
-                  )}
-                  {isNsfw ? (
-                    <div
-                      className={`absolute p-2 text-center ${
-                        shouldBlur
-                          ? "inset-0 flex items-center justify-center bg-black/34"
-                          : "right-0 top-0"
-                      }`}
-                    >
-                      <span className="inline-flex rounded-full bg-rose-500 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
-                        {nsfwCopy.badge}
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className={`line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] ${
-                      shouldBlur ? "select-none blur-[2px]" : ""
-                    }`}
-                  >
-                    {getArticleDisplayTitle(report.title)}
-                  </p>
-                  <p
-                    className={`mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/58 ${
-                      shouldBlur ? "select-none blur-[2px]" : ""
-                    }`}
-                  >
-                    {report.dek}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
-                    {publishedAt ? <span>{publishedAt}</span> : null}
-                    <span>{getReporterDisplayName(report)}</span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="mt-4 border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
-          {copy.relatedNewsEmpty}
-        </p>
-      )}
-    </section>
-  );
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -1497,7 +1375,7 @@ export default async function LocalizedFanletterNewsReportPage({
       creatorReferralCode: report.creatorReferralCode,
       excludeContentId: report.contentId,
       excludeReportId: report.reportId,
-      limit: 4,
+      limit: RELATED_NEWS_FETCH_LIMIT,
       locale,
     }),
     getFanletterNewsReporterProfile({
@@ -1546,6 +1424,24 @@ export default async function LocalizedFanletterNewsReportPage({
         referralCode,
       )
     : fanletterHomeHref;
+  const visibleRelatedReports = relatedReports.slice(0, RELATED_NEWS_PAGE_SIZE);
+  const relatedNewsItems = visibleRelatedReports.map((relatedReport) =>
+    serializeFanletterRelatedNewsItem({
+      nsfwOptInEnabled: includeNsfw,
+      referralCode,
+      report: relatedReport,
+    }),
+  );
+  const relatedNewsApiHref = setPathSearchParams(
+    "/api/fanletter/news-reports/related",
+    {
+      limit: String(RELATED_NEWS_PAGE_SIZE),
+      locale,
+      ref: referralCode,
+      reportId: report.reportId,
+    },
+  );
+  const relatedNewsHasMore = relatedReports.length > RELATED_NEWS_PAGE_SIZE;
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body);
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
@@ -1800,11 +1696,19 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceVlogHref={sourceVlogHref}
             />
 
-            <RelatedNewsList
-              copy={copy}
-              nsfwOptInEnabled={includeNsfw}
-              referralCode={referralCode}
-              reports={relatedReports}
+            <FanletterNewsRelatedList
+              copy={{
+                empty: copy.relatedNewsEmpty,
+                error: copy.relatedNewsError,
+                loadMore: copy.relatedNewsLoadMore,
+                loading: copy.relatedNewsLoading,
+                title: copy.relatedNews,
+              }}
+              initialHasMore={relatedNewsHasMore}
+              initialItems={relatedNewsItems}
+              key={relatedNewsApiHref}
+              pageSize={RELATED_NEWS_PAGE_SIZE}
+              relatedApiHref={relatedNewsApiHref}
             />
           </aside>
         </div>
