@@ -886,43 +886,43 @@ export function FanletterReportsCoverManager({
       </section>
 
       {activeReport ? (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/66 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
+        <div className="fixed inset-0 z-[80] flex items-stretch justify-center bg-black/66 p-0 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4">
           <div
             aria-labelledby="fanletter-report-cover-modal-title"
             aria-modal="true"
-            className="max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-hidden rounded-lg border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)]"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl sm:rounded-lg"
             role="dialog"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-black/10 bg-white px-4 py-4 sm:px-5">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
                   <ImageIcon className="size-4" />
                   {copy.modalEyebrow}
                 </p>
                 <h2
-                  className="mt-2 break-words text-2xl font-black leading-tight tracking-normal [word-break:keep-all]"
+                  className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl"
                   id="fanletter-report-cover-modal-title"
                 >
                   {copy.modalTitle}
                 </h2>
-                <p className="mt-2 line-clamp-2 max-w-2xl text-sm font-medium leading-6 text-black/58">
+                <p className="mt-1.5 line-clamp-1 max-w-2xl text-sm font-medium leading-5 text-black/58 sm:mt-2 sm:line-clamp-2 sm:leading-6">
                   {activeReport.title}
                 </p>
-                <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-black/54">
+                <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-6 text-black/54 sm:block">
                   {copy.modalBody}
                 </p>
               </div>
               <button
                 aria-label={copy.modalClose}
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-black/12 bg-[#f5f6f1] text-black/56 transition hover:border-black/24 hover:bg-white hover:text-black"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-black/12 bg-[#f5f6f1] text-black/56 transition hover:border-black/24 hover:bg-white hover:text-black sm:size-10"
                 onClick={() => setActiveReportId(null)}
                 type="button"
               >
-                <X className="size-5" />
+                <X className="size-[1.125rem] sm:size-5" />
               </button>
             </div>
 
-            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto px-4 py-4 sm:px-5">
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-5 sm:py-4 sm:pb-4">
               {coverOptionsError ? (
                 <p className="mb-4 rounded-lg border border-rose-500/20 bg-rose-50 px-3 py-2 text-sm font-bold leading-5 text-rose-700">
                   {coverOptionsError}
@@ -930,7 +930,7 @@ export function FanletterReportsCoverManager({
               ) : null}
 
               {coverOptionsStatus === "loading" ? (
-                <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed border-black/14 bg-white">
+                <div className="flex min-h-48 items-center justify-center rounded-lg border border-dashed border-black/14 bg-white sm:min-h-56">
                   <span className="inline-flex items-center gap-2 text-sm font-black text-black/46">
                     <Loader2 className="size-4 animate-spin text-[#16702e]" />
                     {copy.modalLoading}
@@ -945,7 +945,7 @@ export function FanletterReportsCoverManager({
                 </div>
               ) : (
                 <>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="-mx-3 grid snap-x snap-mandatory auto-cols-[8.25rem] grid-flow-col gap-2 overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 sm:snap-none lg:grid-cols-3 [&::-webkit-scrollbar]:hidden">
                     {coverOptions.map((option, index) => {
                       const optionKey = getOptionKey(option);
                       const isEditing =
@@ -963,7 +963,7 @@ export function FanletterReportsCoverManager({
 
                       return (
                         <button
-                          className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-lg border text-left transition ${
+                          className={`group flex h-full min-w-0 snap-start flex-col overflow-hidden rounded-lg border text-left transition ${
                             isEditing
                               ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_12px_30px_rgba(25,184,75,0.14)]"
                               : "border-black/10 bg-white hover:border-[#19b84b] hover:bg-white"
@@ -975,14 +975,14 @@ export function FanletterReportsCoverManager({
                           }}
                           type="button"
                         >
-                          <span className="relative block aspect-[4/5] w-full overflow-hidden bg-[#111510] sm:aspect-[5/6]">
+                          <span className="relative block aspect-square w-full overflow-hidden bg-[#111510] sm:aspect-[5/6]">
                             <Image
                               alt=""
                               aria-hidden="true"
                               className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
                               fill
                               loading={index === 0 ? "eager" : "lazy"}
-                              sizes="(max-width: 640px) 100vw, 280px"
+                              sizes="(max-width: 640px) 132px, 280px"
                               src={option.imageUrl}
                               unoptimized={shouldBypassOptionImageOptimization}
                             />
@@ -992,23 +992,25 @@ export function FanletterReportsCoverManager({
                               className="object-contain transition duration-300 group-hover:scale-[1.02]"
                               fill
                               loading={index === 0 ? "eager" : "lazy"}
-                              sizes="(max-width: 640px) 100vw, 280px"
+                              sizes="(max-width: 640px) 132px, 280px"
                               src={option.imageUrl}
                               unoptimized={shouldBypassOptionImageOptimization}
                             />
-                            <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 border border-white/18 bg-black/46 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/78 backdrop-blur">
+                            <span className="absolute left-1.5 top-1.5 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 border border-white/18 bg-black/46 px-1.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/78 backdrop-blur sm:left-2 sm:top-2 sm:gap-1.5 sm:px-2 sm:text-[0.62rem] sm:tracking-[0.1em]">
                               {option.isSelected ? (
-                                <CheckCircle2 className="size-3.5 text-[#44f26e]" />
+                                <CheckCircle2 className="size-3 shrink-0 text-[#44f26e] sm:size-3.5" />
                               ) : isSaving ? (
-                                <Loader2 className="size-3.5 animate-spin text-[#44f26e]" />
+                                <Loader2 className="size-3 shrink-0 animate-spin text-[#44f26e] sm:size-3.5" />
                               ) : (
-                                <RotateCcw className="size-3.5 text-[#44f26e]" />
+                                <RotateCcw className="size-3 shrink-0 text-[#44f26e] sm:size-3.5" />
                               )}
-                              {copy.sourceLabels[option.source]}
+                              <span className="truncate">
+                                {copy.sourceLabels[option.source]}
+                              </span>
                             </span>
                           </span>
-                          <span className="flex min-h-[5.4rem] w-full flex-col p-3">
-                            <span className="line-clamp-1 text-sm font-black text-[#111510]">
+                          <span className="flex min-h-[4.25rem] w-full flex-col p-2 sm:min-h-[5.4rem] sm:p-3">
+                            <span className="line-clamp-2 text-xs font-black leading-4 text-[#111510] sm:line-clamp-1 sm:text-sm">
                               {isSaving
                                 ? optionKey === savingOptionKey
                                   ? copy.modalSaving
@@ -1019,7 +1021,7 @@ export function FanletterReportsCoverManager({
                                     ? copy.optionSelected
                                     : copy.optionUse}
                             </span>
-                            <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-[0.68rem] font-bold text-black/46">
+                            <span className="mt-1 flex max-h-9 flex-wrap overflow-hidden gap-x-1.5 gap-y-0.5 text-[0.62rem] font-bold leading-4 text-black/46 sm:max-h-none sm:gap-x-2 sm:gap-y-1 sm:text-[0.68rem]">
                               {timestamp ? <span>{timestamp}</span> : null}
                               {option.contentType ? (
                                 <span>{option.contentType}</span>
@@ -1035,7 +1037,7 @@ export function FanletterReportsCoverManager({
                   </div>
 
                   {selectedOption ? (
-                    <div className="mt-4 rounded-lg border border-black/10 bg-white p-3 sm:p-4">
+                    <div className="mt-3 rounded-lg border border-black/10 bg-white p-3 sm:mt-4 sm:p-4">
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                           <p className="text-sm font-black text-[#111510]">
@@ -1045,9 +1047,9 @@ export function FanletterReportsCoverManager({
                             {copy.cropHelper}
                           </p>
                         </div>
-                        <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
+                        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row lg:shrink-0">
                           <button
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-black/12 px-3 text-xs font-black text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-black/12 px-2 py-2 text-center text-xs font-black leading-4 text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
                             disabled={!canUseSelectedOriginal}
                             onClick={() => {
                               void updateCoverImage(selectedOption);
@@ -1064,7 +1066,7 @@ export function FanletterReportsCoverManager({
                               : copy.cropOriginal}
                           </button>
                           <button
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#111510] px-3 text-xs font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
                             disabled={!canSaveSelectedCrop}
                             onClick={() => {
                               void updateCroppedCoverImage();
@@ -1086,7 +1088,7 @@ export function FanletterReportsCoverManager({
                       {selectedOptionSourceImageUrl ? (
                         <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem]">
                           <div
-                            className="relative aspect-video min-h-[12rem] cursor-grab touch-none overflow-hidden rounded-lg border border-black/10 bg-[#111510] active:cursor-grabbing"
+                            className="relative aspect-video min-h-[10.5rem] cursor-grab touch-none overflow-hidden rounded-lg border border-black/10 bg-[#111510] active:cursor-grabbing sm:min-h-[12rem]"
                             onPointerCancel={handleCoverCropPointerEnd}
                             onPointerDown={handleCoverCropPointerDown}
                             onPointerMove={handleCoverCropPointerMove}
