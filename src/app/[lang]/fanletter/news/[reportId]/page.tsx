@@ -18,9 +18,9 @@ import {
   Newspaper,
   PlayCircle,
   RotateCcw,
-  UserRound,
 } from "lucide-react";
 
+import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import {
@@ -498,7 +498,16 @@ function CharacterIdentityFeature({
     ...(character?.avatarImageSet ?? []).map((avatar) => avatar.url),
     sourceContent?.authorAvatarImageUrl,
   ]).slice(0, 4);
-  const primaryAvatarImageUrl = avatarImages[0] ?? null;
+  const avatarImageOptions = avatarImages.map((imageUrl) => {
+    const avatar = character?.avatarImageSet.find(
+      (candidate) => candidate.url === imageUrl,
+    );
+
+    return {
+      label: avatar?.label ?? avatar?.expression ?? null,
+      url: imageUrl,
+    };
+  });
   const traits = (character?.traits ?? []).slice(0, 5);
   const reactionCount =
     (sourceContent?.social.likeCount ?? 0) +
@@ -525,72 +534,12 @@ function CharacterIdentityFeature({
   return (
     <section className="mt-6 overflow-hidden border border-black/12 bg-[#f6f8f2] text-[#111510] shadow-[0_22px_60px_rgba(17,21,16,0.08)]">
       <div className="grid lg:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-        <div className="relative min-h-[24rem] overflow-hidden bg-[#0d130e] lg:min-h-[32rem]">
-          {primaryAvatarImageUrl ? (
-            <>
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="scale-110 object-cover object-top blur-2xl brightness-[0.38] saturate-[0.88]"
-                fill
-                loading="eager"
-                sizes="(max-width: 1024px) 100vw, 380px"
-                src={primaryAvatarImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  primaryAvatarImageUrl,
-                )}
-              />
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="object-cover object-top"
-                fill
-                loading="eager"
-                sizes="(max-width: 1024px) 100vw, 380px"
-                src={primaryAvatarImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  primaryAvatarImageUrl,
-                )}
-              />
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-[#0d130e]">
-              <UserRound className="size-16 text-[#44f26e]" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-black/24" />
-          <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 border border-white/16 bg-black/36 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
-            <BadgeCheck className="size-3.5 text-[#44f26e]" />
-            {copy.generated}
-          </div>
-          <div className="absolute bottom-4 left-4 right-4">
-            <p className="mb-3 inline-flex border border-white/18 bg-black/42 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/76 backdrop-blur">
-              {copy.characterIdentity.galleryLabel}
-            </p>
-            {avatarImages.length > 1 ? (
-              <div className="grid grid-cols-4 gap-2">
-                {avatarImages.map((imageUrl, index) => (
-                  <div
-                    className="relative aspect-square overflow-hidden border border-white/18 bg-white/10 shadow-[0_10px_28px_rgba(0,0,0,0.22)]"
-                    key={`${imageUrl}-${index}`}
-                  >
-                    <Image
-                      alt=""
-                      aria-hidden="true"
-                      className="object-cover object-top"
-                      fill
-                      sizes="4rem"
-                      src={imageUrl}
-                      unoptimized={shouldBypassFanletterImageOptimization(
-                        imageUrl,
-                      )}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <FanletterNewsCharacterImageSelector
+          avatarAlt={characterName}
+          avatarImages={avatarImageOptions}
+          galleryLabel={copy.characterIdentity.galleryLabel}
+          generatedLabel={copy.generated}
+        />
 
         <div className="flex min-h-full flex-col p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
