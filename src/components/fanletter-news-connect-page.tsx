@@ -11,7 +11,9 @@ import {
   Mail,
   Newspaper,
   RefreshCw,
+  Route,
   ShieldCheck,
+  type LucideIcon,
   UserRound,
   WalletMinimal,
 } from "lucide-react";
@@ -101,11 +103,13 @@ function getCopy(locale: Locale) {
         paymentTitle: "가입 완료 확인이 필요합니다.",
         reconnect: "다시 확인",
         returnLabel: "연결 전 위치",
+        routeTitle: "복귀 경로",
         signOut: "연결 해제",
         siteName: "FanLetter News",
+        statusDesk: "뉴스 계정 데스크",
         steps: ["이메일 지갑 연결", "팬 기자 계정 확인", "뉴스로 복귀"],
         syncing: "뉴스 계정을 동기화하고 있습니다.",
-        title: "뉴스 기사에서 바로 이어지는 지갑 연결",
+        title: "FanLetter News 계정 연결",
         wallet: "FanLetter 지갑 관리",
         walletId: "연결 ID",
       }
@@ -138,11 +142,13 @@ function getCopy(locale: Locale) {
         paymentTitle: "Signup verification is required.",
         reconnect: "Check again",
         returnLabel: "Previous location",
+        routeTitle: "Return route",
         signOut: "Disconnect",
         siteName: "FanLetter News",
+        statusDesk: "News Account Desk",
         steps: ["Email wallet", "Fan reporter account", "Return to news"],
         syncing: "Syncing your news account.",
-        title: "Connect your wallet from the news story",
+        title: "Connect FanLetter News account",
         wallet: "FanLetter wallet",
         walletId: "Connection ID",
       };
@@ -213,26 +219,33 @@ function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
 
 function StepStatus({
   done,
+  index,
   label,
   loading,
 }: {
   done: boolean;
+  index: number;
   label: string;
   loading?: boolean;
 }) {
   return (
     <div
       className={joinClasses(
-        "border px-3 py-3",
+        "border bg-white px-3 py-3",
         done
           ? "border-[#16702e] bg-[#e5f7df] text-[#111510]"
           : "border-black/12 bg-white text-black/58",
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[0.68rem] font-black uppercase tracking-[0.12em]">
-          {label}
-        </p>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex size-7 shrink-0 items-center justify-center border border-current/18 text-[0.68rem] font-black">
+            {index + 1}
+          </span>
+          <p className="truncate text-[0.68rem] font-black uppercase tracking-[0.1em]">
+            {label}
+          </p>
+        </div>
         {loading ? (
           <Loader2 className="size-4 animate-spin text-[#16702e]" />
         ) : done ? (
@@ -241,6 +254,28 @@ function StepStatus({
           <span className="size-2 rounded-full bg-current opacity-36" />
         )}
       </div>
+    </div>
+  );
+}
+
+function AccountInfoRow({
+  Icon,
+  label,
+  value,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  value: string | null;
+}) {
+  return (
+    <div className="grid grid-cols-[minmax(0,0.78fr)_minmax(0,1fr)] items-center gap-3 border-b border-black/10 py-3 last:border-b-0 sm:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
+      <dt className="flex min-w-0 items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black/42">
+        <Icon className="size-4 shrink-0 text-[#16702e]" />
+        <span className="truncate">{label}</span>
+      </dt>
+      <dd className="min-w-0 truncate text-right text-sm font-black text-[#111510]">
+        {value ?? "-"}
+      </dd>
     </div>
   );
 }
@@ -473,6 +508,7 @@ export function FanletterNewsConnectPage({
             ? Boolean(connectedMember || syncState.email)
             : memberIsCompleted
       }
+      index={index}
       key={step}
       label={step}
       loading={
@@ -483,7 +519,7 @@ export function FanletterNewsConnectPage({
   ));
 
   return (
-    <main className="min-h-screen bg-[#f7f7f4] text-[#111510]">
+    <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -496,14 +532,17 @@ export function FanletterNewsConnectPage({
 
       <header className="border-b border-black/14 bg-white">
         <div className="border-b border-black/10 bg-[#f7f7f4]">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[0.72rem] font-semibold text-black/52 sm:px-6 lg:px-8">
-            <span>{copy.edition}</span>
-            <Link className="font-bold !text-[#16702e]" href={returnToHref}>
+          <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-2 text-[0.72rem] font-semibold text-black/52 sm:px-6 lg:px-8">
+            <span className="min-w-0 truncate">{copy.edition}</span>
+            <Link
+              className="shrink-0 font-bold !text-[#16702e]"
+              href={returnToHref}
+            >
               {returnLabel}
             </Link>
           </div>
         </div>
-        <div className="mx-auto flex max-w-6xl items-end justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[92rem] items-end justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link
             className="inline-flex items-center gap-3 text-[2rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[3.2rem]"
             href={newsHomeHref}
@@ -513,184 +552,232 @@ export function FanletterNewsConnectPage({
           <Link
             className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-black/14 bg-white text-[#111510] transition hover:bg-black hover:text-white"
             href={returnToHref}
+            aria-label={returnLabel}
           >
             <ArrowLeft className="size-5" />
           </Link>
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-6xl gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.66fr)] lg:px-8 lg:py-12">
-        <div className="min-w-0">
-          <p className="text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
-            {copy.eyebrow}
-          </p>
-          <h1 className="mt-4 max-w-4xl text-[2.3rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3.9rem] sm:leading-[1.03]">
-            {copy.title}
-          </h1>
-          <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-black/62 [word-break:keep-all] sm:text-lg">
-            {copy.accountBody}
-          </p>
-
-          <div className="mt-7 grid gap-2 sm:grid-cols-3">{steps}</div>
-
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            <Link
-              className="border border-black/12 bg-white p-4 transition hover:border-[#16702e]/42 hover:bg-[#f2fbef]"
-              href={returnToHref}
-            >
-              <span className="flex items-center gap-2 text-sm font-black text-[#111510]">
-                <Newspaper className="size-4 text-[#16702e]" />
-                {copy.returnLabel}
-              </span>
-              <span className="mt-2 block text-sm font-semibold leading-6 text-black/58">
-                {returnLabel}
-              </span>
-            </Link>
-            <Link
-              className="border border-black/12 bg-white p-4 transition hover:border-[#16702e]/42 hover:bg-[#f2fbef]"
-              href={newsHomeHref}
-            >
-              <span className="flex items-center gap-2 text-sm font-black text-[#111510]">
-                <Newspaper className="size-4 text-[#16702e]" />
-                {copy.siteName}
-              </span>
-              <span className="mt-2 block text-sm font-semibold leading-6 text-black/58">
-                {copy.homeReturn}
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        <section className="border border-black/12 bg-white p-4 shadow-[0_18px_44px_rgba(12,18,14,0.12)] sm:p-5">
-          <div className="flex items-start gap-3">
-            <span
-              className={joinClasses(
-                "flex size-12 shrink-0 items-center justify-center rounded-full",
-                memberIsCompleted
-                  ? "bg-[#44f26e] text-black"
-                  : memberNeedsPayment
-                    ? "bg-amber-100 text-amber-950"
-                    : syncState.status === "error"
-                      ? "bg-red-100 text-red-900"
-                      : "bg-[#111510] text-white",
-              )}
-            >
-              {memberIsCompleted ? (
-                <CheckCircle2 className="size-6" />
-              ) : memberNeedsPayment ? (
-                <ShieldCheck className="size-6" />
-              ) : syncState.status === "error" ? (
-                <CircleAlert className="size-6" />
-              ) : connection.isResolving || syncState.status === "syncing" ? (
-                <Loader2 className="size-6 animate-spin" />
-              ) : (
-                <WalletMinimal className="size-6" />
-              )}
-            </span>
+      <section className="mx-auto grid max-w-[92rem] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <section className="min-w-0 overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_48px_rgba(17,21,16,0.08)]">
+          <div className="border-b-2 border-[#111510] p-4 sm:p-5">
             <div className="min-w-0">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-                {copy.account}
+              <p className="text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
+                {copy.eyebrow}
               </p>
-              <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all]">
-                {cardTitle}
-              </h2>
-              <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
+              <h1 className="mt-3 max-w-4xl break-words text-[2.15rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3.45rem] lg:text-[3.9rem]">
+                {copy.title}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-black/62 [word-break:keep-all] sm:text-base sm:leading-7">
+                {copy.accountBody}
+              </p>
+            </div>
+            <div className="mt-5 grid gap-px border border-black/10 bg-black/10 sm:grid-cols-3">
+              {steps}
+            </div>
+          </div>
+
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
+            <div className="min-w-0 p-4 sm:p-5">
+              <div className="border border-black/12 bg-[#f7faf4] p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center bg-[#111510] text-[#44f26e]">
+                    <Route className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                      {copy.routeTitle}
+                    </p>
+                    <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all]">
+                      {returnLabel}
+                    </h2>
+                  </div>
+                </div>
+                <div
+                  className={joinClasses(
+                    "mt-4 grid gap-2",
+                    returnToHref !== newsHomeHref && "sm:grid-cols-2",
+                  )}
+                >
+                  <Link
+                    className="group flex min-h-14 items-center justify-between gap-3 border border-black/12 bg-white px-3 py-2 text-sm font-black !text-[#111510] transition hover:border-[#16702e]/42 hover:bg-[#ecfff0]"
+                    href={returnToHref}
+                  >
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      <ArrowLeft className="size-4 shrink-0 text-[#16702e]" />
+                      <span className="truncate">{returnLabel}</span>
+                    </span>
+                    <ArrowRight className="size-4 shrink-0 text-black/34 transition group-hover:text-[#16702e]" />
+                  </Link>
+                  {returnToHref !== newsHomeHref ? (
+                    <Link
+                      className="group flex min-h-14 items-center justify-between gap-3 border border-black/12 bg-white px-3 py-2 text-sm font-black !text-[#111510] transition hover:border-[#16702e]/42 hover:bg-[#ecfff0]"
+                      href={newsHomeHref}
+                    >
+                      <span className="inline-flex min-w-0 items-center gap-2">
+                        <Newspaper className="size-4 shrink-0 text-[#16702e]" />
+                        <span className="truncate">{copy.homeReturn}</span>
+                      </span>
+                      <ArrowRight className="size-4 shrink-0 text-black/34 transition group-hover:text-[#16702e]" />
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <aside className="border-t border-black/12 bg-[#111510] p-4 text-white sm:p-5 lg:border-l lg:border-t-0">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
+                {copy.statusDesk}
+              </p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-white/62">
                 {cardBody}
               </p>
+              <div className="mt-5 grid gap-2">
+                <div className="border border-white/12 bg-white/[0.06] px-3 py-3">
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/42">
+                    {copy.account}
+                  </p>
+                  <p className="mt-1 truncate text-lg font-black">
+                    {getMemberStatusLabel(connectedMember, locale)}
+                  </p>
+                </div>
+                <div className="border border-white/12 bg-white/[0.06] px-3 py-3">
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/42">
+                    {copy.returnLabel}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-black text-white/86">
+                    {returnLabel}
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section className="border-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(12,18,14,0.12)] lg:sticky lg:top-5 lg:self-start">
+          <div className="border-b-2 border-[#111510] p-4">
+            <div className="flex items-start gap-3">
+              <span
+                className={joinClasses(
+                  "flex size-12 shrink-0 items-center justify-center",
+                  memberIsCompleted
+                    ? "bg-[#44f26e] text-black"
+                    : memberNeedsPayment
+                      ? "bg-amber-200 text-amber-950"
+                      : syncState.status === "error"
+                        ? "bg-red-100 text-red-900"
+                        : "bg-[#111510] text-white",
+                )}
+              >
+                {memberIsCompleted ? (
+                  <CheckCircle2 className="size-6" />
+                ) : memberNeedsPayment ? (
+                  <ShieldCheck className="size-6" />
+                ) : syncState.status === "error" ? (
+                  <CircleAlert className="size-6" />
+                ) : connection.isResolving || syncState.status === "syncing" ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  <WalletMinimal className="size-6" />
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  {copy.account}
+                </p>
+                <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all]">
+                  {cardTitle}
+                </h2>
+              </div>
             </div>
           </div>
 
-          <dl className="mt-5 grid gap-2">
-            <div className="flex items-center justify-between gap-3 border border-black/10 bg-[#f7f7f4] px-3 py-3">
-              <dt className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-black/42">
-                <Mail className="size-4 text-[#16702e]" />
-                {copy.email}
-              </dt>
-              <dd className="min-w-0 truncate text-sm font-bold">
-                {syncState.email ?? cachedSessionEmail ?? "-"}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-3 border border-black/10 bg-[#f7f7f4] px-3 py-3">
-              <dt className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-black/42">
-                <UserRound className="size-4 text-[#16702e]" />
-                {copy.member}
-              </dt>
-              <dd className="min-w-0 truncate text-sm font-bold">
-                {getMemberStatusLabel(connectedMember, locale)}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-3 border border-black/10 bg-[#f7f7f4] px-3 py-3">
-              <dt className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-black/42">
-                <WalletMinimal className="size-4 text-[#16702e]" />
-                {copy.walletId}
-              </dt>
-              <dd className="min-w-0 truncate text-sm font-bold">
-                {accountLabel ?? "-"}
-              </dd>
-            </div>
-          </dl>
+          <div className="p-4 sm:p-5">
+            <dl className="border-y border-black/12">
+              <AccountInfoRow
+                Icon={Mail}
+                label={copy.email}
+                value={syncState.email ?? cachedSessionEmail}
+              />
+              <AccountInfoRow
+                Icon={UserRound}
+                label={copy.member}
+                value={getMemberStatusLabel(connectedMember, locale)}
+              />
+              <AccountInfoRow
+                Icon={WalletMinimal}
+                label={copy.walletId}
+                value={accountLabel}
+              />
+            </dl>
 
-          {syncState.error || syncState.validationError ? (
-            <div className="mt-4 border border-red-200 bg-red-50 p-3 text-sm font-semibold leading-6 text-red-900">
-              {syncState.error ?? syncState.validationError}
-            </div>
-          ) : null}
-
-          <div className="mt-5 grid gap-2">
-            {memberIsCompleted ? (
-              <>
-                <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
-                  href={returnToHref}
-                >
-                  {returnLabel}
-                  <ArrowRight className="size-4" />
-                </Link>
-                <Link
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/14 px-5 text-sm font-black !text-[#111510] transition hover:bg-black hover:!text-white"
-                  href={walletHref}
-                >
-                  {copy.wallet}
-                </Link>
-              </>
-            ) : memberNeedsPayment ? (
-              <Link
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-amber-200 px-5 text-sm font-black !text-amber-950 transition hover:bg-amber-300"
-                href={activateHref}
-              >
-                <ShieldCheck className="size-4" />
-                {copy.activate}
-              </Link>
-            ) : connection.isConnected ? (
-              <button
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/14 px-5 text-sm font-black text-[#111510] transition hover:bg-black hover:text-white"
-                onClick={handleRetry}
-                type="button"
-              >
-                <RefreshCw className="size-4" />
-                {copy.reconnect}
-              </button>
-            ) : (
-              <button
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-black transition hover:bg-[#69ff8c] disabled:cursor-not-allowed disabled:bg-black/12 disabled:text-black/38"
-                disabled={!hasThirdwebClientId}
-                onClick={() => setIsLoginDialogOpen(true)}
-                type="button"
-              >
-                <Mail className="size-4" />
-                {hasThirdwebClientId ? copy.connect : copy.missingClient}
-              </button>
-            )}
-            {connection.isConnected ? (
-              <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/14 px-5 text-sm font-black text-black/62 transition hover:bg-black hover:text-white"
-                onClick={handleDisconnect}
-                type="button"
-              >
-                <LogOut className="size-4" />
-                {copy.signOut}
-              </button>
+            {syncState.error || syncState.validationError ? (
+              <div className="mt-4 border border-red-200 bg-red-50 p-3 text-sm font-semibold leading-6 text-red-900">
+                <div className="flex items-start gap-2">
+                  <CircleAlert className="mt-0.5 size-4 shrink-0" />
+                  <p>{syncState.error ?? syncState.validationError}</p>
+                </div>
+              </div>
             ) : null}
+
+            <div className="mt-5 grid gap-2">
+              {memberIsCompleted ? (
+                <>
+                  <Link
+                    className="inline-flex h-12 items-center justify-center gap-2 bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                    href={returnToHref}
+                  >
+                    {returnLabel}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-5 text-sm font-black !text-[#111510] transition hover:bg-black hover:!text-white"
+                    href={walletHref}
+                  >
+                    <WalletMinimal className="size-4" />
+                    {copy.wallet}
+                  </Link>
+                </>
+              ) : memberNeedsPayment ? (
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 bg-amber-200 px-5 text-sm font-black !text-amber-950 transition hover:bg-amber-300"
+                  href={activateHref}
+                >
+                  <ShieldCheck className="size-4" />
+                  {copy.activate}
+                </Link>
+              ) : connection.isConnected ? (
+                <button
+                  className="inline-flex h-12 items-center justify-center gap-2 border border-black/14 px-5 text-sm font-black text-[#111510] transition hover:bg-black hover:text-white"
+                  onClick={handleRetry}
+                  type="button"
+                >
+                  <RefreshCw className="size-4" />
+                  {copy.reconnect}
+                </button>
+              ) : (
+                <button
+                  className="inline-flex h-12 items-center justify-center gap-2 bg-[#44f26e] px-5 text-sm font-black text-black transition hover:bg-[#69ff8c] disabled:cursor-not-allowed disabled:bg-black/12 disabled:text-black/38"
+                  disabled={!hasThirdwebClientId}
+                  onClick={() => setIsLoginDialogOpen(true)}
+                  type="button"
+                >
+                  <Mail className="size-4" />
+                  {hasThirdwebClientId ? copy.connect : copy.missingClient}
+                </button>
+              )}
+              {connection.isConnected ? (
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-5 text-sm font-black text-black/62 transition hover:bg-black hover:text-white"
+                  onClick={handleDisconnect}
+                  type="button"
+                >
+                  <LogOut className="size-4" />
+                  {copy.signOut}
+                </button>
+              ) : null}
+            </div>
           </div>
         </section>
       </section>
