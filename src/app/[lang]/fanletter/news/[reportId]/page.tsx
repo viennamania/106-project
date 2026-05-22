@@ -20,6 +20,7 @@ import {
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
+import { FanletterNewsWalletSidebarCard } from "@/components/fanletter-news-wallet-sidebar-card";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
 import {
@@ -194,9 +195,9 @@ function getCopy(locale: Locale) {
         visualLead: "기사 대표 이미지",
         walletConnect: {
           body:
-            "팬 기자 활동, 팬 전용 브이로그 결제, 지갑 내역 확인을 보던 기사에서 바로 이어갈 수 있습니다.",
+            "팬 기자 활동이나 팬 전용 결제가 필요할 때만 이어갑니다.",
           eyebrow: "FanLetter Wallet",
-          title: "기사에서 바로 지갑 연결",
+          title: "필요할 때 뉴스 지갑 연결",
         },
         sixW: {
           how: "어떻게",
@@ -308,9 +309,9 @@ function getCopy(locale: Locale) {
         visualLead: "Lead image",
         walletConnect: {
           body:
-            "Connect from this story to continue fan reporter actions, fan-only vlog payments, and wallet activity.",
+            "Use this only when fan reporter actions or fan-only payment are needed.",
           eyebrow: "FanLetter Wallet",
-          title: "Connect your wallet from the story",
+          title: "News wallet when needed",
         },
         sixW: {
           how: "How",
@@ -502,38 +503,6 @@ function ArticleActionLinks({
         trackingSource="fanletter-news-detail"
       />
     </nav>
-  );
-}
-
-function NewsWalletConnectCard({
-  copy,
-  locale,
-  referralCode,
-  walletHref,
-}: {
-  copy: ReturnType<typeof getCopy>;
-  locale: Locale;
-  referralCode: string | null;
-  walletHref: string;
-}) {
-  return (
-    <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_18px_44px_rgba(12,18,14,0.16)]">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-[#44f26e]">
-        {copy.walletConnect.eyebrow}
-      </p>
-      <h2 className="mt-2 break-words text-xl font-black leading-tight [word-break:keep-all]">
-        {copy.walletConnect.title}
-      </h2>
-      <p className="mt-2 text-sm font-semibold leading-6 text-white/62">
-        {copy.walletConnect.body}
-      </p>
-      <FanletterNewsWalletConnect
-        className="mt-4 w-full max-w-none"
-        locale={locale}
-        referralCode={referralCode}
-        walletHref={walletHref}
-      />
-    </section>
   );
 }
 
@@ -1153,32 +1122,28 @@ function SourceContextCard({
   const textBlurClass = blurred ? "select-none blur-[2px]" : "";
 
   return (
-    <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
-      <div className="border-b border-black/12 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
-              {copy.sourceContext}
-            </p>
-            <h2
-              className={`mt-2 break-words text-xl font-black leading-tight [word-break:keep-all] ${textBlurClass}`}
-            >
-              {report.sourceTitle}
-            </h2>
-          </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 border border-black/12 bg-[#f5f7f1] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-black/58">
-            <PlayCircle className="size-3.5 text-[#16702e]" />
-            {accessLabel}
-          </span>
+    <section className="border border-black/10 bg-white/80 p-3 text-[#111510] shadow-[0_10px_28px_rgba(17,21,16,0.04)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+            {copy.sourceContext}
+          </p>
+          <h2 className="mt-1 text-base font-black leading-tight">
+            {copy.sourceTitle}
+          </h2>
+          <p
+            className={`mt-1 line-clamp-1 text-xs font-semibold text-black/48 ${textBlurClass}`}
+          >
+            {report.sourceTitle}
+          </p>
         </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 border border-black/10 bg-[#f5f7f1] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/52">
+          <PlayCircle className="size-3.5 text-[#16702e]" />
+          {accessLabel}
+        </span>
       </div>
-      <p
-        className={`mt-3 line-clamp-5 text-sm font-medium leading-6 text-black/58 ${textBlurClass}`}
-      >
-        {report.sourceSummary}
-      </p>
       <Link
-        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+        className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-3 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
         href={sourceVlogHref}
       >
         <Clapperboard className="size-4 text-[#16702e]" />
@@ -1596,21 +1561,6 @@ export default async function LocalizedFanletterNewsReportPage({
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-5">
-            <NewsWalletConnectCard
-              copy={copy}
-              locale={locale}
-              referralCode={referralCode}
-              walletHref={walletHref}
-            />
-
-            <SourceContextCard
-              accessLabel={accessLabel}
-              blurred={shouldBlurCurrentReport}
-              copy={copy}
-              report={report}
-              sourceVlogHref={sourceVlogHref}
-            />
-
             <FanletterNewsRelatedList
               copy={{
                 empty: copy.relatedNewsEmpty,
@@ -1625,6 +1575,24 @@ export default async function LocalizedFanletterNewsReportPage({
               pageSize={RELATED_NEWS_PAGE_SIZE}
               relatedApiHref={relatedNewsApiHref}
               relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
+            />
+
+            <SourceContextCard
+              accessLabel={accessLabel}
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              report={report}
+              sourceVlogHref={sourceVlogHref}
+            />
+
+            <FanletterNewsWalletSidebarCard
+              body={copy.walletConnect.body}
+              eyebrow={copy.walletConnect.eyebrow}
+              forceVisible={shouldShowPaidUnlockPanel}
+              locale={locale}
+              referralCode={referralCode}
+              title={copy.walletConnect.title}
+              walletHref={walletHref}
             />
           </aside>
         </div>
