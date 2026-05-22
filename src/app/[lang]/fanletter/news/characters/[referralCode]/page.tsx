@@ -1,0 +1,1196 @@
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  BadgeCheck,
+  BookOpen,
+  Clapperboard,
+  FileText,
+  Flame,
+  Heart,
+  ImageIcon,
+  MessageCircleHeart,
+  Newspaper,
+  Sparkles,
+  Trophy,
+  UsersRound,
+} from "lucide-react";
+
+import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
+import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
+import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import type { FanletterNewsReportDocument } from "@/lib/content";
+import {
+  getFanletterCreatorPageData,
+  type FanletterPublicContentItem,
+  type FanletterPublicFanRequestPreview,
+} from "@/lib/fanletter-content-service";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import {
+  getFanletterNewsReportsForCharacterChannel,
+  type FanletterNewsCharacterReporterStat,
+} from "@/lib/fanletter-news-report-service";
+import {
+  FANLETTER_NSFW_OPT_IN_COOKIE,
+  getFanletterNsfwCopy,
+  isFanletterNsfwOptedIn,
+} from "@/lib/fanletter-nsfw";
+import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { buildPathWithReferral } from "@/lib/landing-branding";
+import { normalizeReferralCode } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
+
+type FanletterNewsCharacterChannelSearchParams = {
+  ref?: string | string[];
+};
+
+function getCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        access: {
+          fanOnly: "팬 전용",
+          nsfw: "성인 팬 전용",
+          public: "공개",
+        },
+        backToCharacters: "AI 캐릭터 목록",
+        bible: {
+          emptyTraits: "캐릭터 고정 키워드가 아직 정리되지 않았습니다.",
+          expression: "표정 세트",
+          latestMission: "다음 미션",
+          level: "성장 레벨",
+          title: "캐릭터 바이블",
+          traits: "페르소나 키워드",
+        },
+        cta: {
+          creator: "전체 캐릭터 채널",
+          latestNews: "최신 뉴스 읽기",
+          publicVlogs: "공개 브이로그 보기",
+          request: "팬 요청 남기기",
+        },
+        empty: {
+          body:
+            "이 캐릭터의 FanLetter News 리포트가 아직 없습니다. 공개 브이로그에서 AI 팬 리포트가 생성되면 이 채널에 축적됩니다.",
+          title: "뉴스 리포트가 아직 없습니다.",
+        },
+        generated: "AI 캐릭터 이미지",
+        growth: {
+          fanClub: "팬클럽",
+          fanOnly: "팬 전용",
+          news: "뉴스",
+          publicVlogs: "공개 브이로그",
+          reactions: "반응",
+          title: "IP 성장 보드",
+          unlocks: "유료 열람",
+        },
+        hero: {
+          eyebrow: "FanLetter News Character Channel",
+          kicker: "뉴스 전용 캐릭터 IP 채널",
+          shareSummary: (name: string) =>
+            `${name}의 FanLetter News 캐릭터 채널`,
+          shareTitle: (name: string) => `${name} 뉴스 캐릭터 채널`,
+        },
+        latest: "최신",
+        news: {
+          fanOnly: "팬 전용 뉴스",
+          public: "공개 뉴스",
+          reporters: "참여 기자",
+          title: "뉴스 프랜차이즈",
+        },
+        nsfwControl: {
+          disabledBody:
+            "성인 팬 전용 캐릭터 뉴스와 브이로그 커버는 블러 처리됩니다.",
+          disabledTitle: "NSFW 캐릭터 콘텐츠 블러",
+          enabledBody:
+            "성인 팬 전용 캐릭터 뉴스와 브이로그 커버가 선명하게 표시됩니다.",
+          enabledTitle: "NSFW 캐릭터 콘텐츠 표시 중",
+          hiddenCountText: (count: string) =>
+            `블러 처리된 NSFW 콘텐츠 ${count}개`,
+        },
+        reporter: {
+          title: "리포터 커버리지",
+          reports: (count: string) => `${count}개 리포트`,
+        },
+        requests: {
+          empty: "최근 팬 요청이 아직 없습니다.",
+          title: "팬 참여 루프",
+        },
+        siteName: "FanLetter News",
+        vlog: {
+          fanOnlyTitle: "팬 전용 브이로그",
+          publicTitle: "공개 브이로그",
+          reports: "리포트",
+        },
+      }
+    : {
+        access: {
+          fanOnly: "Fan-only",
+          nsfw: "Adult fan-only",
+          public: "Public",
+        },
+        backToCharacters: "AI characters",
+        bible: {
+          emptyTraits: "The fixed persona keywords are not set yet.",
+          expression: "Expression set",
+          latestMission: "Next mission",
+          level: "Growth level",
+          title: "Character bible",
+          traits: "Persona keywords",
+        },
+        cta: {
+          creator: "Full character channel",
+          latestNews: "Read latest news",
+          publicVlogs: "Public vlogs",
+          request: "Leave a fan request",
+        },
+        empty: {
+          body:
+            "FanLetter News reports for this character will collect here after AI fan reports are created from public vlogs.",
+          title: "No news reports yet.",
+        },
+        generated: "AI character image",
+        growth: {
+          fanClub: "Fan club",
+          fanOnly: "Fan-only",
+          news: "News",
+          publicVlogs: "Public vlogs",
+          reactions: "Reactions",
+          title: "IP growth board",
+          unlocks: "Paid unlocks",
+        },
+        hero: {
+          eyebrow: "FanLetter News Character Channel",
+          kicker: "News-only character IP channel",
+          shareSummary: (name: string) =>
+            `${name}'s FanLetter News character channel`,
+          shareTitle: (name: string) => `${name} news character channel`,
+        },
+        latest: "Latest",
+        news: {
+          fanOnly: "Fan-only news",
+          public: "Public news",
+          reporters: "Reporters",
+          title: "News franchise",
+        },
+        nsfwControl: {
+          disabledBody:
+            "Adult fan-only character news and vlog covers are blurred.",
+          disabledTitle: "NSFW character content blurred",
+          enabledBody:
+            "Adult fan-only character news and vlog covers are visible.",
+          enabledTitle: "NSFW character content visible",
+          hiddenCountText: (count: string) => `${count} NSFW items blurred`,
+        },
+        reporter: {
+          title: "Reporter coverage",
+          reports: (count: string) => `${count} reports`,
+        },
+        requests: {
+          empty: "No recent fan requests yet.",
+          title: "Fan participation loop",
+        },
+        siteName: "FanLetter News",
+        vlog: {
+          fanOnlyTitle: "Fan-only vlogs",
+          publicTitle: "Public vlogs",
+          reports: "reports",
+        },
+      };
+}
+
+function formatDate(value: Date | string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+  }).format(typeof value === "string" ? new Date(value) : value);
+}
+
+function formatNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function getArticleDisplayTitle(title: string) {
+  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
+}
+
+function getReportDate(report: FanletterNewsReportDocument) {
+  return report.sourcePublishedAt ?? report.createdAt ?? null;
+}
+
+function isNsfwMaturity(value: string | null | undefined) {
+  return value === "nsfw";
+}
+
+function getAccessLabel(
+  value: Pick<FanletterNewsReportDocument | FanletterPublicContentItem, "contentMaturityRating" | "priceType">,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (isNsfwMaturity(value.contentMaturityRating)) {
+    return copy.access.nsfw;
+  }
+
+  return value.priceType === "paid" ? copy.access.fanOnly : copy.access.public;
+}
+
+function getUniqueImageOptions(
+  character: NonNullable<
+    Awaited<ReturnType<typeof getFanletterCreatorPageData>>
+  >["profile"]["character"],
+  avatarImageUrl: string | null,
+) {
+  const seen = new Set<string>();
+  const options = [
+    ...(character?.avatarImageSet ?? []).map((avatar) => ({
+      label: avatar.label ?? avatar.expression ?? null,
+      url: avatar.url,
+    })),
+    avatarImageUrl ? { label: null, url: avatarImageUrl } : null,
+  ].filter((option): option is { label: string | null; url: string } =>
+    Boolean(option?.url),
+  );
+
+  return options.filter((option) => {
+    if (seen.has(option.url)) {
+      return false;
+    }
+
+    seen.add(option.url);
+    return true;
+  });
+}
+
+function CharacterChannelMasthead({
+  charactersHref,
+  copy,
+  newsHomeHref,
+}: {
+  charactersHref: string;
+  copy: ReturnType<typeof getCopy>;
+  newsHomeHref: string;
+}) {
+  return (
+    <header className="border-b border-black/14 bg-white text-[#111510]">
+      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
+          <Link
+            className="inline-flex items-center text-[2.1rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.25rem]"
+            href={newsHomeHref}
+          >
+            {copy.siteName}
+          </Link>
+          <Link
+            className="hidden items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
+            href={charactersHref}
+          >
+            <ArrowLeft className="size-4 text-[#16702e]" />
+            {copy.backToCharacters}
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  icon,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(17,21,16,0.05)]">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
+          {label}
+        </p>
+        <span className="text-[#16702e]">{icon}</span>
+      </div>
+      <p className="mt-2 truncate text-2xl font-black leading-none text-[#111510]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function CoverImage({
+  alt,
+  blurred,
+  imageUrl,
+  sizes,
+}: {
+  alt: string;
+  blurred: boolean;
+  imageUrl: string | null;
+  sizes: string;
+}) {
+  return (
+    <div className="relative min-h-[12rem] overflow-hidden bg-[#111510]">
+      {imageUrl ? (
+        <Image
+          alt={alt}
+          className={
+            blurred
+              ? "scale-[1.05] object-cover blur-md brightness-[0.7] saturate-[0.86]"
+              : "object-cover"
+          }
+          fill
+          sizes={sizes}
+          src={imageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+        />
+      ) : (
+        <div className="flex h-full min-h-[12rem] items-center justify-center bg-[#111510] text-[#44f26e]">
+          <ImageIcon className="size-10" />
+        </div>
+      )}
+      {blurred ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/38 p-3 text-center">
+          <span className="inline-flex items-center gap-1.5 border border-white/20 bg-black/64 px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white">
+            <AlertTriangle className="size-3.5 text-rose-300" />
+            NSFW
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function NewsReportCard({
+  copy,
+  locale,
+  nsfwOptInEnabled,
+  referralCode,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  report: FanletterNewsReportDocument;
+}) {
+  const blurred = isNsfwMaturity(report.contentMaturityRating) && !nsfwOptInEnabled;
+  const href = buildPathWithReferral(
+    `/${locale}/fanletter/news/${report.reportId}`,
+    referralCode,
+  );
+  const publishedAt = formatDate(getReportDate(report), locale);
+
+  return (
+    <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
+      <Link href={href}>
+        <CoverImage
+          alt=""
+          blurred={blurred}
+          imageUrl={report.coverImageUrl}
+          sizes="(max-width: 768px) 100vw, 24rem"
+        />
+      </Link>
+      <div className="flex min-w-0 flex-col p-4">
+        <div className="flex flex-wrap items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
+          <span className="bg-[#44f26e] px-2 py-1 text-black">
+            {getAccessLabel(report, copy)}
+          </span>
+          {publishedAt ? <span className="text-black/38">{publishedAt}</span> : null}
+        </div>
+        <Link
+          className={`mt-3 line-clamp-2 break-words text-lg font-black leading-6 [word-break:keep-all] hover:text-[#16702e] ${
+            blurred ? "select-none blur-[2px]" : ""
+          }`}
+          href={href}
+        >
+          {getArticleDisplayTitle(report.title)}
+        </Link>
+        <p
+          className={`mt-2 line-clamp-3 text-sm font-semibold leading-6 text-black/58 ${
+            blurred ? "select-none blur-[2px]" : ""
+          }`}
+        >
+          {report.dek}
+        </p>
+        <div className="mt-4 flex items-center justify-between gap-2 border-t border-black/10 pt-3">
+          <span className="truncate text-xs font-bold text-black/42">
+            {report.reporterName}
+          </span>
+          <span className="shrink-0 text-xs font-black text-[#16702e]">
+            {copy.cta.latestNews}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ContentCard({
+  copy,
+  item,
+  locale,
+  nsfwOptInEnabled,
+  referralCode,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  item: FanletterPublicContentItem;
+  locale: Locale;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+}) {
+  const blurred = isNsfwMaturity(item.contentMaturityRating) && !nsfwOptInEnabled;
+  const href = buildPathWithReferral(
+    `/${locale}/fanletter/content/${item.contentId}`,
+    referralCode,
+  );
+  const publishedAt = formatDate(item.publishedAt, locale);
+
+  return (
+    <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
+      <Link href={href}>
+        <CoverImage
+          alt=""
+          blurred={blurred}
+          imageUrl={item.coverImageUrl}
+          sizes="(max-width: 768px) 100vw, 22rem"
+        />
+      </Link>
+      <div className="p-4">
+        <div className="flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
+          <span className="bg-[#111510] px-2 py-1 text-white">
+            {getAccessLabel(item, copy)}
+          </span>
+          {item.newsReportCount > 0 ? (
+            <span className="border border-black/10 px-2 py-1 text-black/52">
+              {formatNumber(item.newsReportCount, locale)} {copy.vlog.reports}
+            </span>
+          ) : null}
+        </div>
+        <Link
+          className={`mt-3 line-clamp-2 block break-words text-base font-black leading-6 [word-break:keep-all] hover:text-[#16702e] ${
+            blurred ? "select-none blur-[2px]" : ""
+          }`}
+          href={href}
+        >
+          {item.title}
+        </Link>
+        <p
+          className={`mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/56 ${
+            blurred ? "select-none blur-[2px]" : ""
+          }`}
+        >
+          {item.summary}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-black/42">
+          {publishedAt ? <span>{publishedAt}</span> : null}
+          <span className="inline-flex items-center gap-1">
+            <Heart className="size-3 text-[#16702e]" />
+            {formatNumber(item.social.likeCount, locale)}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <MessageCircleHeart className="size-3 text-[#16702e]" />
+            {formatNumber(item.social.commentCount, locale)}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ReporterCoverageCard({
+  copy,
+  locale,
+  reporter,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  reporter: FanletterNewsCharacterReporterStat;
+}) {
+  const initial =
+    reporter.reporterName.trim().charAt(0).toUpperCase() ||
+    reporter.reporterReferralCode.trim().charAt(0).toUpperCase() ||
+    "F";
+  const latestReportAt = formatDate(reporter.latestReportAt, locale);
+
+  return (
+    <div className="flex min-w-0 items-center gap-3 border border-black/10 bg-white p-3">
+      <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
+        {reporter.reporterAvatarImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover"
+            fill
+            sizes="3rem"
+            src={reporter.reporterAvatarImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              reporter.reporterAvatarImageUrl,
+            )}
+          />
+        ) : (
+          initial
+        )}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-black text-[#111510]">
+          {reporter.reporterName}
+        </p>
+        <p className="mt-1 truncate text-xs font-bold text-black/42">
+          @{reporter.reporterReferralCode}
+        </p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-sm font-black text-[#16702e]">
+          {copy.reporter.reports(formatNumber(reporter.reportCount, locale))}
+        </p>
+        {latestReportAt ? (
+          <p className="mt-1 text-[0.62rem] font-bold text-black/34">
+            {latestReportAt}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function FanRequestItem({
+  locale,
+  request,
+}: {
+  locale: Locale;
+  request: FanletterPublicFanRequestPreview;
+}) {
+  return (
+    <div className="border border-black/10 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="bg-[#ecfff0] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+          {request.requestType}
+        </span>
+        <span className="text-[0.66rem] font-bold text-black/38">
+          {formatDate(request.createdAt, locale)}
+        </span>
+      </div>
+      <p className="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-black/64">
+        {request.body}
+      </p>
+      {request.requesterDisplayName ? (
+        <p className="mt-3 truncate text-xs font-black text-black/38">
+          {request.requesterDisplayName}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; referralCode: string }>;
+}): Promise<Metadata> {
+  const { lang, referralCode } = await params;
+  const locale = hasLocale(lang) ? lang : defaultLocale;
+  const normalizedReferralCode = normalizeReferralCode(referralCode) ?? referralCode;
+  const data = await getFanletterCreatorPageData(locale, normalizedReferralCode);
+  const characterName = data?.profile.character?.name ?? data?.profile.displayName;
+  const copy = getCopy(locale);
+  const title = characterName
+    ? `${characterName} | FanLetter News`
+    : locale === "ko"
+      ? "FanLetter News 캐릭터 채널"
+      : "FanLetter News character channel";
+  const description =
+    data?.profile.character?.summary ??
+    data?.profile.intro ??
+    (locale === "ko"
+      ? "FanLetter News 전용 AI 캐릭터 채널입니다."
+      : "A FanLetter News-only AI character channel.");
+  const url = `/${locale}/fanletter/news/characters/${normalizedReferralCode}`;
+  const image =
+    data?.items[0]?.coverImageUrl ??
+    data?.profile.character?.avatarImageSet[0]?.url ??
+    data?.profile.avatarImageUrl ??
+    null;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      description,
+      images: image ? [{ url: image }] : undefined,
+      siteName: copy.siteName,
+      title,
+      type: "profile",
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      description,
+      images: image ? [image] : undefined,
+      title,
+    },
+  };
+}
+
+export default async function LocalizedFanletterNewsCharacterChannelPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string; referralCode: string }>;
+  searchParams: Promise<FanletterNewsCharacterChannelSearchParams>;
+}) {
+  const { lang, referralCode } = await params;
+  const query = await searchParams;
+
+  if (!hasLocale(lang)) {
+    notFound();
+  }
+
+  const locale = lang as Locale;
+  const copy = getCopy(locale);
+  const normalizedCharacterReferralCode = normalizeReferralCode(referralCode);
+
+  if (!normalizedCharacterReferralCode) {
+    notFound();
+  }
+
+  const referralCodeFromQuery = readFanletterReferralCode(query.ref);
+  const memberSession = await readMemberServerSession();
+  const cookieStore = await cookies();
+  const nsfwOptInEnabled = isFanletterNsfwOptedIn(
+    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
+  );
+  const [data, newsData] = await Promise.all([
+    getFanletterCreatorPageData(
+      locale,
+      normalizedCharacterReferralCode,
+      memberSession?.email ?? null,
+      { includeNsfw: nsfwOptInEnabled },
+    ),
+    getFanletterNewsReportsForCharacterChannel({
+      creatorReferralCode: normalizedCharacterReferralCode,
+      limit: 24,
+      locale,
+    }),
+  ]);
+
+  if (!data) {
+    notFound();
+  }
+
+  const character = data.profile.character;
+  const characterName = character?.name ?? data.profile.displayName;
+  const characterSummary = character?.summary || data.profile.intro;
+  const effectiveReferralCode =
+    referralCodeFromQuery ?? data.profile.referralCode;
+  const newsHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    effectiveReferralCode,
+  );
+  const charactersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters`,
+    effectiveReferralCode,
+  );
+  const channelHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const creatorHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  );
+  const publicVlogsHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator/${data.profile.referralCode}/vlogs`,
+    effectiveReferralCode,
+  );
+  const requestHref = `${creatorHref}#fan-requests`;
+  const latestNewsHref = newsData.reports[0]
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/${newsData.reports[0].reportId}`,
+        effectiveReferralCode,
+      )
+    : charactersHref;
+  const avatarImageOptions = getUniqueImageOptions(
+    character,
+    data.profile.avatarImageUrl,
+  );
+  const visibleNewsReports = newsData.reports.slice(0, 9);
+  const publicVlogs = data.items.slice(0, 6);
+  const fanOnlyVlogs = data.fanOnlyItems.slice(0, 3);
+  const nsfwBlurredCount =
+    newsData.nsfwCount +
+    data.items.filter((item) => isNsfwMaturity(item.contentMaturityRating)).length +
+    data.fanOnlyItems.filter((item) => isNsfwMaturity(item.contentMaturityRating)).length;
+  const shouldShowNsfwControl = nsfwBlurredCount > 0 || nsfwOptInEnabled;
+  const reactionCount =
+    character?.growth.metrics.reactionCount ??
+    [...data.items, ...data.fanOnlyItems].reduce(
+      (total, item) =>
+        total +
+        item.social.likeCount +
+        item.social.commentCount +
+        item.social.saveCount,
+      0,
+    );
+  const growthStats = [
+    {
+      icon: <Newspaper className="size-4" />,
+      label: copy.growth.news,
+      value: formatNumber(newsData.reportCount, locale),
+    },
+    {
+      icon: <Clapperboard className="size-4" />,
+      label: copy.growth.publicVlogs,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      icon: <Flame className="size-4" />,
+      label: copy.growth.fanOnly,
+      value: formatNumber(data.fanOnlyContentCount, locale),
+    },
+    {
+      icon: <Heart className="size-4" />,
+      label: copy.growth.reactions,
+      value: formatNumber(reactionCount, locale),
+    },
+    {
+      icon: <UsersRound className="size-4" />,
+      label: copy.growth.fanClub,
+      value: formatNumber(data.communityStats.fanClubMemberCount, locale),
+    },
+    {
+      icon: <Trophy className="size-4" />,
+      label: copy.growth.unlocks,
+      value: formatNumber(data.communityStats.paidContentUnlockCount, locale),
+    },
+  ];
+  const newsStats = [
+    { label: copy.news.public, value: newsData.publicCount },
+    { label: copy.news.fanOnly, value: newsData.fanOnlyCount },
+    { label: "NSFW", value: newsData.nsfwCount },
+    { label: copy.news.reporters, value: newsData.reporters.length },
+  ];
+  const nsfwCopy = getFanletterNsfwCopy(locale);
+
+  return (
+    <main className="min-h-screen bg-[#f5f6f2] pb-[calc(6rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
+      <CharacterChannelMasthead
+        charactersHref={charactersHref}
+        copy={copy}
+        newsHomeHref={newsHomeHref}
+      />
+
+      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+        <Link
+          className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] !text-[#16702e] sm:hidden"
+          href={charactersHref}
+        >
+          <ArrowLeft className="size-4" />
+          {copy.backToCharacters}
+        </Link>
+
+        <section className="mt-4 overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white sm:mt-0">
+          <div className="grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+            <FanletterNewsCharacterImageSelector
+              avatarAlt={characterName}
+              avatarImages={avatarImageOptions}
+              galleryLabel={copy.bible.expression}
+              generatedLabel={copy.generated}
+            />
+            <div className="flex min-h-full flex-col p-5 sm:p-7">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-black">
+                  <BadgeCheck className="size-3.5" />
+                  {copy.hero.eyebrow}
+                </span>
+                <span className="inline-flex border border-white/18 px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/72">
+                  @{data.profile.referralCode}
+                </span>
+              </div>
+              <p className="mt-5 text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                {copy.hero.kicker}
+              </p>
+              <h1 className="mt-2 break-words text-[3rem] font-black leading-none [word-break:keep-all] sm:text-[4.6rem]">
+                {characterName}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/68 sm:text-lg sm:leading-8">
+                {characterSummary}
+              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {growthStats.slice(0, 6).map((stat) => (
+                  <div
+                    className="border border-white/12 bg-white/[0.06] p-3"
+                    key={stat.label}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[0.58rem] font-black uppercase tracking-[0.1em] text-white/42">
+                        {stat.label}
+                      </p>
+                      <span className="text-[#44f26e]">{stat.icon}</span>
+                    </div>
+                    <p className="mt-2 text-2xl font-black leading-none">
+                      {stat.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-[1fr_auto_auto]">
+                <Link
+                  className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#44f26e] px-5 py-3 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                  href={latestNewsHref}
+                >
+                  {copy.cta.latestNews}
+                  <ArrowRight className="size-4" />
+                </Link>
+                <FanletterChannelShareButton
+                  className="h-auto min-h-12 rounded-none border-white/18 px-5 py-3 font-black"
+                  href={channelHref}
+                  locale={locale}
+                  referralCode={effectiveReferralCode}
+                  shareIdScope="news-character"
+                  summary={copy.hero.shareSummary(characterName)}
+                  title={copy.hero.shareTitle(characterName)}
+                  trackingSource="fanletter-news-character-channel"
+                />
+                <Link
+                  className="inline-flex min-h-12 items-center justify-center gap-2 border border-white/18 px-5 py-3 text-sm font-black !text-white transition hover:border-white/40"
+                  href={creatorHref}
+                >
+                  <MessageCircleHeart className="size-4 text-[#44f26e]" />
+                  {copy.cta.creator}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {shouldShowNsfwControl ? (
+          <div className="mt-5">
+            <FanletterNsfwOptInControl
+              compact
+              disabledBody={copy.nsfwControl.disabledBody}
+              disabledTitle={copy.nsfwControl.disabledTitle}
+              enabled={nsfwOptInEnabled}
+              enabledBody={copy.nsfwControl.enabledBody}
+              enabledTitle={copy.nsfwControl.enabledTitle}
+              hiddenCount={nsfwBlurredCount}
+              hiddenCountText={copy.nsfwControl.hiddenCountText(
+                formatNumber(nsfwBlurredCount, locale),
+              )}
+              locale={locale}
+              tone={nsfwOptInEnabled ? "dark" : "light"}
+            />
+          </div>
+        ) : null}
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+          <div className="border border-black/12 bg-white p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-3">
+              <div>
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  {copy.growth.title}
+                </p>
+                <h2 className="mt-1 text-2xl font-black">
+                  {character?.growth.title ?? copy.growth.title}
+                </h2>
+              </div>
+              <Sparkles className="size-5 text-[#16702e]" />
+            </div>
+            <p className="mt-4 text-sm font-semibold leading-6 text-black/62">
+              {character?.growth.summary ?? characterSummary}
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {growthStats.map((stat) => (
+                <MetricTile
+                  icon={stat.icon}
+                  key={stat.label}
+                  label={stat.label}
+                  value={stat.value}
+                />
+              ))}
+            </div>
+            {character?.growth.nextMission ? (
+              <div className="mt-5 border-l-4 border-[#44f26e] bg-[#f5f6f2] p-4">
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  {copy.bible.latestMission}
+                </p>
+                <h3 className="mt-2 text-lg font-black">
+                  {character.growth.nextMission.title}
+                </h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-black/62">
+                  {character.growth.nextMission.description}
+                </p>
+                <div className="mt-3 h-2 overflow-hidden bg-black/10">
+                  <div
+                    className="h-full bg-[#44f26e]"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          (character.growth.nextMission.progress /
+                            Math.max(1, character.growth.nextMission.target)) *
+                            100,
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="border border-black/12 bg-white p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-3">
+              <div>
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  {copy.bible.title}
+                </p>
+                <h2 className="mt-1 text-2xl font-black">{characterName}</h2>
+              </div>
+              <BookOpen className="size-5 text-[#16702e]" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <MetricTile
+                icon={<Trophy className="size-4" />}
+                label={copy.bible.level}
+                value={character ? `Lv.${character.growth.level}` : "Lv.1"}
+              />
+              <MetricTile
+                icon={<ImageIcon className="size-4" />}
+                label={copy.bible.expression}
+                value={formatNumber(avatarImageOptions.length, locale)}
+              />
+            </div>
+            <div className="mt-5">
+              <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                {copy.bible.traits}
+              </p>
+              {character?.traits.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {character.traits.slice(0, 8).map((trait) => (
+                    <span
+                      className="border border-black/10 bg-[#f5f6f2] px-3 py-2 text-xs font-bold leading-5 text-black/64"
+                      key={trait}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm font-semibold leading-6 text-black/48">
+                  {copy.bible.emptyTraits}
+                </p>
+              )}
+            </div>
+            {character?.growth.skills.length ? (
+              <div className="mt-5 space-y-2">
+                {character.growth.skills.slice(0, 3).map((skill) => (
+                  <div className="border border-black/10 p-3" key={skill.label}>
+                    <p className="text-sm font-black">{skill.label}</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+                      {skill.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="mt-7 border-t-2 border-[#111510] pt-5">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                {copy.news.title}
+              </p>
+              <h2 className="mt-1 text-2xl font-black">{characterName}</h2>
+            </div>
+            <div className="hidden grid-cols-4 gap-2 sm:grid">
+              {newsStats.map((stat) => (
+                <div
+                  className="min-w-[6rem] border border-black/10 bg-white px-3 py-2 text-right"
+                  key={stat.label}
+                >
+                  <p className="text-xl font-black">
+                    {formatNumber(stat.value, locale)}
+                  </p>
+                  <p className="mt-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-black/38">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {visibleNewsReports.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleNewsReports.map((report) => (
+                <NewsReportCard
+                  copy={copy}
+                  key={report.reportId}
+                  locale={locale}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={effectiveReferralCode}
+                  report={report}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-black/12 bg-white p-8 text-center">
+              <Newspaper className="mx-auto size-10 text-[#16702e]" />
+              <h3 className="mt-4 text-xl font-black">{copy.empty.title}</h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/56">
+                {copy.empty.body}
+              </p>
+            </div>
+          )}
+        </section>
+
+        <section className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
+          <div>
+            <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
+              <div>
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  Vlog Archive
+                </p>
+                <h2 className="mt-1 text-2xl font-black">
+                  {copy.vlog.publicTitle}
+                </h2>
+              </div>
+              <Link
+                className="inline-flex h-10 items-center justify-center gap-2 border border-black/14 px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={publicVlogsHref}
+              >
+                {copy.cta.publicVlogs}
+                <ArrowRight className="size-4 text-[#16702e]" />
+              </Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {publicVlogs.map((item) => (
+                <ContentCard
+                  copy={copy}
+                  item={item}
+                  key={item.contentId}
+                  locale={locale}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={effectiveReferralCode}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <section>
+              <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
+                <div>
+                  <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                    Premium
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black">
+                    {copy.vlog.fanOnlyTitle}
+                  </h2>
+                </div>
+                <Flame className="size-5 text-[#16702e]" />
+              </div>
+              <div className="grid gap-4">
+                {fanOnlyVlogs.map((item) => (
+                  <ContentCard
+                    copy={copy}
+                    item={item}
+                    key={item.contentId}
+                    locale={locale}
+                    nsfwOptInEnabled={nsfwOptInEnabled}
+                    referralCode={effectiveReferralCode}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
+                <div>
+                  <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                    Community
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black">
+                    {copy.requests.title}
+                  </h2>
+                </div>
+                <MessageCircleHeart className="size-5 text-[#16702e]" />
+              </div>
+              <div className="space-y-3">
+                {data.fanRequestPreviews.length > 0 ? (
+                  data.fanRequestPreviews.slice(0, 3).map((request) => (
+                    <FanRequestItem
+                      key={`${request.createdAt}-${request.body}`}
+                      locale={locale}
+                      request={request}
+                    />
+                  ))
+                ) : (
+                  <div className="border border-black/10 bg-white p-4 text-sm font-semibold text-black/54">
+                    {copy.requests.empty}
+                  </div>
+                )}
+              </div>
+              <Link
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#111510] px-4 py-3 text-sm font-black !text-white transition hover:bg-black"
+                href={requestHref}
+              >
+                {copy.cta.request}
+                <ArrowRight className="size-4 text-[#44f26e]" />
+              </Link>
+            </section>
+          </div>
+        </section>
+
+        {newsData.reporters.length > 0 ? (
+          <section className="mt-7 border-t-2 border-[#111510] pt-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                  Newsroom
+                </p>
+                <h2 className="mt-1 text-2xl font-black">
+                  {copy.reporter.title}
+                </h2>
+              </div>
+              <FileText className="size-5 text-[#16702e]" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {newsData.reporters.map((reporter) => (
+                <ReporterCoverageCard
+                  copy={copy}
+                  key={reporter.reporterReferralCode}
+                  locale={locale}
+                  reporter={reporter}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {nsfwBlurredCount > 0 && !nsfwOptInEnabled ? (
+          <p className="mt-5 text-xs font-semibold text-black/42">
+            {nsfwCopy.badge}:{" "}
+            {copy.nsfwControl.hiddenCountText(
+              formatNumber(nsfwBlurredCount, locale),
+            )}
+          </p>
+        ) : null}
+      </section>
+    </main>
+  );
+}

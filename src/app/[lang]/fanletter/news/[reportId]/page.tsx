@@ -1147,7 +1147,7 @@ export default async function LocalizedFanletterNewsReportPage({
   );
   const creatorHref = report.creatorReferralCode
     ? buildPathWithReferral(
-        `/${locale}/fanletter/creator/${report.creatorReferralCode}`,
+        `/${locale}/fanletter/news/characters/${report.creatorReferralCode}`,
         referralCode,
       )
     : fanletterHomeHref;

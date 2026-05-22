@@ -124,6 +124,24 @@ export type FanletterNewsReporterProfile = {
   status: MemberStatus | null;
 };
 
+export type FanletterNewsCharacterReporterStat = {
+  latestReportAt: Date | null;
+  reporterAvatarImageUrl: string | null;
+  reporterName: string;
+  reporterReferralCode: string;
+  reportCount: number;
+};
+
+export type FanletterNewsCharacterChannelReportsResult = {
+  fanOnlyCount: number;
+  latestReportAt: Date | null;
+  nsfwCount: number;
+  publicCount: number;
+  reportCount: number;
+  reporters: FanletterNewsCharacterReporterStat[];
+  reports: FanletterNewsReportDocument[];
+};
+
 export type FanletterNewsReporterBackfillInput = {
   limit?: number;
   locale?: string | null;
@@ -2091,6 +2109,127 @@ export const getFanletterNewsReportsForCharacterDirectory = cache(
       .toArray();
 
     return hydrateFanletterNewsReportCoverImageUrls(reports);
+  },
+);
+
+export const getFanletterNewsReportsForCharacterChannel = cache(
+  async ({
+    creatorReferralCode,
+    limit = 24,
+    locale,
+  }: {
+    creatorReferralCode?: string | null;
+    limit?: number;
+    locale: Locale;
+  }): Promise<FanletterNewsCharacterChannelReportsResult> => {
+    const normalizedCreatorReferralCode =
+      normalizeReferralCode(creatorReferralCode);
+
+    if (!normalizedCreatorReferralCode) {
+      return {
+        fanOnlyCount: 0,
+        latestReportAt: null,
+        nsfwCount: 0,
+        publicCount: 0,
+        reportCount: 0,
+        reporters: [],
+        reports: [],
+      };
+    }
+
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(Math.floor(limit), 48))
+      : 24;
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const query = {
+      creatorReferralCode: normalizedCreatorReferralCode,
+      locale,
+      status: "published" as const,
+    };
+    const [reports, summaryRows, reporterRows] = await Promise.all([
+      reportsCollection
+        .find(query)
+        .sort({ sourcePublishedAt: -1, createdAt: -1 })
+        .limit(normalizedLimit)
+        .toArray(),
+      reportsCollection
+        .aggregate<{
+          _id: null;
+          fanOnlyCount: number;
+          latestReportAt: Date | null;
+          nsfwCount: number;
+          publicCount: number;
+          reportCount: number;
+        }>([
+          { $match: query },
+          {
+            $group: {
+              _id: null,
+              fanOnlyCount: {
+                $sum: { $cond: [{ $eq: ["$priceType", "paid"] }, 1, 0] },
+              },
+              latestReportAt: {
+                $max: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+              },
+              nsfwCount: {
+                $sum: {
+                  $cond: [
+                    { $eq: ["$contentMaturityRating", "nsfw"] },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              publicCount: {
+                $sum: { $cond: [{ $eq: ["$priceType", "free"] }, 1, 0] },
+              },
+              reportCount: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      reportsCollection
+        .aggregate<FanletterNewsCharacterReporterStat>([
+          { $match: query },
+          { $sort: { sourcePublishedAt: -1, createdAt: -1 } },
+          {
+            $group: {
+              _id: "$reporterReferralCode",
+              latestReportAt: {
+                $max: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+              },
+              reporterAvatarImageUrl: { $first: "$reporterAvatarImageUrl" },
+              reporterName: { $first: "$reporterName" },
+              reporterReferralCode: { $first: "$reporterReferralCode" },
+              reportCount: { $sum: 1 },
+            },
+          },
+          { $sort: { reportCount: -1, latestReportAt: -1 } },
+          { $limit: 8 },
+          {
+            $project: {
+              _id: 0,
+              latestReportAt: 1,
+              reporterAvatarImageUrl: { $ifNull: ["$reporterAvatarImageUrl", null] },
+              reporterName: 1,
+              reporterReferralCode: 1,
+              reportCount: 1,
+            },
+          },
+        ])
+        .toArray(),
+    ]);
+    const summary = summaryRows[0];
+
+    return {
+      fanOnlyCount: summary?.fanOnlyCount ?? 0,
+      latestReportAt: summary?.latestReportAt ?? null,
+      nsfwCount: summary?.nsfwCount ?? 0,
+      publicCount: summary?.publicCount ?? 0,
+      reportCount: summary?.reportCount ?? 0,
+      reporters: reporterRows,
+      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+    };
   },
 );
 

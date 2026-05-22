@@ -150,6 +150,21 @@ function getReportHref(
   );
 }
 
+function getCharacterChannelHref({
+  characterReferralCode,
+  locale,
+  referralCode,
+}: {
+  characterReferralCode: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${characterReferralCode}`,
+    referralCode ?? characterReferralCode,
+  );
+}
+
 function getAccessLabel(
   report: FanletterNewsReportDocument,
   copy: ReturnType<typeof getCopy>,
@@ -321,10 +336,11 @@ function CharacterLead({
   const report = character.representativeReport;
   const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
   const reportHref = getReportHref(report, referralCode);
-  const creatorHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${character.referralCode}`,
-    referralCode ?? character.referralCode,
-  );
+  const channelHref = getCharacterChannelHref({
+    characterReferralCode: character.referralCode,
+    locale,
+    referralCode,
+  });
   const latestReportAt = formatDate(character.latestReportAt, locale);
 
   return (
@@ -409,7 +425,7 @@ function CharacterLead({
             </Link>
             <Link
               className="inline-flex h-11 items-center justify-center gap-2 border border-white/18 px-4 text-sm font-black !text-white transition hover:border-white/40"
-              href={creatorHref}
+              href={channelHref}
             >
               <MessageCircleHeart className="size-4 text-[#44f26e]" />
               {copy.characterCta}
@@ -437,10 +453,11 @@ function CharacterCard({
   const report = character.representativeReport;
   const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
   const reportHref = getReportHref(report, referralCode);
-  const creatorHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${character.referralCode}`,
-    referralCode ?? character.referralCode,
-  );
+  const channelHref = getCharacterChannelHref({
+    characterReferralCode: character.referralCode,
+    locale,
+    referralCode,
+  });
   const latestReportAt = formatDate(character.latestReportAt, locale);
 
   return (
@@ -511,7 +528,7 @@ function CharacterCard({
           </div>
           <Link
             className="shrink-0 text-xs font-black text-[#16702e] hover:underline"
-            href={creatorHref}
+            href={channelHref}
           >
             {copy.characterCta}
           </Link>

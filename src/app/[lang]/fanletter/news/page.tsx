@@ -1334,7 +1334,7 @@ function NewsCharacterDirectory({
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {characters.map((character) => {
           const channelHref = buildPathWithReferral(
-            `/${locale}/fanletter/creator/${character.referralCode}`,
+            `/${locale}/fanletter/news/characters/${character.referralCode}`,
             referralCode ?? character.referralCode,
           );
           const report = character.representativeReport;
