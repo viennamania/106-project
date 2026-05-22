@@ -54,6 +54,7 @@ import {
   isFanletterNewsReportNsfw as isNsfwReport,
   serializeFanletterRelatedNewsItem,
   shouldBlurFanletterNewsReport as shouldBlurReport,
+  type FanletterRelatedNewsItem,
 } from "@/lib/fanletter-news-related";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import {
@@ -118,6 +119,14 @@ function getCopy(locale: Locale) {
           level: "성장 단계",
           reactions: "팬 반응",
           vlogs: "브이로그",
+        },
+        continueReading: {
+          body:
+            "이 캐릭터의 세계관과 팬 리포트 흐름을 이어서 볼 수 있도록 관련 뉴스를 바로 연결합니다.",
+          characterCta: "캐릭터 홈",
+          eyebrow: "AI 캐릭터 계속 보기",
+          nextCta: "다음 뉴스 읽기",
+          title: "같은 AI 캐릭터의 다음 뉴스",
         },
         contentBadge: {
           nsfw: "성인 팬 전용 표시",
@@ -223,6 +232,14 @@ function getCopy(locale: Locale) {
           level: "Growth level",
           reactions: "Fan reactions",
           vlogs: "Vlogs",
+        },
+        continueReading: {
+          body:
+            "Keep the character context moving with more fan reports from the same AI character.",
+          characterCta: "Character home",
+          eyebrow: "Continue this AI character",
+          nextCta: "Read next story",
+          title: "Next news from this AI character",
         },
         contentBadge: {
           nsfw: "Adult fan-only marker",
@@ -516,6 +533,163 @@ function NewsWalletConnectCard({
   );
 }
 
+function CharacterContinueReadingPanel({
+  characterAvatarImageUrl,
+  characterName,
+  copy,
+  creatorHref,
+  items,
+}: {
+  characterAvatarImageUrl: string | null;
+  characterName: string | null;
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  items: FanletterRelatedNewsItem[];
+}) {
+  const leadItem = items[0] ?? null;
+  const secondaryItems = items.slice(1, 4);
+  const imageUrl = leadItem?.coverImageUrl ?? characterAvatarImageUrl;
+  const shouldBlur = leadItem?.shouldBlur ?? false;
+  const title = leadItem?.title ?? characterName ?? copy.continueReading.title;
+  const dek = leadItem?.dek ?? copy.continueReading.body;
+  const primaryHref = leadItem?.href ?? creatorHref;
+  const shouldBypassImageOptimization = imageUrl
+    ? shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
+
+  return (
+    <section className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_58px_rgba(12,18,14,0.2)] sm:mt-6">
+      <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.72fr)]">
+        <Link
+          className="group grid min-h-[18rem] grid-rows-[minmax(12rem,1fr)_auto] !text-white sm:grid-cols-[minmax(15rem,0.9fr)_minmax(0,1fr)] sm:grid-rows-none"
+          href={primaryHref}
+        >
+          <div className="relative min-h-[12rem] overflow-hidden bg-[#07100b]">
+            {imageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className={`object-cover transition duration-500 group-hover:scale-[1.04] ${
+                  shouldBlur ? "blur-md brightness-[0.68] saturate-[0.86]" : ""
+                }`}
+                fill
+                sizes="(max-width: 640px) 100vw, 20rem"
+                src={imageUrl}
+                unoptimized={shouldBypassImageOptimization}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_35%_25%,#1f6e35,#07100b_58%)]">
+                <Newspaper className="size-14 text-[#44f26e]" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-transparent to-black/12" />
+            {leadItem?.isNsfw ? (
+              <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white">
+                {leadItem.nsfwBadge}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex min-w-0 flex-col justify-between p-4 sm:p-5">
+            <div>
+              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                <BadgeCheck className="size-3.5" />
+                {copy.continueReading.eyebrow}
+              </p>
+              {characterName ? (
+                <p className="mt-2 line-clamp-1 text-sm font-bold text-white/58">
+                  {characterName}
+                </p>
+              ) : null}
+              <h2 className="mt-3 line-clamp-3 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-[2rem]">
+                {title}
+              </h2>
+              <p className="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-white/62">
+                {dek}
+              </p>
+            </div>
+            <span className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition group-hover:bg-[#69ff8c] sm:w-fit">
+              {leadItem ? copy.continueReading.nextCta : copy.continueReading.characterCta}
+              <ArrowUpRight className="size-4" />
+            </span>
+          </div>
+        </Link>
+
+        <div className="border-t border-white/12 bg-white/[0.055] p-4 lg:border-l lg:border-t-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
+                FanLetter News
+              </p>
+              <h3 className="mt-1 text-base font-black text-white">
+                {copy.relatedNews}
+              </h3>
+            </div>
+            <Link
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/14 px-3 py-2 text-xs font-black !text-white/78 transition hover:bg-white/10"
+              href={creatorHref}
+            >
+              {copy.continueReading.characterCta}
+              <ArrowUpRight className="size-3.5" />
+            </Link>
+          </div>
+
+          {secondaryItems.length > 0 ? (
+            <div className="mt-4 grid gap-3">
+              {secondaryItems.map((item) => (
+                <Link
+                  className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-black/20 p-2 !text-white transition hover:border-[#44f26e]/70 hover:bg-black/28"
+                  href={item.href}
+                  key={item.reportId}
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-md bg-black/40">
+                    {item.coverImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className={`object-cover transition duration-300 group-hover:scale-[1.04] ${
+                          item.shouldBlur
+                            ? "blur-md brightness-[0.68] saturate-[0.86]"
+                            : ""
+                        }`}
+                        fill
+                        sizes="4.25rem"
+                        src={item.coverImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          item.coverImageUrl,
+                        )}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Newspaper className="size-6 text-[#44f26e]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className={`line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] ${
+                        item.shouldBlur ? "select-none blur-[2px]" : ""
+                      }`}
+                    >
+                      {item.title}
+                    </p>
+                    <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-white/42">
+                      {item.publishedAt ?? item.reporterName}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-semibold leading-6 text-white/54">
+              {copy.relatedNewsEmpty}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CharacterIdentityFeature({
   copy,
   creatorHref,
@@ -767,8 +941,9 @@ function ArticleVisualLead({
               alt=""
               aria-hidden="true"
               className="absolute inset-0 h-full w-full scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
+              fetchPriority="high"
               fill
-              priority
+              loading="eager"
               sizes="(max-width: 1024px) 100vw, 64rem"
               src={imageUrl}
               unoptimized={shouldBypassImageOptimization}
@@ -780,8 +955,9 @@ function ArticleVisualLead({
                   ? "relative z-10 object-contain blur-md brightness-[0.68] saturate-[0.86]"
                   : "relative z-10 object-contain"
               }
+              fetchPriority="high"
               fill
-              priority
+              loading="eager"
               sizes="(max-width: 1024px) 100vw, 64rem"
               src={imageUrl}
               unoptimized={shouldBypassImageOptimization}
@@ -1163,6 +1339,12 @@ export default async function LocalizedFanletterNewsReportPage({
       report: relatedReport,
     }),
   );
+  const characterName =
+    sourceContent?.authorCharacter?.name ?? sourceContent?.authorName ?? null;
+  const characterAvatarImageUrl =
+    sourceContent?.authorCharacter?.avatarImageSet[0]?.url ??
+    sourceContent?.authorAvatarImageUrl ??
+    null;
   const relatedNewsApiHref = setPathSearchParams(
     "/api/fanletter/news-reports/related",
     {
@@ -1280,6 +1462,14 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
+            <CharacterContinueReadingPanel
+              characterAvatarImageUrl={characterAvatarImageUrl}
+              characterName={characterName}
+              copy={copy}
+              creatorHref={creatorHref}
+              items={relatedNewsItems}
+            />
+
             {shouldShowNsfwControl ? (
               <div className="mt-5">
                 <FanletterNsfwOptInControl
@@ -1297,6 +1487,48 @@ export default async function LocalizedFanletterNewsReportPage({
                 />
               </div>
             ) : null}
+
+            <section className="mt-7 overflow-hidden border border-black/12 bg-white shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
+              <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-4 py-3 text-sm font-black text-[#111510] sm:px-5">
+                <FileText className="size-4 text-[#16702e]" />
+                {copy.summaryTitle}
+              </div>
+              <dl className="grid gap-x-5 gap-y-4 p-4 sm:grid-cols-2 sm:p-5">
+                {facts.map((fact) => (
+                  <div
+                    className="min-w-0 border-l-2 border-[#19b84b]/34 pl-3"
+                    key={fact.label}
+                  >
+                    <dt className="text-xs font-bold text-[#16702e]">
+                      {fact.label}
+                    </dt>
+                    <dd
+                      className={`mt-1 text-sm font-medium leading-6 text-black/72 ${nsfwTextBlurClass}`}
+                    >
+                      {fact.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            <section className="mt-8">
+              <div
+                className={`max-w-[44rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
+                  nsfwTextBlurClass
+                }`}
+              >
+                {articleParagraphs.map((paragraph) => (
+                  <p className="[word-break:keep-all]" key={paragraph}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </section>
+
+            <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
+              {copy.articleNotice}
+            </p>
 
             <CharacterIdentityFeature
               copy={copy}
@@ -1357,48 +1589,6 @@ export default async function LocalizedFanletterNewsReportPage({
                 />
               </div>
             ) : null}
-
-            <section className="mt-7 overflow-hidden border border-black/12 bg-white shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
-              <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-4 py-3 text-sm font-black text-[#111510] sm:px-5">
-                <FileText className="size-4 text-[#16702e]" />
-                {copy.summaryTitle}
-              </div>
-              <dl className="grid gap-x-5 gap-y-4 p-4 sm:grid-cols-2 sm:p-5">
-                {facts.map((fact) => (
-                  <div
-                    className="min-w-0 border-l-2 border-[#19b84b]/34 pl-3"
-                    key={fact.label}
-                  >
-                    <dt className="text-xs font-bold text-[#16702e]">
-                      {fact.label}
-                    </dt>
-                    <dd
-                      className={`mt-1 text-sm font-medium leading-6 text-black/72 ${nsfwTextBlurClass}`}
-                    >
-                      {fact.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-
-            <section className="mt-8">
-              <div
-                className={`max-w-[44rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
-                  nsfwTextBlurClass
-                }`}
-              >
-                {articleParagraphs.map((paragraph) => (
-                  <p className="[word-break:keep-all]" key={paragraph}>
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-
-            <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
-              {copy.articleNotice}
-            </p>
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-5">
