@@ -114,6 +114,7 @@ function getCopy(locale: Locale) {
           reporters: "참여 기자",
           title: "뉴스 프랜차이즈",
         },
+        purchases: "구매함",
         nsfwControl: {
           disabledBody:
             "성인 팬 전용 캐릭터 뉴스와 브이로그 커버는 블러 처리됩니다.",
@@ -200,6 +201,7 @@ function getCopy(locale: Locale) {
           reporters: "Reporters",
           title: "News franchise",
         },
+        purchases: "Purchases",
         nsfwControl: {
           disabledBody:
             "Adult fan-only character news and vlog covers are blurred.",
@@ -305,10 +307,12 @@ function CharacterChannelMasthead({
   charactersHref,
   copy,
   newsHomeHref,
+  purchasesHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
   newsHomeHref: string;
+  purchasesHref: string;
 }) {
   return (
     <header className="border-b border-black/14 bg-white text-[#111510]">
@@ -320,13 +324,22 @@ function CharacterChannelMasthead({
           >
             {copy.siteName}
           </Link>
-          <Link
-            className="hidden items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
-            href={charactersHref}
-          >
-            <ArrowLeft className="size-4 text-[#16702e]" />
-            {copy.backToCharacters}
-          </Link>
+          <div className="hidden shrink-0 items-center gap-2 sm:flex">
+            <Link
+              className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              href={charactersHref}
+            >
+              <ArrowLeft className="size-4 text-[#16702e]" />
+              {copy.backToCharacters}
+            </Link>
+            <Link
+              className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              href={purchasesHref}
+            >
+              <BookOpen className="size-4 text-[#16702e]" />
+              {copy.purchases}
+            </Link>
+          </div>
         </div>
       </div>
     </header>
@@ -829,6 +842,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     `/${locale}/fanletter/news/characters`,
     effectiveReferralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    effectiveReferralCode,
+  );
   const channelHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
     effectiveReferralCode,
@@ -975,6 +992,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         charactersHref={charactersHref}
         copy={copy}
         newsHomeHref={newsHomeHref}
+        purchasesHref={purchasesHref}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">

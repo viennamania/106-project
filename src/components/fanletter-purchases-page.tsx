@@ -37,6 +37,7 @@ import { thirdwebClient } from "@/lib/thirdweb";
 import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 
 type LoadStatus = "error" | "idle" | "loading" | "ready";
+type FanletterPurchasesService = "fanletter" | "news";
 
 type PurchasesState = {
   error: string | null;
@@ -45,8 +46,11 @@ type PurchasesState = {
   status: LoadStatus;
 };
 
-function getCopy(locale: Locale) {
-  return locale === "ko"
+function getCopy(
+  locale: Locale,
+  service: FanletterPurchasesService = "fanletter",
+) {
+  const copy = locale === "ko"
     ? {
         accountRequiredBody:
           "구매 내역은 연결된 FanLetter 계정 기준으로 확인합니다.",
@@ -128,6 +132,56 @@ function getCopy(locale: Locale) {
         view: "Watch now",
         videoCount: "Videos",
         wallet: "Wallet",
+      };
+
+  if (service !== "news") {
+    return copy;
+  }
+
+  return locale === "ko"
+    ? {
+        ...copy,
+        accountRequiredBody:
+          "뉴스 기사에서 결제한 콘텐츠는 연결된 FanLetter News 계정 기준으로 확인합니다.",
+        accountRequiredTitle: "뉴스 계정 연결 후 구매한 콘텐츠를 확인하세요.",
+        allFeed: "뉴스 홈",
+        backToFeed: "뉴스룸으로 돌아가기",
+        connect: "뉴스 계정 연결",
+        emptyBody:
+          "FanLetter News 기사에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
+        emptyTitle: "아직 뉴스에서 구매한 콘텐츠가 없습니다.",
+        eyebrow: "FanLetter News Library",
+        fanHome: "AI 캐릭터",
+        heroBody:
+          "FanLetter News에서 결제한 팬 전용 브이로그와 유료 열람 콘텐츠를 같은 이메일 지갑 기준으로 다시 확인합니다.",
+        heroTitle: "내 구매 콘텐츠",
+        navLabel: "FanLetter News 구매 콘텐츠 메뉴",
+        purchased: "구매함",
+        start: "가입 상태 확인",
+        studio: "AI 캐릭터",
+        wallet: "뉴스 지갑",
+      }
+    : {
+        ...copy,
+        accountRequiredBody:
+          "Content purchased from FanLetter News is loaded from your connected news account.",
+        accountRequiredTitle: "Connect your news account to see purchases.",
+        allFeed: "News home",
+        backToFeed: "Back to newsroom",
+        connect: "Connect news account",
+        emptyBody:
+          "Fan-only vlogs purchased from FanLetter News stories will appear here so you can return to the character content.",
+        emptyTitle: "No content purchased from News yet.",
+        eyebrow: "FanLetter News Library",
+        fanHome: "AI Characters",
+        heroBody:
+          "Review fan-only vlogs and paid-access content purchased from FanLetter News with the same email wallet.",
+        heroTitle: "My purchased content",
+        navLabel: "FanLetter News purchased content navigation",
+        purchased: "Purchases",
+        start: "Check signup",
+        studio: "AI Characters",
+        wallet: "News wallet",
       };
 }
 
@@ -416,12 +470,15 @@ export function FanletterPurchasesPage({
   locale,
   nsfwOptInEnabled,
   referralCode,
+  service = "fanletter",
 }: {
   locale: Locale;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
+  service?: FanletterPurchasesService;
 }) {
-  const copy = getCopy(locale);
+  const isNewsService = service === "news";
+  const copy = getCopy(locale, service);
   const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: 3000,
     resolveGraceMs: 3000,
@@ -440,34 +497,53 @@ export function FanletterPurchasesPage({
     status: "idle",
   });
 
+  const serviceBasePath = `/${locale}/fanletter${isNewsService ? "/news" : ""}`;
   const purchasesHref = buildPathWithReferral(
-    `/${locale}/fanletter/purchases`,
+    `${serviceBasePath}/purchases`,
     referralCode,
   );
   const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+    buildPathWithReferral(`${serviceBasePath}/connect`, referralCode),
     { returnTo: purchasesHref },
   );
   const feedHref = buildPathWithReferral(
-    `/${locale}/fanletter/feed`,
+    isNewsService ? serviceBasePath : `${serviceBasePath}/feed`,
     referralCode,
   );
   const followingHref = buildPathWithReferral(
-    `/${locale}/fanletter/following`,
+    isNewsService
+      ? `${serviceBasePath}/characters`
+      : `${serviceBasePath}/following`,
     referralCode,
   );
   const studioHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio`,
+    isNewsService ? `${serviceBasePath}/characters` : `${serviceBasePath}/studio`,
     referralCode,
   );
   const walletHref = buildPathWithReferral(
-    `/${locale}/fanletter/wallet`,
+    `${serviceBasePath}/wallet`,
     referralCode,
   );
-  const startHref = buildPathWithReferral(
-    `/${locale}/fanletter/start`,
-    referralCode,
-  );
+  const startHref = isNewsService
+    ? setPathSearchParams(
+        buildPathWithReferral(`${serviceBasePath}/activate`, referralCode),
+        { returnTo: purchasesHref },
+      )
+    : buildPathWithReferral(`${serviceBasePath}/start`, referralCode);
+  const navItems = isNewsService
+    ? [
+        { href: feedHref, label: copy.allFeed },
+        { href: followingHref, label: copy.fanHome },
+        { href: walletHref, label: copy.wallet },
+        { active: true, href: purchasesHref, label: copy.purchased },
+      ]
+    : [
+        { href: feedHref, label: copy.allFeed },
+        { href: followingHref, label: copy.fanHome },
+        { href: walletHref, label: copy.wallet },
+        { active: true, href: purchasesHref, label: copy.purchased },
+        { href: studioHref, label: copy.studio },
+      ];
   const nsfwPurchaseCount = state.items.filter(
     (item) => item.contentMaturityRating === "nsfw",
   ).length;
@@ -698,34 +774,82 @@ export function FanletterPurchasesPage({
       !email);
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
-      <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
+    <main
+      className={
+        isNewsService
+          ? "min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]"
+          : "min-h-screen bg-[#030504] text-white"
+      }
+    >
+      <section
+        className={
+          isNewsService
+            ? "border-b border-black/12 bg-white px-4 pb-8 pt-3 sm:px-6 lg:px-8"
+            : "border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8"
+        }
+      >
         <div className="mx-auto max-w-7xl">
-          <FanletterTabTopBar
-            actionHref={startHref}
-            actionLabel={copy.start}
-            locale={locale}
-            referralCode={referralCode}
-          />
+          {isNewsService ? (
+            <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
+              <Link
+                className="inline-flex min-w-0 text-[2.1rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.5rem]"
+                href={feedHref}
+              >
+                FanLetter News
+              </Link>
+              <Link
+                className="hidden shrink-0 border border-black/16 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] !text-[#16702e] transition hover:border-[#16702e] sm:inline-flex"
+                href={startHref}
+              >
+                {copy.start}
+              </Link>
+            </div>
+          ) : (
+            <FanletterTabTopBar
+              actionHref={startHref}
+              actionLabel={copy.start}
+              locale={locale}
+              referralCode={referralCode}
+            />
+          )}
 
           <nav
             aria-label={copy.navLabel}
-            className="mt-5 hidden items-center gap-7 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white/74 md:inline-flex"
+            className={
+              isNewsService
+                ? "mt-4 hidden items-center gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62 [scrollbar-width:none] md:flex [&::-webkit-scrollbar]:hidden"
+                : "mt-5 hidden items-center gap-7 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white/74 md:inline-flex"
+            }
           >
-            <Link href={feedHref}>{copy.allFeed}</Link>
-            <Link href={followingHref}>{copy.fanHome}</Link>
-            <Link href={walletHref}>{copy.wallet}</Link>
-            <Link
-              aria-current="page"
-              className="text-[#44f26e]"
-              href={purchasesHref}
-            >
-              {copy.purchased}
-            </Link>
-            <Link href={studioHref}>{copy.studio}</Link>
+            {navItems.map((item) => (
+              <Link
+                aria-current={item.active ? "page" : undefined}
+                className={
+                  isNewsService
+                    ? `shrink-0 border px-3 py-1.5 transition ${
+                        item.active
+                          ? "border-[#16702e] bg-[#ecfff0] text-[#126c2c]"
+                          : "border-black/10 bg-white hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
+                      }`
+                    : item.active
+                      ? "text-[#44f26e]"
+                      : undefined
+                }
+                href={item.href}
+                key={item.label}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="pt-14 sm:pt-24">
+          <div
+            className={
+              isNewsService
+                ? "mt-6 border border-[#111510] bg-[#111510] p-5 text-white shadow-[0_20px_54px_rgba(17,21,16,0.16)] sm:mt-8 sm:p-7"
+                : "pt-14 sm:pt-24"
+            }
+          >
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
               {copy.eyebrow}
             </p>
@@ -738,17 +862,17 @@ export function FanletterPurchasesPage({
             <div className="mt-8 flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={followingHref}
+                href={isNewsService ? feedHref : followingHref}
               >
                 <BadgeCheck className="size-4" />
-                {copy.fanHome}
+                {isNewsService ? copy.backToFeed : copy.fanHome}
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
-                href={feedHref}
+                href={isNewsService ? followingHref : feedHref}
               >
                 <Sparkles className="size-4" />
-                {copy.backToFeed}
+                {isNewsService ? copy.fanHome : copy.backToFeed}
               </Link>
               <button
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/8"
@@ -860,10 +984,14 @@ export function FanletterPurchasesPage({
                         ),
                         { returnTo: purchasesHref },
                       );
-                      const profileHref = buildPathWithReferral(
-                        `/${locale}/fanletter/creator/${item.authorReferralCode}`,
-                        itemReferralCode,
-                      );
+                      const profileHref = item.authorReferralCode
+                        ? buildPathWithReferral(
+                            isNewsService
+                              ? `/${locale}/fanletter/news/characters/${item.authorReferralCode}`
+                              : `/${locale}/fanletter/creator/${item.authorReferralCode}`,
+                            itemReferralCode,
+                          )
+                        : followingHref;
 
                       return (
                         <PurchaseCard

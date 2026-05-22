@@ -529,7 +529,7 @@ export function FanletterWalletPage({
     { returnTo: walletPageHref },
   );
   const purchasesHref = isNewsService
-    ? homeHref
+    ? buildPathWithReferral(`/${locale}/fanletter/news/purchases`, referralCode)
     : buildPathWithReferral(`/${locale}/fanletter/purchases`, referralCode);
   const salesHref = isNewsService
     ? setPathSearchParams(

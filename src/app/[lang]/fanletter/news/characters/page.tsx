@@ -55,7 +55,7 @@ function getCopy(locale: Locale) {
         fanOnly: "팬 전용 뉴스",
         heroEyebrow: "FanLetter News Character Desk",
         latest: "최신 뉴스",
-        navItems: ["뉴스 홈", "AI 캐릭터", "팬 기자", "브이로그 뉴스"],
+        navItems: ["뉴스 홈", "AI 캐릭터", "팬 기자", "브이로그 뉴스", "구매함"],
         news: "뉴스",
         nsfw: "NSFW",
         nsfwControl: {
@@ -96,7 +96,13 @@ function getCopy(locale: Locale) {
         fanOnly: "Fan-only news",
         heroEyebrow: "FanLetter News Character Desk",
         latest: "Latest story",
-        navItems: ["News home", "AI characters", "Fan reporters", "Vlog news"],
+        navItems: [
+          "News home",
+          "AI characters",
+          "Fan reporters",
+          "Vlog news",
+          "Purchases",
+        ],
         news: "News",
         nsfw: "NSFW",
         nsfwControl: {
@@ -191,16 +197,19 @@ function NewsCharactersMasthead({
   charactersHref,
   copy,
   newsHomeHref,
+  purchasesHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
   newsHomeHref: string;
+  purchasesHref: string;
 }) {
   const navHrefs = [
     newsHomeHref,
     charactersHref,
     `${newsHomeHref}#fan-reporters`,
     `${newsHomeHref}#latest-news`,
+    purchasesHref,
   ];
 
   return (
@@ -582,6 +591,10 @@ export default async function LocalizedFanletterNewsCharactersPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    referralCode,
+  );
   const reports = await getFanletterNewsReportsForCharacterDirectory({ locale });
   const characters = await hydrateFanletterNewsCharacterStats(
     getFanletterNewsCharacterStats(reports, reports.length),
@@ -621,6 +634,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
         charactersHref={charactersHref}
         copy={copy}
         newsHomeHref={newsHomeHref}
+        purchasesHref={purchasesHref}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">

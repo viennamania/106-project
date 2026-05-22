@@ -106,7 +106,7 @@ function getCopy(locale: Locale) {
         latest: "최신 리포트",
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
-        navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그"],
+        navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그", "구매함"],
         photoDesk: "포토 뉴스",
         photoDeskBody:
           "커버 이미지가 좋은 AI 캐릭터 뉴스를 한눈에 훑어볼 수 있게 모았습니다.",
@@ -194,7 +194,13 @@ function getCopy(locale: Locale) {
         latest: "Latest Reports",
         lead: "Lead Story",
         leadKicker: "FanLetter exclusive",
-        navItems: ["Top stories", "Fan reporters", "AI characters", "Vlogs"],
+        navItems: [
+          "Top stories",
+          "Fan reporters",
+          "AI characters",
+          "Vlogs",
+          "Purchases",
+        ],
         photoDesk: "Photo Desk",
         photoDeskBody:
           "A visual scan of AI character stories with the strongest cover moments.",
@@ -572,12 +578,14 @@ function NewsMasthead({
   locale,
   navigationBaseHref,
   newsHomeHref,
+  purchasesHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   navigationBaseHref: string;
   newsHomeHref: string;
+  purchasesHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
@@ -587,6 +595,7 @@ function NewsMasthead({
     `${navigationBaseHref}#fan-reporters`,
     charactersHref,
     `${navigationBaseHref}#latest-news`,
+    purchasesHref,
   ];
 
   return (
@@ -2140,6 +2149,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
@@ -2149,6 +2162,7 @@ export default async function LocalizedFanletterNewsHomePage({
         locale={locale}
         navigationBaseHref={currentNewsHref}
         newsHomeHref={newsHomeHref}
+        purchasesHref={purchasesHref}
       />
       <NewsTicker
         copy={copy}

@@ -168,7 +168,7 @@ function getCopy(locale: Locale) {
         embeddedUnlockTitle: "팬 전용 브이로그 잠금 해제",
         generated: "AI 생성",
         publishedLabel: "기사입력",
-        navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스"],
+        navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
         nsfwBlurNotice:
           "NSFW 보기 동의 전에는 원본 브이로그와 기사 본문 일부가 블러 처리됩니다.",
         nsfwControl: {
@@ -283,7 +283,7 @@ function getCopy(locale: Locale) {
         embeddedUnlockTitle: "Unlock fan-only vlog",
         generated: "AI generated",
         publishedLabel: "Published",
-        navItems: ["AI characters", "Fan reports", "Vlog news"],
+        navItems: ["AI characters", "Fan reports", "Vlog news", "Purchases"],
         nsfwBlurNotice:
           "The source vlog and parts of the article stay blurred before NSFW opt-in.",
         nsfwControl: {
@@ -1294,6 +1294,10 @@ export default async function LocalizedFanletterNewsReportPage({
     buildPathWithReferral(`/${locale}/fanletter/news/wallet`, referralCode),
     { returnTo: articleHref },
   );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    referralCode,
+  );
   const paidUnlockOnboardingHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, referralCode),
     { returnTo: articleHref },
@@ -1359,6 +1363,7 @@ export default async function LocalizedFanletterNewsReportPage({
     },
     { href: reporterNewsHref, label: copy.navItems[1] ?? copy.byline },
     { href: sourceVlogHref, label: copy.navItems[2] ?? copy.sourceTitle },
+    { href: purchasesHref, label: copy.navItems[3] ?? "Purchases" },
   ];
   const facts = [
     { label: copy.sixW.who, value: report.who },

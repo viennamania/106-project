@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Newspaper, Sparkles, WalletCards, type LucideIcon } from "lucide-react";
+import {
+  BookOpenCheck,
+  Newspaper,
+  Sparkles,
+  WalletCards,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
 import {
@@ -17,7 +23,7 @@ type FanletterNewsMobileNavItem = {
   exact?: boolean;
   href: string;
   icon: LucideIcon;
-  key: "news" | "characters" | "connect";
+  key: "news" | "characters" | "purchases" | "connect";
   label: string;
 };
 
@@ -48,6 +54,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const basePath = `/${locale}/fanletter/news`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
+  const purchasesPath = `${basePath}/purchases`;
   const walletPath = `${basePath}/wallet`;
   const referralCode = normalizeReferralCode(searchParams.get("ref"));
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
@@ -76,6 +83,13 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       label: locale === "ko" ? "AI 캐릭터" : "AI Characters",
     },
     {
+      activePath: purchasesPath,
+      href: buildHref(purchasesPath),
+      icon: BookOpenCheck,
+      key: "purchases",
+      label: locale === "ko" ? "구매함" : "Purchases",
+    },
+    {
       activePath: connectPath,
       href: setPathSearchParams(buildHref(connectPath), {
         returnTo: currentReturnTo,
@@ -100,7 +114,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
         }
         className="fixed inset-x-0 bottom-0 z-40 border-t border-black/12 bg-white/95 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 text-[#111510] shadow-[0_-14px_38px_rgba(17,21,16,0.16)] backdrop-blur md:hidden"
       >
-        <div className="mx-auto grid max-w-md grid-cols-3 gap-1">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           {items.map((item) => {
             const Icon = item.icon;
             const active = item.exact
