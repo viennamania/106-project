@@ -186,7 +186,7 @@ function getCopy(locale: Locale) {
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
         relatedNewsLoadMore: "더 보기",
         relatedNewsLoading: "불러오는 중",
-        reporterNewsCta: "이 기자 뉴스 보기",
+        reporterNewsCta: "기자 뉴스",
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
         summaryTitle: "기사 요약",
@@ -300,7 +300,7 @@ function getCopy(locale: Locale) {
         relatedNewsError: "Could not load more news. Please try again.",
         relatedNewsLoadMore: "Load more",
         relatedNewsLoading: "Loading",
-        reporterNewsCta: "View reporter news",
+        reporterNewsCta: "Reporter news",
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
@@ -399,7 +399,7 @@ function NewsSiteHeader({
       <div className="mx-auto flex max-w-[92rem] flex-col px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-3 break-words text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
+            className="inline-flex min-w-0 items-center gap-3 break-words text-2xl font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
             href={homeHref}
           >
             {copy.siteName}
@@ -477,23 +477,23 @@ function ArticleActionLinks({
   return (
     <nav
       aria-label={copy.articleActions.label}
-      className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
+      className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 lg:grid-cols-4"
     >
       {actions.map((action) => (
         <Link
-          className="inline-flex min-h-12 items-center justify-between gap-3 border border-black/12 bg-[#f5f7f1] px-3 py-2 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          className="inline-flex min-h-11 items-center justify-center gap-2 border border-black/12 bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:justify-between sm:px-3 sm:text-sm"
           href={action.href}
           key={action.label}
         >
-          <span className="inline-flex min-w-0 items-center gap-2">
+          <span className="inline-flex min-w-0 items-center justify-center gap-2 sm:justify-start">
             {action.icon}
             <span className="truncate">{action.label}</span>
           </span>
-          <ArrowUpRight className="size-4 shrink-0 text-black/42" />
+          <ArrowUpRight className="hidden size-4 shrink-0 text-black/42 sm:block" />
         </Link>
       ))}
       <FanletterChannelShareButton
-        className="!h-auto min-h-12 !rounded-none !border-black/12 !bg-[#f5f7f1] px-3 py-2 text-sm font-black !text-[#111510] hover:!border-[#19b84b] hover:!bg-[#ecfff0]"
+        className="!h-auto min-h-11 !rounded-none !border-black/12 !bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] hover:!border-[#19b84b] hover:!bg-[#ecfff0] sm:px-3 sm:text-sm"
         href={shareHref}
         locale={locale}
         referralCode={referralCode}
@@ -531,13 +531,13 @@ function CharacterContinueReadingPanel({
     : false;
 
   return (
-    <section className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_22px_58px_rgba(12,18,14,0.2)] sm:mt-6">
+    <section className="mt-4 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_18px_48px_rgba(12,18,14,0.18)] sm:mt-6 sm:shadow-[0_22px_58px_rgba(12,18,14,0.2)]">
       <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.72fr)]">
         <Link
-          className="group grid min-h-[18rem] grid-rows-[minmax(12rem,1fr)_auto] !text-white sm:grid-cols-[minmax(15rem,0.9fr)_minmax(0,1fr)] sm:grid-rows-none"
+          className="group grid grid-rows-[minmax(9rem,0.85fr)_auto] !text-white sm:min-h-[18rem] sm:grid-cols-[minmax(15rem,0.9fr)_minmax(0,1fr)] sm:grid-rows-none"
           href={primaryHref}
         >
-          <div className="relative min-h-[12rem] overflow-hidden bg-[#07100b]">
+          <div className="relative min-h-[9rem] overflow-hidden bg-[#07100b] sm:min-h-[12rem]">
             {imageUrl ? (
               <Image
                 alt=""
@@ -562,7 +562,7 @@ function CharacterContinueReadingPanel({
               </span>
             ) : null}
           </div>
-          <div className="flex min-w-0 flex-col justify-between p-4 sm:p-5">
+          <div className="flex min-w-0 flex-col justify-between p-3.5 sm:p-5">
             <div>
               <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
                 <BadgeCheck className="size-3.5" />
@@ -573,21 +573,21 @@ function CharacterContinueReadingPanel({
                   {characterName}
                 </p>
               ) : null}
-              <h2 className="mt-3 line-clamp-3 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-[2rem]">
+              <h2 className="mt-2.5 line-clamp-3 break-words text-xl font-black leading-tight [word-break:keep-all] sm:mt-3 sm:text-[2rem]">
                 {title}
               </h2>
-              <p className="mt-3 line-clamp-3 text-sm font-semibold leading-6 text-white/62">
+              <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/62 sm:mt-3 sm:line-clamp-3">
                 {dek}
               </p>
             </div>
-            <span className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition group-hover:bg-[#69ff8c] sm:w-fit">
+            <span className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition group-hover:bg-[#69ff8c] sm:mt-5 sm:h-11 sm:w-fit">
               {leadItem ? copy.continueReading.nextCta : copy.continueReading.characterCta}
               <ArrowUpRight className="size-4" />
             </span>
           </div>
         </Link>
 
-        <div className="border-t border-white/12 bg-white/[0.055] p-4 lg:border-l lg:border-t-0">
+        <div className="border-t border-white/12 bg-white/[0.055] p-3.5 sm:p-4 lg:border-l lg:border-t-0">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
@@ -831,16 +831,16 @@ function ReporterByline({
     "F";
 
   return (
-    <section className="mt-5 flex min-w-0 flex-col gap-3 border-y border-black/12 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-4 border-y border-black/12 py-3 sm:mt-5 sm:flex sm:min-w-0 sm:items-center sm:justify-between sm:gap-3">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
+        <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e] sm:size-11">
           {reporterAvatarImageUrl ? (
             <Image
               alt=""
               aria-hidden="true"
               className="object-cover"
               fill
-              sizes="2.75rem"
+              sizes="(max-width: 640px) 2.5rem, 2.75rem"
               src={reporterAvatarImageUrl}
               unoptimized={shouldBypassFanletterImageOptimization(
                 reporterAvatarImageUrl,
@@ -850,31 +850,34 @@ function ReporterByline({
             reporterInitial
           )}
         </span>
-        <div className="min-w-0">
-          <p className="text-[0.72rem] font-bold text-black/46">
-            {copy.byline}
-          </p>
-          <p className="mt-0.5 truncate text-sm font-bold text-[#111510]">
-            {reporterDisplayName}
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium text-black/48">
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {publishedAt ? (
-            <span>
-              {copy.publishedLabel} {publishedAt}
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <p className="shrink-0 text-[0.7rem] font-bold text-black/46">
+              {copy.byline}
+            </p>
+            <p className="truncate text-sm font-black text-[#111510]">
+              {reporterDisplayName}
+            </p>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] font-semibold text-black/48">
+            {publishedAt ? (
+              <span>
+                {copy.publishedLabel} {publishedAt}
+              </span>
+            ) : null}
+            <span aria-hidden="true" className="text-black/22">
+              ·
             </span>
-          ) : null}
-          <span>{copy.generated}</span>
+            <span>{copy.generated}</span>
+          </div>
         </div>
-        <Link
-          className="inline-flex h-8 items-center justify-center border border-black/14 px-3 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-          href={reporterNewsHref}
-        >
-          {copy.reporterNewsCta}
-        </Link>
       </div>
+      <Link
+        className="mt-3 inline-flex h-9 w-full items-center justify-center border border-black/14 bg-[#f7f9f4] px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:mt-0 sm:w-auto sm:shrink-0 sm:bg-white"
+        href={reporterNewsHref}
+      >
+        {copy.reporterNewsCta}
+      </Link>
     </section>
   );
 }
@@ -1376,11 +1379,11 @@ export default async function LocalizedFanletterNewsReportPage({
         walletHref={walletHref}
       />
 
-      <article className="mx-auto max-w-[92rem] px-4 pb-16 pt-5 sm:px-6 sm:pt-8 lg:px-8">
-        <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
+      <article className="mx-auto max-w-[92rem] px-3 pb-14 pt-4 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
+        <div className="grid gap-5 sm:gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
-            <header className="overflow-hidden border border-black/12 bg-white shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
-              <div className="border-b-2 border-[#111510] bg-[#111510] px-4 py-3 sm:px-6">
+            <header className="overflow-hidden border border-black/12 bg-white shadow-[0_14px_40px_rgba(17,21,16,0.07)] sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
+              <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2.5 sm:px-6 sm:py-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/58">
                   <span className="text-[#44f26e]">{copy.articleSection}</span>
                   <span className="h-3 w-px bg-white/18" aria-hidden="true" />
@@ -1389,14 +1392,14 @@ export default async function LocalizedFanletterNewsReportPage({
                   <span>{copy.aiReport}</span>
                 </div>
               </div>
-              <div className="p-4 sm:p-6 lg:p-7">
+              <div className="p-3.5 sm:p-6 lg:p-7">
                 <h1
-                  className={`max-w-5xl break-words text-[1.88rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                  className={`max-w-5xl break-words text-[1.72rem] font-black leading-[1.14] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
                 >
                   {articleTitle}
                 </h1>
                 <p
-                  className={`mt-4 max-w-3xl text-[1.02rem] font-medium leading-8 text-black/62 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                  className={`mt-3 max-w-3xl text-[0.98rem] font-medium leading-7 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
                 >
                   {report.dek}
                 </p>
@@ -1457,12 +1460,12 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <section className="mt-7 overflow-hidden border border-black/12 bg-white shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
-              <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-4 py-3 text-sm font-black text-[#111510] sm:px-5">
+            <section className="mt-5 overflow-hidden border border-black/12 bg-white shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-7 sm:shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
+              <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-3.5 py-2.5 text-sm font-black text-[#111510] sm:px-5 sm:py-3">
                 <FileText className="size-4 text-[#16702e]" />
                 {copy.summaryTitle}
               </div>
-              <dl className="grid gap-x-5 gap-y-4 p-4 sm:grid-cols-2 sm:p-5">
+              <dl className="grid gap-x-5 gap-y-3 p-3.5 sm:grid-cols-2 sm:gap-y-4 sm:p-5">
                 {facts.map((fact) => (
                   <div
                     className="min-w-0 border-l-2 border-[#19b84b]/34 pl-3"
@@ -1481,9 +1484,9 @@ export default async function LocalizedFanletterNewsReportPage({
               </dl>
             </section>
 
-            <section className="mt-8">
+            <section className="mt-6 sm:mt-8">
               <div
-                className={`max-w-[44rem] space-y-6 text-[1.08rem] font-normal leading-8 text-black/84 sm:text-[1.14rem] sm:leading-9 ${
+                className={`max-w-[44rem] space-y-5 text-[1.02rem] font-normal leading-8 text-black/84 sm:space-y-6 sm:text-[1.14rem] sm:leading-9 ${
                   nsfwTextBlurClass
                 }`}
               >
