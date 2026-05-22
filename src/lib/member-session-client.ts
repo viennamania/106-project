@@ -26,6 +26,9 @@ const serverSessionValidationRequests = new Map<
 >();
 const memberSyncRequests = new Map<string, Promise<ServerMemberSyncResult>>();
 const MEMBER_SESSION_REQUEST_TIMEOUT_MS = 10000;
+const MEMBER_SYNC_REQUEST_TIMEOUT_MS = 30000;
+const MEMBER_SESSION_TIMEOUT_MESSAGE =
+  "Member session request timed out. Please try again.";
 
 export type ServerMemberSyncResult =
   | (SyncMemberResponse & { ok: true })
@@ -60,20 +63,68 @@ function getMemberSyncRequestKey(input: SyncMemberRequest) {
   });
 }
 
+function getMemberSyncTimeoutMessage(locale?: string | null) {
+  return locale === "ko"
+    ? "회원 계정 동기화 시간이 초과되었습니다. 잠시 후 다시 확인을 눌러주세요."
+    : "Member account sync timed out. Please try again shortly.";
+}
+
+function isAbortLikeError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    error.name === "AbortError" ||
+    error.name === "TimeoutError" ||
+    message.includes("abort")
+  );
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function createTimeoutError(message: string) {
+  const error = new Error(message);
+  error.name = "TimeoutError";
+
+  return error;
+}
+
+type FetchWithTimeoutOptions = {
+  timeoutMessage?: string;
+  timeoutMs?: number;
+};
+
 async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit = {},
+  {
+    timeoutMessage = MEMBER_SESSION_TIMEOUT_MESSAGE,
+    timeoutMs = MEMBER_SESSION_REQUEST_TIMEOUT_MS,
+  }: FetchWithTimeoutOptions = {},
 ) {
   const controller = new AbortController();
+  let didTimeout = false;
   const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, MEMBER_SESSION_REQUEST_TIMEOUT_MS);
+    didTimeout = true;
+    controller.abort(createTimeoutError(timeoutMessage));
+  }, timeoutMs);
 
   try {
     return await fetch(input, {
       ...init,
       signal: controller.signal,
     });
+  } catch (error) {
+    if (didTimeout || isAbortLikeError(error)) {
+      throw createTimeoutError(timeoutMessage);
+    }
+
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -123,11 +174,19 @@ async function parseServerMemberSessionResponse(
 }
 
 export async function readServerMemberSession() {
-  const response = await fetchWithTimeout("/api/session/member", {
-    cache: "no-store",
-  });
+  try {
+    const response = await fetchWithTimeout("/api/session/member", {
+      cache: "no-store",
+    });
 
-  return parseServerMemberSessionResponse(response);
+    return parseServerMemberSessionResponse(response);
+  } catch (error) {
+    return {
+      error: getErrorMessage(error, "Member session validation failed."),
+      ok: false,
+      status: isAbortLikeError(error) ? 408 : 500,
+    } satisfies ServerMemberSessionResult;
+  }
 }
 
 export async function validateServerMemberSession({
@@ -164,7 +223,15 @@ export async function validateServerMemberSession({
       "Content-Type": "application/json",
     },
     method: "POST",
-  }).then(parseServerMemberSessionResponse);
+  })
+    .then(parseServerMemberSessionResponse)
+    .catch(
+      (error): ServerMemberSessionResult => ({
+        error: getErrorMessage(error, "Member session validation failed."),
+        ok: false,
+        status: isAbortLikeError(error) ? 408 : 500,
+      }),
+    );
 
   serverSessionValidationRequests.set(requestKey, request);
 
@@ -184,47 +251,63 @@ export async function clearServerMemberSession() {
 export async function syncServerMemberRegistration(input: SyncMemberRequest) {
   const requestKey = getMemberSyncRequestKey(input);
   const existingRequest = memberSyncRequests.get(requestKey);
+  const timeoutMessage = getMemberSyncTimeoutMessage(input.locale);
 
   if (existingRequest) {
     return existingRequest;
   }
 
-  const request = fetchWithTimeout("/api/members", {
-    body: JSON.stringify(input),
-    headers: {
-      "Content-Type": "application/json",
+  const request = fetchWithTimeout(
+    "/api/members",
+    {
+      body: JSON.stringify(input),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
     },
-    method: "POST",
-  }).then(async (response): Promise<ServerMemberSyncResult> => {
-    const data = (await response.json().catch(() => null)) as
-      | Partial<SyncMemberResponse>
-      | { error?: string }
-      | null;
+    {
+      timeoutMessage,
+      timeoutMs: MEMBER_SYNC_REQUEST_TIMEOUT_MS,
+    },
+  )
+    .then(async (response): Promise<ServerMemberSyncResult> => {
+      const data = (await response.json().catch(() => null)) as
+        | Partial<SyncMemberResponse>
+        | { error?: string }
+        | null;
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return {
+          error:
+            data && "error" in data && data.error
+              ? data.error
+              : "Failed to sync member.",
+          ok: false,
+          status: response.status,
+        };
+      }
+
       return {
-        error:
-          data && "error" in data && data.error
-            ? data.error
-            : "Failed to sync member.",
-        ok: false,
-        status: response.status,
+        justCompleted:
+          data && "justCompleted" in data ? Boolean(data.justCompleted) : false,
+        member: data && "member" in data ? data.member ?? null : null,
+        ok: true,
+        validationError:
+          data &&
+          "validationError" in data &&
+          typeof data.validationError === "string"
+            ? data.validationError
+            : null,
       };
-    }
-
-    return {
-      justCompleted:
-        data && "justCompleted" in data ? Boolean(data.justCompleted) : false,
-      member: data && "member" in data ? data.member ?? null : null,
-      ok: true,
-      validationError:
-        data &&
-        "validationError" in data &&
-        typeof data.validationError === "string"
-          ? data.validationError
-          : null,
-    };
-  });
+    })
+    .catch(
+      (error): ServerMemberSyncResult => ({
+        error: getErrorMessage(error, timeoutMessage),
+        ok: false,
+        status: isAbortLikeError(error) ? 408 : 500,
+      }),
+    );
 
   memberSyncRequests.set(requestKey, request);
 
