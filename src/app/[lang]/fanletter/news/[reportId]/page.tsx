@@ -484,83 +484,6 @@ function ArticleActionLinks({
   );
 }
 
-function MobileNewsBottomNav({
-  copy,
-  creatorHref,
-  locale,
-  newsHomeHref,
-  referralCode,
-  shareHref,
-  shareSummary,
-  shareTitle,
-  sourceVlogHref,
-  walletHref,
-}: {
-  copy: ReturnType<typeof getCopy>;
-  creatorHref: string;
-  locale: Locale;
-  newsHomeHref: string;
-  referralCode: string | null;
-  shareHref: string;
-  shareSummary: string;
-  shareTitle: string;
-  sourceVlogHref: string;
-  walletHref: string;
-}) {
-  const items = [
-    {
-      href: newsHomeHref,
-      icon: <Newspaper className="size-5" />,
-      label: copy.articleActions.newsHome,
-    },
-    {
-      href: sourceVlogHref,
-      icon: <Clapperboard className="size-5" />,
-      label: copy.articleActions.sourceVlog,
-    },
-    {
-      href: creatorHref,
-      icon: <MessageCircleHeart className="size-5" />,
-      label: copy.articleActions.character,
-    },
-    {
-      href: walletHref,
-      icon: <Coins className="size-5" />,
-      label: copy.articleActions.wallet,
-    },
-  ];
-
-  return (
-    <nav
-      aria-label={copy.articleActions.label}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-black/12 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-14px_38px_rgba(17,21,16,0.16)] backdrop-blur md:hidden"
-    >
-      <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-        {items.map((item) => (
-          <Link
-            className="flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-1 text-center text-[0.64rem] font-black leading-none !text-black/56 transition hover:text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]"
-            href={item.href}
-            key={item.label}
-          >
-            <span className="text-[#16702e]">{item.icon}</span>
-            <span className="block max-w-full truncate">{item.label}</span>
-          </Link>
-        ))}
-        <FanletterChannelShareButton
-          className="!h-auto min-h-14 w-full min-w-0 flex-col gap-1 !rounded-none !border-0 !bg-transparent px-1 py-0 text-center text-[0.64rem] font-black leading-none !text-black/56 hover:!bg-transparent hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]"
-          href={shareHref}
-          locale={locale}
-          referralCode={referralCode}
-          shareIdScope="newsreport"
-          summary={shareSummary}
-          title={shareTitle}
-          trackingSource="fanletter-news-detail"
-        />
-      </div>
-    </nav>
-  );
-}
-
 function NewsWalletConnectCard({
   copy,
   locale,
@@ -1288,7 +1211,7 @@ export default async function LocalizedFanletterNewsReportPage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
+    <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
       <NewsSiteHeader
         copy={copy}
         homeHref={newsHomeHref}
@@ -1508,18 +1431,6 @@ export default async function LocalizedFanletterNewsReportPage({
         </div>
       </article>
 
-      <MobileNewsBottomNav
-        copy={copy}
-        creatorHref={creatorHref}
-        locale={locale}
-        newsHomeHref={newsHomeHref}
-        referralCode={referralCode}
-        shareHref={articleHref}
-        shareSummary={report.dek}
-        shareTitle={articleTitle}
-        sourceVlogHref={sourceVlogHref}
-        walletHref={paidUnlockHref ?? walletHref}
-      />
     </main>
   );
 }
