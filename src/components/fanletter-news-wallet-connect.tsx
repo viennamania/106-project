@@ -137,7 +137,7 @@ function FanletterNewsWalletConnectInner({
     { returnTo: currentHref },
   );
   const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/news/activate`, referralCode),
     { returnTo: currentHref },
   );
   const member = accountStatus.member;

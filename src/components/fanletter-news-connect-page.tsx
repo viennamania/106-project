@@ -79,7 +79,7 @@ function getCopy(locale: Locale) {
         accountBody:
           "뉴스 기사에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가려면 같은 이메일 지갑으로 연결해야 합니다.",
         accountReady: "뉴스 계정 연결 완료",
-        activate: "가입 완료 확인하기",
+        activate: "가입 완료하기",
         articleReturn: "보던 기사로 돌아가기",
         checking: "연결 상태 확인 중",
         connect: "뉴스 지갑 연결",
@@ -100,7 +100,7 @@ function getCopy(locale: Locale) {
           "현재 브라우저에서 이메일 지갑 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         paymentBody:
           "계정은 연결되었지만 시작 준비 확인이 필요합니다. 확인을 마치면 보던 뉴스로 돌아옵니다.",
-        paymentTitle: "가입 완료 확인이 필요합니다.",
+        paymentTitle: "가입 완료가 필요합니다.",
         reconnect: "다시 확인",
         returnLabel: "연결 전 위치",
         routeTitle: "복귀 경로",
@@ -329,7 +329,7 @@ export function FanletterNewsConnectPage({
     referralCode,
   );
   const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/news/activate`, referralCode),
     { returnTo: returnToHref },
   );
   const walletHref = buildPathWithReferral(
