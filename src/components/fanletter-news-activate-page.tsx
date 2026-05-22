@@ -369,7 +369,7 @@ export function FanletterNewsActivatePage({
   const [notice, setNotice] = useState<NewsActivateNotice | null>(null);
   const [syncState, setSyncState] =
     useState<FanletterNewsActivateSyncState>(emptySyncState);
-  const syncInFlightRef = useRef(false);
+  const syncRequestIdRef = useRef(0);
   const copy = getCopy(locale);
   const accountAddress = account?.address ?? null;
   const accountLabel = formatAddressLabel(accountAddress);
@@ -472,6 +472,7 @@ export function FanletterNewsActivatePage({
 
   useEffect(() => {
     if (!connection.isConnected || !accountAddress) {
+      syncRequestIdRef.current += 1;
       setSyncState(emptySyncState);
       setNotice(null);
       return;
@@ -480,11 +481,12 @@ export function FanletterNewsActivatePage({
     let isCancelled = false;
 
     async function syncMember() {
-      if (!accountAddress || syncInFlightRef.current) {
+      if (!accountAddress) {
         return;
       }
 
-      syncInFlightRef.current = true;
+      const requestId = syncRequestIdRef.current + 1;
+      syncRequestIdRef.current = requestId;
       setSyncState((current) => ({
         ...current,
         email: cachedSessionEmail,
@@ -524,7 +526,7 @@ export function FanletterNewsActivatePage({
 
         const syncedMember = result.member;
 
-        if (isCancelled) {
+        if (isCancelled || syncRequestIdRef.current !== requestId) {
           return;
         }
 
@@ -546,7 +548,7 @@ export function FanletterNewsActivatePage({
           validationError: result.validationError,
         }));
       } catch (error) {
-        if (isCancelled) {
+        if (isCancelled || syncRequestIdRef.current !== requestId) {
           return;
         }
 
@@ -559,8 +561,6 @@ export function FanletterNewsActivatePage({
           justCompleted: false,
           status: "error",
         }));
-      } finally {
-        syncInFlightRef.current = false;
       }
     }
 
@@ -585,11 +585,12 @@ export function FanletterNewsActivatePage({
   ]);
 
   async function refreshMemberStatus(background = false) {
-    if (!accountAddress || syncInFlightRef.current) {
+    if (!accountAddress) {
       return;
     }
 
-    syncInFlightRef.current = true;
+    const requestId = syncRequestIdRef.current + 1;
+    syncRequestIdRef.current = requestId;
 
     if (!background) {
       setNotice({
@@ -634,6 +635,10 @@ export function FanletterNewsActivatePage({
       }
 
       const syncedMember = result.member;
+      if (syncRequestIdRef.current !== requestId) {
+        return;
+      }
+
       const syncedMemberIsCompleted =
         syncedMember.status === "completed" && !syncedMember.serviceSuspendedAt;
 
@@ -664,6 +669,10 @@ export function FanletterNewsActivatePage({
         });
       }
     } catch (error) {
+      if (syncRequestIdRef.current !== requestId) {
+        return;
+      }
+
       const message =
         error instanceof Error
           ? error.message
@@ -682,8 +691,6 @@ export function FanletterNewsActivatePage({
         justCompleted: false,
         status: "error",
       }));
-    } finally {
-      syncInFlightRef.current = false;
     }
   }
 
