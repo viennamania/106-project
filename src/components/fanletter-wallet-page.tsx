@@ -67,12 +67,14 @@ type FanletterWalletState = {
   updatedAt: string | null;
 };
 
+type FanletterWalletService = "fanletter" | "news";
+
 const HISTORY_LIMIT = 8;
 const HISTORY_FETCH_TIMEOUT_MS = 10_000;
 const FANLETTER_WALLET_DISCONNECTED_GRACE_MS = 4500;
 
-function getCopy(locale: Locale) {
-  return locale === "ko"
+function getCopy(locale: Locale, service: FanletterWalletService) {
+  const copy = locale === "ko"
     ? {
         actions: {
           advanced: "전체 지갑 관리",
@@ -83,6 +85,7 @@ function getCopy(locale: Locale) {
           explorer: "BscScan",
           purchases: "구매함 보기",
           refresh: "새로고침",
+          returnTo: "이전 뉴스로 돌아가기",
           sales: "판매 정산",
           showQr: "입금 QR 보기",
           studio: "스튜디오",
@@ -102,6 +105,11 @@ function getCopy(locale: Locale) {
         loading: "지갑 정보를 확인하고 있습니다.",
         loginTitle: "FanLetter 지갑 연결",
         network: "네트워크",
+        quickLinks: {
+          purchases: "Fan-only",
+          sales: "크리에이터 수익과 정산 주소 확인",
+          studio: "유료 브이로그와 리포트 관리",
+        },
         qrUnavailable: "QR을 만들지 못했습니다.",
         receive: "입금 주소",
         receiveNote:
@@ -109,6 +117,7 @@ function getCopy(locale: Locale) {
         settlementBody:
           "크리에이터 수익은 별도 정산 주소에서 관리됩니다. 판매 정산 화면에서 정산 주소와 회수 상태를 확인하세요.",
         settlementTitle: "크리에이터 정산은 분리해서 관리합니다.",
+        siteName: "FanLetter",
         title: "FanLetter 지갑 관리",
         updated: "업데이트",
         walletAddress: "지갑 주소",
@@ -123,6 +132,7 @@ function getCopy(locale: Locale) {
           explorer: "BscScan",
           purchases: "View purchases",
           refresh: "Refresh",
+          returnTo: "Back to news",
           sales: "Sales settlement",
           showQr: "Show deposit QR",
           studio: "Studio",
@@ -142,6 +152,11 @@ function getCopy(locale: Locale) {
         loading: "Checking wallet information.",
         loginTitle: "Connect FanLetter wallet",
         network: "Network",
+        quickLinks: {
+          purchases: "Fan-only",
+          sales: "Review creator revenue and settlement address",
+          studio: "Manage paid vlogs and reports",
+        },
         qrUnavailable: "Could not create QR.",
         receive: "Deposit address",
         receiveNote:
@@ -149,9 +164,80 @@ function getCopy(locale: Locale) {
         settlementBody:
           "Creator revenue is handled through a separate settlement address. Check settlement address and withdrawals on the sales page.",
         settlementTitle: "Creator settlement is managed separately.",
+        siteName: "FanLetter",
         title: "FanLetter wallet",
         updated: "Updated",
         walletAddress: "Wallet address",
+      };
+
+  if (service !== "news") {
+    return copy;
+  }
+
+  return locale === "ko"
+    ? {
+        ...copy,
+        actions: {
+          ...copy.actions,
+          back: "뉴스 홈",
+          connect: "뉴스 지갑 연결",
+          purchases: "뉴스 홈",
+          sales: "가입 완료",
+          studio: "AI 캐릭터",
+        },
+        connectBody:
+          "FanLetter News의 AI 리포트, 공유자 정보, 팬 전용 브이로그 결제와 열람 내역을 같은 이메일 스마트월렛 기준으로 관리합니다.",
+        connectTitle:
+          "뉴스 지갑을 연결하면 FanLetter News 활동 상태를 바로 확인할 수 있습니다.",
+        description:
+          "뉴스 서비스에서 사용하는 이메일 지갑, USDT 잔액, 입금 주소, 최근 흐름과 가입 완료 진입점을 한곳에서 확인합니다.",
+        eyebrow: "FanLetter News Wallet",
+        history: "뉴스 지갑 USDT 내역",
+        historyBody:
+          "뉴스 기사와 팬 전용 브이로그에서 발생한 결제와 입금 흐름을 같은 지갑 기준으로 확인합니다.",
+        loginTitle: "FanLetter News 지갑 연결",
+        quickLinks: {
+          purchases: "최신 AI 팬 리포트로 돌아가기",
+          sales: "뉴스 계정 결제 확인과 활성화 진행",
+          studio: "캐릭터별 뉴스와 팬 리포트 탐색",
+        },
+        settlementBody:
+          "뉴스 계정 가입 완료와 결제 확인이 필요하면 뉴스 서비스 안에서 바로 이어서 진행합니다.",
+        settlementTitle: "뉴스 계정 활성화 상태를 확인합니다.",
+        siteName: "FanLetter News",
+        title: "FanLetter News 지갑 관리",
+      }
+    : {
+        ...copy,
+        actions: {
+          ...copy.actions,
+          back: "News home",
+          connect: "Connect news wallet",
+          purchases: "News home",
+          sales: "Verify signup",
+          studio: "AI Characters",
+        },
+        connectBody:
+          "Manage FanLetter News AI reports, sharer identity, fan-only vlog payments, and access from the same email smart wallet.",
+        connectTitle:
+          "Connect your news wallet to see FanLetter News activity status.",
+        description:
+          "Check the email wallet used for the news service, USDT balance, deposit address, recent activity, and signup verification entry points in one place.",
+        eyebrow: "FanLetter News Wallet",
+        history: "News wallet USDT activity",
+        historyBody:
+          "Review payments and deposits from news stories and fan-only vlogs on the same wallet basis.",
+        loginTitle: "Connect FanLetter News wallet",
+        quickLinks: {
+          purchases: "Return to the latest AI fan reports",
+          sales: "Verify news account payment and activation",
+          studio: "Explore character news and fan reports",
+        },
+        settlementBody:
+          "If signup completion or payment verification is required, continue directly inside the news service.",
+        settlementTitle: "Check news account activation status.",
+        siteName: "FanLetter News",
+        title: "FanLetter News wallet",
       };
 }
 
@@ -325,15 +411,19 @@ export function FanletterWalletPage({
   dictionary,
   locale,
   referralCode,
+  returnToHref,
+  service = "fanletter",
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
+  service?: FanletterWalletService;
 }) {
   const account = useActiveAccount();
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address ?? null;
-  const copy = useMemo(() => getCopy(locale), [locale]);
+  const copy = useMemo(() => getCopy(locale, service), [locale, service]);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -369,27 +459,48 @@ export function FanletterWalletPage({
   const formattedBalance = balance?.displayValue
     ? `${formatTokenDisplay(balance.displayValue, locale)} USDT`
     : "0 USDT";
-  const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const isNewsService = service === "news";
+  const walletPageHref = buildPathWithReferral(
+    `/${locale}/fanletter${isNewsService ? "/news" : ""}/wallet`,
+    referralCode,
+  );
+  const homeHref = buildPathWithReferral(
+    `/${locale}/fanletter${isNewsService ? "/news" : ""}`,
+    referralCode,
+  );
   const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
-    { returnTo: `/${locale}/fanletter/wallet` },
+    buildPathWithReferral(
+      `/${locale}/fanletter${isNewsService ? "/news" : ""}/connect`,
+      referralCode,
+    ),
+    { returnTo: walletPageHref },
   );
-  const purchasesHref = buildPathWithReferral(
-    `/${locale}/fanletter/purchases`,
-    referralCode,
-  );
-  const salesHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio/sales`,
-    referralCode,
-  );
-  const studioHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio`,
-    referralCode,
-  );
+  const purchasesHref = isNewsService
+    ? homeHref
+    : buildPathWithReferral(`/${locale}/fanletter/purchases`, referralCode);
+  const salesHref = isNewsService
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/activate`,
+          referralCode,
+        ),
+        { returnTo: walletPageHref },
+      )
+    : buildPathWithReferral(
+        `/${locale}/fanletter/studio/sales`,
+        referralCode,
+      );
+  const studioHref = isNewsService
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/characters`,
+        referralCode,
+      )
+    : buildPathWithReferral(`/${locale}/fanletter/studio`, referralCode);
   const advancedWalletHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/wallet`, referralCode),
-    { returnTo: `/${locale}/fanletter/wallet` },
+    { returnTo: walletPageHref },
   );
+  const backHref = returnToHref ?? homeHref;
 
   const loadWallet = useCallback(
     async ({ background = false } = {}) => {
@@ -549,7 +660,7 @@ export function FanletterWalletPage({
           <header className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/14 bg-white/[0.06] text-white transition hover:bg-white/10"
-              href={homeHref}
+              href={backHref}
             >
               <ArrowLeft className="size-5" />
             </Link>
@@ -558,7 +669,7 @@ export function FanletterWalletPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
+                {copy.siteName}
               </span>
             </Link>
             <div className="hidden items-center gap-2 sm:flex">
@@ -600,6 +711,15 @@ export function FanletterWalletPage({
                   <Coins className="size-3.5" />
                   USDT
                 </span>
+                {returnToHref ? (
+                  <Link
+                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.055] px-3 py-1.5 text-xs font-semibold !text-white/58 transition hover:bg-white/10 hover:!text-white"
+                    href={returnToHref}
+                  >
+                    <ArrowLeft className="size-3.5" />
+                    {copy.actions.returnTo}
+                  </Link>
+                ) : null}
               </div>
             </div>
 
@@ -834,7 +954,7 @@ export function FanletterWalletPage({
                 {copy.actions.purchases}
               </p>
               <p className="mt-1 text-xs font-medium leading-5 text-white/46">
-                Fan-only
+                {copy.quickLinks.purchases}
               </p>
             </Link>
             <Link
@@ -844,7 +964,7 @@ export function FanletterWalletPage({
               <Coins className="size-6 text-[#44f26e]" />
               <p className="mt-3 text-sm font-semibold">{copy.actions.sales}</p>
               <p className="mt-1 text-xs font-medium leading-5 text-white/46">
-                {copy.settlementTitle}
+                {copy.quickLinks.sales}
               </p>
             </Link>
             <Link
@@ -854,7 +974,7 @@ export function FanletterWalletPage({
               <ShieldCheck className="size-6 text-[#44f26e]" />
               <p className="mt-3 text-sm font-semibold">{copy.actions.studio}</p>
               <p className="mt-1 text-xs font-medium leading-5 text-white/46">
-                {copy.settlementBody}
+                {copy.quickLinks.studio}
               </p>
             </Link>
           </section>

@@ -1137,8 +1137,12 @@ export default async function LocalizedFanletterNewsReportPage({
     `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
   );
-  const walletHref = setPathSearchParams(
+  const newsConnectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
+    { returnTo: articleHref },
+  );
+  const walletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/wallet`, referralCode),
     { returnTo: articleHref },
   );
   const paidUnlockOnboardingHref = setPathSearchParams(
@@ -1319,7 +1323,7 @@ export default async function LocalizedFanletterNewsReportPage({
               <div className="scroll-mt-6" id={paidUnlockSectionId}>
                 <FanletterPaidUnlockPanel
                   autoOpenHash={`#${paidUnlockSectionId}`}
-                  connectHref={walletHref}
+                  connectHref={newsConnectHref}
                   contentId={report.contentId}
                   contentImageCount={sourceContent?.contentImageCount ?? 0}
                   contentMaturityRating={

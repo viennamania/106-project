@@ -48,10 +48,15 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const basePath = `/${locale}/fanletter/news`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
+  const walletPath = `${basePath}/wallet`;
   const referralCode = normalizeReferralCode(searchParams.get("ref"));
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
+  const isWalletServicePath =
+    pathname === connectPath ||
+    pathname === activatePath ||
+    pathname === walletPath;
   const currentReturnTo =
-    pathname === connectPath || pathname === activatePath
+    isWalletServicePath
       ? buildHref(basePath)
       : buildCurrentReturnTo(pathname, currentSearchParams);
   const items: FanletterNewsMobileNavItem[] = [
@@ -101,7 +106,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             const active = item.exact
               ? pathname === item.activePath
               : item.key === "connect"
-                ? pathname === connectPath || pathname === activatePath
+                ? isWalletServicePath
                 : pathname === item.activePath ||
                   pathname.startsWith(`${item.activePath}/`);
 

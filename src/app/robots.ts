@@ -10,6 +10,7 @@ const localizedPrivatePaths = supportedLocales.flatMap((locale) => [
   `/${locale}/fanletter/connect`,
   `/${locale}/fanletter/create`,
   `/${locale}/fanletter/following`,
+  `/${locale}/fanletter/news/wallet`,
   `/${locale}/fanletter/profile`,
   `/${locale}/fanletter/purchases`,
   `/${locale}/fanletter/requests`,

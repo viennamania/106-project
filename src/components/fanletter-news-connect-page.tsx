@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
         steps: ["이메일 지갑 연결", "팬 기자 계정 확인", "뉴스로 복귀"],
         syncing: "뉴스 계정을 동기화하고 있습니다.",
         title: "FanLetter News 계정 연결",
-        wallet: "FanLetter 지갑 관리",
+        wallet: "뉴스 지갑 관리",
         walletId: "연결 ID",
       }
     : {
@@ -149,7 +149,7 @@ function getCopy(locale: Locale) {
         steps: ["Email wallet", "Fan reporter account", "Return to news"],
         syncing: "Syncing your news account.",
         title: "Connect FanLetter News account",
-        wallet: "FanLetter wallet",
+        wallet: "News wallet",
         walletId: "Connection ID",
       };
 }
@@ -332,9 +332,9 @@ export function FanletterNewsConnectPage({
     buildPathWithReferral(`/${locale}/fanletter/news/activate`, referralCode),
     { returnTo: returnToHref },
   );
-  const walletHref = buildPathWithReferral(
-    `/${locale}/fanletter/wallet`,
-    referralCode,
+  const walletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/wallet`, referralCode),
+    { returnTo: returnToHref },
   );
   const cachedSessionMember = useMemo(() => {
     if (!accountAddress || !memberSession.member) {
