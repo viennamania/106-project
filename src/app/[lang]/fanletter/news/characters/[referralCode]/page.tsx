@@ -712,7 +712,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     `/${locale}/fanletter/creator/${data.profile.referralCode}/vlogs`,
     effectiveReferralCode,
   );
-  const requestHref = `${creatorHref}#fan-requests`;
+  const requestHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
+    effectiveReferralCode,
+  );
   const latestNewsHref = newsData.reports[0]
     ? buildPathWithReferral(
         `/${locale}/fanletter/news/${newsData.reports[0].reportId}`,
