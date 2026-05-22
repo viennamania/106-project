@@ -90,6 +90,7 @@ import {
   normalizeEmail,
   normalizeReferralCode,
   serializeMember,
+  serializeMemberPublicProfile,
   type MemberDocument,
 } from "@/lib/member";
 import { emitNetworkContentPublishedNotifications } from "@/lib/notifications-service";
@@ -2096,9 +2097,16 @@ async function getCommentAuthorProfiles(memberEmails: string[]) {
   }
 
   for (const member of members) {
-    if (!profileByEmail.has(member.email)) {
-      profileByEmail.set(member.email, createDefaultCreatorProfile(member));
-    }
+    const fallbackProfile =
+      profileByEmail.get(member.email) ?? createDefaultCreatorProfile(member);
+    const publicProfile = serializeMemberPublicProfile(member.publicProfile);
+
+    profileByEmail.set(member.email, {
+      ...fallbackProfile,
+      avatarImageUrl:
+        publicProfile?.avatarImageUrl ?? fallbackProfile.avatarImageUrl,
+      displayName: publicProfile?.displayName ?? fallbackProfile.displayName,
+    });
   }
 
   return profileByEmail;

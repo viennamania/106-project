@@ -16,7 +16,11 @@ import {
   fanletterFanRequestTypes,
   fanletterRealismRevisionReasons,
 } from "@/lib/content";
-import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
+import {
+  normalizeEmail,
+  normalizeReferralCode,
+  serializeMemberPublicProfile,
+} from "@/lib/member";
 import {
   getContentPostsCollection,
   getCreatorProfilesCollection,
@@ -282,6 +286,36 @@ async function assertFanRequestSubmissionAllowed({
   }
 }
 
+async function resolveRequesterDisplayName({
+  requesterDisplayName,
+  requesterEmail,
+}: {
+  requesterDisplayName?: string | null;
+  requesterEmail: string | null;
+}) {
+  const explicitName = trimToLength(
+    requesterDisplayName,
+    FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
+  );
+
+  if (explicitName || !requesterEmail) {
+    return explicitName;
+  }
+
+  const member = await (await getMembersCollection()).findOne(
+    { email: requesterEmail },
+    { projection: { publicProfile: 1 } },
+  );
+  const publicProfile = serializeMemberPublicProfile(member?.publicProfile);
+
+  return (
+    trimToLength(
+      publicProfile?.displayName,
+      FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
+    ) ?? null
+  );
+}
+
 export async function createFanletterFanRequest(input: {
   body?: string | null;
   characterName?: string | null;
@@ -318,6 +352,10 @@ export async function createFanletterFanRequest(input: {
     throw new Error("Creators cannot request their own character.");
   }
 
+  const requesterDisplayName = await resolveRequesterDisplayName({
+    requesterDisplayName: input.requesterDisplayName,
+    requesterEmail,
+  });
   const sourceContentId = await normalizeSourceContentId({
     creatorReferralCode: creator.creatorReferralCode,
     sourceContentId: input.sourceContentId,
@@ -337,10 +375,7 @@ export async function createFanletterFanRequest(input: {
     creatorReferralCode: creator.creatorReferralCode,
     requestId: randomUUID(),
     requestType,
-    requesterDisplayName: trimToLength(
-      input.requesterDisplayName,
-      FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT,
-    ),
+    requesterDisplayName,
     requesterEmail,
     requesterFingerprint: normalizeRequesterFingerprint(input.requesterFingerprint),
     originalBody: realismRevision.revised ? originalBody : null,

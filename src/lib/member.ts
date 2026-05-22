@@ -20,6 +20,14 @@ export type PlacementSource = (typeof placementSources)[number];
 export type ServiceSuspensionScope =
   (typeof serviceSuspensionScopes)[number];
 
+export const MEMBER_PUBLIC_PROFILE_DISPLAY_NAME_LIMIT = 40;
+
+export type MemberPublicProfileRecord = {
+  avatarImageUrl: string | null;
+  displayName: string | null;
+  updatedAt: string | null;
+};
+
 export type MemberRecord = {
   awaitingPaymentSince: string;
   chainId: number;
@@ -44,6 +52,7 @@ export type MemberRecord = {
   placementReferralCode: string | null;
   placementSlotIndex: number | null;
   placementSource: PlacementSource | null;
+  publicProfile: MemberPublicProfileRecord | null;
   referralRewardsIssuedAt: string | null;
   referralCode: string | null;
   referredByCode: string | null;
@@ -194,6 +203,12 @@ export type ReferralPlacementSlotDocument = {
   updatedAt: Date;
 };
 
+export type MemberPublicProfileDocument = {
+  avatarImageUrl?: string | null;
+  displayName?: string | null;
+  updatedAt?: Date | null;
+};
+
 export type MemberDocument = {
   awaitingPaymentSince: Date;
   chainId: number;
@@ -219,6 +234,7 @@ export type MemberDocument = {
   placementEmail?: string | null;
   placementReferralCode?: string | null;
   placementSource?: PlacementSource | null;
+  publicProfile?: MemberPublicProfileDocument | null;
   referralRewardsIssuedAt?: Date | null;
   referralCode?: string | null;
   referredByCode?: string | null;
@@ -258,6 +274,23 @@ export function getReferralRewardPoints(level: number) {
     : REFERRAL_REWARD_POINTS_OTHER_LEVELS;
 }
 
+export function serializeMemberPublicProfile(
+  profile?: MemberPublicProfileDocument | null,
+): MemberPublicProfileRecord | null {
+  const displayName = profile?.displayName?.trim() ?? "";
+  const avatarImageUrl = profile?.avatarImageUrl?.trim() ?? "";
+
+  if (!displayName && !avatarImageUrl && !profile?.updatedAt) {
+    return null;
+  }
+
+  return {
+    avatarImageUrl: avatarImageUrl || null,
+    displayName: displayName || null,
+    updatedAt: profile?.updatedAt?.toISOString() ?? null,
+  };
+}
+
 export function serializeMember(member: MemberDocument): MemberRecord {
   return {
     awaitingPaymentSince: member.awaitingPaymentSince.toISOString(),
@@ -286,6 +319,7 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     placementReferralCode: member.placementReferralCode ?? null,
     placementSlotIndex: null,
     placementSource: member.placementSource ?? null,
+    publicProfile: serializeMemberPublicProfile(member.publicProfile),
     referralRewardsIssuedAt: member.referralRewardsIssuedAt?.toISOString() ?? null,
     referralCode: member.referralCode ?? null,
     referredByCode: member.sponsorReferralCode ?? member.referredByCode ?? null,

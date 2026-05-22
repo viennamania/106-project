@@ -723,11 +723,13 @@ function getCreatorName(
 }
 
 function getReporterName(
-  member: Pick<MemberDocument, "landingBranding"> | null,
+  member: Pick<MemberDocument, "landingBranding" | "publicProfile"> | null,
   reporterReferralCode: string,
   locale: Locale,
 ) {
-  const memberDisplayName = trimToLength(member?.landingBranding?.brandName, 64);
+  const memberDisplayName =
+    trimToLength(member?.publicProfile?.displayName, 64) ||
+    trimToLength(member?.landingBranding?.brandName, 64);
 
   if (memberDisplayName) {
     return memberDisplayName;
@@ -743,9 +745,10 @@ function getReporterAvatarImageUrl(
     CreatorProfileDocument,
     "avatarImageSet" | "avatarImageUrl"
   > | null,
-  member: Pick<MemberDocument, "landingBranding"> | null,
+  member: Pick<MemberDocument, "landingBranding" | "publicProfile"> | null,
 ) {
   return (
+    member?.publicProfile?.avatarImageUrl ??
     member?.landingBranding?.heroImageUrl ??
     profile?.avatarImageSet?.[0]?.url ??
     profile?.avatarImageUrl ??
@@ -755,11 +758,12 @@ function getReporterAvatarImageUrl(
 
 function getReporterCharacterName(
   profile: Pick<CreatorProfileDocument, "characterPersona" | "displayName"> | null,
-  member: Pick<MemberDocument, "landingBranding"> | null,
+  member: Pick<MemberDocument, "landingBranding" | "publicProfile"> | null,
 ) {
   return (
     trimToLength(profile?.characterPersona?.name, 64) ||
     trimToLength(profile?.displayName, 64) ||
+    trimToLength(member?.publicProfile?.displayName, 64) ||
     trimToLength(member?.landingBranding?.brandName, 64) ||
     null
   );
@@ -772,7 +776,7 @@ function createReporterIdentity({
   reporterReferralCode,
 }: {
   locale: Locale;
-  member: Pick<MemberDocument, "landingBranding"> | null;
+  member: Pick<MemberDocument, "landingBranding" | "publicProfile"> | null;
   profile: Pick<
     CreatorProfileDocument,
     "avatarImageSet" | "avatarImageUrl" | "characterPersona" | "displayName"
@@ -786,6 +790,99 @@ function createReporterIdentity({
     reporterCharacterName,
     reporterName: getReporterName(member, reporterReferralCode, locale),
   };
+}
+
+async function hydrateReporterStatsWithCurrentIdentity({
+  locale,
+  reporters,
+}: {
+  locale: Locale;
+  reporters: FanletterNewsCharacterReporterStat[];
+}) {
+  const reporterReferralCodes = [
+    ...new Set(
+      reporters
+        .map((reporter) => normalizeReferralCode(reporter.reporterReferralCode))
+        .filter((code): code is string => Boolean(code)),
+    ),
+  ];
+
+  if (reporterReferralCodes.length === 0) {
+    return reporters;
+  }
+
+  const [membersCollection, profilesCollection] = await Promise.all([
+    getMembersCollection(),
+    getCreatorProfilesCollection(),
+  ]);
+  const members = await membersCollection
+    .find(
+      { referralCode: { $in: reporterReferralCodes } },
+      {
+        projection: {
+          email: 1,
+          landingBranding: 1,
+          locale: 1,
+          publicProfile: 1,
+          referralCode: 1,
+        },
+      },
+    )
+    .toArray();
+  const memberByReferralCode = new Map(
+    members
+      .map((member) => [normalizeReferralCode(member.referralCode), member] as const)
+      .filter((entry): entry is readonly [string, (typeof members)[number]] =>
+        Boolean(entry[0]),
+      ),
+  );
+  const memberEmails = members.map((member) => member.email).filter(Boolean);
+  const profiles = memberEmails.length
+    ? await profilesCollection
+        .find(
+          { email: { $in: memberEmails } },
+          {
+            projection: {
+              avatarImageSet: 1,
+              avatarImageUrl: 1,
+              characterPersona: 1,
+              displayName: 1,
+              email: 1,
+            },
+          },
+        )
+        .toArray()
+    : [];
+  const profileByEmail = new Map(
+    profiles.map((profile) => [profile.email, profile] as const),
+  );
+
+  return reporters.map((reporter) => {
+    const reporterReferralCode =
+      normalizeReferralCode(reporter.reporterReferralCode) ??
+      reporter.reporterReferralCode;
+    const member = memberByReferralCode.get(reporterReferralCode);
+
+    if (!member) {
+      return reporter;
+    }
+
+    const reporterLocale =
+      member.locale && hasLocale(member.locale) ? member.locale : locale;
+    const identity = createReporterIdentity({
+      locale: reporterLocale,
+      member,
+      profile: profileByEmail.get(member.email) ?? null,
+      reporterReferralCode,
+    });
+
+    return {
+      ...reporter,
+      reporterAvatarImageUrl: identity.reporterAvatarImageUrl,
+      reporterName: identity.reporterName,
+      reporterReferralCode,
+    };
+  });
 }
 
 function getReporterIdentityUpdates(
@@ -858,6 +955,7 @@ async function getReporterIdentitySnapshot({
       projection: {
         email: 1,
         landingBranding: 1,
+        publicProfile: 1,
         referralCode: 1,
       },
     },
@@ -1513,6 +1611,7 @@ export async function getFanletterNewsReporterMemberByEmail(
       projection: {
         email: 1,
         landingBranding: 1,
+        publicProfile: 1,
         referralCode: 1,
         status: 1,
       },
@@ -2220,6 +2319,13 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
         .toArray(),
     ]);
     const summary = summaryRows[0];
+    const [hydratedReporters, hydratedReports] = await Promise.all([
+      hydrateReporterStatsWithCurrentIdentity({
+        locale,
+        reporters: reporterRows,
+      }),
+      hydrateFanletterNewsReportCoverImageUrls(reports),
+    ]);
 
     return {
       fanOnlyCount: summary?.fanOnlyCount ?? 0,
@@ -2227,8 +2333,8 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
       nsfwCount: summary?.nsfwCount ?? 0,
       publicCount: summary?.publicCount ?? 0,
       reportCount: summary?.reportCount ?? 0,
-      reporters: reporterRows,
-      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+      reporters: hydratedReporters,
+      reports: hydratedReports,
     };
   },
 );
@@ -2265,6 +2371,7 @@ export const getFanletterNewsReporterProfile = cache(
             lastConnectedAt: 1,
             landingBranding: 1,
             locale: 1,
+            publicProfile: 1,
             referralCode: 1,
             registrationCompletedAt: 1,
             status: 1,

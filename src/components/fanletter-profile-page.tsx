@@ -51,7 +51,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Locale } from "@/lib/i18n";
-import type { MemberRecord } from "@/lib/member";
+import type { MemberPublicProfileRecord, MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { smartWalletChain, thirdwebClient } from "@/lib/thirdweb";
 import {
@@ -67,6 +67,22 @@ type EditableFanletterProfile = {
   heroImageUrl: string;
   intro: string;
   payoutWalletAddress: string;
+};
+
+type EditableMemberPublicProfile = {
+  avatarImageUrl: string;
+  displayName: string;
+};
+
+type MemberPublicProfileResponse = {
+  member: MemberRecord;
+  publicProfile: MemberPublicProfileRecord | null;
+};
+
+type MemberPublicProfileUploadResponse = {
+  contentType: string;
+  pathname: string;
+  url: string;
 };
 
 type CharacterVisualSilhouette =
@@ -133,6 +149,11 @@ const EMPTY_PROFILE: EditableFanletterProfile = {
   heroImageUrl: "",
   intro: "",
   payoutWalletAddress: "",
+};
+
+const EMPTY_MEMBER_PUBLIC_PROFILE: EditableMemberPublicProfile = {
+  avatarImageUrl: "",
+  displayName: "",
 };
 
 const EMPTY_PERSONA_GENERATION: PersonaGenerationState = {
@@ -402,6 +423,22 @@ function getCopy(locale: Locale) {
           todayTitle: "오늘의 장면",
         },
         contentCta: "AI 브이로그 동영상 만들기",
+        activityProfileBody:
+          "팬 요청, 댓글, AI 팬 리포트 기자명에 표시되는 회원 이름과 프로필 이미지입니다. AI 캐릭터 이름과 아바타와는 별도로 관리됩니다.",
+        activityProfileEyebrow: "Member identity",
+        activityProfileImage: "프로필 이미지",
+        activityProfileImageHint:
+          "정사각형에 가까운 이미지를 권장합니다. 리포터 카드와 댓글 아바타에 사용됩니다.",
+        activityProfileName: "활동 이름",
+        activityProfileNamePlaceholder: "예: songpa",
+        activityProfileRemoveImage: "이미지 제거",
+        activityProfileSave: "활동 프로필 저장",
+        activityProfileSaved: "회원 활동 프로필을 저장했습니다.",
+        activityProfileSaving: "저장 중...",
+        activityProfileTitle: "회원 활동 프로필",
+        activityProfileUpload: "이미지 업로드",
+        activityProfileUploading: "업로드 중...",
+        activityProfileUsedFor: ["팬 댓글", "팬 요청", "AI 팬 리포트 기자명"],
         disconnected: "계정 연결이 필요합니다.",
         displayName: "표시 이름",
         displayNameHint: "브이로그 피드와 상세에 보이는 AI 캐릭터/채널 이름입니다.",
@@ -686,6 +723,22 @@ function getCopy(locale: Locale) {
           todayTitle: "Today's scene",
         },
         contentCta: "Create AI vlog video",
+        activityProfileBody:
+          "This member name and profile image appear on fan requests, comments, and AI fan report bylines. They are managed separately from your AI character name and avatar.",
+        activityProfileEyebrow: "Member identity",
+        activityProfileImage: "Profile image",
+        activityProfileImageHint:
+          "A near-square image works best. It is used for reporter cards and comment avatars.",
+        activityProfileName: "Activity name",
+        activityProfileNamePlaceholder: "Example: songpa",
+        activityProfileRemoveImage: "Remove image",
+        activityProfileSave: "Save activity profile",
+        activityProfileSaved: "Member activity profile saved.",
+        activityProfileSaving: "Saving...",
+        activityProfileTitle: "Member activity profile",
+        activityProfileUpload: "Upload image",
+        activityProfileUploading: "Uploading...",
+        activityProfileUsedFor: ["Fan comments", "Fan requests", "AI fan report bylines"],
         disconnected: "Account connection required.",
         displayName: "Display name",
         displayNameHint: "Shown in the vlog feed and detail pages.",
@@ -794,6 +847,19 @@ function createEditableProfile(
     heroImageUrl: profile.heroImageUrl ?? "",
     intro: profile.intro,
     payoutWalletAddress: profile.payoutWalletAddress ?? "",
+  };
+}
+
+function createEditableMemberPublicProfile(
+  profile: MemberPublicProfileRecord | null | undefined,
+): EditableMemberPublicProfile {
+  if (!profile) {
+    return EMPTY_MEMBER_PUBLIC_PROFILE;
+  }
+
+  return {
+    avatarImageUrl: profile.avatarImageUrl ?? "",
+    displayName: profile.displayName ?? "",
   };
 }
 
@@ -933,11 +999,19 @@ export function FanletterProfilePage({
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingMemberPublicProfile, setIsSavingMemberPublicProfile] =
+    useState(false);
+  const [isUploadingMemberPublicAvatar, setIsUploadingMemberPublicAvatar] =
+    useState(false);
   const [loadStatus, setLoadStatus] =
     useState<"idle" | "loading" | "ready" | "error">("idle");
   const [member, setMember] = useState<MemberRecord | null>(
     memberSession.member,
   );
+  const [memberPublicProfile, setMemberPublicProfile] =
+    useState<EditableMemberPublicProfile>(() =>
+      createEditableMemberPublicProfile(memberSession.member?.publicProfile),
+    );
   const [notice, setNotice] = useState<string | null>(null);
   const [profile, setProfile] =
     useState<EditableFanletterProfile>(EMPTY_PROFILE);
@@ -1085,6 +1159,9 @@ export function FanletterProfilePage({
 
         if (syncData.member) {
           setMember(syncData.member);
+          setMemberPublicProfile(
+            createEditableMemberPublicProfile(syncData.member.publicProfile),
+          );
           updateMemberSession({
             email: syncData.member.email,
             member: syncData.member,
@@ -1119,6 +1196,9 @@ export function FanletterProfilePage({
 
       if (data.member) {
         setMember(data.member);
+        setMemberPublicProfile(
+          createEditableMemberPublicProfile(data.member.publicProfile),
+        );
         updateMemberSession({
           email: resolvedEmail,
           member: data.member,
@@ -1211,6 +1291,115 @@ export function FanletterProfilePage({
       setError(getErrorMessage(saveError, copy.errorFallback));
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function saveMemberPublicProfile(
+    profileOverride?: EditableMemberPublicProfile,
+  ) {
+    if (!accountAddress) {
+      setError(copy.connectRequired);
+      return;
+    }
+
+    const nextProfile = profileOverride ?? memberPublicProfile;
+
+    try {
+      setIsSavingMemberPublicProfile(true);
+      setError(null);
+      setNotice(null);
+      const resolvedEmail = await resolveEmail();
+      const response = await fetch("/api/members/public-profile", {
+        body: JSON.stringify({
+          avatarImageUrl: nextProfile.avatarImageUrl || null,
+          displayName: nextProfile.displayName || null,
+          email: resolvedEmail,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const data = await readApiJson<MemberPublicProfileResponse>(
+        response,
+        copy.errorFallback,
+      );
+
+      if (!response.ok || !("publicProfile" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : copy.errorFallback,
+        );
+      }
+
+      setMemberPublicProfile(
+        createEditableMemberPublicProfile(data.publicProfile),
+      );
+
+      if (data.member) {
+        setMember(data.member);
+        updateMemberSession({
+          email: data.member.email,
+          member: data.member,
+          walletAddress: accountAddress,
+        });
+      }
+
+      setNotice(copy.activityProfileSaved);
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, copy.errorFallback));
+    } finally {
+      setIsSavingMemberPublicProfile(false);
+    }
+  }
+
+  async function uploadMemberPublicAvatar(file: File | null | undefined) {
+    if (!file) {
+      return;
+    }
+
+    if (!accountAddress) {
+      setError(copy.connectRequired);
+      return;
+    }
+
+    try {
+      setIsUploadingMemberPublicAvatar(true);
+      setError(null);
+      setNotice(null);
+      const resolvedEmail = await resolveEmail();
+      const formData = new FormData();
+
+      formData.set("email", resolvedEmail);
+      formData.set("walletAddress", accountAddress);
+      formData.set("file", file);
+
+      const response = await fetch("/api/members/public-profile/upload", {
+        body: formData,
+        method: "POST",
+      });
+      const data = await readApiJson<MemberPublicProfileUploadResponse>(
+        response,
+        copy.errorFallback,
+      );
+
+      if (!response.ok || !("url" in data)) {
+        throw new Error(
+          "error" in data && data.error ? data.error : copy.errorFallback,
+        );
+      }
+
+      const nextProfile = {
+        ...memberPublicProfile,
+        avatarImageUrl: data.url,
+      };
+
+      setMemberPublicProfile(nextProfile);
+      await saveMemberPublicProfile(nextProfile);
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, copy.errorFallback));
+    } finally {
+      setIsUploadingMemberPublicAvatar(false);
     }
   }
 
@@ -1497,6 +1686,155 @@ export function FanletterProfilePage({
     }
 
     return studioHref;
+  }
+
+  function renderMemberPublicProfilePanel() {
+    const fallbackName =
+      memberPublicProfile.displayName.trim() ||
+      member?.email.split("@")[0]?.trim() ||
+      email?.split("@")[0]?.trim() ||
+      copy.activityProfileName;
+    const avatarInitial =
+      fallbackName.trim().charAt(0).toUpperCase() ||
+      copy.activityProfileName.charAt(0);
+    const isBusy =
+      isSavingMemberPublicProfile || isUploadingMemberPublicAvatar;
+
+    return (
+      <section className="mb-5 rounded-lg border border-white/12 bg-white/[0.045] p-4 sm:p-5">
+        <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.activityProfileEyebrow}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              {copy.activityProfileTitle}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-white/56">
+              {copy.activityProfileBody}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {copy.activityProfileUsedFor.map((item) => (
+                <span
+                  className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-xs font-semibold text-white/64"
+                  key={item}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
+            <div>
+              <span className="relative flex aspect-square w-32 overflow-hidden rounded-full border border-white/12 bg-black/30 sm:w-40">
+                {memberPublicProfile.avatarImageUrl ? (
+                  <Image
+                    alt={fallbackName}
+                    className="object-cover"
+                    fill
+                    sizes="160px"
+                    src={memberPublicProfile.avatarImageUrl}
+                  />
+                ) : (
+                  <span className="flex size-full items-center justify-center bg-white/[0.055] text-4xl font-semibold text-[#44f26e]">
+                    {avatarInitial}
+                  </span>
+                )}
+              </span>
+              <p className="mt-3 text-xs font-medium leading-5 text-white/42">
+                {copy.activityProfileImageHint}
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              <label className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                {copy.activityProfileName}
+              </label>
+              <input
+                className="mt-2 h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                maxLength={40}
+                onChange={(event) => {
+                  setMemberPublicProfile((current) => ({
+                    ...current,
+                    displayName: event.target.value,
+                  }));
+                }}
+                placeholder={copy.activityProfileNamePlaceholder}
+                value={memberPublicProfile.displayName}
+              />
+
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+                <label
+                  aria-disabled={isBusy}
+                  className={`inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/10 ${
+                    isBusy ? "pointer-events-none opacity-60" : ""
+                  }`}
+                >
+                  {isUploadingMemberPublicAvatar ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ImageIcon className="size-4" />
+                  )}
+                  {isUploadingMemberPublicAvatar
+                    ? copy.activityProfileUploading
+                    : copy.activityProfileUpload}
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isBusy}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+
+                      event.target.value = "";
+                      void uploadMemberPublicAvatar(file);
+                    }}
+                    type="file"
+                  />
+                </label>
+
+                {memberPublicProfile.avatarImageUrl ? (
+                  <button
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isBusy}
+                    onClick={() => {
+                      const nextProfile = {
+                        ...memberPublicProfile,
+                        avatarImageUrl: "",
+                      };
+
+                      setMemberPublicProfile(nextProfile);
+                      void saveMemberPublicProfile(nextProfile);
+                    }}
+                    type="button"
+                  >
+                    {copy.activityProfileRemoveImage}
+                  </button>
+                ) : null}
+
+                <button
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isBusy}
+                  onClick={() => {
+                    void saveMemberPublicProfile();
+                  }}
+                  type="button"
+                >
+                  {isSavingMemberPublicProfile ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Save className="size-4" />
+                  )}
+                  {isSavingMemberPublicProfile
+                    ? copy.activityProfileSaving
+                    : copy.activityProfileSave}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   function renderCharacterContentHome() {
@@ -3043,6 +3381,8 @@ export function FanletterProfilePage({
               {notice}
             </div>
           ) : null}
+
+          {renderMemberPublicProfilePanel()}
 
           {renderCharacterContentHome()}
 
