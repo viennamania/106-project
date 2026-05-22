@@ -195,6 +195,7 @@ type FanletterNewsReportCoverOptionInput = Omit<
   >;
 
 export type FanletterNewsReporterMember = {
+  avatarImageUrl: string | null;
   displayName: string;
   email: string;
   referralCode: string;
@@ -1504,9 +1505,27 @@ export async function getFanletterNewsReporterMemberByEmail(
   if (!member || !referralCode) {
     return null;
   }
+  const profile = await (await getCreatorProfilesCollection()).findOne(
+    { email: member.email },
+    {
+      projection: {
+        avatarImageSet: 1,
+        avatarImageUrl: 1,
+        characterPersona: 1,
+        displayName: 1,
+      },
+    },
+  );
+  const reporterIdentity = createReporterIdentity({
+    locale,
+    member,
+    profile,
+    reporterReferralCode: referralCode,
+  });
 
   return {
-    displayName: getReporterName(member, referralCode, locale),
+    avatarImageUrl: reporterIdentity.reporterAvatarImageUrl,
+    displayName: reporterIdentity.reporterName,
     email: member.email,
     referralCode,
     status: member.status,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
@@ -16,6 +17,7 @@ import {
   type FanletterReportsPageReport,
 } from "@/components/fanletter-reports-cover-manager";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -76,6 +78,8 @@ function getCopy(locale: Locale) {
         reportCount: (count: string) => `작성 리포트 ${count}개`,
         reportTitle: "리포트",
         reporterId: "리포터 ID",
+        reporterLogo: "리포터 로고",
+        reporterProfile: "로그인 리포터",
         reporterStatus: "활동 상태",
         source: "원본 브이로그",
         statusCompleted: "활동 중",
@@ -128,6 +132,8 @@ function getCopy(locale: Locale) {
         reportCount: (count: string) => `${count} reports`,
         reportTitle: "Report",
         reporterId: "Reporter ID",
+        reporterLogo: "Reporter logo",
+        reporterProfile: "Signed-in reporter",
         reporterStatus: "Status",
         source: "Source vlog",
         statusCompleted: "Active",
@@ -300,6 +306,11 @@ export default async function LocalizedFanletterReportsPage({
       ? copy.statusCompleted
       : copy.statusPending
     : copy.memberOnly;
+  const reporterInitial = data.member
+    ? data.member.displayName.trim().charAt(0).toUpperCase() ||
+      data.member.referralCode.trim().charAt(0).toUpperCase() ||
+      "F"
+    : "F";
   const reporterStats = data.member
     ? [
         {
@@ -450,6 +461,35 @@ export default async function LocalizedFanletterReportsPage({
             </p>
             {data.member ? (
               <>
+                <div className="mt-4 flex min-w-0 items-center gap-3 border-y border-black/10 py-3">
+                  <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-lg font-black text-[#44f26e] ring-1 ring-black/10">
+                    {data.member.avatarImageUrl ? (
+                      <Image
+                        alt={copy.reporterLogo}
+                        className="object-cover"
+                        fill
+                        sizes="3.5rem"
+                        src={data.member.avatarImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          data.member.avatarImageUrl,
+                        )}
+                      />
+                    ) : (
+                      reporterInitial
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                      {copy.reporterProfile}
+                    </p>
+                    <p className="mt-1 truncate text-lg font-black leading-tight">
+                      {data.member.displayName}
+                    </p>
+                    <p className="mt-1 truncate text-xs font-bold text-black/46">
+                      @{data.member.referralCode}
+                    </p>
+                  </div>
+                </div>
                 <p className="mt-4 text-lg font-black">
                   {copy.reportCount(formatNumber(data.reportCount, locale))}
                 </p>
