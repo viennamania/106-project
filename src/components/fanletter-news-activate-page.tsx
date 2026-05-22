@@ -102,6 +102,8 @@ function getCopy(locale: Locale) {
         amount: "필요 금액",
         balance: "보유 USDT",
         checking: "가입 상태 확인 중",
+        checkingPayment:
+          "10 USDT 가입 결제 기록을 확인하고 있습니다. 블록체인/웹훅 반영 상태에 따라 잠시 걸릴 수 있습니다.",
         completeBody:
           "가입 완료가 확인되었습니다. 이제 FanLetter News에서 AI 리포트, 팬 기자 활동, 유료 브이로그 열람을 같은 계정으로 이어갈 수 있습니다.",
         connect: "뉴스 지갑 연결",
@@ -119,6 +121,8 @@ function getCopy(locale: Locale) {
         pendingBody:
           "뉴스 서비스 안에서 10 USDT 결제와 가입 상태 확인을 바로 진행합니다. 결제 확인 후 보던 뉴스로 돌아갈 수 있습니다.",
         pendingTitle: "뉴스 서비스 가입 완료",
+        paymentStillPending:
+          "아직 10 USDT 가입 결제 기록이 확인되지 않았습니다. 결제를 완료했다면 블록체인 반영 후 다시 확인하세요.",
         projectWallet: "수신 지갑",
         refresh: "상태 다시 확인",
         returnTo: "뉴스로 돌아가기",
@@ -139,6 +143,8 @@ function getCopy(locale: Locale) {
         amount: "Required amount",
         balance: "USDT balance",
         checking: "Checking signup",
+        checkingPayment:
+          "Checking the 10 USDT signup payment record. Chain and webhook updates can take a moment.",
         completeBody:
           "Signup is complete. You can continue AI reports, fan reporter actions, and paid vlog access in FanLetter News with the same account.",
         connect: "Connect news wallet",
@@ -156,6 +162,8 @@ function getCopy(locale: Locale) {
         pendingBody:
           "Complete the 10 USDT payment and status check directly inside the news service. After confirmation, return to the news page you were viewing.",
         pendingTitle: "Complete News signup",
+        paymentStillPending:
+          "No 10 USDT signup payment record has been confirmed yet. If you already paid, wait for the chain update, then check again.",
         projectWallet: "Receiving wallet",
         refresh: "Check status again",
         returnTo: "Back to news",
@@ -465,6 +473,7 @@ export function FanletterNewsActivatePage({
   useEffect(() => {
     if (!connection.isConnected || !accountAddress) {
       setSyncState(emptySyncState);
+      setNotice(null);
       return;
     }
 
@@ -501,7 +510,7 @@ export function FanletterNewsActivatePage({
           fanletterShareAttribution,
           locale,
           referredByCode: referralCode,
-          syncMode: "full",
+          syncMode: "light",
           walletAddress: accountAddress,
         });
 
@@ -583,6 +592,10 @@ export function FanletterNewsActivatePage({
     syncInFlightRef.current = true;
 
     if (!background) {
+      setNotice({
+        text: copy.checkingPayment,
+        tone: "info",
+      });
       setSyncState((current) => ({
         ...current,
         error: null,
@@ -621,6 +634,8 @@ export function FanletterNewsActivatePage({
       }
 
       const syncedMember = result.member;
+      const syncedMemberIsCompleted =
+        syncedMember.status === "completed" && !syncedMember.serviceSuspendedAt;
 
       updateMemberSession({
         email: syncedMember.email,
@@ -639,13 +654,31 @@ export function FanletterNewsActivatePage({
         status: "ready",
         validationError: result.validationError,
       }));
+
+      if (!background) {
+        setNotice({
+          text: syncedMemberIsCompleted
+            ? copy.completeBody
+            : result.validationError || copy.paymentStillPending,
+          tone: syncedMemberIsCompleted ? "success" : "info",
+        });
+      }
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : dictionary.member.errors.syncFailed;
+
+      if (!background) {
+        setNotice({
+          text: message,
+          tone: "error",
+        });
+      }
+
       setSyncState((current) => ({
         ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : dictionary.member.errors.syncFailed,
+        error: message,
         justCompleted: false,
         status: "error",
       }));
