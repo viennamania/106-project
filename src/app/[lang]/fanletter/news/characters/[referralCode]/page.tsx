@@ -59,6 +59,17 @@ function getCopy(locale: Locale) {
           nsfw: "성인 팬 전용",
           public: "공개",
         },
+        activity: {
+          body:
+            "뉴스, 브이로그, 팬 요청을 최신순으로 묶어 이 AI 캐릭터가 어떻게 움직이는지 보여줍니다.",
+          empty: "아직 표시할 활동 기록이 없습니다.",
+          eyebrow: "AI 캐릭터 활동",
+          fanOnlyVlog: "팬 전용 브이로그",
+          news: "뉴스 리포트",
+          publicVlog: "공개 브이로그",
+          request: "팬 요청",
+          title: "시간순 활동 타임라인",
+        },
         backToCharacters: "AI 캐릭터 목록",
         bible: {
           emptyTraits: "캐릭터 고정 키워드가 아직 정리되지 않았습니다.",
@@ -133,6 +144,17 @@ function getCopy(locale: Locale) {
           fanOnly: "Fan-only",
           nsfw: "Adult fan-only",
           public: "Public",
+        },
+        activity: {
+          body:
+            "News, vlogs, and fan requests are grouped by recency so the AI character's movement is easy to scan.",
+          empty: "No activity records yet.",
+          eyebrow: "AI character activity",
+          fanOnlyVlog: "Fan-only vlog",
+          news: "News report",
+          publicVlog: "Public vlog",
+          request: "Fan request",
+          title: "Chronological activity timeline",
         },
         backToCharacters: "AI characters",
         bible: {
@@ -216,6 +238,17 @@ function formatDate(value: Date | string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function toTimestamp(value: Date | string | null | undefined) {
+  if (!value) {
+    return 0;
+  }
+
+  const timestamp =
+    value instanceof Date ? value.getTime() : new Date(value).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function getArticleDisplayTitle(title: string) {
@@ -589,6 +622,102 @@ function FanRequestItem({
   );
 }
 
+type CharacterActivityRecord = {
+  body: string;
+  date: Date | string | null;
+  href: string | null;
+  id: string;
+  icon: ReactNode;
+  label: string;
+  title: string;
+};
+
+function CharacterActivityTimeline({
+  copy,
+  records,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  records: CharacterActivityRecord[];
+}) {
+  return (
+    <section className="mt-5 border border-black/12 bg-white p-3.5 shadow-[0_14px_36px_rgba(17,21,16,0.055)] sm:mt-6 sm:p-5">
+      <div className="flex items-start justify-between gap-4 border-b-2 border-[#111510] pb-3 sm:pb-4">
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+            {copy.activity.eyebrow}
+          </p>
+          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all] sm:text-2xl">
+            {copy.activity.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-xs font-semibold leading-5 text-black/58 sm:text-sm sm:leading-6">
+            {copy.activity.body}
+          </p>
+        </div>
+        <Sparkles className="mt-1 size-5 shrink-0 text-[#16702e]" />
+      </div>
+
+      {records.length > 0 ? (
+        <ol className="mt-4 grid gap-3 lg:grid-cols-2">
+          {records.map((record) => {
+            const content = (
+              <>
+                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-[#ecfff0] text-[#16702e] sm:size-8">
+                  {record.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                      {record.label}
+                    </span>
+                    {record.date ? (
+                      <span className="text-[0.66rem] font-bold text-black/36">
+                        {formatDate(record.date, locale)}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-1 line-clamp-1 break-words text-sm font-black leading-5 text-[#111510] [word-break:keep-all]">
+                    {record.title}
+                  </span>
+                  <span className="mt-1 line-clamp-1 text-xs font-semibold leading-5 text-black/52 sm:line-clamp-2">
+                    {record.body}
+                  </span>
+                </span>
+                {record.href ? (
+                  <ArrowRight className="mt-1 size-4 shrink-0 text-black/32" />
+                ) : null}
+              </>
+            );
+
+            return (
+              <li
+                className="relative border border-black/10 bg-[#f7f9f4] p-2.5 sm:p-3"
+                key={record.id}
+              >
+                {record.href ? (
+                  <Link
+                    className="flex min-w-0 gap-3 !text-[#111510] transition hover:text-[#16702e]"
+                    href={record.href}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="flex min-w-0 gap-3">{content}</div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p className="mt-4 border border-black/10 bg-[#f7f9f4] p-4 text-sm font-semibold text-black/54">
+          {copy.activity.empty}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -782,6 +911,62 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     { label: "NSFW", value: newsData.nsfwCount },
     { label: copy.news.reporters, value: newsData.reporters.length },
   ];
+  const activityRecords: CharacterActivityRecord[] = [
+    ...newsData.reports.slice(0, 8).map((report) => ({
+      body: report.dek,
+      date: getReportDate(report),
+      href: buildPathWithReferral(
+        `/${locale}/fanletter/news/${report.reportId}`,
+        effectiveReferralCode,
+      ),
+      id: `news-${report.reportId}`,
+      icon: <Newspaper className="size-4" />,
+      label: copy.activity.news,
+      title: getArticleDisplayTitle(report.title),
+    })),
+    ...data.items.slice(0, 6).map((item) => ({
+      body: item.summary,
+      date: item.publishedAt,
+      href: buildPathWithReferral(
+        `/${locale}/fanletter/content/${item.contentId}`,
+        effectiveReferralCode,
+      ),
+      id: `public-vlog-${item.contentId}`,
+      icon: <Clapperboard className="size-4" />,
+      label: copy.activity.publicVlog,
+      title: item.title,
+    })),
+    ...data.fanOnlyItems.slice(0, 4).map((item) => ({
+      body: item.summary,
+      date: item.publishedAt,
+      href: buildPathWithReferral(
+        `/${locale}/fanletter/content/${item.contentId}`,
+        effectiveReferralCode,
+      ),
+      id: `fan-only-vlog-${item.contentId}`,
+      icon: <Flame className="size-4" />,
+      label: copy.activity.fanOnlyVlog,
+      title: item.title,
+    })),
+    ...data.fanRequestPreviews.slice(0, 4).map((request) => ({
+      body: request.requesterDisplayName
+        ? `${request.requestType} · ${request.requesterDisplayName}`
+        : request.requestType,
+      date: request.createdAt,
+      href: requestHref,
+      id: [
+        "request",
+        request.createdAt,
+        request.requestType,
+        request.body.slice(0, 24),
+      ].join("-"),
+      icon: <MessageCircleHeart className="size-4" />,
+      label: copy.activity.request,
+      title: request.body,
+    })),
+  ]
+    .sort((left, right) => toTimestamp(right.date) - toTimestamp(left.date))
+    .slice(0, 6);
   const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
@@ -801,63 +986,64 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           {copy.backToCharacters}
         </Link>
 
-        <section className="mt-4 overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white sm:mt-0">
-          <div className="grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <section className="mt-4 overflow-hidden border border-[#111510] bg-[#111510] text-white shadow-[0_20px_54px_rgba(17,21,16,0.16)] sm:mt-0">
+          <div className="grid lg:grid-cols-[minmax(16rem,0.52fr)_minmax(0,1fr)]">
             <FanletterNewsCharacterImageSelector
               avatarAlt={characterName}
               avatarImages={avatarImageOptions}
+              compact
               galleryLabel={copy.bible.expression}
               generatedLabel={copy.generated}
             />
-            <div className="flex min-h-full flex-col p-5 sm:p-7">
+            <div className="flex min-h-full min-w-0 flex-col p-4 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-black">
+                <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black">
                   <BadgeCheck className="size-3.5" />
                   {copy.hero.eyebrow}
                 </span>
-                <span className="inline-flex border border-white/18 px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/72">
+                <span className="inline-flex border border-white/18 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-white/72">
                   @{data.profile.referralCode}
                 </span>
               </div>
-              <p className="mt-5 text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+              <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
                 {copy.hero.kicker}
               </p>
-              <h1 className="mt-2 break-words text-[3rem] font-black leading-none [word-break:keep-all] sm:text-[4.6rem]">
+              <h1 className="mt-2 break-words text-[2.45rem] font-black leading-none [word-break:keep-all] sm:text-[3.8rem]">
                 {characterName}
               </h1>
-              <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/68 sm:text-lg sm:leading-8">
+              <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">
                 {characterSummary}
               </p>
 
-              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {growthStats.slice(0, 6).map((stat) => (
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {growthStats.slice(0, 3).map((stat) => (
                   <div
-                    className="border border-white/12 bg-white/[0.06] p-3"
+                    className="border border-white/12 bg-white/[0.06] p-2.5 sm:p-3"
                     key={stat.label}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-[0.58rem] font-black uppercase tracking-[0.1em] text-white/42">
+                      <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/42">
                         {stat.label}
                       </p>
                       <span className="text-[#44f26e]">{stat.icon}</span>
                     </div>
-                    <p className="mt-2 text-2xl font-black leading-none">
+                    <p className="mt-2 text-xl font-black leading-none sm:text-2xl">
                       {stat.value}
                     </p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-[1fr_auto_auto]">
+              <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-[1fr_auto_auto]">
                 <Link
-                  className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#44f26e] px-5 py-3 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
                   href={latestNewsHref}
                 >
                   {copy.cta.latestNews}
                   <ArrowRight className="size-4" />
                 </Link>
                 <FanletterChannelShareButton
-                  className="h-auto min-h-12 rounded-none border-white/18 px-5 py-3 font-black"
+                  className="h-auto min-h-11 rounded-none border-white/18 px-4 py-2.5 font-black"
                   href={channelHref}
                   locale={locale}
                   referralCode={effectiveReferralCode}
@@ -867,7 +1053,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   trackingSource="fanletter-news-character-channel"
                 />
                 <Link
-                  className="inline-flex min-h-12 items-center justify-center gap-2 border border-white/18 px-5 py-3 text-sm font-black !text-white transition hover:border-white/40"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/18 px-4 py-2.5 text-sm font-black !text-white transition hover:border-white/40"
                   href={creatorHref}
                 >
                   <MessageCircleHeart className="size-4 text-[#44f26e]" />
@@ -896,6 +1082,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
             />
           </div>
         ) : null}
+
+        <CharacterActivityTimeline
+          copy={copy}
+          locale={locale}
+          records={activityRecords}
+        />
 
         <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
           <div className="border border-black/12 bg-white p-4 sm:p-5">

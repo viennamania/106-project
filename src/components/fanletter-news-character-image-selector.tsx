@@ -54,6 +54,7 @@ export function FanletterNewsCharacterImageSelector({
           <Image
             alt={avatarAlt}
             className="object-cover object-top"
+            fetchPriority="high"
             fill
             loading="eager"
             sizes="(max-width: 1024px) 100vw, 380px"
@@ -94,7 +95,13 @@ export function FanletterNewsCharacterImageSelector({
           {galleryLabel}
         </p>
         {avatarImages.length > 1 ? (
-          <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-4 gap-2"}>
+          <div
+            className={
+              compact
+                ? "flex gap-1.5 overflow-x-auto pb-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                : "grid grid-cols-4 gap-2"
+            }
+          >
             {avatarImages.map((avatar, index) => {
               const isSelected = index === resolvedSelectedIndex;
               const thumbnailLabel = avatar.label
@@ -105,7 +112,9 @@ export function FanletterNewsCharacterImageSelector({
                 <button
                   aria-label={thumbnailLabel}
                   aria-pressed={isSelected}
-                  className={`relative aspect-square overflow-hidden border bg-white/10 shadow-[0_10px_28px_rgba(0,0,0,0.22)] transition ${
+                  className={`relative overflow-hidden border bg-white/10 shadow-[0_10px_28px_rgba(0,0,0,0.22)] transition ${
+                    compact ? "size-12 shrink-0 sm:size-14" : "aspect-square"
+                  } ${
                     isSelected
                       ? "border-[#44f26e] ring-2 ring-[#44f26e]/70"
                       : "border-white/18 hover:border-white/54"
@@ -121,7 +130,8 @@ export function FanletterNewsCharacterImageSelector({
                     aria-hidden="true"
                     className="object-cover object-top"
                     fill
-                    sizes="4rem"
+                    loading={isSelected ? "eager" : "lazy"}
+                    sizes={compact ? "3.5rem" : "4rem"}
                     src={avatar.url}
                     unoptimized={shouldBypassFanletterImageOptimization(avatar.url)}
                   />
