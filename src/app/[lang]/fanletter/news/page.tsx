@@ -68,10 +68,12 @@ function getCopy(locale: Locale) {
           body:
             "뉴스가 생성된 AI 캐릭터 채널을 한곳에서 확인하세요. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
           cta: "뉴스 AI 캐릭터 전체 보기",
+          eyebrow: "AI 캐릭터 프로필",
           fanOnly: "팬 전용",
           latest: "최근 기사",
           news: "뉴스",
           open: "캐릭터 채널 보기",
+          profile: "프로필",
           title: "뉴스 속 AI 캐릭터",
         },
         characterWire: "AI 캐릭터 와이어",
@@ -151,10 +153,12 @@ function getCopy(locale: Locale) {
           body:
             "Browse the AI character channels generating FanLetter News, then jump into each character's latest reports and fan-only vlog stream.",
           cta: "All news AI characters",
+          eyebrow: "AI Character Profiles",
           fanOnly: "Fan-only",
           latest: "Latest story",
           news: "News",
           open: "View character channel",
+          profile: "Profile",
           title: "AI Characters In The News",
         },
         characterWire: "AI Character Wire",
@@ -1635,16 +1639,26 @@ function NewsCharacterDirectory({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const [featuredCharacter, ...profileCharacters] = characters;
+  const featuredChannelHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${featuredCharacter.referralCode}`,
+    referralCode ?? featuredCharacter.referralCode,
+  );
+  const featuredReport = featuredCharacter.representativeReport;
+  const featuredLatestReportAt = formatDate(
+    featuredCharacter.latestReportAt,
+    locale,
+  );
 
   return (
     <section
-      className="border border-black/12 bg-white p-4 shadow-[0_18px_44px_rgba(17,21,16,0.06)] sm:p-5"
+      className="overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(17,21,16,0.06)]"
       id="ai-characters"
     >
-      <div className="mb-4 grid gap-3 border-b-2 border-[#111510] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <div className="grid gap-3 border-b-2 border-[#111510] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-5">
         <div>
           <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
-            Character Desk
+            {copy.characterDirectory.eyebrow}
           </p>
           <h2 className="mt-1 text-2xl font-black tracking-normal">
             {copy.characterDirectory.title}
@@ -1662,8 +1676,106 @@ function NewsCharacterDirectory({
         </Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {characters.map((character) => {
+      <div className="grid lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,1.05fr)]">
+        <Link
+          className="group relative min-h-[25rem] overflow-hidden bg-[#111510] text-white lg:min-h-full"
+          href={featuredChannelHref}
+        >
+          {featuredReport.coverImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover opacity-64 transition duration-300 group-hover:scale-[1.025] group-hover:opacity-72"
+              fill
+              sizes="(max-width: 1024px) 100vw, 40rem"
+              src={featuredReport.coverImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                featuredReport.coverImageUrl,
+              )}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#111510_52%,#203426)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/94 via-black/46 to-black/14" />
+          <div className="relative flex min-h-[25rem] flex-col justify-end p-4 sm:p-5">
+            <div className="flex min-w-0 items-end gap-3 sm:gap-4">
+              <div className="relative size-20 shrink-0 overflow-hidden rounded-full border-2 border-white/22 bg-[#111510] sm:size-24">
+                {featuredCharacter.avatarImageUrl ? (
+                  <Image
+                    alt={featuredCharacter.name}
+                    className="h-full w-full object-cover"
+                    fill
+                    sizes="6rem"
+                    src={featuredCharacter.avatarImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      featuredCharacter.avatarImageUrl,
+                    )}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-white/72">
+                    <UserRound className="size-10" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black">
+                  <Sparkles className="size-3.5" />
+                  {copy.characterDirectory.profile}
+                </span>
+                <h3 className="mt-3 break-words text-[2rem] font-black leading-none tracking-normal !text-white [word-break:keep-all] sm:text-[2.8rem]">
+                  {featuredCharacter.name}
+                </h3>
+                <p className="mt-2 truncate text-sm font-black text-white/58">
+                  @{featuredCharacter.referralCode}
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-5 max-w-2xl text-sm font-semibold leading-6 text-white/66">
+              {getArticleDisplayTitle(featuredReport.title)}
+            </p>
+
+            <div className="mt-5 grid grid-cols-3 gap-px bg-white/12">
+              {[
+                {
+                  label: copy.characterDirectory.news,
+                  value: featuredCharacter.newsCount,
+                },
+                {
+                  label: copy.access.public,
+                  value: featuredCharacter.publicCount,
+                },
+                {
+                  label: copy.characterDirectory.fanOnly,
+                  value: featuredCharacter.fanOnlyCount,
+                },
+              ].map((stat) => (
+                <div className="bg-white/[0.07] p-3" key={stat.label}>
+                  <p className="text-xl font-black leading-none text-white">
+                    {formatNumber(stat.value, locale)}
+                  </p>
+                  <p className="mt-1 truncate text-[0.56rem] font-black uppercase tracking-[0.09em] text-white/46">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/14 pt-4 text-xs font-bold text-white/52">
+              <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
+                <Clock3 className="size-3.5 shrink-0 text-[#44f26e]" />
+                <span className="truncate">{featuredLatestReportAt}</span>
+              </span>
+              <span className="shrink-0 text-[#44f26e] group-hover:underline">
+                {copy.characterDirectory.open}
+              </span>
+            </div>
+          </div>
+        </Link>
+
+        <div className="min-w-0 divide-y divide-black/10 border-t border-black/12 bg-[#f7faf4] p-3 sm:p-4 lg:border-l lg:border-t-0">
+          {profileCharacters.length > 0
+            ? profileCharacters.map((character) => {
           const channelHref = buildPathWithReferral(
             `/${locale}/fanletter/news/characters/${character.referralCode}`,
             referralCode ?? character.referralCode,
@@ -1673,67 +1785,66 @@ function NewsCharacterDirectory({
 
           return (
             <Link
-              className="group min-w-0 overflow-hidden border border-black/10 bg-[#f7faf4] p-3 transition hover:border-[#19b84b] hover:bg-white"
+              className="group grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0 sm:grid-cols-[4.5rem_minmax(0,1fr)_auto] sm:items-center"
               href={channelHref}
               key={character.referralCode}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="relative size-[4.75rem] shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510]">
-                  {character.avatarImageUrl ? (
-                    <Image
-                      alt={character.name}
-                      className="h-full w-full object-cover"
-                      fill
-                      sizes="5rem"
-                      src={character.avatarImageUrl}
-                      unoptimized={shouldBypassFanletterImageOptimization(
-                        character.avatarImageUrl,
-                      )}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-white/70">
-                      <UserRound className="size-8" />
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className="inline-flex items-center gap-1 bg-[#44f26e] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black">
-                    <Sparkles className="size-3.5" />
-                    AI
-                  </span>
-                  <h3 className="mt-2 truncate text-lg font-black tracking-normal">
+              <div className="relative size-16 overflow-hidden rounded-full border border-black/10 bg-[#111510] sm:size-[4.5rem]">
+                {character.avatarImageUrl ? (
+                  <Image
+                    alt={character.name}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
+                    fill
+                    sizes="4.5rem"
+                    src={character.avatarImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      character.avatarImageUrl,
+                    )}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-white/70">
+                    <UserRound className="size-7" />
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                  <h3 className="min-w-0 truncate text-lg font-black tracking-normal group-hover:text-[#16702e]">
                     {character.name}
                   </h3>
-                  <p className="mt-1 truncate text-xs font-bold text-black/42">
+                  <span className="inline-flex shrink-0 items-center gap-1 bg-white px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+                    <Newspaper className="size-3" />
+                    {formatNumber(character.newsCount, locale)}
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-xs font-bold text-black/42">
                     @{character.referralCode}
-                  </p>
+                </p>
+                <p className="mt-2 line-clamp-2 break-words text-sm font-semibold leading-5 text-black/62 [word-break:keep-all]">
+                  {getArticleDisplayTitle(report.title)}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-black/38">
+                  <span className="text-[#16702e]">
+                    {formatNumber(character.publicCount, locale)}{" "}
+                    {copy.access.public}
+                  </span>
+                  <span>
+                    {formatNumber(character.fanOnlyCount, locale)}{" "}
+                    {copy.characterDirectory.fanOnly}
+                  </span>
+                  {latestReportAt ? <span>{latestReportAt}</span> : null}
                 </div>
               </div>
-              <p className="mt-3 text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-                {copy.characterDirectory.latest}
-              </p>
-              <p className="mt-1 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-black/60">
-                {getArticleDisplayTitle(report.title)}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-1.5 text-[0.66rem] font-black">
-                <span className="bg-[#111510] px-2 py-1 text-white">
-                  {formatNumber(character.newsCount, locale)}{" "}
-                  {copy.characterDirectory.news}
-                </span>
-                <span className="border border-black/10 bg-white px-2 py-1 text-black/62">
-                  {formatNumber(character.fanOnlyCount, locale)}{" "}
-                  {copy.characterDirectory.fanOnly}
-                </span>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/10 pt-3 text-[0.68rem] font-bold text-black/42">
-                <span className="min-w-0 truncate">{latestReportAt}</span>
-                <span className="shrink-0 text-[#16702e] group-hover:underline">
-                  {copy.characterDirectory.open}
-                </span>
-              </div>
+
+              <span className="hidden shrink-0 text-xs font-black text-[#16702e] group-hover:underline sm:block">
+                {copy.characterDirectory.open}
+              </span>
             </Link>
           );
-        })}
+            })
+            : null}
+        </div>
       </div>
     </section>
   );
