@@ -86,6 +86,7 @@ type FanletterPaidUnlockPanelProps = {
   initialCoverImageUrl: string | null;
   initialSummary: string;
   initialTitle: string;
+  hideInlinePanel?: boolean;
   locale: Locale;
   onboardingHref: string;
   priceUsdt: string | null;
@@ -406,6 +407,7 @@ export function FanletterPaidUnlockPanel({
   initialCoverImageUrl,
   initialSummary,
   initialTitle,
+  hideInlinePanel = false,
   locale,
   onboardingHref,
   priceUsdt,
@@ -466,6 +468,7 @@ export function FanletterPaidUnlockPanel({
     "idle" | "loading" | "ready" | "error"
   >("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isInlineFallbackOpen, setIsInlineFallbackOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paidUnlock, setPaidUnlock] = useState<PaidUnlockState>({
     error: null,
@@ -579,6 +582,10 @@ export function FanletterPaidUnlockPanel({
     setIsPaymentOpen(false);
     clearPaymentHash();
   }, [clearPaymentHash]);
+  const closeInlineFallback = useCallback(() => {
+    setIsInlineFallbackOpen(false);
+    clearPaymentHash();
+  }, [clearPaymentHash]);
 
   const loadDetail = useCallback(async () => {
     if (!accountAddress) {
@@ -687,6 +694,7 @@ export function FanletterPaidUnlockPanel({
     accessRefreshRequestedRef.current = false;
     paidOrderRef.current = null;
     paidRecipientWalletRef.current = null;
+    setIsInlineFallbackOpen(false);
     setIsPaymentOpen(false);
     setPaidUnlock({
       error: null,
@@ -1086,7 +1094,7 @@ export function FanletterPaidUnlockPanel({
     gateReason !== "network";
   const openPaymentFromTrigger = useCallback(
     (targetHash?: string | null) => {
-      if (!normalizedAutoOpenHash || !canOpenPaymentModalFromTrigger) {
+      if (!normalizedAutoOpenHash) {
         return;
       }
 
@@ -1096,9 +1104,21 @@ export function FanletterPaidUnlockPanel({
         return;
       }
 
-      openPayment();
+      if (canOpenPaymentModalFromTrigger) {
+        openPayment();
+        return;
+      }
+
+      if (hideInlinePanel) {
+        setIsInlineFallbackOpen(true);
+      }
     },
-    [canOpenPaymentModalFromTrigger, normalizedAutoOpenHash, openPayment],
+    [
+      canOpenPaymentModalFromTrigger,
+      hideInlinePanel,
+      normalizedAutoOpenHash,
+      openPayment,
+    ],
   );
 
   useEffect(() => {
@@ -1129,14 +1149,23 @@ export function FanletterPaidUnlockPanel({
   }, [normalizedAutoOpenHash, openPaymentFromTrigger]);
 
   return (
-    <section className="mt-6 overflow-hidden rounded-lg border border-[#44f26e]/28 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.24)_100%)] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
-      <div
-        className={
-          showTeaserPreview ? "grid gap-0 lg:grid-cols-[0.84fr_1.16fr]" : ""
-        }
-      >
-        {showTeaserPreview ? (
-          <div className="relative min-h-[18rem] border-b border-white/10 bg-black/30 lg:border-b-0 lg:border-r">
+    <section
+      className={
+        hideInlinePanel
+          ? "contents"
+          : "mt-6 overflow-hidden rounded-lg border border-[#44f26e]/28 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(255,255,255,0.055)_48%,rgba(0,0,0,0.24)_100%)] text-white shadow-[0_24px_80px_rgba(0,0,0,0.24)]"
+      }
+    >
+      {hideInlinePanel ? null : (
+        <div
+          className={
+            showTeaserPreview
+              ? "grid gap-0 lg:grid-cols-[0.84fr_1.16fr]"
+              : ""
+          }
+        >
+          {showTeaserPreview ? (
+            <div className="relative min-h-[18rem] border-b border-white/10 bg-black/30 lg:border-b-0 lg:border-r">
             {displayCoverImageUrl ? (
               <Image
                 alt={displayTitle}
@@ -1182,20 +1211,20 @@ export function FanletterPaidUnlockPanel({
                 {displaySummary}
               </p>
             </div>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
 
-        <div className="p-5 sm:p-6">
-          {isUnlocked ? (
-            <FanletterPaidUnlockedContent
-              body={detail?.body ?? displayBody}
-              copy={copy}
-              content={detail}
-              priceLabel={`${paidUnlockAmount} USDT`}
-              title={displayTitle}
-            />
-          ) : (
-            <div>
+          <div className="p-5 sm:p-6">
+            {isUnlocked ? (
+              <FanletterPaidUnlockedContent
+                body={detail?.body ?? displayBody}
+                copy={copy}
+                content={detail}
+                priceLabel={`${paidUnlockAmount} USDT`}
+                title={displayTitle}
+              />
+            ) : (
+              <div>
               {!showTeaserPreview ? (
                 <div className="mb-5 flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/32 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
@@ -1321,10 +1350,11 @@ export function FanletterPaidUnlockPanel({
                 paidUnlockAmount={paidUnlockAmount}
                 paidUnlockStatus={paidUnlock.status}
               />
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {isPaymentOpen ? (
         <div className="fixed inset-0 z-[170] flex items-end justify-center bg-black/68 px-0 backdrop-blur-sm sm:items-center sm:px-4">
@@ -1464,6 +1494,52 @@ export function FanletterPaidUnlockPanel({
                 </TransactionButton>
               )}
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {hideInlinePanel && isInlineFallbackOpen ? (
+        <div className="fixed inset-0 z-[170] flex items-end justify-center bg-black/68 px-0 backdrop-blur-sm sm:items-center sm:px-4">
+          <div className="max-h-[92svh] w-full max-w-[520px] overflow-y-auto rounded-t-[28px] border border-white/12 bg-[#08110c] p-4 text-white shadow-[0_-24px_70px_rgba(0,0,0,0.38)] sm:rounded-[28px] sm:p-5">
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/18 sm:hidden" />
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  FanLetter
+                </p>
+                <h2 className="mt-2 text-xl font-semibold">
+                  {copy.lockedTitle}
+                </h2>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                  {copy.lockedBody}
+                </p>
+              </div>
+              <button
+                aria-label={copy.cancel}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/64 transition hover:bg-white/12 hover:text-white"
+                onClick={closeInlineFallback}
+                type="button"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <FanletterPaidUnlockActions
+              connectHref={connectHref}
+              copy={copy}
+              creatorHref={creatorHref}
+              gateReason={gateReason}
+              isDisconnected={isDisconnected}
+              isInsufficientPaidUnlockBalance={isInsufficientPaidUnlockBalance}
+              isResolving={shouldShowLoading}
+              onOpenPayment={() => {
+                setIsInlineFallbackOpen(false);
+                openPayment();
+              }}
+              onReload={reloadOrRetryPaidUnlock}
+              onboardingHref={onboardingHref}
+              paidUnlockAmount={paidUnlockAmount}
+              paidUnlockStatus={paidUnlock.status}
+            />
           </div>
         </div>
       ) : null}

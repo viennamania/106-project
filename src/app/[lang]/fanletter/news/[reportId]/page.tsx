@@ -1347,6 +1347,7 @@ export default async function LocalizedFanletterNewsReportPage({
                     report.dek
                   }
                   initialTitle={sourceContent?.title ?? report.sourceTitle}
+                  hideInlinePanel
                   locale={locale}
                   onboardingHref={paidUnlockOnboardingHref}
                   priceUsdt={paidUnlockAmount}
