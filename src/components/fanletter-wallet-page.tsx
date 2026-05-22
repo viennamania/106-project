@@ -313,17 +313,24 @@ function getExplorerTxUrl(hash: string) {
 function FanletterWalletMessage({
   children,
   tone = "neutral",
+  variant = "dark",
 }: {
   children: ReactNode;
   tone?: "error" | "neutral";
+  variant?: "dark" | "news";
 }) {
   return (
     <div
       className={cn(
-        "rounded-lg border px-4 py-4 text-sm font-medium leading-6",
+        "border px-4 py-4 text-sm font-medium leading-6",
+        variant === "dark" && "rounded-lg",
         tone === "error"
-          ? "border-red-300/20 bg-red-500/12 text-red-100"
-          : "border-white/10 bg-white/[0.055] text-white/58",
+          ? variant === "news"
+            ? "border-red-200 bg-red-50 text-red-900"
+            : "border-red-300/20 bg-red-500/12 text-red-100"
+          : variant === "news"
+            ? "border-black/12 bg-[#f5f7f1] text-black/62"
+            : "border-white/10 bg-white/[0.055] text-white/58",
       )}
     >
       {children}
@@ -334,13 +341,16 @@ function FanletterWalletMessage({
 function HistoryRow({
   copy,
   locale,
+  variant = "dark",
   transfer,
 }: {
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  variant?: "dark" | "news";
   transfer: WalletTransferRecord;
 }) {
   const isInbound = transfer.direction === "inbound";
+  const isNewsVariant = variant === "news";
   const amountValue = `${isInbound ? "+" : "-"}${formatTokenDisplay(
     transfer.amountDisplay,
     locale,
@@ -350,16 +360,26 @@ function HistoryRow({
     formatAddressLabel(transfer.counterpartyWalletAddress);
 
   return (
-    <article className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+    <article
+      className={cn(
+        "border p-4",
+        isNewsVariant
+          ? "border-black/12 bg-white"
+          : "rounded-lg border-white/10 bg-white/[0.055]",
+      )}
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
+                "inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold",
+                !isNewsVariant && "rounded-full",
                 isInbound
                   ? "bg-[#44f26e] text-black"
-                  : "border border-white/12 bg-white/8 text-white/68",
+                  : isNewsVariant
+                    ? "border border-black/12 bg-[#f5f7f1] text-black/62"
+                    : "border border-white/12 bg-white/8 text-white/68",
               )}
             >
               {isInbound ? (
@@ -369,17 +389,39 @@ function HistoryRow({
               )}
               {isInbound ? "IN" : "OUT"}
             </span>
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-white/42">
+            <span
+              className={cn(
+                "border px-3 py-1 text-xs font-semibold",
+                isNewsVariant
+                  ? "border-black/12 text-black/46"
+                  : "rounded-full border-white/10 text-white/42",
+              )}
+            >
               {transfer.status}
             </span>
           </div>
-          <p className="mt-3 truncate text-sm font-semibold text-white">
+          <p
+            className={cn(
+              "mt-3 truncate text-sm font-semibold",
+              isNewsVariant ? "text-[#111510]" : "text-white",
+            )}
+          >
             {counterpartyLabel}
           </p>
-          <p className="mt-1 text-xs font-medium text-white/42">
+          <p
+            className={cn(
+              "mt-1 text-xs font-medium",
+              isNewsVariant ? "text-black/46" : "text-white/42",
+            )}
+          >
             {formatAddressLabel(transfer.counterpartyWalletAddress)}
           </p>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/32">
+          <p
+            className={cn(
+              "mt-2 text-xs font-semibold uppercase tracking-[0.16em]",
+              isNewsVariant ? "text-black/38" : "text-white/32",
+            )}
+          >
             {formatDateTime(transfer.timestamp, locale)}
           </p>
         </div>
@@ -387,13 +429,24 @@ function HistoryRow({
           <p
             className={cn(
               "text-lg font-semibold",
-              isInbound ? "text-[#44f26e]" : "text-white",
+              isInbound
+                ? isNewsVariant
+                  ? "text-[#16702e]"
+                  : "text-[#44f26e]"
+                : isNewsVariant
+                  ? "text-[#111510]"
+                  : "text-white",
             )}
           >
             {amountValue}
           </p>
           <a
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/12 px-3 text-xs font-semibold !text-white transition hover:bg-white/8"
+            className={cn(
+              "inline-flex h-9 items-center justify-center gap-2 border px-3 text-xs font-semibold transition",
+              isNewsVariant
+                ? "border-black/14 !text-[#111510] hover:bg-[#ecfff0]"
+                : "rounded-full border-white/12 !text-white hover:bg-white/8",
+            )}
             href={getExplorerTxUrl(transfer.transactionHash)}
             rel="noreferrer"
             target="_blank"
@@ -642,6 +695,377 @@ export function FanletterWalletPage({
       isCancelled = true;
     };
   }, [accountAddress, loadWallet]);
+
+  if (isNewsService) {
+    return (
+      <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
+        <EmailLoginDialog
+          dictionary={dictionary}
+          onClose={() => {
+            setIsLoginDialogOpen(false);
+          }}
+          open={isLoginDialogOpen}
+          title={copy.loginTitle}
+          variant="fanletter"
+        />
+
+        <header className="border-b border-black/14 bg-white text-[#111510] shadow-[0_8px_28px_rgba(17,21,16,0.05)]">
+          <div className="border-b border-black/10 bg-[#eef1ec]">
+            <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.68rem] font-bold text-black/52 sm:px-6 sm:py-2 lg:px-8">
+              <span>{copy.eyebrow}</span>
+              <span className="hidden sm:inline">
+                FanLetter Entertainment News
+              </span>
+            </div>
+          </div>
+          <div className="mx-auto flex max-w-[92rem] flex-col px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
+            <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
+              <Link
+                className="inline-flex min-w-0 items-center text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
+                href={homeHref}
+              >
+                {copy.siteName}
+              </Link>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
+                  News Wallet
+                </span>
+                <Link
+                  className="inline-flex h-10 items-center justify-center border border-black/14 px-3 text-xs font-black !text-[#111510] transition hover:bg-black hover:!text-white sm:h-11 sm:px-4 sm:text-sm"
+                  href={backHref}
+                >
+                  <ArrowLeft className="mr-2 size-4" />
+                  {copy.actions.returnTo}
+                </Link>
+              </div>
+            </div>
+            <nav
+              aria-label={copy.siteName}
+              className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <Link
+                className="shrink-0 border border-black/10 bg-white px-3 py-1.5 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
+                href={homeHref}
+              >
+                {copy.actions.back}
+              </Link>
+              <Link
+                className="shrink-0 border border-black/10 bg-white px-3 py-1.5 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
+                href={studioHref}
+              >
+                {copy.actions.studio}
+              </Link>
+              <Link
+                className="shrink-0 border border-black/10 bg-[#111510] px-3 py-1.5 !text-white"
+                href={walletPageHref}
+              >
+                {copy.title}
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        <section className="mx-auto max-w-[92rem] px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+          <div className="grid overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(17,21,16,0.06)] lg:grid-cols-[minmax(0,1fr)_24rem]">
+            <section className="min-w-0 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-wrap items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.14em] text-black/48">
+                <span className="text-[#16702e]">{copy.eyebrow}</span>
+                <span className="h-3 w-px bg-black/14" aria-hidden="true" />
+                <span>{copy.network}: {copy.bsc}</span>
+                <span className="h-3 w-px bg-black/14" aria-hidden="true" />
+                <span>USDT</span>
+              </div>
+              <h1 className="mt-4 max-w-4xl break-words text-[2.45rem] font-black leading-[0.98] tracking-normal text-[#111510] [word-break:keep-all] sm:text-[4.4rem]">
+                {copy.title}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-black/62 [word-break:keep-all] sm:text-lg">
+                {copy.description}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-2 border border-[#19b84b]/28 bg-[#ecfff0] px-3 py-1.5 text-xs font-black text-[#126c2c]">
+                  <ShieldCheck className="size-3.5" />
+                  {copy.network}: {copy.bsc}
+                </span>
+                <span className="inline-flex items-center gap-2 border border-black/12 bg-[#f5f7f1] px-3 py-1.5 text-xs font-black text-black/58">
+                  <Coins className="size-3.5" />
+                  USDT
+                </span>
+                {returnToHref ? (
+                  <Link
+                    className="inline-flex items-center gap-2 border border-black/12 bg-white px-3 py-1.5 text-xs font-black !text-black/58 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"
+                    href={returnToHref}
+                  >
+                    <ArrowLeft className="size-3.5" />
+                    {copy.actions.returnTo}
+                  </Link>
+                ) : null}
+              </div>
+            </section>
+
+            <aside className="border-t-2 border-[#111510] bg-[#f5f7f1] p-4 sm:p-6 lg:border-l-2 lg:border-t-0">
+              <div className="flex items-start gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center bg-[#44f26e] text-black">
+                  <WalletCards className="size-6" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-black/42">
+                    {copy.balance}
+                  </p>
+                  <p className="mt-2 text-4xl font-black tracking-tight text-[#111510]">
+                    {formattedBalance}
+                  </p>
+                  <p className="mt-2 break-all text-xs font-semibold leading-5 text-black/50">
+                    {accountAddress ?? copy.connectBody}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-2">
+                {isDisconnected ? (
+                  <button
+                    className="inline-flex h-12 items-center justify-center gap-2 bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c]"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {copy.actions.connect}
+                  </button>
+                ) : (
+                  <button
+                    className="inline-flex h-12 items-center justify-center gap-2 bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isRefreshing}
+                    onClick={() => {
+                      void loadWallet({ background: true });
+                    }}
+                    type="button"
+                  >
+                    <RefreshCw
+                      className={cn("size-4", isRefreshing && "animate-spin")}
+                    />
+                    {copy.actions.refresh}
+                  </button>
+                )}
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 border border-black/14 bg-white px-4 text-sm font-black !text-[#111510] transition hover:bg-black hover:!text-white"
+                  href={advancedWalletHref}
+                >
+                  {copy.actions.advanced}
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </aside>
+          </div>
+
+          <div className="mt-5">
+            {!hasThirdwebClientId ? (
+              <FanletterWalletMessage tone="error" variant="news">
+                {dictionary.common.clientIdRequired}
+              </FanletterWalletMessage>
+            ) : isResolving ? (
+              <FanletterWalletMessage variant="news">
+                {copy.loading}
+              </FanletterWalletMessage>
+            ) : isDisconnected ? (
+              <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.06)] sm:p-6">
+                <WalletCards className="size-8 text-[#16702e]" />
+                <h2 className="mt-4 text-2xl font-black text-[#111510]">
+                  {copy.connectTitle}
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+                  {copy.connectBody}
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    className="inline-flex h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c]"
+                    onClick={() => {
+                      setIsLoginDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {copy.actions.connect}
+                  </button>
+                  <Link
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-4 text-sm font-black !text-[#111510] transition hover:bg-black hover:!text-white"
+                    href={connectHref}
+                  >
+                    {copy.actions.connect}
+                  </Link>
+                </div>
+              </section>
+            ) : (
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <section className="border border-black/12 bg-white p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-[#16702e]">
+                        {copy.receive}
+                      </p>
+                      <h2 className="mt-2 text-2xl font-black">
+                        {copy.walletAddress}
+                      </h2>
+                    </div>
+                    <QrCode className="size-8 text-[#16702e]" />
+                  </div>
+
+                  <div className="mt-5 border border-[#19b84b]/24 bg-[#ecfff0] p-4">
+                    {qrCodeUrl ? (
+                      <Image
+                        alt="FanLetter wallet QR code"
+                        className="mx-auto aspect-square w-full max-w-[14rem] bg-white p-3"
+                        height={260}
+                        src={qrCodeUrl}
+                        unoptimized
+                        width={260}
+                      />
+                    ) : (
+                      <div className="border border-dashed border-black/18 px-4 py-12 text-center text-sm font-semibold text-black/46">
+                        {copy.qrUnavailable}
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="mt-4 break-all border border-black/12 bg-[#f5f7f1] p-3 text-sm font-semibold leading-6 text-[#111510]">
+                    {accountAddress}
+                  </p>
+                  <p className="mt-3 text-xs font-semibold leading-5 text-black/48">
+                    {copy.receiveNote}
+                  </p>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {accountAddress ? (
+                      <CopyTextButton
+                        className="h-11 w-full rounded-none border-black/14 font-black hover:bg-[#ecfff0]"
+                        copiedLabel={copy.actions.copied}
+                        copyLabel={copy.actions.copy}
+                        text={accountAddress}
+                      />
+                    ) : null}
+                    <a
+                      className="inline-flex h-11 items-center justify-center gap-2 border border-black/14 px-4 text-sm font-black !text-[#111510] transition hover:bg-black hover:!text-white"
+                      href={getExplorerAddressUrl(accountAddress)}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      BscScan
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                  </div>
+                </section>
+
+                <section className="border border-black/12 bg-white p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-[#16702e]">
+                        {copy.history}
+                      </p>
+                      <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
+                        {copy.historyBody}
+                      </p>
+                      {state.email ? (
+                        <p className="mt-2 text-xs font-black text-black/40">
+                          {state.email}
+                        </p>
+                      ) : null}
+                    </div>
+                    <button
+                      className="inline-flex h-10 items-center justify-center gap-2 border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={isRefreshing}
+                      onClick={() => {
+                        void loadWallet({ background: true });
+                      }}
+                      type="button"
+                    >
+                      <RefreshCw
+                        className={cn("size-4", isRefreshing && "animate-spin")}
+                      />
+                      {copy.actions.refresh}
+                    </button>
+                  </div>
+
+                  {state.updatedAt ? (
+                    <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-black/38">
+                      {copy.updated} {formatDateTime(state.updatedAt, locale)}
+                      {state.syncing ? " · syncing" : ""}
+                    </p>
+                  ) : null}
+
+                  <div className="mt-4 grid gap-3">
+                    {state.status === "loading" && state.history.length === 0 ? (
+                      <FanletterWalletMessage variant="news">
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          {copy.loading}
+                        </span>
+                      </FanletterWalletMessage>
+                    ) : state.error && state.history.length === 0 ? (
+                      <FanletterWalletMessage tone="error" variant="news">
+                        {state.error}
+                      </FanletterWalletMessage>
+                    ) : state.history.length === 0 ? (
+                      <FanletterWalletMessage variant="news">
+                        {copy.emptyHistory}
+                      </FanletterWalletMessage>
+                    ) : (
+                      <>
+                        {state.error ? (
+                          <FanletterWalletMessage tone="error" variant="news">
+                            {state.error}
+                          </FanletterWalletMessage>
+                        ) : null}
+                        {state.history.map((transfer) => (
+                          <HistoryRow
+                            copy={copy}
+                            key={`${transfer.transactionHash}:${transfer.logIndex}`}
+                            locale={locale}
+                            transfer={transfer}
+                            variant="news"
+                          />
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </section>
+              </div>
+            )}
+          </div>
+
+          <section className="mt-5 grid gap-4 md:grid-cols-3">
+            <Link
+              className="border border-black/12 bg-white p-4 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              href={purchasesHref}
+            >
+              <BookOpenCheck className="size-6 text-[#16702e]" />
+              <p className="mt-3 text-sm font-black">
+                {copy.actions.purchases}
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-black/48">
+                {copy.quickLinks.purchases}
+              </p>
+            </Link>
+            <Link
+              className="border border-black/12 bg-white p-4 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              href={salesHref}
+            >
+              <Coins className="size-6 text-[#16702e]" />
+              <p className="mt-3 text-sm font-black">{copy.actions.sales}</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-black/48">
+                {copy.quickLinks.sales}
+              </p>
+            </Link>
+            <Link
+              className="border border-black/12 bg-white p-4 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              href={studioHref}
+            >
+              <ShieldCheck className="size-6 text-[#16702e]" />
+              <p className="mt-3 text-sm font-black">{copy.actions.studio}</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-black/48">
+                {copy.quickLinks.studio}
+              </p>
+            </Link>
+          </section>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
