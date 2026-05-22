@@ -90,6 +90,15 @@ function getCopy(locale: Locale) {
           `${name}가 만든 공개 뉴스가 아직 없습니다. 전체 뉴스룸에서 다른 팬 기자의 리포트를 먼저 확인해보세요.`,
         emptyReporterTitle: (name: string) => `${name}의 뉴스가 아직 없습니다.`,
         emptyTitle: "아직 공개된 FanLetter 뉴스가 없습니다.",
+        frontPage: {
+          characters: "캐릭터 편집판",
+          desk: "뉴스룸 데스크",
+          deskBody: "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름을 한곳에서 확인합니다.",
+          headlines: "주요 헤드라인",
+          leadDeck: "리드와 주요 헤드라인을 빠르게 훑는 FanLetter 뉴스 편집판입니다.",
+          reporters: "리포터 편집판",
+          title: "FanLetter 뉴스 편집판",
+        },
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
         latest: "최신 리포트",
@@ -165,6 +174,17 @@ function getCopy(locale: Locale) {
         emptyReporterTitle: (name: string) =>
           `${name} has no news yet.`,
         emptyTitle: "No FanLetter news has been published yet.",
+        frontPage: {
+          characters: "Character Edition",
+          desk: "Newsroom Desk",
+          deskBody:
+            "Track reporter activity, AI character issues, and public news flow in one place.",
+          headlines: "Major Headlines",
+          leadDeck:
+            "A FanLetter news edition for scanning the lead story and major headlines quickly.",
+          reporters: "Reporter Edition",
+          title: "FanLetter News Edition",
+        },
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "Today's FanLetter entertainment briefing",
         latest: "Latest Reports",
@@ -792,6 +812,317 @@ function HeroSideStory({
         </h2>
       </div>
     </Link>
+  );
+}
+
+function PortalHeadlineList({
+  copy,
+  nsfwOptInEnabled,
+  referralCode,
+  reports,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  nsfwOptInEnabled: boolean;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="min-w-0 border-t border-black/12 bg-white p-4 lg:border-t-0 xl:border-r">
+      <div className="mb-3 flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2">
+        <h2 className="text-lg font-black tracking-normal">
+          {copy.frontPage.headlines}
+        </h2>
+        <span className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+          {formatNumber(reports.length, reports[0]?.locale ?? "ko")}
+        </span>
+      </div>
+      <div className="divide-y divide-black/10">
+        {reports.map((report, index) => {
+          const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
+          const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
+          const title = getArticleDisplayTitle(report.title);
+
+          return (
+            <Link
+              className="group grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
+              href={getReportHref(report, referralCode)}
+              key={report.reportId}
+            >
+              <span className="mt-0.5 flex size-7 items-center justify-center border border-black/12 text-xs font-black text-[#16702e] group-hover:border-[#19b84b] group-hover:bg-[#ecfff0]">
+                {index + 1}
+              </span>
+              <span className="min-w-0">
+                <span className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42">
+                  <span className="text-[#16702e]">
+                    {getAccessLabel(report, copy)}
+                  </span>
+                  {publishedAt ? <span>{publishedAt}</span> : null}
+                </span>
+                <span
+                  className={`mt-1 block line-clamp-2 break-words text-[1.02rem] font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
+                    shouldBlur ? "select-none blur-[2px]" : ""
+                  }`}
+                >
+                  {title}
+                </span>
+                <span
+                  className={`mt-1 block line-clamp-1 text-xs font-semibold text-black/46 ${
+                    shouldBlur ? "select-none blur-[2px]" : ""
+                  }`}
+                >
+                  {getReporterDisplayName(report)} · {report.creatorName}
+                </span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function NewsDeskPanel({
+  characters,
+  copy,
+  locale,
+  referralCode,
+  reporters,
+  selectedReporterReferralCode,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+  reporters: ReporterStat[];
+  selectedReporterReferralCode: string | null;
+}) {
+  const topReporters = reporters.slice(0, 3);
+  const topCharacters = characters.slice(0, 3);
+
+  return (
+    <aside className="border-t border-black/12 bg-[#f7faf4] p-4 xl:border-t-0">
+      <div className="border-b-2 border-[#111510] pb-3">
+        <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+          {copy.frontPage.desk}
+        </p>
+        <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
+          {copy.frontPage.deskBody}
+        </p>
+      </div>
+
+      {topReporters.length > 0 ? (
+        <div className="mt-4">
+          <h3 className="border-b border-black/12 pb-2 text-sm font-black">
+            {copy.frontPage.reporters}
+          </h3>
+          <div className="divide-y divide-black/10">
+            {topReporters.map((reporter, index) => {
+              const isSelected =
+                reporter.referralCode === selectedReporterReferralCode;
+
+              return (
+                <Link
+                  className={`group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-2 py-2.5 ${
+                    isSelected ? "text-[#16702e]" : "text-[#111510]"
+                  }`}
+                  href={getReporterNewsHref(
+                    locale,
+                    reporter.referralCode,
+                    referralCode,
+                  )}
+                  key={reporter.referralCode}
+                >
+                  <span className="flex size-8 items-center justify-center bg-[#111510] text-xs font-black text-[#44f26e]">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black group-hover:text-[#16702e]">
+                      {reporter.name}
+                    </span>
+                    <span className="block truncate text-[0.66rem] font-bold text-black/42">
+                      @{reporter.referralCode}
+                    </span>
+                  </span>
+                  <span className="text-xs font-black text-[#16702e]">
+                    {formatNumber(reporter.count, locale)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {topCharacters.length > 0 ? (
+        <div className="mt-4">
+          <h3 className="border-b border-black/12 pb-2 text-sm font-black">
+            {copy.frontPage.characters}
+          </h3>
+          <div className="divide-y divide-black/10">
+            {topCharacters.map((character) => {
+              const channelHref = buildPathWithReferral(
+                `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                referralCode ?? character.referralCode,
+              );
+
+              return (
+                <Link
+                  className="group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-2 py-2.5"
+                  href={channelHref}
+                  key={character.referralCode}
+                >
+                  <span className="relative size-10 overflow-hidden rounded-full bg-[#111510]">
+                    {character.avatarImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover"
+                        fill
+                        sizes="2.5rem"
+                        src={character.avatarImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          character.avatarImageUrl,
+                        )}
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-white/64">
+                        <UserRound className="size-5" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black group-hover:text-[#16702e]">
+                      {character.name}
+                    </span>
+                    <span className="mt-0.5 block line-clamp-1 text-[0.66rem] font-semibold text-black/46">
+                      {getArticleDisplayTitle(
+                        character.representativeReport.title,
+                      )}
+                    </span>
+                    <span className="mt-1 block text-[0.62rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+                      {formatNumber(character.newsCount, locale)}{" "}
+                      {copy.characterDirectory.news}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
+function NewsFrontPage({
+  characterNewsStats,
+  copy,
+  displayedNewsCount,
+  displayedReporterCount,
+  heroSideReports,
+  leadReport,
+  locale,
+  nsfwOptInEnabled,
+  nsfwReportCount,
+  referralCode,
+  reporterStats,
+  selectedReporterReferralCode,
+  topStories,
+}: {
+  characterNewsStats: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  displayedNewsCount: number;
+  displayedReporterCount: number;
+  heroSideReports: FanletterNewsReportDocument[];
+  leadReport: FanletterNewsReportDocument;
+  locale: Locale;
+  nsfwOptInEnabled: boolean;
+  nsfwReportCount: number;
+  referralCode: string | null;
+  reporterStats: ReporterStat[];
+  selectedReporterReferralCode: string | null;
+  topStories: FanletterNewsReportDocument[];
+}) {
+  return (
+    <section
+      className="overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(17,21,16,0.06)]"
+      id="top-stories"
+    >
+      <div className="grid gap-3 border-b-2 border-[#111510] p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div>
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.72rem] sm:tracking-[0.16em]">
+            {copy.issueLabel}
+          </p>
+          <h1 className="mt-2 max-w-4xl break-words text-[1.8rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3rem]">
+            {copy.frontPage.title}
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+            {copy.frontPage.leadDeck}
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-px border border-black/10 bg-black/10 lg:min-w-80">
+          {[
+            [copy.newsroomStatLabels.news, displayedNewsCount],
+            [copy.newsroomStatLabels.reporters, displayedReporterCount],
+            [copy.newsroomStatLabels.nsfw, nsfwReportCount],
+          ].map(([label, value]) => (
+            <div className="bg-[#f7faf4] p-3" key={label}>
+              <p className="text-xl font-black leading-none">
+                {formatNumber(Number(value), locale)}
+              </p>
+              <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.74fr)] xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.62fr)_18.5rem]">
+        <div className="min-w-0 p-3 sm:p-4 lg:border-r lg:border-black/12">
+          <LeadStory
+            copy={copy}
+            nsfwOptInEnabled={nsfwOptInEnabled}
+            referralCode={referralCode}
+            report={leadReport}
+          />
+
+          {heroSideReports.length > 0 ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {heroSideReports.map((report) => (
+                <HeroSideStory
+                  copy={copy}
+                  key={report.reportId}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={referralCode}
+                  report={report}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <PortalHeadlineList
+          copy={copy}
+          nsfwOptInEnabled={nsfwOptInEnabled}
+          referralCode={referralCode}
+          reports={topStories}
+        />
+
+        <NewsDeskPanel
+          characters={characterNewsStats}
+          copy={copy}
+          locale={locale}
+          referralCode={referralCode}
+          reporters={reporterStats}
+          selectedReporterReferralCode={selectedReporterReferralCode}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -1566,73 +1897,6 @@ function ReporterFilterBanner({
   );
 }
 
-function RankedStoryList({
-  copy,
-  nsfwOptInEnabled,
-  referralCode,
-  reports,
-}: {
-  copy: ReturnType<typeof getCopy>;
-  nsfwOptInEnabled: boolean;
-  referralCode: string | null;
-  reports: FanletterNewsReportDocument[];
-}) {
-  if (reports.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="border border-black/12 bg-white p-4 shadow-[0_16px_36px_rgba(17,21,16,0.06)]">
-      <SectionHeader
-        icon={<Newspaper className="size-5" />}
-        title={copy.topStories}
-      />
-      <div className="divide-y divide-black/10">
-        {reports.map((report, index) => {
-          const publishedAt = formatDate(report.sourcePublishedAt, report.locale);
-          const nsfwCopy = getFanletterNsfwCopy(report.locale);
-          const shouldBlur = shouldBlurReport(report, nsfwOptInEnabled);
-          const title = getArticleDisplayTitle(report.title);
-
-          return (
-            <Link
-              className="group grid grid-cols-[4.8rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
-              href={getReportHref(report, referralCode)}
-              key={report.reportId}
-            >
-              <div className="relative">
-                <NewsImage
-                  blurred={shouldBlur}
-                  className="aspect-[4/5] border border-black/10"
-                  nsfwLabel={nsfwCopy.badge}
-                  report={report}
-                  sizes="5rem"
-                />
-                <span className="absolute left-1 top-1 flex size-6 items-center justify-center bg-[#44f26e] text-xs font-black leading-none text-black">
-                  {index + 1}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <h2
-                  className={`line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
-                    shouldBlur ? "select-none blur-[2px]" : ""
-                  }`}
-                >
-                  {title}
-                </h2>
-                <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-bold text-black/42">
-                  <span>{getAccessLabel(report, copy)}</span>
-                  {publishedAt ? <span>{publishedAt}</span> : null}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -1783,180 +2047,138 @@ export default async function LocalizedFanletterNewsHomePage({
 
       <section className="mx-auto max-w-[92rem] px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         {leadReport ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
-            <div className="min-w-0 space-y-7 sm:space-y-9">
-              <div className="border border-black/12 bg-white p-4 shadow-[0_18px_44px_rgba(17,21,16,0.06)] sm:p-5">
-                <div className="border-b-2 border-[#111510] pb-3">
-                  <p className="text-[0.66rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.72rem] sm:tracking-[0.16em]">
-                    {copy.issueLabel}
-                  </p>
-                  <h1 className="mt-2 max-w-4xl break-words text-[1.55rem] font-black leading-[1.1] [word-break:keep-all] sm:text-[2.65rem] sm:leading-[1.08]">
-                    {copy.allNews}
-                  </h1>
-                  <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:mt-3 sm:text-base sm:leading-7">
-                    {copy.dek}
-                  </p>
-                </div>
-              </div>
+          <div className="space-y-7 sm:space-y-9">
+            {activeReporterReferralCode ? (
+              <ReporterFilterBanner
+                copy={copy}
+                locale={locale}
+                newsHomeHref={newsHomeHref}
+                profile={activeReporterProfile}
+                reporterReferralCode={activeReporterReferralCode}
+              />
+            ) : null}
 
-              {activeReporterReferralCode ? (
-                <ReporterFilterBanner
-                  copy={copy}
-                  locale={locale}
-                  newsHomeHref={newsHomeHref}
-                  profile={activeReporterProfile}
-                  reporterReferralCode={activeReporterReferralCode}
-                />
-              ) : null}
+            <NewsFrontPage
+              characterNewsStats={characterNewsStats}
+              copy={copy}
+              displayedNewsCount={displayedNewsCount}
+              displayedReporterCount={displayedReporterCount}
+              heroSideReports={heroSideReports}
+              leadReport={leadReport}
+              locale={locale}
+              nsfwOptInEnabled={nsfwOptInEnabled}
+              nsfwReportCount={nsfwReportCount}
+              referralCode={referralCode}
+              reporterStats={reporterStats}
+              selectedReporterReferralCode={activeReporterReferralCode}
+              topStories={topStories}
+            />
 
-              <section
-                className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
-                id="top-stories"
-              >
-                <LeadStory
+            {shouldShowNsfwControl ? (
+              <FanletterNsfwOptInControl
+                compact
+                disabledBody={copy.nsfwControl.disabledBody}
+                disabledTitle={copy.nsfwControl.disabledTitle}
+                enabled={nsfwOptInEnabled}
+                enabledBody={copy.nsfwControl.enabledBody}
+                enabledTitle={copy.nsfwControl.enabledTitle}
+                hiddenCount={nsfwReportCount}
+                hiddenCountText={copy.nsfwControl.hiddenCountText(
+                  formatNumber(nsfwReportCount, locale),
+                )}
+                locale={locale}
+                tone={nsfwOptInEnabled ? "dark" : "light"}
+              />
+            ) : null}
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
+              <div className="min-w-0 space-y-7 sm:space-y-9">
+                <PhotoDesk
                   copy={copy}
                   nsfwOptInEnabled={nsfwOptInEnabled}
                   referralCode={referralCode}
-                  report={leadReport}
+                  reports={photoDeskReports}
                 />
 
-                {heroSideReports.length > 0 ? (
-                  <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-1">
-                    {heroSideReports.map((report) => (
-                      <HeroSideStory
-                        copy={copy}
-                        key={report.reportId}
-                        nsfwOptInEnabled={nsfwOptInEnabled}
-                        referralCode={referralCode}
-                        report={report}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </section>
-
-              {topStories.length > 0 ? (
-                <div className="xl:hidden">
-                  <RankedStoryList
-                    copy={copy}
-                    nsfwOptInEnabled={nsfwOptInEnabled}
-                    referralCode={referralCode}
-                    reports={topStories}
-                  />
-                </div>
-              ) : null}
-
-              {shouldShowNsfwControl ? (
-                <FanletterNsfwOptInControl
-                  compact
-                  disabledBody={copy.nsfwControl.disabledBody}
-                  disabledTitle={copy.nsfwControl.disabledTitle}
-                  enabled={nsfwOptInEnabled}
-                  enabledBody={copy.nsfwControl.enabledBody}
-                  enabledTitle={copy.nsfwControl.enabledTitle}
-                  hiddenCount={nsfwReportCount}
-                  hiddenCountText={copy.nsfwControl.hiddenCountText(
-                    formatNumber(nsfwReportCount, locale),
-                  )}
+                <NewsCharacterDirectory
+                  characters={characterNewsStats}
+                  copy={copy}
                   locale={locale}
-                  tone={nsfwOptInEnabled ? "dark" : "light"}
+                  referralCode={referralCode}
                 />
-              ) : null}
 
-              <PhotoDesk
-                copy={copy}
-                nsfwOptInEnabled={nsfwOptInEnabled}
-                referralCode={referralCode}
-                reports={photoDeskReports}
-              />
+                <CharacterWireSection
+                  copy={copy}
+                  locale={locale}
+                  nsfwOptInEnabled={nsfwOptInEnabled}
+                  referralCode={referralCode}
+                  reports={featureReports}
+                />
 
-              <NewsCharacterDirectory
-                characters={characterNewsStats}
-                copy={copy}
-                locale={locale}
-                referralCode={referralCode}
-              />
+                {latestSectionReports.length > 0 ? (
+                  <section id="latest-news">
+                    <SectionHeader
+                      icon={<FileText className="size-5" />}
+                      title={copy.latest}
+                    />
+                    <div className="grid gap-4 border border-black/10 bg-white p-3 shadow-[0_16px_36px_rgba(17,21,16,0.05)] sm:grid-cols-2 sm:p-4">
+                      {latestSectionReports.map((report) => (
+                        <CompactStory
+                          copy={copy}
+                          key={report.reportId}
+                          nsfwOptInEnabled={nsfwOptInEnabled}
+                          referralCode={referralCode}
+                          report={report}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
 
-              <CharacterWireSection
-                copy={copy}
-                locale={locale}
-                nsfwOptInEnabled={nsfwOptInEnabled}
-                referralCode={referralCode}
-                reports={featureReports}
-              />
+              <aside className="space-y-5 xl:sticky xl:top-4">
+                <ReporterRank
+                  copy={copy}
+                  locale={locale}
+                  referralCode={referralCode}
+                  reporters={reporterStats}
+                  selectedReporterReferralCode={activeReporterReferralCode}
+                />
 
-              {latestSectionReports.length > 0 ? (
-                <section id="latest-news">
+                <section className="border border-black/12 bg-white p-4 shadow-[0_16px_36px_rgba(17,21,16,0.06)]">
                   <SectionHeader
                     icon={<FileText className="size-5" />}
-                    title={copy.latest}
+                    title={copy.newsroomStats}
                   />
-                  <div className="grid gap-4 border border-black/10 bg-white p-3 shadow-[0_16px_36px_rgba(17,21,16,0.05)] sm:grid-cols-2 sm:p-4">
-                    {latestSectionReports.map((report) => (
-                      <CompactStory
-                        copy={copy}
-                        key={report.reportId}
-                        nsfwOptInEnabled={nsfwOptInEnabled}
-                        referralCode={referralCode}
-                        report={report}
-                      />
-                    ))}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-[#f5f6f2] p-3">
+                      <p className="text-lg font-black">
+                        {formatNumber(displayedNewsCount, locale)}
+                      </p>
+                      <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                        {copy.newsroomStatLabels.news}
+                      </p>
+                    </div>
+                    <div className="bg-[#f5f6f2] p-3">
+                      <p className="text-lg font-black">
+                        {formatNumber(displayedReporterCount, locale)}
+                      </p>
+                      <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                        {copy.newsroomStatLabels.reporters}
+                      </p>
+                    </div>
+                    <div className="bg-[#f5f6f2] p-3">
+                      <p className="text-lg font-black">
+                        {formatNumber(nsfwReportCount, locale)}
+                      </p>
+                      <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                        {copy.newsroomStatLabels.nsfw}
+                      </p>
+                    </div>
                   </div>
                 </section>
-              ) : null}
+              </aside>
             </div>
-
-            <aside className="space-y-5 xl:sticky xl:top-4">
-              <div className="hidden xl:block">
-                <RankedStoryList
-                  copy={copy}
-                  nsfwOptInEnabled={nsfwOptInEnabled}
-                  referralCode={referralCode}
-                  reports={topStories}
-                />
-              </div>
-
-              <ReporterRank
-                copy={copy}
-                locale={locale}
-                referralCode={referralCode}
-                reporters={reporterStats}
-                selectedReporterReferralCode={activeReporterReferralCode}
-              />
-
-              <section className="border border-black/12 bg-white p-4 shadow-[0_16px_36px_rgba(17,21,16,0.06)]">
-                <SectionHeader
-                  icon={<FileText className="size-5" />}
-                  title={copy.newsroomStats}
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-[#f5f6f2] p-3">
-                    <p className="text-lg font-black">
-                      {formatNumber(displayedNewsCount, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      {copy.newsroomStatLabels.news}
-                    </p>
-                  </div>
-                  <div className="bg-[#f5f6f2] p-3">
-                    <p className="text-lg font-black">
-                      {formatNumber(displayedReporterCount, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      {copy.newsroomStatLabels.reporters}
-                    </p>
-                  </div>
-                  <div className="bg-[#f5f6f2] p-3">
-                    <p className="text-lg font-black">
-                      {formatNumber(nsfwReportCount, locale)}
-                    </p>
-                    <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                      {copy.newsroomStatLabels.nsfw}
-                    </p>
-                  </div>
-                </div>
-              </section>
-            </aside>
           </div>
         ) : (
           <section className="mt-6 rounded-lg border border-black/10 bg-white p-8 text-center">
