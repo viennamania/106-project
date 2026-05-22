@@ -122,11 +122,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "이 캐릭터의 세계관과 팬 리포트 흐름을 이어서 볼 수 있도록 관련 뉴스를 바로 연결합니다.",
+            "이 AI 캐릭터의 팬 리포트 흐름을 이어서 봅니다.",
           characterCta: "캐릭터 홈",
-          eyebrow: "AI 캐릭터 계속 보기",
-          nextCta: "다음 뉴스 읽기",
-          title: "같은 AI 캐릭터의 다음 뉴스",
+          eyebrow: "추천 이어보기",
+          listEyebrow: "같은 캐릭터",
+          listTitle: "다른 뉴스 선택",
+          nextCta: "추천 뉴스 보기",
+          title: "이 캐릭터 추천 뉴스",
         },
         contentBadge: {
           nsfw: "성인 팬 전용 표시",
@@ -235,11 +237,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "Keep the character context moving with more fan reports from the same AI character.",
+            "Keep reading fan reports from this AI character.",
           characterCta: "Character home",
-          eyebrow: "Continue this AI character",
-          nextCta: "Read next story",
-          title: "Next news from this AI character",
+          eyebrow: "Recommended next",
+          listEyebrow: "Same character",
+          listTitle: "Choose another story",
+          nextCta: "Read recommended story",
+          title: "Recommended character news",
         },
         contentBadge: {
           nsfw: "Adult fan-only marker",
@@ -618,10 +622,10 @@ function CharacterContinueReadingPanel({
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
-                FanLetter News
+                {copy.continueReading.listEyebrow}
               </p>
               <h3 className="mt-1 text-base font-black text-white">
-                {copy.relatedNews}
+                {copy.continueReading.listTitle}
               </h3>
             </div>
             <Link
