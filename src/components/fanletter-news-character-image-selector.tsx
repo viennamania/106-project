@@ -14,6 +14,7 @@ type FanletterNewsCharacterAvatarOption = {
 type FanletterNewsCharacterImageSelectorProps = {
   avatarAlt: string;
   avatarImages: FanletterNewsCharacterAvatarOption[];
+  compact?: boolean;
   galleryLabel: string;
   generatedLabel: string;
 };
@@ -21,6 +22,7 @@ type FanletterNewsCharacterImageSelectorProps = {
 export function FanletterNewsCharacterImageSelector({
   avatarAlt,
   avatarImages,
+  compact = false,
   galleryLabel,
   generatedLabel,
 }: FanletterNewsCharacterImageSelectorProps) {
@@ -30,7 +32,13 @@ export function FanletterNewsCharacterImageSelector({
   const selectedAvatar = avatarImages[resolvedSelectedIndex] ?? null;
 
   return (
-    <div className="relative min-h-[24rem] overflow-hidden bg-[#0d130e] lg:min-h-[32rem]">
+    <div
+      className={
+        compact
+          ? "relative min-h-[13.5rem] overflow-hidden bg-[#0d130e] sm:min-h-[16rem] lg:min-h-[18rem]"
+          : "relative min-h-[24rem] overflow-hidden bg-[#0d130e] lg:min-h-[32rem]"
+      }
+    >
       {selectedAvatar ? (
         <>
           <Image
@@ -59,16 +67,34 @@ export function FanletterNewsCharacterImageSelector({
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-black/24" />
-      <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 border border-white/16 bg-black/36 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur">
+      <div
+        className={
+          compact
+            ? "absolute left-2 top-2 inline-flex items-center gap-1 border border-white/16 bg-black/42 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/78 backdrop-blur"
+            : "absolute left-4 top-4 inline-flex items-center gap-1.5 border border-white/16 bg-black/36 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-white/78 backdrop-blur"
+        }
+      >
         <BadgeCheck className="size-3.5 text-[#44f26e]" />
         {generatedLabel}
       </div>
-      <div className="absolute bottom-4 left-4 right-4">
-        <p className="mb-3 inline-flex border border-white/18 bg-black/42 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/76 backdrop-blur">
+      <div
+        className={
+          compact
+            ? "absolute bottom-2 left-2 right-2"
+            : "absolute bottom-4 left-4 right-4"
+        }
+      >
+        <p
+          className={
+            compact
+              ? "sr-only"
+              : "mb-3 inline-flex border border-white/18 bg-black/42 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-white/76 backdrop-blur"
+          }
+        >
           {galleryLabel}
         </p>
         {avatarImages.length > 1 ? (
-          <div className="grid grid-cols-4 gap-2">
+          <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-4 gap-2"}>
             {avatarImages.map((avatar, index) => {
               const isSelected = index === resolvedSelectedIndex;
               const thumbnailLabel = avatar.label
@@ -100,7 +126,13 @@ export function FanletterNewsCharacterImageSelector({
                     unoptimized={shouldBypassFanletterImageOptimization(avatar.url)}
                   />
                   {isSelected ? (
-                    <span className="absolute inset-x-2 bottom-2 h-1 rounded-full bg-[#44f26e]" />
+                    <span
+                      className={
+                        compact
+                          ? "absolute inset-x-1 bottom-1 h-0.5 rounded-full bg-[#44f26e]"
+                          : "absolute inset-x-2 bottom-2 h-1 rounded-full bg-[#44f26e]"
+                      }
+                    />
                   ) : null}
                 </button>
               );

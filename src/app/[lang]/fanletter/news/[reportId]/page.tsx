@@ -695,7 +695,7 @@ function CharacterIdentityFeature({
       url: imageUrl,
     };
   });
-  const traits = (character?.traits ?? []).slice(0, 5);
+  const traits = (character?.traits ?? []).slice(0, 4);
   const reactionCount =
     (sourceContent?.social.likeCount ?? 0) +
     (sourceContent?.social.commentCount ?? 0) +
@@ -719,43 +719,44 @@ function CharacterIdentityFeature({
   const latestTitle = character?.latestTitle ?? sourceContent?.title ?? null;
 
   return (
-    <section className="mt-6 overflow-hidden border border-black/12 bg-[#f6f8f2] text-[#111510] shadow-[0_22px_60px_rgba(17,21,16,0.08)]">
-      <div className="grid lg:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+    <section className="mt-5 overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_12px_34px_rgba(17,21,16,0.055)] sm:mt-6">
+      <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] sm:grid-cols-[10rem_minmax(0,1fr)] lg:grid-cols-[14rem_minmax(0,1fr)]">
         <FanletterNewsCharacterImageSelector
           avatarAlt={characterName}
           avatarImages={avatarImageOptions}
+          compact
           galleryLabel={copy.characterIdentity.galleryLabel}
           generatedLabel={copy.generated}
         />
 
-        <div className="flex min-h-full flex-col p-5 sm:p-7">
+        <div className="flex min-h-full min-w-0 flex-col p-3.5 sm:p-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/24 bg-white px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e] shadow-[0_8px_22px_rgba(17,21,16,0.06)]">
+            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f5f7f1] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
               <BadgeCheck className="size-3.5" />
               {copy.characterIdentity.title}
             </span>
-            <span className="inline-flex border border-black/10 bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/78">
+            <span className="hidden border border-black/10 bg-[#111510] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/78 sm:inline-flex">
               {copy.characterIdentity.profileLabel}
             </span>
           </div>
 
-          <h2 className="mt-4 break-words text-4xl font-black leading-tight [word-break:keep-all] sm:text-[3rem]">
+          <h2 className="mt-2.5 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-[2.25rem]">
             {characterName}
           </h2>
-          <p className="mt-3 max-w-xl text-[1.02rem] font-medium leading-8 text-black/66 sm:text-lg sm:leading-8">
+          <p className="mt-2 line-clamp-3 max-w-xl text-sm font-medium leading-6 text-black/62 sm:text-base sm:leading-7">
             {character?.summary ?? sourceContent?.summary}
           </p>
 
-          <div className="mt-5 grid grid-cols-3 gap-2 border-y border-black/10 py-4">
+          <div className="mt-3 grid grid-cols-3 gap-2 border-y border-black/10 py-2.5 sm:mt-4 sm:py-3">
             {stats.map((stat) => (
               <div
-                className="min-w-0 border-r border-black/10 px-2 first:pl-0 last:border-r-0 last:pr-0"
+                className="min-w-0 border-r border-black/10 px-1.5 first:pl-0 last:border-r-0 last:pr-0 sm:px-2"
                 key={stat.label}
               >
-                <p className="truncate text-2xl font-black text-[#111510]">
+                <p className="truncate text-lg font-black text-[#111510] sm:text-xl">
                   {stat.value}
                 </p>
-                <p className="mt-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42">
+                <p className="mt-0.5 truncate text-[0.58rem] font-black uppercase tracking-[0.06em] text-black/42 sm:text-[0.62rem]">
                   {stat.label}
                 </p>
               </div>
@@ -763,14 +764,14 @@ function CharacterIdentityFeature({
           </div>
 
           {traits.length > 0 ? (
-            <div className="mt-5">
-              <p className="text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+            <div className="mt-3 sm:mt-4">
+              <p className="text-[0.66rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
                 {copy.characterIdentity.traitLabel}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {traits.map((trait) => (
                   <span
-                    className="border border-black/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-black/68 shadow-[0_8px_18px_rgba(17,21,16,0.04)]"
+                    className="border border-black/10 bg-[#f7f9f4] px-2 py-1 text-[0.68rem] font-bold leading-4 text-black/62"
                     key={trait}
                   >
                     {trait}
@@ -781,19 +782,19 @@ function CharacterIdentityFeature({
           ) : null}
 
           {latestTitle ? (
-            <div className="mt-5 border-l-4 border-[#44f26e] bg-white px-4 py-3 shadow-[0_10px_28px_rgba(17,21,16,0.05)]">
+            <div className="mt-3 border-l-[3px] border-[#44f26e] bg-[#f7f9f4] px-3 py-2 sm:mt-4">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
                 {copy.characterIdentity.latestLabel}
               </p>
-              <p className="mt-1 break-words text-sm font-bold leading-6 text-black/72 [word-break:keep-all]">
+              <p className="mt-1 line-clamp-1 break-words text-xs font-bold leading-5 text-black/68 [word-break:keep-all] sm:text-sm">
                 {latestTitle}
               </p>
             </div>
           ) : null}
 
-          <div className="mt-auto pt-5">
+          <div className="mt-auto pt-3 sm:pt-4">
             <Link
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 py-3 text-sm font-black !text-white shadow-[0_18px_34px_rgba(17,21,16,0.18)] transition hover:bg-black sm:w-auto"
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-3 py-2 text-xs font-black !text-white shadow-[0_12px_26px_rgba(17,21,16,0.14)] transition hover:bg-black sm:w-auto sm:text-sm"
               href={creatorHref}
             >
               <MessageCircleHeart className="size-4 text-[#44f26e]" />
