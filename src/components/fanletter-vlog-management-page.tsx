@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Archive,
@@ -10,8 +11,10 @@ import {
   Check,
   Clapperboard,
   Coins,
+  Crop,
   Eye,
   Heart,
+  ImageIcon,
   LockKeyhole,
   Loader2,
   MessageCircle,
@@ -19,6 +22,7 @@ import {
   Newspaper,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
   ShieldAlert,
   ShieldCheck,
@@ -26,8 +30,17 @@ import {
   type LucideIcon,
   Video,
   WalletCards,
+  X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import {
   useActiveAccount,
   useActiveWalletChain,
@@ -39,6 +52,7 @@ import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-l
 import { useMemberSession } from "@/components/member-session-provider";
 import {
   getContentVideoAssetSource,
+  type ContentCoverImageCandidate,
   type ContentMaturityRating,
   type ContentPostMutationResponse,
   type ContentPostStatus,
@@ -46,6 +60,7 @@ import {
   type CreatorStudioPostRecord,
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -74,8 +89,57 @@ type VlogManagementState = {
   summary: CreatorStudioPostsResponse["summary"];
 };
 
+type VlogCoverOptionSource = ContentCoverImageCandidate["source"] | "current";
+
+type VlogCoverOption = {
+  candidateId: string;
+  contentType: string | null;
+  height: number | null;
+  imageUrl: string;
+  inputValue: string;
+  isSelected: boolean;
+  key: string;
+  placements: string[];
+  source: VlogCoverOptionSource;
+  timestampSec: number | null;
+  width: number | null;
+};
+
+type VlogCoverCropState = {
+  centerX: number;
+  centerY: number;
+  zoom: number;
+};
+
+type VlogCoverNaturalSize = {
+  height: number;
+  width: number;
+};
+
+type VlogCoverCropRect = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+type VlogCoverUploadResponse = {
+  contentType: string;
+  pathname: string;
+  url: string;
+};
+
 const FANLETTER_VLOG_DISCONNECTED_GRACE_MS = 4500;
 const VLOGS_PAGE_SIZE = 18;
+const VLOG_COVER_CROP_ASPECT_RATIO = 16 / 9;
+const VLOG_COVER_CROP_MAX_ZOOM = 3;
+const VLOG_COVER_CROP_OUTPUT_HEIGHT = 675;
+const VLOG_COVER_CROP_OUTPUT_WIDTH = 1200;
+const DEFAULT_VLOG_COVER_CROP: VlogCoverCropState = {
+  centerX: 0.5,
+  centerY: 0.5,
+  zoom: 1,
+};
 const EMPTY_SUMMARY: CreatorStudioPostsResponse["summary"] = {
   all: 0,
   archived: 0,
@@ -102,6 +166,7 @@ function getCopy(locale: Locale) {
         actions: {
           archive: "보관",
           back: "스튜디오",
+          changeCover: "커버 변경",
           channels: "채널 배포",
           connect: "계정 연결",
           create: "새 브이로그 만들기",
@@ -122,6 +187,36 @@ function getCopy(locale: Locale) {
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
+        cover: {
+          cropFailed: "크롭 이미지를 업로드하지 못했습니다.",
+          cropHelper:
+            "드래그로 위치를 맞추고 확대값을 조정해 목록과 상세에 맞는 대표 커버를 저장합니다.",
+          cropLabel: "16:9 커버 크롭",
+          cropOriginal: "선택한 원본 그대로 사용",
+          cropReset: "초기화",
+          cropSave: "크롭 저장",
+          cropSaving: "저장 중",
+          cropUnavailable: "이 이미지는 크롭할 수 없습니다.",
+          cropZoom: "확대",
+          modalBody:
+            "동영상 콘텐츠의 목록, 상세, 공유 화면에 보일 대표 이미지를 선택하고 16:9 비율로 편집합니다.",
+          modalClose: "닫기",
+          modalEmpty: "저장된 커버 후보가 아직 없습니다.",
+          modalEyebrow: "콘텐츠 커버",
+          modalTitle: "브이로그 커버 이미지 선택",
+          optionCurrent: "현재 사용 중",
+          optionSelected: "편집 중",
+          optionUse: "이 이미지 선택",
+          saveFailed: "커버 이미지를 저장하지 못했습니다.",
+          savedNotice: "브이로그 커버 이미지를 변경했습니다.",
+          sourceLabels: {
+            ai: "AI 생성",
+            current: "현재 커버",
+            frame: "영상 프레임",
+            manual: "직접 업로드",
+          },
+          unavailable: "커버 이미지 없음",
+        },
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
         emptyTitle: "첫 브이로그를 만들 시간입니다.",
@@ -178,6 +273,7 @@ function getCopy(locale: Locale) {
         actions: {
           archive: "Archive",
           back: "Studio",
+          changeCover: "Change cover",
           channels: "Channel distribution",
           connect: "Connect account",
           create: "Create new vlog",
@@ -198,6 +294,36 @@ function getCopy(locale: Locale) {
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
+        cover: {
+          cropFailed: "Could not upload the cropped image.",
+          cropHelper:
+            "Drag to position and adjust zoom, then save a lead cover for lists and detail pages.",
+          cropLabel: "16:9 cover crop",
+          cropOriginal: "Use selected original",
+          cropReset: "Reset",
+          cropSave: "Save crop",
+          cropSaving: "Saving",
+          cropUnavailable: "This image cannot be cropped.",
+          cropZoom: "Zoom",
+          modalBody:
+            "Choose and edit the lead image shown for this video content in lists, detail pages, and shares.",
+          modalClose: "Close",
+          modalEmpty: "No saved cover candidates are available yet.",
+          modalEyebrow: "Content cover",
+          modalTitle: "Select vlog cover image",
+          optionCurrent: "Currently used",
+          optionSelected: "Editing",
+          optionUse: "Choose this image",
+          saveFailed: "Could not save the cover image.",
+          savedNotice: "The vlog cover image has been changed.",
+          sourceLabels: {
+            ai: "AI generated",
+            current: "Current cover",
+            frame: "Video frame",
+            manual: "Manual upload",
+          },
+          unavailable: "No cover image",
+        },
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
         emptyTitle: "Create your first vlog.",
@@ -298,8 +424,190 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
+function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale) {
+  if (timestampSec === null || !Number.isFinite(timestampSec)) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.floor(timestampSec));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return locale === "ko"
+    ? `${minutes}분 ${seconds.toString().padStart(2, "0")}초`
+    : `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 function getPostVideoUrl(post: Pick<CreatorStudioPostRecord, "contentVideoUrls">) {
   return post.contentVideoUrls[0] ?? null;
+}
+
+function buildVlogCoverOptions(post: CreatorStudioPostRecord): VlogCoverOption[] {
+  const currentCoverUrl = post.coverImageUrl?.trim() ?? "";
+  const seenUrls = new Set<string>();
+  const options: VlogCoverOption[] = (post.coverImageCandidates ?? []).flatMap(
+    (candidate) => {
+      const imageUrl = candidate.url?.trim();
+
+      if (!imageUrl || seenUrls.has(imageUrl)) {
+        return [];
+      }
+
+      seenUrls.add(imageUrl);
+
+      return [
+        {
+          candidateId: candidate.candidateId,
+          contentType: candidate.contentType,
+          height: candidate.height,
+          imageUrl,
+          inputValue: imageUrl,
+          isSelected: Boolean(currentCoverUrl && currentCoverUrl === imageUrl),
+          key: `${candidate.candidateId}:${imageUrl}`,
+          placements: candidate.placements ?? [],
+          source: candidate.source,
+          timestampSec: candidate.timestampSec,
+          width: candidate.width,
+        },
+      ];
+    },
+  );
+
+  if (currentCoverUrl && !seenUrls.has(currentCoverUrl)) {
+    options.unshift({
+      candidateId: "current-cover",
+      contentType: null,
+      height: null,
+      imageUrl: currentCoverUrl,
+      inputValue: currentCoverUrl,
+      isSelected: true,
+      key: `current:${currentCoverUrl}`,
+      placements: [],
+      source: "current",
+      timestampSec: null,
+      width: null,
+    });
+  }
+
+  return options;
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getVlogCoverCropRect({
+  crop,
+  naturalSize,
+}: {
+  crop: VlogCoverCropState;
+  naturalSize: VlogCoverNaturalSize | null;
+}): VlogCoverCropRect | null {
+  if (!naturalSize || naturalSize.width <= 0 || naturalSize.height <= 0) {
+    return null;
+  }
+
+  const sourceAspectRatio = naturalSize.width / naturalSize.height;
+  const baseWidth =
+    sourceAspectRatio >= VLOG_COVER_CROP_ASPECT_RATIO
+      ? naturalSize.height * VLOG_COVER_CROP_ASPECT_RATIO
+      : naturalSize.width;
+  const baseHeight = baseWidth / VLOG_COVER_CROP_ASPECT_RATIO;
+  const zoom = clampNumber(crop.zoom, 1, VLOG_COVER_CROP_MAX_ZOOM);
+  const width = baseWidth / zoom;
+  const height = baseHeight / zoom;
+  const minCenterX = width / (2 * naturalSize.width);
+  const maxCenterX = 1 - minCenterX;
+  const minCenterY = height / (2 * naturalSize.height);
+  const maxCenterY = 1 - minCenterY;
+  const centerX = clampNumber(crop.centerX, minCenterX, maxCenterX);
+  const centerY = clampNumber(crop.centerY, minCenterY, maxCenterY);
+
+  return {
+    height,
+    width,
+    x: centerX * naturalSize.width - width / 2,
+    y: centerY * naturalSize.height - height / 2,
+  };
+}
+
+function getVlogCoverPreviewImageStyle({
+  cropRect,
+  naturalSize,
+}: {
+  cropRect: VlogCoverCropRect;
+  naturalSize: VlogCoverNaturalSize;
+}) {
+  return {
+    height: `${(naturalSize.height / cropRect.height) * 100}%`,
+    left: `${-(cropRect.x / cropRect.width) * 100}%`,
+    top: `${-(cropRect.y / cropRect.height) * 100}%`,
+    width: `${(naturalSize.width / cropRect.width) * 100}%`,
+  };
+}
+
+function loadImageForCrop(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      resolve(image);
+    };
+    image.onerror = () => {
+      reject(new Error("Could not load the selected cover image."));
+    };
+    image.src = src;
+  });
+}
+
+async function createCroppedVlogCoverBlob({
+  crop,
+  sourceImageUrl,
+}: {
+  crop: VlogCoverCropState;
+  sourceImageUrl: string;
+}) {
+  const image = await loadImageForCrop(sourceImageUrl);
+  const naturalSize = {
+    height: image.naturalHeight,
+    width: image.naturalWidth,
+  };
+  const cropRect = getVlogCoverCropRect({ crop, naturalSize });
+
+  if (!cropRect) {
+    throw new Error("Could not read the selected cover image size.");
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.height = VLOG_COVER_CROP_OUTPUT_HEIGHT;
+  canvas.width = VLOG_COVER_CROP_OUTPUT_WIDTH;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Could not prepare the cover crop.");
+  }
+
+  context.drawImage(
+    image,
+    cropRect.x,
+    cropRect.y,
+    cropRect.width,
+    cropRect.height,
+    0,
+    0,
+    VLOG_COVER_CROP_OUTPUT_WIDTH,
+    VLOG_COVER_CROP_OUTPUT_HEIGHT,
+  );
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.9);
+  });
+
+  if (!blob) {
+    throw new Error("Could not encode the cover image.");
+  }
+
+  return blob;
 }
 
 async function readApiJson<T>(response: Response, fallback: string): Promise<T> {
@@ -458,6 +766,23 @@ export function FanletterVlogManagementPage({
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [searchInput, setSearchInput] = useState(appliedQuery);
   const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
+  const [activeCoverPostId, setActiveCoverPostId] = useState<string | null>(null);
+  const [selectedCoverOptionKey, setSelectedCoverOptionKey] =
+    useState<string | null>(null);
+  const [savingCoverKey, setSavingCoverKey] = useState<string | null>(null);
+  const [coverCrop, setCoverCrop] = useState<VlogCoverCropState>(
+    DEFAULT_VLOG_COVER_CROP,
+  );
+  const [coverCropError, setCoverCropError] = useState<string | null>(null);
+  const [coverNaturalSize, setCoverNaturalSize] =
+    useState<VlogCoverNaturalSize | null>(null);
+  const coverCropFrameRef = useRef<HTMLDivElement | null>(null);
+  const coverCropDragRef = useRef<{
+    initialCrop: VlogCoverCropState;
+    pointerId: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
   const [state, setState] = useState<VlogManagementState>({
     error: null,
     member: memberSession.member,
@@ -472,10 +797,79 @@ export function FanletterVlogManagementPage({
     state.profile?.characterPersona?.name?.trim() ||
     state.profile?.displayName?.trim() ||
     copy.title;
+  const activeCoverPost =
+    state.posts.find((post) => post.contentId === activeCoverPostId) ?? null;
+  const coverOptions = useMemo(
+    () => (activeCoverPost ? buildVlogCoverOptions(activeCoverPost) : []),
+    [activeCoverPost],
+  );
+  const selectedCoverOption = useMemo(() => {
+    if (coverOptions.length === 0) {
+      return null;
+    }
+
+    return (
+      coverOptions.find((option) => option.key === selectedCoverOptionKey) ??
+      coverOptions.find((option) => option.isSelected) ??
+      coverOptions[0] ??
+      null
+    );
+  }, [coverOptions, selectedCoverOptionKey]);
+  const coverCropRect = useMemo(
+    () =>
+      getVlogCoverCropRect({
+        crop: coverCrop,
+        naturalSize: coverNaturalSize,
+      }),
+    [coverCrop, coverNaturalSize],
+  );
+  const coverPreviewImageStyle =
+    coverCropRect && coverNaturalSize
+      ? getVlogCoverPreviewImageStyle({
+          cropRect: coverCropRect,
+          naturalSize: coverNaturalSize,
+        })
+      : null;
 
   useEffect(() => {
     setSearchInput(appliedQuery);
   }, [appliedQuery]);
+
+  useEffect(() => {
+    if (!activeCoverPostId) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [activeCoverPostId]);
+
+  useEffect(() => {
+    if (!activeCoverPostId) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveCoverPostId(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeCoverPostId]);
+
+  useEffect(() => {
+    setCoverCrop(DEFAULT_VLOG_COVER_CROP);
+    setCoverCropError(null);
+    setCoverNaturalSize(null);
+  }, [selectedCoverOptionKey]);
 
   const buildManagerHref = useCallback(
     (options?: {
@@ -691,9 +1085,9 @@ export function FanletterVlogManagementPage({
     memberSession.member,
   ]);
 
-  async function resolveMemberEmail() {
+  const resolveMemberEmail = useCallback(async () => {
     return resolveEmail();
-  }
+  }, [resolveEmail]);
 
   async function updatePostStatus(
     post: CreatorStudioPostRecord,
@@ -787,6 +1181,254 @@ export function FanletterVlogManagementPage({
       setUpdatingPostId(null);
     }
   }
+
+  const openCoverModal = useCallback((post: CreatorStudioPostRecord) => {
+    const options = buildVlogCoverOptions(post);
+    const selectedOption =
+      options.find((option) => option.isSelected) ?? options[0] ?? null;
+
+    setActiveCoverPostId(post.contentId);
+    setSelectedCoverOptionKey(selectedOption?.key ?? null);
+    setSavingCoverKey(null);
+    setCoverCrop(DEFAULT_VLOG_COVER_CROP);
+    setCoverCropError(null);
+    setCoverNaturalSize(null);
+  }, []);
+
+  const savePostCoverImage = useCallback(
+    async ({
+      coverImageUrl,
+      post,
+      resolvedEmail,
+      savingKey,
+    }: {
+      coverImageUrl: string;
+      post: CreatorStudioPostRecord;
+      resolvedEmail?: string;
+      savingKey: string;
+    }) => {
+      if (!accountAddress) {
+        return;
+      }
+
+      setSavingCoverKey(savingKey);
+      setUpdatingPostId(post.contentId);
+      setCoverCropError(null);
+
+      try {
+        const emailForRequest = resolvedEmail ?? (await resolveMemberEmail());
+        const response = await fetch(`/api/content/posts/${post.contentId}`, {
+          body: JSON.stringify({
+            coverImageUrl,
+            email: emailForRequest,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
+        const data = await readApiJson<ContentPostMutationResponse>(
+          response,
+          copy.cover.saveFailed,
+        );
+
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice: copy.cover.savedNotice,
+          posts: current.posts.map((currentPost) =>
+            currentPost.contentId === data.content.contentId
+              ? {
+                  ...currentPost,
+                  coverImageCandidates: data.content.coverImageCandidates,
+                  coverImageUrl: data.content.coverImageUrl,
+                  updatedAt: data.content.updatedAt,
+                }
+              : currentPost,
+          ),
+        }));
+        setSelectedCoverOptionKey(null);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : copy.cover.saveFailed;
+
+        setCoverCropError(message);
+        setState((current) => ({
+          ...current,
+          error: message,
+          notice: null,
+        }));
+      } finally {
+        setSavingCoverKey(null);
+        setUpdatingPostId(null);
+      }
+    },
+    [
+      accountAddress,
+      copy.cover.saveFailed,
+      copy.cover.savedNotice,
+      resolveMemberEmail,
+    ],
+  );
+
+  const selectOriginalCover = useCallback(async () => {
+    if (!activeCoverPost || !selectedCoverOption) {
+      return;
+    }
+
+    await savePostCoverImage({
+      coverImageUrl: selectedCoverOption.inputValue,
+      post: activeCoverPost,
+      savingKey: selectedCoverOption.key,
+    });
+  }, [activeCoverPost, savePostCoverImage, selectedCoverOption]);
+
+  const uploadCroppedCover = useCallback(
+    async ({
+      post,
+      resolvedEmail,
+      sourceImageUrl,
+    }: {
+      post: CreatorStudioPostRecord;
+      resolvedEmail: string;
+      sourceImageUrl: string;
+    }) => {
+      if (!accountAddress) {
+        throw new Error(copy.connectRequired);
+      }
+
+      const blob = await createCroppedVlogCoverBlob({
+        crop: coverCrop,
+        sourceImageUrl,
+      });
+      const file = new File([blob], `fanletter-vlog-cover-${post.contentId}.jpg`, {
+        type: "image/jpeg",
+      });
+      const formData = new FormData();
+
+      formData.set("email", resolvedEmail);
+      formData.set("file", file);
+      formData.set("walletAddress", accountAddress);
+
+      const response = await fetch("/api/content/posts/upload", {
+        body: formData,
+        method: "POST",
+      });
+      const data = await readApiJson<VlogCoverUploadResponse>(
+        response,
+        copy.cover.cropFailed,
+      );
+
+      return data.url;
+    },
+    [accountAddress, copy.connectRequired, copy.cover.cropFailed, coverCrop],
+  );
+
+  const saveCroppedCover = useCallback(async () => {
+    if (!activeCoverPost || !selectedCoverOption) {
+      return;
+    }
+
+    const savingKey = `crop:${selectedCoverOption.key}`;
+
+    setSavingCoverKey(savingKey);
+    setCoverCropError(null);
+
+    try {
+      const resolvedEmail = await resolveMemberEmail();
+      const croppedCoverUrl = await uploadCroppedCover({
+        post: activeCoverPost,
+        resolvedEmail,
+        sourceImageUrl: selectedCoverOption.inputValue,
+      });
+
+      await savePostCoverImage({
+        coverImageUrl: croppedCoverUrl,
+        post: activeCoverPost,
+        resolvedEmail,
+        savingKey,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : copy.cover.cropFailed;
+
+      setCoverCropError(message);
+      setSavingCoverKey(null);
+    }
+  }, [
+    activeCoverPost,
+    copy.cover.cropFailed,
+    resolveMemberEmail,
+    savePostCoverImage,
+    selectedCoverOption,
+    uploadCroppedCover,
+  ]);
+
+  const handleCoverCropPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (!coverCropRect || !coverNaturalSize) {
+        return;
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      coverCropDragRef.current = {
+        initialCrop: coverCrop,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+      };
+    },
+    [coverCrop, coverCropRect, coverNaturalSize],
+  );
+
+  const handleCoverCropPointerMove = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const drag = coverCropDragRef.current;
+      const frame = coverCropFrameRef.current;
+
+      if (
+        !drag ||
+        drag.pointerId !== event.pointerId ||
+        !frame ||
+        !coverCropRect ||
+        !coverNaturalSize
+      ) {
+        return;
+      }
+
+      const frameRect = frame.getBoundingClientRect();
+
+      if (frameRect.width <= 0 || frameRect.height <= 0) {
+        return;
+      }
+
+      const deltaX = event.clientX - drag.startX;
+      const deltaY = event.clientY - drag.startY;
+      const cropDeltaX =
+        (deltaX / frameRect.width) *
+        (coverCropRect.width / coverNaturalSize.width);
+      const cropDeltaY =
+        (deltaY / frameRect.height) *
+        (coverCropRect.height / coverNaturalSize.height);
+
+      setCoverCrop((current) => ({
+        ...current,
+        centerX: drag.initialCrop.centerX - cropDeltaX,
+        centerY: drag.initialCrop.centerY - cropDeltaY,
+      }));
+    },
+    [coverCropRect, coverNaturalSize],
+  );
+
+  const handleCoverCropPointerEnd = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (coverCropDragRef.current?.pointerId === event.pointerId) {
+        coverCropDragRef.current = null;
+      }
+    },
+    [],
+  );
 
   const isInitialLoading =
     state.status === "loading" &&
@@ -1354,6 +1996,7 @@ export function FanletterVlogManagementPage({
                     onArchive={() => {
                       void updatePostStatus(post, "archived");
                     }}
+                    onChangeCover={() => openCoverModal(post)}
                     onToggleMaturity={(nextContentMaturityRating) => {
                       void updatePostMaturity(post, nextContentMaturityRating);
                     }}
@@ -1430,6 +2073,283 @@ export function FanletterVlogManagementPage({
           </div>
         </div>
       </section>
+      {activeCoverPost ? (
+        <div className="fixed inset-0 z-[80] flex items-stretch justify-center bg-black/66 p-0 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4">
+          <div
+            aria-labelledby="fanletter-vlog-cover-modal-title"
+            aria-modal="true"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl sm:rounded-lg"
+            role="dialog"
+          >
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  <ImageIcon className="size-4" />
+                  {copy.cover.modalEyebrow}
+                </p>
+                <h2
+                  className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl"
+                  id="fanletter-vlog-cover-modal-title"
+                >
+                  {copy.cover.modalTitle}
+                </h2>
+                <p className="mt-1.5 line-clamp-1 max-w-2xl text-sm font-medium leading-5 text-black/58 sm:mt-2 sm:line-clamp-2 sm:leading-6">
+                  {activeCoverPost.title}
+                </p>
+                <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-6 text-black/54 sm:block">
+                  {copy.cover.modalBody}
+                </p>
+              </div>
+              <button
+                aria-label={copy.cover.modalClose}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-black/12 bg-[#f5f6f1] text-black/56 transition hover:border-black/24 hover:bg-white hover:text-black sm:size-10"
+                onClick={() => setActiveCoverPostId(null)}
+                type="button"
+              >
+                <X className="size-[1.125rem] sm:size-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-5 sm:py-4 sm:pb-4">
+              {coverOptions.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-black/14 bg-white px-4 py-10 text-center">
+                  <ImageIcon className="mx-auto size-9 text-[#16702e]" />
+                  <p className="mx-auto mt-3 max-w-sm text-sm font-bold leading-6 text-black/48">
+                    {copy.cover.modalEmpty}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="-mx-3 grid snap-x snap-mandatory auto-cols-[8.25rem] grid-flow-col gap-2 overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 sm:snap-none lg:grid-cols-3 [&::-webkit-scrollbar]:hidden">
+                    {coverOptions.map((option, index) => {
+                      const isEditing =
+                        selectedCoverOption?.key === option.key ||
+                        (!selectedCoverOption && option.isSelected);
+                      const isSaving =
+                        savingCoverKey === option.key ||
+                        savingCoverKey === `crop:${option.key}`;
+                      const timestamp = formatCoverOptionTimestamp(
+                        option.timestampSec,
+                        locale,
+                      );
+                      const shouldBypassOptionImageOptimization =
+                        shouldBypassFanletterImageOptimization(option.imageUrl);
+
+                      return (
+                        <button
+                          className={`group flex h-full min-w-0 snap-start flex-col overflow-hidden rounded-lg border text-left transition ${
+                            isEditing
+                              ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_12px_30px_rgba(25,184,75,0.14)]"
+                              : "border-black/10 bg-white hover:border-[#19b84b] hover:bg-white"
+                          } disabled:cursor-not-allowed disabled:opacity-72`}
+                          disabled={Boolean(savingCoverKey)}
+                          key={option.key}
+                          onClick={() => setSelectedCoverOptionKey(option.key)}
+                          type="button"
+                        >
+                          <span className="relative block aspect-square w-full overflow-hidden bg-[#111510] sm:aspect-[5/6]">
+                            <Image
+                              alt=""
+                              aria-hidden="true"
+                              className="scale-110 object-cover blur-xl brightness-[0.42] saturate-[0.9]"
+                              fill
+                              loading={index === 0 ? "eager" : "lazy"}
+                              sizes="(max-width: 640px) 132px, 280px"
+                              src={option.imageUrl}
+                              unoptimized={shouldBypassOptionImageOptimization}
+                            />
+                            <Image
+                              alt=""
+                              aria-hidden="true"
+                              className="object-contain transition duration-300 group-hover:scale-[1.02]"
+                              fill
+                              loading={index === 0 ? "eager" : "lazy"}
+                              sizes="(max-width: 640px) 132px, 280px"
+                              src={option.imageUrl}
+                              unoptimized={shouldBypassOptionImageOptimization}
+                            />
+                            <span className="absolute left-1.5 top-1.5 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 border border-white/18 bg-black/46 px-1.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/78 backdrop-blur sm:left-2 sm:top-2 sm:gap-1.5 sm:px-2 sm:text-[0.62rem] sm:tracking-[0.1em]">
+                              {option.isSelected ? (
+                                <Check className="size-3 shrink-0 text-[#44f26e] sm:size-3.5" />
+                              ) : isSaving ? (
+                                <Loader2 className="size-3 shrink-0 animate-spin text-[#44f26e] sm:size-3.5" />
+                              ) : (
+                                <ImageIcon className="size-3 shrink-0 text-[#44f26e] sm:size-3.5" />
+                              )}
+                              <span className="truncate">
+                                {copy.cover.sourceLabels[option.source]}
+                              </span>
+                            </span>
+                          </span>
+                          <span className="flex min-h-[4.25rem] w-full flex-col p-2 sm:min-h-[5.4rem] sm:p-3">
+                            <span className="line-clamp-2 text-xs font-black leading-4 text-[#111510] sm:line-clamp-1 sm:text-sm">
+                              {isSaving
+                                ? copy.cover.cropSaving
+                                : option.isSelected
+                                  ? copy.cover.optionCurrent
+                                  : isEditing
+                                    ? copy.cover.optionSelected
+                                    : copy.cover.optionUse}
+                            </span>
+                            <span className="mt-1 flex max-h-9 flex-wrap overflow-hidden gap-x-1.5 gap-y-0.5 text-[0.62rem] font-bold leading-4 text-black/46 sm:max-h-none sm:gap-x-2 sm:gap-y-1 sm:text-[0.68rem]">
+                              {timestamp ? <span>{timestamp}</span> : null}
+                              {option.contentType ? (
+                                <span>{option.contentType}</span>
+                              ) : null}
+                              {option.placements.length > 0 ? (
+                                <span>{option.placements.join(", ")}</span>
+                              ) : null}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedCoverOption ? (
+                    <div className="mt-3 rounded-lg border border-black/10 bg-white p-3 sm:mt-4 sm:p-4">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-[#111510]">
+                            {copy.cover.cropLabel}
+                          </p>
+                          <p className="mt-1 text-xs font-bold leading-5 text-black/48">
+                            {copy.cover.cropHelper}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row lg:shrink-0">
+                          <button
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-black/12 px-2 py-2 text-center text-xs font-black leading-4 text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
+                            disabled={
+                              Boolean(savingCoverKey) ||
+                              selectedCoverOption.isSelected
+                            }
+                            onClick={() => {
+                              void selectOriginalCover();
+                            }}
+                            type="button"
+                          >
+                            {savingCoverKey === selectedCoverOption.key ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <RotateCcw className="size-4" />
+                            )}
+                            {savingCoverKey === selectedCoverOption.key
+                              ? copy.cover.cropSaving
+                              : copy.cover.cropOriginal}
+                          </button>
+                          <button
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
+                            disabled={Boolean(savingCoverKey)}
+                            onClick={() => {
+                              void saveCroppedCover();
+                            }}
+                            type="button"
+                          >
+                            {savingCoverKey === `crop:${selectedCoverOption.key}` ? (
+                              <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                            ) : (
+                              <Crop className="size-4 text-[#44f26e]" />
+                            )}
+                            {savingCoverKey === `crop:${selectedCoverOption.key}`
+                              ? copy.cover.cropSaving
+                              : copy.cover.cropSave}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem]">
+                        <div
+                          className="relative aspect-video min-h-[10.5rem] cursor-grab touch-none overflow-hidden rounded-lg border border-black/10 bg-[#111510] active:cursor-grabbing sm:min-h-[12rem]"
+                          onPointerCancel={handleCoverCropPointerEnd}
+                          onPointerDown={handleCoverCropPointerDown}
+                          onPointerMove={handleCoverCropPointerMove}
+                          onPointerUp={handleCoverCropPointerEnd}
+                          ref={coverCropFrameRef}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className="absolute max-w-none select-none object-cover"
+                            crossOrigin="anonymous"
+                            draggable={false}
+                            onLoad={(event) => {
+                              const image = event.currentTarget;
+
+                              if (image.naturalWidth && image.naturalHeight) {
+                                setCoverNaturalSize({
+                                  height: image.naturalHeight,
+                                  width: image.naturalWidth,
+                                });
+                              }
+                            }}
+                            src={selectedCoverOption.inputValue}
+                            style={
+                              coverPreviewImageStyle ?? {
+                                height: "100%",
+                                left: 0,
+                                top: 0,
+                                width: "100%",
+                              }
+                            }
+                          />
+                          <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/28" />
+                          <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/18" />
+                          <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/18" />
+                          <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/18" />
+                          <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/18" />
+                        </div>
+
+                        <div className="rounded-lg border border-black/10 bg-[#f5f6f1] p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-black text-black/56">
+                              {copy.cover.cropZoom}
+                            </span>
+                            <span className="text-xs font-black text-[#16702e]">
+                              {coverCrop.zoom.toFixed(2)}x
+                            </span>
+                          </div>
+                          <input
+                            aria-label={copy.cover.cropZoom}
+                            className="mt-3 w-full accent-[#19b84b]"
+                            max={VLOG_COVER_CROP_MAX_ZOOM}
+                            min={1}
+                            onChange={(event) => {
+                              setCoverCrop((current) => ({
+                                ...current,
+                                zoom: Number(event.target.value),
+                              }));
+                            }}
+                            step={0.01}
+                            type="range"
+                            value={coverCrop.zoom}
+                          />
+                          <button
+                            className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-black/12 text-xs font-black text-black/56 transition hover:border-[#19b84b] hover:bg-white hover:text-[#111510]"
+                            onClick={() => {
+                              setCoverCrop(DEFAULT_VLOG_COVER_CROP);
+                            }}
+                            type="button"
+                          >
+                            <RotateCcw className="size-3.5" />
+                            {copy.cover.cropReset}
+                          </button>
+                          {coverCropError ? (
+                            <p className="mt-3 text-xs font-bold leading-5 text-rose-700">
+                              {coverCropError}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -1493,6 +2413,7 @@ function VlogManagerCard({
   isUpdating,
   locale,
   onArchive,
+  onChangeCover,
   onPublish,
   onToggleMaturity,
   post,
@@ -1503,12 +2424,15 @@ function VlogManagerCard({
   isUpdating: boolean;
   locale: Locale;
   onArchive: () => void;
+  onChangeCover: () => void;
   onPublish: () => void;
   onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
   post: CreatorStudioPostRecord;
   referralCode: string | null;
 }) {
   const videoUrl = getPostVideoUrl(post);
+  const shouldBypassCoverImageOptimization =
+    shouldBypassFanletterImageOptimization(post.coverImageUrl);
   const isNsfw = post.contentMaturityRating === "nsfw";
   const canManageNsfw =
     post.status !== "archived" &&
@@ -1550,14 +2474,21 @@ function VlogManagerCard({
   return (
     <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] md:grid-cols-[12rem_minmax(0,1fr)]">
       <div className="relative min-h-[16rem] bg-black md:min-h-full">
-        {videoUrl ? (
+        {post.coverImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 12rem"
+            src={post.coverImageUrl}
+            unoptimized={shouldBypassCoverImageOptimization}
+          />
+        ) : videoUrl ? (
           <video
-            autoPlay
             className="absolute inset-0 h-full w-full object-cover"
-            loop
             muted
             playsInline
-            poster={post.coverImageUrl ?? undefined}
             preload="metadata"
             src={videoUrl}
           />
@@ -1570,6 +2501,20 @@ function VlogManagerCard({
           <Clapperboard className="size-3.5" />
           {copy.labels.results}
         </span>
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/82 via-black/32 to-transparent p-3">
+          <p className="min-w-0 truncate text-xs font-semibold text-white/72">
+            {post.coverImageUrl ? copy.cover.sourceLabels.current : copy.cover.unavailable}
+          </p>
+          <button
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-black transition hover:bg-[#ecfff0] disabled:opacity-60"
+            disabled={isUpdating}
+            onClick={onChangeCover}
+            type="button"
+          >
+            <ImageIcon className="size-3.5 text-[#16702e]" />
+            {copy.actions.changeCover}
+          </button>
+        </div>
       </div>
 
       <div className="min-w-0 p-4 sm:p-5">
@@ -1628,7 +2573,7 @@ function VlogManagerCard({
             {copy.nsfwUnavailable}
           </p>
         ) : null}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
           <Link
             className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
             href={detailHref}
@@ -1636,6 +2581,15 @@ function VlogManagerCard({
             <Eye className="size-4" />
             {copy.actions.detail}
           </Link>
+          <button
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50"
+            disabled={isUpdating}
+            onClick={onChangeCover}
+            type="button"
+          >
+            <ImageIcon className="size-4 text-[#16702e]" />
+            {copy.actions.changeCover}
+          </button>
           {post.status !== "published" ? (
             <button
               className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold text-white transition hover:bg-black/82 disabled:opacity-50"
