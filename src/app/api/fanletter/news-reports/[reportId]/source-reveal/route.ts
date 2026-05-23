@@ -14,8 +14,15 @@ type SourceRevealResponse = {
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
+const noStoreHeaders = {
+  "Cache-Control": "no-store",
+};
+
 function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+  return Response.json(
+    { error: message },
+    { headers: noStoreHeaders, status },
+  );
 }
 
 async function getReportOrThrow(reportId: string) {
@@ -45,7 +52,7 @@ export async function GET(
       sourceReveal: createFanletterNewsSourceRevealState(social),
     };
 
-    return Response.json(response);
+    return Response.json(response, { headers: noStoreHeaders });
   } catch (error) {
     const message =
       error instanceof Error
@@ -82,7 +89,7 @@ export async function POST(
       sourceReveal: createFanletterNewsSourceRevealState(response.social),
     };
 
-    return Response.json(sourceRevealResponse);
+    return Response.json(sourceRevealResponse, { headers: noStoreHeaders });
   } catch (error) {
     const message =
       error instanceof Error

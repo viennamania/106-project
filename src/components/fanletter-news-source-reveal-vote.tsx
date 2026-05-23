@@ -7,9 +7,18 @@ import {
   HeartHandshake,
   Loader2,
   LockKeyhole,
+  RotateCcw,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useMemberSession } from "@/components/member-session-provider";
 import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
@@ -43,6 +52,8 @@ function getCopy(locale: Locale) {
         loginCta: "로그인하고 보고싶어요",
         progressReady: "공개 조건 달성",
         progressRemaining: (count: string) => `공개까지 ${count}명`,
+        refresh: "상태 다시 확인",
+        refreshing: "확인 중",
         saving: "반영 중",
         title: "팬 6명이 보고싶어요를 누르면 원본 브이로그가 열립니다",
         unlockedBody: (count: string) =>
@@ -59,6 +70,8 @@ function getCopy(locale: Locale) {
         loginCta: "Sign in to vote",
         progressReady: "Ready to open",
         progressRemaining: (count: string) => `${count} more to open`,
+        refresh: "Check status",
+        refreshing: "Checking",
         saving: "Saving",
         title: "The source vlog opens when 6 fans want to watch",
         unlockedBody: (count: string) =>
@@ -69,6 +82,15 @@ function getCopy(locale: Locale) {
 
 function formatCount(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function isSourceRevealResponse(data: unknown): data is SourceRevealResponse {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "sourceReveal" in data &&
+    typeof (data as SourceRevealResponse).sourceReveal?.count === "number"
+  );
 }
 
 export function FanletterNewsSourceRevealVote({
@@ -86,11 +108,117 @@ export function FanletterNewsSourceRevealVote({
   const memberSession = useMemberSession();
   const [state, setState] = useState(initialState);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const voteEndpoint =
+    sourceRevealEndpoint ??
+    (reportId
+      ? `/api/fanletter/news-reports/${encodeURIComponent(reportId)}/source-reveal`
+      : null);
+  const stateRef = useRef(initialState);
+
+  const applySourceRevealState = useCallback(
+    (
+      nextState: FanletterNewsSourceRevealState,
+      options?: { refreshOnUnlock?: boolean },
+    ) => {
+      const shouldRefresh =
+        options?.refreshOnUnlock === true &&
+        !stateRef.current.unlocked &&
+        nextState.unlocked;
+
+      stateRef.current = nextState;
+      setState(nextState);
+
+      if (shouldRefresh) {
+        router.refresh();
+      }
+    },
+    [router],
+  );
+
+  const refreshSourceRevealState = useCallback(
+    async (
+      options?: {
+        controller?: AbortController;
+        refreshOnUnlock?: boolean;
+        setLoading?: Dispatch<SetStateAction<boolean>>;
+        surfaceError?: boolean;
+      },
+    ) => {
+      if (!voteEndpoint) {
+        return;
+      }
+
+      options?.setLoading?.(true);
+
+      try {
+        const response = await fetch(voteEndpoint, {
+          cache: "no-store",
+          method: "GET",
+          signal: options?.controller?.signal,
+        });
+        const data = (await response.json().catch(() => null)) as unknown;
+
+        if (!response.ok || !isSourceRevealResponse(data)) {
+          throw new Error(copy.error);
+        }
+
+        applySourceRevealState(data.sourceReveal, {
+          refreshOnUnlock: options?.refreshOnUnlock,
+        });
+      } catch (refreshError) {
+        if (
+          refreshError instanceof DOMException &&
+          refreshError.name === "AbortError"
+        ) {
+          return;
+        }
+
+        if (options?.surfaceError) {
+          setError(
+            refreshError instanceof Error ? refreshError.message : copy.error,
+          );
+        }
+      } finally {
+        options?.setLoading?.(false);
+      }
+    },
+    [applySourceRevealState, copy.error, voteEndpoint],
+  );
 
   useEffect(() => {
-    setState(initialState);
-  }, [initialState]);
+    applySourceRevealState(initialState);
+  }, [applySourceRevealState, initialState]);
+
+  useEffect(() => {
+    if (!voteEndpoint) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const refresh = () => {
+      void refreshSourceRevealState({
+        controller,
+        refreshOnUnlock: true,
+      });
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refreshSourceRevealState, voteEndpoint]);
 
   const progressPercent = useMemo(() => {
     if (state.threshold <= 0) {
@@ -107,11 +235,6 @@ export function FanletterNewsSourceRevealVote({
   const isLoggedIn = Boolean(memberSession.email);
   const isDark = tone === "dark";
   const isCompact = density === "compact";
-  const voteEndpoint =
-    sourceRevealEndpoint ??
-    (reportId
-      ? `/api/fanletter/news-reports/${encodeURIComponent(reportId)}/source-reveal`
-      : null);
 
   const handleVote = async () => {
     if (isSaving || state.requestedByViewer || state.unlocked || !voteEndpoint) {
@@ -136,11 +259,9 @@ export function FanletterNewsSourceRevealVote({
         );
       }
 
-      setState(data.sourceReveal);
-
-      if (data.sourceReveal.unlocked) {
-        router.refresh();
-      }
+      applySourceRevealState(data.sourceReveal, {
+        refreshOnUnlock: true,
+      });
     } catch (voteError) {
       setError(voteError instanceof Error ? voteError.message : copy.error);
     } finally {
@@ -280,6 +401,34 @@ export function FanletterNewsSourceRevealVote({
           {copy.loginCta}
         </Link>
       )}
+
+      {voteEndpoint ? (
+        <button
+          className={cn(
+            "mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-70",
+            isDark
+              ? "border-white/14 bg-white/6 text-white/68 hover:bg-white/10"
+              : "border-black/10 bg-black/[0.03] text-black/54 hover:bg-black/[0.06]",
+          )}
+          disabled={isRefreshing || isSaving}
+          onClick={() => {
+            setError(null);
+            void refreshSourceRevealState({
+              refreshOnUnlock: true,
+              setLoading: setIsRefreshing,
+              surfaceError: true,
+            });
+          }}
+          type="button"
+        >
+          {isRefreshing ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <RotateCcw className="size-3.5" />
+          )}
+          {isRefreshing ? copy.refreshing : copy.refresh}
+        </button>
+      ) : null}
 
       {error ? (
         <p
