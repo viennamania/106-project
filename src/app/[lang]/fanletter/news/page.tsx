@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +16,6 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
   getFanletterNewsReporterProfile,
@@ -31,9 +29,7 @@ import {
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import {
-  FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
-  isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -109,11 +105,11 @@ function getCopy(locale: Locale) {
         navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그", "구매함"],
         photoDesk: "포토 뉴스",
         photoDeskBody:
-          "커버 이미지가 좋은 AI 캐릭터 뉴스를 한눈에 훑어볼 수 있게 모았습니다.",
+          "NSFW를 제외한 선명한 커버 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
         newsroomStats: "뉴스룸 현황",
         newsroomStatLabels: {
           news: "뉴스",
-          nsfw: "NSFW",
+          visuals: "포토",
           reporters: "기자",
         },
         nsfwControl: {
@@ -203,11 +199,11 @@ function getCopy(locale: Locale) {
         ],
         photoDesk: "Photo Desk",
         photoDeskBody:
-          "A visual scan of AI character stories with the strongest cover moments.",
+          "A polished editorial curation of non-NSFW character stories with strong cover moments.",
         newsroomStats: "Newsroom Status",
         newsroomStatLabels: {
           news: "News",
-          nsfw: "NSFW",
+          visuals: "Photo",
           reporters: "Desk",
         },
         nsfwControl: {
@@ -320,10 +316,15 @@ function shouldBlurReport(
   return isNsfwReport(report) && !nsfwOptInEnabled;
 }
 
+function isEditorialSafeReport(report: FanletterNewsReportDocument) {
+  return !isNsfwReport(report);
+}
+
 function isPreferredLeadReport(report: FanletterNewsReportDocument) {
   const title = `${report.title} ${report.sourceTitle}`;
 
   return (
+    isEditorialSafeReport(report) &&
     Boolean(report.coverImageUrl) &&
     !title.toLowerCase().includes("fanletter ai 팬 리포트") &&
     !title.toLowerCase().includes("fanletter ai fan report")
@@ -343,7 +344,9 @@ function getPhotoDeskReports(
   limit: number,
 ) {
   return reports
-    .filter((report) => Boolean(report.coverImageUrl))
+    .filter(
+      (report) => isEditorialSafeReport(report) && Boolean(report.coverImageUrl),
+    )
     .slice(0, limit);
 }
 
@@ -351,9 +354,10 @@ function getBalancedCharacterWireReports(
   reports: FanletterNewsReportDocument[],
   limit: number,
 ) {
+  const editorialReports = reports.filter(isEditorialSafeReport);
   const reportsByCreator = new Map<string, FanletterNewsReportDocument[]>();
 
-  for (const report of reports) {
+  for (const report of editorialReports) {
     const creatorKey = getReportCreatorKey(report);
     const creatorReports = reportsByCreator.get(creatorKey) ?? [];
 
@@ -411,18 +415,20 @@ function buildMixedNewsHomeReports({
 }) {
   const seen = new Set<string>();
   const mixedReports: FanletterNewsReportDocument[] = [];
+  const editorialLatestReports = latestReports.filter(isEditorialSafeReport);
   const leadCandidate =
-    latestReports.find(isPreferredLeadReport) ?? latestReports[0];
+    editorialLatestReports.find(isPreferredLeadReport) ??
+    editorialLatestReports[0];
   const orderedLatestReports = leadCandidate
     ? [
         leadCandidate,
-        ...latestReports.filter(
+        ...editorialLatestReports.filter(
           (report) => report.reportId !== leadCandidate.reportId,
         ),
       ]
-    : latestReports;
+    : editorialLatestReports;
   const publicQueue = publicReports.filter(
-    (report) => report.priceType !== "paid",
+    (report) => report.priceType !== "paid" && isEditorialSafeReport(report),
   );
   const publicInsertIndexes = new Set([0, 3, 7, 12, 17]);
   let publicIndex = 0;
@@ -1040,11 +1046,11 @@ function NewsFrontPage({
   leadReport,
   locale,
   nsfwOptInEnabled,
-  nsfwReportCount,
   referralCode,
   reporterStats,
   selectedReporterReferralCode,
   topStories,
+  visualReportCount,
 }: {
   characterNewsStats: FanletterNewsCharacterStat[];
   copy: ReturnType<typeof getCopy>;
@@ -1054,11 +1060,11 @@ function NewsFrontPage({
   leadReport: FanletterNewsReportDocument;
   locale: Locale;
   nsfwOptInEnabled: boolean;
-  nsfwReportCount: number;
   referralCode: string | null;
   reporterStats: ReporterStat[];
   selectedReporterReferralCode: string | null;
   topStories: FanletterNewsReportDocument[];
+  visualReportCount: number;
 }) {
   return (
     <section
@@ -1081,7 +1087,7 @@ function NewsFrontPage({
           {[
             [copy.newsroomStatLabels.news, displayedNewsCount],
             [copy.newsroomStatLabels.reporters, displayedReporterCount],
-            [copy.newsroomStatLabels.nsfw, nsfwReportCount],
+            [copy.newsroomStatLabels.visuals, visualReportCount],
           ].map(([label, value]) => (
             <div className="bg-[#f7faf4] p-3" key={label}>
               <p className="text-xl font-black leading-none">
@@ -1510,22 +1516,22 @@ function PhotoDesk({
   const [leadPhoto, ...restPhotos] = reports;
 
   return (
-    <section className="border-y-2 border-[#111510] bg-[#111510] p-3 text-white shadow-[0_20px_55px_rgba(17,21,16,0.16)] sm:p-4">
-      <div className="mb-4 grid gap-2 border-b border-white/18 pb-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
+    <section className="overflow-hidden border-y-2 border-[#111510] bg-white text-[#111510] shadow-[0_22px_60px_rgba(17,21,16,0.08)]">
+      <div className="grid gap-3 border-b-2 border-[#111510] p-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,0.42fr)] sm:items-end sm:p-5">
         <div>
-          <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-            FanLetter Visual
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.26em] text-[#16702e]">
+            FanLetter Visual Edit
           </p>
-          <h2 className="mt-1 text-2xl font-black tracking-normal">
+          <h2 className="mt-2 max-w-3xl text-[2.6rem] font-black leading-[0.96] tracking-normal sm:text-[4.7rem]">
             {copy.photoDesk}
           </h2>
         </div>
-        <p className="text-sm font-semibold leading-6 text-white/58 sm:text-right">
+        <p className="text-sm font-semibold leading-6 text-black/58 sm:text-right">
           {copy.photoDeskBody}
         </p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.16fr)_minmax(18rem,0.84fr)]">
+      <div className="grid gap-px bg-[#111510] lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
         {leadPhoto ? (
           <PhotoDeskStory
             copy={copy}
@@ -1536,7 +1542,7 @@ function PhotoDesk({
           />
         ) : null}
         {restPhotos.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <div className="grid gap-px bg-[#111510] sm:grid-cols-3 lg:grid-cols-1">
             {restPhotos.slice(0, 3).map((report) => (
               <PhotoDeskStory
                 copy={copy}
@@ -1573,10 +1579,10 @@ function PhotoDeskStory({
 
   return (
     <Link
-      className={`group relative block overflow-hidden border border-white/16 bg-black text-white ${
+      className={`group relative block overflow-hidden bg-[#111510] text-white ${
         featured
-          ? "min-h-[18rem] sm:min-h-[22rem]"
-          : "min-h-[8.75rem] sm:min-h-[10.5rem]"
+          ? "min-h-[25rem] sm:min-h-[32rem]"
+          : "min-h-[14rem] sm:min-h-[16rem]"
       }`}
       href={getReportHref(report, referralCode)}
     >
@@ -1594,36 +1600,37 @@ function PhotoDeskStory({
           }
         />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/24 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-        <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em]">
-          <span className="bg-[#44f26e] px-2 py-1 text-black">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+        <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.18em]">
+          <span className="bg-white px-2.5 py-1 text-[#111510]">
             {getAccessLabel(report, copy)}
           </span>
           {publishedAt ? (
-            <span className="border border-white/20 bg-white/12 px-2 py-1 text-white/72">
+            <span className="border border-white/24 bg-black/28 px-2.5 py-1 text-white/78 backdrop-blur">
               {publishedAt}
             </span>
           ) : null}
         </div>
         <h2
-          className={`mt-2 break-words font-black leading-tight [word-break:keep-all] group-hover:text-[#44f26e] ${
+          className={`mt-3 max-w-4xl break-words font-black leading-[0.98] tracking-normal text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.45)] [word-break:keep-all] group-hover:text-[#f5f7f1] ${
             featured
-              ? "line-clamp-3 text-2xl sm:text-3xl"
-              : "line-clamp-2 text-lg"
+              ? "line-clamp-3 text-[2.3rem] sm:text-[4.2rem]"
+              : "line-clamp-3 text-2xl sm:text-3xl"
           } ${shouldBlur ? "select-none blur-[2px]" : ""}`}
         >
           {title}
         </h2>
         {featured ? (
           <p
-            className={`mt-2 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/68 ${
+            className={`mt-4 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/72 sm:text-base sm:leading-7 ${
               shouldBlur ? "select-none blur-[2px]" : ""
             }`}
           >
             {report.dek}
           </p>
         ) : null}
+        <div className="mt-4 h-px w-16 bg-white/70 transition group-hover:w-24" />
       </div>
     </Link>
   );
@@ -2050,10 +2057,7 @@ export default async function LocalizedFanletterNewsHomePage({
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
   const activeReporterReferralCode = readFanletterReferralCode(query.reporter);
-  const cookieStore = await cookies();
-  const nsfwOptInEnabled = isFanletterNsfwOptedIn(
-    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
-  );
+  const nsfwOptInEnabled = false;
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
@@ -2093,15 +2097,15 @@ export default async function LocalizedFanletterNewsHomePage({
     limit: 28,
     publicReports,
   });
-  const nsfwReportCount = reports.filter(isNsfwReport).length;
-  const visibleReports = reports.filter(
-    (report) => !shouldBlurReport(report, nsfwOptInEnabled),
-  );
+  const editorialAllReports = allReports.filter(isEditorialSafeReport);
+  const excludedNsfwReportCount = new Set(
+    [...latestNewsReports, ...publicReports]
+      .filter(isNsfwReport)
+      .map((report) => report.reportId),
+  ).size;
   const leadReport =
-    visibleReports.find(isPreferredLeadReport) ??
-    visibleReports.find((report) => Boolean(report.coverImageUrl)) ??
-    visibleReports[0] ??
     reports.find(isPreferredLeadReport) ??
+    reports.find((report) => Boolean(report.coverImageUrl)) ??
     reports[0];
   const restReports = leadReport
     ? reports.filter((report) => report.reportId !== leadReport.reportId)
@@ -2126,25 +2130,22 @@ export default async function LocalizedFanletterNewsHomePage({
     featureReports,
   );
   const [reporterStats, characterNewsStats] = await Promise.all([
-    hydrateReporterStats(getReporterStats(allReports)),
+    hydrateReporterStats(getReporterStats(editorialAllReports)),
     hydrateFanletterNewsCharacterStats(
-      getFanletterNewsCharacterStats(allReports, 8),
+      getFanletterNewsCharacterStats(editorialAllReports, 8),
     ),
   ]);
-  const shouldShowNsfwControl = nsfwReportCount > 0 || nsfwOptInEnabled;
   const activeReporterName = activeReporterReferralCode
     ? activeReporterProfile?.displayName ??
       getReporterFallbackDisplayName(locale, activeReporterReferralCode)
     : null;
-  const displayedNewsCount =
-    activeReporterReferralCode && activeReporterProfile
-      ? activeReporterProfile.reportCount
-      : reports.length;
+  const displayedNewsCount = reports.length;
   const displayedReporterCount = activeReporterReferralCode
     ? displayedNewsCount > 0
       ? 1
       : 0
     : getNewsroomReporterCount(reports);
+  const visualReportCount = photoDeskReports.length;
   const charactersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters`,
     referralCode,
@@ -2192,29 +2193,12 @@ export default async function LocalizedFanletterNewsHomePage({
               leadReport={leadReport}
               locale={locale}
               nsfwOptInEnabled={nsfwOptInEnabled}
-              nsfwReportCount={nsfwReportCount}
               referralCode={referralCode}
               reporterStats={reporterStats}
               selectedReporterReferralCode={activeReporterReferralCode}
               topStories={topStories}
+              visualReportCount={visualReportCount}
             />
-
-            {shouldShowNsfwControl ? (
-              <FanletterNsfwOptInControl
-                compact
-                disabledBody={copy.nsfwControl.disabledBody}
-                disabledTitle={copy.nsfwControl.disabledTitle}
-                enabled={nsfwOptInEnabled}
-                enabledBody={copy.nsfwControl.enabledBody}
-                enabledTitle={copy.nsfwControl.enabledTitle}
-                hiddenCount={nsfwReportCount}
-                hiddenCountText={copy.nsfwControl.hiddenCountText(
-                  formatNumber(nsfwReportCount, locale),
-                )}
-                locale={locale}
-                tone={nsfwOptInEnabled ? "dark" : "light"}
-              />
-            ) : null}
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
               <div className="min-w-0 space-y-7 sm:space-y-9">
@@ -2294,13 +2278,26 @@ export default async function LocalizedFanletterNewsHomePage({
                     </div>
                     <div className="bg-[#f5f6f2] p-3">
                       <p className="text-lg font-black">
-                        {formatNumber(nsfwReportCount, locale)}
+                        {formatNumber(visualReportCount, locale)}
                       </p>
                       <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
-                        {copy.newsroomStatLabels.nsfw}
+                        {copy.newsroomStatLabels.visuals}
                       </p>
                     </div>
                   </div>
+                  {excludedNsfwReportCount > 0 ? (
+                    <p className="mt-3 border-t border-black/10 pt-3 text-xs font-bold leading-5 text-black/42">
+                      {locale === "ko"
+                        ? `뉴스 홈 편집에서 NSFW 리포트 ${formatNumber(
+                            excludedNsfwReportCount,
+                            locale,
+                          )}개를 제외했습니다.`
+                        : `${formatNumber(
+                            excludedNsfwReportCount,
+                            locale,
+                          )} NSFW reports are excluded from this news home edit.`}
+                    </p>
+                  ) : null}
                 </section>
               </aside>
             </div>
