@@ -10,11 +10,13 @@ import {
   ArrowRight,
   BadgeCheck,
   BookOpen,
+  CheckCircle2,
   Clapperboard,
   FileText,
   Flame,
   Heart,
   ImageIcon,
+  LockKeyhole,
   MessageCircleHeart,
   Newspaper,
   Sparkles,
@@ -36,6 +38,7 @@ import {
   getFanletterNewsReportsForCharacterChannel,
   type FanletterNewsCharacterReporterStat,
 } from "@/lib/fanletter-news-report-service";
+import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
   getFanletterNewsVlogHref,
@@ -137,6 +140,15 @@ function getCopy(locale: Locale) {
           title: "팬 참여 루프",
         },
         siteName: "FanLetter News",
+        sourceReveal: {
+          bodyLocked: (remaining: string) => `${remaining}명 더 누르면 원본 오픈`,
+          bodyReady: "팬들이 열어낸 원본",
+          complete: "오픈 완료",
+          eyebrow: "팬 오픈 진행",
+          label: "원본 오픈",
+          remaining: (count: string) => `${count}명 남음`,
+          requested: "참여 완료",
+        },
         vlog: {
           emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
           fanOnlyTitle: "팬 전용 브이로그",
@@ -223,6 +235,17 @@ function getCopy(locale: Locale) {
           title: "Fan participation loop",
         },
         siteName: "FanLetter News",
+        sourceReveal: {
+          bodyLocked: (remaining: string) =>
+            `${remaining} more fan${remaining === "1" ? "" : "s"} to open`,
+          bodyReady: "Source opened by fans",
+          complete: "Opened",
+          eyebrow: "Fan open progress",
+          label: "Source open",
+          remaining: (count: string) =>
+            `${count} fan${count === "1" ? "" : "s"} left`,
+          requested: "Joined",
+        },
         vlog: {
           emptyFanOnly: "No displayable fan-only vlogs yet.",
           fanOnlyTitle: "Fan-only vlogs",
@@ -417,6 +440,51 @@ function CoverImage({
   );
 }
 
+function getSourceRevealCardState(item: FanletterPublicContentItem) {
+  const threshold = FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD;
+  const count = Math.max(0, Math.floor(item.social.sourceRevealCount));
+  const clampedCount = Math.min(count, threshold);
+  const remaining = Math.max(0, threshold - count);
+
+  return {
+    clampedCount,
+    count,
+    percent:
+      threshold > 0
+        ? Math.min(100, Math.max(0, (clampedCount / threshold) * 100))
+        : 100,
+    remaining,
+    requestedByViewer: item.social.sourceRevealRequestedByViewer,
+    threshold,
+    unlocked: count >= threshold,
+  };
+}
+
+function SourceRevealProgressBar({
+  className,
+  percent,
+  unlocked,
+}: {
+  className?: string;
+  percent: number;
+  unlocked: boolean;
+}) {
+  return (
+    <div
+      className={`h-2 overflow-hidden rounded-full bg-black/10 ${className ?? ""}`}
+    >
+      <div
+        className={
+          unlocked
+            ? "h-full rounded-full bg-[#44f26e] transition-[width]"
+            : "h-full rounded-full bg-[linear-gradient(90deg,#44f26e,#b5ff4d)] transition-[width]"
+        }
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  );
+}
+
 function NewsReportCard({
   copy,
   locale,
@@ -489,6 +557,7 @@ function ContentCard({
   locale,
   nsfwOptInEnabled,
   referralCode,
+  showSourceReveal = false,
 }: {
   copy: ReturnType<typeof getCopy>;
   href?: string;
@@ -496,6 +565,7 @@ function ContentCard({
   locale: Locale;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
+  showSourceReveal?: boolean;
 }) {
   const blurred = isNsfwMaturity(item.contentMaturityRating) && !nsfwOptInEnabled;
   const href =
@@ -505,16 +575,62 @@ function ContentCard({
       referralCode,
     );
   const publishedAt = formatDate(item.publishedAt, locale);
+  const sourceReveal = getSourceRevealCardState(item);
+  const countLabel = formatNumber(sourceReveal.clampedCount, locale);
+  const thresholdLabel = formatNumber(sourceReveal.threshold, locale);
+  const remainingLabel = formatNumber(sourceReveal.remaining, locale);
+  const sourceRevealStatus = sourceReveal.unlocked
+    ? copy.sourceReveal.complete
+    : sourceReveal.requestedByViewer
+      ? copy.sourceReveal.requested
+      : copy.sourceReveal.remaining(remainingLabel);
 
   return (
     <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
-      <Link href={href}>
+      <Link className="relative block" href={href}>
         <CoverImage
           alt=""
           blurred={blurred}
           imageUrl={item.coverImageUrl}
           sizes="(max-width: 768px) 100vw, 22rem"
         />
+        {showSourceReveal ? (
+          <div className="absolute inset-x-3 bottom-3 rounded-lg border border-white/16 bg-black/72 p-3 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex min-w-0 items-center gap-2">
+                <span
+                  className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full ${
+                    sourceReveal.unlocked
+                      ? "bg-[#44f26e] text-black"
+                      : "bg-[#44f26e]/14 text-[#44f26e]"
+                  }`}
+                >
+                  {sourceReveal.unlocked ? (
+                    <CheckCircle2 className="size-4" />
+                  ) : (
+                    <UsersRound className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                    {copy.sourceReveal.eyebrow}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs font-black text-white">
+                    {sourceRevealStatus}
+                  </span>
+                </span>
+              </span>
+              <span className="shrink-0 text-lg font-black leading-none text-white">
+                {countLabel}/{thresholdLabel}
+              </span>
+            </div>
+            <SourceRevealProgressBar
+              className="mt-2 bg-white/16"
+              percent={sourceReveal.percent}
+              unlocked={sourceReveal.unlocked}
+            />
+          </div>
+        ) : null}
       </Link>
       <div className="p-4">
         <div className="flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
@@ -553,6 +669,51 @@ function ContentCard({
             {formatNumber(item.social.commentCount, locale)}
           </span>
         </div>
+        {showSourceReveal ? (
+          <div
+            className={`mt-4 rounded-lg border p-3 ${
+              sourceReveal.unlocked
+                ? "border-[#19b84b]/28 bg-[#edfff2]"
+                : "border-black/10 bg-[#f7f9f4]"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex min-w-0 items-center gap-2">
+                <span
+                  className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full ${
+                    sourceReveal.unlocked
+                      ? "bg-[#111510] text-[#44f26e]"
+                      : "bg-white text-[#16702e]"
+                  }`}
+                >
+                  {sourceReveal.unlocked ? (
+                    <CheckCircle2 className="size-4" />
+                  ) : (
+                    <LockKeyhole className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                    {copy.sourceReveal.label}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs font-black text-black/64">
+                    {sourceReveal.unlocked
+                      ? copy.sourceReveal.bodyReady
+                      : copy.sourceReveal.bodyLocked(remainingLabel)}
+                  </span>
+                </span>
+              </span>
+              <span className="shrink-0 text-sm font-black text-[#111510]">
+                {countLabel}/{thresholdLabel}
+              </span>
+            </div>
+            <SourceRevealProgressBar
+              className="mt-2"
+              percent={sourceReveal.percent}
+              unlocked={sourceReveal.unlocked}
+            />
+          </div>
+        ) : null}
       </div>
     </article>
   );
@@ -1311,6 +1472,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   locale={locale}
                   nsfwOptInEnabled={nsfwOptInEnabled}
                   referralCode={effectiveReferralCode}
+                  showSourceReveal
                 />
               ))}
             </div>
