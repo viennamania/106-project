@@ -108,6 +108,12 @@ function getCopy(locale: Locale) {
           "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 기사로 표시하지 않습니다.",
         articleSection: "연예",
         byline: "팬 기자",
+        titleCharacter: {
+          cta: "캐릭터 보기",
+          eyebrow: "AI 캐릭터",
+          fallback: "AI 캐릭터",
+          visualAlt: (name: string) => `${name} AI 캐릭터 썸네일`,
+        },
         characterIdentity: {
           channelCta: "캐릭터 채널 보기",
           galleryLabel: "아바타 무드",
@@ -226,6 +232,12 @@ function getCopy(locale: Locale) {
           "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
         articleSection: "Entertainment",
         byline: "Fan reporter",
+        titleCharacter: {
+          cta: "View character",
+          eyebrow: "AI character",
+          fallback: "AI character",
+          visualAlt: (name: string) => `${name} AI character thumbnail`,
+        },
         characterIdentity: {
           channelCta: "Open character channel",
           galleryLabel: "Avatar mood",
@@ -814,6 +826,84 @@ function CharacterIdentityFeature({
   );
 }
 
+function ArticleTitleCharacterThumbnail({
+  blurred,
+  copy,
+  creatorHref,
+  creatorReferralCode,
+  imageUrl,
+  name,
+}: {
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  creatorReferralCode: string | null;
+  imageUrl: string | null;
+  name: string | null;
+}) {
+  const displayName =
+    name?.trim() || creatorReferralCode?.trim() || copy.titleCharacter.fallback;
+  const shouldBypassImageOptimization = imageUrl
+    ? shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
+
+  return (
+    <Link
+      className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-2.5 !text-[#111510] shadow-[0_14px_30px_rgba(17,21,16,0.055)] transition hover:border-[#19b84b] hover:bg-[#ecfff0] lg:block lg:p-3"
+      href={creatorHref}
+    >
+      <span className="relative block aspect-square overflow-hidden rounded-lg bg-[#111510] lg:aspect-[4/5] lg:w-full">
+        {imageUrl ? (
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg brightness-[0.48] saturate-[0.92]"
+              fill
+              sizes="(max-width: 1024px) 5.25rem, 13rem"
+              src={imageUrl}
+              unoptimized={shouldBypassImageOptimization}
+            />
+            <Image
+              alt={copy.titleCharacter.visualAlt(displayName)}
+              className={`relative z-10 object-cover transition duration-300 group-hover:scale-[1.04] ${
+                blurred ? "blur-sm brightness-[0.72] saturate-[0.82]" : ""
+              }`}
+              fill
+              sizes="(max-width: 1024px) 5.25rem, 13rem"
+              src={imageUrl}
+              unoptimized={shouldBypassImageOptimization}
+            />
+          </>
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_55%,#203426)]">
+            <Newspaper className="size-8 text-[#44f26e]" />
+          </span>
+        )}
+        <span className="absolute inset-x-0 bottom-0 z-20 h-1 bg-[#44f26e]" />
+      </span>
+      <span className="flex min-w-0 flex-col justify-center lg:mt-3 lg:block">
+        <span className="inline-flex w-fit items-center gap-1.5 border border-[#16702e]/20 bg-white px-2 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+          <BadgeCheck className="size-3" />
+          {copy.titleCharacter.eyebrow}
+        </span>
+        <span className="mt-2 block truncate text-base font-black leading-tight lg:text-lg">
+          {displayName}
+        </span>
+        {creatorReferralCode ? (
+          <span className="mt-1 block truncate text-[0.68rem] font-bold text-black/44">
+            @{creatorReferralCode}
+          </span>
+        ) : null}
+        <span className="mt-2 inline-flex items-center gap-1.5 text-[0.72rem] font-black text-[#16702e] group-hover:underline">
+          {copy.titleCharacter.cta}
+          <ArrowUpRight className="size-3.5" />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 function ReporterByline({
   copy,
   publishedAt,
@@ -1328,6 +1418,11 @@ export default async function LocalizedFanletterNewsReportPage({
     sourceContent?.authorCharacter?.avatarImageSet[0]?.url ??
     sourceContent?.authorAvatarImageUrl ??
     null;
+  const titleCharacterThumbnailUrl =
+    characterAvatarImageUrl ??
+    report.coverImageUrl ??
+    sourceContent?.coverImageUrl ??
+    null;
   const relatedNewsTitle = characterName
     ? locale === "ko"
       ? `${characterName}의 다른 뉴스`
@@ -1410,16 +1505,28 @@ export default async function LocalizedFanletterNewsReportPage({
                 </div>
               </div>
               <div className="p-3.5 sm:p-6 lg:p-7">
-                <h1
-                  className={`max-w-5xl break-words text-[1.72rem] font-black leading-[1.14] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
-                >
-                  {articleTitle}
-                </h1>
-                <p
-                  className={`mt-3 max-w-3xl text-[0.98rem] font-medium leading-7 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
-                >
-                  {report.dek}
-                </p>
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
+                  <div className="min-w-0">
+                    <h1
+                      className={`max-w-5xl break-words text-[1.72rem] font-black leading-[1.14] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                    >
+                      {articleTitle}
+                    </h1>
+                    <p
+                      className={`mt-3 max-w-3xl text-[0.98rem] font-medium leading-7 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                    >
+                      {report.dek}
+                    </p>
+                  </div>
+                  <ArticleTitleCharacterThumbnail
+                    blurred={shouldBlurCurrentReport}
+                    copy={copy}
+                    creatorHref={creatorHref}
+                    creatorReferralCode={report.creatorReferralCode}
+                    imageUrl={titleCharacterThumbnailUrl}
+                    name={characterName ?? report.creatorName}
+                  />
+                </div>
 
                 <ReporterByline
                   copy={copy}
