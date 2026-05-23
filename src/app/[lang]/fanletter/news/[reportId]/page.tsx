@@ -1249,6 +1249,10 @@ function SourceVlogEmbed({
 }) {
   const sourceRevealLocked = Boolean(sourceReveal && !sourceReveal.unlocked);
   const mediaBlurred = blurred;
+  const lockedNsfwSourceTeaserBlurred =
+    sourceContent?.contentMaturityRating === "nsfw" &&
+    (sourceRevealLocked || sourceContent.canViewerAccess !== true);
+  const sourceMediaBlurred = mediaBlurred || lockedNsfwSourceTeaserBlurred;
   const sourceVideoUrl =
     !sourceRevealLocked && sourceContent?.canViewerAccess
       ? sourceContent.contentVideoUrls[0] ?? null
@@ -1311,7 +1315,7 @@ function SourceVlogEmbed({
               <Image
                 alt={sourceContent?.title ?? copy.embeddedTitle}
                 className={
-                  mediaBlurred
+                  sourceMediaBlurred
                     ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
                     : "object-cover"
                 }
@@ -1328,11 +1332,11 @@ function SourceVlogEmbed({
                 <Clapperboard className="size-14 text-[#44f26e]" />
               </div>
             )}
-            {mediaBlurred ? (
+            {sourceMediaBlurred ? (
               <div className="pointer-events-none absolute inset-0 bg-black/10" />
             ) : null}
             <SourceVlogRevealTeaserOverlay
-              blurred={blurred}
+              blurred={sourceMediaBlurred}
               connectHref={sourceReveal.connectHref}
               imageUrls={sourceTeaserImageUrls}
               locale={locale}
@@ -1343,7 +1347,7 @@ function SourceVlogEmbed({
         ) : (
           <FanletterResponsiveMediaFrame
             alt={sourceContent?.title ?? copy.embeddedTitle}
-            blurred={mediaBlurred}
+            blurred={sourceMediaBlurred}
             eager
             imageUrl={sourceImageUrl}
             mediaType={sourceContent?.mediaType ?? "video"}

@@ -1286,6 +1286,11 @@ export function FanletterNewsVlogDetailPage({
     content.priceType === "free" &&
     !sourceReveal.unlocked &&
     !isOwnContent;
+  const lockedNsfwTeaserBlurred =
+    content.contentMaturityRating === "nsfw" &&
+    (sourceRevealLocked || paidContentLocked);
+  const sourceRevealTeaserBlurred =
+    shouldBlurMedia || lockedNsfwTeaserBlurred;
   const publishedAt = formatDate(content.publishedAt, locale);
   const accessLabel = getAccessLabel(content, copy);
   const nsfwCopy = getFanletterNsfwCopy(locale);
@@ -1370,7 +1375,7 @@ export function FanletterNewsVlogDetailPage({
             <section className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_18px_54px_rgba(17,21,16,0.12)]">
               {sourceRevealLocked ? (
                 <NewsVlogSourceRevealTeaser
-                  blurred={shouldBlurMedia}
+                  blurred={sourceRevealTeaserBlurred}
                   connectHref={connectHref}
                   content={content}
                   locale={locale}
@@ -1379,7 +1384,7 @@ export function FanletterNewsVlogDetailPage({
               ) : (
                 <FanletterResponsiveMediaFrame
                   alt={content.title}
-                  blurred={shouldBlurMedia}
+                  blurred={sourceRevealTeaserBlurred}
                   eager
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
