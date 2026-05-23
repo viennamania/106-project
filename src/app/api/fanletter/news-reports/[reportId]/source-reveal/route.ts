@@ -7,6 +7,7 @@ import {
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
+import { awardFanletterNewsSourceRevealReporterIncentives } from "@/lib/fanletter-news-reporter-incentives";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
@@ -84,7 +85,23 @@ export async function POST(
     const response = await requestContentSourceRevealForMember({
       contentId: report.contentId,
       email: authorization.normalizedEmail,
+      reportAttribution: {
+        reportId: report.reportId,
+        reporterReferralCode: report.reporterReferralCode,
+      },
     });
+    try {
+      await awardFanletterNewsSourceRevealReporterIncentives({
+        report,
+        response,
+        viewerEmail: authorization.normalizedEmail,
+      });
+    } catch (incentiveError) {
+      console.error(
+        "[fanletter-news] source reveal reporter incentive failed",
+        incentiveError,
+      );
+    }
     const sourceRevealResponse: SourceRevealResponse = {
       sourceReveal: createFanletterNewsSourceRevealState(response.social),
     };

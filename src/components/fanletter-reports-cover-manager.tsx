@@ -34,10 +34,13 @@ export type FanletterReportsPageReport = {
   coverImageUrl: string | null;
   dek: string;
   editHref: string;
+  incentiveRewardPoints: number;
   priceType: "free" | "paid";
   reportHref: string;
   reportId: string;
   sourceHref: string;
+  sourceRevealUnlockContributionCount: number;
+  sourceRevealVoteCount: number;
   sourcePublishedAt: string | null;
   sourceTitle: string;
   title: string;
@@ -154,6 +157,12 @@ function getCopy(locale: Locale) {
         optionCurrent: "현재 사용 중",
         optionSelected: "편집 중",
         optionUse: "이 이미지 사용",
+        performance: {
+          incentive: "성과",
+          rewardPoints: "보상",
+          sourceRevealVotes: "보고싶어요",
+          unlockContributions: "언락",
+        },
         priceType: {
           paid: "유료",
           public: "공개",
@@ -200,6 +209,12 @@ function getCopy(locale: Locale) {
         optionCurrent: "Currently used",
         optionSelected: "Editing",
         optionUse: "Use this image",
+        performance: {
+          incentive: "Performance",
+          rewardPoints: "Rewards",
+          sourceRevealVotes: "Votes",
+          unlockContributions: "Unlocks",
+        },
         priceType: {
           paid: "Paid",
           public: "Public",
@@ -226,6 +241,10 @@ function formatDate(value: string | null, locale: Locale) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
   }).format(new Date(value));
+}
+
+function formatNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
 function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale) {
@@ -383,9 +402,13 @@ export function FanletterReportsCoverManager({
   copy?: {
     coverImage: string;
     editReport: string;
+    incentive: string;
     openReport: string;
     reportTitle: string;
+    rewardPoints: string;
     source: string;
+    sourceRevealVotes: string;
+    unlockContributions: string;
     updateCover: string;
     updatedAt: string;
   };
@@ -396,9 +419,15 @@ export function FanletterReportsCoverManager({
   const listCopy = {
     coverImage: pageCopy?.coverImage ?? (locale === "ko" ? "커버" : "Cover"),
     editReport: pageCopy?.editReport ?? (locale === "ko" ? "내용 수정" : "Edit"),
+    incentive: pageCopy?.incentive ?? copy.performance.incentive,
     openReport: pageCopy?.openReport ?? copy.openReport,
     reportTitle: pageCopy?.reportTitle ?? (locale === "ko" ? "리포트" : "Report"),
+    rewardPoints: pageCopy?.rewardPoints ?? copy.performance.rewardPoints,
     source: pageCopy?.source ?? copy.source,
+    sourceRevealVotes:
+      pageCopy?.sourceRevealVotes ?? copy.performance.sourceRevealVotes,
+    unlockContributions:
+      pageCopy?.unlockContributions ?? copy.performance.unlockContributions,
     updateCover: pageCopy?.updateCover ?? copy.updateCover,
     updatedAt: pageCopy?.updatedAt ?? (locale === "ko" ? "최근 수정" : "Updated"),
   };
@@ -821,12 +850,13 @@ export function FanletterReportsCoverManager({
     <>
       <section className="mt-6">
         <div className="hidden overflow-x-auto border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] md:block">
-          <table className="w-full min-w-[58rem] border-collapse text-left">
+          <table className="w-full min-w-[68rem] border-collapse text-left">
             <thead className="border-b border-black/12 bg-[#f6f8f4] text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/46">
               <tr>
                 <th className="w-28 px-4 py-3">{listCopy.coverImage}</th>
                 <th className="px-4 py-3">{listCopy.reportTitle}</th>
                 <th className="w-56 px-4 py-3">{listCopy.source}</th>
+                <th className="w-52 px-4 py-3">{listCopy.incentive}</th>
                 <th className="w-36 px-4 py-3">{listCopy.updatedAt}</th>
                 <th className="w-56 px-4 py-3 text-right">{copy.modalEyebrow}</th>
               </tr>
@@ -895,6 +925,37 @@ export function FanletterReportsCoverManager({
                       <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.1em] text-black/36">
                         {report.creatorName}
                       </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
+                          <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                            {listCopy.sourceRevealVotes}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-[#111510]">
+                            {formatNumber(report.sourceRevealVoteCount, locale)}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
+                          <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                            {listCopy.unlockContributions}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-[#111510]">
+                            {formatNumber(
+                              report.sourceRevealUnlockContributionCount,
+                              locale,
+                            )}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-2">
+                          <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]/70">
+                            {listCopy.rewardPoints}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-[#16702e]">
+                            {formatNumber(report.incentiveRewardPoints, locale)}P
+                          </p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-sm font-black text-black/58">
                       <span className="inline-flex items-center gap-1.5">
@@ -986,6 +1047,35 @@ export function FanletterReportsCoverManager({
                     <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/56">
                       {report.dek}
                     </p>
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      <div className="rounded-md border border-black/8 bg-[#f6f8f4] px-2 py-1.5">
+                        <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
+                          {listCopy.sourceRevealVotes}
+                        </p>
+                        <p className="mt-0.5 text-xs font-black">
+                          {formatNumber(report.sourceRevealVoteCount, locale)}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-black/8 bg-[#f6f8f4] px-2 py-1.5">
+                        <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
+                          {listCopy.unlockContributions}
+                        </p>
+                        <p className="mt-0.5 text-xs font-black">
+                          {formatNumber(
+                            report.sourceRevealUnlockContributionCount,
+                            locale,
+                          )}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
+                        <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-[#16702e]/70">
+                          {listCopy.rewardPoints}
+                        </p>
+                        <p className="mt-0.5 text-xs font-black text-[#16702e]">
+                          {formatNumber(report.incentiveRewardPoints, locale)}P
+                        </p>
+                      </div>
+                    </div>
                     <p className="mt-2 inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-black/36">
                       <CalendarDays className="size-3.5 text-[#16702e]" />
                       {updatedAt}

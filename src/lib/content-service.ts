@@ -2104,42 +2104,92 @@ export async function updateContentSocialActionForMember({
 export async function requestContentSourceRevealForMember({
   contentId,
   email,
+  reportAttribution = null,
 }: {
   contentId: string;
   email: string;
+  reportAttribution?: {
+    reportId?: string | null;
+    reporterReferralCode?: string | null;
+  } | null;
 }): Promise<ContentSocialResponse> {
   await ensurePublishedContentExists(contentId);
 
   const member = await getCompletedMemberOrThrow(email);
   const now = new Date();
   const socialActionsCollection = await getContentSocialActionsCollection();
-
-  await socialActionsCollection.updateOne(
-    {
+  const [existingAction, previousSourceRevealCount] = await Promise.all([
+    socialActionsCollection.findOne({
       contentId,
       memberEmail: member.email,
-    },
-    {
-      $set: {
-        sourceRevealRequested: true,
-        updatedAt: now,
-      },
-      $setOnInsert: {
+    }),
+    socialActionsCollection.countDocuments({
+      contentId,
+      sourceRevealRequested: true,
+    }),
+  ]);
+  const normalizedReportId = reportAttribution?.reportId?.trim() || null;
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reportAttribution?.reporterReferralCode) ?? null;
+  const attributionFields =
+    normalizedReportId && normalizedReporterReferralCode
+      ? {
+          sourceRevealReportId: normalizedReportId,
+          sourceRevealReporterReferralCode: normalizedReporterReferralCode,
+        }
+      : {};
+  let newlyRequested = false;
+
+  if (!existingAction) {
+    try {
+      await socialActionsCollection.insertOne({
         contentId,
         createdAt: now,
         hidden: false,
         liked: false,
         memberEmail: member.email,
         saved: false,
+        sourceRevealRequested: true,
+        sourceRevealRequestedAt: now,
+        updatedAt: now,
+        ...attributionFields,
+      });
+      newlyRequested = true;
+    } catch (error) {
+      if (
+        !(
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          error.code === 11000
+        )
+      ) {
+        throw error;
+      }
+    }
+  } else if (!existingAction.sourceRevealRequested) {
+    const updateResult = await socialActionsCollection.updateOne(
+      {
+        contentId,
+        memberEmail: member.email,
+        sourceRevealRequested: { $ne: true },
       },
-    },
-    {
-      upsert: true,
-    },
-  );
+      {
+        $set: {
+          sourceRevealRequested: true,
+          sourceRevealRequestedAt: now,
+          updatedAt: now,
+          ...attributionFields,
+        },
+      },
+    );
+    newlyRequested = updateResult.modifiedCount > 0;
+  }
 
   return {
     social: await getContentSocialSummaryForViewer(contentId, member.email),
+    sourceRevealNewlyRequested: newlyRequested,
+    sourceRevealPreviousCount: previousSourceRevealCount,
   };
 }
 

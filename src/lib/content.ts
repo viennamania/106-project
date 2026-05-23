@@ -593,6 +593,14 @@ export type ContentSocialActionDocument = {
   memberEmail: string;
   saved: boolean;
   sourceRevealRequested?: boolean;
+  sourceRevealRequestedAt?: Date | null;
+  sourceRevealReportId?: string | null;
+  sourceRevealReporterEmail?: string | null;
+  sourceRevealReporterReferralCode?: string | null;
+  sourceRevealReporterUnlockRewardedAt?: Date | null;
+  sourceRevealReporterUnlockRewardPoints?: number;
+  sourceRevealReporterVoteRewardedAt?: Date | null;
+  sourceRevealReporterVoteRewardPoints?: number;
   updatedAt: Date;
 };
 
@@ -1145,6 +1153,8 @@ export type ContentSocialActionRequest = {
 
 export type ContentSocialResponse = {
   social: ContentSocialSummaryRecord;
+  sourceRevealNewlyRequested?: boolean;
+  sourceRevealPreviousCount?: number;
 };
 
 export type ContentCommentsResponse = {

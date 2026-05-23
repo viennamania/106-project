@@ -17,6 +17,7 @@ import {
   type FanletterReportsPageReport,
 } from "@/components/fanletter-reports-cover-manager";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
+import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -61,6 +62,8 @@ function getCopy(locale: Locale) {
         emptyCta: "브이로그 보러가기",
         emptyTitle: "작성한 리포트가 없습니다.",
         feed: "브이로그 피드",
+        incentive: "성과",
+        incentiveReward: "리포터 보상",
         memberOnly: "회원 전용",
         newsroom: "뉴스룸",
         openReport: "리포트 보기",
@@ -81,10 +84,13 @@ function getCopy(locale: Locale) {
         reporterLogo: "리포터 로고",
         reporterProfile: "로그인 리포터",
         reporterStatus: "활동 상태",
+        rewardPoints: (points: string) => `${points}P`,
         source: "원본 브이로그",
+        sourceRevealVotes: "보고싶어요 유입",
         statusCompleted: "활동 중",
         statusPending: "계정 준비 중",
         studio: "스튜디오",
+        unlockContributions: "언락 기여",
         updatedAt: "최근 수정",
         title: "내 AI 팬 리포트 관리",
         updateCover: "커버 변경",
@@ -115,6 +121,8 @@ function getCopy(locale: Locale) {
         emptyCta: "Browse vlogs",
         emptyTitle: "No reports yet.",
         feed: "Vlog feed",
+        incentive: "Performance",
+        incentiveReward: "Reporter rewards",
         memberOnly: "Members only",
         newsroom: "Newsroom",
         openReport: "Open report",
@@ -135,10 +143,13 @@ function getCopy(locale: Locale) {
         reporterLogo: "Reporter logo",
         reporterProfile: "Signed-in reporter",
         reporterStatus: "Status",
+        rewardPoints: (points: string) => `${points}P`,
         source: "Source vlog",
+        sourceRevealVotes: "Want-to-watch leads",
         statusCompleted: "Active",
         statusPending: "Account pending",
         studio: "Studio",
+        unlockContributions: "Unlock contributions",
         updatedAt: "Updated",
         title: "My AI fan report desk",
         updateCover: "Change cover",
@@ -271,6 +282,17 @@ export default async function LocalizedFanletterReportsPage({
         reportCount: 0,
         reports: [],
       };
+  const [overviewIncentiveStats, pageIncentiveStats] = data.member
+    ? await Promise.all([
+        getFanletterNewsReporterIncentiveStats({
+          reporterReferralCode: data.member.referralCode,
+        }),
+        getFanletterNewsReporterIncentiveStats({
+          reporterReferralCode: data.member.referralCode,
+          reportIds: data.reports.map((report) => report.reportId),
+        }),
+      ])
+    : [null, null];
   const effectiveReferralCode = referralCode ?? data.member?.referralCode ?? null;
   const feedHref = buildPathWithReferral(
     `/${locale}/fanletter/feed`,
@@ -325,6 +347,30 @@ export default async function LocalizedFanletterReportsPage({
           label: copy.coverDesk,
           value: copy.coverDeskValue,
         },
+        {
+          label: copy.sourceRevealVotes,
+          value: formatNumber(
+            overviewIncentiveStats?.overview.sourceRevealVoteCount ?? 0,
+            locale,
+          ),
+        },
+        {
+          label: copy.unlockContributions,
+          value: formatNumber(
+            overviewIncentiveStats?.overview
+              .sourceRevealUnlockContributionCount ?? 0,
+            locale,
+          ),
+        },
+        {
+          label: copy.incentiveReward,
+          value: copy.rewardPoints(
+            formatNumber(
+              overviewIncentiveStats?.overview.rewardPoints ?? 0,
+              locale,
+            ),
+          ),
+        },
       ]
     : [];
   const totalPages = Math.max(
@@ -341,6 +387,12 @@ export default async function LocalizedFanletterReportsPage({
     referralCode: effectiveReferralCode,
   });
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
+    const reportIncentives =
+      pageIncentiveStats?.reports.get(report.reportId) ?? {
+        rewardPoints: 0,
+        sourceRevealUnlockContributionCount: 0,
+        sourceRevealVoteCount: 0,
+      };
     const reportHref = buildPathWithReferral(
       `/${locale}/fanletter/news/${report.reportId}`,
       effectiveReferralCode,
@@ -364,11 +416,15 @@ export default async function LocalizedFanletterReportsPage({
       coverImageUrl: report.coverImageUrl,
       dek: report.dek,
       editHref,
+      incentiveRewardPoints: reportIncentives.rewardPoints,
       priceType: report.priceType,
       reportHref,
       reportId: report.reportId,
       sourceHref,
       sourceTitle: report.sourceTitle,
+      sourceRevealUnlockContributionCount:
+        reportIncentives.sourceRevealUnlockContributionCount,
+      sourceRevealVoteCount: reportIncentives.sourceRevealVoteCount,
       sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
       title: report.title,
       updatedAt: report.updatedAt.toISOString(),
@@ -563,9 +619,13 @@ export default async function LocalizedFanletterReportsPage({
               copy={{
                 coverImage: copy.coverImage,
                 editReport: copy.editReport,
+                incentive: copy.incentive,
                 openReport: copy.openReport,
                 reportTitle: copy.reportTitle,
+                rewardPoints: copy.incentiveReward,
                 source: copy.source,
+                sourceRevealVotes: copy.sourceRevealVotes,
+                unlockContributions: copy.unlockContributions,
                 updateCover: copy.updateCover,
                 updatedAt: copy.updatedAt,
               }}
