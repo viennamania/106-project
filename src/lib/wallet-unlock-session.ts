@@ -59,3 +59,19 @@ export function markWalletUnlockedForSession({
     } satisfies WalletUnlockSessionRecord),
   );
 }
+
+export function clearWalletUnlockedForSession({
+  email,
+  walletAddress,
+}: {
+  email: string | null | undefined;
+  walletAddress: string | null | undefined;
+}) {
+  if (!email || !walletAddress || typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(
+    getWalletUnlockSessionKey(email, walletAddress),
+  );
+}

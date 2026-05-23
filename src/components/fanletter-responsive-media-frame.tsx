@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, LockKeyhole, ShieldCheck } from "lucide-react";
 import {
   type CSSProperties,
   type ReactNode,
@@ -16,10 +16,12 @@ import {
   type FanletterVideoMetadata,
 } from "@/components/fanletter-autoplay-video";
 import { FanletterNsfwVideoPinGate } from "@/components/fanletter-nsfw-video-pin-gate";
+import { useMemberSession } from "@/components/member-session-provider";
 import type { FanletterPublicContentItem } from "@/lib/fanletter-content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { clearWalletUnlockedForSession } from "@/lib/wallet-unlock-session";
 
 type FanletterResponsiveMediaFrameProps = {
   alt: string;
@@ -66,6 +68,18 @@ function getMediaOrientation(aspectRatio: number | null) {
   return "square";
 }
 
+function getNsfwPinRelockCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        locked: "다시 잠그기",
+        unlocked: "PIN 해제됨",
+      }
+    : {
+        locked: "Lock again",
+        unlocked: "PIN unlocked",
+      };
+}
+
 export function FanletterResponsiveMediaFrame({
   alt,
   blurred = false,
@@ -88,6 +102,7 @@ export function FanletterResponsiveMediaFrame({
     metadata: ResponsiveMediaMetadata;
     src: string;
   } | null>(null);
+  const { accountAddress, email } = useMemberSession();
 
   const requiresNsfwPin = Boolean(videoUrl && nsfwPinGate?.enabled);
   const isNsfwPinUnlocked =
@@ -95,6 +110,17 @@ export function FanletterResponsiveMediaFrame({
   const playableVideoUrl = isNsfwPinUnlocked ? videoUrl : null;
   const shouldBlurLockedPinTeaser =
     requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate?.teaserBlurred;
+  const nsfwPinRelockCopy = nsfwPinGate
+    ? getNsfwPinRelockCopy(nsfwPinGate.locale)
+    : null;
+
+  const handleNsfwPinRelock = useCallback(() => {
+    clearWalletUnlockedForSession({
+      email,
+      walletAddress: accountAddress,
+    });
+    setNsfwPinUnlockedVideoUrl(null);
+  }, [accountAddress, email]);
 
   const handleMetadata = useCallback((metadata: FanletterVideoMetadata) => {
     if (!playableVideoUrl) {
@@ -190,6 +216,20 @@ export function FanletterResponsiveMediaFrame({
         />
         {blurred ? (
           <div className="pointer-events-none absolute inset-0 bg-black/10" />
+        ) : null}
+        {requiresNsfwPin && nsfwPinRelockCopy ? (
+          <div className="absolute right-3 top-14 z-20 flex justify-end sm:right-4 sm:top-4">
+            <button
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/72 px-3 py-2 text-xs font-black text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] backdrop-blur transition hover:border-[#44f26e]/44 hover:bg-black/84 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
+              onClick={handleNsfwPinRelock}
+              type="button"
+            >
+              <ShieldCheck className="size-3.5 text-[#44f26e]" />
+              <span className="hidden sm:inline">{nsfwPinRelockCopy.unlocked}</span>
+              <LockKeyhole className="size-3.5" />
+              <span>{nsfwPinRelockCopy.locked}</span>
+            </button>
+          </div>
         ) : null}
         {children}
       </div>
