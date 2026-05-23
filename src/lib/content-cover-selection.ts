@@ -59,9 +59,16 @@ export function resolveContentCoverImageUrl(
   options: {
     fallbackPlacements?: ContentCoverImagePlacement[];
     placement?: ContentCoverImagePlacement;
+    preferCoverImageUrl?: boolean;
   } = {},
 ) {
   const candidates = source.coverImageCandidates ?? [];
+  const configuredCoverImageUrl = normalizeUrl(source.coverImageUrl);
+
+  if (options.preferCoverImageUrl && configuredCoverImageUrl) {
+    return configuredCoverImageUrl;
+  }
+
   const placements = [
     options.placement,
     ...(options.fallbackPlacements ?? []),
@@ -85,7 +92,7 @@ export function resolveContentCoverImageUrl(
   }
 
   return (
-    normalizeUrl(source.coverImageUrl) ??
+    configuredCoverImageUrl ??
     normalizeUrl(candidates.find((candidate) => normalizeUrl(candidate.url))?.url) ??
     normalizeUrl(source.contentImageUrls?.[0])
   );

@@ -688,11 +688,15 @@ function getPublicCharacter({
 function getCoverImageUrl(
   post: ContentPostDocument,
   placement: "detail" | "feed" = "feed",
+  options?: {
+    preferCoverImageUrl?: boolean;
+  },
 ) {
   return resolveContentCoverImageUrl(post, {
     fallbackPlacements:
       placement === "detail" ? ["feed", "share"] : ["detail", "share"],
     placement,
+    preferCoverImageUrl: options?.preferCoverImageUrl,
   });
 }
 
@@ -898,6 +902,7 @@ function toPublicContentItem({
   coverPlacement = "feed",
   newsReportCount = 0,
   post,
+  preferCoverImageUrl = false,
   profile,
   social,
 }: {
@@ -905,6 +910,7 @@ function toPublicContentItem({
   coverPlacement?: "detail" | "feed";
   newsReportCount?: number;
   post: ContentPostDocument;
+  preferCoverImageUrl?: boolean;
   profile: CreatorProfileDocument | null | undefined;
   social?: ContentSocialSummaryRecord;
 }): FanletterPublicContentItem {
@@ -919,7 +925,9 @@ function toPublicContentItem({
     contentImageCount: post.contentImageUrls?.length ?? 0,
     contentMaturityRating: resolveFanletterContentMaturityRating(post),
     contentVideoCount: post.contentVideoUrls?.length ?? 0,
-    coverImageUrl: getCoverImageUrl(post, coverPlacement),
+    coverImageUrl: getCoverImageUrl(post, coverPlacement, {
+      preferCoverImageUrl,
+    }),
     mediaType: getMediaType(post),
     previewText: post.previewText?.trim()
       ? compactText(post.previewText, SUMMARY_LIMIT)
@@ -1967,6 +1975,7 @@ export const getFanletterFeedPageData = cache(
           toPublicContentItem({
             newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
             post,
+            preferCoverImageUrl: true,
             profile: profileByEmail.get(post.authorEmail),
             social: socialByContentId.get(post.contentId),
           }),
