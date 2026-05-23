@@ -129,14 +129,14 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "현재 기사와 같은 AI 캐릭터의 뉴스 흐름을 이어서 봅니다.",
-          characterCta: "캐릭터 홈",
-          eyebrow: "캐릭터 뉴스 이어보기",
+            "본문을 읽은 뒤 같은 AI 캐릭터의 최신 관련 뉴스를 이어서 확인하세요.",
+          characterCta: "캐릭터 뉴스 홈",
+          eyebrow: "같은 캐릭터 뉴스",
+          leadCta: (name: string | null) =>
+            name ? `${name} 관련 기사 보기` : "관련 기사 보기",
           listEyebrow: "같은 AI 캐릭터",
-          listTitle: "같은 캐릭터 다른 기사",
-          nextCta: (name: string | null) =>
-            name ? `${name}의 다음 뉴스 보기` : "같은 캐릭터 다음 뉴스 보기",
-          title: "이 캐릭터의 다른 뉴스",
+          listTitle: "최신 관련 기사",
+          title: "같은 캐릭터의 다른 뉴스",
         },
         contentBadge: {
           nsfw: "성인 팬 전용 표시",
@@ -254,13 +254,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "Keep reading stories from the same AI character as this article.",
-          characterCta: "Character home",
-          eyebrow: "Continue character news",
+            "After this article, keep exploring the latest related stories from the same AI character.",
+          characterCta: "Character news home",
+          eyebrow: "Same character news",
+          leadCta: (name: string | null) =>
+            name ? `Read related ${name} story` : "Read related story",
           listEyebrow: "Same AI character",
-          listTitle: "More stories from this character",
-          nextCta: (name: string | null) =>
-            name ? `Read next ${name} story` : "Read next story from this character",
+          listTitle: "Latest related stories",
           title: "More from this character",
         },
         contentBadge: {
@@ -545,98 +545,118 @@ function CharacterContinueReadingPanel({
   const shouldBlur = leadItem?.shouldBlur ?? false;
   const title = leadItem?.title ?? characterName ?? copy.continueReading.title;
   const dek = leadItem?.dek ?? copy.continueReading.body;
-  const primaryHref = leadItem?.href ?? creatorHref;
   const shouldBypassImageOptimization = imageUrl
     ? shouldBypassFanletterImageOptimization(imageUrl)
     : false;
 
   return (
-    <section className="mt-4 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_18px_48px_rgba(12,18,14,0.18)] sm:mt-6 sm:shadow-[0_22px_58px_rgba(12,18,14,0.2)]">
-      <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.72fr)]">
+    <section className="mt-8 overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-10 sm:shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
+      <div className="flex flex-col gap-3 border-b-2 border-[#111510] bg-[#f7f9f4] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+            <BadgeCheck className="size-3.5" />
+            {copy.continueReading.eyebrow}
+          </p>
+          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all] sm:text-2xl">
+            {copy.continueReading.title}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+            {copy.continueReading.body}
+          </p>
+        </div>
         <Link
-          className="group grid grid-rows-[minmax(9rem,0.85fr)_auto] !text-white sm:min-h-[18rem] sm:grid-cols-[minmax(15rem,0.9fr)_minmax(0,1fr)] sm:grid-rows-none"
-          href={primaryHref}
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-black/12 bg-white px-3.5 py-2 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+          href={creatorHref}
         >
-          <div className="relative min-h-[9rem] overflow-hidden bg-[#07100b] sm:min-h-[12rem]">
-            {imageUrl ? (
-              <Image
-                alt=""
-                aria-hidden="true"
-                className={`object-cover transition duration-500 group-hover:scale-[1.04] ${
-                  shouldBlur ? "blur-md brightness-[0.68] saturate-[0.86]" : ""
-                }`}
-                fill
-                sizes="(max-width: 640px) 100vw, 20rem"
-                src={imageUrl}
-                unoptimized={shouldBypassImageOptimization}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_35%_25%,#1f6e35,#07100b_58%)]">
-                <Newspaper className="size-14 text-[#44f26e]" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-transparent to-black/12" />
-            {leadItem?.isNsfw ? (
-              <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white">
-                {leadItem.nsfwBadge}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex min-w-0 flex-col justify-between p-3.5 sm:p-5">
-            <div>
-              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-                <BadgeCheck className="size-3.5" />
-                {copy.continueReading.eyebrow}
-              </p>
-              {characterName ? (
-                <p className="mt-2 line-clamp-1 text-sm font-bold text-white/58">
-                  {characterName}
-                </p>
-              ) : null}
-              <h2 className="mt-2.5 line-clamp-3 break-words text-xl font-black leading-tight [word-break:keep-all] sm:mt-3 sm:text-[2rem]">
-                {title}
-              </h2>
-              <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/62 sm:mt-3 sm:line-clamp-3">
-                {dek}
-              </p>
-            </div>
-            <span className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition group-hover:bg-[#69ff8c] sm:mt-5 sm:h-11 sm:w-fit">
-              {leadItem
-                ? copy.continueReading.nextCta(characterName)
-                : copy.continueReading.characterCta}
-              <ArrowUpRight className="size-4" />
-            </span>
-          </div>
+          {copy.continueReading.characterCta}
+          <ArrowUpRight className="size-4" />
         </Link>
+      </div>
 
-        <div className="border-t border-white/12 bg-white/[0.055] p-3.5 sm:p-4 lg:border-l lg:border-t-0">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
-                {copy.continueReading.listEyebrow}
-              </p>
-              <h3 className="mt-1 text-base font-black text-white">
-                {copy.continueReading.listTitle}
-              </h3>
+      <div className="grid gap-3 p-3.5 sm:p-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(17rem,0.72fr)]">
+        {leadItem ? (
+          <Link
+            className="group grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] overflow-hidden border border-black/10 bg-[#111510] !text-white transition hover:border-[#19b84b] sm:grid-cols-[11rem_minmax(0,1fr)]"
+            href={leadItem.href}
+          >
+            <div className="relative min-h-[7.5rem] overflow-hidden bg-[#07100b] sm:min-h-[11rem]">
+              {imageUrl ? (
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className={`object-cover transition duration-500 group-hover:scale-[1.04] ${
+                    shouldBlur ? "blur-md brightness-[0.68] saturate-[0.86]" : ""
+                  }`}
+                  fill
+                  sizes="(max-width: 640px) 6rem, 11rem"
+                  src={imageUrl}
+                  unoptimized={shouldBypassImageOptimization}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_35%_25%,#1f6e35,#07100b_58%)]">
+                  <Newspaper className="size-10 text-[#44f26e]" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-transparent to-black/12" />
+              {leadItem.isNsfw ? (
+                <span className="absolute right-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white">
+                  {leadItem.nsfwBadge}
+                </span>
+              ) : null}
             </div>
-            <Link
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/14 px-3 py-2 text-xs font-black !text-white/78 transition hover:bg-white/10"
-              href={creatorHref}
-            >
-              {copy.continueReading.characterCta}
-              <ArrowUpRight className="size-3.5" />
-            </Link>
+            <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
+              <div className="min-w-0">
+                {characterName ? (
+                  <p className="line-clamp-1 text-xs font-black text-[#44f26e]">
+                    {characterName}
+                  </p>
+                ) : null}
+                <h3
+                  className={`mt-1 line-clamp-3 break-words text-base font-black leading-6 [word-break:keep-all] sm:text-xl sm:leading-7 ${
+                    shouldBlur ? "select-none blur-[2px]" : ""
+                  }`}
+                >
+                  {title}
+                </h3>
+                <p
+                  className={`mt-1.5 hidden text-sm font-semibold leading-6 text-white/58 sm:line-clamp-2 ${
+                    shouldBlur ? "select-none blur-[2px]" : ""
+                  }`}
+                >
+                  {dek}
+                </p>
+              </div>
+              <span className="mt-3 inline-flex h-9 w-fit items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-xs font-black text-black transition group-hover:bg-[#69ff8c] sm:h-10 sm:px-4 sm:text-sm">
+                {copy.continueReading.leadCta(characterName)}
+                <ArrowUpRight className="size-3.5" />
+              </span>
+            </div>
+          </Link>
+        ) : (
+          <p className="border border-black/10 bg-[#f7f9f4] p-3.5 text-sm font-semibold leading-6 text-black/58">
+            {copy.relatedNewsEmpty}
+          </p>
+        )}
+
+        <div className="border border-black/10 bg-[#f7f9f4] p-3.5 sm:p-4">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+              {copy.continueReading.listEyebrow}
+            </p>
+            <h3 className="mt-1 text-base font-black text-[#111510]">
+              {copy.continueReading.listTitle}
+            </h3>
           </div>
 
           {secondaryItems.length > 0 ? (
             <div className="mt-4 grid gap-3">
               {secondaryItems.map((item) => (
                 <Link
-                  className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-black/20 p-2 !text-white transition hover:border-[#44f26e]/70 hover:bg-black/28"
+                  className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] gap-3 border border-black/10 bg-white p-2 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                   href={item.href}
                   key={item.reportId}
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-md bg-black/40">
+                  <div className="relative aspect-square overflow-hidden bg-[#e9ede7]">
                     {item.coverImageUrl ? (
                       <Image
                         alt=""
@@ -655,7 +675,7 @@ function CharacterContinueReadingPanel({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Newspaper className="size-6 text-[#44f26e]" />
+                        <Newspaper className="size-6 text-[#16702e]" />
                       </div>
                     )}
                   </div>
@@ -667,7 +687,7 @@ function CharacterContinueReadingPanel({
                     >
                       {item.title}
                     </p>
-                    <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-white/42">
+                    <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-black/42">
                       {item.publishedAt ?? item.reporterName}
                     </p>
                   </div>
@@ -675,7 +695,7 @@ function CharacterContinueReadingPanel({
               ))}
             </div>
           ) : (
-            <p className="mt-4 rounded-lg border border-white/10 bg-black/18 p-3 text-sm font-semibold leading-6 text-white/54">
+            <p className="mt-4 border border-black/10 bg-white p-3 text-sm font-semibold leading-6 text-black/54">
               {copy.relatedNewsEmpty}
             </p>
           )}
@@ -1562,14 +1582,6 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
-            <CharacterContinueReadingPanel
-              characterAvatarImageUrl={characterAvatarImageUrl}
-              characterName={characterName}
-              copy={copy}
-              creatorHref={creatorHref}
-              items={relatedNewsItems}
-            />
-
             {shouldShowNsfwControl ? (
               <div className="mt-5">
                 <FanletterNsfwOptInControl
@@ -1629,6 +1641,14 @@ export default async function LocalizedFanletterNewsReportPage({
             <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
               {copy.articleNotice}
             </p>
+
+            <CharacterContinueReadingPanel
+              characterAvatarImageUrl={characterAvatarImageUrl}
+              characterName={characterName}
+              copy={copy}
+              creatorHref={creatorHref}
+              items={relatedNewsItems}
+            />
 
             <CharacterIdentityFeature
               copy={copy}
