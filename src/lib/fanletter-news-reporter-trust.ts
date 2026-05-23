@@ -56,6 +56,7 @@ function getRecentActivityScore({
 export function getFanletterNewsReporterTrustProfile({
   latestReportAt = null,
   now = new Date(),
+  paidUnlockPurchaseCount = 0,
   reportCount,
   rewardPoints,
   sourceRevealUnlockContributionCount,
@@ -64,6 +65,7 @@ export function getFanletterNewsReporterTrustProfile({
 }: {
   latestReportAt?: Date | null;
   now?: Date;
+  paidUnlockPurchaseCount?: number;
   reportCount: number;
   rewardPoints: number;
   sourceRevealUnlockContributionCount: number;
@@ -74,6 +76,7 @@ export function getFanletterNewsReporterTrustProfile({
     clampScore(reportCount * 6, 30) +
       clampScore(sourceRevealVoteCount * 2, 24) +
       clampScore(sourceRevealUnlockContributionCount * 8, 24) +
+      clampScore(paidUnlockPurchaseCount * 6, 18) +
       clampScore(rewardPoints / 25, 12) +
       (status === "completed" ? 6 : 0) +
       getRecentActivityScore({ latestReportAt, now }),

@@ -242,13 +242,14 @@ function getCopy(locale: Locale) {
         relatedNewsLoading: "불러오는 중",
         reporterNewsCta: "기자 뉴스",
         reporterTrust: {
-          basis: "작성·반응·언락 기여 기준",
+          basis: "작성·반응·언락·유료 구매 기여 기준",
           label: "활동 신뢰도",
           max: "최고 등급",
           next: (level: string, points: string) =>
             `${level}까지 ${points}점`,
           score: (score: string) => `${score}점`,
           stats: {
+            paidPurchases: "구매",
             reports: "리포트",
             unlocks: "언락",
             votes: "보고싶어요",
@@ -259,6 +260,15 @@ function getCopy(locale: Locale) {
             starter: "신규 팬 기자",
             trusted: "신뢰 팬 기자",
           },
+        },
+        reporterPartner: {
+          attributedRevenue: "기여 매출",
+          body:
+            "독자가 이 리포트에서 보고싶어요, 언락, 유료 구매를 하면 팬 기자 성과로 기록되어 캐릭터 성장과 수익 공유 기준이 누적됩니다.",
+          eyebrow: "Fan Reporter Partner",
+          paidPurchases: "구매 기여",
+          rewardPoints: "보상 포인트",
+          title: "팬 기자가 AI 캐릭터의 팬 파트너가 됩니다",
         },
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
@@ -404,13 +414,15 @@ function getCopy(locale: Locale) {
         relatedNewsLoading: "Loading",
         reporterNewsCta: "Reporter news",
         reporterTrust: {
-          basis: "Based on reports, reactions, and unlock contributions",
+          basis:
+            "Based on reports, reactions, unlocks, and paid purchase contribution",
           label: "Activity trust",
           max: "Top level",
           next: (level: string, points: string) =>
             `${points} points to ${level}`,
           score: (score: string) => `${score} pts`,
           stats: {
+            paidPurchases: "Purchases",
             reports: "Reports",
             unlocks: "Unlocks",
             votes: "Want-to-watch",
@@ -421,6 +433,15 @@ function getCopy(locale: Locale) {
             starter: "New fan reporter",
             trusted: "Trusted fan reporter",
           },
+        },
+        reporterPartner: {
+          attributedRevenue: "Attributed revenue",
+          body:
+            "When readers want-to-watch, unlock, or buy from this report, that contribution is recorded toward character growth and revenue-sharing basis.",
+          eyebrow: "Fan Reporter Partner",
+          paidPurchases: "Purchase contribution",
+          rewardPoints: "Reward points",
+          title: "Fan reporters become AI character fan partners",
         },
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
@@ -465,6 +486,13 @@ function splitArticleBody(body: string) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatUsdt(value: number, locale: Locale) {
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
+  }).format(value)} USDT`;
 }
 
 function getContentAccessLabel(
@@ -1058,6 +1086,7 @@ function ReporterByline({
   report,
   reporterProfile,
   reporterNewsHref,
+  reporterReportStats,
   reporterTrust,
   reporterTrustStats,
 }: {
@@ -1066,8 +1095,16 @@ function ReporterByline({
   report: FanletterNewsReportDocument;
   reporterProfile: FanletterNewsReporterProfile | null;
   reporterNewsHref: string;
+  reporterReportStats: {
+    paidUnlockPurchaseCount: number;
+    paidUnlockRevenueUsdt: number;
+    rewardPoints: number;
+    sourceRevealUnlockContributionCount: number;
+    sourceRevealVoteCount: number;
+  };
   reporterTrust: FanletterNewsReporterTrustProfile;
   reporterTrustStats: {
+    paidUnlockPurchaseCount: number;
     reportCount: number;
     sourceRevealUnlockContributionCount: number;
     sourceRevealVoteCount: number;
@@ -1101,6 +1138,35 @@ function ReporterByline({
     {
       label: copy.reporterTrust.stats.unlocks,
       value: reporterTrustStats.sourceRevealUnlockContributionCount,
+    },
+    {
+      label: copy.reporterTrust.stats.paidPurchases,
+      value: reporterTrustStats.paidUnlockPurchaseCount,
+    },
+  ];
+  const partnerStats = [
+    {
+      label: copy.reporterTrust.stats.votes,
+      value: formatNumber(reporterReportStats.sourceRevealVoteCount, report.locale),
+    },
+    {
+      label: copy.reporterTrust.stats.unlocks,
+      value: formatNumber(
+        reporterReportStats.sourceRevealUnlockContributionCount,
+        report.locale,
+      ),
+    },
+    {
+      label: copy.reporterPartner.paidPurchases,
+      value: formatNumber(reporterReportStats.paidUnlockPurchaseCount, report.locale),
+    },
+    {
+      label: copy.reporterPartner.attributedRevenue,
+      value: formatUsdt(reporterReportStats.paidUnlockRevenueUsdt, report.locale),
+    },
+    {
+      label: copy.reporterPartner.rewardPoints,
+      value: formatNumber(reporterReportStats.rewardPoints, report.locale),
     },
   ];
 
@@ -1180,7 +1246,7 @@ function ReporterByline({
             {copy.reporterTrust.basis} · {nextTrustLabel}
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
           {trustStats.map((stat) => (
             <div
               className="rounded-md border border-black/8 bg-white px-2 py-1.5"
@@ -1191,6 +1257,38 @@ function ReporterByline({
               </p>
               <p className="mt-0.5 text-sm font-black text-[#111510]">
                 {formatNumber(stat.value, report.locale)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 grid gap-2 rounded-lg border border-[#44f26e]/18 bg-[#111510] p-3 text-white sm:grid-cols-[minmax(0,1fr)_minmax(17rem,0.82fr)] sm:items-center">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+            <Coins className="size-3.5" />
+            {copy.reporterPartner.eyebrow}
+          </p>
+          <h3 className="mt-1.5 text-base font-black leading-tight [word-break:keep-all]">
+            {copy.reporterPartner.title}
+          </h3>
+          <p className="mt-1.5 text-xs font-semibold leading-5 text-white/58">
+            {copy.reporterPartner.body}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {partnerStats.map((stat, index) => (
+            <div
+              className={`rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 ${
+                index === partnerStats.length - 1 ? "col-span-2" : ""
+              }`}
+              key={stat.label}
+            >
+              <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-white/38">
+                {stat.label}
+              </p>
+              <p className="mt-0.5 truncate text-sm font-black text-white">
+                {stat.value}
               </p>
             </div>
           ))}
@@ -2015,6 +2113,7 @@ export default async function LocalizedFanletterNewsReportPage({
     sourceContent,
     relatedReports,
     reporterIncentiveStats,
+    reporterReportIncentiveStats,
     reporterProfile,
   ] = await Promise.all([
     getFanletterPublicContentDetail(
@@ -2034,6 +2133,10 @@ export default async function LocalizedFanletterNewsReportPage({
     }),
     getFanletterNewsReporterIncentiveStats({
       reporterReferralCode: report.reporterReferralCode,
+    }),
+    getFanletterNewsReporterIncentiveStats({
+      reporterReferralCode: report.reporterReferralCode,
+      reportIds: [report.reportId],
     }),
     getFanletterNewsReporterProfile({
       reporterReferralCode: report.reporterReferralCode,
@@ -2174,15 +2277,27 @@ export default async function LocalizedFanletterNewsReportPage({
     { label: copy.sixW.how, value: report.how },
   ];
   const reporterTrustStats = {
+    paidUnlockPurchaseCount:
+      reporterIncentiveStats.overview.paidUnlockPurchaseCount,
     reportCount: reporterProfile?.reportCount ?? 1,
     sourceRevealUnlockContributionCount:
       reporterIncentiveStats.overview.sourceRevealUnlockContributionCount,
     sourceRevealVoteCount:
       reporterIncentiveStats.overview.sourceRevealVoteCount,
   };
+  const reporterReportStats = reporterReportIncentiveStats.reports.get(
+    report.reportId,
+  ) ?? {
+    paidUnlockPurchaseCount: 0,
+    paidUnlockRevenueUsdt: 0,
+    rewardPoints: 0,
+    sourceRevealUnlockContributionCount: 0,
+    sourceRevealVoteCount: 0,
+  };
   const reporterTrust = getFanletterNewsReporterTrustProfile({
     latestReportAt:
       reporterProfile?.latestReportAt ?? report.sourcePublishedAt ?? report.createdAt,
+    paidUnlockPurchaseCount: reporterTrustStats.paidUnlockPurchaseCount,
     reportCount: reporterTrustStats.reportCount,
     rewardPoints: reporterIncentiveStats.overview.rewardPoints,
     sourceRevealUnlockContributionCount:
@@ -2245,6 +2360,7 @@ export default async function LocalizedFanletterNewsReportPage({
                   report={report}
                   reporterProfile={reporterProfile}
                   reporterNewsHref={reporterNewsHref}
+                  reporterReportStats={reporterReportStats}
                   reporterTrust={reporterTrust}
                   reporterTrustStats={reporterTrustStats}
                 />
@@ -2402,6 +2518,8 @@ export default async function LocalizedFanletterNewsReportPage({
                   priceUsdt={paidUnlockAmount}
                   referralCode={referralCode}
                   showTeaserPreview={false}
+                  sourceReportId={report.reportId}
+                  sourceReporterReferralCode={report.reporterReferralCode}
                   trackingSource="fanletter-news-detail"
                 />
               </div>

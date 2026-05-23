@@ -51,7 +51,7 @@ function getCopy(locale: Locale) {
     ? {
         badge: "FanLetter News 리포터",
         body:
-          "뉴스 서비스에서 내가 작성한 AI 팬 리포트, 원본 브이로그, 커버 이미지, 보고싶어요 성과를 한곳에서 관리합니다.",
+          "팬 기자가 AI 캐릭터의 팬 파트너가 되어 리포트로 관심을 만들고, 보고싶어요·언락·유료 구매 기여를 수익 공유 기준으로 관리합니다.",
         connectBody:
           "FanLetter News에서 리포터로 활동한 회원만 볼 수 있는 관리 페이지입니다. 계정을 연결하면 작성한 뉴스 리포트와 보상 성과가 표시됩니다.",
         connectCta: "뉴스 계정 연결",
@@ -74,6 +74,15 @@ function getCopy(locale: Locale) {
         filteredEmptyTitle: (filter: string) => `${filter} 리포트가 없습니다.`,
         incentive: "성과",
         incentiveReward: "리포터 보상",
+        partnerModel: {
+          attributedRevenue: "수익 공유 기준 매출",
+          body:
+            "리포터가 작성한 뉴스가 캐릭터 팬을 만들고 원본 브이로그 구매까지 이어지면 해당 리포트의 기여 성과로 기록됩니다.",
+          eyebrow: "Fan Reporter Partner",
+          paidPurchases: "유료 구매 기여",
+          steps: ["리포트 작성", "팬 반응 유도", "포인트·수익 공유 기준 누적"],
+          title: "팬 기자가 AI 캐릭터 IP 성장 파트너가 됩니다",
+        },
         memberOnly: "회원 전용",
         maturity: {
           all: "전체",
@@ -111,7 +120,8 @@ function getCopy(locale: Locale) {
         reporterProfile: "로그인 리포터",
         reporterStatus: "활동 상태",
         reporterTrust: {
-          basis: "작성 수, 최근 활동, 보고싶어요, 언락 기여, 보상 포인트 기준",
+          basis:
+            "작성 수, 최근 활동, 보고싶어요, 언락, 유료 구매 기여, 보상 포인트 기준",
           label: "팬 기자 신뢰도",
           max: "최고 등급 유지 중",
           next: (level: string, points: string) =>
@@ -138,7 +148,7 @@ function getCopy(locale: Locale) {
     : {
         badge: "FanLetter News reporter",
         body:
-          "Manage your AI fan reports, source vlogs, cover images, and want-to-watch performance inside the News service.",
+          "Fan reporters become AI character fan partners, creating demand through reports and tracking want-to-watch, unlock, and paid purchase contribution for revenue-sharing basis.",
         connectBody:
           "This desk is for members who report inside FanLetter News. Connect your account to see your news reports and rewards.",
         connectCta: "Connect news account",
@@ -161,6 +171,15 @@ function getCopy(locale: Locale) {
         filteredEmptyTitle: (filter: string) => `No ${filter} reports.`,
         incentive: "Performance",
         incentiveReward: "Reporter rewards",
+        partnerModel: {
+          attributedRevenue: "Revenue-share basis",
+          body:
+            "When a report helps readers become fans and purchase the source vlog, that purchase is attributed back to the fan reporter's report.",
+          eyebrow: "Fan Reporter Partner",
+          paidPurchases: "Paid purchase contribution",
+          steps: ["Publish reports", "Drive fan actions", "Accumulate points and revenue-share basis"],
+          title: "Fan reporters grow AI character IP as partners",
+        },
         memberOnly: "Members only",
         maturity: {
           all: "All",
@@ -199,7 +218,7 @@ function getCopy(locale: Locale) {
         reporterStatus: "Status",
         reporterTrust: {
           basis:
-            "Based on report count, recent activity, want-to-watch, unlocks, and reward points",
+            "Based on report count, recent activity, want-to-watch, unlocks, paid purchases, and reward points",
           label: "Fan reporter trust",
           max: "Top level maintained",
           next: (level: string, points: string) =>
@@ -227,6 +246,13 @@ function getCopy(locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatUsdt(value: number, locale: Locale) {
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
+  }).format(value)} USDT`;
 }
 
 function readPageNumber(value?: string | string[]) {
@@ -437,6 +463,8 @@ export default async function LocalizedFanletterNewsReportsPage({
   const reporterTrust = data.member
     ? getFanletterNewsReporterTrustProfile({
         latestReportAt: data.reports[0]?.updatedAt ?? null,
+        paidUnlockPurchaseCount:
+          overviewIncentiveStats?.overview.paidUnlockPurchaseCount ?? 0,
         reportCount: data.maturityCounts.all,
         rewardPoints: overviewIncentiveStats?.overview.rewardPoints ?? 0,
         sourceRevealUnlockContributionCount:
@@ -483,6 +511,20 @@ export default async function LocalizedFanletterNewsReportsPage({
           value: formatNumber(
             overviewIncentiveStats?.overview
               .sourceRevealUnlockContributionCount ?? 0,
+            locale,
+          ),
+        },
+        {
+          label: copy.partnerModel.paidPurchases,
+          value: formatNumber(
+            overviewIncentiveStats?.overview.paidUnlockPurchaseCount ?? 0,
+            locale,
+          ),
+        },
+        {
+          label: copy.partnerModel.attributedRevenue,
+          value: formatUsdt(
+            overviewIncentiveStats?.overview.paidUnlockRevenueUsdt ?? 0,
             locale,
           ),
         },
@@ -565,6 +607,8 @@ export default async function LocalizedFanletterNewsReportsPage({
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
     const reportIncentives =
       pageIncentiveStats?.reports.get(report.reportId) ?? {
+        paidUnlockPurchaseCount: 0,
+        paidUnlockRevenueUsdt: 0,
         rewardPoints: 0,
         sourceRevealUnlockContributionCount: 0,
         sourceRevealVoteCount: 0,
@@ -597,6 +641,8 @@ export default async function LocalizedFanletterNewsReportsPage({
       dek: report.dek,
       editHref,
       incentiveRewardPoints: reportIncentives.rewardPoints,
+      paidUnlockPurchaseCount: reportIncentives.paidUnlockPurchaseCount,
+      paidUnlockRevenueUsdt: reportIncentives.paidUnlockRevenueUsdt,
       priceType: report.priceType,
       reportHref,
       reportId: report.reportId,
@@ -782,6 +828,77 @@ export default async function LocalizedFanletterNewsReportsPage({
           </aside>
         </div>
 
+        {data.member ? (
+          <section className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_21rem]">
+            <div className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                <Sparkles className="size-3.5" />
+                {copy.partnerModel.eyebrow}
+              </p>
+              <h2 className="mt-3 max-w-3xl text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
+                {copy.partnerModel.title}
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58">
+                {copy.partnerModel.body}
+              </p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {copy.partnerModel.steps.map((step, index) => (
+                  <div
+                    className="border border-black/10 bg-[#f6f8f4] px-3 py-3"
+                    key={step}
+                  >
+                    <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                      {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <p className="mt-1 text-sm font-black text-[#111510]">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <aside className="border border-[#16702e]/18 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.14)] sm:p-5">
+              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                <WalletCards className="size-3.5" />
+                {copy.partnerModel.attributedRevenue}
+              </p>
+              <p className="mt-3 text-3xl font-black leading-none">
+                {formatUsdt(
+                  overviewIncentiveStats?.overview.paidUnlockRevenueUsdt ?? 0,
+                  locale,
+                )}
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="border border-white/10 bg-white/[0.06] px-3 py-2">
+                  <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-white/38">
+                    {copy.partnerModel.paidPurchases}
+                  </p>
+                  <p className="mt-1 text-sm font-black">
+                    {formatNumber(
+                      overviewIncentiveStats?.overview
+                        .paidUnlockPurchaseCount ?? 0,
+                      locale,
+                    )}
+                  </p>
+                </div>
+                <div className="border border-[#44f26e]/20 bg-[#44f26e]/10 px-3 py-2">
+                  <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#b9ffc8]/68">
+                    {copy.incentiveReward}
+                  </p>
+                  <p className="mt-1 text-sm font-black text-[#b9ffc8]">
+                    {copy.rewardPoints(
+                      formatNumber(
+                        overviewIncentiveStats?.overview.rewardPoints ?? 0,
+                        locale,
+                      ),
+                    )}
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </section>
+        ) : null}
+
         {!session || !data.member ? (
           <section className="mt-2 border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -920,8 +1037,10 @@ export default async function LocalizedFanletterNewsReportsPage({
                   editReport: copy.editReport,
                   incentive: copy.incentive,
                   openReport: copy.openReport,
+                  paidPurchases: copy.partnerModel.paidPurchases,
                   reportTitle: copy.reportTitle,
                   rewardPoints: copy.incentiveReward,
+                  revenueShare: copy.partnerModel.attributedRevenue,
                   source: copy.source,
                   sourceRevealVotes: copy.sourceRevealVotes,
                   unlockContributions: copy.unlockContributions,

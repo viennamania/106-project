@@ -40,6 +40,8 @@ export type FanletterReportsPageReport = {
   dek: string;
   editHref: string;
   incentiveRewardPoints: number;
+  paidUnlockPurchaseCount: number;
+  paidUnlockRevenueUsdt: number;
   priceType: "free" | "paid";
   reportHref: string;
   reportId: string;
@@ -168,7 +170,9 @@ function getCopy(locale: Locale) {
         optionUse: "이 이미지 사용",
         performance: {
           incentive: "성과",
+          paidPurchases: "구매 기여",
           rewardPoints: "보상",
+          revenueShare: "기여 매출",
           sourceRevealVotes: "보고싶어요",
           unlockContributions: "언락",
         },
@@ -224,7 +228,9 @@ function getCopy(locale: Locale) {
         optionUse: "Use this image",
         performance: {
           incentive: "Performance",
+          paidPurchases: "Purchases",
           rewardPoints: "Rewards",
+          revenueShare: "Revenue basis",
           sourceRevealVotes: "Votes",
           unlockContributions: "Unlocks",
         },
@@ -258,6 +264,13 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatUsdt(value: number, locale: Locale) {
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
+  }).format(value)} USDT`;
 }
 
 function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale) {
@@ -416,9 +429,11 @@ export function FanletterReportsCoverManager({
     coverImage: string;
     editReport: string;
     incentive: string;
+    paidPurchases: string;
     openReport: string;
     reportTitle: string;
     rewardPoints: string;
+    revenueShare: string;
     source: string;
     sourceRevealVotes: string;
     unlockContributions: string;
@@ -433,9 +448,11 @@ export function FanletterReportsCoverManager({
     coverImage: pageCopy?.coverImage ?? (locale === "ko" ? "커버" : "Cover"),
     editReport: pageCopy?.editReport ?? (locale === "ko" ? "내용 수정" : "Edit"),
     incentive: pageCopy?.incentive ?? copy.performance.incentive,
+    paidPurchases: pageCopy?.paidPurchases ?? copy.performance.paidPurchases,
     openReport: pageCopy?.openReport ?? copy.openReport,
     reportTitle: pageCopy?.reportTitle ?? (locale === "ko" ? "리포트" : "Report"),
     rewardPoints: pageCopy?.rewardPoints ?? copy.performance.rewardPoints,
+    revenueShare: pageCopy?.revenueShare ?? copy.performance.revenueShare,
     source: pageCopy?.source ?? copy.source,
     sourceRevealVotes:
       pageCopy?.sourceRevealVotes ?? copy.performance.sourceRevealVotes,
@@ -863,13 +880,13 @@ export function FanletterReportsCoverManager({
     <>
       <section className="mt-6">
         <div className="hidden overflow-x-auto border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] md:block">
-          <table className="w-full min-w-[68rem] border-collapse text-left">
+          <table className="w-full min-w-[76rem] border-collapse text-left">
             <thead className="border-b border-black/12 bg-[#f6f8f4] text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/46">
               <tr>
                 <th className="w-28 px-4 py-3">{listCopy.coverImage}</th>
                 <th className="px-4 py-3">{listCopy.reportTitle}</th>
                 <th className="w-56 px-4 py-3">{listCopy.source}</th>
-                <th className="w-52 px-4 py-3">{listCopy.incentive}</th>
+                <th className="w-64 px-4 py-3">{listCopy.incentive}</th>
                 <th className="w-36 px-4 py-3">{listCopy.updatedAt}</th>
                 <th className="w-56 px-4 py-3 text-right">{copy.modalEyebrow}</th>
               </tr>
@@ -955,7 +972,7 @@ export function FanletterReportsCoverManager({
                       </p>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
                         <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
                           <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
                             {listCopy.sourceRevealVotes}
@@ -975,7 +992,23 @@ export function FanletterReportsCoverManager({
                             )}
                           </p>
                         </div>
+                        <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
+                          <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                            {listCopy.paidPurchases}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-[#111510]">
+                            {formatNumber(report.paidUnlockPurchaseCount, locale)}
+                          </p>
+                        </div>
                         <div className="rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-2">
+                          <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]/70">
+                            {listCopy.revenueShare}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-[#16702e]">
+                            {formatUsdt(report.paidUnlockRevenueUsdt, locale)}
+                          </p>
+                        </div>
+                        <div className="col-span-2 rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-2">
                           <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]/70">
                             {listCopy.rewardPoints}
                           </p>
@@ -1090,7 +1123,7 @@ export function FanletterReportsCoverManager({
                     <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/56">
                       {report.dek}
                     </p>
-                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
                       <div className="rounded-md border border-black/8 bg-[#f6f8f4] px-2 py-1.5">
                         <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
                           {listCopy.sourceRevealVotes}
@@ -1111,6 +1144,22 @@ export function FanletterReportsCoverManager({
                         </p>
                       </div>
                       <div className="rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
+                        <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-[#16702e]/70">
+                          {listCopy.paidPurchases}
+                        </p>
+                        <p className="mt-0.5 text-xs font-black text-[#16702e]">
+                          {formatNumber(report.paidUnlockPurchaseCount, locale)}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
+                        <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-[#16702e]/70">
+                          {listCopy.revenueShare}
+                        </p>
+                        <p className="mt-0.5 text-xs font-black text-[#16702e]">
+                          {formatUsdt(report.paidUnlockRevenueUsdt, locale)}
+                        </p>
+                      </div>
+                      <div className="col-span-2 rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
                         <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-[#16702e]/70">
                           {listCopy.rewardPoints}
                         </p>

@@ -906,6 +906,17 @@ export async function getContentOrdersCollection() {
         collection.createIndex({ contentId: 1, buyerEmail: 1, status: 1 }),
         collection.createIndex({ sellerEmail: 1, createdAt: -1 }),
         collection.createIndex({ sellerEmail: 1, status: 1, createdAt: -1 }),
+        collection.createIndex({
+          sourceReporterReferralCode: 1,
+          status: 1,
+          verifiedAt: -1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          sourceReporterReferralCode: 1,
+          sourceReportId: 1,
+          status: 1,
+        }),
         collection.createIndex(
           { txHash: 1 },
           {

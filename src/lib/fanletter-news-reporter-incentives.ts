@@ -7,6 +7,7 @@ import type {
 import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
+  getContentOrdersCollection,
   getContentSocialActionsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
@@ -16,6 +17,8 @@ export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_VOTE_REWARD_POINTS = 10;
 export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_UNLOCK_REWARD_POINTS = 40;
 
 export type FanletterNewsReporterIncentiveReportStats = {
+  paidUnlockPurchaseCount: number;
+  paidUnlockRevenueUsdt: number;
   rewardPoints: number;
   sourceRevealUnlockContributionCount: number;
   sourceRevealVoteCount: number;
@@ -37,6 +40,8 @@ export type FanletterNewsSourceRevealReporterIncentiveAward = {
 
 function emptyStats(): FanletterNewsReporterIncentiveReportStats {
   return {
+    paidUnlockPurchaseCount: 0,
+    paidUnlockRevenueUsdt: 0,
     rewardPoints: 0,
     sourceRevealUnlockContributionCount: 0,
     sourceRevealVoteCount: 0,
@@ -418,6 +423,34 @@ export async function getFanletterNewsReporterIncentiveStats({
       },
     ])
     .toArray();
+  const orderMatch: Record<string, unknown> = {
+    sourceReporterReferralCode: normalizedReporterReferralCode,
+    sourceReportId: { $type: "string" },
+    status: "confirmed",
+  };
+
+  if (normalizedReportIds.length > 0) {
+    orderMatch.sourceReportId = { $in: normalizedReportIds };
+  }
+
+  const orderRows = await (await getContentOrdersCollection())
+    .aggregate<{
+      _id: string;
+      paidUnlockPurchaseCount: number;
+      paidUnlockRevenueUsdt: number;
+    }>([
+      {
+        $match: orderMatch,
+      },
+      {
+        $group: {
+          _id: "$sourceReportId",
+          paidUnlockPurchaseCount: { $sum: 1 },
+          paidUnlockRevenueUsdt: { $sum: { $toDouble: "$amountUsdt" } },
+        },
+      },
+    ])
+    .toArray();
   const overview = emptyStats();
 
   for (const row of rows) {
@@ -426,6 +459,7 @@ export async function getFanletterNewsReporterIncentiveStats({
     }
 
     const stats = {
+      ...emptyStats(),
       rewardPoints: row.rewardPoints,
       sourceRevealUnlockContributionCount:
         row.sourceRevealUnlockContributionCount,
@@ -437,6 +471,20 @@ export async function getFanletterNewsReporterIncentiveStats({
     overview.sourceRevealUnlockContributionCount +=
       stats.sourceRevealUnlockContributionCount;
     overview.sourceRevealVoteCount += stats.sourceRevealVoteCount;
+  }
+
+  for (const row of orderRows) {
+    if (!row._id) {
+      continue;
+    }
+
+    const stats = reports.get(row._id) ?? emptyStats();
+
+    stats.paidUnlockPurchaseCount = row.paidUnlockPurchaseCount;
+    stats.paidUnlockRevenueUsdt = row.paidUnlockRevenueUsdt;
+    reports.set(row._id, stats);
+    overview.paidUnlockPurchaseCount += stats.paidUnlockPurchaseCount;
+    overview.paidUnlockRevenueUsdt += stats.paidUnlockRevenueUsdt;
   }
 
   return {

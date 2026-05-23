@@ -92,6 +92,8 @@ type FanletterPaidUnlockPanelProps = {
   priceUsdt: string | null;
   referralCode: string | null;
   showTeaserPreview?: boolean;
+  sourceReportId?: string | null;
+  sourceReporterReferralCode?: string | null;
   trackingSource?: string;
 };
 
@@ -413,6 +415,8 @@ export function FanletterPaidUnlockPanel({
   priceUsdt,
   referralCode,
   showTeaserPreview = true,
+  sourceReportId = null,
+  sourceReporterReferralCode = null,
   trackingSource = "fanletter-content-detail",
 }: FanletterPaidUnlockPanelProps) {
   const copy = getCopy(locale);
@@ -703,7 +707,7 @@ export function FanletterPaidUnlockPanel({
       status: "idle",
       txHash: null,
     });
-  }, [accountAddress, contentId]);
+  }, [accountAddress, contentId, sourceReportId, sourceReporterReferralCode]);
 
   useEffect(() => {
     if (!detail?.canAccess || accessRefreshRequestedRef.current) {
@@ -806,6 +810,9 @@ export function FanletterPaidUnlockPanel({
         contentId,
         email,
         referralCode,
+        sourceReportId,
+        sourceReporterReferralCode,
+        sourceTrackingSource: trackingSource,
         walletAddress: accountAddress,
       }),
       headers: {
@@ -867,6 +874,9 @@ export function FanletterPaidUnlockPanel({
     memberSessionEmail,
     paidUnlockAmount,
     referralCode,
+    sourceReportId,
+    sourceReporterReferralCode,
+    trackingSource,
   ]);
 
   const createPaidUnlockTransaction = useCallback(async () => {

@@ -571,6 +571,9 @@ export type ContentOrderDocument = {
   sellerEmail: string;
   sellerWalletAddress: string;
   status: ContentOrderStatus;
+  sourceReportId?: string | null;
+  sourceReporterReferralCode?: string | null;
+  sourceTrackingSource?: string | null;
   txHash?: string | null;
   updatedAt: Date;
   verifiedAt?: Date | null;
@@ -832,6 +835,9 @@ export type ContentOrderRecord = {
   contentId: string;
   createdAt: string;
   orderId: string;
+  sourceReportId: string | null;
+  sourceReporterReferralCode: string | null;
+  sourceTrackingSource: string | null;
   status: ContentOrderStatus;
   txHash: string | null;
   verifiedAt: string | null;
@@ -1126,6 +1132,9 @@ export type ContentOrderCreateRequest = {
   contentId: string;
   email: string;
   referralCode?: string | null;
+  sourceReportId?: string | null;
+  sourceReporterReferralCode?: string | null;
+  sourceTrackingSource?: string | null;
   walletAddress?: string;
 };
 
@@ -1324,6 +1333,9 @@ export function serializeContentOrder(
     contentId: order.contentId,
     createdAt: order.createdAt.toISOString(),
     orderId: order.orderId,
+    sourceReportId: order.sourceReportId ?? null,
+    sourceReporterReferralCode: order.sourceReporterReferralCode ?? null,
+    sourceTrackingSource: order.sourceTrackingSource ?? null,
     status: order.status,
     txHash: order.txHash ?? null,
     verifiedAt: order.verifiedAt?.toISOString() ?? null,

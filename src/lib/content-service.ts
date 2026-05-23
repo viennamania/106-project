@@ -1826,6 +1826,61 @@ async function getContentEntitlementForMember(
   });
 }
 
+async function resolveFanletterNewsOrderAttribution({
+  contentId,
+  sourceReportId,
+  sourceReporterReferralCode,
+  sourceTrackingSource,
+}: {
+  contentId: string;
+  sourceReportId?: string | null;
+  sourceReporterReferralCode?: string | null;
+  sourceTrackingSource?: string | null;
+}) {
+  const normalizedSourceReportId = sourceReportId?.trim() ?? "";
+  const normalizedSourceReporterReferralCode = normalizeReferralCode(
+    sourceReporterReferralCode,
+  );
+  const normalizedSourceTrackingSource =
+    sourceTrackingSource?.trim().slice(0, 80) || null;
+
+  if (!normalizedSourceReportId || !normalizedSourceReporterReferralCode) {
+    return {
+      sourceReportId: null,
+      sourceReporterReferralCode: null,
+      sourceTrackingSource: normalizedSourceTrackingSource,
+    };
+  }
+
+  const report = await (await getFanletterNewsReportsCollection()).findOne(
+    {
+      contentId,
+      reportId: normalizedSourceReportId,
+      reporterReferralCode: normalizedSourceReporterReferralCode,
+    },
+    {
+      projection: {
+        reportId: 1,
+        reporterReferralCode: 1,
+      },
+    },
+  );
+
+  if (!report) {
+    return {
+      sourceReportId: null,
+      sourceReporterReferralCode: null,
+      sourceTrackingSource: normalizedSourceTrackingSource,
+    };
+  }
+
+  return {
+    sourceReportId: report.reportId,
+    sourceReporterReferralCode: report.reporterReferralCode,
+    sourceTrackingSource: normalizedSourceTrackingSource,
+  };
+}
+
 async function getContentSocialSummaries(
   contentIds: string[],
   viewerEmail?: string | null,
@@ -3255,6 +3310,12 @@ export async function createContentOrderForMember(
   }
 
   const now = new Date();
+  const sourceAttribution = await resolveFanletterNewsOrderAttribution({
+    contentId: post.contentId,
+    sourceReportId: input.sourceReportId,
+    sourceReporterReferralCode: input.sourceReporterReferralCode,
+    sourceTrackingSource: input.sourceTrackingSource,
+  });
   const order: ContentOrderDocument = {
     amountUsdt: CONTENT_PAID_USDT_AMOUNT,
     buyerEmail: buyer.email,
@@ -3265,6 +3326,9 @@ export async function createContentOrderForMember(
     sellerEmail: post.authorEmail,
     sellerWalletAddress: normalizeAddress(sellerWalletAddress),
     status: "pending_payment",
+    sourceReportId: sourceAttribution.sourceReportId,
+    sourceReporterReferralCode: sourceAttribution.sourceReporterReferralCode,
+    sourceTrackingSource: sourceAttribution.sourceTrackingSource,
     txHash: null,
     updatedAt: now,
   };

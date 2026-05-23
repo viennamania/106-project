@@ -67,6 +67,7 @@ function getCopy(locale: Locale) {
         memberOnly: "회원 전용",
         newsroom: "뉴스룸",
         openReport: "리포트 보기",
+        paidPurchases: "구매 기여",
         pagination: {
           label: "리포트 페이지",
           next: "다음",
@@ -80,6 +81,7 @@ function getCopy(locale: Locale) {
         },
         reportCount: (count: string) => `작성 리포트 ${count}개`,
         reportTitle: "리포트",
+        revenueShare: "기여 매출",
         reporterId: "리포터 ID",
         reporterLogo: "리포터 로고",
         reporterProfile: "로그인 리포터",
@@ -126,6 +128,7 @@ function getCopy(locale: Locale) {
         memberOnly: "Members only",
         newsroom: "Newsroom",
         openReport: "Open report",
+        paidPurchases: "Paid purchases",
         pagination: {
           label: "Report pages",
           next: "Next",
@@ -139,6 +142,7 @@ function getCopy(locale: Locale) {
         },
         reportCount: (count: string) => `${count} reports`,
         reportTitle: "Report",
+        revenueShare: "Attributed revenue",
         reporterId: "Reporter ID",
         reporterLogo: "Reporter logo",
         reporterProfile: "Signed-in reporter",
@@ -389,6 +393,8 @@ export default async function LocalizedFanletterReportsPage({
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
     const reportIncentives =
       pageIncentiveStats?.reports.get(report.reportId) ?? {
+        paidUnlockPurchaseCount: 0,
+        paidUnlockRevenueUsdt: 0,
         rewardPoints: 0,
         sourceRevealUnlockContributionCount: 0,
         sourceRevealVoteCount: 0,
@@ -418,6 +424,8 @@ export default async function LocalizedFanletterReportsPage({
       dek: report.dek,
       editHref,
       incentiveRewardPoints: reportIncentives.rewardPoints,
+      paidUnlockPurchaseCount: reportIncentives.paidUnlockPurchaseCount,
+      paidUnlockRevenueUsdt: reportIncentives.paidUnlockRevenueUsdt,
       priceType: report.priceType,
       reportHref,
       reportId: report.reportId,
@@ -622,7 +630,9 @@ export default async function LocalizedFanletterReportsPage({
                 editReport: copy.editReport,
                 incentive: copy.incentive,
                 openReport: copy.openReport,
+                paidPurchases: copy.paidPurchases,
                 reportTitle: copy.reportTitle,
+                revenueShare: copy.revenueShare,
                 rewardPoints: copy.incentiveReward,
                 source: copy.source,
                 sourceRevealVotes: copy.sourceRevealVotes,
