@@ -23,6 +23,7 @@ type SourceRevealResponse = {
 type FanletterNewsSourceRevealVoteProps = {
   className?: string;
   connectHref: string;
+  density?: "regular" | "compact";
   initialState: FanletterNewsSourceRevealState;
   locale: Locale;
   reportId: string;
@@ -72,6 +73,7 @@ function formatCount(value: number, locale: Locale) {
 export function FanletterNewsSourceRevealVote({
   className,
   connectHref,
+  density = "regular",
   initialState,
   locale,
   reportId,
@@ -102,6 +104,7 @@ export function FanletterNewsSourceRevealVote({
   const remainingLabel = formatCount(remainingCount, locale);
   const isLoggedIn = Boolean(memberSession.email);
   const isDark = tone === "dark";
+  const isCompact = density === "compact";
 
   const handleVote = async () => {
     if (isSaving || state.requestedByViewer || state.unlocked) {
@@ -148,13 +151,15 @@ export function FanletterNewsSourceRevealVote({
         isDark
           ? "border-white/14 bg-black/72 text-white"
           : "border-black/10 bg-white text-[#111510]",
+        isCompact && "p-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.14)] sm:p-3",
         className,
       )}
     >
-      <div className="flex items-start gap-3">
+      <div className={cn("flex items-start gap-3", isCompact && "gap-2.5")}>
         <span
           className={cn(
             "mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full",
+            isCompact && "size-8 sm:size-10",
             state.unlocked
               ? "bg-[#44f26e] text-black"
               : isDark
@@ -163,9 +168,9 @@ export function FanletterNewsSourceRevealVote({
           )}
         >
           {state.unlocked ? (
-            <CheckCircle2 className="size-5" />
+            <CheckCircle2 className={cn("size-5", isCompact && "size-4 sm:size-5")} />
           ) : (
-            <LockKeyhole className="size-5" />
+            <LockKeyhole className={cn("size-5", isCompact && "size-4 sm:size-5")} />
           )}
         </span>
         <div className="min-w-0 flex-1">
@@ -181,6 +186,7 @@ export function FanletterNewsSourceRevealVote({
             className={cn(
               "mt-1 text-sm font-black leading-5 [word-break:keep-all]",
               isDark ? "text-white" : "text-[#111510]",
+              isCompact && "text-[0.82rem] leading-5 sm:text-sm",
             )}
           >
             {state.unlocked ? copy.unlockedTitle : copy.title}
@@ -189,6 +195,7 @@ export function FanletterNewsSourceRevealVote({
             className={cn(
               "mt-1 text-xs font-semibold leading-5",
               isDark ? "text-white/68" : "text-black/58",
+              isCompact && "hidden sm:block",
             )}
           >
             {state.unlocked
@@ -198,7 +205,7 @@ export function FanletterNewsSourceRevealVote({
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className={cn("mt-3", isCompact && "mt-2")}>
         <div
           className={cn(
             "h-2 overflow-hidden rounded-full",
@@ -214,6 +221,7 @@ export function FanletterNewsSourceRevealVote({
           className={cn(
             "mt-2 flex items-center justify-between gap-3 text-[0.68rem] font-black",
             isDark ? "text-white/58" : "text-black/50",
+            isCompact && "mt-1.5",
           )}
         >
           <span className="inline-flex items-center gap-1.5">
@@ -232,6 +240,7 @@ export function FanletterNewsSourceRevealVote({
         <button
           className={cn(
             "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-72",
+            isCompact && "mt-2 h-10",
             state.requestedByViewer
               ? isDark
                 ? "border border-[#44f26e]/35 bg-[#44f26e]/12 text-[#b9ffc8]"
@@ -257,7 +266,10 @@ export function FanletterNewsSourceRevealVote({
         </button>
       ) : (
         <Link
-          className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+          className={cn(
+            "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]",
+            isCompact && "mt-2 h-10",
+          )}
           href={connectHref}
         >
           <HeartHandshake className="size-4" />

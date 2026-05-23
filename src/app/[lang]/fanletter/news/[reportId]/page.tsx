@@ -84,6 +84,12 @@ type SourceVlogRevealGateState = FanletterNewsSourceRevealState & {
   reportId: string;
 };
 
+type SourceVlogRevealTeaserCopy = {
+  eyebrow: string;
+  meta: string;
+  title: string;
+};
+
 const RELATED_NEWS_PAGE_SIZE = 4;
 const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
 const RELATED_NEWS_MAX_VISIBLE_COUNT = 24;
@@ -397,6 +403,22 @@ function getUniqueImageUrls(urls: Array<string | null | undefined>) {
         .filter((url): url is string => Boolean(url)),
     ),
   );
+}
+
+function getSourceVlogRevealTeaserCopy(
+  locale: Locale,
+): SourceVlogRevealTeaserCopy {
+  return locale === "ko"
+    ? {
+        eyebrow: "원본 티저 컷",
+        meta: "짧은 장면만 먼저 공개",
+        title: "팬들이 열기 전, 분위기만 먼저 확인하세요",
+      }
+    : {
+        eyebrow: "Source teaser cuts",
+        meta: "Short scenes previewed first",
+        title: "Preview the mood before fans open the full source",
+      };
 }
 
 function NewsSiteHeader({
@@ -1102,6 +1124,104 @@ function ArticleVisualLead({
   );
 }
 
+function SourceVlogRevealTeaserOverlay({
+  blurred,
+  connectHref,
+  imageUrls,
+  locale,
+  reportId,
+  sourceReveal,
+}: {
+  blurred: boolean;
+  connectHref: string;
+  imageUrls: string[];
+  locale: Locale;
+  reportId: string;
+  sourceReveal: FanletterNewsSourceRevealState;
+}) {
+  const copy = getSourceVlogRevealTeaserCopy(locale);
+  const teaserImages = imageUrls.slice(0, 3);
+  const teaserGridClass =
+    teaserImages.length >= 3
+      ? "grid-cols-3"
+      : teaserImages.length === 2
+        ? "grid-cols-2"
+        : "grid-cols-1";
+
+  return (
+    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5">
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
+        {teaserImages.length > 0 ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+                  {copy.eyebrow}
+                </p>
+                <h3 className="mt-1 text-lg font-black leading-tight [word-break:keep-all] sm:text-2xl">
+                  {copy.title}
+                </h3>
+              </div>
+              <span className="hidden shrink-0 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.62rem] font-black text-white/78 sm:inline-flex">
+                {copy.meta}
+              </span>
+            </div>
+            <div
+              className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
+            >
+              {teaserImages.map((imageUrl, index) => {
+                const isPrimary = index === 0;
+
+                return (
+                  <div
+                    className={
+                      isPrimary
+                        ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
+                        : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]"
+                    }
+                    key={`${imageUrl}-${index}`}
+                  >
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={
+                        blurred
+                          ? "scale-[1.06] object-cover blur-md brightness-[0.7] saturate-[0.88]"
+                          : "object-cover"
+                      }
+                      fill
+                      sizes={
+                        isPrimary
+                          ? "(max-width: 640px) 54vw, 28rem"
+                          : "(max-width: 640px) 38vw, 14rem"
+                      }
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-transparent to-black/10" />
+                    <span className="absolute bottom-2 left-2 rounded-full bg-black/62 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <FanletterNewsSourceRevealVote
+          className="w-full"
+          connectHref={connectHref}
+          density="compact"
+          initialState={sourceReveal}
+          locale={locale}
+          reportId={reportId}
+        />
+      </div>
+    </div>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -1128,7 +1248,7 @@ function SourceVlogEmbed({
   sourceContent: FanletterPublicContentDetail | null;
 }) {
   const sourceRevealLocked = Boolean(sourceReveal && !sourceReveal.unlocked);
-  const mediaBlurred = blurred || sourceRevealLocked;
+  const mediaBlurred = blurred;
   const sourceVideoUrl =
     !sourceRevealLocked && sourceContent?.canViewerAccess
       ? sourceContent.contentVideoUrls[0] ?? null
@@ -1145,6 +1265,14 @@ function SourceVlogEmbed({
       : sourceContent?.coverImageUrl ??
         sourceContent?.contentImageUrls[0] ??
         reportCoverImageUrl;
+  const sourceTeaserImageUrls = getUniqueImageUrls([
+    sourceImageUrl,
+    ...(sourceContent?.coverImageCandidates ?? []).map(
+      (candidate) => candidate.url,
+    ),
+    ...(sourceContent?.contentImageUrls ?? []),
+    reportCoverImageUrl,
+  ]).slice(0, 4);
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
@@ -1177,26 +1305,53 @@ function SourceVlogEmbed({
         </span>
       </div>
       <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
-        <FanletterResponsiveMediaFrame
-          alt={sourceContent?.title ?? copy.embeddedTitle}
-          blurred={mediaBlurred}
-          eager
-          imageUrl={sourceImageUrl}
-          mediaType={sourceContent?.mediaType ?? "video"}
-          title={sourceContent?.title ?? copy.embeddedTitle}
-          videoUrl={sourceVideoUrl}
-        >
-          {mediaBlurred || !hasEmbeddedVideo ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
-              {sourceRevealLocked && sourceReveal ? (
-                <FanletterNewsSourceRevealVote
-                  className="w-full max-w-sm"
-                  connectHref={sourceReveal.connectHref}
-                  initialState={sourceReveal}
-                  locale={locale}
-                  reportId={sourceReveal.reportId}
-                />
-              ) : (
+        {sourceRevealLocked && sourceReveal ? (
+          <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
+            {sourceImageUrl ? (
+              <Image
+                alt={sourceContent?.title ?? copy.embeddedTitle}
+                className={
+                  mediaBlurred
+                    ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
+                    : "object-cover"
+                }
+                fill
+                loading="eager"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                src={sourceImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  sourceImageUrl,
+                )}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+                <Clapperboard className="size-14 text-[#44f26e]" />
+              </div>
+            )}
+            {mediaBlurred ? (
+              <div className="pointer-events-none absolute inset-0 bg-black/10" />
+            ) : null}
+            <SourceVlogRevealTeaserOverlay
+              blurred={blurred}
+              connectHref={sourceReveal.connectHref}
+              imageUrls={sourceTeaserImageUrls}
+              locale={locale}
+              reportId={sourceReveal.reportId}
+              sourceReveal={sourceReveal}
+            />
+          </div>
+        ) : (
+          <FanletterResponsiveMediaFrame
+            alt={sourceContent?.title ?? copy.embeddedTitle}
+            blurred={mediaBlurred}
+            eager
+            imageUrl={sourceImageUrl}
+            mediaType={sourceContent?.mediaType ?? "video"}
+            title={sourceContent?.title ?? copy.embeddedTitle}
+            videoUrl={sourceVideoUrl}
+          >
+            {mediaBlurred || !hasEmbeddedVideo ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
                 <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
                   {blurred ? (
                     <AlertTriangle className="mx-auto size-7 text-rose-300" />
@@ -1218,10 +1373,10 @@ function SourceVlogEmbed({
                     </FanletterPaidUnlockTrigger>
                   ) : null}
                 </div>
-              )}
-            </div>
-          ) : null}
-        </FanletterResponsiveMediaFrame>
+              </div>
+            ) : null}
+          </FanletterResponsiveMediaFrame>
+        )}
       </div>
       {sourceReveal?.unlocked ? (
         <FanletterNewsSourceRevealVote
