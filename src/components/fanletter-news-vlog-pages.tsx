@@ -1081,6 +1081,15 @@ function RelatedVlogRow({
 }) {
   const blurred = item.contentMaturityRating === "nsfw" && !nsfwOptInEnabled;
   const publishedAt = formatDate(item.publishedAt, locale);
+  const sourceReveal = getSourceRevealCardState(item);
+  const countLabel = formatNumber(sourceReveal.clampedCount, locale);
+  const thresholdLabel = formatNumber(sourceReveal.threshold, locale);
+  const remainingLabel = formatNumber(sourceReveal.remaining, locale);
+  const sourceRevealStatus = sourceReveal.unlocked
+    ? copy.sourceReveal.complete
+    : sourceReveal.requestedByViewer
+      ? copy.sourceReveal.requested
+      : copy.sourceReveal.remaining(remainingLabel);
 
   return (
     <Link
@@ -1106,6 +1115,16 @@ function RelatedVlogRow({
             <Clapperboard className="size-7 text-[#44f26e]" />
           </div>
         )}
+        <div
+          className={cn(
+            "absolute inset-x-1.5 bottom-1.5 rounded-md border px-1.5 py-1 text-center text-[0.58rem] font-black leading-none text-white shadow-[0_8px_18px_rgba(0,0,0,0.24)] backdrop-blur",
+            sourceReveal.unlocked
+              ? "border-[#44f26e]/42 bg-[#123c20]/82"
+              : "border-white/18 bg-black/72",
+          )}
+        >
+          {countLabel}/{thresholdLabel}
+        </div>
       </div>
       <div className="min-w-0">
         <p
@@ -1124,6 +1143,33 @@ function RelatedVlogRow({
           <span>
             {formatNumber(item.newsReportCount, locale)} {copy.reportUnit}
           </span>
+        </div>
+        <div
+          className={cn(
+            "mt-2 rounded-lg border px-2.5 py-2",
+            sourceReveal.unlocked
+              ? "border-[#19b84b]/24 bg-[#edfff2]"
+              : "border-black/10 bg-[#f5f7f1]",
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+              {sourceReveal.unlocked ? (
+                <CheckCircle2 className="size-3.5 shrink-0" />
+              ) : (
+                <LockKeyhole className="size-3.5 shrink-0" />
+              )}
+              <span className="truncate">{copy.sourceReveal.label}</span>
+            </span>
+            <span className="shrink-0 text-[0.62rem] font-black text-black/58">
+              {sourceRevealStatus}
+            </span>
+          </div>
+          <SourceRevealProgressBar
+            className="mt-1.5 h-1.5"
+            percent={sourceReveal.percent}
+            unlocked={sourceReveal.unlocked}
+          />
         </div>
       </div>
     </Link>
