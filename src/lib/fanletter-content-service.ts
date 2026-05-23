@@ -153,6 +153,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   hiddenNsfwCount: number;
   nsfwOptInEnabled: boolean;
   tags: string[];
+  viewerHasPaidEntitlement: boolean;
   viewerRelation: "audience" | "owner";
 };
 
@@ -2212,9 +2213,14 @@ export const getFanletterPublicContentDetail = cache(
     const contentMaturityRating = resolveFanletterContentMaturityRating(post);
     const canViewMatureContent =
       contentMaturityRating !== "nsfw" || includeNsfw || isOwner;
+    const viewerHasPaidEntitlement = Boolean(viewerEntitlement);
     const canViewerAccess =
       canViewMatureContent &&
-      (canPubliclyAccess || isOwner || Boolean(viewerEntitlement));
+      (canPubliclyAccess || isOwner || viewerHasPaidEntitlement);
+    const canViewerLoadPinnedNsfwMedia =
+      contentMaturityRating === "nsfw" && viewerHasPaidEntitlement;
+    const canViewerLoadFullMedia =
+      canViewerAccess || canViewerLoadPinnedNsfwMedia;
     const authorReferralCode = normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     );
@@ -2293,6 +2299,7 @@ export const getFanletterPublicContentDetail = cache(
         profile,
         social,
       }),
+      primaryVideoUrl: canViewerLoadFullMedia ? getPrimaryVideoUrl(post) : null,
       authorCharacter: getPublicCharacter({
         fanRequestMetrics: authorFanRequestMetrics,
         locale,
@@ -2317,12 +2324,13 @@ export const getFanletterPublicContentDetail = cache(
       canPubliclyAccess,
       canViewerAccess,
       contentImageUrls: canViewerAccess ? post.contentImageUrls ?? [] : [],
-      contentVideoUrls: canViewerAccess ? post.contentVideoUrls ?? [] : [],
+      contentVideoUrls: canViewerLoadFullMedia ? post.contentVideoUrls ?? [] : [],
       coverImageCandidates: post.coverImageCandidates ?? [],
       fanRequestSource,
       hiddenNsfwCount,
       nsfwOptInEnabled: includeNsfw,
       tags: post.tags,
+      viewerHasPaidEntitlement,
       viewerRelation: isOwner ? "owner" : "audience",
     };
   },

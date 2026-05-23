@@ -34,6 +34,7 @@ type FanletterResponsiveMediaFrameProps = {
     enabled: boolean;
     locale: Locale;
     managePinHref: string;
+    teaserBlurred?: boolean;
   };
   title: string;
   videoUrl: string | null;
@@ -92,6 +93,8 @@ export function FanletterResponsiveMediaFrame({
   const isNsfwPinUnlocked =
     !requiresNsfwPin || nsfwPinUnlockedVideoUrl === videoUrl;
   const playableVideoUrl = isNsfwPinUnlocked ? videoUrl : null;
+  const shouldBlurLockedPinTeaser =
+    requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate?.teaserBlurred;
 
   const handleMetadata = useCallback((metadata: FanletterVideoMetadata) => {
     if (!playableVideoUrl) {
@@ -212,11 +215,14 @@ export function FanletterResponsiveMediaFrame({
         <>
           <Image
             alt={alt}
-            className={
+            className={cn(
+              "object-cover",
               blurred
-                ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
-                : "object-cover"
-            }
+                ? "scale-[1.06] blur-lg brightness-[0.72] saturate-[0.88]"
+                : shouldBlurLockedPinTeaser
+                  ? "scale-[1.03] blur-sm brightness-[0.82] saturate-[0.9]"
+                  : null,
+            )}
             fill
             loading={eager ? "eager" : undefined}
             onLoad={handleImageLoad}
@@ -224,7 +230,7 @@ export function FanletterResponsiveMediaFrame({
             src={imageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
-          {blurred ? (
+          {blurred || shouldBlurLockedPinTeaser ? (
             <div className="pointer-events-none absolute inset-0 bg-black/10" />
           ) : null}
         </>

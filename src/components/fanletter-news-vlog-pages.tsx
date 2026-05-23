@@ -12,9 +12,12 @@ import {
   LockKeyhole,
   MessageCircleHeart,
   Newspaper,
+  PlayCircle,
   RotateCcw,
+  ShieldCheck,
   Sparkles,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
@@ -55,6 +58,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
+import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -83,15 +87,28 @@ function getCopy(locale: Locale) {
         detail: {
           backToArchive: "브이로그 뉴스 목록",
           eyebrow: "FanLetter News Vlog",
+          generalStatus: "일반",
           lockedBody:
             "팬 전용 원본 브이로그는 결제 후 뉴스 서비스 안에서 바로 열람할 수 있습니다.",
           lockedMeta: "전체 영상 · 본문 · 추가 미디어",
           lockedTitle: "팬 전용 브이로그 잠금 해제",
           meta: "뉴스 서비스 안에서 원본 브이로그를 이어봅니다.",
+          ownerAccess: "작성자 열람",
+          paidAccessibleBody:
+            "결제가 완료된 팬 전용 브이로그입니다. 뉴스 전용 화면에서 원본 영상을 이어봅니다.",
+          paidLockedBody:
+            "팬 전용 유료 브이로그입니다. 결제 전에는 티저와 공개 가능한 정보만 표시됩니다.",
+          paidStatus: (amount: string) => `${amount} USDT 유료`,
+          pinRequired: "PIN 확인 후 재생",
           paidUnlockCta: "결제하고 원본 보기",
           paidUnlockTeaserEyebrow: "팬 전용 티저 컷",
           paidUnlockTeaserTitle: "결제 전, 분위기를 먼저 확인하세요",
+          publicBody:
+            "공개 브이로그입니다. 뉴스 서비스 안에서 바로 볼 수 있습니다.",
+          purchased: "구매 완료",
           titleSuffix: "브이로그 뉴스",
+          unpaid: "결제 필요",
+          viewable: "열람 가능",
         },
         empty: "아직 공개 브이로그가 없습니다.",
         footerCta: "뉴스 홈으로 돌아가기",
@@ -164,15 +181,28 @@ function getCopy(locale: Locale) {
         detail: {
           backToArchive: "Vlog news archive",
           eyebrow: "FanLetter News Vlog",
+          generalStatus: "General",
           lockedBody:
             "Unlock the fan-only source vlog and continue watching inside FanLetter News.",
           lockedMeta: "Full video · body · extra media",
           lockedTitle: "Unlock fan-only vlog",
           meta: "Continue the source vlog inside the News service.",
+          ownerAccess: "Creator access",
+          paidAccessibleBody:
+            "This fan-only vlog has been purchased. Continue watching the source video inside News.",
+          paidLockedBody:
+            "This is a fan-only paid vlog. Before payment, only teaser and public context are shown.",
+          paidStatus: (amount: string) => `${amount} USDT paid`,
+          pinRequired: "PIN required to play",
           paidUnlockCta: "Pay and watch source",
           paidUnlockTeaserEyebrow: "Fan-only teaser cuts",
           paidUnlockTeaserTitle: "Preview the mood before unlocking",
+          publicBody:
+            "This is a public vlog and can be watched directly inside News.",
+          purchased: "Purchased",
           titleSuffix: "vlog news",
+          unpaid: "Payment needed",
+          viewable: "Viewable",
         },
         empty: "No public vlogs have been published yet.",
         footerCta: "Back to news home",
@@ -1370,6 +1400,34 @@ function SidePanel({
   );
 }
 
+function NewsVlogStatusTile({
+  Icon,
+  label,
+  tone = "default",
+}: {
+  Icon: LucideIcon;
+  label: string;
+  tone?: "default" | "paid" | "success" | "warning";
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-black",
+        tone === "paid"
+          ? "border-[#19b84b]/24 bg-[#ecfff0] text-[#126c2c]"
+          : tone === "success"
+            ? "border-[#19b84b]/24 bg-[#111510] text-[#44f26e]"
+            : tone === "warning"
+              ? "border-rose-500/22 bg-rose-50 text-rose-700"
+              : "border-black/10 bg-[#f5f7f1] text-black/58",
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
 export function FanletterNewsVlogDetailPage({
   content,
   locale,
@@ -1425,6 +1483,11 @@ export function FanletterNewsVlogDetailPage({
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, effectiveReferralCode),
     { returnTo: currentHref },
   );
+  const pinUnlockHref = buildWalletUnlockHref({
+    locale,
+    referralCode: effectiveReferralCode,
+    returnTo: currentHref,
+  });
   const onboardingHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
     { returnTo: currentHref },
@@ -1440,13 +1503,21 @@ export function FanletterNewsVlogDetailPage({
     { href: purchasesHref, label: copy.navItems[3] },
   ];
   const isOwnContent = content.viewerRelation === "owner";
+  const isPaidContent = content.priceType === "paid";
+  const isNsfwContent = content.contentMaturityRating === "nsfw";
+  const isViewerPaidPurchaser =
+    isPaidContent && content.viewerHasPaidEntitlement && !isOwnContent;
   const requiresNsfwOptIn =
-    content.contentMaturityRating === "nsfw" &&
+    isNsfwContent &&
     !content.nsfwOptInEnabled &&
-    !isOwnContent;
-  const canViewerAccess = content.canViewerAccess || isOwnContent;
+    !isOwnContent &&
+    !isViewerPaidPurchaser;
+  const canViewerReadFullContent = content.canViewerAccess || isOwnContent;
+  const canViewerPlayMedia = canViewerReadFullContent || isViewerPaidPurchaser;
   const paidContentLocked =
-    content.priceType === "paid" && !canViewerAccess && !isOwnContent;
+    isPaidContent &&
+    !content.viewerHasPaidEntitlement &&
+    !isOwnContent;
   const shouldBlurMedia = requiresNsfwOptIn;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? content.primaryVideoUrl;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
@@ -1457,14 +1528,22 @@ export function FanletterNewsVlogDetailPage({
     !sourceReveal.unlocked &&
     !isOwnContent;
   const lockedNsfwTeaserBlurred =
-    content.contentMaturityRating === "nsfw" &&
-    (sourceRevealLocked || paidContentLocked);
+    isNsfwContent && (sourceRevealLocked || paidContentLocked);
   const sourceRevealTeaserBlurred =
     shouldBlurMedia || lockedNsfwTeaserBlurred;
   const publishedAt = formatDate(content.publishedAt, locale);
   const accessLabel = getAccessLabel(content, copy);
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const paidUnlockAmount = content.priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
+  const shouldRequireNsfwVideoPin =
+    isNsfwContent && canViewerPlayMedia && Boolean(primaryVideoUrl);
+  const statusBody = isPaidContent
+    ? paidContentLocked
+      ? copy.detail.paidLockedBody
+      : isOwnContent
+        ? copy.detail.ownerAccess
+        : copy.detail.paidAccessibleBody
+    : copy.detail.publicBody;
   const paidUnlockSectionId = "fanletter-news-vlog-paid-unlock";
   const paidUnlockHref = `${currentHref}#${paidUnlockSectionId}`;
   const detailBackHref = returnToHref ?? archiveHref;
@@ -1515,6 +1594,61 @@ export function FanletterNewsVlogDetailPage({
                   {content.summary || copy.detail.meta}
                 </p>
 
+                <div className="mt-5 rounded-2xl border border-black/10 bg-[#f5f7f1] p-3 sm:p-4">
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <NewsVlogStatusTile
+                      Icon={isPaidContent ? Coins : PlayCircle}
+                      label={
+                        isPaidContent
+                          ? copy.detail.paidStatus(paidUnlockAmount)
+                          : copy.access.public
+                      }
+                      tone={isPaidContent ? "paid" : "default"}
+                    />
+                    <NewsVlogStatusTile
+                      Icon={
+                        paidContentLocked || requiresNsfwOptIn
+                          ? LockKeyhole
+                          : isViewerPaidPurchaser || isOwnContent
+                            ? CheckCircle2
+                            : ShieldCheck
+                      }
+                      label={
+                        paidContentLocked
+                          ? copy.detail.unpaid
+                          : requiresNsfwOptIn
+                            ? nsfwCopy.disabledCta
+                          : isViewerPaidPurchaser
+                            ? copy.detail.purchased
+                            : isOwnContent
+                              ? copy.detail.ownerAccess
+                              : copy.detail.viewable
+                      }
+                      tone={
+                        paidContentLocked || requiresNsfwOptIn
+                          ? "warning"
+                          : "success"
+                      }
+                    />
+                    <NewsVlogStatusTile
+                      Icon={isNsfwContent ? ShieldCheck : CheckCircle2}
+                      label={
+                        isNsfwContent
+                          ? shouldRequireNsfwVideoPin
+                            ? copy.detail.pinRequired
+                            : nsfwCopy.badge
+                          : copy.detail.generalStatus
+                      }
+                      tone={isNsfwContent ? "warning" : "default"}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold leading-6 text-black/58">
+                    {shouldRequireNsfwVideoPin
+                      ? `${statusBody} ${copy.detail.pinRequired}.`
+                      : statusBody}
+                  </p>
+                </div>
+
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   <Link
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 py-2 text-sm font-black !text-white transition hover:bg-[#16702e]"
@@ -1559,7 +1693,7 @@ export function FanletterNewsVlogDetailPage({
                   locale={locale}
                   paidUnlockAmount={paidUnlockAmount}
                   paidUnlockHref={paidUnlockHref}
-                  showPaidUnlockCta={!requiresNsfwOptIn}
+                  showPaidUnlockCta
                 />
               ) : (
                 <FanletterResponsiveMediaFrame
@@ -1568,8 +1702,19 @@ export function FanletterNewsVlogDetailPage({
                   eager
                   imageUrl={primaryImageUrl}
                   mediaType={content.mediaType}
+                  nsfwPinGate={
+                    shouldRequireNsfwVideoPin
+                      ? {
+                          connectHref,
+                          enabled: true,
+                          locale,
+                          managePinHref: pinUnlockHref,
+                          teaserBlurred: true,
+                        }
+                      : undefined
+                  }
                   title={content.title}
-                  videoUrl={canViewerAccess ? primaryVideoUrl : null}
+                  videoUrl={canViewerPlayMedia ? primaryVideoUrl : null}
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
                     <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
@@ -1624,7 +1769,7 @@ export function FanletterNewsVlogDetailPage({
               />
             ) : null}
 
-            {paidContentLocked && !requiresNsfwOptIn ? (
+            {paidContentLocked ? (
               <section
                 className="mt-5 scroll-mt-5 border border-black/12 bg-white p-4 shadow-[0_14px_40px_rgba(17,21,16,0.06)] sm:p-6"
                 id={paidUnlockSectionId}
@@ -1668,7 +1813,7 @@ export function FanletterNewsVlogDetailPage({
               </section>
             ) : null}
 
-            {canViewerAccess && !sourceRevealLocked ? (
+            {canViewerReadFullContent && !sourceRevealLocked ? (
               <section className="mt-5 border border-black/12 bg-white p-4 shadow-[0_14px_40px_rgba(17,21,16,0.06)] sm:p-6">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
                   {copy.bodyTitle}
