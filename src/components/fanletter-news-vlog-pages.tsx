@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpenCheck,
+  CheckCircle2,
   Clapperboard,
   ExternalLink,
   Heart,
@@ -12,6 +13,7 @@ import {
   Newspaper,
   RotateCcw,
   Sparkles,
+  Users,
 } from "lucide-react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
@@ -31,6 +33,7 @@ import {
 } from "@/lib/fanletter-content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsArticleDisplayTitle } from "@/lib/fanletter-news-related";
+import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
   getFanletterNewsVlogHref,
@@ -99,6 +102,15 @@ function getCopy(locale: Locale) {
         siteName: "FanLetter News",
         sort: "정렬",
         source: "원본",
+        sourceReveal: {
+          bodyLocked: (remaining: string) => `${remaining}명 더 누르면 원본 오픈`,
+          bodyReady: "팬들이 열어낸 원본",
+          complete: "오픈 완료",
+          eyebrow: "팬 오픈 진행",
+          label: "원본 오픈",
+          remaining: (count: string) => `${count}명 남음`,
+          requested: "참여 완료",
+        },
         stats: {
           comments: "댓글",
           likes: "좋아요",
@@ -158,6 +170,17 @@ function getCopy(locale: Locale) {
         siteName: "FanLetter News",
         sort: "Sort",
         source: "Source",
+        sourceReveal: {
+          bodyLocked: (remaining: string) =>
+            `${remaining} more fan${remaining === "1" ? "" : "s"} to open`,
+          bodyReady: "Source opened by fans",
+          complete: "Opened",
+          eyebrow: "Fan open progress",
+          label: "Source open",
+          remaining: (count: string) =>
+            `${count} fan${count === "1" ? "" : "s"} left`,
+          requested: "Joined",
+        },
         stats: {
           comments: "Comments",
           likes: "Likes",
@@ -286,6 +309,55 @@ function MetricPill({
   );
 }
 
+function getSourceRevealCardState(item: FanletterPublicContentItem) {
+  const threshold = FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD;
+  const count = Math.max(0, Math.floor(item.social.sourceRevealCount));
+  const clampedCount = Math.min(count, threshold);
+  const remaining = Math.max(0, threshold - count);
+
+  return {
+    clampedCount,
+    count,
+    percent:
+      threshold > 0
+        ? Math.min(100, Math.max(0, (clampedCount / threshold) * 100))
+        : 100,
+    remaining,
+    requestedByViewer: item.social.sourceRevealRequestedByViewer,
+    threshold,
+    unlocked: count >= threshold,
+  };
+}
+
+function SourceRevealProgressBar({
+  className,
+  percent,
+  unlocked,
+}: {
+  className?: string;
+  percent: number;
+  unlocked: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "h-2 overflow-hidden rounded-full bg-black/10",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "h-full rounded-full transition-[width]",
+          unlocked
+            ? "bg-[#44f26e]"
+            : "bg-[linear-gradient(90deg,#44f26e,#b5ff4d)]",
+        )}
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  );
+}
+
 function NewsVlogCard({
   copy,
   href,
@@ -301,6 +373,15 @@ function NewsVlogCard({
 }) {
   const blurred = item.contentMaturityRating === "nsfw" && !nsfwOptInEnabled;
   const publishedAt = formatDate(item.publishedAt, locale);
+  const sourceReveal = getSourceRevealCardState(item);
+  const countLabel = formatNumber(sourceReveal.clampedCount, locale);
+  const thresholdLabel = formatNumber(sourceReveal.threshold, locale);
+  const remainingLabel = formatNumber(sourceReveal.remaining, locale);
+  const sourceRevealStatus = sourceReveal.unlocked
+    ? copy.sourceReveal.complete
+    : sourceReveal.requestedByViewer
+      ? copy.sourceReveal.requested
+      : copy.sourceReveal.remaining(remainingLabel);
 
   return (
     <article className="group grid min-w-0 overflow-hidden border border-black/12 bg-white shadow-[0_14px_40px_rgba(17,21,16,0.06)] transition hover:-translate-y-0.5 hover:border-[#19b84b] hover:shadow-[0_18px_48px_rgba(17,21,16,0.1)]">
@@ -332,6 +413,42 @@ function NewsVlogCard({
               {formatNumber(item.newsReportCount, locale)} {copy.reportUnit}
             </span>
           ) : null}
+        </div>
+        <div className="absolute inset-x-3 bottom-3 rounded-xl border border-white/16 bg-black/72 p-3 text-white shadow-[0_14px_36px_rgba(0,0,0,0.28)] backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
+                  sourceReveal.unlocked
+                    ? "bg-[#44f26e] text-black"
+                    : "bg-[#44f26e]/14 text-[#44f26e]",
+                )}
+              >
+                {sourceReveal.unlocked ? (
+                  <CheckCircle2 className="size-4" />
+                ) : (
+                  <Users className="size-4" />
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.sourceReveal.eyebrow}
+                </span>
+                <span className="mt-0.5 block truncate text-xs font-black text-white">
+                  {sourceRevealStatus}
+                </span>
+              </span>
+            </span>
+            <span className="shrink-0 text-lg font-black leading-none text-white">
+              {countLabel}/{thresholdLabel}
+            </span>
+          </div>
+          <SourceRevealProgressBar
+            className="mt-2 bg-white/16"
+            percent={sourceReveal.percent}
+            unlocked={sourceReveal.unlocked}
+          />
         </div>
       </Link>
       <div className="p-4 sm:p-5">
@@ -366,6 +483,51 @@ function NewsVlogCard({
             icon={<MessageCircleHeart className="size-3.5" />}
             label={copy.stats.comments}
             value={formatNumber(item.social.commentCount, locale)}
+          />
+        </div>
+        <div
+          className={cn(
+            "mt-4 rounded-xl border p-3",
+            sourceReveal.unlocked
+              ? "border-[#19b84b]/28 bg-[#edfff2]"
+              : "border-black/10 bg-[#f5f7f1]",
+          )}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
+                  sourceReveal.unlocked
+                    ? "bg-[#111510] text-[#44f26e]"
+                    : "bg-white text-[#16702e]",
+                )}
+              >
+                {sourceReveal.unlocked ? (
+                  <CheckCircle2 className="size-4" />
+                ) : (
+                  <LockKeyhole className="size-4" />
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                  {copy.sourceReveal.label}
+                </span>
+                <span className="mt-0.5 block truncate text-xs font-black text-black/64">
+                  {sourceReveal.unlocked
+                    ? copy.sourceReveal.bodyReady
+                    : copy.sourceReveal.bodyLocked(remainingLabel)}
+                </span>
+              </span>
+            </span>
+            <span className="shrink-0 text-sm font-black text-[#111510]">
+              {countLabel}/{thresholdLabel}
+            </span>
+          </div>
+          <SourceRevealProgressBar
+            className="mt-2"
+            percent={sourceReveal.percent}
+            unlocked={sourceReveal.unlocked}
           />
         </div>
         <Link
