@@ -12,6 +12,7 @@ import {
   Loader2,
   Newspaper,
   RotateCcw,
+  ShieldAlert,
   X,
 } from "lucide-react";
 import {
@@ -24,11 +25,15 @@ import {
 } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
-import type { FanletterNewsReportCoverImageSource } from "@/lib/content";
+import type {
+  ContentMaturityRating,
+  FanletterNewsReportCoverImageSource,
+} from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 
 export type FanletterReportsPageReport = {
   contentId: string;
+  contentMaturityRating: ContentMaturityRating;
   creatorName: string;
   coverImageSource: FanletterNewsReportCoverImageSource;
   coverImageUrl: string | null;
@@ -153,6 +158,10 @@ function getCopy(locale: Locale) {
         modalLoading: "커버 후보를 불러오는 중",
         modalSaving: "저장 중",
         modalTitle: "리포트 커버 이미지 선택",
+        maturityRating: {
+          general: "일반",
+          nsfw: "NSFW",
+        },
         openReport: "리포트 보기",
         optionCurrent: "현재 사용 중",
         optionSelected: "편집 중",
@@ -205,6 +214,10 @@ function getCopy(locale: Locale) {
         modalLoading: "Loading cover candidates",
         modalSaving: "Saving",
         modalTitle: "Select report cover image",
+        maturityRating: {
+          general: "General",
+          nsfw: "NSFW",
+        },
         openReport: "Open report",
         optionCurrent: "Currently used",
         optionSelected: "Editing",
@@ -893,6 +906,12 @@ export function FanletterReportsCoverManager({
                             <Newspaper className="size-6 text-[#44f26e]" />
                           </div>
                         )}
+                        {report.contentMaturityRating === "nsfw" ? (
+                          <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/72 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white backdrop-blur">
+                            <ShieldAlert className="size-3 text-[#ff6b7d]" />
+                            {copy.maturityRating.nsfw}
+                          </span>
+                        ) : null}
                       </Link>
                     </td>
                     <td className="max-w-[28rem] px-4 py-4">
@@ -901,6 +920,15 @@ export function FanletterReportsCoverManager({
                           {report.priceType === "paid"
                             ? copy.priceType.paid
                             : copy.priceType.public}
+                        </span>
+                        <span
+                          className={
+                            report.contentMaturityRating === "nsfw"
+                              ? "text-rose-600"
+                              : undefined
+                          }
+                        >
+                          {copy.maturityRating[report.contentMaturityRating]}
                         </span>
                         <span>{copy.coverSource[report.coverImageSource]}</span>
                       </div>
@@ -1028,6 +1056,12 @@ export function FanletterReportsCoverManager({
                         <Newspaper className="size-7 text-[#44f26e]" />
                       </div>
                     )}
+                    {report.contentMaturityRating === "nsfw" ? (
+                      <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/72 px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white backdrop-blur">
+                        <ShieldAlert className="size-3 text-[#ff6b7d]" />
+                        {copy.maturityRating.nsfw}
+                      </span>
+                    ) : null}
                   </Link>
                   <div className="min-w-0">
                     <div className="flex flex-wrap gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.08em] text-black/40">
@@ -1035,6 +1069,15 @@ export function FanletterReportsCoverManager({
                         {report.priceType === "paid"
                           ? copy.priceType.paid
                           : copy.priceType.public}
+                      </span>
+                      <span
+                        className={
+                          report.contentMaturityRating === "nsfw"
+                            ? "text-rose-600"
+                            : undefined
+                        }
+                      >
+                        {copy.maturityRating[report.contentMaturityRating]}
                       </span>
                       <span>{copy.coverSource[report.coverImageSource]}</span>
                     </div>

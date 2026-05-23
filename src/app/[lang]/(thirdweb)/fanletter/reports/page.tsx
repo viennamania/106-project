@@ -411,6 +411,7 @@ export default async function LocalizedFanletterReportsPage({
 
     return {
       contentId: report.contentId,
+      contentMaturityRating: report.contentMaturityRating,
       creatorName: report.creatorName,
       coverImageSource: report.coverImageSource ?? "auto",
       coverImageUrl: report.coverImageUrl,

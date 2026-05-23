@@ -222,6 +222,11 @@ export type FanletterNewsReporterMember = {
 
 export type FanletterNewsReportsForMemberResult = {
   member: FanletterNewsReporterMember | null;
+  maturityCounts: {
+    all: number;
+    general: number;
+    nsfw: number;
+  };
   reportCount: number;
   reports: FanletterNewsReportDocument[];
 };
@@ -1653,11 +1658,13 @@ export async function getFanletterNewsReportsForMember({
   email,
   limit = 60,
   locale,
+  maturityRating,
   offset = 0,
 }: {
   email?: string | null;
   limit?: number;
   locale?: Locale | null;
+  maturityRating?: ContentMaturityRating | null;
   offset?: number;
 }): Promise<FanletterNewsReportsForMemberResult> {
   const member = await getFanletterNewsReporterMemberByEmail(
@@ -1668,16 +1675,31 @@ export async function getFanletterNewsReportsForMember({
   if (!member) {
     return {
       member: null,
+      maturityCounts: {
+        all: 0,
+        general: 0,
+        nsfw: 0,
+      },
       reportCount: 0,
       reports: [],
     };
   }
 
   const reportsCollection = await getFanletterNewsReportsCollection();
-  const query = {
+  const normalizedMaturityRating =
+    maturityRating === "general" || maturityRating === "nsfw"
+      ? maturityRating
+      : null;
+  const baseQuery: Filter<FanletterNewsReportDocument> = {
     reporterReferralCode: member.referralCode,
     status: "published" as const,
     ...(locale ? { locale } : {}),
+  };
+  const query: Filter<FanletterNewsReportDocument> = {
+    ...baseQuery,
+    ...(normalizedMaturityRating
+      ? { contentMaturityRating: normalizedMaturityRating }
+      : {}),
   };
   const normalizedLimit = Number.isFinite(limit)
     ? Math.max(1, Math.min(Math.floor(limit), 100))
@@ -1685,7 +1707,8 @@ export async function getFanletterNewsReportsForMember({
   const normalizedOffset = Number.isFinite(offset)
     ? Math.max(0, Math.floor(offset))
     : 0;
-  const [reports, reportCount] = await Promise.all([
+  const [reports, reportCount, allCount, generalCount, nsfwCount] =
+    await Promise.all([
     reportsCollection
       .find(query)
       .sort({ updatedAt: -1, createdAt: -1, sourcePublishedAt: -1 })
@@ -1693,10 +1716,24 @@ export async function getFanletterNewsReportsForMember({
       .limit(normalizedLimit)
       .toArray(),
     reportsCollection.countDocuments(query),
+    reportsCollection.countDocuments(baseQuery),
+    reportsCollection.countDocuments({
+      ...baseQuery,
+      contentMaturityRating: "general",
+    }),
+    reportsCollection.countDocuments({
+      ...baseQuery,
+      contentMaturityRating: "nsfw",
+    }),
   ]);
 
   return {
     member,
+    maturityCounts: {
+      all: allCount,
+      general: generalCount,
+      nsfw: nsfwCount,
+    },
     reportCount,
     reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
   };

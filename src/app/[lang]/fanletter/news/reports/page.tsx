@@ -9,6 +9,8 @@ import {
   BookOpenCheck,
   ImageIcon,
   Newspaper,
+  ShieldAlert,
+  SlidersHorizontal,
   Sparkles,
   WalletCards,
 } from "lucide-react";
@@ -17,6 +19,7 @@ import {
   FanletterReportsCoverManager,
   type FanletterReportsPageReport,
 } from "@/components/fanletter-reports-cover-manager";
+import type { ContentMaturityRating } from "@/lib/content";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -29,11 +32,13 @@ import {
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportsSearchParams = {
+  maturity?: string | string[];
   page?: string | string[];
   ref?: string | string[];
 };
 
 const NEWS_REPORTS_PAGE_SIZE = 12;
+type ReportMaturityFilter = "all" | ContentMaturityRating;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -57,15 +62,34 @@ function getCopy(locale: Locale) {
           "아직 뉴스 리포터로 작성한 AI 팬 리포트가 없습니다. 공개 브이로그에서 AI 리포트를 만들면 이곳에 모입니다.",
         emptyCta: "뉴스 브이로그 보기",
         emptyTitle: "관리할 뉴스 리포트가 없습니다.",
+        filterReset: "전체 보기",
+        filteredEmptyBody:
+          "선택한 NSFW 기준에 해당하는 리포트가 없습니다. 필터를 바꾸면 다른 리포트를 바로 확인할 수 있습니다.",
+        filteredEmptyTitle: (filter: string) => `${filter} 리포트가 없습니다.`,
         incentive: "성과",
         incentiveReward: "리포터 보상",
         memberOnly: "회원 전용",
+        maturity: {
+          all: "전체",
+          general: "일반",
+          nsfw: "NSFW",
+        },
+        maturityBody:
+          "뉴스에 노출되는 리포트의 성인 콘텐츠 여부를 기준으로 목록을 나누고, 커버/원본 브이로그/성과를 같은 화면에서 확인합니다.",
+        maturityFilterLabel: "콘텐츠 등급 필터",
+        maturityGeneral: "일반 리포트",
+        maturityNsfw: "NSFW 리포트",
+        maturityOverview: "콘텐츠 등급 관리",
+        maturityTitle: "NSFW 리포트를 따로 점검하세요",
         nav: {
           characters: "AI 캐릭터",
           connect: "지갑",
           home: "뉴스 홈",
           purchases: "구매함",
         },
+        nsfwGuideBody:
+          "NSFW 리포트는 목록에서 명확히 표시됩니다. 커버 이미지와 기사 제목을 확인한 뒤 성인 팬 전용 콘텐츠로 운영할지 빠르게 점검하세요.",
+        nsfwGuideTitle: "성인 콘텐츠 표시",
         openReport: "뉴스 보기",
         pagination: {
           label: "뉴스 리포트 페이지",
@@ -110,15 +134,34 @@ function getCopy(locale: Locale) {
           "You have not created AI fan reports as a news reporter yet. Reports created from public vlogs will appear here.",
         emptyCta: "Browse news vlogs",
         emptyTitle: "No news reports to manage.",
+        filterReset: "View all",
+        filteredEmptyBody:
+          "There are no reports matching the selected NSFW filter. Switch filters to review the rest of your reports.",
+        filteredEmptyTitle: (filter: string) => `No ${filter} reports.`,
         incentive: "Performance",
         incentiveReward: "Reporter rewards",
         memberOnly: "Members only",
+        maturity: {
+          all: "All",
+          general: "General",
+          nsfw: "NSFW",
+        },
+        maturityBody:
+          "Split your News reports by adult-content status while reviewing covers, source vlogs, and performance in the same desk.",
+        maturityFilterLabel: "Content rating filter",
+        maturityGeneral: "General reports",
+        maturityNsfw: "NSFW reports",
+        maturityOverview: "Content rating desk",
+        maturityTitle: "Review NSFW reports separately",
         nav: {
           characters: "AI Characters",
           connect: "Wallet",
           home: "News Home",
           purchases: "Purchases",
         },
+        nsfwGuideBody:
+          "NSFW reports are clearly marked in the list. Review the cover image and headline before operating it as adult fan-only content.",
+        nsfwGuideTitle: "Adult-content labeling",
         openReport: "Open news",
         pagination: {
           label: "News report pages",
@@ -156,12 +199,20 @@ function readPageNumber(value?: string | string[]) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
+function readMaturityFilter(value?: string | string[]): ReportMaturityFilter {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return rawValue === "general" || rawValue === "nsfw" ? rawValue : "all";
+}
+
 function getNewsReportsPageHref({
   locale,
+  maturityFilter,
   page,
   referralCode,
 }: {
   locale: Locale;
+  maturityFilter: ReportMaturityFilter;
   page: number;
   referralCode: string | null;
 }) {
@@ -171,6 +222,7 @@ function getNewsReportsPageHref({
   );
 
   return setPathSearchParams(baseHref, {
+    maturity: maturityFilter === "all" ? null : maturityFilter,
     page: page > 1 ? String(page) : null,
   });
 }
@@ -248,6 +300,7 @@ export default async function LocalizedFanletterNewsReportsPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const maturityFilter = readMaturityFilter(query.maturity);
   const currentPage = readPageNumber(query.page);
   const reportOffset = (currentPage - 1) * NEWS_REPORTS_PAGE_SIZE;
   const session = await readMemberServerSession();
@@ -264,9 +317,15 @@ export default async function LocalizedFanletterNewsReportsPage({
         email: session.email,
         limit: NEWS_REPORTS_PAGE_SIZE,
         locale,
+        maturityRating: maturityFilter === "all" ? null : maturityFilter,
         offset: reportOffset,
       })
     : {
+        maturityCounts: {
+          all: 0,
+          general: 0,
+          nsfw: 0,
+        },
         member: null,
         reportCount: 0,
         reports: [],
@@ -361,6 +420,14 @@ export default async function LocalizedFanletterNewsReportsPage({
           ),
         },
         {
+          label: copy.maturityNsfw,
+          value: formatNumber(data.maturityCounts.nsfw, locale),
+        },
+        {
+          label: copy.maturityGeneral,
+          value: formatNumber(data.maturityCounts.general, locale),
+        },
+        {
           label: copy.incentiveReward,
           value: copy.rewardPoints(
             formatNumber(
@@ -381,9 +448,47 @@ export default async function LocalizedFanletterNewsReportsPage({
   });
   const currentReportsHref = getNewsReportsPageHref({
     locale,
+    maturityFilter,
     page: currentPage,
     referralCode: effectiveReferralCode,
   });
+  const maturityFilterItems = [
+    {
+      count: data.maturityCounts.all,
+      href: getNewsReportsPageHref({
+        locale,
+        maturityFilter: "all",
+        page: 1,
+        referralCode: effectiveReferralCode,
+      }),
+      key: "all" as const,
+      label: copy.maturity.all,
+    },
+    {
+      count: data.maturityCounts.general,
+      href: getNewsReportsPageHref({
+        locale,
+        maturityFilter: "general",
+        page: 1,
+        referralCode: effectiveReferralCode,
+      }),
+      key: "general" as const,
+      label: copy.maturity.general,
+    },
+    {
+      count: data.maturityCounts.nsfw,
+      href: getNewsReportsPageHref({
+        locale,
+        maturityFilter: "nsfw",
+        page: 1,
+        referralCode: effectiveReferralCode,
+      }),
+      key: "nsfw" as const,
+      label: copy.maturity.nsfw,
+    },
+  ];
+  const selectedMaturityLabel = copy.maturity[maturityFilter];
+  const hasAnyReports = data.maturityCounts.all > 0;
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
     const reportIncentives =
       pageIncentiveStats?.reports.get(report.reportId) ?? {
@@ -415,6 +520,7 @@ export default async function LocalizedFanletterNewsReportsPage({
       creatorName: report.creatorName,
       coverImageSource: report.coverImageSource ?? "auto",
       coverImageUrl: report.coverImageUrl,
+      contentMaturityRating: report.contentMaturityRating,
       dek: report.dek,
       editHref,
       incentiveRewardPoints: reportIncentives.rewardPoints,
@@ -432,10 +538,11 @@ export default async function LocalizedFanletterNewsReportsPage({
     };
   });
 
-  if (data.member && data.reportCount > 0 && currentPage > totalPages) {
+  if (data.member && hasAnyReports && currentPage > totalPages) {
     redirect(
       getNewsReportsPageHref({
         locale,
+        maturityFilter,
         page: totalPages,
         referralCode: effectiveReferralCode,
       }),
@@ -546,7 +653,9 @@ export default async function LocalizedFanletterNewsReportsPage({
                   </div>
                 </div>
                 <p className="mt-4 text-xl font-black">
-                  {copy.reportCount(formatNumber(data.reportCount, locale))}
+                  {copy.reportCount(
+                    formatNumber(data.maturityCounts.all, locale),
+                  )}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   {reporterStats.map((stat) => (
@@ -595,7 +704,7 @@ export default async function LocalizedFanletterNewsReportsPage({
               </Link>
             </div>
           </section>
-        ) : data.reportCount === 0 ? (
+        ) : !hasAnyReports ? (
           <section className="mt-2 border border-dashed border-black/16 bg-white p-6 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
             <ImageIcon className="mx-auto size-9 text-[#16702e]" />
             <h2 className="mt-4 text-2xl font-black tracking-normal">
@@ -614,25 +723,116 @@ export default async function LocalizedFanletterNewsReportsPage({
           </section>
         ) : (
           <>
-            <FanletterReportsCoverManager
-              copy={{
-                coverImage: copy.coverImage,
-                editReport: copy.editReport,
-                incentive: copy.incentive,
-                openReport: copy.openReport,
-                reportTitle: copy.reportTitle,
-                rewardPoints: copy.incentiveReward,
-                source: copy.source,
-                sourceRevealVotes: copy.sourceRevealVotes,
-                unlockContributions: copy.unlockContributions,
-                updateCover: copy.updateCover,
-                updatedAt: copy.updatedAt,
-              }}
-              locale={locale}
-              reports={reportItems}
-            />
+            <section className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <div className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.06)] sm:p-5">
+                <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  <SlidersHorizontal className="size-3.5" />
+                  {copy.maturityOverview}
+                </p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="max-w-2xl">
+                    <h2 className="text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                      {copy.maturityTitle}
+                    </h2>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-black/56">
+                      {copy.maturityBody}
+                    </p>
+                  </div>
+                  <div
+                    aria-label={copy.maturityFilterLabel}
+                    className="flex flex-wrap gap-2"
+                  >
+                    {maturityFilterItems.map((item) => {
+                      const isActive = item.key === maturityFilter;
 
-            {totalPages > 1 ? (
+                      return (
+                        <Link
+                          aria-current={isActive ? "page" : undefined}
+                          className={`inline-flex h-10 items-center justify-center gap-2 rounded-full border px-3 text-sm font-black transition ${
+                            isActive
+                              ? "border-[#111510] bg-[#111510] !text-white"
+                              : "border-black/12 bg-[#f6f8f4] !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                          }`}
+                          href={item.href}
+                          key={item.key}
+                        >
+                          <span>{item.label}</span>
+                          <span
+                            className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[0.68rem] ${
+                              isActive
+                                ? "bg-white/14 text-white"
+                                : "bg-white text-black/54"
+                            }`}
+                          >
+                            {formatNumber(item.count, locale)}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <aside className="border border-[#16702e]/18 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.14)] sm:p-5">
+                <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                  <ShieldAlert className="size-3.5" />
+                  {copy.nsfwGuideTitle}
+                </p>
+                <p className="mt-3 text-3xl font-black leading-none">
+                  {formatNumber(data.maturityCounts.nsfw, locale)}
+                </p>
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.1em] text-white/42">
+                  {copy.maturityNsfw}
+                </p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">
+                  {copy.nsfwGuideBody}
+                </p>
+              </aside>
+            </section>
+
+            {data.reportCount === 0 ? (
+              <section className="mt-4 border border-dashed border-black/16 bg-white p-6 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
+                <ShieldAlert className="mx-auto size-9 text-[#16702e]" />
+                <h2 className="mt-4 text-2xl font-black tracking-normal">
+                  {copy.filteredEmptyTitle(selectedMaturityLabel)}
+                </h2>
+                <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-black/58">
+                  {copy.filteredEmptyBody}
+                </p>
+                <Link
+                  className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
+                  href={getNewsReportsPageHref({
+                    locale,
+                    maturityFilter: "all",
+                    page: 1,
+                    referralCode: effectiveReferralCode,
+                  })}
+                >
+                  {copy.filterReset}
+                  <ArrowRight className="size-4 text-[#44f26e]" />
+                </Link>
+              </section>
+            ) : (
+              <FanletterReportsCoverManager
+                copy={{
+                  coverImage: copy.coverImage,
+                  editReport: copy.editReport,
+                  incentive: copy.incentive,
+                  openReport: copy.openReport,
+                  reportTitle: copy.reportTitle,
+                  rewardPoints: copy.incentiveReward,
+                  source: copy.source,
+                  sourceRevealVotes: copy.sourceRevealVotes,
+                  unlockContributions: copy.unlockContributions,
+                  updateCover: copy.updateCover,
+                  updatedAt: copy.updatedAt,
+                }}
+                locale={locale}
+                reports={reportItems}
+              />
+            )}
+
+            {data.reportCount > 0 && totalPages > 1 ? (
               <nav
                 aria-label={copy.pagination.label}
                 className="mt-7 flex flex-col gap-3 border-t border-black/12 pt-5 sm:flex-row sm:items-center sm:justify-between"
@@ -653,6 +853,7 @@ export default async function LocalizedFanletterNewsReportsPage({
                     }`}
                     href={getNewsReportsPageHref({
                       locale,
+                      maturityFilter,
                       page: Math.max(1, currentPage - 1),
                       referralCode: effectiveReferralCode,
                     })}
@@ -678,6 +879,7 @@ export default async function LocalizedFanletterNewsReportsPage({
                         }`}
                         href={getNewsReportsPageHref({
                           locale,
+                          maturityFilter,
                           page: item,
                           referralCode: effectiveReferralCode,
                         })}
@@ -696,6 +898,7 @@ export default async function LocalizedFanletterNewsReportsPage({
                     }`}
                     href={getNewsReportsPageHref({
                       locale,
+                      maturityFilter,
                       page: Math.min(totalPages, currentPage + 1),
                       referralCode: effectiveReferralCode,
                     })}
