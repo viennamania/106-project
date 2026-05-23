@@ -133,8 +133,9 @@ function getCopy(locale: Locale) {
           characterCta: "캐릭터 홈",
           eyebrow: "캐릭터 뉴스 이어보기",
           listEyebrow: "같은 AI 캐릭터",
-          listTitle: "다른 기사 선택",
-          nextCta: "다음 캐릭터 뉴스 읽기",
+          listTitle: "같은 캐릭터 다른 기사",
+          nextCta: (name: string | null) =>
+            name ? `${name}의 다음 뉴스 보기` : "같은 캐릭터 다음 뉴스 보기",
           title: "이 캐릭터의 다른 뉴스",
         },
         contentBadge: {
@@ -257,8 +258,9 @@ function getCopy(locale: Locale) {
           characterCta: "Character home",
           eyebrow: "Continue character news",
           listEyebrow: "Same AI character",
-          listTitle: "Choose another story",
-          nextCta: "Read next character story",
+          listTitle: "More stories from this character",
+          nextCta: (name: string | null) =>
+            name ? `Read next ${name} story` : "Read next story from this character",
           title: "More from this character",
         },
         contentBadge: {
@@ -599,7 +601,9 @@ function CharacterContinueReadingPanel({
               </p>
             </div>
             <span className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition group-hover:bg-[#69ff8c] sm:mt-5 sm:h-11 sm:w-fit">
-              {leadItem ? copy.continueReading.nextCta : copy.continueReading.characterCta}
+              {leadItem
+                ? copy.continueReading.nextCta(characterName)
+                : copy.continueReading.characterCta}
               <ArrowUpRight className="size-4" />
             </span>
           </div>
