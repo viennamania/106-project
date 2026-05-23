@@ -37,6 +37,10 @@ import {
   type FanletterNewsCharacterReporterStat,
 } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsCharacterVlogsHref,
+  getFanletterNewsVlogHref,
+} from "@/lib/fanletter-news-vlog-routing";
+import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
@@ -480,22 +484,26 @@ function NewsReportCard({
 
 function ContentCard({
   copy,
+  href: hrefInput,
   item,
   locale,
   nsfwOptInEnabled,
   referralCode,
 }: {
   copy: ReturnType<typeof getCopy>;
+  href?: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
 }) {
   const blurred = isNsfwMaturity(item.contentMaturityRating) && !nsfwOptInEnabled;
-  const href = buildPathWithReferral(
-    `/${locale}/fanletter/content/${item.contentId}`,
-    referralCode,
-  );
+  const href =
+    hrefInput ??
+    buildPathWithReferral(
+      `/${locale}/fanletter/content/${item.contentId}`,
+      referralCode,
+    );
   const publishedAt = formatDate(item.publishedAt, locale);
 
   return (
@@ -850,10 +858,11 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
-  const publicVlogsHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${data.profile.referralCode}/vlogs`,
-    effectiveReferralCode,
-  );
+  const publicVlogsHref = getFanletterNewsCharacterVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
   const requestHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
     effectiveReferralCode,
@@ -943,10 +952,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     ...data.items.slice(0, 6).map((item) => ({
       body: item.summary,
       date: item.publishedAt,
-      href: buildPathWithReferral(
-        `/${locale}/fanletter/content/${item.contentId}`,
-        effectiveReferralCode,
-      ),
+      href: getFanletterNewsVlogHref({
+        contentId: item.contentId,
+        locale,
+        referralCode: effectiveReferralCode,
+        returnToHref: channelHref,
+      }),
       id: `public-vlog-${item.contentId}`,
       icon: <Clapperboard className="size-4" />,
       label: copy.activity.publicVlog,
@@ -955,10 +966,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     ...displayableFanOnlyItems.slice(0, 4).map((item) => ({
       body: item.summary,
       date: item.publishedAt,
-      href: buildPathWithReferral(
-        `/${locale}/fanletter/content/${item.contentId}`,
-        effectiveReferralCode,
-      ),
+      href: getFanletterNewsVlogHref({
+        contentId: item.contentId,
+        locale,
+        referralCode: effectiveReferralCode,
+        returnToHref: channelHref,
+      }),
       id: `fan-only-vlog-${item.contentId}`,
       icon: <Flame className="size-4" />,
       label: copy.activity.fanOnlyVlog,
@@ -1286,6 +1299,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               {publicVlogs.map((item) => (
                 <ContentCard
                   copy={copy}
+                  href={getFanletterNewsVlogHref({
+                    contentId: item.contentId,
+                    locale,
+                    referralCode: effectiveReferralCode,
+                    returnToHref: publicVlogsHref,
+                  })}
                   item={item}
                   key={item.contentId}
                   locale={locale}
@@ -1314,6 +1333,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   fanOnlyVlogs.map((item) => (
                     <ContentCard
                       copy={copy}
+                      href={getFanletterNewsVlogHref({
+                        contentId: item.contentId,
+                        locale,
+                        referralCode: effectiveReferralCode,
+                        returnToHref: channelHref,
+                      })}
                       item={item}
                       key={item.contentId}
                       locale={locale}
