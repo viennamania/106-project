@@ -3393,6 +3393,8 @@ function FanletterFanOnlyPreview({
             title: "Early notes",
           },
         ];
+  const shouldBlurFanOnlyCover = (item: FanletterPublicContentItem) =>
+    item.contentMaturityRating === "nsfw" && !nsfwOptInEnabled && !isOwner;
 
   if (items.length > 0) {
     const buildFanOnlyContentHref = (item: FanletterPublicContentItem) =>
@@ -3404,7 +3406,15 @@ function FanletterFanOnlyPreview({
         }),
         { returnTo: fanOnlyHref },
       );
-    const firstItemHref = buildFanOnlyContentHref(items[0]);
+    const representativeFanOnlyItem =
+      items.find((item) => Boolean(item.coverImageUrl)) ?? items[0];
+    const representativeItemHref = buildFanOnlyContentHref(
+      representativeFanOnlyItem,
+    );
+    const representativeCoverImageUrl = representativeFanOnlyItem.coverImageUrl;
+    const shouldBlurRepresentativeCover = shouldBlurFanOnlyCover(
+      representativeFanOnlyItem,
+    );
     const unlockedFanOnlyContentCount = isOwner
       ? fanOnlyContentCount
       : items.filter((item) => item.canViewerAccess).length;
@@ -3426,7 +3436,7 @@ function FanletterFanOnlyPreview({
       accessStat,
       {
         label: labels.basePrice,
-        value: `${items[0]?.priceUsdt ?? "1"} USDT`,
+        value: `${representativeFanOnlyItem.priceUsdt ?? "1"} USDT`,
       },
     ];
     const featuredFanOnlyItems = items.slice(0, 9);
@@ -3455,6 +3465,41 @@ function FanletterFanOnlyPreview({
               <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
                 {labels.availableActionTitle}
               </p>
+              {representativeCoverImageUrl ? (
+                <Link
+                  className="group mt-3 block overflow-hidden rounded-lg border border-white/12 bg-black/22 text-white transition hover:border-[#44f26e]/50"
+                  href={representativeItemHref}
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#07100b]">
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={
+                        shouldBlurRepresentativeCover
+                          ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
+                          : "object-cover transition duration-500 group-hover:scale-[1.025]"
+                      }
+                      fill
+                      loading="eager"
+                      sizes="(max-width: 1024px) 100vw, 22rem"
+                      src={representativeCoverImageUrl}
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.06)_0%,rgba(0,0,0,0.18)_46%,rgba(0,0,0,0.8)_100%)]" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
+                      <span className="line-clamp-1 text-sm font-semibold">
+                        {getDisplayContentTitle(
+                          representativeFanOnlyItem,
+                          locale,
+                        )}
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.62rem] font-semibold text-black">
+                        <LockKeyhole className="size-3.5" />
+                        {labels.availableCta}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ) : null}
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {fanOnlyStats.map((stat) => (
                   <div
@@ -3473,7 +3518,7 @@ function FanletterFanOnlyPreview({
               <div className="mt-3 grid gap-2">
                 <Link
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                  href={firstItemHref}
+                  href={representativeItemHref}
                 >
                   <LockKeyhole className="size-4" />
                   {labels.availableCta}
@@ -3481,7 +3526,9 @@ function FanletterFanOnlyPreview({
                 {isOwner ? (
                   <Link
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/18 px-4 text-sm font-semibold !text-white transition hover:bg-white/10"
-                    href={ownerManageHref ?? ownerCreateHref ?? firstItemHref}
+                    href={
+                      ownerManageHref ?? ownerCreateHref ?? representativeItemHref
+                    }
                   >
                     <Clapperboard className="size-4" />
                     {labels.ownerAvailableCta}
@@ -3511,8 +3558,7 @@ function FanletterFanOnlyPreview({
               const displayTitle = getDisplayContentTitle(item, locale);
               const hasAccess = isOwner || item.canViewerAccess;
               const isNsfw = item.contentMaturityRating === "nsfw";
-              const shouldBlurMedia =
-                isNsfw && !nsfwOptInEnabled && !isOwner;
+              const shouldBlurMedia = shouldBlurFanOnlyCover(item);
               const lockedMediaLabel = getLockedMediaLabel(item, locale);
               const reactionCount =
                 item.social.commentCount + item.social.saveCount;
@@ -3702,13 +3748,42 @@ function FanletterFanOnlyPreview({
                   const href = buildFanOnlyContentHref(item);
                   const displayTitle = getDisplayContentTitle(item, locale);
                   const hasAccess = isOwner || item.canViewerAccess;
+                  const isNsfw = item.contentMaturityRating === "nsfw";
+                  const shouldBlurMedia = shouldBlurFanOnlyCover(item);
+                  const StatusIcon = hasAccess ? BadgeCheck : LockKeyhole;
 
                   return (
                     <Link
-                      className="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
+                      className="grid min-h-20 grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-white/10 bg-black/18 p-2 text-white transition hover:border-[#44f26e]/42 hover:bg-white/[0.075]"
                       href={href}
                       key={item.contentId}
                     >
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#07100b]">
+                        {item.coverImageUrl ? (
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className={
+                              shouldBlurMedia
+                                ? "scale-[1.06] object-cover blur-md brightness-[0.76] saturate-[0.9]"
+                                : "object-cover"
+                            }
+                            fill
+                            sizes="4.5rem"
+                            src={item.coverImageUrl}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#132018)]">
+                            <StatusIcon className="size-6 text-[#44f26e]" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+                        {isNsfw ? (
+                          <span className="absolute left-1.5 top-1.5 rounded-full bg-rose-500 px-1.5 py-0.5 text-[0.52rem] font-semibold uppercase tracking-[0.08em] text-white">
+                            {nsfwCopy.badge}
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="min-w-0">
                         <p className="line-clamp-1 break-words text-sm font-semibold [overflow-wrap:anywhere]">
                           {displayTitle}
