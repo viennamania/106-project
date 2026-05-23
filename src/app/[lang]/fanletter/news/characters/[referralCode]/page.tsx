@@ -135,6 +135,7 @@ function getCopy(locale: Locale) {
         },
         siteName: "FanLetter News",
         vlog: {
+          emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
           fanOnlyTitle: "팬 전용 브이로그",
           publicTitle: "공개 브이로그",
           reports: "리포트",
@@ -221,6 +222,7 @@ function getCopy(locale: Locale) {
         },
         siteName: "FanLetter News",
         vlog: {
+          emptyFanOnly: "No displayable fan-only vlogs yet.",
           fanOnlyTitle: "Fan-only vlogs",
           publicTitle: "Public vlogs",
           reports: "reports",
@@ -874,11 +876,14 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   );
   const visibleNewsReports = newsData.reports.slice(0, 9);
   const publicVlogs = data.items.slice(0, 6);
-  const fanOnlyVlogs = data.fanOnlyItems.slice(0, 3);
+  const displayableFanOnlyItems = data.fanOnlyItems.filter(
+    (item) => !isNsfwMaturity(item.contentMaturityRating),
+  );
+  const fanOnlyVlogs = displayableFanOnlyItems.slice(0, 3);
   const nsfwBlurredCount =
     newsData.nsfwCount +
-    data.items.filter((item) => isNsfwMaturity(item.contentMaturityRating)).length +
-    data.fanOnlyItems.filter((item) => isNsfwMaturity(item.contentMaturityRating)).length;
+    data.items.filter((item) => isNsfwMaturity(item.contentMaturityRating))
+      .length;
   const shouldShowNsfwControl = nsfwBlurredCount > 0 || nsfwOptInEnabled;
   const reactionCount =
     character?.growth.metrics.reactionCount ??
@@ -953,7 +958,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       label: copy.activity.publicVlog,
       title: item.title,
     })),
-    ...data.fanOnlyItems.slice(0, 4).map((item) => ({
+    ...displayableFanOnlyItems.slice(0, 4).map((item) => ({
       body: item.summary,
       date: item.publishedAt,
       href: buildPathWithReferral(
@@ -1318,16 +1323,22 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 <Flame className="size-5 text-[#16702e]" />
               </div>
               <div className="grid gap-4">
-                {fanOnlyVlogs.map((item) => (
-                  <ContentCard
-                    copy={copy}
-                    item={item}
-                    key={item.contentId}
-                    locale={locale}
-                    nsfwOptInEnabled={nsfwOptInEnabled}
-                    referralCode={effectiveReferralCode}
-                  />
-                ))}
+                {fanOnlyVlogs.length > 0 ? (
+                  fanOnlyVlogs.map((item) => (
+                    <ContentCard
+                      copy={copy}
+                      item={item}
+                      key={item.contentId}
+                      locale={locale}
+                      nsfwOptInEnabled={nsfwOptInEnabled}
+                      referralCode={effectiveReferralCode}
+                    />
+                  ))
+                ) : (
+                  <p className="border border-black/10 bg-white p-4 text-sm font-semibold leading-6 text-black/54">
+                    {copy.vlog.emptyFanOnly}
+                  </p>
+                )}
               </div>
             </section>
 
