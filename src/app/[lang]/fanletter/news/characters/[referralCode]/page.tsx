@@ -1021,6 +1021,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
             <FanletterNewsCharacterImageSelector
               avatarAlt={characterName}
               avatarImages={avatarImageOptions}
+              channelHero
               compact
               galleryLabel={copy.bible.expression}
               generatedLabel={copy.generated}

@@ -14,6 +14,7 @@ type FanletterNewsCharacterAvatarOption = {
 type FanletterNewsCharacterImageSelectorProps = {
   avatarAlt: string;
   avatarImages: FanletterNewsCharacterAvatarOption[];
+  channelHero?: boolean;
   compact?: boolean;
   galleryLabel: string;
   generatedLabel: string;
@@ -22,6 +23,7 @@ type FanletterNewsCharacterImageSelectorProps = {
 export function FanletterNewsCharacterImageSelector({
   avatarAlt,
   avatarImages,
+  channelHero = false,
   compact = false,
   galleryLabel,
   generatedLabel,
@@ -30,6 +32,10 @@ export function FanletterNewsCharacterImageSelector({
   const resolvedSelectedIndex =
     selectedIndex >= 0 && selectedIndex < avatarImages.length ? selectedIndex : 0;
   const selectedAvatar = avatarImages[resolvedSelectedIndex] ?? null;
+  const foregroundImageClassName =
+    compact && channelHero
+      ? "object-contain object-center sm:object-cover sm:object-top"
+      : "object-cover object-top";
 
   const imageContent = selectedAvatar ? (
     <>
@@ -45,7 +51,7 @@ export function FanletterNewsCharacterImageSelector({
       />
       <Image
         alt={avatarAlt}
-        className="object-cover object-top"
+        className={foregroundImageClassName}
         fetchPriority="high"
         fill
         loading="eager"
@@ -119,7 +125,13 @@ export function FanletterNewsCharacterImageSelector({
   if (compact) {
     return (
       <div className="relative overflow-hidden bg-[#0d130e] lg:min-h-[18rem]">
-        <div className="relative min-h-[14.75rem] overflow-hidden sm:min-h-[16rem] lg:absolute lg:inset-0 lg:min-h-0">
+        <div
+          className={
+            channelHero
+              ? "relative min-h-[17.75rem] overflow-hidden sm:min-h-[18rem] lg:absolute lg:inset-0 lg:min-h-0"
+              : "relative min-h-[14.75rem] overflow-hidden sm:min-h-[16rem] lg:absolute lg:inset-0 lg:min-h-0"
+          }
+        >
           {imageContent}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/6 to-black/24 lg:from-black/72 lg:via-black/8" />
         </div>
