@@ -15,6 +15,8 @@ import {
   MessageCircleHeart,
   Newspaper,
   PlayCircle,
+  ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
 
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
@@ -45,6 +47,12 @@ import {
   getRelatedFanletterNewsReports,
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
+import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
+import {
+  getFanletterNewsReporterTrustProfile,
+  type FanletterNewsReporterTrustLevel,
+  type FanletterNewsReporterTrustProfile,
+} from "@/lib/fanletter-news-reporter-trust";
 import {
   createFanletterNewsSourceRevealState,
   type FanletterNewsSourceRevealState,
@@ -213,6 +221,25 @@ function getCopy(locale: Locale) {
         relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
         relatedNewsLoading: "불러오는 중",
         reporterNewsCta: "기자 뉴스",
+        reporterTrust: {
+          basis: "작성·반응·언락 기여 기준",
+          label: "활동 신뢰도",
+          max: "최고 등급",
+          next: (level: string, points: string) =>
+            `${level}까지 ${points}점`,
+          score: (score: string) => `${score}점`,
+          stats: {
+            reports: "리포트",
+            unlocks: "언락",
+            votes: "보고싶어요",
+          },
+          levels: {
+            active: "활동 팬 기자",
+            leading: "대표 팬 기자",
+            starter: "신규 팬 기자",
+            trusted: "신뢰 팬 기자",
+          },
+        },
         sourceContext: "기사 배경",
         sourceTitle: "원본 브이로그",
         summaryTitle: "기사 요약",
@@ -337,6 +364,25 @@ function getCopy(locale: Locale) {
         relatedNewsLoadMore: "Load more character news",
         relatedNewsLoading: "Loading",
         reporterNewsCta: "Reporter news",
+        reporterTrust: {
+          basis: "Based on reports, reactions, and unlock contributions",
+          label: "Activity trust",
+          max: "Top level",
+          next: (level: string, points: string) =>
+            `${points} points to ${level}`,
+          score: (score: string) => `${score} pts`,
+          stats: {
+            reports: "Reports",
+            unlocks: "Unlocks",
+            votes: "Want-to-watch",
+          },
+          levels: {
+            active: "Active fan reporter",
+            leading: "Leading fan reporter",
+            starter: "New fan reporter",
+            trusted: "Trusted fan reporter",
+          },
+        },
         sourceContext: "Story context",
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
@@ -393,6 +439,13 @@ function getContentAccessLabel(
   return item.priceType === "paid"
     ? copy.contentBadge.paid
     : copy.contentBadge.public;
+}
+
+function getReporterTrustLevelLabel(
+  copy: ReturnType<typeof getCopy>,
+  level: FanletterNewsReporterTrustLevel,
+) {
+  return copy.reporterTrust.levels[level];
 }
 
 function getUniqueImageUrls(urls: Array<string | null | undefined>) {
@@ -966,12 +1019,20 @@ function ReporterByline({
   report,
   reporterProfile,
   reporterNewsHref,
+  reporterTrust,
+  reporterTrustStats,
 }: {
   copy: ReturnType<typeof getCopy>;
   publishedAt: string | null;
   report: FanletterNewsReportDocument;
   reporterProfile: FanletterNewsReporterProfile | null;
   reporterNewsHref: string;
+  reporterTrust: FanletterNewsReporterTrustProfile;
+  reporterTrustStats: {
+    reportCount: number;
+    sourceRevealUnlockContributionCount: number;
+    sourceRevealVoteCount: number;
+  };
 }) {
   const reporterDisplayName =
     reporterProfile?.displayName ?? getReporterDisplayName(report);
@@ -982,55 +1043,120 @@ function ReporterByline({
     report.reporterReferralCode.trim().charAt(0).toUpperCase() ||
     report.reporterName.trim().charAt(0).toUpperCase() ||
     "F";
+  const trustLevelLabel = getReporterTrustLevelLabel(copy, reporterTrust.level);
+  const nextTrustLabel = reporterTrust.nextLevel
+    ? copy.reporterTrust.next(
+        getReporterTrustLevelLabel(copy, reporterTrust.nextLevel),
+        formatNumber(reporterTrust.pointsToNextLevel, report.locale),
+      )
+    : copy.reporterTrust.max;
+  const trustStats = [
+    {
+      label: copy.reporterTrust.stats.reports,
+      value: reporterTrustStats.reportCount,
+    },
+    {
+      label: copy.reporterTrust.stats.votes,
+      value: reporterTrustStats.sourceRevealVoteCount,
+    },
+    {
+      label: copy.reporterTrust.stats.unlocks,
+      value: reporterTrustStats.sourceRevealUnlockContributionCount,
+    },
+  ];
 
   return (
-    <section className="mt-4 border-y border-black/12 py-3 sm:mt-5 sm:flex sm:min-w-0 sm:items-center sm:justify-between sm:gap-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e] sm:size-11">
-          {reporterAvatarImageUrl ? (
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="object-cover"
-              fill
-              sizes="(max-width: 640px) 2.5rem, 2.75rem"
-              src={reporterAvatarImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(
-                reporterAvatarImageUrl,
-              )}
-            />
-          ) : (
-            reporterInitial
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-2">
-            <p className="shrink-0 text-[0.7rem] font-bold text-black/46">
-              {copy.byline}
-            </p>
-            <p className="truncate text-sm font-black text-[#111510]">
-              {reporterDisplayName}
-            </p>
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] font-semibold text-black/48">
-            {publishedAt ? (
-              <span>
-                {copy.publishedLabel} {publishedAt}
+    <section className="mt-4 border-y border-black/12 py-3 sm:mt-5">
+      <div className="sm:flex sm:min-w-0 sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e] sm:size-11">
+            {reporterAvatarImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover"
+                fill
+                sizes="(max-width: 640px) 2.5rem, 2.75rem"
+                src={reporterAvatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  reporterAvatarImageUrl,
+                )}
+              />
+            ) : (
+              reporterInitial
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-baseline gap-2">
+              <p className="shrink-0 text-[0.7rem] font-bold text-black/46">
+                {copy.byline}
+              </p>
+              <p className="truncate text-sm font-black text-[#111510]">
+                {reporterDisplayName}
+              </p>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] font-semibold text-black/48">
+              {publishedAt ? (
+                <span>
+                  {copy.publishedLabel} {publishedAt}
+                </span>
+              ) : null}
+              <span aria-hidden="true" className="text-black/22">
+                ·
               </span>
-            ) : null}
-            <span aria-hidden="true" className="text-black/22">
-              ·
-            </span>
-            <span>{copy.generated}</span>
+              <span>{copy.generated}</span>
+            </div>
           </div>
         </div>
+        <Link
+          className="mt-3 inline-flex h-9 w-full items-center justify-center border border-black/14 bg-[#f7f9f4] px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:mt-0 sm:w-auto sm:shrink-0 sm:bg-white"
+          href={reporterNewsHref}
+        >
+          {copy.reporterNewsCta}
+        </Link>
       </div>
-      <Link
-        className="mt-3 inline-flex h-9 w-full items-center justify-center border border-black/14 bg-[#f7f9f4] px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:mt-0 sm:w-auto sm:shrink-0 sm:bg-white"
-        href={reporterNewsHref}
-      >
-        {copy.reporterNewsCta}
-      </Link>
+
+      <div className="mt-3 grid gap-2 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3 sm:grid-cols-[minmax(0,1fr)_minmax(16rem,0.74fr)] sm:items-center">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-white">
+              <ShieldCheck className="size-3.5 text-[#44f26e]" />
+              {trustLevelLabel}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+              <TrendingUp className="size-3.5" />
+              {copy.reporterTrust.label}{" "}
+              {copy.reporterTrust.score(
+                formatNumber(reporterTrust.score, report.locale),
+              )}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/8">
+            <div
+              className="h-full rounded-full bg-[#19b84b]"
+              style={{ width: `${reporterTrust.progressPercent}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-[0.72rem] font-semibold leading-5 text-black/48">
+            {copy.reporterTrust.basis} · {nextTrustLabel}
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {trustStats.map((stat) => (
+            <div
+              className="rounded-md border border-black/8 bg-white px-2 py-1.5"
+              key={stat.label}
+            >
+              <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
+                {stat.label}
+              </p>
+              <p className="mt-0.5 text-sm font-black text-[#111510]">
+                {formatNumber(stat.value, report.locale)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -1742,6 +1868,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const [
     sourceContent,
     relatedReports,
+    reporterIncentiveStats,
     reporterProfile,
   ] = await Promise.all([
     getFanletterPublicContentDetail(
@@ -1758,6 +1885,9 @@ export default async function LocalizedFanletterNewsReportPage({
       excludeReportId: report.reportId,
       limit: relatedNewsVisibleCount + 1,
       locale,
+    }),
+    getFanletterNewsReporterIncentiveStats({
+      reporterReferralCode: report.reporterReferralCode,
     }),
     getFanletterNewsReporterProfile({
       reporterReferralCode: report.reporterReferralCode,
@@ -1892,6 +2022,23 @@ export default async function LocalizedFanletterNewsReportPage({
     { label: copy.sixW.why, value: report.why },
     { label: copy.sixW.how, value: report.how },
   ];
+  const reporterTrustStats = {
+    reportCount: reporterProfile?.reportCount ?? 1,
+    sourceRevealUnlockContributionCount:
+      reporterIncentiveStats.overview.sourceRevealUnlockContributionCount,
+    sourceRevealVoteCount:
+      reporterIncentiveStats.overview.sourceRevealVoteCount,
+  };
+  const reporterTrust = getFanletterNewsReporterTrustProfile({
+    latestReportAt:
+      reporterProfile?.latestReportAt ?? report.sourcePublishedAt ?? report.createdAt,
+    reportCount: reporterTrustStats.reportCount,
+    rewardPoints: reporterIncentiveStats.overview.rewardPoints,
+    sourceRevealUnlockContributionCount:
+      reporterTrustStats.sourceRevealUnlockContributionCount,
+    sourceRevealVoteCount: reporterTrustStats.sourceRevealVoteCount,
+    status: reporterProfile?.status ?? null,
+  });
 
   return (
     <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
@@ -1947,6 +2094,8 @@ export default async function LocalizedFanletterNewsReportPage({
                   report={report}
                   reporterProfile={reporterProfile}
                   reporterNewsHref={reporterNewsHref}
+                  reporterTrust={reporterTrust}
+                  reporterTrustStats={reporterTrustStats}
                 />
 
                 <ArticleActionLinks

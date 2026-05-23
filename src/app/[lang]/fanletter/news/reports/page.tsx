@@ -10,8 +10,10 @@ import {
   ImageIcon,
   Newspaper,
   ShieldAlert,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
+  TrendingUp,
   WalletCards,
 } from "lucide-react";
 
@@ -22,6 +24,10 @@ import {
 import type { ContentMaturityRating } from "@/lib/content";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
+import {
+  getFanletterNewsReporterTrustProfile,
+  type FanletterNewsReporterTrustLevel,
+} from "@/lib/fanletter-news-reporter-trust";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -104,6 +110,21 @@ function getCopy(locale: Locale) {
         reporterLogo: "리포터 프로필 이미지",
         reporterProfile: "로그인 리포터",
         reporterStatus: "활동 상태",
+        reporterTrust: {
+          basis: "작성 수, 최근 활동, 보고싶어요, 언락 기여, 보상 포인트 기준",
+          label: "팬 기자 신뢰도",
+          max: "최고 등급 유지 중",
+          next: (level: string, points: string) =>
+            `${level}까지 ${points}점 남음`,
+          score: (score: string) => `${score}점`,
+          title: "내 팬 기자 등급",
+          levels: {
+            active: "활동 팬 기자",
+            leading: "대표 팬 기자",
+            starter: "신규 팬 기자",
+            trusted: "신뢰 팬 기자",
+          },
+        },
         rewardPoints: (points: string) => `${points}P`,
         source: "원본 브이로그",
         sourceRevealVotes: "보고싶어요",
@@ -176,6 +197,22 @@ function getCopy(locale: Locale) {
         reporterLogo: "Reporter profile image",
         reporterProfile: "Signed-in reporter",
         reporterStatus: "Status",
+        reporterTrust: {
+          basis:
+            "Based on report count, recent activity, want-to-watch, unlocks, and reward points",
+          label: "Fan reporter trust",
+          max: "Top level maintained",
+          next: (level: string, points: string) =>
+            `${points} points to ${level}`,
+          score: (score: string) => `${score} pts`,
+          title: "My fan reporter level",
+          levels: {
+            active: "Active fan reporter",
+            leading: "Leading fan reporter",
+            starter: "New fan reporter",
+            trusted: "Trusted fan reporter",
+          },
+        },
         rewardPoints: (points: string) => `${points}P`,
         source: "Source vlog",
         sourceRevealVotes: "Want-to-watch",
@@ -225,6 +262,13 @@ function getNewsReportsPageHref({
     maturity: maturityFilter === "all" ? null : maturityFilter,
     page: page > 1 ? String(page) : null,
   });
+}
+
+function getReporterTrustLevelLabel(
+  copy: ReturnType<typeof getCopy>,
+  level: FanletterNewsReporterTrustLevel,
+) {
+  return copy.reporterTrust.levels[level];
 }
 
 function getReportPaginationItems({
@@ -390,6 +434,29 @@ export default async function LocalizedFanletterNewsReportsPage({
       data.member.referralCode.trim().charAt(0).toUpperCase() ||
       "N"
     : "N";
+  const reporterTrust = data.member
+    ? getFanletterNewsReporterTrustProfile({
+        latestReportAt: data.reports[0]?.updatedAt ?? null,
+        reportCount: data.maturityCounts.all,
+        rewardPoints: overviewIncentiveStats?.overview.rewardPoints ?? 0,
+        sourceRevealUnlockContributionCount:
+          overviewIncentiveStats?.overview
+            .sourceRevealUnlockContributionCount ?? 0,
+        sourceRevealVoteCount:
+          overviewIncentiveStats?.overview.sourceRevealVoteCount ?? 0,
+        status: data.member.status,
+      })
+    : null;
+  const reporterTrustLevelLabel = reporterTrust
+    ? getReporterTrustLevelLabel(copy, reporterTrust.level)
+    : null;
+  const reporterTrustNextLabel =
+    reporterTrust && reporterTrust.nextLevel
+      ? copy.reporterTrust.next(
+          getReporterTrustLevelLabel(copy, reporterTrust.nextLevel),
+          formatNumber(reporterTrust.pointsToNextLevel, locale),
+        )
+      : copy.reporterTrust.max;
   const reporterStats = data.member
     ? [
         {
@@ -426,6 +493,12 @@ export default async function LocalizedFanletterNewsReportsPage({
         {
           label: copy.maturityGeneral,
           value: formatNumber(data.maturityCounts.general, locale),
+        },
+        {
+          label: copy.reporterTrust.label,
+          value: reporterTrust
+            ? copy.reporterTrust.score(formatNumber(reporterTrust.score, locale))
+            : "-",
         },
         {
           label: copy.incentiveReward,
@@ -652,6 +725,34 @@ export default async function LocalizedFanletterNewsReportsPage({
                     </p>
                   </div>
                 </div>
+                {reporterTrust && reporterTrustLevelLabel ? (
+                  <div className="mt-4 border border-[#44f26e]/18 bg-white/[0.06] p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                        <ShieldCheck className="size-3.5" />
+                        {copy.reporterTrust.title}
+                      </p>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-black text-[#111510]">
+                        <TrendingUp className="size-3.5" />
+                        {copy.reporterTrust.score(
+                          formatNumber(reporterTrust.score, locale),
+                        )}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-xl font-black leading-tight">
+                      {reporterTrustLevelLabel}
+                    </p>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/12">
+                      <div
+                        className="h-full rounded-full bg-[#44f26e]"
+                        style={{ width: `${reporterTrust.progressPercent}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-white/54">
+                      {copy.reporterTrust.basis} · {reporterTrustNextLabel}
+                    </p>
+                  </div>
+                ) : null}
                 <p className="mt-4 text-xl font-black">
                   {copy.reportCount(
                     formatNumber(data.maturityCounts.all, locale),
