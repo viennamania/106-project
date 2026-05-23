@@ -108,8 +108,9 @@ export function FanletterResponsiveMediaFrame({
   const isNsfwPinUnlocked =
     !requiresNsfwPin || nsfwPinUnlockedVideoUrl === videoUrl;
   const playableVideoUrl = isNsfwPinUnlocked ? videoUrl : null;
+  const shouldShowLockedPinGate = requiresNsfwPin && !isNsfwPinUnlocked;
   const shouldBlurLockedPinTeaser =
-    requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate?.teaserBlurred;
+    shouldShowLockedPinGate && nsfwPinGate?.teaserBlurred;
   const nsfwPinRelockCopy = nsfwPinGate
     ? getNsfwPinRelockCopy(nsfwPinGate.locale)
     : null;
@@ -240,16 +241,18 @@ export function FanletterResponsiveMediaFrame({
     <div
       className={cn(
         "relative mx-auto w-full overflow-hidden bg-black transition-[max-width] duration-300",
-        orientation === "landscape"
-          ? "aspect-video max-w-full"
-          : orientation === "square"
-            ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
-            : mediaType === "video"
-              ? "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]"
-              : "aspect-[4/5]",
+        shouldShowLockedPinGate
+          ? "min-h-[31rem] max-w-full sm:min-h-[30rem]"
+          : orientation === "landscape"
+            ? "aspect-video max-w-full"
+            : orientation === "square"
+              ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
+              : mediaType === "video"
+                ? "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]"
+                : "aspect-[4/5]",
         className,
       )}
-      style={frameStyle}
+      style={shouldShowLockedPinGate ? undefined : frameStyle}
     >
       {imageUrl ? (
         <>
@@ -282,8 +285,8 @@ export function FanletterResponsiveMediaFrame({
           </span>
         </div>
       )}
-      {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/58 p-3 backdrop-blur-[2px] sm:p-5">
+      {shouldShowLockedPinGate && nsfwPinGate ? (
+        <div className="absolute inset-0 z-10 flex items-start justify-center overflow-y-auto bg-black/58 p-2 backdrop-blur-[2px] [scrollbar-width:none] sm:items-center sm:p-5 [&::-webkit-scrollbar]:hidden">
           <FanletterNsfwVideoPinGate
             connectHref={nsfwPinGate.connectHref}
             locale={nsfwPinGate.locale}

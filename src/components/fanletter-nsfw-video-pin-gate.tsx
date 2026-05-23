@@ -204,31 +204,31 @@ export function FanletterNsfwVideoPinGate({
   ]);
 
   return (
-    <div className="w-full max-w-md border border-white/18 bg-[#07100b]/94 p-4 text-left text-white shadow-[0_22px_60px_rgba(0,0,0,0.44)] backdrop-blur-xl sm:p-5">
-      <div className="flex items-start gap-3">
-        <span className="inline-flex size-11 shrink-0 items-center justify-center border border-[#44f26e]/34 bg-[#44f26e] text-black">
-          <LockKeyhole className="size-5" />
+    <div className="w-full max-w-sm border border-white/18 bg-[#07100b]/94 p-3 text-left text-white shadow-[0_22px_60px_rgba(0,0,0,0.44)] backdrop-blur-xl sm:max-w-md sm:p-5">
+      <div className="flex items-start gap-2.5 sm:gap-3">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center border border-[#44f26e]/34 bg-[#44f26e] text-black sm:size-11">
+          <LockKeyhole className="size-4 sm:size-5" />
         </span>
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+          <p className="inline-flex items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#44f26e] sm:text-[0.68rem] sm:tracking-[0.16em]">
             <ShieldCheck className="size-3.5" />
             NSFW Video PIN
           </p>
-          <h3 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all]">
+          <h3 className="mt-1 break-words text-base font-black leading-tight [word-break:keep-all] sm:text-xl">
             {copy.title}
           </h3>
-          <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/68">
+          <p className="mt-1 line-clamp-1 text-xs font-semibold leading-5 text-white/68 sm:mt-2 sm:line-clamp-2 sm:text-sm sm:leading-6">
             {title}
           </p>
         </div>
       </div>
 
-      <p className="mt-3 text-sm font-medium leading-6 text-white/70">
+      <p className="mt-2 text-sm font-medium leading-6 text-white/70 sm:mt-3">
         {copy.body}
       </p>
 
       {!accountAddress && !isValidating ? (
-        <div className="mt-4 border border-amber-300/28 bg-amber-300/12 p-3">
+        <div className="mt-3 border border-amber-300/28 bg-amber-300/12 p-3 sm:mt-4">
           <p className="inline-flex items-start gap-2 text-sm font-semibold leading-6 text-amber-100">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             {copy.noWallet}
@@ -245,7 +245,7 @@ export function FanletterNsfwVideoPinGate({
       ) : null}
 
       <form
-        className="mt-4"
+        className="mt-3 sm:mt-4"
         onSubmit={(event) => {
           event.preventDefault();
           void submitPin();
@@ -256,7 +256,7 @@ export function FanletterNsfwVideoPinGate({
         </label>
         <input
           autoComplete="one-time-code"
-          className="h-[3.25rem] w-full border border-white/18 bg-white px-4 text-center text-xl font-black tracking-[0.2em] text-[#111510] outline-none transition placeholder:text-sm placeholder:font-bold placeholder:tracking-normal placeholder:text-black/34 focus:border-[#44f26e] disabled:cursor-not-allowed disabled:opacity-58"
+          className="h-12 w-full border border-white/18 bg-white px-4 text-center text-lg font-black tracking-[0.18em] text-[#111510] outline-none transition placeholder:text-sm placeholder:font-bold placeholder:tracking-normal placeholder:text-black/34 focus:border-[#44f26e] disabled:cursor-not-allowed disabled:opacity-58 sm:h-[3.25rem] sm:text-xl sm:tracking-[0.2em]"
           disabled={isSubmitting}
           id={inputId}
           inputMode="numeric"
@@ -288,7 +288,7 @@ export function FanletterNsfwVideoPinGate({
 
         <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
           <button
-            className="inline-flex h-11 items-center justify-center gap-2 border border-[#44f26e]/34 bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] disabled:cursor-not-allowed disabled:border-white/14 disabled:bg-white/18 disabled:!text-white/40"
+            className="inline-flex h-10 items-center justify-center gap-2 border border-[#44f26e]/34 bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] disabled:cursor-not-allowed disabled:border-white/14 disabled:bg-white/18 disabled:!text-white/40 sm:h-11"
             disabled={!pinReady || isSubmitting || !accountAddress}
             type="submit"
           >
@@ -302,7 +302,7 @@ export function FanletterNsfwVideoPinGate({
             )}
           </button>
           <Link
-            className="inline-flex h-11 items-center justify-center gap-2 border border-white/18 bg-white/8 px-4 text-sm font-black !text-white transition hover:border-white/34 hover:bg-white/14"
+            className="inline-flex h-10 items-center justify-center gap-2 border border-white/18 bg-white/8 px-4 text-sm font-black !text-white transition hover:border-white/34 hover:bg-white/14 sm:h-11"
             href={managePinHref}
           >
             <LockKeyhole className="size-4" />
