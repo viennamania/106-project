@@ -49,6 +49,7 @@ type ReporterStat = {
 };
 
 const CHARACTER_WIRE_REPORT_LIMIT = 9;
+const LATEST_SECTION_REPORT_LIMIT = 8;
 const PHOTO_DESK_REPORT_LIMIT = 4;
 
 function getCopy(locale: Locale) {
@@ -2144,10 +2145,9 @@ export default async function LocalizedFanletterNewsHomePage({
     reportsAfterPhotoDesk,
     CHARACTER_WIRE_REPORT_LIMIT,
   );
-  const latestSectionReports = excludeReports(
-    reportsAfterPhotoDesk,
-    featureReports,
-  );
+  const latestSectionReports = latestNewsReports
+    .filter(isEditorialSafeReport)
+    .slice(0, LATEST_SECTION_REPORT_LIMIT);
   const [reporterStats, characterNewsStats] = await Promise.all([
     hydrateReporterStats(getReporterStats(editorialAllReports)),
     hydrateFanletterNewsCharacterStats(
