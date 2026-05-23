@@ -103,7 +103,14 @@ function getCopy(locale: Locale) {
         latest: "최신 리포트",
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
-        navItems: ["톱뉴스", "팬 기자", "AI 캐릭터", "브이로그", "구매함"],
+        navItems: [
+          "톱뉴스",
+          "팬 기자",
+          "AI 캐릭터",
+          "브이로그",
+          "구매함",
+          "리포터 데스크",
+        ],
         photoDesk: "포토 뉴스",
         photoDeskBody:
           "NSFW를 제외한 선명한 커버 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
@@ -197,6 +204,7 @@ function getCopy(locale: Locale) {
           "AI characters",
           "Vlogs",
           "Purchases",
+          "Reporter desk",
         ],
         photoDesk: "Photo Desk",
         photoDeskBody:
@@ -605,6 +613,7 @@ function NewsMasthead({
   navigationBaseHref,
   newsHomeHref,
   purchasesHref,
+  reportsHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
@@ -612,6 +621,7 @@ function NewsMasthead({
   navigationBaseHref: string;
   newsHomeHref: string;
   purchasesHref: string;
+  reportsHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
@@ -622,6 +632,7 @@ function NewsMasthead({
     charactersHref,
     `${navigationBaseHref}#latest-news`,
     purchasesHref,
+    reportsHref,
   ];
 
   return (
@@ -2173,6 +2184,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
+  const reportsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reports`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
@@ -2183,6 +2198,7 @@ export default async function LocalizedFanletterNewsHomePage({
         navigationBaseHref={currentNewsHref}
         newsHomeHref={newsHomeHref}
         purchasesHref={purchasesHref}
+        reportsHref={reportsHref}
       />
       <NewsTicker
         copy={copy}
