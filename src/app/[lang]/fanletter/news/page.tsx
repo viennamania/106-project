@@ -343,34 +343,64 @@ function getPhotoDeskReports(
   reports: FanletterNewsReportDocument[],
   limit: number,
 ) {
-  return reports
-    .filter(
-      (report) => isEditorialSafeReport(report) && Boolean(report.coverImageUrl),
-    )
-    .slice(0, limit);
+  return getBalancedCharacterReports({
+    filter: (report) =>
+      isEditorialSafeReport(report) && Boolean(report.coverImageUrl),
+    limit,
+    reports,
+  });
 }
 
-function getBalancedCharacterWireReports(
-  reports: FanletterNewsReportDocument[],
-  limit: number,
-) {
-  const editorialReports = reports.filter(isEditorialSafeReport);
+function getBalancedCharacterReports({
+  deprioritizedCreatorKey,
+  filter = isEditorialSafeReport,
+  limit,
+  reports,
+}: {
+  deprioritizedCreatorKey?: string | null;
+  filter?: (report: FanletterNewsReportDocument) => boolean;
+  limit: number;
+  reports: FanletterNewsReportDocument[];
+}) {
   const reportsByCreator = new Map<string, FanletterNewsReportDocument[]>();
+  const seenReportIds = new Set<string>();
 
-  for (const report of editorialReports) {
+  for (const report of reports) {
+    if (!filter(report) || seenReportIds.has(report.reportId)) {
+      continue;
+    }
+
     const creatorKey = getReportCreatorKey(report);
     const creatorReports = reportsByCreator.get(creatorKey) ?? [];
 
     creatorReports.push(report);
     reportsByCreator.set(creatorKey, creatorReports);
+    seenReportIds.add(report.reportId);
   }
 
   const selectedReports: FanletterNewsReportDocument[] = [];
+  const creatorReportQueues = Array.from(reportsByCreator.entries());
+  const normalizedDeprioritizedCreatorKey =
+    deprioritizedCreatorKey?.trim() ?? null;
+
+  if (normalizedDeprioritizedCreatorKey) {
+    creatorReportQueues.sort(([leftKey], [rightKey]) => {
+      if (leftKey === normalizedDeprioritizedCreatorKey) {
+        return 1;
+      }
+
+      if (rightKey === normalizedDeprioritizedCreatorKey) {
+        return -1;
+      }
+
+      return 0;
+    });
+  }
 
   while (selectedReports.length < limit) {
     let addedReport = false;
 
-    for (const creatorReports of reportsByCreator.values()) {
+    for (const [, creatorReports] of creatorReportQueues) {
       const report = creatorReports.shift();
 
       if (!report) {
@@ -391,6 +421,16 @@ function getBalancedCharacterWireReports(
   }
 
   return selectedReports;
+}
+
+function getBalancedCharacterWireReports(
+  reports: FanletterNewsReportDocument[],
+  limit: number,
+) {
+  return getBalancedCharacterReports({
+    limit,
+    reports,
+  });
 }
 
 function excludeReports(
@@ -414,58 +454,37 @@ function buildMixedNewsHomeReports({
   publicReports: FanletterNewsReportDocument[];
 }) {
   const seen = new Set<string>();
-  const mixedReports: FanletterNewsReportDocument[] = [];
   const editorialLatestReports = latestReports.filter(isEditorialSafeReport);
-  const leadCandidate =
-    editorialLatestReports.find(isPreferredLeadReport) ??
-    editorialLatestReports[0];
-  const orderedLatestReports = leadCandidate
-    ? [
-        leadCandidate,
-        ...editorialLatestReports.filter(
-          (report) => report.reportId !== leadCandidate.reportId,
-        ),
-      ]
-    : editorialLatestReports;
   const publicQueue = publicReports.filter(
     (report) => report.priceType !== "paid" && isEditorialSafeReport(report),
   );
-  const publicInsertIndexes = new Set([0, 3, 7, 12, 17]);
-  let publicIndex = 0;
-
-  const addReport = (report: FanletterNewsReportDocument | undefined) => {
-    if (!report || seen.has(report.reportId) || mixedReports.length >= limit) {
-      return;
-    }
-
-    seen.add(report.reportId);
-    mixedReports.push(report);
-  };
-  const addNextPublicReport = () => {
-    while (publicIndex < publicQueue.length) {
-      const report = publicQueue[publicIndex];
-      publicIndex += 1;
-
-      if (report && !seen.has(report.reportId)) {
-        addReport(report);
-        return;
+  const candidateReports = [...editorialLatestReports, ...publicQueue].filter(
+    (report) => {
+      if (seen.has(report.reportId)) {
+        return false;
       }
-    }
-  };
 
-  orderedLatestReports.forEach((report, index) => {
-    addReport(report);
+      seen.add(report.reportId);
+      return true;
+    },
+  );
+  const leadCandidate =
+    candidateReports.find(isPreferredLeadReport) ?? candidateReports[0];
 
-    if (publicInsertIndexes.has(index)) {
-      addNextPublicReport();
-    }
-  });
-
-  while (mixedReports.length < limit && publicIndex < publicQueue.length) {
-    addNextPublicReport();
+  if (!leadCandidate) {
+    return [];
   }
 
-  return mixedReports;
+  return [
+    leadCandidate,
+    ...getBalancedCharacterReports({
+      deprioritizedCreatorKey: getReportCreatorKey(leadCandidate),
+      limit: limit - 1,
+      reports: candidateReports.filter(
+        (report) => report.reportId !== leadCandidate.reportId,
+      ),
+    }),
+  ].slice(0, limit);
 }
 
 function getReporterStats(reports: FanletterNewsReportDocument[]) {
@@ -2075,13 +2094,13 @@ export default async function LocalizedFanletterNewsHomePage({
       getLatestFanletterNewsReports({ limit: 48, locale }),
       activeReporterReferralCode
         ? getLatestFanletterNewsReports({
-            limit: 28,
+            limit: 48,
             locale,
             reporterReferralCode: activeReporterReferralCode,
           })
-        : getLatestFanletterNewsReports({ limit: 28, locale }),
+        : getLatestFanletterNewsReports({ limit: 48, locale }),
       getLatestFanletterNewsReports({
-        limit: 12,
+        limit: 24,
         locale,
         priceType: "free",
         reporterReferralCode: activeReporterReferralCode,
