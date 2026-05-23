@@ -1688,7 +1688,7 @@ export async function getFanletterNewsReportsForMember({
   const [reports, reportCount] = await Promise.all([
     reportsCollection
       .find(query)
-      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1, sourcePublishedAt: -1 })
       .skip(normalizedOffset)
       .limit(normalizedLimit)
       .toArray(),
