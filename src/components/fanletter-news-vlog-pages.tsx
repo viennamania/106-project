@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
-import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import {
@@ -116,14 +115,17 @@ function getCopy(locale: Locale) {
         sort: "정렬",
         source: "원본",
         sourceReveal: {
-          bodyLocked: (remaining: string) => `${remaining}명 더 누르면 원본 오픈`,
+          bodyLocked: (remaining: string) =>
+            `팬 리포트 기준 ${remaining}명 남음`,
           bodyReady: "팬들이 열어낸 원본",
           complete: "오픈 완료",
           detailBody:
-            "여러 티저 컷으로 분위기를 먼저 확인하고, 보고싶어요를 눌러 원본 브이로그 오픈에 참여하세요.",
+            "여러 티저 컷으로 분위기를 먼저 확인하고, 팬 리포트에서 모인 오픈 진행률을 이어서 확인하세요.",
           detailEyebrow: "FanLetter 팬 오픈",
           detailMeta: "티저 컷 먼저 공개",
-          detailTitle: "팬들이 보고 싶어할수록 원본 브이로그가 열립니다",
+          detailNote:
+            "보고싶어요 참여는 팬 기자가 작성한 뉴스 리포트에서 진행됩니다.",
+          detailTitle: "팬 리포트에서 모인 관심으로 원본 브이로그가 열립니다",
           eyebrow: "팬 오픈 진행",
           label: "원본 오픈",
           sceneLabel: "티저",
@@ -195,14 +197,16 @@ function getCopy(locale: Locale) {
         source: "Source",
         sourceReveal: {
           bodyLocked: (remaining: string) =>
-            `${remaining} more fan${remaining === "1" ? "" : "s"} to open`,
+            `${remaining} fan${remaining === "1" ? "" : "s"} left from reports`,
           bodyReady: "Source opened by fans",
           complete: "Opened",
           detailBody:
-            "Preview the mood through several teaser cuts, then tap want to watch to help open the source vlog.",
+            "Preview the mood through several teaser cuts, then keep track of open progress gathered from fan reports.",
           detailEyebrow: "FanLetter fan open",
           detailMeta: "Teaser cuts first",
-          detailTitle: "The source vlog opens as fans want to watch it",
+          detailNote:
+            "Want-to-watch participation happens from fan reporter news reports.",
+          detailTitle: "Fan report interest opens the source vlog",
           eyebrow: "Fan open progress",
           label: "Source open",
           sceneLabel: "Teaser",
@@ -396,13 +400,11 @@ function getUniqueImageUrls(urls: Array<string | null | undefined>) {
 
 function NewsVlogSourceRevealTeaser({
   blurred,
-  connectHref,
   content,
   locale,
   sourceReveal,
 }: {
   blurred: boolean;
-  connectHref: string;
   content: FanletterPublicContentDetail;
   locale: Locale;
   sourceReveal: FanletterNewsSourceRevealState;
@@ -528,16 +530,31 @@ function NewsVlogSourceRevealTeaser({
             percent={progressPercent}
             unlocked={sourceReveal.unlocked}
           />
-          <FanletterNewsSourceRevealVote
-            className="mt-4"
-            connectHref={connectHref}
-            density="compact"
-            initialState={sourceReveal}
-            locale={locale}
-            sourceRevealEndpoint={`/api/fanletter/news-vlogs/${encodeURIComponent(
-              content.contentId,
-            )}/source-reveal`}
-          />
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg border border-white/10 bg-white/8 px-3 py-2">
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/42">
+                {copy.sourceReveal.label}
+              </p>
+              <p className="mt-1 text-lg font-black text-white">
+                {countLabel}/{thresholdLabel}
+              </p>
+            </div>
+            <div className="rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/10 px-3 py-2">
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                {sourceReveal.unlocked
+                  ? copy.sourceReveal.complete
+                  : copy.sourceReveal.eyebrow}
+              </p>
+              <p className="mt-1 text-sm font-black leading-5 text-white">
+                {sourceReveal.unlocked
+                  ? copy.sourceReveal.bodyReady
+                  : copy.sourceReveal.bodyLocked(remainingLabel)}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs font-semibold leading-5 text-white/52">
+            {copy.sourceReveal.detailNote}
+          </p>
         </div>
       </div>
     </div>
@@ -1531,7 +1548,6 @@ export function FanletterNewsVlogDetailPage({
               {sourceRevealLocked ? (
                 <NewsVlogSourceRevealTeaser
                   blurred={sourceRevealTeaserBlurred}
-                  connectHref={connectHref}
                   content={content}
                   locale={locale}
                   sourceReveal={sourceReveal}
