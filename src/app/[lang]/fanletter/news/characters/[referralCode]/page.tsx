@@ -80,7 +80,6 @@ function getCopy(locale: Locale) {
           traits: "페르소나 키워드",
         },
         cta: {
-          creator: "전체 캐릭터 채널",
           latestNews: "최신 뉴스 읽기",
           publicVlogs: "공개 브이로그 보기",
           request: "팬 요청 남기기",
@@ -168,7 +167,6 @@ function getCopy(locale: Locale) {
           traits: "Persona keywords",
         },
         cta: {
-          creator: "Full character channel",
           latestNews: "Read latest news",
           publicVlogs: "Public vlogs",
           request: "Leave a fan request",
@@ -852,10 +850,6 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
-  const creatorHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${data.profile.referralCode}`,
-    effectiveReferralCode,
-  );
   const publicVlogsHref = buildPathWithReferral(
     `/${locale}/fanletter/creator/${data.profile.referralCode}/vlogs`,
     effectiveReferralCode,
@@ -1057,7 +1051,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 ))}
               </div>
 
-              <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-[1fr_auto_auto]">
+              <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-[1fr_auto]">
                 <Link
                   className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
                   href={latestNewsHref}
@@ -1075,13 +1069,6 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   title={copy.hero.shareTitle(characterName)}
                   trackingSource="fanletter-news-character-channel"
                 />
-                <Link
-                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/18 px-4 py-2.5 text-sm font-black !text-white transition hover:border-white/40"
-                  href={creatorHref}
-                >
-                  <MessageCircleHeart className="size-4 text-[#44f26e]" />
-                  {copy.cta.creator}
-                </Link>
               </div>
             </div>
           </div>
